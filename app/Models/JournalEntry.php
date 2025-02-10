@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Models;
+
+use Faker\Provider\ar_EG\Payment;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class JournalEntry extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'reference_number',
+        'date',
+        'description',
+        'status',
+        'currency',
+        'attachment',
+        'client_id',
+        'employee_id',
+        'invoice_id',
+        'cost_center_id',
+        'created_by_employee',
+        'approved_by_employee'
+    ];
+
+    protected $casts = [
+        'date' => 'date',
+        'status' => 'integer'
+    ];
+
+    // العلاقة مع التفاصيل
+    public function details()
+    {
+        return $this->hasMany(JournalEntryDetail::class);
+    }
+
+
+    // العلاقة مع العميل
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    // العلاقة مع الموظف
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    // العلاقة مع الفاتورة
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    // العلاقة مع مركز التكلفة
+    public function costCenter()
+    {
+        return $this->belongsTo(CostCenter::class);
+    }
+
+    // العلاقة مع الموظف الذي أنشأ القيد
+    public function createdByEmployee()
+    {
+        return $this->belongsTo(User::class, 'created_by_employee');
+    }
+
+    // العلاقة مع الموظف الذي اعتمد القيد
+    public function approvedByEmployee()
+    {
+        return $this->belongsTo(User::class, 'approved_by_employee');
+    }
+
+    // العلاقة مع المدفوعات
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    // دالة مساعدة لحالة القيد
+    public function getStatusTextAttribute()
+    {
+        return match($this->status) {
+            0 => 'معلق',
+            1 => 'معتمد',
+            2 => 'مرفوض',
+            default => 'غير معروف'
+        };
+    }
+
+    // دالة للتحقق من توازن القيد
+    public function isBalanced()
+    {
+        $totalDebit = $this->details()->sum('debit');
+        $totalCredit = $this->details()->sum('credit');
+        return $totalDebit == $totalCredit;
+    }
+}

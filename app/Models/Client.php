@@ -1,0 +1,219 @@
+<?php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Client extends Model
+{
+    protected $table = 'clients';
+    protected $primaryKey = 'id';
+    public $timestamps = true;
+
+    // الحقول القابلة للتعبئة
+    protected $fillable = [
+        'trade_name',
+        'first_name',
+        'last_name',
+        'phone',
+        'mobile',
+        'street1',
+        'street2',
+        'category',
+        'city',
+        'region',
+        'postal_code',
+        'country',
+        'tax_number',
+        'commercial_registration',
+        'credit_limit',
+        'credit_period',
+        'printing_method',
+        'opening_balance',
+        'opening_balance_date',
+        'code',
+        'currency',
+        'email',
+        'client_type',
+        'notes',
+        'attachments',
+        'employee_id'
+    ];
+
+    // العلاقة مع المواعيد
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function getFullAddressAttribute()
+    {
+        $address = [];
+        if ($this->street1) {
+            $address[] = $this->street1;
+        }
+        if ($this->street2) {
+            $address[] = $this->street2;
+        }
+        if ($this->city) {
+            $address[] = $this->city;
+        }
+        if ($this->region) {
+            $address[] = $this->region;
+        }
+        if ($this->postal_code) {
+            $address[] = $this->postal_code;
+        }
+        if ($this->country) {
+            $address[] = $this->country;
+        }
+
+        return implode(', ', $address);
+    }
+    // العلاقة مع ملاحظات المواعيد
+    public function appointmentNotes()
+    {
+        return $this->hasMany(AppointmentNote::class);
+    }
+
+    // العلاقات
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'client_id', 'id')->orderBy('invoice_date', 'desc');
+    }
+
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class, 'client_id', 'id');
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(PaymentsProcess::class, 'client_id', 'id');
+    }
+
+    public function cheques()
+    {
+        return $this->hasMany(ChequesCycle::class, 'client_id', 'id');
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
+    public function contacts()
+    {
+        return $this->hasMany(Contact::class);
+    }
+
+    // العلاقة مع CreditNotification
+    public function creditNotifications()
+    {
+        return $this->hasMany(CreditNotification::class, 'client_id');
+    }
+
+
+    // العلاقة مع JournalEntry
+    public function journalEntries()
+    {
+        return $this->hasMany(JournalEntry::class, 'client_id', 'id');
+    }
+
+    // Accessors
+    public function getBalanceAttribute()
+    {
+        $invoicesTotal = $this->invoices()->sum('grand_total') ?? 0;
+        $paymentsTotal = $this->payments()->sum('amount') ?? 0;
+        return $invoicesTotal - $paymentsTotal;
+    }
+
+    public function getTotalInvoicesAttribute()
+    {
+        return $this->invoices()->sum('grand_total') ?? 0;
+    }
+
+    public function getTotalPaymentsAttribute()
+    {
+        return $this->payments()->sum('amount') ?? 0;
+    }
+
+    public function getStatusAttribute()
+    {
+        // التحقق من حالة العميل باستخدام حقل deleted_at
+        // إذا كان deleted_at فارغ فالعميل نشط
+        return $this->deleted_at === null;
+    }
+
+    // دالة لجلب حركة الحساب
+    public function getTransactionsAttribute()
+    {
+        $transactions = collect();
+
+        // إضافة الفواتير
+        $this->invoices->each(function ($invoice) use ($transactions) {
+            $transactions->push([
+                'date' => $invoice->invoice_date,
+                'type' => 'فاتورة',
+                'number' => $invoice->invoice_number,
+                'amount' => $invoice->grand_total,
+                'balance' => 0, // سيتم حسابه لاحقاً
+                'notes' => $invoice->notes
+            ]);
+        });
+
+        // إضافة المدفوعات
+        $this->payments->each(function ($payment) use ($transactions) {
+            $transactions->push([
+                'date' => $payment->payment_date,
+                'type' => 'دفعة',
+                'number' => $payment->payment_number,
+                'amount' => -$payment->amount, // سالب لأنها دفعة
+                'balance' => 0, // سيتم حسابه لاحقاً
+                'notes' => $payment->notes
+            ]);
+        });
+
+        // ترتيب المعاملات حسب التاريخ
+        $transactions = $transactions->sortBy('date');
+
+        // حساب الرصيد التراكمي
+        $balance = $this->opening_balance ?? 0;
+        $transactions->transform(function ($transaction) use (&$balance) {
+            $balance += $transaction['amount'];
+            $transaction['balance'] = $balance;
+            return $transaction;
+        });
+
+        return $transactions;
+    }
+
+    // Boot method to handle cascading deletes
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function($client) {
+            // حذف الفواتير المرتبطة
+            $client->invoices()->delete();
+
+            // حذف السندات المرتبطة
+            $client->receipts()->delete();
+
+            // حذف المدفوعات المرتبطة
+            $client->payments()->delete();
+
+            // حذف الشيكات المرتبطة
+
+            // حذف إشعارات الائتمان المرتبطة
+            $client->creditNotifications()->delete();
+
+            // حذف مدخلات المجلة المرتبطة
+            $client->journalEntries()->delete();
+        });
+    }
+
+    public function getFullNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
+}

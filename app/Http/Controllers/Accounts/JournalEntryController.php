@@ -1,0 +1,347 @@
+<?php
+
+namespace App\Http\Controllers\Accounts;
+
+use App\Http\Controllers\Controller;
+use App\Models\Account;
+use App\Models\ChartOfAccount;
+use App\Models\Client;
+use App\Models\Employee;
+use App\Models\CostCenter;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
+class JournalEntryController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = JournalEntry::with(['details.account', 'client', 'costCenter', 'createdByEmployee']);
+
+        // البحث حسب التاريخ
+        if ($request->has('from_date') && $request->has('to_date')) {
+            $query->whereBetween('date', [$request->from_date, $request->to_date]);
+        }
+
+        // البحث حسب الحالة
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // البحث حسب الرقم المرجعي
+        if ($request->has('reference_number')) {
+            $query->where('reference_number', 'like', '%' . $request->reference_number . '%');
+        }
+
+        $entries = $query->latest()->paginate(10);
+
+        return view('Accounts.journal.index', compact('entries'));
+    }
+
+    public function create()
+    {
+        $journalEntry = JournalEntry::all();
+        $accounts = ChartOfAccount::all();
+        $clients = Client::all();
+        $employees = Employee::all();
+        $costCenters = CostCenter::all();
+
+        return view('Accounts.journal.create', compact('accounts', 'clients', 'employees', 'costCenters', 'journalEntry'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'journal_entry.date' => 'required|date',
+            'journal_entry.description' => 'required|string|max:500',
+            'journal_entry.reference_number' => 'nullable|string|max:50',
+            'journal_entry.client_id' => 'nullable|exists:clients,id',
+            'journal_entry.cost_center_id' => 'nullable|exists:cost_centers,id',
+            'journal_entry.currency' => 'nullable|string|max:10',
+            'journal_entry.attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'details' => 'required|array|min:1',
+            'details.*.account_id' => 'required|exists:chart_of_accounts,id',
+            'details.*.description' => 'nullable|string|max:255',
+            'details.*.debit' => 'required_without:details.*.credit|numeric|min:0',
+            'details.*.credit' => 'required_without:details.*.debit|numeric|min:0',
+            'details.*.cost_center_id' => 'nullable|exists:cost_centers,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // التحقق من توازن القيد
+            $totalDebit = collect($request->details)->sum('debit');
+            $totalCredit = collect($request->details)->sum('credit');
+
+            if ($totalDebit != $totalCredit) {
+                return back()
+                    ->withErrors(['message' => 'مجموع المدين يجب أن يساوي مجموع الدائن'])
+                    ->withInput();
+            }
+
+            // إنشاء القيد
+            $journalEntry = new JournalEntry();
+            $journalEntry->date = $request->input('journal_entry.date');
+            $journalEntry->description = $request->input('journal_entry.description');
+            $journalEntry->reference_number = $request->input('journal_entry.reference_number');
+            $journalEntry->status = 0; // معلق
+            $journalEntry->client_id = $request->input('journal_entry.client_id');
+            $journalEntry->cost_center_id = $request->input('journal_entry.cost_center_id');
+            $journalEntry->currency = $request->input('journal_entry.currency', 'SAR');
+            $journalEntry->created_by_employee = auth()->id();
+
+            // معالجة المرفق
+            if ($request->hasFile('journal_entry.attachment')) {
+                $file = $request->file('journal_entry.attachment');
+                if ($file->isValid()) {
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('assets/uploads/journal'), $filename);
+                    $journalEntry->attachment = $filename;
+                }
+            }
+
+            $journalEntry->save();
+
+            // إضافة التفاصيل
+            foreach ($request->details as $detail) {
+                if (!empty($detail['debit']) || !empty($detail['credit'])) {
+                    JournalEntryDetail::create([
+                        'journal_entry_id' => $journalEntry->id,
+                        'account_id' => $detail['account_id'],
+                        'description' => $detail['description'] ?? null,
+                        'debit' => $detail['debit'] ?? 0,
+                        'credit' => $detail['credit'] ?? 0,
+                        'cost_center_id' => $detail['cost_center_id'] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('journal.index')->with('success', 'تم إنشاء القيد المحاسبي بنجاح');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()
+                ->withErrors(['message' => 'حدث خطأ أثناء حفظ القيد: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+
+    public function show($id)
+    {
+        $entry = JournalEntry::with(['details.account'])->findOrFail($id);
+
+        return view('Accounts.journal.show', compact('entry'));
+    }
+
+
+    public function edit($id)
+    {
+        $entry = JournalEntry::findOrFail($id);
+
+        $accounts = Account::all();
+        $clients = Client::all();
+        $employees = Employee::all();
+        $costCenters = CostCenter::all();
+
+        return view('Accounts.journal.edit', compact('entry', 'accounts', 'clients', 'employees', 'costCenters'));
+    }
+
+    public function update(Request $request, JournalEntry $entry)
+    {
+        if ($entry->status != 0) {
+            return back()->with('error', 'لا يمكن تعديل القيد بعد اعتماده أو رفضه');
+        }
+
+        $request->validate([
+            'journal_entry.date' => 'required|date',
+            'journal_entry.description' => 'required|string|max:500',
+            'journal_entry.reference_number' => 'nullable|string|max:50',
+            'journal_entry.client_id' => 'nullable|exists:clients,id',
+            'journal_entry.cost_center_id' => 'nullable|exists:cost_centers,id',
+            'journal_entry.currency' => 'nullable|string|max:10',
+            'journal_entry.attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'details' => 'required|array|min:1',
+            'details.*.account_id' => 'required|exists:chart_of_accounts,id',
+            'details.*.description' => 'nullable|string|max:255',
+            'details.*.debit' => 'required_without:details.*.credit|numeric|min:0',
+            'details.*.credit' => 'required_without:details.*.debit|numeric|min:0',
+            'details.*.cost_center_id' => 'nullable|exists:cost_centers,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // التحقق من توازن القيد
+            $totalDebit = collect($request->details)->sum('debit');
+            $totalCredit = collect($request->details)->sum('credit');
+
+            if ($totalDebit != $totalCredit) {
+                return back()
+                    ->withErrors(['message' => 'مجموع المدين يجب أن يساوي مجموع الدائن'])
+                    ->withInput();
+            }
+
+            // تحديث القيد
+            $entry->date = $request->input('journal_entry.date');
+            $entry->description = $request->input('journal_entry.description');
+            $entry->reference_number = $request->input('journal_entry.reference_number');
+            $entry->client_id = $request->input('journal_entry.client_id');
+            $entry->cost_center_id = $request->input('journal_entry.cost_center_id');
+            $entry->currency = $request->input('journal_entry.currency', 'SAR');
+
+            // معالجة المرفق
+            $attachmentPath = $entry->attachment;
+            if ($request->hasFile('journal_entry.attachment')) {
+                // حذف المرفق القديم
+                if ($attachmentPath) {
+                    Storage::disk('public')->delete($attachmentPath);
+                }
+                $attachmentPath = $request->file('journal_entry.attachment')->store('journal_entries', 'public');
+            }
+
+            $entry->attachment = $attachmentPath;
+            $entry->save();
+
+            // حذف التفاصيل القديمة
+            $entry->details()->delete();
+
+            // إضافة التفاصيل الجديدة
+            foreach ($request->details as $detail) {
+                if (!empty($detail['debit']) || !empty($detail['credit'])) {
+                    JournalEntryDetail::create([
+                        'journal_entry_id' => $entry->id,
+                        'account_id' => $detail['account_id'],
+                        'description' => $detail['description'] ?? null,
+                        'debit' => $detail['debit'] ?? 0,
+                        'credit' => $detail['credit'] ?? 0,
+                        'cost_center_id' => $detail['cost_center_id'] ?? null,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('journal.show', $entry->id)
+                ->with('success', 'تم تحديث القيد المحاسبي بنجاح');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()
+                ->withErrors(['message' => 'حدث خطأ أثناء تحديث القيد: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+
+    public function approve(JournalEntry $entry)
+    {
+        if ($entry->status != 0) {
+            return back()->with('error', 'لا يمكن اعتماد القيد - الحالة غير معلقة');
+        }
+
+        try {
+            $entry->update([
+                'status' => 1, // معتمد
+                'approved_by_employee' => auth()->id(),
+            ]);
+
+            return back()->with('success', 'تم اعتماد القيد بنجاح');
+        } catch (\Exception $e) {
+            return back()->with('error', 'حدث خطأ أثناء اعتماد القيد: ' . $e->getMessage());
+        }
+    }
+
+    public function reject(JournalEntry $entry)
+    {
+        if ($entry->status != 0) {
+            return back()->with('error', 'لا يمكن رفض القيد - الحالة غير معلقة');
+        }
+
+        try {
+            $entry->update([
+                'status' => 2, // مرفوض
+                'approved_by_employee' => auth()->id(),
+            ]);
+
+            return back()->with('success', 'تم رفض القيد بنجاح');
+        } catch (\Exception $e) {
+            return back()->with('error', 'حدث خطأ أثناء رفض القيد: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(JournalEntry $entry)
+    {
+        if ($entry->status != 0) {
+            return back()->with('error', 'لا يمكن حذف القيد بعد اعتماده أو رفضه');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // حذف المرفق إذا وجد
+            if ($entry->attachment) {
+                Storage::disk('public')->delete($entry->attachment);
+            }
+
+            // حذف التفاصيل والقيد
+            $entry->details()->delete();
+            $entry->delete();
+
+            DB::commit();
+
+            return redirect()->route('journal.index')->with('success', 'تم حذف القيد المحاسبي بنجاح');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'حدث خطأ أثناء حذف القيد: ' . $e->getMessage());
+        }
+    }
+
+    public function record_modifications(Request $request)
+    {
+        // نجلب تفاصيل القيود مع القيود المعلقة
+        $query = JournalEntryDetail::with(['account', 'journalEntry.client', 'journalEntry.costCenter', 'journalEntry.createdByEmployee'])
+            ->whereHas('journalEntry')
+            ->orWhereNull('journal_entry_id')
+            ->latest();
+
+        // تطبيق الفلاتر
+        if ($request->filled('account_id')) {
+            $query->where('account_id', $request->account_id);
+        }
+
+        if ($request->filled('description')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('description', 'like', '%' . $request->description . '%')->orWhereHas('journalEntry', function ($q) use ($request) {
+                    $q->where('description', 'like', '%' . $request->description . '%');
+                });
+            });
+        }
+
+        if ($request->filled('from_date')) {
+            $query->whereHas('journalEntry', function ($q) use ($request) {
+                $q->whereDate('date', '>=', $request->from_date);
+            });
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereHas('journalEntry', function ($q) use ($request) {
+                $q->whereDate('date', '<=', $request->to_date);
+            });
+        }
+
+        if ($request->filled('employee_id')) {
+            $query->whereHas('journalEntry', function ($q) use ($request) {
+                $q->where('created_by_employee', $request->employee_id);
+            });
+        }
+
+        $entries = $query->paginate(20);
+        $accounts = ChartOfAccount::all();
+        $employees = Employee::all();
+
+        return view('Accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
+    }
+}
