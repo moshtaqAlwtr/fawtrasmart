@@ -14,6 +14,7 @@ use App\Http\Controllers\Sales\RevolvingInvoicesController;
 
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
+use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\Sales\OffersController;
 use App\Http\Controllers\Sales\PaymentClientController;
 use App\Http\Controllers\Sales\PaymentProcessController;
@@ -209,5 +210,15 @@ Route::group(
         //         Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
         //         Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
         //     });
+
+//العمولة
+          Route::prefix('commission')
+            ->middleware(['auth'])
+            ->group(function () {
+                Route::get('/index', [CommissionController::class, 'index'])->name('commission.index');
+                Route::get('/create', [CommissionController::class, 'create'])->name('commission.create');
+                Route::post('/create', [CommissionController::class, 'create'])->name('commission.store');
+                
+            });
     },
 );
