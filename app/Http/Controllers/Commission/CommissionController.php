@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Commission;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class CommissionController extends Controller
@@ -14,7 +15,8 @@ class CommissionController extends Controller
 
     public function create()
     {
-         return view('commission.create');
+         $employees = Employee::select('id', 'first_name')->get();
+         return view('commission.create', compact('employees'));
     }
 
     public function store(Request $request)
