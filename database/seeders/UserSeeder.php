@@ -26,6 +26,16 @@ class UserSeeder extends Seeder
                 'phone' => '0966123456789'
             ]
         );
+        $user = User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'مشتاق قايد الوتر ',
+                'email' => 'mashtaq@gmail.com',
+                'password' => Hash::make('123455'),
+                'role' => 'manager',
+                'phone' => '0534781240'
+            ]
+        );
         $role = Role::create(['name' => 'manager']);
         $permissions = Permission::pluck('id','id')->all();
         $role->syncPermissions($permissions);
