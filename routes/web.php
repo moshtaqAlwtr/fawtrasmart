@@ -201,13 +201,13 @@ Route::group(
                 });
             });
 
-        // Route::prefix('accounts')
-        //     ->middleware(['auth'])
-        //     ->group(function () {
-        //         Route::get('/tree', [AccountsChartController::class, 'getTree'])->name('accounts.tree');
-        //         Route::get('/showDetails/{id}', [AccountsChartController::class, 'showDetails'])->name('account.showDetails');
-        //         Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
-        //         Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
-        //     });
+        Route::prefix('accounts')
+            ->middleware(['auth'])
+            ->group(function () {
+                Route::get('/tree', [AccountsChartController::class, 'getTree'])->name('accounts.tree');
+                Route::get('/accounts/accounts_chart/showDetails/{id}', [AccountsChartController::class, 'showDetails'])->name('accounts.showDetails');
+                Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
+                Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
+            });
     },
 );

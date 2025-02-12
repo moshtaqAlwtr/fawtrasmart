@@ -5,6 +5,7 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClientRequest;
+use App\Models\Account;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\AppointmentNote;
@@ -32,40 +33,68 @@ class ClientController extends Controller
     }
 
     public function store(ClientRequest $request)
-    {
-        $data_request = $request->except('_token');
+{
+    $data_request = $request->except('_token');
 
-        // إنشاء العميل
-        $client = new Client();
+    // إنشاء العميل
+    $client = new Client();
 
-        // إضافة الكود تلقائيًا
-        $lastClient = Client::orderBy('code', 'desc')->first();
-        $client->code = $lastClient ? $lastClient->code + 1 : 1;
+    // إضافة الكود تلقائيًا
+    $lastClient = Client::orderBy('code', 'desc')->first();
+    $client->code = $lastClient ? $lastClient->code + 1 : 1;
 
-        $client->fill($data_request);
+    $client->fill($data_request);
 
-        // معالجة الصورة
-        if ($request->hasFile('attachments')) {
-            $file = $request->file('attachments');
-            if ($file->isValid()) {
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('assets/uploads/'), $filename);
-                $client->attachments = $filename;
-            }
+    // معالجة الصورة
+    if ($request->hasFile('attachments')) {
+        $file = $request->file('attachments');
+        if ($file->isValid()) {
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/uploads/'), $filename);
+            $client->attachments = $filename;
         }
-
-        // حفظ العميل
-        $client->save();
-
-        // حفظ جهات الاتصال المرتبطة بالعميل
-        if ($request->has('contacts') && is_array($request->contacts)) {
-            foreach ($request->contacts as $contact) {
-                $client->contacts()->create($contact);
-            }
-        }
-
-        return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
+
+    // حفظ العميل
+    $client->save();
+
+    // إنشاء حساب فرعي باستخدام trade_name
+    $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
+    if ($customers) {
+        $customerAccount = new Account();
+        $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
+
+        // تعيين كود الحساب الفرعي بناءً على كود الحسابات
+        $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+        $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
+        $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
+
+        $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
+        $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
+        $customerAccount->is_active = false;
+        $customerAccount->save();
+    }
+
+    // حفظ جهات الاتصال المرتبطة بالعميل
+    if ($request->has('contacts') && is_array($request->contacts)) {
+        foreach ($request->contacts as $contact) {
+            $client->contacts()->create($contact);
+        }
+    }
+
+    return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
+}
+
+// إضافة هذه الدالة في نفس وحدة التحكم
+private function generateNextCode(string $lastChildCode): string
+{
+    // استخراج الرقم الأخير من الكود
+    $lastNumber = intval(substr($lastChildCode, -1));
+    // زيادة الرقم الأخير بمقدار 1
+    $newNumber = $lastNumber + 1;
+    // إعادة بناء الكود مع الرقم الجديد
+    return substr($lastChildCode, 0, -1) . $newNumber;
+}
 
     public function update(ClientRequest $request, $id)
     {

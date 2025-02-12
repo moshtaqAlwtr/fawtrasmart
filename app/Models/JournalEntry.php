@@ -5,6 +5,7 @@ namespace App\Models;
 use Faker\Provider\ar_EG\Payment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use PhpOffice\PhpSpreadsheet\Calculation\Financial\CashFlow\Constant\Periodic\Payments;
 
 class JournalEntry extends Model
 {
@@ -31,10 +32,6 @@ class JournalEntry extends Model
     ];
 
     // العلاقة مع التفاصيل
-    public function details()
-    {
-        return $this->hasMany(JournalEntryDetail::class);
-    }
 
 
     // العلاقة مع العميل
@@ -42,6 +39,10 @@ class JournalEntry extends Model
     {
         return $this->belongsTo(Client::class);
     }
+    public function details()
+{
+    return $this->hasMany(JournalEntryDetail::class, 'journal_entry_id');
+}
 
     // العلاقة مع الموظف
     public function employee()
@@ -76,8 +77,15 @@ class JournalEntry extends Model
     // العلاقة مع المدفوعات
     public function payments()
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Payments::class);
     }
+
+    public function account()//+
+    {//+
+        return $this->belongsTo(Account::class, 'account_id'); // Adjust the foreign key if necessary//+
+    }//+
+
+
 
     // دالة مساعدة لحالة القيد
     public function getStatusTextAttribute()

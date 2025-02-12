@@ -1,7 +1,7 @@
 <?php
 
 
-use App\Http\Controllers\ReservationsController;
+use App\Http\Controllers\Reservations\ReservationsController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -35,7 +35,7 @@ Route::group(
 
 
 
-           
+
             Route::prefix('Reservations')->group(function () {
                 Route::get('/index', [ReservationsController::class, 'index'])->name('Reservations.index');
                 Route::get('/create', [ReservationsController::class, 'create'])->name('Reservations.create');

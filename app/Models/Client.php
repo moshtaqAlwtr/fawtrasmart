@@ -10,34 +10,7 @@ class Client extends Model
     public $timestamps = true;
 
     // الحقول القابلة للتعبئة
-    protected $fillable = [
-        'trade_name',
-        'first_name',
-        'last_name',
-        'phone',
-        'mobile',
-        'street1',
-        'street2',
-        'category',
-        'city',
-        'region',
-        'postal_code',
-        'country',
-        'tax_number',
-        'commercial_registration',
-        'credit_limit',
-        'credit_period',
-        'printing_method',
-        'opening_balance',
-        'opening_balance_date',
-        'code',
-        'currency',
-        'email',
-        'client_type',
-        'notes',
-        'attachments',
-        'employee_id'
-    ];
+    protected $fillable = ['trade_name', 'first_name', 'last_name', 'phone', 'mobile', 'street1', 'street2', 'category', 'city', 'region', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id'];
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -111,19 +84,26 @@ class Client extends Model
         return $this->hasMany(CreditNotification::class, 'client_id');
     }
 
-
     // العلاقة مع JournalEntry
     public function journalEntries()
     {
         return $this->hasMany(JournalEntry::class, 'client_id', 'id');
     }
 
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
     // Accessors
     public function getBalanceAttribute()
     {
         $invoicesTotal = $this->invoices()->sum('grand_total') ?? 0;
         $paymentsTotal = $this->payments()->sum('amount') ?? 0;
         return $invoicesTotal - $paymentsTotal;
+    }
+    public function supplyOrders()
+    {
+        return $this->hasMany(SupplyOrder::class, 'client_id');
     }
 
     public function getTotalInvoicesAttribute()
@@ -156,7 +136,7 @@ class Client extends Model
                 'number' => $invoice->invoice_number,
                 'amount' => $invoice->grand_total,
                 'balance' => 0, // سيتم حسابه لاحقاً
-                'notes' => $invoice->notes
+                'notes' => $invoice->notes,
             ]);
         });
 
@@ -168,7 +148,7 @@ class Client extends Model
                 'number' => $payment->payment_number,
                 'amount' => -$payment->amount, // سالب لأنها دفعة
                 'balance' => 0, // سيتم حسابه لاحقاً
-                'notes' => $payment->notes
+                'notes' => $payment->notes,
             ]);
         });
 
@@ -191,7 +171,7 @@ class Client extends Model
     {
         parent::boot();
 
-        static::deleting(function($client) {
+        static::deleting(function ($client) {
             // حذف الفواتير المرتبطة
             $client->invoices()->delete();
 
@@ -215,5 +195,4 @@ class Client extends Model
     {
         return trim("{$this->first_name} {$this->last_name}");
     }
-
 }

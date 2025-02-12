@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // إضافة إعدادات التليجرام
+    'telegram' => [
+        'bot_token' => env('7093756483:AAHAfj6De8SsRRZlYZooSvR36tMb9-WMIDk'), // توكن البوت
+        'chat_id' => env('1771890972'),    // معرف المحادثة (Chat ID)
+        'api_url' => 'https://api.telegram.org/bot', // رابط API التليجرام
+    ],
+
 ];

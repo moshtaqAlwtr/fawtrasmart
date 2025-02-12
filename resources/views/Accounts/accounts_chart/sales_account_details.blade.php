@@ -128,7 +128,7 @@
                             @endphp
                             <tr class="entry-row" data-entry-id="{{ $entry->id }}">
                                 <td>
-                                    <a href="javascript:void(0)" class="font-weight-bold show-details">
+                                    <a href="#" class="font-weight-bold" data-bs-toggle="modal" data-bs-target="#entryDetailsModal{{ $entry->id }}">
                                         {{ $entry->id }} - {{ $entry->created_at }}
                                     </a>
                                     <div class="text-muted">{{ $entry->invoice_number }}</div>
@@ -138,91 +138,30 @@
                                 <td class="text-success">{{ number_format($entry->credit, 2) }}</td>
                                 <td class="font-weight-bold">{{ number_format($totalBalance, 2) }}</td>
                             </tr>
+
+                            <!-- Modal for each entry -->
+                            <div class="modal fade" id="entryDetailsModal{{ $entry->id }}" tabindex="-1" role="dialog" aria-labelledby="entryDetailsModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="entryDetailsModalLabel">تفاصيل الحساب</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            @include('accounts.journal.pdf', ['entry' => $entry]) <!-- تأكد من أن هذا الملف لا يستخدم journal_id -->
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         @endforeach
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="entryDetailsModal" tabindex="-1" role="dialog" aria-labelledby="entryDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="entryDetailsModalLabel">تفاصيل الحساب</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>الحساب</th>
-                                    <th>مركز التكلفة</th>
-                                    <th>الوصف</th>
-                                    <th>مدين</th>
-                                    <th>دائن</th>
-                                </tr>
-                            </thead>
-                            <tbody id="journalEntryDetails"></tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="3">الإجمالي</th>
-                                    <th id="totalDebit">0.00</th>
-                                    <th id="totalCredit">0.00</th>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const entryRows = document.querySelectorAll('.entry-row');
-            entryRows.forEach(row => {
-                row.addEventListener('click', function() {
-                    const entryId = this.getAttribute('data-entry-id');
-
-                    // إظهار المودال مباشرة
-                    const modal = new bootstrap.Modal(document.getElementById('entryDetailsModal'));
-                    modal.show();
-
-                    // جلب البيانات من السيرفر
-                    fetch(`/accounts/entry/${entryId}/details`)
-                        .then(response => response.json())
-                        .then(data => {
-                            // تعبئة الجدول بالبيانات
-                            let detailsHtml = '';
-                            data.entries.forEach(entry => {
-                                detailsHtml += `
-                                    <tr>
-                                        <td>${entry.account ? entry.account.name : ''}</td>
-                                        <td>${entry.cost_center || ''}</td>
-                                        <td>${entry.description || ''}</td>
-                                        <td>${parseFloat(entry.debit).toFixed(2)}</td>
-                                        <td>${parseFloat(entry.credit).toFixed(2)}</td>
-                                    </tr>
-                                `;
-                            });
-
-                            document.getElementById('journalEntryDetails').innerHTML = detailsHtml;
-                            document.getElementById('totalDebit').textContent = parseFloat(data.total_debit).toFixed(2);
-                            document.getElementById('totalCredit').textContent = parseFloat(data.total_credit).toFixed(2);
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('حدث خطأ أثناء جلب البيانات');
-                        });
-                });
-            });
-        });
-    </script>
 @endsection
 
 @section('scripts')
