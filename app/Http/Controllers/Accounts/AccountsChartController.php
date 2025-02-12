@@ -161,7 +161,7 @@ class AccountsChartController extends Controller
     {
         // $accounts = Account::with('children')->whereNull('parent_id')->get();
         $accounts = Account::with('children')->get();
-        return view('Accounts.accounts_chart.tree', compact('accounts'));
+        return view('accounts.accounts_chart.tree', compact('accounts'));
     }
 
     public function store_account(Request $request)
@@ -265,7 +265,7 @@ class AccountsChartController extends Controller
         // جلب البيانات الخاصة بالحساب
         $account = Account::findOrFail($id);
         $journalEntries = JournalEntryDetail::where('account_id', $id)->get();
-
+        $entries = JournalEntry::with(['details.account'])->findOrFail($id);
         // تحقق من وجود حركات للحساب
         if ($journalEntries->isEmpty()) {
             return redirect()->back()->with('error', 'لا توجد حركات لهذا الحساب.');
@@ -299,10 +299,11 @@ class AccountsChartController extends Controller
         $totalLiabilities = $journalEntries->where('category', 'الخصومات')->sum('debit');
 
         // إرسال البيانات إلى الـ View
-        return view('Accounts.accounts_chart.sales_account_details', [
+        return view('accounts.accounts_chart.sales_account_details', [
             'account' => $account,
             'journalEntries' => $journalEntries,
             'accountType' => $accountType,
+            'entries' => $entries,
             'totalBalance' => $totalBalance,
             'totalSales' => $totalSales,
             'totalVat' => $totalVat,
@@ -312,33 +313,6 @@ class AccountsChartController extends Controller
         ]);
     }
 
-    public function getEntryDetails($journalEntryId)
-    {
-        $entries = JournalEntryDetail::where('journal_entry_id', $journalEntryId)
-            ->with(['account', 'journalEntry'])
-            ->get();
-
-        if ($entries->isEmpty()) {
-            Log::warning("No entries found for journal entry ID: " . $journalEntryId);
-            return response()->json(['error' => 'Entry not found'], 404);
-        }
-
-        // تحقق من وجود حسابات مرتبطة
-        foreach ($entries as $entry) {
-            if (!$entry->account) {
-                Log::warning("Account not found for entry ID: " . $entry->id);
-            }
-        }
-xjlnsjc
-        $data = [
-            'entries' => $entries,
-            'total_debit' => $entries->sum('debit'),
-            'total_credit' => $entries->sum('credit'),
-            'journal_entry' => $entries->first()->journalEntry,
-        ];
-
-        return response()->json($data);
-    }
     public function getNextCode(Account $parent)
     {
         $lastChildCode = Account::where('parent_id', $parent->id)->max('code');
@@ -376,7 +350,6 @@ xjlnsjc
     //         ], 500);
     //     }
     // }
-
 
     public function getRootParent($accountId)
     {
@@ -536,13 +509,7 @@ xjlnsjc
             $account = Account::findOrFail($accountId);
 
             // جلب تفاصيل القيود مع القيود والفواتير
-            $entries = DB::table('journal_entry_details AS jed')
-                ->leftJoin('journal_entries AS je', 'jed.journal_entry_id', '=', 'je.id')
-                ->leftJoin('invoices AS inv', 'je.invoice_id', '=', 'inv.id')
-                ->where('jed.account_id', $accountId)
-                ->orderBy('je.date', 'desc')
-                ->select('jed.*', 'je.date', 'je.invoice_id', 'inv.id AS invoice_id')
-                ->paginate(10); // تحديد عدد الصفوف في كل صفحة
+            $entries = DB::table('journal_entry_details AS jed')->leftJoin('journal_entries AS je', 'jed.journal_entry_id', '=', 'je.id')->leftJoin('invoices AS inv', 'je.invoice_id', '=', 'inv.id')->where('jed.account_id', $accountId)->orderBy('je.date', 'desc')->select('jed.*', 'je.date', 'je.invoice_id', 'inv.id AS invoice_id')->paginate(10); // تحديد عدد الصفوف في كل صفحة
 
             Log::info('Fetched entries:', ['entries' => $entries]);
 
@@ -551,14 +518,14 @@ xjlnsjc
             $balance = 0;
             foreach ($entries as $entry) {
                 $balance += $entry->credit - $entry->debit;
-                $invoiceNumber = $entry->invoice_id ? "فاتورة #{$entry->invoice_id}" : "بدون فاتورة";
+                $invoiceNumber = $entry->invoice_id ? "فاتورة #{$entry->invoice_id}" : 'بدون فاتورة';
 
                 $data[] = [
                     'date' => $entry->date,
-                    'description' => $entry->description . " - " . $invoiceNumber,
+                    'description' => $entry->description . ' - ' . $invoiceNumber,
                     'debit' => $entry->debit,
                     'credit' => $entry->credit,
-                    'balance' => $balance
+                    'balance' => $balance,
                 ];
             }
 
@@ -569,17 +536,15 @@ xjlnsjc
                     'current_page' => $entries->currentPage(),
                     'last_page' => $entries->lastPage(),
                     'per_page' => $entries->perPage(),
-                    'total' => $entries->total()
-                ]
+                    'total' => $entries->total(),
+                ],
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error fetching account details:', ['error' => $e->getMessage()]);
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء جلب البيانات: ' . $e->getMessage() // إضافة تفاصيل الخطأ
+                'message' => 'حدث خطأ أثناء جلب البيانات: ' . $e->getMessage(), // إضافة تفاصيل الخطأ
             ]);
         }
     }
-
 }

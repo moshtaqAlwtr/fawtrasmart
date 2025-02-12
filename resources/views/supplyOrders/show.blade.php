@@ -4,19 +4,52 @@
     عرض امر تشغيل
 @stop
 
+@section('css')
+<style>
+    :root {
+        --soft-background: #f8f9fa;
+        --soft-primary: #6a89a0;
+        --soft-text: #495057;
+        --soft-border: #e9ecef;
+        --soft-muted: #adb5bd;
+    }
+
+    .card-custom {
+        background-color: var(--soft-background);
+        border: 1px solid var(--soft-border);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-radius: 12px;
+    }
+
+    .section-header {
+        color: var(--soft-primary);
+        border-bottom: 2px solid var(--soft-border);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .info-label {
+        color: var(--soft-muted);
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        color: var(--soft-text);
+        font-weight: 600;
+    }
+
+    .status-badge {
+        background-color: var(--soft-primary);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 6px;
+    }
+</style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+@endsection
 @section('content')
-    {{-- @if (session('toast_message'))
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        toastr.{{ session('toast_type', 'success') }}('{{ session('toast_message') }}', '', {
-            positionClass: 'toast-bottom-left',
-            closeButton: true,
-            progressBar: true,
-            timeOut: 5000
-        });
-    });
-</script>
-@endif --}}
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -35,18 +68,16 @@
         </div>
     </div>
     <div class="content-body">
-
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="text-end">
-                        <span>العميل: السواق أعمدة السلطان #203</span>
+                        <span class="h5">العميل: {{ $supplyOrder->client->trade_name }}</span>
                     </div>
-                    <div class="d-flex gap-2">
-
+                    <div class="d-flex gap-3">
+                        <!-- زر الحالة -->
                         <div class="dropdown">
-                            <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
+                            <button class="btn btn-light btn-md" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 اختر الحالة
                             </button>
                             <ul class="dropdown-menu">
@@ -54,15 +85,14 @@
                                 <li><a class="dropdown-item" href="#"><span class="badge bg-warning">تحت التجهيز</span></a></li>
                                 <li><a class="dropdown-item" href="#"><span class="badge bg-success">تم التسليم</span></a></li>
                                 <li><a class="dropdown-item" href="#"><span class="badge bg-danger">تم الدفع</span></a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('SupplyOrders.edit_status') }}"><i class="fas fa-cog"></i> تعديل قائمة الحالات</a></li>
                             </ul>
                         </div>
 
+                        <!-- زر الإضافة -->
                         <div class="dropdown">
-                            <button class="btn btn-success btn-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-success btn-md d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa fa-plus me-2"></i>اضافة
                             </button>
                             <ul class="dropdown-menu">
@@ -77,7 +107,7 @@
                                 <li><a class="dropdown-item" href="#">إذن صرف مخزن</a></li>
                                 <li><a class="dropdown-item" href="#">إضافة معاملة موجودة</a></li>
                                 <li><a class="dropdown-item" href="#">إضافة وقت</a></li>
-                                <li><a class="dropdown-item" href="{{route('journal.create')}}">إضافة قيد</a></
+                                <li><a class="dropdown-item" href="{{route('journal.create')}}">إضافة قيد</a></li>
                             </ul>
                         </div>
                     </div>
@@ -87,7 +117,6 @@
     </div>
 
     <div class="card">
-
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="d-flex gap-2">
@@ -115,12 +144,7 @@
                     <a href="#" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
                         <i class="fas fa-trash-alt me-1"></i> حذف
                     </a>
-
-
-
-
                 </div>
-
             </div>
 
             <ul class="nav nav-tabs" role="tablist">
@@ -148,108 +172,186 @@
                         سجل النشاطات <span class="badge badge-pill badge-info"></span>
                     </a>
                 </li>
-
-
             </ul>
             <div class="tab-content">
-                <!-- تبويب التفاصيل -->
                 <div class="tab-pane active" id="details" aria-labelledby="details-tab" role="tabpanel">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body">
-                            <!-- عنوان القسم -->
-                            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-                                <h6 class="text-primary fw-bold">معلومات عامة</h6>
-                                <span class="badge bg-primary fs-6">تفاصيل</span>
+                <div class="container-fluid p-4">
+                    <div class="card card-custom shadow-sm">
+                        <div class="card-header bg-white border-0 pt-4 pb-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="section-header mb-0 me-3">
+                                    <i class="bi bi-info-circle-fill me-2"></i>
+                                    تفاصيل أمر التوريد
+                                </h3>
+                                <span class="status-badge ms-3">
+                                    {{ match($supplyOrder->status) {
+                                        1 => 'مفتوح',
+                                        2 => 'مغلق',
+                                        3 => 'قيد التنفيذ',
+                                        default => 'غير محدد'
+                                    } }}
+                                </span>
                             </div>
+                        </div>
 
-                            <!-- معلومات عامة -->
-                            <div class="mb-4">
-                                <div class="d-flex align-items-center">
-                                    <h5 class="text-dark fw-bold mb-0">أسواق أغذية السلطان</h5>
-                                    <span class="badge bg-info ms-3">#870</span>
-                                    <span class="badge bg-success ms-2">1</span>
+                        <div class="card-body p-4">
+                            <!-- معلومات العميل -->
+                            <div class="row mb-4 align-items-center">
+                                <div class="col-12">
+                                    <h4 class="info-value mb-2">
+                                        <i class="bi bi-person-fill me-2"></i>
+                                        {{ $supplyOrder->client->name }}
+                                    </h4>
+                                    <p class="text-muted mb-0">
+                                        رقم أمر التوريد: #{{ $supplyOrder->id }}
+                                    </p>
                                 </div>
                             </div>
 
-                            <!-- جدول المعلومات -->
-                            <div class="row gy-3">
-                                <div class="col-md-2 text-secondary fw-bold">مسمى:</div>
-                                <div class="col-md-4">وظيفي</div>
-                                <div class="col-md-2 text-secondary fw-bold">رقم الأمر:</div>
-                                <div class="col-md-4">#1</div>
-
-                                <div class="col-md-2 text-secondary fw-bold">تاريخ الانتهاء:</div>
-                                <div class="col-md-4">25/12/2024</div>
-                                <div class="col-md-2 text-secondary fw-bold">تاريخ البدء:</div>
-                                <div class="col-md-4">25/12/2024</div>
-
-                                <div class="col-md-2 text-secondary fw-bold">الحالة:</div>
-                                <div class="col-md-4">-</div>
-                                <div class="col-md-2 text-secondary fw-bold">الميزانية:</div>
-                                <div class="col-md-4">-</div>
-
-                                <div class="col-md-2 text-secondary fw-bold">وسوم:</div>
-                                <div class="col-md-10">-</div>
-
-                                <div class="col-md-2 text-secondary fw-bold">الوصف:</div>
-                                <div class="col-md-10">اومر توريد</div>
-                            </div>
-
-                            <!-- معلومات الموظفين -->
-                            <div class="mt-5">
-                                <h6 class="text-primary fw-bold border-bottom pb-2">معلومات الموظفين المعنيين</h6>
-                                <p class="text-muted mt-2">-</p>
-                            </div>
-
-                            <!-- بيانات الشحنة -->
-                            <div class="mt-5">
-                                <h6 class="text-primary fw-bold border-bottom pb-2">بيانات الشحنة</h6>
-                                <div class="row gy-3 mt-3">
-                                    <div class="col-md-2 text-secondary fw-bold">بيانات المنتجات:</div>
-                                    <div class="col-md-10">عطورات</div>
-
-                                    <div class="col-md-2 text-secondary fw-bold">عنوان الشحن:</div>
-                                    <div class="col-md-10">الدمام</div>
-
-                                    <div class="col-md-2 text-secondary fw-bold">رقم التتبع:</div>
-                                    <div class="col-md-10">12</div>
-
-                                    <div class="col-md-2 text-secondary fw-bold">بوليصة الشحن:</div>
-                                    <div class="col-md-10">
-                                        <img src="{{ asset('path/to/shipping/image.jpg') }}" alt="بوليصة الشحن"
-                                            class="img-thumbnail" style="max-width: 200px;">
+                            <!-- معلومات أساسية -->
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="bg-white border rounded-3 p-3 h-100">
+                                        <h6 class="section-header">
+                                            <i class="bi bi-briefcase me-2"></i>
+                                            معلومات عامة
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <div class="info-label">رقم الأمر</div>
+                                                <div class="info-value">{{ $supplyOrder->order_number }}</div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="info-label">المسمى</div>
+                                                <div class="info-value">{{ $supplyOrder->name }}</div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="info-label">تاريخ البدء</div>
+                                                <div class="info-value">{{ $supplyOrder->start_date }}</div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="info-label">تاريخ الانتهاء</div>
+                                                <div class="info-value">{{ $supplyOrder->end_date }}</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <div class="col-md-6">
+                                    <div class="bg-white border rounded-3 p-3 h-100">
+                                        <h6 class="section-header">
+                                            <i class="bi bi-cash-coin me-2"></i>
+                                            المعلومات المالية
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-6 mb-3">
+                                                <div class="info-label">الميزانية</div>
+                                                <div class="info-value">
+                                                    {{ number_format($supplyOrder->budget, 2) }} {{ $supplyOrder->currency }}
+                                                </div>
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <div class="info-label">الوسوم</div>
+                                                <div class="info-value">{{ $supplyOrder->tag ?? '-' }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- الوصف -->
+                            <div class="mt-4 bg-white border rounded-3 p-3">
+                                <h6 class="section-header">
+                                    <i class="bi bi-text-paragraph me-2"></i>
+                                    الوصف
+                                </h6>
+                                <p class="text-muted">
+                                    {{ $supplyOrder->description ?? 'لا يوجد وصف' }}
+                                </p>
+                            </div>
+
+                            <!-- معلومات الموظفين والشحن -->
+                            <div class="row mt-4 g-4">
+                                <div class="col-md-6">
+                                    <div class="bg-white border rounded-3 p-3 h-100">
+                                        <h6 class="section-header">
+                                            <i class="bi bi-people me-2"></i>
+                                            الموظفون المعنيون
+                                        </h6>
+                                        <div class="info-value">
+                                            {{ $supplyOrder->employee->name ?? 'لم يتم تحديد موظف' }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="bg-white border rounded-3 p-3 h-100">
+                                        <h6 class="section-header">
+                                            <i class="bi bi-truck me-2"></i>
+                                            بيانات الشحن
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-12 mb-2">
+                                                <div class="info-label">رقم التتبع</div>
+                                                <div class="info-value">
+                                                    {{ $supplyOrder->tracking_number ?? '-' }}
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="info-label">عنوان الشحن</div>
+                                                <div class="info-value">
+                                                    {{ $supplyOrder->shipping_address ?? '-' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- بوليصة الشحن -->
+                            <div class="mt-4 bg-white border rounded-3 p-3">
+                                <h6 class="section-header">
+                                    <i class="bi bi-file-earmark-pdf me-2"></i>
+                                    بوليصة الشحن
+                                </h6>
+                                @if($supplyOrder->shipping_policy_file)
+                                    <div class="text-center">
+                                        <img src="{{ asset($supplyOrder->shipping_policy_file) }}"
+                                             alt="بوليصة الشحن"
+                                             class="img-fluid rounded-3 shadow-sm"
+                                             style="max-height: 300px; object-fit: contain;">
+                                    </div>
+                                @else
+                                    <div class="alert alert-light text-center" role="alert">
+                                        لا يوجد بوليصة شحن مرفقة
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
                 </div>
+                </div>
 
+                <!-- Bootstrap Icons -->
 
-                {{-- تبويبة امر توريد   --}}
                 <div class="tab-pane" id="invoices" aria-labelledby="invoices-tab" role="tabpanel">
-
-
                     <div class="col-md-12">
                         <div class="card">
                             <div class="tab-pane fade show active"
                                 style="background: lightslategray; min-height: 100vh; padding: 20px;">
                                 <div class="card shadow" style="max-width: 600px; margin: 20px auto;">
                                     <div class="card-body bg-white p-4" style="min-height: 400px; overflow: auto;">
-                                        {{-- <div style="transform: scale(0.8); transform-origin: top center;">
-                                            @include('Accounts.asol.pdf', ['asset' => $asset])
-                                        </div> --}}
+                                        <div style="transform: scale(0.8); transform-origin: top center;">
+                                            @include('supplyOrders.pdf', ['supplyOrder' => $supplyOrder])
+                                        </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
                 </div>
+
                 {{-- تبويبة المواعيد  --}}
-
                 <div class="tab-pane" id="appointments" aria-labelledby="appointments-tab" role="tabpanel">
-
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div class="d-flex gap-2 flex-wrap">
@@ -278,7 +380,6 @@
 
                         <div class="card-body">
                             <div id="appointments-container">
-
                                 <div class="card mb-2 appointment-item" data-appointment-id="" data-status=""
                                     data-date="">
                                     <div class="card-body">
@@ -373,78 +474,16 @@
                     </div>
                 </div>
 
-                <!-- تبويب سجل النشاطات  -->
-                <div class="tab-pane" id="account-movement" aria-labelledby="account-movement-tab" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-
-
-
-                    </div>
-                    <div class="position-relative">
-                        <div class="position-absolute end-0 me-4">
-                            <button class="btn btn-light btn-sm rounded-pill shadow-sm">امس</button>
-                        </div>
-                        <div class="car" style="background: #4aa4fe">
-                            <div class="activity-list p-4">
-                                <div class="card-content">
-                                    <div class="card border-0">
-                                        <ul class="activity-timeline timeline-left list-unstyled">
-                                            <li class="d-flex position-relative mb-4">
-                                                <div class="timeline-icon position-absolute" style="left: -43px; top: 0;">
-                                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
-                                                        style="width: 35px; height: 35px;">
-                                                        <i class="fas fa-plus text-white"></i>
-                                                    </div>
-                                                </div>
-                                                <div class="timeline-info position-relative"
-                                                    style="padding-left: 20px; border-left: 2px solid #e9ecef;">
-                                                    <div class="d-flex align-items-center mb-1">
-                                                        <span class="badge bg-purple me-2">محمد العتيبي</span>
-                                                        <span class="text-dark">قام بإضافة المسمى الوظيفي moshtaq
-                                                            #1</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center mt-2">
-                                                        <small class="text-muted me-3">
-                                                            <i class="fas fa-building me-1"></i>
-                                                            Main Branch
-                                                        </small>
-                                                        <small class="text-muted">
-                                                            <i class="far fa-clock me-1"></i>
-                                                            14:45:53
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                                <div class="ms-auto">
-                                                    <a href="#" class="text-muted">
-                                                        <i class="fas fa-external-link-alt"></i>
-                                                    </a>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
 
             </div>
         </div>
-    </div>
-
-    </div>
 
 @endsection
+
 @section('scripts')
-    {{-- <meta name="csrf-token" content="{{ csrf_token() }}"> --}}
-
     <script src="{{ asset('assets/js/applmintion.js') }}"></script>
-
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 @endsection

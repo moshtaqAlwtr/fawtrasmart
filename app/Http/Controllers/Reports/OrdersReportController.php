@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 
-class OrdersController extends Controller
+class OrdersReportController extends Controller
 {
     // صفحة الفهرس (Index) الرئيسية
     public function index()

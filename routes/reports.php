@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\Reports\OrdersReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Reports\ReportsController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -30,6 +32,14 @@ Route::group(
             Route::get('/purchases/by_supplier', [ReportsController::class, 'purchasesBySupplier'])->name('reports.purchases.by_supplier');
             Route::get('/purchases/products_by_employee', [ReportsController::class, 'productsByEmployee'])->name('reports.purchases.products_by_employee');
 
+    });
+    Route::prefix('reports/orders')->group(function () {
+        Route::get('/', [OrdersReportController::class, 'index'])->name('reports.orders.index');
+        Route::get('/supply-order', [OrdersReportController::class, 'supplyOrder'])->name('reports.orders.supplyOrder');
+        Route::get('/tagged-supply-orders', [OrdersReportController::class, 'taggedSupplyOrders'])->name('reports.orders.taggedSupplyOrders');
+        Route::get('/supply-orders-schedule', [OrdersReportController::class, 'supplyOrdersSchedule'])->name('reports.orders.supplyOrdersSchedule');
+        Route::get('/supply-orders-profit-summary', [OrdersReportController::class, 'supplyOrdersProfitSummary'])->name('reports.orders.supplyOrdersProfitSummary');
+        Route::get('/supply-orders-profit-details', [OrdersReportController::class, 'supplyOrdersProfitDetails'])->name('reports.orders.supplyOrdersProfitDetails');
     });
     }
 );

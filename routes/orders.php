@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Reports\WorkflowController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Reports\OrdersController;
+use App\Http\Controllers\Orders\OrdersController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 require __DIR__ . '/auth.php';
@@ -13,13 +13,24 @@ Route::group(
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']
     ],
     function () {
-        Route::prefix('reports/orders')->group(function () {
-            Route::get('/', [OrdersController::class, 'index'])->name('reports.orders.index');
-            Route::get('/supply-order', [OrdersController::class, 'supplyOrder'])->name('reports.orders.supplyOrder');
-            Route::get('/tagged-supply-orders', [OrdersController::class, 'taggedSupplyOrders'])->name('reports.orders.taggedSupplyOrders');
-            Route::get('/supply-orders-schedule', [OrdersController::class, 'supplyOrdersSchedule'])->name('reports.orders.supplyOrdersSchedule');
-            Route::get('/supply-orders-profit-summary', [OrdersController::class, 'supplyOrdersProfitSummary'])->name('reports.orders.supplyOrdersProfitSummary');
-            Route::get('/supply-orders-profit-details', [OrdersController::class, 'supplyOrdersProfitDetails'])->name('reports.orders.supplyOrdersProfitDetails');
-        });
+
+        Route::prefix('order')->middleware(['auth'])->group(function () {
+
+            # employee routes
+            Route::prefix('management')->group(function () {
+                Route::get('/index',[OrdersController::class,'index'])->name('orders.management.index');
+                Route::get('/create',[OrdersController::class,'create'])->name('orders.management.create');
+                Route::get('/edit/{id}',[OrdersController::class,'edit'])->name('Order.edit');
+                Route::get('/show/{id}',[OrdersController::class,'show'])->name('Order.show');
+                Route::post('/store',[OrdersController::class,'store'])->name('Order.store');
+                Route::post('/update/{id}',[OrdersController::class,'update'])->name('Order.update');
+                Route::post('/updatePassword/{id}',[OrdersController::class,'updatePassword'])->name('Order.updatePassword');
+                Route::get('/delete/{id}',[OrdersController::class,'delete'])->name('Order.delete');
+                Route::get('/login/to/{id}', [OrdersController::class, 'login_to'])->name('Order.login_to');
+                Route::get('/export/view',[OrdersController::class,'export_view'])->name('Order.export_view');
+                Route::post('/export',[OrdersController::class,'export'])->name('Order.export');
+            });
+    }
+);
     }
 );

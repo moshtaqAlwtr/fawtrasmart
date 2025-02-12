@@ -24,6 +24,8 @@
     </div>
 
 
+    @include('layouts.alerts.success')
+    @include('layouts.alerts.error')
 
 
     <div class="content-body">
@@ -84,225 +86,303 @@
                     </div>
 
                     <div class="card-body">
-                        <form class="form">
+                        <form class="form" method="GET" action="{{ route('SupplyOrders.index') }}">
                             <div class="form-body row">
-
+                                <!-- رقم الطلب -->
                                 <div class="form-group col-md-4">
-                                    <label for="feedback2" class="sr-only"> رقم</label>
-                                    <input type="email" id="feedback2" class="form-control" placeholder=" رقم  "
-                                        name="email">
-                                </div>
-                                <div class="form-group col-md-4">
-                                    <label for="feedback2" class="sr-only"> رقم</label>
-                                    <input type="email" id="feedback2" class="form-control" placeholder=" مسمى  "
-                                        name="email">
+                                    <label for="order_number" class="sr-only">رقم الطلب</label>
+                                    <input type="text" id="order_number" class="form-control" placeholder="رقم الطلب" name="order_number" value="{{ request('order_number') }}">
                                 </div>
 
-
+                                <!-- اسم الطلب -->
                                 <div class="form-group col-md-4">
-                                    <select id="feedback2" class="form-control">
-                                        <option value="">العميل </option>
+                                    <label for="name" class="sr-only">اسم الطلب</label>
+                                    <input type="text" id="name" class="form-control" placeholder="اسم الطلب" name="name" value="{{ request('name') }}">
+                                </div>
+
+                                <!-- العميل -->
+                                <div class="form-group col-md-4">
+                                    <label for="client_id" class="sr-only">العميل</label>
+                                    <select id="client_id" class="form-control" name="client_id">
+                                        <option value="">اختر العميل</option>
                                         @foreach ($clients as $client)
-                                            <option value="{{ $client->id }}">{{ $client->trade_name }}</option>
+                                            <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                                {{ $client->trade_name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
+
                             <div class="form-body row">
-
-
+                                <!-- الموظف -->
                                 <div class="form-group col-md-4">
-                                    <select id="feedback2" class="form-control">
-                                        <option value="">اختر الموضف </option>
+                                    <label for="employee_id" class="sr-only">الموظف</label>
+                                    <select id="employee_id" class="form-control" name="employee_id">
+                                        <option value="">اختر الموظف</option>
                                         @foreach ($employees as $employee)
-                                            <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                            <option value="{{ $employee->id }}" {{ request('employee_id') == $employee->id ? 'selected' : '' }}>
+                                                {{ $employee->full_name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
+
+                                <!-- التعيين إلى -->
+                                <div class="form-group col-md-4">
+                                    <label for="assigned_to" class="sr-only">التعيين إلى</label>
+                                    <select id="assigned_to" class="form-control" name="assigned_to">
+                                        <option value="">التعيين إلى</option>
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->id }}" {{ request('assigned_to') == $employee->id ? 'selected' : '' }}>
+                                                {{ $employee->full_name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- الحالة -->
+                                <div class="form-group col-md-4">
+                                    <label for="status" class="sr-only">الحالة</label>
+                                    <select id="status" class="form-control" name="status">
+                                        <option value="">الحالة</option>
+                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
+                                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>موافق عليه</option>
+                                        <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>مرفوض</option>
+                                    </select>
+                                </div>
                             </div>
+
+                            <!-- بحث متقدم -->
                             <div class="collapse" id="advancedSearchForm">
                                 <div class="form-body row d-flex align-items-center g-0">
-
-                                    <div class="form-group col-md-4">
-                                        <select name="currency" class="form-control" id="currencySelect">
-                                            <option value="">تعين الى </option>
-                                            @foreach ($employees as $employee)
-                                                <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group col-md-4">
-                                        <select name="status" class="form-control" id="statusSelect">
-                                            <option value="">الحالة</option>
-                                            <option value="pending">قيد الانتظار</option>
-                                            <option value="approved">موافق عليه</option>
-                                            <option value="rejected">مرفوض</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group col-md-1">
-                                        <select name="date_type_1" class="form-control" id="">
-                                            <option value="">تاريخ البدء</option>
-                                            <option value="monthly">شهريًا</option>
-                                            <option value="weekly">أسبوعيًا</option>
-                                            <option value="daily">يوميًا</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- من (التاريخ) -->
-                                    <div class="form-group col-md-1.5">
-                                        <input type="date" id="feedback3" class="form-control" placeholder="من"
-                                            name="from_date_1">
-                                    </div>
-
-                                    <!-- إلى (التاريخ) -->
-                                    <div class="form-group col-md-1.5" style="margin-right: 20px">
-                                        <input type="date" id="feedback4" class="form-control" placeholder="إلى"
-                                            name="to_date_1">
-                                    </div>
-
-                                </div>
-                                <div class="form-body row d-flex align-items-center g-2">
-                                    <!-- حالة الدفع -->
-
-
-                                    <!-- تخصيص آخر -->
-                                    <div class="form-group col-md-2" style="margin-right: 20px">
-                                        <select name="date_type_2" class="form-control" id="">
-                                            <option value="">تاريخ الاستلام </option>
-                                            <option value="monthly">شهريًا</option>
-                                            <option value="weekly">أسبوعيًا</option>
-                                            <option value="daily">يوميًا</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- من (التاريخ) -->
+                                    <!-- تاريخ البدء -->
                                     <div class="form-group col-md-2">
-                                        <input type="date" id="feedback3" class="form-control" placeholder="من"
-                                            name="from_date_2">
+                                        <label for="date_type_1" class="sr-only">نوع تاريخ البدء</label>
+                                        <select id="date_type_1" class="form-control" name="date_type_1">
+                                            <option value="">نوع تاريخ البدء</option>
+                                            <option value="monthly" {{ request('date_type_1') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
+                                            <option value="weekly" {{ request('date_type_1') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
+                                            <option value="daily" {{ request('date_type_1') == 'daily' ? 'selected' : '' }}>يوميًا</option>
+                                        </select>
                                     </div>
 
-                                    <!-- إلى (التاريخ) -->
-                                    <div class="form-group col-md-2" style="margin-right: 20px">
-                                        <label for="feedback4" class="sr-only"></label>
-                                        <input type="date" id="feedback4" class="form-control" placeholder="إلى"
-                                            name="to_date_2">
+                                    <div class="form-group col-md-2">
+                                        <label for="from_date_1" class="sr-only">من تاريخ البدء</label>
+                                        <input type="date" id="from_date_1" class="form-control" name="from_date_1" value="{{ request('from_date_1') }}">
                                     </div>
 
+                                    <div class="form-group col-md-2">
+                                        <label for="to_date_1" class="sr-only">إلى تاريخ البدء</label>
+                                        <input type="date" id="to_date_1" class="form-control" name="to_date_1" value="{{ request('to_date_1') }}">
+                                    </div>
 
+                                    <!-- تاريخ الاستلام -->
+                                    <div class="form-group col-md-2">
+                                        <label for="date_type_2" class="sr-only">نوع تاريخ الاستلام</label>
+                                        <select id="date_type_2" class="form-control" name="date_type_2">
+                                            <option value="">نوع تاريخ الاستلام</option>
+                                            <option value="monthly" {{ request('date_type_2') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
+                                            <option value="weekly" {{ request('date_type_2') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
+                                            <option value="daily" {{ request('date_type_2') == 'daily' ? 'selected' : '' }}>يوميًا</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+                                        <label for="from_date_2" class="sr-only">من تاريخ الاستلام</label>
+                                        <input type="date" id="from_date_2" class="form-control" name="from_date_2" value="{{ request('from_date_2') }}">
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+                                        <label for="to_date_2" class="sr-only">إلى تاريخ الاستلام</label>
+                                        <input type="date" id="to_date_2" class="form-control" name="to_date_2" value="{{ request('to_date_2') }}">
+                                    </div>
                                 </div>
-
-
                             </div>
+
+                            <!-- الأزرار -->
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-
-                                <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
-                                    data-target="#advancedSearchForm">
+                                <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse" data-target="#advancedSearchForm">
                                     <i class="bi bi-sliders"></i> بحث متقدم
                                 </a>
-                                <button type="reset"
-                                    class="btn btn-outline-warning waves-effect waves-light">Cancel</button>
+                                <button type="reset" class="btn btn-outline-warning waves-effect waves-light">إعادة تعيين</button>
                             </div>
                         </form>
-
                     </div>
 
                 </div>
 
             </div>
-
             <div class="card">
-                <!-- الترويسة -->
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-outline-success">
-                            <i class="fas fa-chart-line me-1"></i> النتائج
-                        </button>
 
-                        <button class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-list me-1"></i> الكل
-                        </button>
+                        <!-- Existing filter buttons -->
+                        <div class="d-flex gap-2 flex-wrap align-items-center">
+                            <a href="{{ route('SupplyOrders.index', ['filter' => 'results']) }}"
+                               class="btn btn-sm {{ request('filter') == 'results' ? 'btn-success' : 'btn-outline-success' }}">
+                                <i class="fas fa-chart-line me-1"></i> النتائج
+                                <span class="badge bg-white text-success ms-1">({{ $resultsCount }})</span>
+                            </a>
 
-                        <button class="btn btn-sm btn-outline-success">
-                            <i class="fas fa-unlock me-1"></i> مفتوح
-                        </button>
+                            <a href="{{ route('SupplyOrders.index') }}"
+                               class="btn btn-sm {{ !request('filter') ? 'btn-primary' : 'btn-outline-primary' }}">
+                                <i class="fas fa-list me-1"></i> الكل
+                                <span class="badge bg-white text-primary ms-1">({{ $totalCount }})</span>
+                            </a>
 
-                        <button class="btn btn-sm btn-outline-danger">
-                            <i class="fas fa-lock me-1"></i> مغلق
-                        </button>
+                            <a href="{{ route('SupplyOrders.index', ['filter' => 'open']) }}"
+                               class="btn btn-sm {{ request('filter') == 'open' ? 'btn-success' : 'btn-outline-success' }}">
+                                <i class="fas fa-unlock me-1"></i> مفتوح
+                                <span class="badge bg-white text-success ms-1">({{ $openCount }})</span>
+                            </a>
 
-                    </div>
-                </div>
-
-
-                        <div class="card-body">
-                            <div class="row border-bottom py-2 align-items-center">
-                                <div class="col-md-4">
-                                    <p class="mb-0">
-                                        <strong>#2226</strong>
-                                    </p>
-                                    <small class="text-muted">
-
-                                    </small>
-                                </div>
-                                <div class="col-md-3">
-                                    <p class="mb-0">وكمةة</p>
-                                    <small class="text-muted">
-                                        بواسطة:
-                                    </small>
-                                </div>
-                                <div class="col-md-3 text-center">
-                                    <strong class="text-danger">نىمننم</strong>
-                                    <span class="badge  d-block mt-1">
-
-                                    </span>
-                                </div>
-                                <div class="col-md-2 text-end">
-                                    <div class="btn-group">
-                                        <div class="dropdown">
-                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"
-                                                aria-expanded="false">
-                                            </button>
-                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                                <a class="dropdown-item" href="" >
-                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                </a>
-                                                <a class="dropdown-item" href="{{route('SupplyOrders.show', 1)}}">
-                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                </a>
-
-
-                                                <a class="dropdown-item" href="">
-                                                    <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                                </a>
-{{--
-                                                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" class="d-inline" >
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="fa fa-trash me-2"></i>حذف
-                                                    </button>
-                                                </form> --}}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <a href="{{ route('SupplyOrders.index', ['filter' => 'closed']) }}"
+                               class="btn btn-sm {{ request('filter') == 'closed' ? 'btn-danger' : 'btn-outline-danger' }}">
+                                <i class="fas fa-lock me-1"></i> مغلق
+                                <span class="badge bg-white text-danger ms-1">({{ $closedCount }})</span>
+                            </a>
                         </div>
-{{--
 
-                @if($invoices->isEmpty())
-                    <div class="alert alert-warning" role="alert">
-                        <p class="mb-0">لا توجد فواتير</p>
                     </div>
-                @endif --}}
+
+
+                <div class="card-body">
+                    @if (isset($supplyOrders) && !$supplyOrders->isEmpty())
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الأمر</th>
+                                    <th>اسم الأمر</th>
+
+                                    <th>العميل</th>
+                                    <th>الميزانية</th>
+                                    <th>الحالة</th>
+                                    <th style="width: 10%">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($supplyOrders as $order)
+                                    <tr>
+                                        <td>{{ $order->order_number }}</td>
+                                        <td>{{ $order->name }}</td>
+
+                                        <td>{{ $order->client->trade_name ?? 'غير محدد' }}</td>
+                                        <td>
+                                            {{ number_format($order->budget ?? 0, 2) }}
+                                            {{ $order->currency_name ?? 'SAR' }}
+                                        </td>
+                                        <td>
+                                            @if ($order->status == 1)
+                                                <span class="badge badge-success">مفتوح</span>
+                                            @elseif($order->status == 2)
+                                                <span class="badge badge-danger">مغلق</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <div class="dropdown">
+                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                        type="button" id="dropdownMenuButton{{ $order->id }}"
+                                                        data-toggle="dropdown" aria-haspopup="true"
+                                                        aria-expanded="false">
+                                                    </button>
+                                                    <div class="dropdown-menu"
+                                                        aria-labelledby="dropdownMenuButton{{ $order->id }}">
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('SupplyOrders.show', $order->id) }}">
+                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('SupplyOrders.edit', $order->id) }}">
+                                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item text-danger" href="#"
+                                                                data-toggle="modal"
+                                                                data-target="#modal_DELETE{{ $order->id }}">
+                                                                <i class="fa fa-trash me-2"></i>حذف
+                                                            </a>
+                                                        </li>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Modal delete -->
+                                            <div class="modal fade text-left" id="modal_DELETE{{ $order->id }}"
+                                                tabindex="-1" role="dialog" aria-labelledby="myModalLabel1"
+                                                aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header"
+                                                            style="background-color: #EA5455 !important;">
+                                                            <h4 class="modal-title" id="myModalLabel1"
+                                                                style="color: #FFFFFF">حذف أمر التوريد {{ $order->name }}
+                                                            </h4>
+                                                            <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
+                                                                <span aria-hidden="true"
+                                                                    style="color: #DC3545">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <strong>
+                                                                هل أنت متأكد من أنك تريد الحذف ؟
+                                                            </strong>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button"
+                                                                class="btn btn-light waves-effect waves-light"
+                                                                data-dismiss="modal">إلغاء</button>
+                                                            <form action="{{ route('SupplyOrders.destroy', $order->id) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="btn btn-danger waves-effect waves-light">تأكيد</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!--end delete-->
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @else
+                        <div class="alert alert-danger text-xl-center" role="alert">
+                            <p class="mb-0">
+                                لا توجد أوامر تشغيل مضافة حتى الآن !!
+                            </p>
+                        </div>
+                    @endif
+                </div>
             </div>
-
-
-
         </div>
-    </div>
-    </div>
-@endsection
+    @endsection
+    @section('scripts')
+        <script>
+            function copyOrder(orderId) {
+                // Implement copy functionality
+                alert('سيتم نسخ الأمر: ' + orderId);
+            }
+
+            // Confirm delete
+            document.addEventListener('DOMContentLoaded', function() {
+                const deleteForms = document.querySelectorAll('.delete-form');
+                deleteForms.forEach(form => {
+                    form.addEventListener('submit', function(e) {
+                        if (!confirm('هل أنت متأكد من حذف هذا الأمر؟')) {
+                            e.preventDefault();
+                        }
+                    });
+                });
+            });
+        </script>
+    @endsection

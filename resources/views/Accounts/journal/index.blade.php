@@ -246,48 +246,66 @@
 
 
     </div>
-
     <div class="card">
         <div class="card-body p-0">
             @if (count($entries) > 0)
-                @foreach ($entries as $entry)
-                    <div class="entry-row border-bottom p-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <!-- القسم الأيمن - رقم القيد والمبلغ -->
-                            <div class="d-flex align-items-center">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
 
-                                <div class="ms-3">
-                                    <h6 class="mb-0">{{ number_format($entry->details->sum('debit'), 2) }} ر.س</h6>
-                                    <small class="text-muted">{{ $entry->reference_number }}</small>
-                                </div>
-                            </div>
 
-                            <!-- القسم الأوسط - نوع العملية والحساب -->
-                            <div class="d-flex align-items-center">
-                                <div class="mx-3">
-                                    <span class="badge bg-light text-dark">{{ $entry->type ?? 'قيد محاسبي' }}</span>
-                                </div>
-                                <i class="fas fa-arrow-left mx-2"></i>
-                                <div class="text-center">
-                                    <h6 class="mb-0">{{ $entry->account_name ?? 'حساب عام' }}</h6>
-                                </div>
-                            </div>
+                            <th>العملية</th>
+                            <th>الحساب</th>
 
-                            <!-- القسم الأيسر - التفاصيل والتاريخ -->
-                            <div class="text-start">
-                                <h6 class="mb-0">{{ $entry->description }}</h6>
-                                <div class="d-flex align-items-center">
-                                    <small class="text-muted">{{ $entry->date->format('Y-m-d') }}</small>
-                                    <span class="mx-2">-</span>
-                                    <small class="text-muted">بواسطة:
-                                        {{ $entry->createdByEmployee->name ?? 'غير محدد' }}</small>
-                                    <small class="badge bg-{{ $entry->status == 1 ? 'success' : 'warning' }} ms-2">
+                            <th>التاريخ</th>
+                            <th>بواسطة</th>
+
+                            <th>المبلغ</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($entries as $entry)
+                            <tr>
+                                <!-- القسم الأيمن - رقم القيد والمبلغ -->
+
+
+
+                                <!-- القسم الأوسط - نوع العملية -->
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ $entry->id ?? 'قيد محاسبي' }}</span>
+                                </td>
+
+                                <!-- القسم الأيمن - الحساب والوصف -->
+                                <td>
+                                    @if ($entry->details->count() > 0)
+                                        <div class="account-flow d-flex justify-content-center align-items-center">
+                                            @foreach ($entry->details->reverse() as $detail)
+                                                @if ($detail->account && $detail->account->name)
+                                                    <a href="{{ route('accounts_chart.index', $detail->account->id) }}"
+                                                        class="btn btn-outline-primary mx-2">
+                                                        {{ $detail->account->name }}
+                                                    </a>
+                                                    @if (!$loop->last)
+                                                        <i class="fas fa-long-arrow-alt-left text-muted mx-2"></i>
+                                                    @endif
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-muted">لا توجد تفاصيل</span>
+                                    @endif
+                                </td>
+                                <td>{{ $entry->date->format('Y-m-d') }}</td>
+                                <td>{{ $entry->createdByEmployee->name ?? 'غير محدد' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $entry->status == 1 ? 'success' : 'warning' }}">
                                         {{ $entry->status == 1 ? 'معتمد' : 'غير معتمد' }}
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-center p-3">
-                                <div class="col-md-2 text-end">
+                                    </span>
+                                </td>
+                                <td>{{ number_format($entry->details->sum('debit'), 2) }} ر.س</td>
+                                <!-- الإجراءات -->
+                                <td>
                                     <div class="btn-group">
                                         <div class="dropdown">
                                             <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
@@ -301,32 +319,34 @@
                                                 <a class="dropdown-item" href="{{ route('journal.show', $entry->id) }}">
                                                     <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
-                                                {{-- <form action="{{ route('journal.destroy', $journal->id) }}" method="POST"
+                                                <form action="{{ route('journal.destroy', $entry->id) }}" method="POST"
                                                     class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="dropdown-item text-danger">
                                                         <i class="fa fa-trash me-2"></i>حذف
                                                     </button>
-                                                </form> --}}
+                                                </form>
+
+                                                <a class="dropdown-item" href="">
+                                                    <i class="fa fa-edit me-2 text-success"></i>عرض  المصدر
+                                                </a>
                                             </div>
+
                                         </div>
                                     </div>
-                                </div> {{ $entries->links() }}
-                            </div>
-
-                        </div>
-                    </div>
-                @endforeach
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             @else
                 <div class="alert alert-warning m-3" role="alert">
                     <p class="mb-0">لا توجد قيود محاسبية</p>
-                </div> <!-- الترقيم -->
-
+                </div>
             @endif
         </div>
     </div>
-
 
 
     <!-- Modal delete -->

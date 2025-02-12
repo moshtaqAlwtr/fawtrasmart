@@ -70,4 +70,8 @@ class Employee extends Model
     {
         return trim("{$this->first_name} {$this->middle_name} {$this->nickname}");
     }
+    public function supplyOrders()
+    {
+        return $this->hasMany(SupplyOrder::class, 'employee_id');
+    }
 }

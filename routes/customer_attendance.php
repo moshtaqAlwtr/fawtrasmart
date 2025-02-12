@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\CustomerAttendanceController;
+use App\Http\Controllers\CustomerAttendance\CustomerAttendanceController;
 use App\Http\Controllers\Reports\WorkflowController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Reports\OrdersController;

@@ -200,266 +200,388 @@ class InvoicesController extends Controller
     }
 
     public function store(Request $request)
-    {
-        try {
-            // ** الخطوة الأولى: إنشاء كود للفاتورة **
-            $code = $request->code;
-            if (!$code) {
-                $lastOrder = Invoice::orderBy('id', 'desc')->first();
-                $nextNumber = $lastOrder ? intval($lastOrder->code) + 1 : 1;
-                // التحقق من أن الرقم فريد
-                while (Invoice::where('code', str_pad($nextNumber, 5, '0', STR_PAD_LEFT))->exists()) {
-                    $nextNumber++;
-                }
-                $code = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
-            } else {
-                $existingCode = Invoice::where('code', $request->code)->exists();
-                if ($existingCode) {
-                    return redirect()->back()->withInput()->with('error', 'رقم الفاتورة موجود مسبقاً، الرجاء استخدام رقم آخر');
-                }
+{
+    try {
+        // ** الخطوة الأولى: إنشاء كود للفاتورة **
+        $code = $request->code;
+        if (!$code) {
+            $lastOrder = Invoice::orderBy('id', 'desc')->first();
+            $nextNumber = $lastOrder ? intval($lastOrder->code) + 1 : 1;
+            // التحقق من أن الرقم فريد
+            while (Invoice::where('code', str_pad($nextNumber, 5, '0', STR_PAD_LEFT))->exists()) {
+                $nextNumber++;
             }
-            DB::beginTransaction(); // بدء المعاملة
+            $code = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        } else {
+            $existingCode = Invoice::where('code', $request->code)->exists();
+            if ($existingCode) {
+                return redirect()->back()->withInput()->with('error', 'رقم الفاتورة موجود مسبقاً، الرجاء استخدام رقم آخر');
+            }
+        }
+        DB::beginTransaction(); // بدء المعاملة
 
-            // ** تجهيز المتغيرات الرئيسية لحساب الفاتورة **
-            $total_amount = 0; // إجمالي المبلغ قبل الخصومات
-            $total_discount = 0; // إجمالي الخصومات على البنود
-            $items_data = []; // تجميع بيانات البنود
+        // ** تجهيز المتغيرات الرئيسية لحساب الفاتورة **
+        $total_amount = 0; // إجمالي المبلغ قبل الخصومات
+        $total_discount = 0; // إجمالي الخصومات على البنود
+        $items_data = []; // تجميع بيانات البنود
 
-            // ** الخطوة الثانية: معالجة البنود (items) **
-            if ($request->has('items') && count($request->items)) {
-                foreach ($request->items as $item) {
-                    // التحقق من وجود product_id في البند
-                    if (!isset($item['product_id'])) {
-                        throw new \Exception('معرف المنتج (product_id) مطلوب لكل بند.');
-                    }
+        // ** الخطوة الثانية: معالجة البنود (items) **
+        if ($request->has('items') && count($request->items)) {
+            foreach ($request->items as $item) {
+                // التحقق من وجود product_id في البند
+                if (!isset($item['product_id'])) {
+                    throw new \Exception('معرف المنتج (product_id) مطلوب لكل بند.');
+                }
 
-                    // جلب المنتج
-                    $product = Product::find($item['product_id']);
-                    if (!$product) {
-                        throw new \Exception('المنتج غير موجود: ' . $item['product_id']);
-                    }
+                // جلب المنتج
+                $product = Product::find($item['product_id']);
+                if (!$product) {
+                    throw new \Exception('المنتج غير موجود: ' . $item['product_id']);
+                }
 
-                    // التحقق من وجود store_house_id في جدول store_houses
-                    $store_house_id = $item['store_house_id'] ?? null;
+                // التحقق من وجود store_house_id في جدول store_houses
+                $store_house_id = $item['store_house_id'] ?? null;
 
-                    // البحث عن المستودع
-                    $storeHouse = null;
-                    if ($store_house_id) {
-                        // البحث عن المستودع المحدد
-                        $storeHouse = StoreHouse::find($store_house_id);
-                    }
+                // البحث عن المستودع
+                $storeHouse = null;
+                if ($store_house_id) {
+                    // البحث عن المستودع المحدد
+                    $storeHouse = StoreHouse::find($store_house_id);
+                }
 
+                if (!$storeHouse) {
+                    // إذا لم يتم العثور على المستودع المحدد، ابحث عن أول مستودع متاح
+                    $storeHouse = StoreHouse::first();
                     if (!$storeHouse) {
-                        // إذا لم يتم العثور على المستودع المحدد، ابحث عن أول مستودع متاح
-                        $storeHouse = StoreHouse::first();
-                        if (!$storeHouse) {
-                            throw new \Exception('لا يوجد أي مستودع في النظام. الرجاء إضافة مستودع واحد على الأقل.');
-                        }
-                        $store_house_id = $storeHouse->id;
+                        throw new \Exception('لا يوجد أي مستودع في النظام. الرجاء إضافة مستودع واحد على الأقل.');
                     }
+                    $store_house_id = $storeHouse->id;
+                }
 
-                    // حساب تفاصيل الكمية والأسعار
-                    $quantity = floatval($item['quantity']);
-                    $unit_price = floatval($item['unit_price']);
-                    $item_total = $quantity * $unit_price;
+                // حساب تفاصيل الكمية والأسعار
+                $quantity = floatval($item['quantity']);
+                $unit_price = floatval($item['unit_price']);
+                $item_total = $quantity * $unit_price;
 
-                    // حساب الخصم للبند
-                    $item_discount = 0; // قيمة الخصم المبدئية
-                    if (isset($item['discount']) && $item['discount'] > 0) {
-                        if (isset($item['discount_type']) && $item['discount_type'] === 'percentage') {
-                            $item_discount = ($item_total * floatval($item['discount'])) / 100;
-                        } else {
-                            $item_discount = floatval($item['discount']);
-                        }
+                // حساب الخصم للبند
+                $item_discount = 0; // قيمة الخصم المبدئية
+                if (isset($item['discount']) && $item['discount'] > 0) {
+                    if (isset($item['discount_type']) && $item['discount_type'] === 'percentage') {
+                        $item_discount = ($item_total * floatval($item['discount'])) / 100;
+                    } else {
+                        $item_discount = floatval($item['discount']);
                     }
-
-                    // تحديث الإجماليات
-                    $total_amount += $item_total;
-                    $total_discount += $item_discount;
-
-                    // تجهيز بيانات البند
-                    $items_data[] = [
-                        'invoice_id' => null, // سيتم تعيينه لاحقًا بعد إنشاء الفاتورة
-                        'product_id' => $item['product_id'],
-                        'store_house_id' => $store_house_id,
-                        'item' => $product->name ?? 'المنتج ' . $item['product_id'],
-                        'description' => $item['description'] ?? null,
-                        'quantity' => $quantity,
-                        'unit_price' => $unit_price,
-                        'discount' => $item_discount,
-                        'discount_type' => isset($item['discount_type']) && $item['discount_type'] === 'percentage' ? 2 : 1,
-                        'tax_1' => floatval($item['tax_1'] ?? 0),
-                        'tax_2' => floatval($item['tax_2'] ?? 0),
-                        'total' => $item_total - $item_discount,
-                    ];
                 }
+
+                // تحديث الإجماليات
+                $total_amount += $item_total;
+                $total_discount += $item_discount;
+
+                // تجهيز بيانات البند
+                $items_data[] = [
+                    'invoice_id' => null, // سيتم تعيينه لاحقًا بعد إنشاء الفاتورة
+                    'product_id' => $item['product_id'],
+                    'store_house_id' => $store_house_id,
+                    'item' => $product->name ?? 'المنتج ' . $item['product_id'],
+                    'description' => $item['description'] ?? null,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'discount' => $item_discount,
+                    'discount_type' => isset($item['discount_type']) && $item['discount_type'] === 'percentage' ? 2 : 1,
+                    'tax_1' => floatval($item['tax_1'] ?? 0),
+                    'tax_2' => floatval($item['tax_2'] ?? 0),
+                    'total' => $item_total - $item_discount,
+                ];
             }
+        }
 
-            // ** الخطوة الثالثة: حساب الخصم الإضافي للفاتورة ككل **
-            $invoice_discount = 0;
-            if ($request->has('discount_amount') && $request->discount_amount > 0) {
-                if ($request->has('discount_type') && $request->discount_type === 'percentage') {
-                    $invoice_discount = ($total_amount * floatval($request->discount_amount)) / 100;
-                } else {
-                    $invoice_discount = floatval($request->discount_amount);
-                }
+        // ** الخطوة الثالثة: حساب الخصم الإضافي للفاتورة ككل **
+        $invoice_discount = 0;
+        if ($request->has('discount_amount') && $request->discount_amount > 0) {
+            if ($request->has('discount_type') && $request->discount_type === 'percentage') {
+                $invoice_discount = ($total_amount * floatval($request->discount_amount)) / 100;
+            } else {
+                $invoice_discount = floatval($request->discount_amount);
             }
+        }
 
-            // الخصومات الإجمالية
-            $final_total_discount = $total_discount + $invoice_discount;
+        // الخصومات الإجمالية
+        $final_total_discount = $total_discount + $invoice_discount;
 
-            // حساب المبلغ بعد الخصم
-            $amount_after_discount = $total_amount - $final_total_discount;
+        // حساب المبلغ بعد الخصم
+        $amount_after_discount = $total_amount - $final_total_discount;
 
-            // ** حساب الضرائب **
-            $tax_total = 0;
-            if ($request->tax_type == 1) {
-                // حساب الضريبة على المبلغ بعد الخصم
-                $tax_total = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+        // ** حساب الضرائب **
+        $tax_total = 0;
+        if ($request->tax_type == 1) {
+            // حساب الضريبة على المبلغ بعد الخصم
+            $tax_total = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+        }
+
+        // ** إضافة تكلفة الشحن (إذا وجدت) **
+        $shipping_cost = floatval($request->shipping_cost ?? 0);
+
+        // ** حساب ضريبة الشحن (إذا كانت الضريبة مفعلة) **
+        $shipping_tax = 0;
+        if ($request->tax_type == 1) {
+            $shipping_tax = $shipping_cost * 0.15; // ضريبة الشحن 15%
+        }
+
+        // ** إضافة ضريبة الشحن إلى tax_total **
+        $tax_total += $shipping_tax;
+
+        // ** الحساب النهائي للمجموع الكلي **
+        $total_with_tax = $amount_after_discount + $tax_total + $shipping_cost;
+
+        // ** حساب المبلغ المستحق (due_value) بعد خصم الدفعة المقدمة **
+        $advance_payment = floatval($request->advance_payment ?? 0);
+        $due_value = $total_with_tax - $advance_payment;
+
+        // ** تحديد حالة الفاتورة بناءً على المدفوعات **
+        $payment_status = 3; // الحالة الافتراضية (مسودة)
+        $is_paid = false;
+
+        if ($advance_payment > 0 || $request->has('is_paid')) {
+            // حساب إجمالي المدفوعات
+            $total_payments = $advance_payment;
+
+            if ($request->has('is_paid') && $request->is_paid) {
+                $total_payments = $total_with_tax;
+                $advance_payment = $total_with_tax;
+                $due_value = 0;
+                $payment_status = 1; // مكتمل
+                $is_paid = true;
+            } else {
+                // إذا كان هناك دفعة مقدمة لكن لم يتم اكتمال المبلغ
+                $payment_status = 2; // غير مكتمل
+                $is_paid = false;
             }
+        }
 
-            // ** إضافة تكلفة الشحن (إذا وجدت) **
-            $shipping_cost = floatval($request->shipping_cost ?? 0);
-
-            // ** حساب ضريبة الشحن (إذا كانت الضريبة مفعلة) **
-            $shipping_tax = 0;
-            if ($request->tax_type == 1) {
-                $shipping_tax = $shipping_cost * 0.15; // ضريبة الشحن 15%
-            }
-
-            // ** إضافة ضريبة الشحن إلى tax_total **
-            $tax_total += $shipping_tax;
-
-            // ** الحساب النهائي للمجموع الكلي **
-            $total_with_tax = $amount_after_discount + $tax_total + $shipping_cost;
-
-            // ** حساب المبلغ المستحق (due_value) بعد خصم الدفعة المقدمة **
-            $advance_payment = floatval($request->advance_payment ?? 0);
-            $due_value = $total_with_tax - $advance_payment;
-
-            // ** تحديد حالة الفاتورة بناءً على المدفوعات **
-            $payment_status = 3; // الحالة الافتراضية (مسودة)
-            $is_paid = false;
-
-            if ($advance_payment > 0 || $request->has('is_paid')) {
-                // حساب إجمالي المدفوعات
-                $total_payments = $advance_payment;
-
-                if ($request->has('is_paid') && $request->is_paid) {
-                    $total_payments = $total_with_tax;
-                    $advance_payment = $total_with_tax;
-                    $due_value = 0;
-                    $payment_status = 1; // مكتمل
-                    $is_paid = true;
-                } else {
-                    // إذا كان هناك دفعة مقدمة لكن لم يتم اكتمال المبلغ
-                    $payment_status = 2; // غير مكتمل
+        // إذا تم تحديد حالة دفع معينة في الطلب
+        if ($request->has('payment_status')) {
+            switch ($request->payment_status) {
+                case 4: // تحت المراجعة
+                    $payment_status = 4;
                     $is_paid = false;
-                }
+                    break;
+                case 5: // فاشلة
+                    $payment_status = 5;
+                    $is_paid = false;
+                    break;
+            }
+        }
+
+        // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
+        $invoice = Invoice::create([
+            'client_id' => $request->client_id,
+            'employee_id' => $request->employee_id,
+            'due_value' => $due_value,
+            'code' => $code,
+            'type' => 'normal',
+            'invoice_date' => $request->invoice_date,
+            'issue_date' => $request->issue_date,
+            'terms' => $request->terms ?? 0,
+            'notes' => $request->notes,
+            'payment_status' => $payment_status,
+            'is_paid' => $is_paid,
+            'created_by' => Auth::id(),
+            'account_id' => $request->account_id,
+            'discount_amount' => $invoice_discount,
+            'discount_type' => $request->has('discount_type') ? ($request->discount_type === 'percentage' ? 2 : 1) : 1,
+            'advance_payment' => $advance_payment,
+            'payment_type' => $request->payment_type ?? 1,
+            'shipping_cost' => $shipping_cost,
+            'shipping_tax' => $shipping_tax,
+            'tax_type' => $request->tax_type ?? 1,
+            'payment_method' => $request->payment_method,
+            'reference_number' => $request->reference_number,
+            'received_date' => $request->received_date,
+            'subtotal' => $total_amount,
+            'total_discount' => $final_total_discount,
+            'tax_total' => $tax_total,
+            'grand_total' => $total_with_tax,
+            'paid_amount' => $advance_payment,
+        ]);
+
+        // ** تحديث رصيد حساب أبناء العميل **
+        $clientAccount = Account::where('name', $request->client_id)->first(); // استرجاع حساب العميل بناءً على client_id
+        if (!$clientAccount) {
+            throw new \Exception('حساب العميل غير موجود');
+        }
+
+        // إضافة المبلغ الإجمالي للفاتورة إلى رصيد أبناء العميل
+        $clientAccount->balance += $total_with_tax; // إضافة المبلغ الكلي (المبيعات + الضريبة)
+        $clientAccount->save();
+
+        // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
+        foreach ($items_data as $item) {
+            $item['invoice_id'] = $invoice->id;
+            InvoiceItem::create($item);
+
+            // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
+            $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
+
+            if (!$productDetails) {
+                $productDetails = ProductDetails::create([
+                    'store_house_id' => $item['store_house_id'],
+                    'product_id' => $item['product_id'],
+                    'quantity' => 0,
+                ]);
             }
 
-            // إذا تم تحديد حالة دفع معينة في الطلب
-            if ($request->has('payment_status')) {
-                switch ($request->payment_status) {
-                    case 4: // تحت المراجعة
-                        $payment_status = 4;
-                        $is_paid = false;
-                        break;
-                    case 5: // فاشلة
-                        $payment_status = 5;
-                        $is_paid = false;
-                        break;
-                }
+            if ($item['quantity'] > $productDetails->quantity) {
+                throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
             }
 
-            // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
-            $invoice = Invoice::create([
-                'client_id' => $request->client_id,
-                'employee_id' => $request->employee_id,
-                'due_value' => $due_value,
-                'code' => $code,
-                'type' => 'normal',
-                'invoice_date' => $request->invoice_date,
-                'issue_date' => $request->issue_date,
-                'terms' => $request->terms ?? 0,
-                'notes' => $request->notes,
-                'payment_status' => $payment_status,
-                'is_paid' => $is_paid,
-                'created_by' => Auth::id(),
-                'account_id' => $request->account_id,
-                'discount_amount' => $invoice_discount,
-                'discount_type' => $request->has('discount_type') ? ($request->discount_type === 'percentage' ? 2 : 1) : 1,
-                'advance_payment' => $advance_payment,
-                'payment_type' => $request->payment_type ?? 1,
-                'shipping_cost' => $shipping_cost,
-                'shipping_tax' => $shipping_tax,
-                'tax_type' => $request->tax_type ?? 1,
+            $productDetails->decrement('quantity', $item['quantity']);
+        }
+
+        // ** معالجة المرفقات (attachments) إذا وجدت **
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $invoice->attachments = $filename;
+                $invoice->save();
+            }
+        }
+
+        $clientAccount = Account::where('name', 'العملاء')->first();
+        if (!$clientAccount) {
+            throw new \Exception('حساب العملاء غير موجود');
+        }
+
+
+
+        // استرجاع حساب القيمة المضافة المحصلة
+        $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
+        if (!$vatAccount) {
+            throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
+        }
+        $salesAccount = Account::where('name', 'المبيعات')->first();
+        if (!$salesAccount) {
+            throw new \Exception('حساب المبيعات غير موجود');
+        }
+
+        // إنشاء القيد المحاسبي للفاتورة
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $invoice->code,
+            'date' => now(),
+            'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $invoice->client_id,
+            'invoice_id' => $invoice->id,
+            'created_by_employee' => Auth::id(),
+        ]);
+
+        // إضافة تفاصيل القيد المحاسبي
+        // 1. حساب العميل (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $clientAccount->id, // حساب العميل
+            'description' => 'فاتورة مبيعات',
+            'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
+            'credit' => 0,
+            'is_debit' => true,
+        ]);
+
+        // 2. حساب المبيعات (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $salesAccount->id, // حساب المبيعات
+            'description' => 'إيرادات مبيعات',
+            'debit' => 0,
+            'credit' => $amount_after_discount, // المبلغ بعد الخصم (دائن)
+            'is_debit' => false,
+        ]);
+
+        // 3. حساب القيمة المضافة المحصلة (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
+            'description' => 'ضريبة القيمة المضافة',
+            'debit' => 0,
+            'credit' => $tax_total, // قيمة الضريبة (دائن)
+            'is_debit' => false,
+        ]);
+
+        // ** تحديث رصيد حساب المبيعات (إيرادات) **
+        if ($salesAccount) {
+            $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
+            $salesAccount->save();
+        }
+
+        // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
+        $revenueAccount = Account::where('name', 'الإيرادات')->first();
+        if ($revenueAccount) {
+            $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
+            $revenueAccount->save();
+        }
+
+        // تحديث رصيد حساب القيمة المضافة (الخصوم)
+        $vatAccount->balance += $tax_total; // قيمة الضريبة
+        $vatAccount->save();
+
+        // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
+        $assetsAccount = Account::where('name', 'الأصول')->first();
+        if ($assetsAccount) {
+            $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+            $assetsAccount->save();
+        }
+
+
+        // ** الخطوة السابعة: إنشاء سجل الدفع إذا كان هناك دفعة مقدمة أو دفع كامل **
+        if ($advance_payment > 0 || $is_paid) {
+            $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
+
+            // البحث عن حساب الخزينة الرئيسية
+            $mainTreasuryAccount = Account::whereHas('parent.parent', function($query) {
+                $query->where('name', 'الأصول')
+                      ->whereHas('children', function($subQuery) {
+                          $subQuery->where('name', 'الأصول المتداولة');
+                      });
+            })
+            ->where('name', 'الخزينة الرئيسية')
+            ->first();
+
+            // التأكد من وجود حساب الخزينة الرئيسية
+            if (!$mainTreasuryAccount) {
+                throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+            }
+
+            // البحث عن حساب العميل الفرعي
+            $clientAccount = Account::where('name', $invoice->client->trade_name)
+                ->whereHas('parent', function($query) {
+                    $query->where('name', 'العملاء');
+                })
+                ->first();
+
+            // التأكد من وجود حساب العميل
+            if (!$clientAccount) {
+                throw new \Exception('لم يتم العثور على حساب العميل');
+            }
+
+            // إنشاء سجل الدفع
+            $payment = PaymentsProcess::create([
+                'invoice_id' => $invoice->id,
+                'amount' => $payment_amount,
+                'payment_date' => now(),
                 'payment_method' => $request->payment_method,
                 'reference_number' => $request->reference_number,
-                'received_date' => $request->received_date,
-                'subtotal' => $total_amount,
-                'total_discount' => $final_total_discount,
-                'tax_total' => $tax_total,
-                'grand_total' => $total_with_tax,
-                'paid_amount' => $advance_payment,
+                'notes' => 'تم إنشاء الدفعة تلقائياً عند إنشاء الفاتورة',
+                'type' => 'client payments',
+                'payment_status' => $payment_status,
+                'created_by' => Auth::id(),
             ]);
 
-            // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
-            foreach ($items_data as $item) {
-                $item['invoice_id'] = $invoice->id;
-                InvoiceItem::create($item);
-
-                // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
-                $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
-
-                if (!$productDetails) {
-                    $productDetails = ProductDetails::create([
-                        'store_house_id' => $item['store_house_id'],
-                        'product_id' => $item['product_id'],
-                        'quantity' => 0,
-                    ]);
-                }
-
-                if ($item['quantity'] > $productDetails->quantity) {
-                    throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
-                }
-
-                $productDetails->decrement('quantity', $item['quantity']);
-            }
-
-            // ** معالجة المرفقات (attachments) إذا وجدت **
-            if ($request->hasFile('attachments')) {
-                $file = $request->file('attachments');
-                if ($file->isValid()) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->move(public_path('assets/uploads/'), $filename);
-                    $invoice->attachments = $filename;
-                    $invoice->save();
-                }
-            }
-
-            $clientAccount = Account::where('name', 'العملاء')->first();
-            if (!$clientAccount) {
-                throw new \Exception('حساب العملاء غير موجود');
-            }
-
-
-
-            // استرجاع حساب القيمة المضافة المحصلة
-            $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
-            if (!$vatAccount) {
-                throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
-            }
-            $salesAccount = Account::where('name', 'المبيعات')->first();
-            if (!$salesAccount) {
-                throw new \Exception('حساب المبيعات غير موجود');
-            }
-
-            // إنشاء القيد المحاسبي للفاتورة
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $invoice->code,
+            // إنشاء قيد محاسبي للدفعة
+            $paymentJournalEntry = JournalEntry::create([
+                'reference_number' => $payment->reference_number ?? $invoice->code,
                 'date' => now(),
-                'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
+                'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
                 'status' => 1,
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
@@ -467,135 +589,46 @@ class InvoicesController extends Controller
                 'created_by_employee' => Auth::id(),
             ]);
 
-            // إضافة تفاصيل القيد المحاسبي
-            // 1. حساب العميل (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $clientAccount->id, // حساب العميل
-                'description' => 'فاتورة مبيعات',
-                'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
+            // 1. حساب الخزينة الرئيسية (مدين)
+            $treasuryDetail = JournalEntryDetail::create([
+                'journal_entry_id' => $paymentJournalEntry->id,
+                'account_id' => $mainTreasuryAccount->id,
+                'description' => 'استلام دفعة نقدية',
+                'debit' => $payment_amount,
                 'credit' => 0,
                 'is_debit' => true,
+                'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
+                'client_account_id' => $clientAccount->id, // تخزين معرف حساب العميل
             ]);
 
-            // 2. حساب المبيعات (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $salesAccount->id, // حساب المبيعات
-                'description' => 'إيرادات مبيعات',
+            // 2. حساب العميل (دائن)
+            $clientDetail = JournalEntryDetail::create([
+                'journal_entry_id' => $paymentJournalEntry->id,
+                'account_id' => $clientAccount->id,
+                'description' => 'دفعة من العميل',
                 'debit' => 0,
-                'credit' => $amount_after_discount, // المبلغ بعد الخصم (دائن)
+                'credit' => $payment_amount,
                 'is_debit' => false,
+                'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
+                'client_account_id' => $clientAccount->id, // تخزين معرف حساب العميل
             ]);
-
-            // 3. حساب القيمة المضافة المحصلة (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
-                'description' => 'ضريبة القيمة المضافة',
-                'debit' => 0,
-                'credit' => $tax_total, // قيمة الضريبة (دائن)
-                'is_debit' => false,
-            ]);
-
-            // ** تحديث رصيد حساب المبيعات (إيرادات) **
-            if ($salesAccount) {
-                $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
-                $salesAccount->save();
-            }
-
-            // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
-            $revenueAccount = Account::where('name', 'الإيرادات')->first();
-            if ($revenueAccount) {
-                $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
-                $revenueAccount->save();
-            }
-
-            // تحديث رصيد حساب القيمة المضافة (الخصوم)
-            $vatAccount->balance += $tax_total; // قيمة الضريبة
-            $vatAccount->save();
-
-            // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
-            $assetsAccount = Account::where('name', 'الأصول')->first();
-            if ($assetsAccount) {
-                $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-                $assetsAccount->save();
-            }
-            // ** الخطوة السابعة: إنشاء سجل الدفع إذا كان هناك دفعة مقدمة أو دفع كامل **
-            if ($advance_payment > 0 || $is_paid) {
-                $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
-
-                // إنشاء سجل الدفع
-                $payment = PaymentsProcess::create([
-                    'invoice_id' => $invoice->id,
-                    'amount' => $payment_amount,
-                    'payment_date' => now(),
-                    'payment_method' => $request->payment_method,
-                    'reference_number' => $request->reference_number,
-                    'notes' => 'تم إنشاء الدفعة تلقائياً عند إنشاء الفاتورة',
-                    'type' => 'client payments',
-                    'payment_status' => $payment_status,
-                    'created_by' => Auth::id(),
-                ]);
-
-                // إنشاء قيد محاسبي للدفعة
-                $paymentJournalEntry = JournalEntry::create([
-                    'reference_number' => $payment->reference_number ?? $invoice->code,
-                    'date' => now(),
-                    'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
-                    'status' => 1,
-                    'currency' => 'SAR',
-                    'client_id' => $invoice->client_id,
-                    'invoice_id' => $invoice->id,
-                    'created_by_employee' => Auth::id(),
-                ]);
-
-                // إضافة تفاصيل القيد المحاسبي للدفعة
-                // 1. حساب الصندوق/البنك (مدين)
-                JournalEntryDetail::create([
-                    'journal_entry_id' => $paymentJournalEntry->id,
-                    'account_id' => $request->payment_account_id, // حساب الصندوق/البنك
-                    'description' => 'استلام دفعة نقدية',
-                    'debit' => $payment_amount, // المبلغ المستلم (مدين)
-                    'credit' => 0,
-                    'is_debit' => true,
-                ]);
-
-                // 2. حساب العميل (دائن)
-                JournalEntryDetail::create([
-                    'journal_entry_id' => $paymentJournalEntry->id,
-                    'account_id' => $invoice->client->account_id, // حساب العميل
-                    'description' => 'دفعة من العميل',
-                    'debit' => 0,
-                    'credit' => $payment_amount, // المبلغ المستلم (دائن)
-                    'is_debit' => false,
-                ]);
-            }
-
-            DB::commit();
-
-            // إعداد رسالة النجاح
-            $paymentStatusText = match ($payment_status) {
-                1 => 'مكتمل',
-                2 => 'غير مكتمل',
-                3 => 'مسودة',
-                4 => 'تحت المراجعة',
-                5 => 'فاشلة',
-                default => 'غير معروف',
-            };
-
-            return redirect()
-                ->route('invoices.show', $invoice->id)
-                ->with('success', sprintf('تم إنشاء فاتورة المبيعات بنجاح. رقم الفاتورة: %s - حالة الدفع: %s', $invoice->code, $paymentStatusText));
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('خطأ في إنشاء فاتورة المبيعات: ' . $e->getMessage());
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
         }
+
+        DB::commit();
+
+        // إعداد رسالة النجاح
+        return redirect()
+            ->route('invoices.show', $invoice->id)
+            ->with('success', sprintf('تم إنشاء فاتورة المبيعات بنجاح. رقم الفاتورة: %s', $invoice->code));
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في إنشاء فاتورة المبيعات: ' . $e->getMessage());
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
     }
+}
     private function getSalesAccount()
     {
         // البحث عن حساب المبيعات باسمه

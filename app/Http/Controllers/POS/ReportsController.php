@@ -9,23 +9,23 @@ class ReportsController extends Controller
 {
     public function index()
     {
-        return view('pos.Reports.index');
+        return view('pos.reports.index');
     }
     public function Category()
     {
-        return view('pos.Reports.Category_Sales');
+        return view('pos.reports.category_sales');
     }
     public function Product()
     {
-        return view('pos.Reports.Product_Sales');
+        return view('pos.reports.product_sales');
     }
     public function Shift()
     {
-        return view('pos.Reports.Shift_Sales');
+        return view('pos.reports.shift_sales');
     }
     public function Detailed()
     {
-        return view('pos.Reports.Detailed_Shift_Transactions');
+        return view('pos.reports.detailed_shift_transactions');
     }
     public function Prof()
     {
