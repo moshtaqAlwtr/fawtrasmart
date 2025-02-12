@@ -4,7 +4,7 @@
 
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\InstallmentsController;
+use App\Http\Controllers\Installments\InstallmentsController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 require __DIR__ . '/auth.php';
@@ -20,7 +20,7 @@ Route::group(
             Route::get('/index', [InstallmentsController::class, 'index'])->name('installments.index');
             Route::get('agreement_installments', [InstallmentsController::class,    'agreement'])->name('installments.agreement_installments');
 
-          
+
         });
     }
 );

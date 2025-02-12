@@ -35,10 +35,11 @@ Route::group(
             Route::get('/create',[SupplyOrdersController::class,'create'])->name('SupplyOrders.create');
             Route::get('/show/{id}',[SupplyOrdersController::class,'show'])->name('SupplyOrders.show');
             Route::get('/edit/{id}',[SupplyOrdersController::class,'edit'])->name('SupplyOrders.edit');
+
             Route::get('/edit_status',[SupplyOrdersController::class,'edit_status'])->name('SupplyOrders.edit_status');
             Route::post('/store',[SupplyOrdersController::class,'store'])->name('SupplyOrders.store');
-            Route::post('/update/{id}',[SupplyOrdersController::class,'update'])->name('SupplyOrders.update');
-            Route::get('/delete/{id}',[SupplyOrdersController::class,'delete'])->name('SupplyOrders.delete');
+            Route::put('/update/{id}',[SupplyOrdersController::class,'update'])->name('SupplyOrders.update');
+            Route::delete('/destroy/{id}',[SupplyOrdersController::class,'destroy'])->name('SupplyOrders.destroy');
 
 
 

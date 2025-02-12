@@ -18,7 +18,13 @@ class JournalEntryController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JournalEntry::with(['details.account', 'client', 'costCenter', 'createdByEmployee']);
+        $query = JournalEntry::with([
+            'details.account',
+            'client',
+            'costCenter',
+            'createdByEmployee',
+            'account' // Include the single account relationship
+        ]);
 
         // البحث حسب التاريخ
         if ($request->has('from_date') && $request->has('to_date')) {
@@ -35,9 +41,10 @@ class JournalEntryController extends Controller
             $query->where('reference_number', 'like', '%' . $request->reference_number . '%');
         }
 
-        $entries = $query->latest()->paginate(10);
+        $entries = $query->get();
+        $entryDetails = JournalEntryDetail::with('account')->get();
 
-        return view('Accounts.journal.index', compact('entries'));
+        return view('accounts.journal.index', compact('entries', 'entryDetails'));
     }
 
     public function create()
@@ -46,9 +53,10 @@ class JournalEntryController extends Controller
         $accounts = ChartOfAccount::all();
         $clients = Client::all();
         $employees = Employee::all();
+        $entryDetails = JournalEntryDetail::all();
         $costCenters = CostCenter::all();
 
-        return view('Accounts.journal.create', compact('accounts', 'clients', 'employees', 'costCenters', 'journalEntry'));
+        return view('Accounts.journal.create', compact('accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
     }
 
     public function store(Request $request)
@@ -133,8 +141,8 @@ class JournalEntryController extends Controller
     public function show($id)
     {
         $entry = JournalEntry::with(['details.account'])->findOrFail($id);
-
-        return view('Accounts.journal.show', compact('entry'));
+        $entryDetails = JournalEntryDetail::with('account')->get();
+        return view('accounts.journal.show', compact('entry', 'entryDetails'));
     }
 
 
@@ -147,7 +155,7 @@ class JournalEntryController extends Controller
         $employees = Employee::all();
         $costCenters = CostCenter::all();
 
-        return view('Accounts.journal.edit', compact('entry', 'accounts', 'clients', 'employees', 'costCenters'));
+        return view('accounts.journal.edit', compact('entry', 'accounts', 'clients', 'employees', 'costCenters'));
     }
 
     public function update(Request $request, JournalEntry $entry)
@@ -272,21 +280,12 @@ class JournalEntryController extends Controller
         }
     }
 
-    public function destroy(JournalEntry $entry)
+    public function destroy( $id)
     {
-        if ($entry->status != 0) {
-            return back()->with('error', 'لا يمكن حذف القيد بعد اعتماده أو رفضه');
-        }
-
         try {
             DB::beginTransaction();
 
-            // حذف المرفق إذا وجد
-            if ($entry->attachment) {
-                Storage::disk('public')->delete($entry->attachment);
-            }
-
-            // حذف التفاصيل والقيد
+            $entry = JournalEntry::findOrFail($id);
             $entry->details()->delete();
             $entry->delete();
 
@@ -295,7 +294,7 @@ class JournalEntryController extends Controller
             return redirect()->route('journal.index')->with('success', 'تم حذف القيد المحاسبي بنجاح');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'حدث خطأ أثناء حذف القيد: ' . $e->getMessage());
+            return back()->with('error', 'حدث خطاء اثناء حذف القيد: ' . $e->getMessage());
         }
     }
 
@@ -342,6 +341,6 @@ class JournalEntryController extends Controller
         $accounts = ChartOfAccount::all();
         $employees = Employee::all();
 
-        return view('Accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
+        return view('accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
     }
 }

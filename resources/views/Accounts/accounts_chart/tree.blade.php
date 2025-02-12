@@ -989,23 +989,21 @@
             });
         });
         $('#tree').on('select_node.jstree', function(e, data) {
-    const nodeId = data.node.id;
-    const normalizedNodeName = data.node.text.trim().toLowerCase();
+            const nodeId = data.node.id;
+            const normalizedNodeName = data.node.text.trim().toLowerCase();
 
-    if (normalizedNodeName === 'المبيعات') {
-        // توجيه المستخدم إلى صفحة تفاصيل المبيعات
-        window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
-    } else if (normalizedNodeName === 'القيمة المضافة المحصلة') {
-        // توجيه المستخدم إلى صفحة تفاصيل القيمة المضافة
-        window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
-    }
-    else if (normalizedNodeName === 'مردودات المبيعات') {
-        // توجيه المستخدم إلى صفحة تفاصيل القيمة المضافة
-        window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
-    }
+            if (normalizedNodeName === 'المبيعات') {
+                // توجيه المستخدم إلى صفحة تفاصيل المبيعات
+                window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
+            } else if (normalizedNodeName === 'القيمة المضافة المحصلة') {
+                // توجيه المستخدم إلى صفحة تفاصيل القيمة المضافة
+                window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
+            } else if (normalizedNodeName === 'مردودات المبيعات') {
+                // توجيه المستخدم إلى صفحة تفاصيل القيمة المضافة
+                window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
+            }
 
-});
-
+        });
     </script>
 
 </body>

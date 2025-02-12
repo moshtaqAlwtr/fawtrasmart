@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\LoyaltyPointsController;
+use App\Http\Controllers\LoyaltyPoints\LoyaltyPointsController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +20,7 @@ Route::group(
 
         Route::prefix('Loyalty_Points')->middleware(['auth'])->group(function () {
 
-   
+
             # نقاط الولاء
             Route::prefix('Loyalty_Points')->group(function () {
                 Route::get('/index', [LoyaltyPointsController::class, 'index'])->name('loyalty_points.index');
@@ -31,9 +31,9 @@ Route::group(
                 Route::post('/update/{id}', [LoyaltyPointsController::class, 'update'])->name('loyalty_points.update');
                 Route::get('/delete/{id}', [LoyaltyPointsController::class, 'delete'])->name('loyalty_points.delete');
             });
-          
-                      
-   
-            
+
+
+
+
         });
     });

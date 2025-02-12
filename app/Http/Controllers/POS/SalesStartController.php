@@ -13,7 +13,7 @@ class SalesStartController extends Controller
     {
         $products = Product::all();
         $clients = Client::all();
-        return view('POS.sales_start.index',compact('products','clients'));
+        return view('pos.sales_start.index',compact('products','clients'));
     }
 
     public function search(Request $request)

@@ -9,10 +9,10 @@ class IndirectCostsController extends Controller
 {
     public function index()
     {
-        return view('manufacturing.indirectcosts.index');
+        return view('manufacturing.indirectCosts.index');
     }
     public function create()
     {
-        return view('manufacturing.indirectcosts.create');
+        return view('manufacturing.indirectCosts.create');
     }
 }

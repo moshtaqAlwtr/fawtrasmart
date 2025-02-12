@@ -141,10 +141,10 @@ Route::group(
                     Route::get('/show/{id}', [SupplierManagementController::class, 'show'])->name('SupplierManagement.show');
                 });
                 //  مدفوعات الموردين
-                Route::prefix('Supplier_Payments')->group(function () {
-                    Route::get('/index', [SupplierPaymentsController::class, 'index'])->name('purchases.supplier_payments.index');
-                    Route::get('/create', [SupplierPaymentsController::class, 'create'])->name('purchases.supplier_payments.create');
-                });
+                // Route::prefix('Supplier_Payments')->group(function () {
+                //     Route::get('/index', [SupplierPaymentsController::class, 'index'])->name('purchases.supplier_payments.index');
+                //     Route::get('/create', [SupplierPaymentsController::class, 'create'])->name('purchases.supplier_payments.create');
+                // });
                 //  أعدادات فواتير الشراء
                 Route::prefix('invoice_settings')->group(function () {
                     Route::get('/index', [InvoiceSettingsController::class, 'index'])->name('purchases.invoice_settings.index');

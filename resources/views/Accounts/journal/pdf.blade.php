@@ -80,8 +80,8 @@
     <table>
         <thead>
             <tr>
-                <th>الحساب</th>
-                <th>الوصف</th>
+                <th colspan="2">الحساب</th>
+
                 <th>مدين</th>
                 <th>دائن</th>
             </tr>
@@ -96,10 +96,10 @@
                     <tr>
                         <td>
                             @if(isset($item->account))
-                                {{ $item->account->code ?? '' }}
+                                {{ $item->account->code }}
                             @endif
                         </td>
-                        <td>{{ $item->description ?? '' }}</td>
+                        <td>{{ $item->account->name  }}</td>
                         <td>{{ isset($item->debit) ? number_format($item->debit, 2) : '' }}</td>
                         <td>{{ isset($item->credit) ? number_format($item->credit, 2) : '' }}</td>
                     </tr>
@@ -116,7 +116,7 @@
                                 {{ $item->account->code ?? '' }}
                             @endif
                         </td>
-                        <td>{{ $item->description ?? '' }}</td>
+                        <td>{{ $item->account->name ?? '' }}</td>
                         <td>{{ isset($item->debit) ? number_format($item->debit, 2) : '' }}</td>
                         <td>{{ isset($item->credit) ? number_format($item->credit, 2) : '' }}</td>
                     </tr>
