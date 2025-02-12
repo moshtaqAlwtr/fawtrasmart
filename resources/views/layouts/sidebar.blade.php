@@ -946,14 +946,14 @@
 
             {{-- الطلبات --}}
             @if (auth()->user()->hasAnyPermission(['orders_management', 'orders_setting_management']))
-                <li class=" nav-item"><a href="index.html">
+                <li class=" nav-item"><a href="{{ route('orders.index') }}">
                         <i class="feather icon-briefcase">
                         </i><span class="menu-title" data-i18n="Dashboard">
                             {{ trans('main_trans.Orders') }}</span>
                     </a>
                     <ul class="menu-content">
                         @can('orders_management')
-                            <li><a href="dashboard-analytics.html"><i class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="{{ route('orders.management.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="Analytics">{{ trans('main_trans.Order_Management') }}</span></a>
                             </li>
                         @endcan
