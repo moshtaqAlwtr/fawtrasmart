@@ -7,20 +7,17 @@ use Illuminate\Http\Request;
 
 class OrdersController extends Controller
 {
+    public function mangame()
+    {
+        return view('orders.management.mangame');
+    }
     public function index()
     {
         return view('orders.management.index');
     }
-    public function Settings()
-    {
-        return view('orders.Settings.index');
-    }
-    public function type()
-    {
-        return view('orders.Settings.type');
-    }
     public function create()
     {
-        return view('orders.Settings.create');
+        return view('orders.management.create');
     }
+
 }
