@@ -60,7 +60,7 @@
                             </a>
 
                             <!-- إضافة اتفاقية تقسيط -->
-                            <a href="" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
+                            <a href="{{ route('installments.create', ['id' => $invoice->id]) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
                                 <i class="fas fa-handshake me-1"></i> إضافة اتفاقية تقسيط
                             </a>
 

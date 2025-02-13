@@ -217,7 +217,7 @@ Route::group(
             ->group(function () {
                 Route::get('/index', [CommissionController::class, 'index'])->name('commission.index');
                 Route::get('/create', [CommissionController::class, 'create'])->name('commission.create');
-                Route::post('/create', [CommissionController::class, 'create'])->name('commission.store');
+                Route::post('/create', [CommissionController::class, 'store'])->name('commission.store');
                 
             });
     },

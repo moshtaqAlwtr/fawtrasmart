@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('commission__products', function (Blueprint $table) {
+        Schema::create('installments_details', function (Blueprint $table) {
             $table->id();
-            $table->integer('commission_id');
-            $table->integer('product_id');
-            $table->decimal('commission_percentage', 5, 2); // نسبة العمولة
+            $table->decimal('amount', 10, 2)->nullable();
+            $table->foreignId('installments_id')->nullable()->constrained('installments')->onDelete('cascade');
+            $table->tinyInteger('status')->nullable()->default(1);
+            $table->date('due_date')->nullable();
             $table->timestamps();
         });
     }
@@ -25,10 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('commission__products');
+        Schema::dropIfExists('installments_details');
     }
 };
-
-
-
-

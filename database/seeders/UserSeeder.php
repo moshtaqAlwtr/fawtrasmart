@@ -16,7 +16,8 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::updateOrCreate(
+        // إنشاء أو تحديث المستخدم الأول (مدير)
+        $adminUser = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'name' => 'يوسف محمد',
@@ -26,19 +27,56 @@ class UserSeeder extends Seeder
                 'phone' => '0966123456789'
             ]
         );
-        $user = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+
+        // إنشاء أو تحديث المستخدم الثاني (مدير)
+        $moshtaqUser = User::updateOrCreate(
+            ['email' => 'moshtaq@gmail.com'],
             [
-                'name' => 'مشتاق قايد الوتر ',
-                'email' => 'mashtaq@gmail.com',
-                'password' => Hash::make('123455'),
+                'name' => 'مشتاق قايد الوتر',
+                'email' => 'moshtaq@gmail.com',
+                'password' => Hash::make('123456'),
                 'role' => 'manager',
                 'phone' => '0534781240'
             ]
         );
-        $role = Role::create(['name' => 'manager']);
-        $permissions = Permission::pluck('id','id')->all();
-        $role->syncPermissions($permissions);
-        $user->assignRole([$role->id]);
+
+        // إنشاء أو تحديث المستخدم الثالث (owner)
+        $ownerUser1 = User::updateOrCreate(
+            ['email' => 'owner1@example.com'],
+            [
+                'name' => 'مالك واحد',
+                'email' => 'owner1@example.com',
+                'password' => Hash::make('123456'),
+                'role' => 'owner',
+                'phone' => '0534781241'
+            ]
+        );
+
+        // إنشاء أو تحديث المستخدم الرابع (owner)
+        $ownerUser2 = User::updateOrCreate(
+            ['email' => 'owner2@example.com'],
+            [
+                'name' => 'مالك اثنين',
+                'email' => 'owner2@example.com',
+                'password' => Hash::make('123456'),
+                'role' => 'owner',
+                'phone' => '0534781242'
+            ]
+        );
+
+        // إنشاء الأدوار إذا لم تكن موجودة
+        $managerRole = Role::updateOrCreate(['name' => 'manager']);
+        $ownerRole = Role::updateOrCreate(['name' => 'owner']);
+
+        // تعيين الأذونات للأدوار (إذا لزم الأمر)
+        $permissions = Permission::pluck('id', 'id')->all();
+        $managerRole->syncPermissions($permissions);
+        $ownerRole->syncPermissions($permissions); // يمكنك تعديل الأذونات حسب الحاجة
+
+        // تعيين الأدوار للمستخدمين
+        $adminUser->assignRole([$managerRole->id]);
+        $moshtaqUser->assignRole([$managerRole->id]);
+        $ownerUser1->assignRole([$ownerRole->id]);
+        $ownerUser2->assignRole([$ownerRole->id]);
     }
 }

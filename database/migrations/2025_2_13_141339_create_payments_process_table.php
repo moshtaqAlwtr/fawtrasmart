@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->foreignId('client_id')->nullable()->constrained('clients')->onDelete('cascade');
             $table->foreignId('purchases_id')->nullable()->constrained('purchase_invoices')->onDelete('cascade');
             $table->foreignId('invoice_id')->nullable()->constrained('invoices')->onDelete('cascade');
+            $table->foreignId('installments_id')->nullable()->constrained('installments')->onDelete('cascade');
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->foreignId('treasury_id')->nullable()->constrained('treasuries')->onDelete('set null');
             $table->dateTime('payment_date')->nullable();

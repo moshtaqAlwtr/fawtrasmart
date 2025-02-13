@@ -54,6 +54,9 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceItem::class);
     }
+    public function installments(){
+        return $this->hasMany(Installment::class, );
+    }
 
     // العلاقة مع جميع عمليات الدفع
     public function payments(): HasMany
@@ -73,6 +76,7 @@ class Invoice extends Model
         $totalPaid = $this->payments()->sum('amount');
         return $this->grand_total - $totalPaid;
     }
+
 
     // دالة لتحديث حالة الدفع
     public function updatePaymentStatus(): void
