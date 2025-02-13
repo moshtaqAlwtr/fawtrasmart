@@ -40,8 +40,8 @@ class CommissionController extends Controller
             foreach ($request->items as $item) {
                 Commission_Products::create([
                     'commission_id' => $Commission->id,
-                    'product_id' => $item['1'],
-                    'commission_percentage' => $item['tax_1'],
+                    'product_id' => 1,
+                    'commission_percentage' => 2,
                 ]);
             }
 
