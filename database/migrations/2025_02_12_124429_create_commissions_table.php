@@ -21,6 +21,7 @@ return new class extends Migration {
             $table
                 ->enum('commission_calculation', ['fully_paid', 'partially_paid'])
                 ->default('fully_paid');
+                
 
             $table->timestamps();
             $table->enum('target_type',['amount','quantity'])->default('amount');

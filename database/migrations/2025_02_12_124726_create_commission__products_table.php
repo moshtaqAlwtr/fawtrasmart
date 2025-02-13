@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('commission_id');
             $table->integer('product_id');
+            
             $table->decimal('commission_percentage', 5, 2); // نسبة العمولة
             $table->timestamps();
         });
