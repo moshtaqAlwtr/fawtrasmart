@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Status;
 use App\Models\SupplyOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -146,6 +147,9 @@ class SupplyOrdersController extends Controller
             'shipping_address' => 'nullable|string',
             'tracking_number' => 'nullable|string',
             'shipping_policy_file' => 'nullable|file|max:10240', // 10MB max
+            'status_name' => 'nullable|string|max:255', // New field for status name
+            'status_color' => 'nullable|string|max:7', // New field for status color (hex code)
+            'status_state' => 'nullable|boolean', // New field for status state
         ]);
 
         // Handle file upload
@@ -160,7 +164,19 @@ class SupplyOrdersController extends Controller
         $validatedData['order_number'] = $orderNumber;
         unset($validatedData['supply_order_number']);
 
+        // Create the supply order
         $supplyOrder = SupplyOrder::create($validatedData);
+
+        // Create the status entry
+        if ($request->filled('status_name')) {
+            $statusData = [
+                'name' => $request->input('status_name'),
+                'color' => $request->input('status_color'),
+                'state' => $request->input('status_state', 1), // Default to 1 if not provided
+                'order_id' => $supplyOrder->id, // Link to the supply order
+            ];
+            Status::create($statusData);
+        }
 
         return redirect()->route('SupplyOrders.index')->with('success', 'تم إنشاء أمر التوريد بنجاح');
     }
