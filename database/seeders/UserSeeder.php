@@ -42,10 +42,10 @@ class UserSeeder extends Seeder
 
         // إنشاء أو تحديث المستخدم الثالث (owner)
         $ownerUser1 = User::updateOrCreate(
-            ['email' => 'owner1@example.com'],
+            ['email' => 'alrwies@gmail.com'],
             [
-                'name' => 'مالك واحد',
-                'email' => 'owner1@example.com',
+                'name' => 'محمد فالح العتيبي',
+                'email' => 'alrwies@gmail.com',
                 'password' => Hash::make('123456'),
                 'role' => 'owner',
                 'phone' => '0534781241'

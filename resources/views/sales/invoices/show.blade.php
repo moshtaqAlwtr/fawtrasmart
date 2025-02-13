@@ -49,10 +49,10 @@
                             </a>
 
                             <!-- إضافة عملية دفع -->
-                            <a href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}"
+                            <a href="{{ route('paymentsClient.create', ['id' => $invoice->id, 'type' => 'invoice']) }}"
                                 class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
                                 <i class="fas fa-wallet me-1"></i> إضافة عملية دفع
-                            </a>
+                             </a>
 
                             <!-- قسائم -->
                             <a href="" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">

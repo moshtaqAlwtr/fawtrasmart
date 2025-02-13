@@ -984,7 +984,7 @@
                     </a>
                     <ul class="menu-content">
                         @can('orders_management')
-                            <li><a href="{{ route('orders.management.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="{{ route('orders.management.mangame') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="Analytics">{{ trans('main_trans.Order_Management') }}</span></a>
                             </li>
                         @endcan

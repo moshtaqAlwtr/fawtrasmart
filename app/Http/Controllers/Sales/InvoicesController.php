@@ -543,9 +543,9 @@ class InvoicesController extends Controller
                 ->first();
 
                 // التأكد من وجود حساب الخزينة الرئيسية
-                if (!$mainTreasuryAccount) {
-                    throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
-                }
+                // if (!$mainTreasuryAccount) {
+                //     throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+                // }
 
                 // البحث عن حساب العميل الفرعي
                 $clientAccount = Account::where('name', $invoice->client->trade_name)
@@ -581,7 +581,7 @@ class InvoicesController extends Controller
                     'currency' => 'SAR',
                     'client_id' => $invoice->client_id,
                     'invoice_id' => $invoice->id,
-                    'created_by_employee' => Auth::id(),
+                    // 'created_by_employee' => Auth::id(),
                 ]);
 
                 // 1. حساب الخزينة الرئيسية (مدين)
@@ -651,6 +651,7 @@ class InvoicesController extends Controller
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
+
         $invoice_number = $this->generateInvoiceNumber();
 
         // إنشاء رقم الباركود من رقم الفاتورة

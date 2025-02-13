@@ -3,6 +3,7 @@
 use App\Http\Controllers\Reports\WorkflowController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Orders\OrdersController;
+use App\Http\Controllers\Orders\SettingsController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 require __DIR__ . '/auth.php';
@@ -18,6 +19,7 @@ Route::group(
 
             # employee routes
             Route::prefix('management')->group(function () {
+                Route::get('/mangame', [OrdersController::class, 'mangame'])->name('orders.management.mangame');
                 Route::get('/index',[OrdersController::class,'index'])->name('orders.management.index');
                 Route::get('/create',[OrdersController::class,'create'])->name('orders.management.create');
                 Route::get('/edit/{id}',[OrdersController::class,'edit'])->name('Order.edit');
@@ -32,11 +34,11 @@ Route::group(
             });
                  # employee routes
                  Route::prefix('Settings')->group(function () {
-                    Route::get('/index',[OrdersController::class,'Settings'])->name('orders.Settings.index');
-                    Route::get('/type',[OrdersController::class,'type'])->name('orders.Settings.type');
-                    Route::get('/create',[OrdersController::class,'create'])->name('orders.Settings.create');
-                    Route::get('/edit/{id}',[OrdersController::class,'edit'])->name('Order.edit');
-                    Route::get('/show/{id}',[OrdersController::class,'show'])->name('Order.show');
+                    Route::get('/index',[SettingsController::class,'Settings'])->name('orders.Settings.index');
+                    Route::get('/type',[SettingsController::class,'type'])->name('orders.Settings.type');
+                    Route::get('/create',[SettingsController::class,'create'])->name('orders.Settings.create');
+                    Route::get('/edit/{id}',[SettingsController::class,'edit'])->name('Order.edit');
+                    Route::get('/show/{id}',[SettingsController::class,'show'])->name('Order.show');
 
                 });
     }
