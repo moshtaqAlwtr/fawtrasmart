@@ -86,48 +86,55 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if ($installments->isNotEmpty())
-                            @foreach ($installments as $installment)
+                        @foreach ($installments as $installment)
+                            @php
+                                $installmentCount = $installment->installment_number; // Number of installments
+                                $installmentAmount = $installment->amount; // Amount of each installment
+                            @endphp
+                            @for ($i = 1; $i <= $installmentCount; $i++)
                                 <tr>
                                     <td>{{ $installment->id }}</td>
                                     <td>{{ $installment->invoice->client->trade_name }}</td>
-                                    <td>{{ number_format($installment->amount, 2) }} ر.س</td>
+
+                                    <td>{{ number_format($installmentAmount, 2) }} ر.س</td> <!-- Amount for each installment -->
+
                                     <td>
                                         {{ $installment->due_date }}
                                         <br>
-                                        <span class="text-info">{{ $installment->status }}</span>
+                                        <span class="text-info">{{ $installment->status }}</span> <!-- Display status next to due date -->
                                     </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            <div class="dropdown">
-                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm" type="button" id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('installments.show', $installment->id) }}">
-                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('installments.edit', $installment->id) }}">
-                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $installment->id, 'type' => 'installment']) }}">
-                                                            <i class="fa fa-edit me-2 text-success"></i>قم بالدفع
-                                                        </a>
-                                                    </li>
-                                                </div>
+
+                                <td>
+                                    <div class="btn-group">
+                                        <div class="dropdown">
+                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false"></button>
+                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('installments.show', $installment->id) }}">
+                                                        <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('installments.edit', $installment->id) }}">
+                                                        <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $installment->id, 'type' => 'installment']) }}">
+                                                        <i class="fa fa-edit me-2 text-success"></i>قم بالدفع
+                                                    </a>
+                                                </li>
                                             </div>
                                         </div>
-                                    </td>
+                                    </div>
+                                </td>
                                 </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="5" class="text-center">لا توجد أقساط.</td>
-                            </tr>
-                        @endif
+                            @endfor
+                        @endforeach
                     </tbody>
                 </table>
             </div>

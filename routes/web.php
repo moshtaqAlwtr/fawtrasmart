@@ -169,7 +169,7 @@ Route::group(
                 Route::get('/mang_client/{id}', [ClientController::class, 'mang_client_details'])->name('clients.mang_client_details');
                 Route::prefix('paymentsClient')->group(function () {
                     Route::get('/index', [PaymentProcessController::class, 'index'])->name('paymentsClient.index');
-                    Route::get('/payments/create/{id}/{type?}', [PaymentProcessController::class, 'create'])->name('paymentsClient.create');
+                    Route::get('/paymentsClient/create/{id}', [PaymentProcessController::class, 'create'])->name('paymentsClient.create');
                     Route::post('/store', [PaymentProcessController::class, 'store'])->name('paymentsClient.store');
                     Route::get('/show/{id}', [PaymentProcessController::class, 'show'])->name('paymentsClient.show');
                     Route::get('/edit/{id}', [PaymentProcessController::class, 'edit'])->name('paymentsClient.edit');
