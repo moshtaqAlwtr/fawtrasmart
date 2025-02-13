@@ -7,7 +7,6 @@ use App\Http\Requests\Sales\InvoiceRequest;
 use App\Models\Account;
 use App\Models\Client;
 use App\Models\Employee;
-use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
@@ -544,9 +543,9 @@ class InvoicesController extends Controller
                 ->first();
 
                 // التأكد من وجود حساب الخزينة الرئيسية
-                if (!$mainTreasuryAccount) {
-                    throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
-                }
+                // if (!$mainTreasuryAccount) {
+                //     throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+                // }
 
                 // البحث عن حساب العميل الفرعي
                 $clientAccount = Account::where('name', $invoice->client->trade_name)
@@ -649,19 +648,19 @@ class InvoicesController extends Controller
 
     public function show($id)
     {
-        $installment = Installment::find($id); // تأكد من استرجاع القسط
-        if (!$installment) {
-            return redirect()->back()->with('error', 'القسط غير موجود.');
-        }
-
         $clients = Client::all();
         $employees = Employee::all();
-        $invoice = Invoice::find($installment->invoice_id); // استرجع الفاتورة المرتبطة بالقسط
+        $invoice = Invoice::find($id);
 
         $invoice_number = $this->generateInvoiceNumber();
-        $barcodeNumber = str_pad($invoice->id, 13, '0', STR_PAD_LEFT);
+
+        // إنشاء رقم الباركود من رقم الفاتورة
+        $barcodeNumber = str_pad($invoice->id, 13, '0', STR_PAD_LEFT); // تنسيق الرقم إلى 13 خانة
+
+        // إنشاء رابط الباركود باستخدام خدمة Barcode Generator
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
 
+        // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
         return view('sales.invoices.show', compact('invoice_number', 'clients', 'employees', 'invoice', 'barcodeImage'));
     }
     public function edit($id)
