@@ -946,7 +946,7 @@
 
             {{-- الطلبات --}}
             @if (auth()->user()->hasAnyPermission(['orders_management', 'orders_setting_management']))
-                <li class=" nav-item"><a href="{{ route('orders.index') }}">
+                <li class=" nav-item"><a href="index.html">
                         <i class="feather icon-briefcase">
                         </i><span class="menu-title" data-i18n="Dashboard">
                             {{ trans('main_trans.Orders') }}</span>
@@ -959,7 +959,7 @@
                         @endcan
 
                         @can('orders_setting_management')
-                            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="{{ route('orders.Settings.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
                             </li>
                         @endcan

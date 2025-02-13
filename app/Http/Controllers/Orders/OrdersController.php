@@ -11,8 +11,16 @@ class OrdersController extends Controller
     {
         return view('orders.management.index');
     }
+    public function Settings()
+    {
+        return view('orders.Settings.index');
+    }
+    public function type()
+    {
+        return view('orders.Settings.type');
+    }
     public function create()
     {
-        return view('orders.management.create');
+        return view('orders.Settings.create');
     }
 }

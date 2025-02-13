@@ -30,6 +30,15 @@ Route::group(
                 Route::get('/export/view',[OrdersController::class,'export_view'])->name('Order.export_view');
                 Route::post('/export',[OrdersController::class,'export'])->name('Order.export');
             });
+                 # employee routes
+                 Route::prefix('Settings')->group(function () {
+                    Route::get('/index',[OrdersController::class,'Settings'])->name('orders.Settings.index');
+                    Route::get('/type',[OrdersController::class,'type'])->name('orders.Settings.type');
+                    Route::get('/create',[OrdersController::class,'create'])->name('orders.Settings.create');
+                    Route::get('/edit/{id}',[OrdersController::class,'edit'])->name('Order.edit');
+                    Route::get('/show/{id}',[OrdersController::class,'show'])->name('Order.show');
+
+                });
     }
 );
     }
