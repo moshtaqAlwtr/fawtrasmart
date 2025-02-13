@@ -28,6 +28,13 @@ class CommissionController extends Controller
        
              $Commission = new Commission();
              $Commission->name = $request->name;
+             $Commission->period = $request->period;
+             $Commission->status = $request->status;
+             $Commission->commission_calculation = $request->commission_calculation;
+             $Commission->currency = $request->currency;
+             $Commission->notes = $request->notes;
+             $Commission->target_type = $request->target_type;
+             $Commission->value = $request->value;
              $Commission->save();
 
              foreach ($request->employee_id  as $employee_id) {
@@ -45,6 +52,7 @@ class CommissionController extends Controller
                 ]);
             }
 
+            return CommissionUsers::all();
              
     }
 
