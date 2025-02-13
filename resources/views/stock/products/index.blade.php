@@ -149,7 +149,7 @@
 
                             <div class="col-md-3">
                                 <p class="mb-0"><small>{{ $product->created_at }}</small></p>
-                                <small class="text-muted">بواسطة: {{ $product->user->name }}</small>
+                                <small class="text-muted">بواسطة: {{ $product->user->name ?? ""}}</small>
                             </div>
 
                             @if ($product->totalQuantity() > 0)
