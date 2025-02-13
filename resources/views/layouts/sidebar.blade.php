@@ -570,6 +570,37 @@
                 </li>
             @endif
 
+
+
+  <!-- قواعد العمولة  -->
+  @if (
+    auth()->user()->hasAnyPermission([
+        'customer_loyalty_points_managing_customer_bases',
+        'customer_loyalty_points_redeem_loyalty_points',
+    ])
+)
+<li class="nav-item">
+    <a href="#">
+        <i class="feather icon-layers"></i> <!-- قواعد العمولة  -->
+        <span class="menu-title" data-i18n="Dashboard"> المبيعات المستهدفة</span>
+    </a>
+    <ul class="menu-content">
+        @can('customer_loyalty_points_managing_customer_bases')
+            <li><a href="{{ route('commission.create') }}"><i class="feather icon-circle"></i><span
+                        class="menu-item"
+                        data-i18n="Analytics">قواعد العمولة</span>
+                </a>
+            </li>
+        @endcan
+
+    </ul>
+</li>
+@endif
+
+
+
+           
+
             {{-- العضويات --}}
             @if (auth()->user()->hasAnyPermission(['membership_management', 'membership_setting_management']))
                 <li class=" nav-item"><a href="index.html">
