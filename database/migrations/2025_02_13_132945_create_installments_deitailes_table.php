@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->decimal('amount', 10, 2)->nullable();
             $table->foreignId('installments_id')->nullable()->constrained('installments')->onDelete('cascade');
+            $table->tinyInteger('status')->nullable()->default(1);
             $table->date('due_date')->nullable();
             $table->timestamps();
         });
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('installments');
+        Schema::dropIfExists('installments_details');
     }
 };
