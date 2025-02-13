@@ -23,7 +23,8 @@ return new class extends Migration {
                 ->default('fully_paid')
                 ->after('column_name');
             $table->timestamps();
-
+            $table->enum('target_type',['amount','quantity'])->default('amount');
+            $table->string('value')->nullable();
             $table->string('currency');
             $table->string('notes');
         });

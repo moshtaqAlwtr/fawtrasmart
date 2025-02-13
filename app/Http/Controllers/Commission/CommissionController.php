@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Commission;
 
 use App\Http\Controllers\Controller;
+use App\Models\Commission;
+use App\Models\Commission_Products;
+use App\Models\CommissionUsers;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 
@@ -22,6 +25,27 @@ class CommissionController extends Controller
     public function store(Request $request)
     {
 
+       
+             $Commission = new Commission();
+             $Commission->name = $request->name;
+             $Commission->save();
+
+             foreach ($request->employee_id  as $employee_id) {
+                CommissionUsers::create([
+                    'commission_id' => $Commission->id,
+                    'employee_id' => $employee_id,
+                ]);
+            }
+
+            foreach ($request->items as $item) {
+                Commission_Products::create([
+                    'commission_id' => $Commission->id,
+                    'product_id' => $item['1'],
+                    'commission_percentage' => $item['tax_1'],
+                ]);
+            }
+
+             
     }
 
     public function update(Request $request ,$id)

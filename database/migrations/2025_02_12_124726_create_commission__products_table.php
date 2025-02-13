@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('commission__products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('commission_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->integer('commission_id');
+            $table->integer('product_id');
             $table->decimal('commission_percentage', 5, 2); // نسبة العمولة
             $table->timestamps();
         });

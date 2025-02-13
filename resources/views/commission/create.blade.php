@@ -34,7 +34,7 @@
     </div>
 
     <div class="content-body">
-        <form id="clientForm" action="{{ route('clients.store') }}" method="POST" enctype="multipart/form-data">
+        <form id="clientForm" action="{{ route('commission.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="card">
@@ -71,7 +71,7 @@
                                             <div class="form-group">
                                                 <label for="text">الاسم</label>
                                                 <div class="position-relative has-icon-left">
-                                                    <input type="text" id="name" class="form-control" name="name" value="">
+                                                    <input type="text" id="name" class="form-control" name="name">
                                                     <div class="form-control-position"></div>
                                                 </div>
                                             </div>
@@ -82,9 +82,9 @@
                                             <div class="form-group">
                                                 <label for="printing_method">الحالة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    <select class="form-control" id="printing_method" name="printing_method">
-                                                        <option value="1">نشط</option>
-                                                        <option value="2">غير نشط</option>
+                                                    <select class="form-control" id="printing_method" name="status">
+                                                        <option value="active">نشط</option>
+                                                        <option value="deactive">غير نشط</option>
                                                     </select>
                                                     <div class="form-control-position"></div>
                                                 </div>
@@ -92,14 +92,14 @@
                                         </div>
 
                                         <!-- الفترة -->
-                                        <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="printing_method">الفترة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    <select class="form-control" id="printing_method" name="printing_method">
-                                                        <option value="1">ربع سنوي</option>
-                                                        <option value="2">سنوي</option>
-                                                        <option value="2">شهري</option>
+                                                    <select class="form-control" id="printing_method" name="period">
+                                                        <option value="quarterly">ربع سنوي</option>
+                                                        <option value="yearly">سنوي</option>
+                                                        <option value="monthly">شهري</option>
                                                     </select>
                                                     <div class="form-control-position"></div>
                                                 </div>
@@ -111,7 +111,7 @@
                                             <div class="form-group">
                                                 <label for="printing_method">حساب العمولة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    <select class="form-control" id="printing_method" name="printing_method">
+                                                    <select class="form-control" id="printing_method" name="commission_calculation">
                                                         <option value="1">فواتير مدفوعة بالكامل</option>
                                                         <option value="2">فواتير مدفوعة جزئيا</option>
                                                     </select>
@@ -121,16 +121,16 @@
                                         </div>
 
                                         <!-- الموظفين -->
-                                        <div class="col-md-6 mb-3">
+                                 <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="employees">الموظفين</label>
-                                                <select id="employees" class="form-control select2" name="employees[]" multiple="multiple">
+                                                <select id="employees" class="form-control select2" name="employee_id[]" multiple="multiple">
                                                     @foreach($employees as $employee)
-                                                        <option value="{{ $employee->id }}">{{ $employee->first_name }}</option>
+                                                        <option value="{{ $employee->id }}">{{ $employee->id}}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
-                                        </div>
+                                </div>
 
                         
                                       
@@ -208,7 +208,7 @@
                                                         <div class="input-group-text w-100">
                                                             <div class="custom-control custom-radio p-0 w-100 input-error-target">
                                                                 <div class="custom-control custom-radio custom-control-inline mx-0">
-                                                                    <input id="target_revenue_radio" class="custom-control-input target_type" required="required" checked="checked" name="target_type" type="radio" value="revenue">
+                                                                    <input id="target_revenue_radio" class="custom-control-input target_type" required="required" checked="checked" name="target_type" type="radio" value="amount">
                                                                     <label for="target_revenue_radio" class="custom-control-label">المبلغ المستهدف <span class="required">*</span></label>
                                                                 </div>
                                                             </div>
@@ -217,7 +217,7 @@
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <input id="target_amount_revenue" class="form-control" min="0" step="0.01" placeholder="المبلغ المستهدف" required="required" lang="en" name="target_amount_revenue" type="number">
+                                                <input id="target_amount_revenue" class="form-control" min="0" step="0.01" placeholder="المبلغ المستهدف" required="required" lang="en" name="value" type="number">
                                             </div>
                                         </div>
                                         
@@ -228,7 +228,7 @@
                                                         <div class="input-group-text w-100">
                                                             <div class="custom-control custom-radio p-0 w-100 input-error-target">
                                                                 <div class="custom-control custom-radio custom-control-inline mx-0">
-                                                                    <input id="target_volume_radio" class="custom-control-input target_type" required="required" name="target_type" type="radio" value="volume">
+                                                                    <input id="target_volume_radio" class="custom-control-input target_type" required="required" name="target_type" type="radio" value="quantity">
                                                                     <label for="target_volume_radio" class="custom-control-label">الكمية المستهدفة <span class="required">*</span></label>
                                                                 </div>
                                                             </div>
@@ -237,7 +237,7 @@
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <input id="target_amount_volume" class="form-control" placeholder="ادخل قيمة موجبة" required="required" lang="en" name="target_amount_volume" type="number">
+                                                <input id="target_amount_volume" class="form-control" placeholder="ادخل قيمة موجبة" required="required" lang="en" name="value" type="number">
                                             </div>
                                         </div>
                                         

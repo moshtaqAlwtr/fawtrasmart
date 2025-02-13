@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('commission_users', function (Blueprint $table) {
             $table->id();
-            $table->int('commission_id');
-            $table->int('user_id');
+            $table->integer('commission_id');
+            $table->integer('employee_id');
             $table->timestamps();
         });
     }
