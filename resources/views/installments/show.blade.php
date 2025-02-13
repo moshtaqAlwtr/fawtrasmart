@@ -58,11 +58,19 @@
                     <button class="btn btn-icon btn-outline-primary">
                         <i class="fa fa-chevron-down"></i>
                     </button>
+
+                </div>
+                <div class="mt-3">
+                    <a href="{{ route('invoices.show', $installment->invoice_id) }}" class="btn btn-outline-primary">
+                        عرض الفاتورة <i class="fa fa-eye ms-1"></i>
+                    </a>
                 </div>
             </div>
+
+            <!-- زر عرض الفاتورة -->
+
         </div>
     </div>
-
     <div class="card">
         <div class="card-title p-2 d-flex align-items-center gap-2">
             <div class="vr"></div>
@@ -74,7 +82,7 @@
             </a>
 
             @if ($installment)
-                <a href="{{ route('invoices.show', $installment->id) }}"
+                <a href="{{ route('invoices.show', $installment->invoice_id) }}"
                     class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
                     style="min-width: 90px;">
                     عرض الفاتورة <i class="fa fa-edit ms-1"></i>
@@ -142,7 +150,7 @@
 
                             <div class="row mt-3">
 
-                                <div class="col-4 text-end">
+                                <div class="col-3 text-end">
                                     @if ($installment->invoice && $installment->invoice->client)
                                         <a href="{{ route('clients.show', $installment->invoice->client->id) }}" class="btn btn-light">
                                             <i class="fa fa-user"></i> عرض الصفحة الشخصية
@@ -152,7 +160,7 @@
                                     @endif
                                 </div>
 
-                                <div class="col-4 text-center">
+                                <div class="col-3 text-center">
                                     <h6>ر.س {{ $installment->amount }} /
                                         @if ($installment->payment_rate == 1)
                                             شهري
@@ -169,14 +177,13 @@
                                     <h6><strong>ر.س {{ $installment->invoice->due_value }}</strong></h6>
                                     <small>إجمالي المبلغ</small>
                                 </div>
-                                <div class="col-3">
-                                    <p><strong>ر.س {{ $installment->invoice->due_value }}</strong> إجمالي المبلغ</
+                                <div class="col-3 text-end">
+                                    <p><strong>ر.س {{ $installment->invoice->due_value }}</strong> إجمالي المبلغ
+                                    </p>
                                     <p><strong>ر.س {{ $installment->payment ? $installment->payment->amount : 0 }}</strong> المبلغ المدفوع</p>
                                 </div>
 
-                                <div class="col-4">
-                                    p>
-                                </div>
+
 
                             </div>
 
@@ -244,7 +251,7 @@
                                                                             </li>
                                                                             <li>
                                                                                 <a class="dropdown-item"
-                                                                                    href="{{ route('installments.edit', $installment->id) }}">
+                                                                                    href="{{ route('installments.edit_amount', $installment->id) }}">
                                                                                     <i
                                                                                         class="fa fa-edit me-2 text-success"></i>تعديل
                                                                                 </a>
