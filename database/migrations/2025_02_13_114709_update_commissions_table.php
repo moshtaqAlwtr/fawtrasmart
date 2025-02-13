@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('commissions', function (Blueprint $table) {
+        Schema::table('commissions', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // اسم العمولة        
             $table->string('status');
@@ -22,8 +22,7 @@ return new class extends Migration
                   ->default('fully_paid')
                   ->after('column_name');     
             $table->timestamps();
-            $table->enum('target_type',['amount','quantity'])->default('amount');
-            $table->string('value')->nullable();
+
             $table->string('currency');
             $table->string('notes');
         });
@@ -34,6 +33,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('commissions');
+        Schema::table('commissions', function (Blueprint $table) {
+            //
+        });
     }
 };
