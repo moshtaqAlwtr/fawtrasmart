@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('period', ['yearly', 'quarterly', 'monthly'])
                   ->default('monthly') // القيمة الافتراضية
                   ->after('column_name');
+
            $table->enum('commission_calculation', ['fully_paid', 'partially_paid'])
                   ->default('fully_paid')
                   ->after('column_name');

@@ -194,7 +194,7 @@ class InstallmentsController extends Controller
         }
 
         // Return a view with the installments data
-        return view('installments.agreement_installments', compact('installments'));
+        return view('installments.installments_detites.agreement_installments', compact('installments'));
     }
 
     public function show($id)
