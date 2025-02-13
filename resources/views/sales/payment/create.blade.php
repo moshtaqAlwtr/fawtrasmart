@@ -9,11 +9,11 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0"> تعديل الدفع </h2>
+                    <h2 class="content-header-title float-left mb-0">اضافة عملية دفع </h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
-                            <li class="breadcrumb-item active">اضافة عملية دفع</li>
+                            <li class="breadcrumb-item active">عرض </li>
                         </ol>
                     </div>
                 </div>
@@ -108,8 +108,8 @@
                     </div>
                     <div class="col-md-6">
                         <label for="employee" class="form-label">تم التحصيل بواسطة <span style="color: red">*</span></label>
-                        <select name="employee_id" class="form-control" id="employee" required>
-                            <option value="">ا��تر المو��ف</option>
+                        <select name="employee_id" class="form-control" id="employee" >
+                            <option value="">اختر الموظف </option>
                             @foreach ($employees as $employee)
                                 <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
                             @endforeach

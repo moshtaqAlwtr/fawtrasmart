@@ -131,8 +131,9 @@ class InstallmentsController extends Controller
         $installment->update([
             'client_id' => $request->client_id,
             'amount' => $request->amount,
-            'due_date' => $request->start_date,
+            'due_date' => $request->due_date,
             'payment_rate'=>$request->payment_rate,
+            'installment_number'=>$request->installment_number,
             'note' => $request->note,
         ]);
 
@@ -147,15 +148,60 @@ class InstallmentsController extends Controller
         return redirect()->route('installments.index')->with('success', 'تم حذف القسط بنجاح.');
     }
 
-    public function agreement()
+    public function agreement(Request $request)
     {
-        return view('installments.agreement_installments');
+        // Initialize the query
+        $query = Installment::with('invoice.client');
+
+        // Apply filters based on the request
+        if ($request->filled('status') && $request->status != 'الكل') {
+            // Assuming 1 for مكتمل and 2 for غير مكتمل
+            if ($request->status == '1') {
+                $query->whereHas('invoice', function($q) {
+                    $q->where('status', 'مكتمل'); // Adjust based on your actual field
+                });
+            } elseif ($request->status == '2') {
+                $query->whereHas('invoice', function($q) {
+                    $q->where('status', 'غير مكتمل'); // Adjust based on your actual field
+                });
+            }
+        }
+
+        if ($request->filled('identifier')) {
+            $query->where('id', $request->identifier);
+        }
+
+        if ($request->filled('client')) {
+            $query->whereHas('invoice.client', function($q) use ($request) {
+                $q->where('trade_name', 'like', '%' . $request->client . '%'); // Adjust based on your actual field
+            });
+        }
+
+        if ($request->filled('fromDate')) {
+            $query->where('due_date', '>=', $request->fromDate);
+        }
+
+        if ($request->filled('toDate')) {
+            $query->where('due_date', '<=', $request->toDate);
+        }
+
+        // Retrieve filtered installments
+        $installments = $query->get();
+
+        // Calculate status for each installment
+        foreach ($installments as $installment) {
+            $installment->status = $this->calculateInstallmentStatus($installment);
+        }
+
+        // Return a view with the installments data
+        return view('installments.agreement_installments', compact('installments'));
     }
 
     public function show($id)
     {
         $installment = Installment::findOrFail($id);
         $invoice = Invoice::findOrFail($installment->invoice_id); // استرجاع الفاتورة المرتبطة
+
         return view('installments.show', compact('installment', 'invoice'));
     }
 }
