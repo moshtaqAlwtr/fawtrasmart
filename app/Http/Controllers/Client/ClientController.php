@@ -9,6 +9,7 @@ use App\Models\Account;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\AppointmentNote;
+use App\Models\Installment;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -189,6 +190,7 @@ private function generateNextCode(string $lastChildCode): string
     }
     public function show($id)
     {
+        $installment = Installment::with('invoice.client')->findOrFail($id);
         $client = Client::with([
             'invoices' => function ($query) {
                 $query->orderBy('invoice_date', 'desc');
@@ -199,7 +201,7 @@ private function generateNextCode(string $lastChildCode): string
             'employee',
         ])->findOrFail($id);
 
-        return view('client.show', compact('client'));
+        return view('client.show', compact('client','installment'));
     }
 
     public function contact()

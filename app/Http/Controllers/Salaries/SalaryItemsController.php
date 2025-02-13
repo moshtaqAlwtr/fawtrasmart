@@ -61,7 +61,7 @@ class SalaryItemsController extends Controller
             'amount' => 'nullable|numeric|required_if:salary_item_value,1',
             'calculation_formula' => 'nullable|string|required_if:salary_item_value,2',
             'condition' => 'nullable|string',
-            'account_id' => 'required|exists:accounts,id',
+            'account_id' => 'nullable|exists:accounts,id',
         ]);
 
         try {
@@ -85,7 +85,7 @@ class SalaryItemsController extends Controller
             'amount' => 'nullable|numeric|required_if:salary_item_value,1',
             'calculation_formula' => 'nullable|string|required_if:salary_item_value,2',
             'condition' => 'nullable|string',
-            'account_id' => 'required|exists:accounts,id',
+            'account_id' => 'nullable|exists:accounts,id',
         ]);
 
         try {

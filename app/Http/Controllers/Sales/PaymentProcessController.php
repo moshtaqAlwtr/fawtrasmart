@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sales;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ClientPaymentRequest;
 use App\Models\Employee;
+use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
@@ -119,20 +120,25 @@ class PaymentProcessController extends Controller
 
         return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
     }
-
-
-    public function create($id)
+    public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
     {
-        $payments = PaymentsProcess::with('invoice')->get();
+        if ($type === 'installment') {
+            // إذا كانت العملية لقسط، احصل على تفاصيل القسط
+            $installment = Installment::with('invoice')->findOrFail($id);
+            $amount = $installment->amount; // مبلغ القسط
+            $invoiceId = $installment->invoice->id; // معرف الفاتورة
+        } else {
+            // إذا كانت العملية لفاتورة، احصل على تفاصيل الفاتورة
+            $invoice = Invoice::findOrFail($id);
+            $amount = $invoice->grand_total; // قيمة الفاتورة
+            $invoiceId = $invoice->id; // معرف الفاتورة
+        }
+
+        // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
+        $treasury = Treasury::all();
         $employees = Employee::all();
-        $treasury=Treasury::all();
-        return view('sales.payment.create', compact('payments', 'employees','treasury', 'id'));
-    }
-    public function createPurchase($id)
-    {
-        $payments = PaymentsProcess::with('purchase')->get();
-        $employees = Employee::all();
-        return view('Purchases.Supplier_Payments.create', compact('payments', 'employees', 'id'));
+
+        return view('sales.payment.create', compact('invoiceId', 'amount', 'treasury', 'employees'));
     }
     public function store(ClientPaymentRequest $request)
     {
@@ -225,7 +231,7 @@ class PaymentProcessController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
             // إضافة تفاصيل القيد المحاسبي للدفعة

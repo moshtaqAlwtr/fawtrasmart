@@ -199,7 +199,7 @@ class InstallmentsController extends Controller
 
     public function show($id)
     {
-        $installment = Installment::findOrFail($id);
+        $installment = Installment::with('payment')->findOrFail($id); // تحميل الدفع مع القسط
         $invoice = Invoice::findOrFail($installment->invoice_id); // استرجاع الفاتورة المرتبطة
 
         return view('installments.show', compact('installment', 'invoice'));

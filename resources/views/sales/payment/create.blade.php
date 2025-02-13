@@ -21,9 +21,7 @@
         </div>
     </div>
 
-
     <form action="{{ route('paymentsClient.store') }}" method="POST" enctype="multipart/form-data">
-
         @csrf
         <!-- عرض الأخطاء -->
         @if ($errors->any())
@@ -59,17 +57,16 @@
         </div>
         <div class="card">
             <div class="card-body">
-
                 <!-- الحقول -->
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="name" class="form-label">المبلغ <span style="color: red">*</span></label>
                         <input type="number" id="name" name="amount" class="form-control" placeholder="المبلغ"
-                            step="0.01" required>
+                            step="0.01" value="{{ $amount }}" required>
                     </div>
                     <div class="col-md-6">
                         <label for="date" class="form-label">تاريخ الدفع <span style="color: red">*</span></label>
-                        <input type="date" id="date" name="payment_date" class="form-control" required>
+                        <input type="date" id="date" name="payment_date" class="form-control" value="{{ date('Y-m-d') }}" required>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -85,7 +82,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="payment_method" class="form-label">الخزينة المستخدمة </label>
+                        <label for="treasury_id" class="form-label">الخزينة المستخدمة </label>
                         <select name="treasury_id" class="form-control" id="treasury_id">
                             <option value="">اختر الخزينة</option>
                             @foreach ($treasury as $treasur)
@@ -108,7 +105,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="employee" class="form-label">تم التحصيل بواسطة <span style="color: red">*</span></label>
-                        <select name="employee_id" class="form-control" id="employee" >
+                        <select name="employee_id" class="form-control" id="employee">
                             <option value="">اختر الموظف </option>
                             @foreach ($employees as $employee)
                                 <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
@@ -121,7 +118,7 @@
                     <div class="col-md-6">
                         <label for="address1" class="form-label">رقم المعرف</label>
                         <input type="text" id="address1" name="id" class="form-control" placeholder="رقم المعرف"
-                            value="{{ $id }}" readonly>
+                            value="{{ $invoiceId }}" readonly>
                     </div>
                     <div class="col-md-6">
                         <label for="description" class="form-label">بيانات الدفع</label>
@@ -130,7 +127,7 @@
                     </div>
                 </div>
 
-                <input type="hidden" name="invoice_id" value="{{ $id }}">
+                <input type="hidden" name="invoice_id" value="{{ $invoiceId }}">
 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -144,30 +141,29 @@
                         <small class="text-muted">يمكنك رفع ملف PDF أو صورة (الحد الأقصى 2 ميجابايت)</small>
                     </div>
                 </div>
-
             </div>
         </div>
     </form>
-    </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
     function getInvoiceDetails(invoiceId) {
-    fetch(`/payments/invoice-details/${invoiceId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // تحديث النموذج بتفاصيل الفاتورة
-                document.getElementById('remaining_amount').textContent = data.data.remaining_amount;
-                document.getElementById('client_name').textContent = data.data.client_name;
-                document.getElementById('invoice_total').textContent = data.data.grand_total;
-                document.getElementById('total_paid').textContent = data.data.total_paid;
-            } else {
-                alert('خطأ في جلب تفاصيل الفاتورة');
-            }
-        })
-        .catch(error => console.error('Error:', error));
-}
+        fetch(`/payments/invoice-details/${invoiceId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // تحديث النموذج بتفاصيل الفاتورة
+                    document.getElementById('remaining_amount').textContent = data.data.remaining_amount;
+                    document.getElementById('client_name').textContent = data.data.client_name;
+                    document.getElementById('invoice_total').textContent = data.data.grand_total;
+                    document.getElementById('total_paid').textContent = data.data.total_paid;
+                } else {
+                    alert('خطأ في جلب تفاصيل الفاتورة');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
 </script>
 @endsection
