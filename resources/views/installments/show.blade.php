@@ -199,42 +199,67 @@
                                             </thead>
                                             <tbody>
                                                 @foreach ($installments as $installment)
-                                                    <tr>
-                                                        <td>{{ $installment->id }}</td>
-                                                        <td>{{ $installment->invoice->client->trade_name }}</td>
-                                                        <td>{{ number_format($installment->amount, 2) }} ر.س</td>
-                                                        <td>
-                                                            {{ $installment->due_date }}
-                                                            <br>
-                                                            <span class="text-info">{{ $installment->status }}</span>
-                                                        </td>
-                                                        <td>
-                                                            <div class="btn-group">
-                                                                <div class="dropdown">
-                                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm" type="button" id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                                        <li>
-                                                                            <a class="dropdown-item" href="{{ route('installments.show', $installment->id) }}">
-                                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a class="dropdown-item" href="{{ route('installments.edit', $installment->id) }}">
-                                                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $installment->id, 'type' => 'installment']) }}">
-                                                                                <i class="fa fa-edit me-2 text-success"></i>قم بالدفع
-                                                                            </a>
-                                                                        </li>
+                                                    @php
+                                                        $installmentCount = $installment->installment_number; // عدد الأقساط
+                                                        $installmentAmount = $installment->amount; // مبلغ كل قسط
+                                                    @endphp
+                                                    @for ($i = 1; $i <= $installmentCount; $i++)
+                                                        <tr>
+                                                            <td>{{ $installment->id }}</td>
+                                                            <td>{{ $installment->invoice->client->trade_name }}</td>
+                                                            <td>{{ number_format($installmentAmount, 2) }} ر.س</td>
+                                                            <td>
+                                                                {{ $installment->due_date }}
+                                                                <br>
+                                                                <span class="text-info">
+                                                                    @if ($installment->status == 1)
+                                                                        <span class="badge badge-success">غير مكتمل</span>
+                                                                    @elseif($installment->status == 2)
+                                                                        <span class="badge badge-warning">مكتمل</span>
+                                                                    @endif
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="btn-group">
+                                                                    <div class="dropdown">
+                                                                        <button
+                                                                            class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                                            type="button" id="dropdownMenuButton303"
+                                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                                            aria-expanded="false"></button>
+                                                                        <div class="dropdown-menu"
+                                                                            aria-labelledby="dropdownMenuButton303">
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ route('installments.show', $installment->id) }}">
+                                                                                    <i
+                                                                                        class="fa fa-eye me-2 text-primary"></i>عرض
+                                                                                </a>
+                                                                            </li>
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ route('installments.edit', $installment->id) }}">
+                                                                                    <i
+                                                                                        class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                                </a>
+                                                                            </li>
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ route('paymentsClient.create', ['id' => $installment->id, 'type' => 'installment']) }}">
+                                                                                    <i
+                                                                                        class="fa fa-edit me-2 text-success"></i>قم
+                                                                                    بالدفع
+                                                                                </a>
+                                                                            </li>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
+                                                            </td>
+                                                        </tr>
+                                                    @endfor
                                                 @endforeach
                                             </tbody>
+
                                         </table>
                                     </div>
                                 </div>

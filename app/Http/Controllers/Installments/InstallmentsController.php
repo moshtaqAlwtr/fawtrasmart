@@ -149,52 +149,63 @@ class InstallmentsController extends Controller
     }
 
     public function agreement(Request $request)
-{
-    // Initialize the query
-    $query = Installment::with('invoice.client');
+    {
+        // Initialize the query
+        $query = Installment::with('invoice.client');
 
-    // Apply filters based on the request
-    // (Existing filtering logic here...)
-
-    // Retrieve filtered installments
-    $installments = $query->get();
-
-    // Calculate status for each installment
-    foreach ($installments as $installment) {
-        $installment->status = $this->calculateInstallmentStatus($installment);
-    }
-
-    // Calculate the number of installments and the last installment amount
-    foreach ($installments as $installment) {
-        $grandTotal = $installment->invoice->grand_total; // المبلغ الإجمالي
-        $installmentAmount = $installment->amount; // مبلغ القسط
-
-        // حساب عدد الأقساط
-        $numberOfInstallments = floor($grandTotal / $installmentAmount); // عدد الأقساط الكاملة
-        $remainingAmount = $grandTotal % $installmentAmount; // المبلغ المتبقي
-
-        // إذا كان هناك مبلغ متبقي، فسيكون هناك قسط إضافي
-        if ($remainingAmount > 0) {
-            $numberOfInstallments += 1; // إضافة قسط إضافي
+        // Apply filters based on the request
+        if ($request->filled('status') && $request->status != 'الكل') {
+            // Assuming 1 for مكتمل and 2 for غير مكتمل
+            if ($request->status == '1') {
+                $query->whereHas('invoice', function($q) {
+                    $q->where('status', 'مكتمل'); // Adjust based on your actual field
+                });
+            } elseif ($request->status == '2') {
+                $query->whereHas('invoice', function($q) {
+                    $q->where('status', 'غير مكتمل'); // Adjust based on your actual field
+                });
+            }
         }
 
-        // تخزين عدد الأقساط في القسط
-        $installment->installment_count = $numberOfInstallments;
-        $installment->last_installment_amount = $remainingAmount > 0 ? $remainingAmount : $installmentAmount; // المبلغ الأخير
+        if ($request->filled('identifier')) {
+            $query->where('id', $request->identifier);
+        }
+
+        if ($request->filled('client')) {
+            $query->whereHas('invoice.client', function($q) use ($request) {
+                $q->where('trade_name', 'like', '%' . $request->client . '%'); // Adjust based on your actual field
+            });
+        }
+
+        if ($request->filled('fromDate')) {
+            $query->where('due_date', '>=', $request->fromDate);
+        }
+
+        if ($request->filled('toDate')) {
+            $query->where('due_date', '<=', $request->toDate);
+        }
+
+        // Retrieve filtered installments
+        $installments = $query->get();
+
+        // Calculate status for each installment
+        foreach ($installments as $installment) {
+            $installment->status = $this->calculateInstallmentStatus($installment);
+        }
+
+        // Return a view with the installments data
+        return view('installments.installments_detites.agreement_installments', compact('installments'));
     }
 
-    // Return a view with the installments data
-    return view('installments.installments_detites.agreement_installments', compact('installments'));
+   public function show($id)
+{
+    // استرجاع القسط مع الفاتورة والعميل
+    $installment = Installment::with('invoice.client')->findOrFail($id);
+    $invoice = Invoice::findOrFail($installment->invoice_id);
+
+    // استرجاع جميع الأقساط المرتبطة بالفاتورة
+    $installments = Installment::where('invoice_id', $invoice->id)->get();
+
+    return view('installments.show', compact('installment', 'invoice', 'installments'));
 }
-    public function show($id)
-    {
-        // استرجاع القسط مع الفاتورة والعميل
-        $installment = Installment::with('invoice.client')->findOrFail($id);
-        $invoice = Invoice::findOrFail($installment->invoice_id);
-
-        // استرجاع جميع الأقساط المرتبطة بالفاتورة
-        $installments = Installment::where('invoice_id', $invoice->id)->get();
-
-        return view('installments.show', compact('installment', 'invoice', 'installments'));
-    }
 }
