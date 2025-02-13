@@ -13,16 +13,15 @@ return new class extends Migration
     {
         Schema::table('commissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // اسم العمولة        
+            $table->string('name'); // اسم العمولة
             $table->string('status');
             $table->enum('period', ['yearly', 'quarterly', 'monthly'])
                   ->default('monthly') // القيمة الافتراضية
                   ->after('column_name');
            $table->enum('commission_calculation', ['fully_paid', 'partially_paid'])
                   ->default('fully_paid')
-                  ->after('column_name');     
+                  ->after('column_name');
             $table->timestamps();
-
             $table->string('currency');
             $table->string('notes');
         });
