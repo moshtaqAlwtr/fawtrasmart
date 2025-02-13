@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,14 +12,16 @@ return new class extends Migration
     {
         Schema::create('commissions', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // اسم العمولة        
+            $table->string('name'); // اسم العمولة
             $table->string('status');
-            $table->enum('period', ['yearly', 'quarterly', 'monthly'])
-                  ->default('monthly') // القيمة الافتراضية
-                  ->after('column_name');
-           $table->enum('commission_calculation', ['fully_paid', 'partially_paid'])
-                  ->default('fully_paid')
-                  ->after('column_name');     
+            $table
+                ->enum('period', ['yearly', 'quarterly', 'monthly'])
+                ->default('monthly') // القيمة الافتراضية
+                ->after('column_name');
+            $table
+                ->enum('commission_calculation', ['fully_paid', 'partially_paid'])
+                ->default('fully_paid')
+                ->after('column_name');
             $table->timestamps();
             $table->enum('target_type',['amount','quantity'])->default('amount');
             $table->string('value')->nullable();
