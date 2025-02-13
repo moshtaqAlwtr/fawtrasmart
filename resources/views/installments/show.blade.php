@@ -112,14 +112,12 @@
                 <div class="tab-pane active" id="details" role="tabpanel">
                     <div class="row g-0">
                         <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
+                            <div class="row">
+                                <div class="col-4 d-flex align-items-center">
                                     @if ($installment->invoice && $installment->invoice->client)
                                         @php
                                             $tradeName = $installment->invoice->client->trade_name;
-                                            $firstLetter = !empty($tradeName)
-                                                ? strtoupper(substr($tradeName, 0, 1))
-                                                : '?';
+                                            $firstLetter = !empty($tradeName) ? strtoupper(substr($tradeName, 0, 1)) : '?';
                                         @endphp
 
                                         <span class="badge bg-purple" style="font-size: 1.5em;">
@@ -131,51 +129,59 @@
                                         <span class="text-muted">لا يوجد عميل مرتبط بهذا القسط.</span>
                                     @endif
                                 </div>
-                                <div>
+
+                                <div class="col-4 text-center">
                                     <h6>ر.س {{ $installment->invoice->grand_total }}</h6>
                                     <small>مبلغ اتفاقية التقسيط</small>
                                 </div>
+                                <div class="col-4 text-start">
+                                    <h6><a href="{{ route('invoices.show', $installment->invoice->id) }}">#{{ $installment->invoice->code }}</a></h6>
+                                    <small>رقم الفاتورة</small>
+                                </div>
+                            </div>
 
-                                <div>
+                            <div class="row mt-3">
+
+                                <div class="col-4 text-end">
                                     @if ($installment->invoice && $installment->invoice->client)
-                                        <a href="{{ route('clients.show', $installment->invoice->client->id) }}"
-                                            class="btn btn-light">
+                                        <a href="{{ route('clients.show', $installment->invoice->client->id) }}" class="btn btn-light">
                                             <i class="fa fa-user"></i> عرض الصفحة الشخصية
                                         </a>
                                     @else
                                         <span class="text-muted">لا يوجد عميل مرتبط بهذا القسط.</span>
                                     @endif
                                 </div>
-                                <div>
-                                    <h6><a
-                                            href="{{ route('invoices.show', $installment->invoice->id) }}">#{{ $installment->invoice->code }}</a>
-                                    </h6>
-                                    <small>رقم الفاتورة</small>
-                                </div>
-                                <div>
+
+                                <div class="col-4 text-center">
                                     <h6>ر.س {{ $installment->amount }} /
-                                        @if ($installment->payment_rate = 1)
+                                        @if ($installment->payment_rate == 1)
                                             شهري
-                                        @elseif ($installment->payment_rate = 2)
+                                        @elseif ($installment->payment_rate == 2)
                                             يومي
-                                        @elseif ($installment->payment_rate = 3)
+                                        @elseif ($installment->payment_rate == 3)
                                             اسبوعي
                                         @endif
                                     </h6>
                                     <small>مبلغ القسط</small>
                                 </div>
 
-                            </div>
-                            <hr>
-                            <div>
-                                @if ($installment->payment)
-                                    <p><strong>ر.س {{ $installment->payment->amount }}</strong> المبلغ المدفوع</p>
-                                @else
-                                    <p><strong>ر.س 0</strong> المبلغ المدفوع</p>
-                                @endif
+                                <div class="col-3 text-end">
+                                    <h6><strong>ر.س {{ $installment->invoice->due_value }}</strong></h6>
+                                    <small>إجمالي المبلغ</small>
+                                </div>
+                                <div class="col-3">
+                                    <p><strong>ر.س {{ $installment->invoice->due_value }}</strong> إجمالي المبلغ</
+                                    <p><strong>ر.س {{ $installment->payment ? $installment->payment->amount : 0 }}</strong> المبلغ المدفوع</p>
+                                </div>
 
-                                <p><strong>ر.س {{ $installment->invoice->due_value }}</strong> إجمالي المبلغ</p>
+                                <div class="col-4">
+                                    p>
+                                </div>
+
                             </div>
+
+                            <hr>
+
                         </div>
                     </div>
                     <div class="row g-0">

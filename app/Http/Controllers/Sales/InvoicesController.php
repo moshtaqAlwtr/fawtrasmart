@@ -555,9 +555,9 @@ class InvoicesController extends Controller
                     ->first();
 
                 // التأكد من وجود حساب العميل
-                if (!$clientAccount) {
-                    throw new \Exception('لم يتم العثور على حساب العميل');
-                }
+                // if (!$clientAccount) {
+                //     throw new \Exception('لم يتم العثور على حساب العميل');
+                // }
 
                 // إنشاء سجل الدفع
                 $payment = PaymentsProcess::create([
