@@ -121,25 +121,25 @@ class PaymentProcessController extends Controller
         return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
     }
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
-    {
-        if ($type === 'installment') {
-            // إذا كانت العملية لقسط، احصل على تفاصيل القسط
-            $installment = Installment::with('invoice')->findOrFail($id);
-            $amount = $installment->amount; // مبلغ القسط
-            $invoiceId = $installment->invoice->id; // معرف الفاتورة
-        } else {
-            // إذا كانت العملية لفاتورة، احصل على تفاصيل الفاتورة
-            $invoice = Invoice::findOrFail($id);
-            $amount = $invoice->grand_total; // قيمة الفاتورة
-            $invoiceId = $invoice->id; // معرف الفاتورة
-        }
-
-        // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
-        $treasury = Treasury::all();
-        $employees = Employee::all();
-
-        return view('sales.payment.create', compact('invoiceId', 'amount', 'treasury', 'employees'));
+{
+    if ($type === 'installment') {
+        // إذا كانت العملية لقسط، احصل على تفاصيل القسط
+        $installment = Installment::with('invoice')->findOrFail($id);
+        $amount = $installment->amount; // مبلغ القسط
+        $invoiceId = $installment->invoice->id; // معرف الفاتورة
+    } else {
+        // إذا كانت العملية لفاتورة، احصل على تفاصيل الفاتورة
+        $invoice = Invoice::findOrFail($id);
+        $amount = $invoice->grand_total; // قيمة الفاتورة
+        $invoiceId = $invoice->id; // معرف الفاتورة
     }
+
+    // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
+    $treasury = Treasury::all();
+    $employees = Employee::all();
+
+    return view('sales.payment.create', compact('invoiceId', 'amount', 'treasury', 'employees', 'type'));
+}
     public function store(ClientPaymentRequest $request)
     {
         try {
