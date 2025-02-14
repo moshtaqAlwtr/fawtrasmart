@@ -4,6 +4,7 @@ use App\Http\Controllers\Reports\WorkflowController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Orders\OrdersController;
 use App\Http\Controllers\Orders\SettingsController;
+use App\Http\Controllers\Hr\EmployeeController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 require __DIR__ . '/auth.php';
@@ -32,16 +33,20 @@ Route::group(
                 Route::get('/export/view',[OrdersController::class,'export_view'])->name('Order.export_view');
                 Route::post('/export',[OrdersController::class,'export'])->name('Order.export');
             });
-                 # employee routes
-                 Route::prefix('Settings')->group(function () {
-                    Route::get('/index',[SettingsController::class,'Settings'])->name('orders.Settings.index');
-                    Route::get('/type',[SettingsController::class,'type'])->name('orders.Settings.type');
-                    Route::get('/create',[SettingsController::class,'create'])->name('orders.Settings.create');
-                    Route::get('/edit/{id}',[SettingsController::class,'edit'])->name('Order.edit');
-                    Route::get('/show/{id}',[SettingsController::class,'show'])->name('Order.show');
 
-                });
+            # settings routes
+            Route::prefix('Settings')->group(function () {
+                Route::get('/index',[SettingsController::class,'Settings'])->name('orders.Settings.index');
+                Route::get('/type',[SettingsController::class,'type'])->name('orders.Settings.type');
+                Route::get('/create',[SettingsController::class,'create'])->name('orders.Settings.create');
+                Route::get('/edit/{id}',[SettingsController::class,'edit'])->name('Order.edit');
+                Route::get('/show/{id}',[SettingsController::class,'show'])->name('Order.show');
+            });
+
+        });
+
     }
 );
-    }
-);
+
+// ✅ تم نقل هذا السطر إلى الخارج ليكون مستقلاً ويمكن الوصول إليه
+Route::get('/employees/search', [EmployeeController::class, 'search'])->name('employees.search');
