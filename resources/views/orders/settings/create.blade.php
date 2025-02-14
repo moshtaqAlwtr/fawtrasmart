@@ -83,187 +83,148 @@
             <option>Template 2</option>
         </select>
     </div>
-            <p>الصلاحيات</p>
 
-            <!-- إضافة طلب جديد -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">إضافة طلب جديد</label>
-                    <select class="form-control permission-select">
-                        <option value="all" selected>الكل</option>
-                        <option value="none">لاشيء</option>
-                        <option value="employees"> أفرع محددة</option>
-                        <option value="employees">أقسام محددة </option>
-                        <option value="employees">مسميات وظيفية محددة </option>
-                        <option value="employees">أقسام محددة </option>
-                        <option value="employees">موظفين محددين</option>
-                        <option value="employees">أدوار وظيفية محددة </option>
-                    </select>
-                </div>
-
-                <div class="col-md-6 employee-search-container" style="display: none;">
-                    <label class="form-label">ابحث عن موظف</label>
-                    <input type="text" class="form-control employee-search-input" placeholder="أدخل اسم الموظف">
-                    <div class="employee-results"></div>
-                    <div class="selected-employees mt-2">
-                        <label>الموظفون المختارون:</label>
-                        <ul class="list-group employee-list"></ul>
-                    </div>
-                </div>
+    
+    <div class="container">
+        <p>الصلاحيات</p>
+    
+        <!-- إضافة طلب جديد -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">إضافة طلب جديد</label>
+                <select class="form-control permission-select">
+                    <option value="all" selected>الكل</option>
+                    <option value="none">لاشيء</option>
+                    <option value="specific"> أفرع محددة</option>
+                    <option value="specific">أقسام محددة </option>
+                    <option value="specific">مسميات وظيفية محددة </option>
+                    <option value="specific">موظفين محددين</option>
+                    <option value="specific">أدوار وظيفية محددة </option>
+                </select>
             </div>
-
-            <!-- موافقة / رفض الطلبات -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">موافقة / رفض الطلبات</label>
-                    <select class="form-control permission-select">
-                        <option value="all" selected>الكل</option>
-                        <option value="none">لاشيء</option>
-                        <option value="employees"> أفرع محددة</option>
-                        <option value="employees">أقسام محددة </option>
-                        <option value="employees">مسميات وظيفية محددة </option>
-                        <option value="employees">أقسام محددة </option>
-                        <option value="employees">موظفين محددين</option>
-                        <option value="employees">أدوار وظيفية محددة </option>
-                    </select>
-                </div>
-
-                <div class="col-md-6 employee-search-container" style="display: none;">
-                    <label class="form-label">ابحث عن موظف</label>
-                    <input type="text" class="form-control employee-search-input" placeholder="أدخل اسم الموظف">
-                    <div class="employee-results"></div>
-                    <div class="selected-employees mt-2">
-                        <label>الموظفون المختارون:</label>
-                        <ul class="list-group employee-list"></ul>
-                    </div>
-                </div>
+        
+            <div class="form-group col-md-6 employee-select-container" style="display: none;">
+                <label for="">الموظفون</label>
+                <select class="form-control select2" name="employee_id[]" multiple="multiple">
+                    @foreach ($employees as $employee)
+                        <option value="{{ $employee->id }}" {{ in_array($employee->id, old('employee_id', $selectedEmployees ?? [])) ? 'selected' : '' }}>
+                            {{ $employee->full_name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-
-            <!-- عرض الطلبات-->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="form-label">عرض الطلبات</label>
-                    <select class="form-control permission-select">
-                        <option value="all" selected>الكل</option>
-                        <option value="none">لاشيء</option>
-                        <option value="employees"> أفرع محددة</option>
-                        <option value="employees">أقسام محددة </option>
-                        <option value="employees">مسميات وظيفية محددة </option>
-                        <option value="employees">أقسام محددة </option>
-                        <option value="employees">موظفين محددين</option>
-                        <option value="employees">أدوار وظيفية محددة </option>
-                    </select>
-                </div>
-
-                <div class="col-md-6 employee-search-container" style="display: none;">
-                    <label class="form-label">ابحث عن موظف</label>
-                    <input type="text" class="form-control employee-search-input" placeholder="أدخل اسم الموظف">
-                    <div class="employee-results"></div>
-                    <div class="selected-employees mt-2">
-                        <label>الموظفون المختارون:</label>
-                        <ul class="list-group employee-list"></ul>
-                    </div>
-                </div>
+        </div>
+    
+        <!-- موافقة / رفض الطلبات -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">موافقة / رفض الطلبات</label>
+                <select class="form-control permission-select">
+                    <option value="all" selected>الكل</option>
+                    <option value="none">لاشيء</option>
+                    <option value="specific"> أفرع محددة</option>
+                    <option value="specific">أقسام محددة </option>
+                    <option value="specific">مسميات وظيفية محددة </option>
+                    <option value="specific">موظفين محددين</option>
+                    <option value="specific">أدوار وظيفية محددة </option>
+                </select>
             </div>
-   <!-- إدارة الطلبات للآخرين -->
-   <div class="row mb-3">
-    <div class="col-md-6">
-        <label class="form-label">إدارة الطلبات للآخرين</label>
-        <select class="form-control permission-select">
-            <option value="all" selected>الكل</option>
-            <option value="none">لاشيء</option>
-            <option value="employees"> أفرع محددة</option>
-            <option value="employees">أقسام محددة </option>
-            <option value="employees">مسميات وظيفية محددة </option>
-            <option value="employees">أقسام محددة </option>
-            <option value="employees">موظفين محددين</option>
-            <option value="employees">أدوار وظيفية محددة </option>
-        </select>
-    </div>
-
-    <div class="col-md-6 employee-search-container" style="display: none;">
-        <label class="form-label">ابحث عن موظف</label>
-        <input type="text" class="form-control employee-search-input" placeholder="أدخل اسم الموظف">
-        <div class="employee-results"></div>
-        <div class="selected-employees mt-2">
-            <label>الموظفون المختارون:</label>
-            <ul class="list-group employee-list"></ul>
+        
+            <div class="form-group col-md-6 employee-select-container" style="display: none;">
+                <label for="">الموظفون</label>
+                <select class="form-control select2" name="employee_id[]" multiple="multiple">
+                    @foreach ($employees as $employee)
+                        <option value="{{ $employee->id }}" {{ in_array($employee->id, old('employee_id', $selectedEmployees ?? [])) ? 'selected' : '' }}>
+                            {{ $employee->full_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    
+        <!-- عرض الطلبات -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">عرض الطلبات</label>
+                <select class="form-control permission-select">
+                    <option value="all" selected>الكل</option>
+                    <option value="none">لاشيء</option>
+                    <option value="specific"> أفرع محددة</option>
+                    <option value="specific">أقسام محددة </option>
+                    <option value="specific">مسميات وظيفية محددة </option>
+                    <option value="specific">موظفين محددين</option>
+                    <option value="specific">أدوار وظيفية محددة </option>
+                </select>
+            </div>
+        
+            <div class="form-group col-md-6 employee-select-container" style="display: none;">
+                <label for="">الموظفون</label>
+                <select class="form-control select2" name="employee_id[]" multiple="multiple">
+                    @foreach ($employees as $employee)
+                        <option value="{{ $employee->id }}" {{ in_array($employee->id, old('employee_id', $selectedEmployees ?? [])) ? 'selected' : '' }}>
+                            {{ $employee->full_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    
+        <!-- إدارة الطلبات للآخرين -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">إدارة الطلبات للآخرين</label>
+                <select class="form-control permission-select">
+                    <option value="all" selected>الكل</option>
+                    <option value="none">لاشيء</option>
+                    <option value="specific"> أفرع محددة</option>
+                    <option value="specific">أقسام محددة </option>
+                    <option value="specific">مسميات وظيفية محددة </option>
+                    <option value="specific">موظفين محددين</option>
+                    <option value="specific">أدوار وظيفية محددة </option>
+                </select>
+            </div>
+        
+            <div class="form-group col-md-6 employee-select-container" style="display: none;">
+                <label for="">الموظفون</label>
+                <select class="form-control select2" name="employee_id[]" multiple="multiple">
+                    @foreach ($employees as $employee)
+                        <option value="{{ $employee->id }}" {{ in_array($employee->id, old('employee_id', $selectedEmployees ?? [])) ? 'selected' : '' }}>
+                            {{ $employee->full_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
     </div>
-</div>
+    
+ 
+    </div>
+    
+
+    
+    </body>
+    </html>
         </form>
     </div>
 </div>
 
+
+
+@endsection
+@section('scripts')
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".permission-select").forEach(select => {
-            select.addEventListener("change", function () {
-                const parentRow = this.closest(".row");
-                const employeeSearch = parentRow.querySelector(".employee-search-container");
-
-                if (this.value === "employees") {
-                    employeeSearch.style.display = "block";
-                } else {
-                    employeeSearch.style.display = "none";
-                }
-            });
-        });
-    });
-
-    $(document).ready(function () {
-        let searchRoute = "{{ route('employees.search') }}";
-
-        $(".employee-search-input").on("input", function () {
-            let query = $(this).val();
-            let resultBox = $(this).siblings(".employee-results");
-
-            if (query.length > 1) {
-                $.ajax({
-                    url: searchRoute,
-                    method: "GET",
-                    data: { query: query },
-                    success: function (response) {
-                        resultBox.empty();
-                        if (Array.isArray(response) && response.length > 0) {
-                            response.forEach(employee => {
-                                resultBox.append(`<div class="employee-item" data-id="${employee.id}">${employee.name}</div>`);
-                            });
-                            resultBox.show();
-                        } else {
-                            resultBox.hide();
-                        }
-                    }
-                });
+    // إظهار/إخفاء حقل اختيار الموظفين عند تغيير الخيار
+    document.querySelectorAll('.permission-select').forEach(select => {
+        select.addEventListener('change', function() {
+            const employeeSelectContainer = this.closest('.row').querySelector('.employee-select-container');
+            if (this.value === 'specific') {
+                employeeSelectContainer.style.display = 'block';
             } else {
-                resultBox.hide();
+                employeeSelectContainer.style.display = 'none';
             }
-        });
-
-        $(document).on("click", ".employee-item", function () {
-            let employeeId = $(this).data("id");
-            let employeeName = $(this).text();
-            let employeeList = $(this).closest(".employee-search-container").find(".employee-list");
-
-            if (employeeList.find(`[data-id='${employeeId}']`).length === 0) {
-                employeeList.append(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${employeeId}">
-                        ${employeeName}
-                        <button type="button" class="btn btn-danger btn-sm remove-employee">×</button>
-                    </li>
-                `);
-            }
-
-            $(".employee-search-input").val("");
-            $(".employee-results").hide();
-        });
-
-        $(document).on("click", ".remove-employee", function (event) {
-            event.preventDefault();
-            $(this).closest("li").remove();
         });
     });
 </script>
-
 @endsection
