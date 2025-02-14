@@ -247,7 +247,7 @@ class EmployeeController extends Controller
 
         // البحث عن الموظفين الذين تحتوي أسماؤهم على النص المُدخل
         $employees = Employee::where('name', 'LIKE', "%$query%")
-            ->select('id', 'name') // جلب الحقول المطلوبة فقط
+            ->select('id', 'first_name') // جلب الحقول المطلوبة فقط
             ->limit(10) // تحديد عدد النتائج
             ->get();
 

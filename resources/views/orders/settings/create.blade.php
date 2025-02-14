@@ -93,8 +93,11 @@
                         <option value="all" selected>الكل</option>
                         <option value="none">لاشيء</option>
                         <option value="employees"> أفرع محددة</option>
+                        <option value="employees">أقسام محددة </option>
+                        <option value="employees">مسميات وظيفية محددة </option>
+                        <option value="employees">أقسام محددة </option>
                         <option value="employees">موظفين محددين</option>
-
+                        <option value="employees">أدوار وظيفية محددة </option>
                     </select>
                 </div>
 
@@ -116,7 +119,12 @@
                     <select class="form-control permission-select">
                         <option value="all" selected>الكل</option>
                         <option value="none">لاشيء</option>
+                        <option value="employees"> أفرع محددة</option>
+                        <option value="employees">أقسام محددة </option>
+                        <option value="employees">مسميات وظيفية محددة </option>
+                        <option value="employees">أقسام محددة </option>
                         <option value="employees">موظفين محددين</option>
+                        <option value="employees">أدوار وظيفية محددة </option>
                     </select>
                 </div>
 
@@ -131,14 +139,19 @@
                 </div>
             </div>
 
-            <!-- إدارة الطلبات للآخرين -->
+            <!-- عرض الطلبات-->
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">إدارة الطلبات للآخرين</label>
+                    <label class="form-label">عرض الطلبات</label>
                     <select class="form-control permission-select">
                         <option value="all" selected>الكل</option>
                         <option value="none">لاشيء</option>
+                        <option value="employees"> أفرع محددة</option>
+                        <option value="employees">أقسام محددة </option>
+                        <option value="employees">مسميات وظيفية محددة </option>
+                        <option value="employees">أقسام محددة </option>
                         <option value="employees">موظفين محددين</option>
+                        <option value="employees">أدوار وظيفية محددة </option>
                     </select>
                 </div>
 
@@ -152,7 +165,32 @@
                     </div>
                 </div>
             </div>
+   <!-- إدارة الطلبات للآخرين -->
+   <div class="row mb-3">
+    <div class="col-md-6">
+        <label class="form-label">إدارة الطلبات للآخرين</label>
+        <select class="form-control permission-select">
+            <option value="all" selected>الكل</option>
+            <option value="none">لاشيء</option>
+            <option value="employees"> أفرع محددة</option>
+            <option value="employees">أقسام محددة </option>
+            <option value="employees">مسميات وظيفية محددة </option>
+            <option value="employees">أقسام محددة </option>
+            <option value="employees">موظفين محددين</option>
+            <option value="employees">أدوار وظيفية محددة </option>
+        </select>
+    </div>
 
+    <div class="col-md-6 employee-search-container" style="display: none;">
+        <label class="form-label">ابحث عن موظف</label>
+        <input type="text" class="form-control employee-search-input" placeholder="أدخل اسم الموظف">
+        <div class="employee-results"></div>
+        <div class="selected-employees mt-2">
+            <label>الموظفون المختارون:</label>
+            <ul class="list-group employee-list"></ul>
+        </div>
+    </div>
+</div>
         </form>
     </div>
 </div>
