@@ -69,7 +69,7 @@
                                     <select name="" class="form-control" id="feedback1" id="">
                                         <option value="">اختر الموظف </option>
                                         @foreach ($employees as $employee)
-                                            <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                            <option value="{{ $employee->id }}">{{ $employee->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -125,7 +125,7 @@
                                 <th class="fs-5">المعرف</th>
                                 <th class="fs-5">موظف</th>
                                 <th class="fs-5">التاريخ</th>
-                                <th class="fs-5">المبيعات/الهدف</th>
+                                <th class="fs-5">المبيعات</th>
                                 <th class="fs-5">عمولة</th>
                                 <th class="fs-5">الحالة</th>
                                 <th class="fs-5">ترتيب بواسطة</th>
@@ -133,76 +133,90 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td class="fs-5">#1</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
-                                            <span class="text-white fs-5">م</span>
-                                        </div>
-                                        <div>
-                                            <span class="fs-5">محمد الادريسي</span>
-                                            <small class="text-muted d-block fs-6">#5</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>
-                                        <span class="fs-5">01/12/2024</span>
-                                        <small class="text-muted d-block fs-6">02/01/2025</small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div>
-                                        <div class="d-flex justify-content-between" style="margin-bottom: 2px;">
-                                            <span class="fs-5">3,000/0</span>
-                                        </div>
-                                        <div class="progress" style="height: 4px; margin: 2px 0;">
-                                            <div class="progress-bar bg-info" role="progressbar" style="width: 0%;"
-                                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <div class="d-flex justify-content-between" style="margin-top: 2px;">
-                                            <span class="fs-5">0.00 ر.س</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="fs-5">0.00 ر.س</span><br>
-                                    <small class="text-danger fs-6">الهدف لم يتحقق</small>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="bg-warning rounded-circle me-2" style="width: 8px; height: 8px;"></span>
-                                        <span class="fs-5">مفتوح</span>
-                                    </div>
-
-                                </td>
-
-                                <td>
-                                    <div class="btn-group">
-                                        <div class="dropdown">
-                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                type="button" id="dropdownMenuButton303" data-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false"></button>
-                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('SalesPeriods.show', 1) }}">
-                                                        <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                    </a>
-                                                </li>
-
-                                                <li>
-                                                    <a class="dropdown-item text-danger" href="#" data-toggle="modal"
-                                                        data-target="#modal_DELETE">
-                                                        <i class="fa fa-trash me-2"></i>حذف
-                                                    </a>
-                                                </li>
+                            @foreach ($SalesCommission_periods as $SalesCommission_period)
+                                <tr>
+                                    <td class="fs-5">#1</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                                <span class="text-white fs-5"></span>
+                                            </div>
+                                            <div>
+                                                <span class="fs-5">{{ $SalesCommission_period->employee->name }}</span>
+                                                <small class="text-muted d-block fs-6">#5</small>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <span class="fs-5">01/12/2024</span>
+                                            <small class="text-muted d-block fs-6">02/01/2025</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="d-flex justify-content-between" style="margin-bottom: 2px;">
+                                                <span class="fs-5">
+                                                    
+                                                  
+                                                    {{ $SalesCommission_period->total_sales ? number_format($SalesCommission_period->total_sales * 1.15, 2) : '' }}
+                                                   
+                                                </span>
+                                            </div>
+                                            <div class="progress" style="height: 4px; margin: 2px 0;">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 0%;"
+                                                     aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between" style="margin-top: 2px;">
+                                                <span class="fs-5">0.00 ر.س</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="fs-5">{{ $SalesCommission_period->total_sales && $SalesCommission_period->total_ratio ? number_format((($SalesCommission_period->total_sales * 1.15) * $SalesCommission_period->total_ratio) / 100, 2) : '' }} ر.س</span><br>
+                                        {{-- <small class="text-danger fs-6">الهدف لم يتحقق</small> --}}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="bg-warning rounded-circle me-2" style="width: 8px; height: 8px;"></span>
+                                            <span class="fs-5">
+                                                @if($SalesCommission_period->status == "open")
+                                                مفتوح
+                                                @else
+                                                مفتوح
+                                                @endif
+                                            </span>
+                                        </div>
+                                    </td>
+                        
+                                    <td>
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                        type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false"></button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('SalesPeriods.show', 1) }}">
+                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                        </a>
+                                                    </li>
+                        
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" data-toggle="modal"
+                                                           data-target="#modal_DELETE">
+                                                            <i class="fa fa-trash me-2"></i>حذف
+                                                        </a>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
+                        
+                        
                     </table>
                     {{-- @else
                             <div class="alert alert-danger text-xl-center" role="alert">

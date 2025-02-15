@@ -10,4 +10,9 @@ class CommissionUsers extends Model
     protected $fillable = [
         'commission_id','employee_id'
     ];
+
+    public function employee()
+	{
+		return $this->belongsTo(User::class,'employee_id');
+	}
 }

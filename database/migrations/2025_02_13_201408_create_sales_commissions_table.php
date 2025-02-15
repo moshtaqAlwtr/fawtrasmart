@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('sales_commissions', function (Blueprint $table) {
             $table->id();
             $table->integer('invoice_number'); // اسم العمولة
-            $table->string('employee_name');
+            $table->string('employee_id');
             $table->string('sales_amount');
             $table->string('sales_quantity');
-            $table->string('commission');
+            $table->string('commission_id');
+            $table->float('ratio');
+            $table->string('status')->default('open');
             $table->timestamps();
         });
     }

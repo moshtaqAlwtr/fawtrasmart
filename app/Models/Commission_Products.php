@@ -10,4 +10,9 @@ class Commission_Products extends Model
     protected $fillable = [
         'commission_id','product_id','commission_percentage'
     ];
+
+    public function products()
+	{
+		return $this->belongsTo(Product::class,'product_id');
+	}
 }

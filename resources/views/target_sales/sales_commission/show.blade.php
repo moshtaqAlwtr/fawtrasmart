@@ -37,7 +37,7 @@
                             <div class="d-flex align-items-center">
                                 <small class="text-success">
                                     <i class="fa fa-circle me-1" style="font-size: 8px;"></i>
-                                    نشط
+                                    {{$comissions->status}}
                                 </small>
                             </div>
                         </div>
@@ -90,7 +90,7 @@
                                                     <span class="avatar-content" style="font-size: 1rem;">م</span>
                                                 </div>
                                                 <div>
-                                                    <h4 class="mb-0" style="font-size: 1.1rem;">محمد الادريسي <span
+                                                    <h4 class="mb-0" style="font-size: 1.1rem;">{{$SalesCommission->employee->name ?? ""}}<span
                                                             class="text-muted" style="font-size: 0.9rem;">#5</span></h4>
                                                 </div>
                                             </div>
@@ -98,30 +98,30 @@
                                             <div class="row">
                                                 <div class="col-md-4 mb-4">
                                                     <h6 class="text-muted mb-2">تاريخ العملية التجارية</h6>
-                                                    <p class="h5">08/07/2024</p>
+                                                    <p class="h5">{{ $SalesCommission->created_at ? $SalesCommission->created_at->format('Y-m-d') : '' }}</p>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
                                                     <h6 class="text-muted mb-2">فاتورة</h6>
                                                     <p class="h5">
-                                                        <a href="#" class="text-primary">07859#</a>
-                                                        <br>
-                                                        <small class="text-muted">شركة خدماتك للوقود 3 1118#</small>
+                                                        <a href="#" class="text-primary">{{$SalesCommission->invoice_number ?? ""}}#</a>
+                                                     
+                                                        
                                                     </p>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
                                                     <h6 class="text-muted mb-2">مبلغ المبيعات</h6>
-                                                    <p class="h5">270.00 ر.س</p>
+                                                    <p class="h5">{{ $SalesCommission->sales_amount ? number_format($SalesCommission->sales_amount * 1.15, 2) : '' }}</p>
                                                 </div>
                                             </div>
 
                                             <div class="row">
                                                 <div class="col-md-4 mb-4">
                                                     <h6 class="text-muted mb-2">كمية المبيعات</h6>
-                                                    <p class="h5">15 عناصر</p>
+                                                    <p class="h5">{{$SalesCommission->sales_quantity ?? ""}} عناصر</p>
                                                 </div>
                                                 <div class="col-md-4 mb-4">
                                                     <h6 class="text-muted mb-2">إجمالي العمولة</h6>
-                                                    <p class="h5 text-success">8.10 ر.س</p>
+                                                    <p class="h5 text-success">{{ $SalesCommission->sales_amount && $SalesCommission->ratio ? number_format((($SalesCommission->sales_amount * 1.15) * $SalesCommission->ratio) / 100, 2) : '' }}</p>
                                                 </div>
                                             </div>
 
@@ -130,7 +130,7 @@
                                             <div class="mt-4">
                                                 <h6 class="text-muted mb-3">قواعد العمولة:</h6>
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <a href="#" class="text-primary">عمولة مبيعات 1#</a>
+                                                    <a href="#" class="text-primary">  {{$SalesCommission->commission->name}}#</a>
                                                 </div>
                                             </div>
 
@@ -144,27 +144,45 @@
                                                                 <th>السعر</th>
                                                                 <th>الكمية</th>
                                                                 <th>المجموع</th>
-                                                                <th>عمولة</th>
+                                                                <th>العمولة</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
+                                                            @php
+                                                                $totalSales = 0; // إجمالي المبيعات
+                                                                $totalCommission = 0; // إجمالي العمولة
+                                                            @endphp
+                                                    
+                                                            @foreach ($SalesCommission_Products as $SalesCommission_Product)
+                                                                @php
+                                                                    $salesAmount = $SalesCommission_Product->sales_amount ?? 0; // السعر
+                                                                    $commission = ($salesAmount * 1.15) * ($SalesCommission_Product->ratio / 100); // حساب العمولة
+                                                                    
+                                                                    $totalSales += $salesAmount; // إضافة السعر للمجموع
+                                                                    $totalCommission += $commission; // إضافة العمولة للمجموع
+                                                                @endphp
+                                                    
+                                                                <tr>
+                                                                    <td>
+                                                                        {{ $SalesCommission_Product->products->name ?? "" }}
+                                                                        <a href="#" class="text-primary">{{ $SalesCommission_Product->products->name ?? "" }}</a>
+                                                                    </td>
+                                                                    <td>{{ number_format($salesAmount, 2) }} ر.س</td>
+                                                                    <td>{{ $SalesCommission_Product->sales_quantity ?? "" }}</td>
+                                                                    <td>{{ number_format($salesAmount, 2) }} ر.س</td>
+                                                                    <td>{{ number_format($commission, 2) }} ر.س ({{ $SalesCommission_Product->ratio ?? "0" }}%)</td>
+                                                                </tr>
+                                                            @endforeach
+                                                    
+                                                            <!-- عرض الإجمالي بعد انتهاء التكرار -->
                                                             <tr>
-                                                                <td>
-                                                                    <a href="#" class="text-primary">عطر 50 ملي
-                                                                        #3961</a>
-                                                                </td>
-                                                                <td>18.00 ر.س</td>
-                                                                <td>15</td>
-                                                                <td>270.00 ر.س</td>
-                                                                <td>8.10 ر.س (3%)</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td colspan="3" class="text-end">الإجمالي</td>
-                                                                <td>270.00 ر.س</td>
-                                                                <td>8.10 ر.س</td>
+                                                                <td colspan="3" class="text-end"><strong>الإجمالي</strong></td>
+                                                                <td><strong>{{ number_format($totalSales, 2) }} ر.س</strong></td>
+                                                                <td><strong>{{ number_format($totalCommission, 2) }} ر.س</strong></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
+                                                    
                                                 </div>
                                             </div>
                                         </div>

@@ -7,6 +7,7 @@ use App\Models\Commission;
 use App\Models\Commission_Products;
 use App\Models\CommissionUsers;
 use App\Models\Employee;
+use App\Models\User;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -15,12 +16,13 @@ class CommissionController extends Controller
     public function index()
     {
         $commissions = Commission::all();
-        return view('commission.index', compact('commissions'));
+        return view('target_sales.commission_rules.index','commissions');
+       
     }
 
     public function create()
     {
-         $employees = Employee::select('id', 'first_name')->get();
+         $employees  = User::select('id', 'name')->get();
          $products   = Product::select('id','name')->get();
          return view('commission.create', compact('employees','products'));
     }
@@ -72,18 +74,19 @@ class CommissionController extends Controller
                 }
             }
             
-            return redirect()->route('commission.index')->with('success', 'تم الاضافة  بنجاح');
+            return redirect()->route('CommissionRules.show', $Commission->id)->with('success', 'تمت الإضافة بنجاح');
+
             // return Commission_Products::all();
              
     }
 
     public function edit($id)
     {
-        // $employees = Employee::select('id', 'first_name')->get();
+        // $employees = User::select('id', 'name')->get();
         $Commission_Products = Commission_Products::where('commission_id', $id)->get();
         $products = Product::all();
         $CommissionUsers = CommissionUsers::where('commission_id', $id)->pluck('employee_id')->toArray();
-        $employees = Employee::all(); // أو اجلب الموظفين حسب الحاجة
+        $employees = User::all(); // أو اجلب الموظفين حسب الحاجة
         $Commission = Commission::find($id);
 
         return view('commission.edit', compact('employees','products','Commission_Products','CommissionUsers','Commission'));
@@ -131,7 +134,7 @@ class CommissionController extends Controller
             }
         }
         
-        return redirect()->route('commission.index')->with('success', 'تم التعديل بنجاح');
+        return redirect()->route('CommissionRules.index')->with('success', 'تم التعديل بنجاح');
     }
     
     public function show($id)

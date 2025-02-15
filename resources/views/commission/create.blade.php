@@ -140,7 +140,7 @@
                                                 <label for="employees">الموظفين</label>
                                                 <select id="employees" class="form-control select2" name="employee_id[]" multiple="multiple">
                                                     @foreach($employees as $employee)
-                                                        <option value="{{ $employee->id }}">{{ $employee->first_name}}</option>
+                                                        <option value="{{ $employee->id }}">{{ $employee->name}}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
