@@ -23,259 +23,237 @@
     </div>
 </div>
 
-
-<div class="container my-5">
-
-    <!-- Alert Message -->
-    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
-        <span>يجب أن يكون لديك خدمة نشطة واحدة على الأقل وتأكد من إدخال المدة لإكمال الحجز</span>
-        <button class="btn btn-success" onclick="window.location.href='add_service.html'">أضف خدمة</button>
+<div class="container mt-5">
+    <!-- شريط التقدم -->
+    <div class="d-flex justify-content-between mb-4">
+        <div class="text-center">
+            <div id="step1Circle" class="circle bg-primary text-white d-inline-block p-2 rounded-circle">1</div>
+            <span class="d-block">خدمة</span>
+        </div>
+        <div class="text-center">
+            <div id="step2Circle" class="circle bg-secondary text-white d-inline-block p-2 rounded-circle">2</div>
+            <span class="d-block">موظف</span>
+        </div>
+        <div class="text-center">
+            <div id="step3Circle" class="circle bg-secondary text-white d-inline-block p-2 rounded-circle">3</div>
+            <span class="d-block">التاريخ</span>
+        </div>
+        <div class="text-center">
+            <div id="step4Circle" class="circle bg-secondary text-white d-inline-block p-2 rounded-circle">4</div>
+            <span class="d-block">العميل</span>
+        </div>
     </div>
-
-
-</div>
-
-
-<!-- BEGIN: Vendor CSS-->
-<link rel="stylesheet" type="text/css" href="{{asset('app-assets/vendors/css/vendors.min.css')}}">
-<!-- END: Vendor CSS-->
-
-<!-- BEGIN: Theme CSS-->
-
-
-<!-- BEGIN: Page CSS-->
-<link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/core/menu/menu-types/vertical-menu.css')}}">
-<link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/core/colors/palette-gradient.css')}}">
-<link rel="stylesheet" type="text/css" href="{{asset('app-assets/css/plugins/forms/wizard.css')}}">
-
-<!-- END: Header-->
-
-
-<!-- BEGIN: Main Menu-->
-
-<!-- END: Main Menu-->
-
-<!-- BEGIN: Content-->
-<div class="app-content content">
-    <div class="content-overlay"></div>
-    <div class="header-navbar-shadow"></div>
-    <div class="content-wrapper">
-        <div class="content-header row">
-            <div class="content-header-left col-md-9 col-12 mb-2">
-                <div class="row breadcrumbs-top">
-                    <div class="col-12">
-                        <h2 class="content-header-title float-left mb-0">Form Wizard</h2>
-                        <div class="breadcrumb-wrapper col-12">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="index.html">Home</a>
-                                </li>
-                                <li class="breadcrumb-item"><a href="#">Forms</a>
-                                </li>
-                                <li class="breadcrumb-item active">Form Wizard
-                                </li>
-                            </ol>
-                        </div>
-                    </div>
+    
+    <!-- الخطوة 1: اختيار الخدمة -->
+    <div id="step1" class="step">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3">
+                    <h5>موعد جديد</h5>
+                    <label for="serviceSelect" class="form-label">اختر خدمة</label>
+                    <select id="serviceSelect" class="form-select">
+                        <option value="العناية الشخصية">العناية الشخصية</option>
+                        <option value="الاستشارة الطبية">الاستشارة الطبية</option>
+                        <option value="الخدمات المصرفية">الخدمات المصرفية</option>
+                    </select>
                 </div>
             </div>
-            <div class="content-header-right text-md-right col-md-3 col-12 d-md-block d-none">
-                <div class="form-group breadcrum-right">
-                    <div class="dropdown">
-                        <button class="btn-icon btn btn-primary btn-round btn-sm dropdown-toggle" type="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
-                                class="feather icon-settings"></i></button>
-                        <div class="dropdown-menu dropdown-menu-right"><a class="dropdown-item" href="#">Chat</a><a
-                                class="dropdown-item" href="#">Email</a><a class="dropdown-item" href="#">Calendar</a>
-                        </div>
-                    </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>تفاصيل الحجز</h5>
+                    <p><strong>الخدمات المختارة:</strong> <span id="selectedService">-</span></p>
                 </div>
             </div>
         </div>
-        <div class="content-body">
-            <!-- Form wizard with number tabs section start -->
-            <section id="number-tabs">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Form wizard with number tabs</h4>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-body">
-                                    <p>Create neat and clean form wizard using <code>.wizard-circle</code> class.</p>
-                                    <form action="#" class="number-tab-steps wizard-circle">
+        <div class="text-end mt-3">
+            <button id="nextButton1" class="btn btn-primary">التالي</button>
+        </div>
+    </div>
 
-                                        <!-- Step 1 -->
-                                        <h6>خدمة </h6>
-                                        <fieldset>
-                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="firstName1">خدمة </label>
-                                                        <input type="text" class="form-control" id="firstName1">
-                                                    </div>
-                                                </div>
-
-                                             
-                                            </div>
-
-                                            <div class="row">
-                                           
-                                            </div>
-                                        </fieldset>
-
-                                        <!-- Step 2 -->
-                                        <h6>موظف </h6>
-                                        <fieldset>
-                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="proposalTitle1">أختر الموظف</label>
-                                                        <input type="text" class="form-control" id="proposalTitle1">
-                                                    </div>
-                                                
-                                                </div>
-                                               
-                                            </div>
-                                        </fieldset>
-
-                                        <!-- Step 3 -->
-                                        <h6>التاريخ </h6>
-                                        <fieldset>
-                                            <div class="row">
-                                                <div class="col-sm-6">
-                                                    <div class="form-group">
-                                                        <label for="eventName1">Event Name :</label>
-                                                        <input type="text" class="form-control" id="eventName1">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="eventType1">Event Status :</label>
-                                                        <select class="custom-select form-control" id="eventType1"
-                                                            data-placeholder="Type to search cities" name="eventType1">
-                                                            <option value="Banquet">Planning</option>
-                                                            <option value="Fund Raiser">In Process</option>
-                                                            <option value="Dinner Party">Finished</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <!-- Step 4 -->
-                                                <h6>العميل </h6>
-                                                <fieldset>
-                                                    <div class="row">
-                                                        <div class="col-sm-6">
-                                                            <div class="form-group">
-                                                                <label for="eventName1">Event Name :</label>
-                                                                <input type="text" class="form-control" id="eventName1">
-                                                            </div>
-                                                            <div class="form-group">
-                                                                <label for="eventType1">Event Status :</label>
-                                                                <select class="custom-select form-control"
-                                                                    id="eventType1"
-                                                                    data-placeholder="Type to search cities"
-                                                                    name="eventType1">
-                                                                    <option value="Banquet">Planning</option>
-                                                                    <option value="Fund Raiser">In Process</option>
-                                                                    <option value="Dinner Party">Finished</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6">
-                                                            <div class="form-group">
-                                                                <label for="eventLocation1">Event Location :</label>
-                                                                <select class="custom-select form-control"
-                                                                    id="eventLocation1" name="location">
-                                                                    <option value="new-york">New York</option>
-                                                                    <option value="chicago">Chicago</option>
-                                                                    <option value="san-francisco">San Francisco</option>
-                                                                    <option value="boston">Boston</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="form-group d-flex align-items-center pt-md-2">
-                                                                <label class="mr-2">Requirements :</label>
-                                                                <div class="c-inputs-stacked">
-                                                                    <div class="d-inline-block mr-2">
-                                                                        <div
-                                                                            class="vs-checkbox-con vs-checkbox-primary">
-                                                                            <input type="checkbox" value="false">
-                                                                            <span class="vs-checkbox">
-                                                                                <span class="vs-checkbox--check">
-                                                                                    <i
-                                                                                        class="vs-icon feather icon-check"></i>
-                                                                                </span>
-                                                                            </span>
-                                                                            <span class="">Staffing</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="d-inline-block">
-                                                                        <div
-                                                                            class="vs-checkbox-con vs-checkbox-primary">
-                                                                            <input type="checkbox" value="false">
-                                                                            <span class="vs-checkbox">
-                                                                                <span class="vs-checkbox--check">
-                                                                                    <i
-                                                                                        class="vs-icon feather icon-check"></i>
-                                                                                </span>
-                                                                            </span>
-                                                                            <span class="">Catering</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- الخطوة 2: اختيار الموظف -->
+    <div id="step2" class="step" style="display: none;">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3">
+                    <h5>اختر الموظف</h5>
+                    <label for="employeeSelect" class="form-label">اختر موظف</label>
+                    <select id="employeeSelect" class="form-select">
+                        <option value="موظف 1">موظف 1</option>
+                        <option value="موظف 2">موظف 2</option>
+                        <option value="موظف 3">موظف 3</option>
+                    </select>
                 </div>
-            </section>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>تفاصيل الحجز</h5>
+                    <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep2">-</span></p>
+                    <p><strong>الموظف المختار:</strong> <span id="selectedEmployee">-</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="text-end mt-3">
+            <button id="prevButton2" class="btn btn-secondary">السابق</button>
+            <button id="nextButton2" class="btn btn-primary">التالي</button>
+        </div>
+    </div>
 
-            <!-- Form wizard with step validation section end -->
+    <!-- الخطوة 3: اختيار التاريخ والوقت -->
+    <div id="step3" class="step" style="display: none;">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3">
+                    <h5>اختر التاريخ والوقت</h5>
+                    <label for="dateSelect" class="form-label">اختر التاريخ</label>
+                    <input type="date" id="dateSelect" class="form-control">
+                    <label for="timeSelect" class="form-label mt-3">اختر الوقت</label>
+                    <input type="time" id="timeSelect" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>تفاصيل الحجز</h5>
+                    <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep3">-</span></p>
+                    <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep3">-</span></p>
+                    <p><strong>التاريخ والوقت:</strong> <span id="selectedDateTime">-</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="text-end mt-3">
+            <button id="prevButton3" class="btn btn-secondary">السابق</button>
+            <button id="nextButton3" class="btn btn-primary">التالي</button>
+        </div>
+    </div>
 
+    <!-- الخطوة 4: اختيار العميل -->
+    <div id="step4" class="step" style="display: none;">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3">
+                    <h5>اختر العميل</h5>
+                    <label for="clientSelect" class="form-label">اختر عميل</label>
+                    <select id="clientSelect" class="form-select">
+                        <option value="عميل 1">عميل 1</option>
+                        <option value="عميل 2">عميل 2</option>
+                        <option value="عميل 3">عميل 3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>تفاصيل الحجز</h5>
+                    <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep4">-</span></p>
+                    <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep4">-</span></p>
+                    <p><strong>التاريخ والوقت:</strong> <span id="selectedDateTimeStep4">-</span></p>
+                    <p><strong>العميل المختار:</strong> <span id="selectedClient">-</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="text-end mt-3">
+            <button id="prevButton4" class="btn btn-secondary">السابق</button>
+            <button id="saveButton" class="btn btn-success">حفظ الحجز</button>
         </div>
     </div>
 </div>
-<!-- END: Content-->
 
-<div class="sidenav-overlay"></div>
-<div class="drag-target"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentStep = 1;
 
-<!-- BEGIN: Footer-->
-<footer class="footer footer-static footer-light">
-    <p class="clearfix blue-grey lighten-2 mb-0"><span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT
-            &copy; 2020<a class="text-bold-800 grey darken-2" href="https://1.envato.market/pixinvent_portfolio"
-                target="_blank">Pixinvent,</a>All rights Reserved</span><span
-            class="float-md-right d-none d-md-block">Hand-crafted & Made with<i
-                class="feather icon-heart pink"></i></span>
-        <button class="btn btn-primary btn-icon scroll-top" type="button"><i class="feather icon-arrow-up"></i></button>
-    </p>
-</footer>
-<!-- END: Footer-->
+        // تحديث شريط التقدم
+        function updateProgress() {
+            document.querySelectorAll('.circle').forEach((circle, index) => {
+                if (index + 1 === currentStep) {
+                    circle.classList.remove('bg-secondary');
+                    circle.classList.add('bg-primary');
+                } else {
+                    circle.classList.remove('bg-primary');
+                    circle.classList.add('bg-secondary');
+                }
+            });
+        }
 
+        // الانتقال بين الخطوات
+        function showStep(step) {
+            document.querySelectorAll('.step').forEach((stepElement, index) => {
+                if (index + 1 === step) {
+                    stepElement.style.display = 'block';
+                } else {
+                    stepElement.style.display = 'none';
+                }
+            });
+            updateProgress();
+        }
 
-<!-- BEGIN: Vendor JS-->
-<script src="{{asset('app-assets/vendors/js/vendors.min.js')}}"></script>
-<!-- BEGIN Vendor JS-->
+        // الخطوة 1: اختيار الخدمة
+        document.getElementById('serviceSelect').addEventListener('change', function() {
+            document.getElementById('selectedService').textContent = this.value;
+            document.getElementById('selectedServiceStep2').textContent = this.value;
+            document.getElementById('selectedServiceStep3').textContent = this.value;
+            document.getElementById('selectedServiceStep4').textContent = this.value;
+        });
 
-<!-- BEGIN: Page Vendor JS-->
-<script src="{{asset('app-assets/vendors/js/extensions/jquery.steps.min.js')}}"></script>
-<script src="{{asset('app-assets/vendors/js/forms/validation/jquery.validate.min.js')}}"></script>
-<!-- END: Page Vendor JS-->
+        document.getElementById('nextButton1').addEventListener('click', function() {
+            currentStep = 2;
+            showStep(currentStep);
+        });
 
-<!-- BEGIN: Theme JS-->
-<script src="{{asset('app-assets/js/core/app-menu.js')}}"></script>
-<script src="{{asset('app-assets/js/core/app.js')}}"></script>
-<script src="{{asset('app-assets/js/scripts/components.js')}}"></script>
-<!-- END: Theme JS-->
+        // الخطوة 2: اختيار الموظف
+        document.getElementById('employeeSelect').addEventListener('change', function() {
+            document.getElementById('selectedEmployee').textContent = this.value;
+            document.getElementById('selectedEmployeeStep3').textContent = this.value;
+            document.getElementById('selectedEmployeeStep4').textContent = this.value;
+        });
 
-<!-- BEGIN: Page JS-->
-<script src="{{asset('app-assets/js/scripts/forms/wizard-steps.js')}}"></script>
-<!-- END: Page JS-->
+        document.getElementById('prevButton2').addEventListener('click', function() {
+            currentStep = 1;
+            showStep(currentStep);
+        });
 
-</body>
-<!-- END: Body-->
+        document.getElementById('nextButton2').addEventListener('click', function() {
+            currentStep = 3;
+            showStep(currentStep);
+        });
 
-</html>
+        // الخطوة 3: اختيار التاريخ والوقت
+        document.getElementById('dateSelect').addEventListener('change', function() {
+            document.getElementById('selectedDateTime').textContent = this.value + ' ' + document.getElementById('timeSelect').value;
+            document.getElementById('selectedDateTimeStep4').textContent = this.value + ' ' + document.getElementById('timeSelect').value;
+        });
+
+        document.getElementById('timeSelect').addEventListener('change', function() {
+            document.getElementById('selectedDateTime').textContent = document.getElementById('dateSelect').value + ' ' + this.value;
+            document.getElementById('selectedDateTimeStep4').textContent = document.getElementById('dateSelect').value + ' ' + this.value;
+        });
+
+        document.getElementById('prevButton3').addEventListener('click', function() {
+            currentStep = 2;
+            showStep(currentStep);
+        });
+
+        document.getElementById('nextButton3').addEventListener('click', function() {
+            currentStep = 4;
+            showStep(currentStep);
+        });
+
+        // الخطوة 4: اختيار العميل
+        document.getElementById('clientSelect').addEventListener('change', function() {
+            document.getElementById('selectedClient').textContent = this.value;
+        });
+
+        document.getElementById('prevButton4').addEventListener('click', function() {
+            currentStep = 3;
+            showStep(currentStep);
+        });
+
+        document.getElementById('saveButton').addEventListener('click', function() {
+            alert('تم حفظ الحجز بنجاح!');
+            // يمكنك إضافة الكود لحفظ الحجز هنا
+        });
+
+        // تهيئة الخطوة الأولى
+        showStep(currentStep);
+    });
+</script>
+
 @endsection
