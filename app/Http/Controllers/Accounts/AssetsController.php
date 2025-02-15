@@ -28,7 +28,7 @@ class AssetsController extends Controller
     public function index()
     {
         $assets = AssetDepreciation::with(['employee', 'client', 'depreciation'])->latest()->paginate(10);
-        return view('Accounts.asol.index', compact('assets'));
+        return view('accounts.asol.index', compact('assets'));
     }
 
     /**
@@ -39,7 +39,7 @@ class AssetsController extends Controller
         $accounts = Account::where('type', '')->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('Accounts.asol.create', compact('accounts', 'employees', 'clients'));
+        return view('accounts.asol.create', compact('accounts', 'employees', 'clients'));
     }
 
     /**
@@ -147,7 +147,7 @@ class AssetsController extends Controller
                 ->where('reference_number', 'ASSET-' . $asset->id)
                 ->get();
 
-            return view('Accounts.asol.show', compact('asset', 'account', 'journalEntries'));
+            return view('accounts.asol.show', compact('asset', 'account', 'journalEntries'));
         } catch (\Exception $e) {
             return redirect()->route('Assets.index')
                 ->with('error', 'حدث خطأ أثناء عرض الأصل: ' . $e->getMessage());
@@ -163,7 +163,7 @@ class AssetsController extends Controller
         $accounts = ChartOfAccount::where('type', 'asset')->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('Accounts.asol.edit', compact('asset', 'accounts', 'employees', 'clients'));
+        return view('accounts.asol.edit', compact('asset', 'accounts', 'employees', 'clients'));
     }
 
     /**
@@ -425,7 +425,7 @@ class AssetsController extends Controller
     {
         $asset = AssetDepreciation::with('depreciation')->findOrFail($id);
         $clients = Client::all();
-        return view('Accounts.asol.sell', compact('asset', 'clients'));
+        return view('accounts.asol.sell', compact('asset', 'clients'));
     }
 
     /**
@@ -462,7 +462,7 @@ class AssetsController extends Controller
         $pdf->SetFont('aealarabiya', '', 14);
 
         // بداية المحتوى
-        $html = view('Accounts.asol.pdf', compact('asset'))->render();
+        $html = view('accounts.asol.pdf', compact('asset'))->render();
 
         // إضافة المحتوى للـ PDF
         $pdf->writeHTML($html, true, false, true, false, '');

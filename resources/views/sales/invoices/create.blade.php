@@ -4,6 +4,75 @@
     انشاء فاتورة مبيعات
 @stop
 
+@section('css')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
+    <style>
+        @media (max-width: 767.98px) {
+    #items-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #items-table thead,
+    #items-table tbody,
+    #items-table tfoot,
+    #items-table tr,
+    #items-table td,
+    #items-table th {
+        display: block;
+    }
+
+    #items-table tr {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        padding: 10px;
+    }
+
+    #items-table td,
+    #items-table th {
+        border: none;
+        padding: 0.5rem;
+    }
+
+    #items-table td {
+        text-align: right;
+    }
+
+    #items-table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+    }
+
+    #items-table .item-row {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #items-table .item-row td {
+        width: 100%;
+    }
+
+    #items-table .item-row td input,
+    #items-table .item-row td select {
+        width: 100%;
+    }
+
+    #items-table tfoot tr {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #items-table tfoot td {
+        text-align: right;
+    }
+}
+    </style>
+@endsection
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -215,64 +284,43 @@
                         <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
                         <div class="table-responsive">
                             <table class="table" id="items-table">
-                                <thead>
-                                    <tr>
-                                        <th>المنتج</th>
-                                        <th>الوصف</th>
-                                        <th>الكمية</th>
-                                        <th>السعر</th>
-                                        <th>الخصم</th>
-                                        <th>الضريبة 1</th>
-                                        <th>الضريبة 2</th>
-                                        <th>المجموع</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
+                                
                                 <tbody>
                                     <tr class="item-row">
-                                        <td style="width:18%">
-                                            <select name="items[0][product_id]"
-                                                class="form-control product-select ">
+                                        <td style="width:18%" data-label="المنتج">
+                                            <select name="items[0][product_id]" class="form-control product-select">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}">
-                                                        {{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td>
-                                            <input type="text" name="items[0][description]"
-                                                class="form-control item-description">
+                                        <td data-label="الوصف">
+                                            <input type="text" name="items[0][description]" class="form-control item-description">
                                         </td>
-                                        <td>
-                                            <input type="number" name="items[0][quantity]" class="form-control quantity"
-                                                value="1" min="1" required>
+                                        <td data-label="الكمية">
+                                            <input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="1" required>
                                         </td>
-                                        <td>
-                                            <input type="number" name="items[0][unit_price]" class="form-control price"
-                                                step="0.01" required>
+                                        <td data-label="السعر">
+                                            <input type="number" name="items[0][unit_price]" class="form-control price" step="0.01" required>
                                         </td>
-                                        <td>
+                                        <td data-label="الخصم">
                                             <div class="input-group">
-                                                <input type="number" name="items[0][discount]"
-                                                    class="form-control discount-value" value="0" min="0"
-                                                    step="0.01">
+                                                <input type="number" name="items[0][discount]" class="form-control discount-value" value="0" min="0" step="0.01">
                                                 <select name="items[0][discount_type]" class="form-control discount-type">
                                                     <option value="amount">ريال</option>
                                                     <option value="percentage">نسبة %</option>
                                                 </select>
                                             </div>
                                         </td>
-                                        <td>
-                                            <input type="number" name="items[0][tax_1]" class="form-control tax"
-                                                value="15" min="0" max="100" step="0.01">
+                                        <td data-label="الضريبة 1">
+                                            <input type="number" name="items[0][tax_1]" class="form-control tax" value="15" min="0" max="100" step="0.01">
                                         </td>
-                                        <td>
-                                            <input type="number" name="items[0][tax_2]" class="form-control tax"
-                                                value="0" min="0" max="100" step="0.01">
+                                        <td data-label="الضريبة 2">
+                                            <input type="number" name="items[0][tax_2]" class="form-control tax" value="0" min="0" max="100" step="0.01">
                                         </td>
                                         <input type="hidden" name="items[0][store_house_id]" value="2">
-                                        <td>
+                                        <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
                                         </td>
                                         <td>

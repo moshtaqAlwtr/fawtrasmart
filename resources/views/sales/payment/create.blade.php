@@ -105,14 +105,16 @@
                     </div>
                     <div class="col-md-6">
                         <label for="employee" class="form-label">تم التحصيل بواسطة <span style="color: red">*</span></label>
-                        <select name="employee_id" class="form-control" id="employee">
-                            <option value="">اختر الموظف </option>
+                        <select name="employee_id" class="form-control" id="employee" required>
+                            <option value="">اختر الموظف</option>
                             @foreach ($employees as $employee)
                                 <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
                             @endforeach
                         </select>
                     </div>
                 </div>
+                <!-- حقل مخفي لتحديد نوع الدفع -->
+                <input type="hidden" name="type" value="{{ $type }}">
 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -128,6 +130,7 @@
                 </div>
 
                 <input type="hidden" name="invoice_id" value="{{ $invoiceId }}">
+                <input type="hidden" name="installment_id" value="{{ $installmentId ?? '' }}">
 
                 <div class="row mb-3">
                     <div class="col-md-6">

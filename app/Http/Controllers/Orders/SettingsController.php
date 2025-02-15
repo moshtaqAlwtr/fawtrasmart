@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 
 class SettingsController extends Controller
@@ -17,6 +18,7 @@ class SettingsController extends Controller
     }
     public function create()
     {
-        return view('orders.Settings.create');
+        $employees = Employee::all();
+        return view('orders.Settings.create', compact('employees')); 
     }
 }

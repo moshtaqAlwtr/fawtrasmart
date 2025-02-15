@@ -241,5 +241,18 @@ class EmployeeController extends Controller
 
         return $fileName;
     }//end of uploadImage
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
 
+        // البحث عن الموظفين الذين تحتوي أسماؤهم على النص المُدخل
+        $employees = Employee::where('name', 'LIKE', "%$query%")
+            ->select('id', 'first_name') // جلب الحقول المطلوبة فقط
+            ->limit(10) // تحديد عدد النتائج
+            ->get();
+
+        return response()->json($employees);
+    }
 }
+
+

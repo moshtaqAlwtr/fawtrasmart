@@ -113,19 +113,19 @@
                                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                 <li>
                                                     <a class="dropdown-item"
-                                                        href="{{ route('installments.show', $installment->id) }}">
+                                                        href="{{ route('installments.show_amount', $installment->id) }}">
                                                         <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a class="dropdown-item"
-                                                        href="{{ route('installments.edit', $installment->id) }}">
+                                                        href="{{ route('installments.edit_amount', $installment->id) }}">
                                                         <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                     </a>
                                                 </li>
                                                 <li>
                                                     <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $installment->id, 'type' => 'installment']) }}">
-                                                        <i class="fa fa-edit me-2 text-success"></i>قم بالدفع
+                                                        <i class="fa fa-dollar me-2 text-bg-danger"></i>قم بالدفع
                                                     </a>
                                                 </li>
                                             </div>

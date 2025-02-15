@@ -646,9 +646,9 @@ class InvoicesController extends Controller
                 ->first();
 
                 // التأكد من وجود حساب الخزينة الرئيسية
-                // if (!$mainTreasuryAccount) {
-                //     throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
-                // }
+                if (!$mainTreasuryAccount) {
+                    throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+                }
 
                 // البحث عن حساب العميل الفرعي
                 $clientAccount = Account::where('name', $invoice->client->trade_name)
@@ -658,9 +658,9 @@ class InvoicesController extends Controller
                     ->first();
 
                 // التأكد من وجود حساب العميل
-                // if (!$clientAccount) {
-                //     throw new \Exception('لم يتم العثور على حساب العميل');
-                // }
+                if (!$clientAccount) {
+                    throw new \Exception('لم يتم العثور على حساب العميل');
+                }
 
                 // إنشاء سجل الدفع
                 $payment = PaymentsProcess::create([
