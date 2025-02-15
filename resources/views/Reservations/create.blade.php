@@ -51,17 +51,18 @@
                 <div class="card p-3">
                     <h5>موعد جديد</h5>
                     <label for="serviceSelect" class="form-label">اختر خدمة</label>
-                    <select id="serviceSelect" class="form-select">
-                        <option value="العناية الشخصية">العناية الشخصية</option>
-                        <option value="الاستشارة الطبية">الاستشارة الطبية</option>
-                        <option value="الخدمات المصرفية">الخدمات المصرفية</option>
+                    <select id="serviceSelect" class="form-select" name="product_id">
+                        <option value="">اختر خدمة</option>
+                        @foreach ($Products as $Product)
+                            <option value="{{$Product->id}}" data-name="{{$Product->name}}">{{$Product->name}}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card p-3">
                     <h5>تفاصيل الحجز</h5>
-                    <p><strong>الخدمات المختارة:</strong> <span id="selectedService">-</span></p>
+                    <p><strong>الخدمات المختارة:</strong> <span id="selectedService">-</span></p> 
                 </div>
             </div>
         </div>
@@ -76,11 +77,11 @@
             <div class="col-md-8">
                 <div class="card p-3">
                     <h5>اختر الموظف</h5>
-                    <label for="employeeSelect" class="form-label">اختر موظف</label>
-                    <select id="employeeSelect" class="form-select">
-                        <option value="موظف 1">موظف 1</option>
-                        <option value="موظف 2">موظف 2</option>
-                        <option value="موظف 3">موظف 3</option>
+                    <label for="employeeSelect_1" class="form-label">اختر موظف</label>
+                    <select id="employeeSelect_1" class="form-select" name="employee_id">
+                        @foreach ($Employees as $Employee)
+                            <option value="{{$Employee->id}}">{{$Employee->first_name ?? ""}}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -98,162 +99,216 @@
         </div>
     </div>
 
+    
     <!-- الخطوة 3: اختيار التاريخ والوقت -->
-    <div id="step3" class="step" style="display: none;">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card p-3">
-                    <h5>اختر التاريخ والوقت</h5>
-                    <label for="dateSelect" class="form-label">اختر التاريخ</label>
-                    <input type="date" id="dateSelect" class="form-control">
-                    <label for="timeSelect" class="form-label mt-3">اختر الوقت</label>
-                    <input type="time" id="timeSelect" class="form-control">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card p-3">
-                    <h5>تفاصيل الحجز</h5>
-                    <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep3">-</span></p>
-                    <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep3">-</span></p>
-                    <p><strong>التاريخ والوقت:</strong> <span id="selectedDateTime">-</span></p>
-                </div>
+<div id="step3" class="step" style="display: none;">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h5>اختر التاريخ والوقت</h5>
+                <label for="dateSelect" class="form-label">اختر التاريخ</label>
+                <input type="date" id="dateSelect" class="form-control" name="appointment_date">
+
+                <label for="startTime" class="form-label mt-3">وقت البدء</label>
+                <input type="time" id="startTime" class="form-control" name="start_time">
+
+                <label for="endTime" class="form-label mt-3">وقت الانتهاء</label>
+                <input type="time" id="endTime" class="form-control" name="end_time">
             </div>
         </div>
-        <div class="text-end mt-3">
-            <button id="prevButton3" class="btn btn-secondary">السابق</button>
-            <button id="nextButton3" class="btn btn-primary">التالي</button>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h5>تفاصيل الحجز</h5>
+                <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep3">-</span></p>
+                <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep3">-</span></p>
+                <p><strong>التاريخ:</strong> <span id="selectedDate">-</span></p>
+                <p><strong>الفترة الزمنية:</strong> <span id="selectedTimeRange">-</span></p>
+            </div>
         </div>
     </div>
-
-    <!-- الخطوة 4: اختيار العميل -->
-    <div id="step4" class="step" style="display: none;">
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card p-3">
-                    <h5>اختر العميل</h5>
-                    <label for="clientSelect" class="form-label">اختر عميل</label>
-                    <select id="clientSelect" class="form-select">
-                        <option value="عميل 1">عميل 1</option>
-                        <option value="عميل 2">عميل 2</option>
-                        <option value="عميل 3">عميل 3</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card p-3">
-                    <h5>تفاصيل الحجز</h5>
-                    <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep4">-</span></p>
-                    <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep4">-</span></p>
-                    <p><strong>التاريخ والوقت:</strong> <span id="selectedDateTimeStep4">-</span></p>
-                    <p><strong>العميل المختار:</strong> <span id="selectedClient">-</span></p>
-                </div>
-            </div>
-        </div>
-        <div class="text-end mt-3">
-            <button id="prevButton4" class="btn btn-secondary">السابق</button>
-            <button id="saveButton" class="btn btn-success">حفظ الحجز</button>
-        </div>
+    <div class="text-end mt-3">
+        <button id="prevButton3" class="btn btn-secondary">السابق</button>
+        <button id="nextButton3" class="btn btn-primary">التالي</button>
     </div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let currentStep = 1;
+    <!-- الخطوة 4: اختيار العميل وحفظ البيانات -->
+    <form id="clientForm" action="{{ route('Reservations.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div id="step4" class="step" style="display: none;">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card p-3">
+                        <h5>اختر العميل</h5>
+                        <label for="clientSelect" class="form-label">اختر عميل</label>
+                        <select id="clientSelect" class="form-select" name="client_id">
+                            @foreach ($Clients as $Client)
+                                <option value="{{ $Client->id }}">{{ $Client->first_name ?? "" }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card p-3">
+                        <h5>تفاصيل الحجز</h5>
+                        <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep4">-</span></p>
+                        <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep4">-</span></p>
+                        <p><strong>التاريخ والوقت:</strong> <span id="selectedDateTimeStep4">-</span></p>
+                        <p><strong>العميل المختار:</strong> <span id="selectedClient">-</span></p>
+                    </div>
+                </div>
+            </div>
 
-        // تحديث شريط التقدم
-        function updateProgress() {
-            document.querySelectorAll('.circle').forEach((circle, index) => {
-                if (index + 1 === currentStep) {
-                    circle.classList.remove('bg-secondary');
-                    circle.classList.add('bg-primary');
-                } else {
-                    circle.classList.remove('bg-primary');
-                    circle.classList.add('bg-secondary');
-                }
-            });
-        }
+            <!-- حقول مخفية لإرسال البيانات -->
+            <input type="hidden" name="product_id" id="hiddenService">
+            <input type="hidden" name="employee_id" id="hiddenEmployee">
+            <input type="hidden" name="appointment_date" id="hiddenDate">
+            <input type="hidden" name="start_time" id="hiddenTime1">
+            <input type="hidden" name="end_time" id="hiddenTime12">
+            
+            <input type="hidden" name="client_id" id="hiddenClient">
 
-        // الانتقال بين الخطوات
-        function showStep(step) {
-            document.querySelectorAll('.step').forEach((stepElement, index) => {
-                if (index + 1 === step) {
-                    stepElement.style.display = 'block';
-                } else {
-                    stepElement.style.display = 'none';
-                }
-            });
-            updateProgress();
-        }
-
-        // الخطوة 1: اختيار الخدمة
-        document.getElementById('serviceSelect').addEventListener('change', function() {
-            document.getElementById('selectedService').textContent = this.value;
-            document.getElementById('selectedServiceStep2').textContent = this.value;
-            document.getElementById('selectedServiceStep3').textContent = this.value;
-            document.getElementById('selectedServiceStep4').textContent = this.value;
-        });
-
-        document.getElementById('nextButton1').addEventListener('click', function() {
-            currentStep = 2;
-            showStep(currentStep);
-        });
-
-        // الخطوة 2: اختيار الموظف
-        document.getElementById('employeeSelect').addEventListener('change', function() {
-            document.getElementById('selectedEmployee').textContent = this.value;
-            document.getElementById('selectedEmployeeStep3').textContent = this.value;
-            document.getElementById('selectedEmployeeStep4').textContent = this.value;
-        });
-
-        document.getElementById('prevButton2').addEventListener('click', function() {
-            currentStep = 1;
-            showStep(currentStep);
-        });
-
-        document.getElementById('nextButton2').addEventListener('click', function() {
-            currentStep = 3;
-            showStep(currentStep);
-        });
-
-        // الخطوة 3: اختيار التاريخ والوقت
-        document.getElementById('dateSelect').addEventListener('change', function() {
-            document.getElementById('selectedDateTime').textContent = this.value + ' ' + document.getElementById('timeSelect').value;
-            document.getElementById('selectedDateTimeStep4').textContent = this.value + ' ' + document.getElementById('timeSelect').value;
-        });
-
-        document.getElementById('timeSelect').addEventListener('change', function() {
-            document.getElementById('selectedDateTime').textContent = document.getElementById('dateSelect').value + ' ' + this.value;
-            document.getElementById('selectedDateTimeStep4').textContent = document.getElementById('dateSelect').value + ' ' + this.value;
-        });
-
-        document.getElementById('prevButton3').addEventListener('click', function() {
-            currentStep = 2;
-            showStep(currentStep);
-        });
-
-        document.getElementById('nextButton3').addEventListener('click', function() {
-            currentStep = 4;
-            showStep(currentStep);
-        });
-
-        // الخطوة 4: اختيار العميل
-        document.getElementById('clientSelect').addEventListener('change', function() {
-            document.getElementById('selectedClient').textContent = this.value;
-        });
-
-        document.getElementById('prevButton4').addEventListener('click', function() {
-            currentStep = 3;
-            showStep(currentStep);
-        });
-
-        document.getElementById('saveButton').addEventListener('click', function() {
-            alert('تم حفظ الحجز بنجاح!');
-            // يمكنك إضافة الكود لحفظ الحجز هنا
-        });
-
-        // تهيئة الخطوة الأولى
-        showStep(currentStep);
-    });
-</script>
-
+            <div class="text-end mt-3">
+                <button id="prevButton4" class="btn btn-secondary">السابق</button>
+                <button type="submit" id="saveButton" class="btn btn-success">حفظ الحجز</button>
+            </div>
+        </div>
+    </form>
+</div>
 @endsection
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentStep = 1;
+
+    // تحديث شريط التقدم
+    function updateProgress() {
+        document.querySelectorAll('.circle').forEach((circle, index) => {
+            if (index + 1 === currentStep) {
+                circle.classList.remove('bg-secondary');
+                circle.classList.add('bg-primary');
+            } else {
+                circle.classList.remove('bg-primary');
+                circle.classList.add('bg-secondary');
+            }
+        });
+    }
+
+    // الانتقال بين الخطوات
+    function showStep(step) {
+        document.querySelectorAll('.step').forEach((stepElement, index) => {
+            if (index + 1 === step) {
+                stepElement.style.display = 'block';
+            } else {
+                stepElement.style.display = 'none';
+            }
+        });
+        updateProgress();
+    }
+
+    // تعبئة الحقول المخفية قبل إرسال النموذج
+    document.getElementById('clientForm').addEventListener('submit', function(event) {
+        document.getElementById('hiddenService').value = document.getElementById('serviceSelect').value;
+        document.getElementById('hiddenEmployee').value = document.getElementById('employeeSelect_1').value;
+        document.getElementById('hiddenDate').value = document.getElementById('dateSelect').value;
+        document.getElementById('hiddenTime1').value = document.getElementById('startTime').value; // تعبئة start_time
+        document.getElementById('hiddenTime12').value = document.getElementById('endTime').value; // تعبئة end_time
+        document.getElementById('hiddenClient').value = document.getElementById('clientSelect').value;
+    });
+
+    // تحديث تفاصيل الحجز في الكارد الأيمن
+    function updateReservationDetails() {
+        // الخطوة 1: الخدمة
+        let selectedService = document.getElementById('serviceSelect').options[document.getElementById('serviceSelect').selectedIndex].getAttribute('data-name');
+        document.getElementById('selectedService').textContent = selectedService || "-";
+        document.getElementById('selectedServiceStep2').textContent = selectedService || "-";
+        document.getElementById('selectedServiceStep3').textContent = selectedService || "-";
+        document.getElementById('selectedServiceStep4').textContent = selectedService || "-";
+
+        // الخطوة 2: الموظف
+        let selectedEmployee = document.getElementById('employeeSelect_1').options[document.getElementById('employeeSelect_1').selectedIndex].text;
+        document.getElementById('selectedEmployee').textContent = selectedEmployee || "-";
+        document.getElementById('selectedEmployeeStep3').textContent = selectedEmployee || "-";
+        document.getElementById('selectedEmployeeStep4').textContent = selectedEmployee || "-";
+
+        // الخطوة 3: التاريخ والوقت
+        let selectedDate = document.getElementById('dateSelect').value;
+        let startTime = document.getElementById('startTime').value;
+        let endTime = document.getElementById('endTime').value;
+        document.getElementById('selectedDate').textContent = selectedDate || "-";
+        document.getElementById('selectedTimeRange').textContent = (startTime && endTime) ? `${startTime} - ${endTime}` : "-";
+        document.getElementById('selectedDateTimeStep4').textContent = (selectedDate && startTime && endTime) ? `${selectedDate} ${startTime} - ${endTime}` : "-";
+
+        // الخطوة 4: العميل
+        let selectedClient = document.getElementById('clientSelect').options[document.getElementById('clientSelect').selectedIndex].text;
+        document.getElementById('selectedClient').textContent = selectedClient || "-";
+    }
+
+    // الخطوة 1: اختيار الخدمة
+    document.getElementById('serviceSelect').addEventListener('change', function() {
+        updateReservationDetails();
+    });
+
+    document.getElementById('nextButton1').addEventListener('click', function() {
+        currentStep = 2;
+        showStep(currentStep);
+        updateReservationDetails();
+    });
+
+    // الخطوة 2: اختيار الموظف
+    document.getElementById('employeeSelect_1').addEventListener('change', function() {
+        updateReservationDetails();
+    });
+
+    document.getElementById('nextButton2').addEventListener('click', function() {
+        currentStep = 3;
+        showStep(currentStep);
+        updateReservationDetails();
+    });
+
+    document.getElementById('prevButton2').addEventListener('click', function() {
+        currentStep = 1;
+        showStep(currentStep);
+        updateReservationDetails();
+    });
+
+    // الخطوة 3: اختيار التاريخ والوقت
+    document.getElementById('dateSelect').addEventListener('change', function() {
+        updateReservationDetails();
+    });
+
+    document.getElementById('startTime').addEventListener('change', function() {
+        updateReservationDetails();
+    });
+
+    document.getElementById('endTime').addEventListener('change', function() {
+        updateReservationDetails();
+    });
+
+    document.getElementById('nextButton3').addEventListener('click', function() {
+        currentStep = 4;
+        showStep(currentStep);
+        updateReservationDetails();
+    });
+
+    document.getElementById('prevButton3').addEventListener('click', function() {
+        currentStep = 2;
+        showStep(currentStep);
+        updateReservationDetails();
+    });
+
+    // الخطوة 4: اختيار العميل
+    document.getElementById('clientSelect').addEventListener('change', function() {
+        updateReservationDetails();
+    });
+
+    document.getElementById('prevButton4').addEventListener('click', function() {
+        currentStep = 3;
+        showStep(currentStep);
+        updateReservationDetails();
+    });
+
+    // تهيئة الخطوة الأولى
+    showStep(currentStep);
+    updateReservationDetails();
+});
+</script>

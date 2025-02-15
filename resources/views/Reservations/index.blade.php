@@ -22,7 +22,8 @@
             </div>
         </div>
     </div>
-    
+    @include('layouts.alerts.error')
+    @include('layouts.alerts.success')
     <div class="content-body">
 
         <div class="card">
@@ -49,7 +50,8 @@
         <h5 class="mb-0">نموذج البحث</h5>
     </div>
     <div class="card-body">
-        <form method="GET">
+        <form id="clientForm" action="{{ route('Reservations.filter') }}" method="POST" enctype="multipart/form-data">
+            @csrf
             <div class="row g-4">
                 <!-- الموظف -->
                 <div class="col-md-4">
@@ -93,9 +95,13 @@
                 </div>
                 <div class="col-md-4">
                     <label for="group_by" class="form-label">الحالة  :</label>
-                    <select class="form-control" id="group_by" name="group_by">
+                    <select class="form-control" id="group_by" name="status">
                         <option>أختر</option>
-                      
+                        <option value="confirm">تأكيد</option>
+                        <option value="review">تحت المراجعة</option>
+                        <option value="bill">حولت لفاتورة</option>
+                        <option value="cancel">تم الالغاء</option>
+                        <option value="done">تم </option>
                     </select>
                 </div>
             </div>
@@ -144,22 +150,44 @@
         <!-- بطاقة بيانات -->
         <div class="card">
             <div class="card-body">
+                @foreach ($bookings as $booking)
                 <div class="row">
                     <div class="col-auto">
                         <!-- صورة افتراضية -->
                         <div style="width: 50px; height: 50px; background-color: #f0f0f0; border-radius: 5px;"></div>
                     </div>
                     <div class="col">
-                        <h6>#00003</h6>
-                        <p class="mb-1">أسواق سلطان التجارية</p>
-                        <p class="text-muted mb-0 small">جلسة علاج طبيعي<br>راكال</p>
+                        <h6>بيانات العميل</h6>
+                        <p class="mb-1">{{$booking->client->first_name ?? ""}}</p>
+                        <p class="mb-1">الخدمة :{{$booking->product->name ?? ""}}</p>
                     </div>
                     <div class="col-auto text-end">
-                        <p class="mb-1">in an hour 02/01/2025</p>
+                        <p class="mb-1">الوقت من {{$booking->start_time ?? 0}} الى {{$booking->end_time ?? 0 }}</p>
                         <p class="text-muted small mb-0">16:45:00</p>
-                        <span class="badge bg-warning text-dark">مؤكد</span>
+                        
+                        @if($booking->status == "confirm")
+                            <span class="badge bg-warning text-dark">مؤكد</span>
+                        @elseif ($booking->status == "review")
+                            <span class="badge bg-warning text-dark">تحت المراجعة</span>
+                        @elseif ($booking->status == "bill")
+                            <span class="badge bg-warning text-dark">حولت للفاتورة</span>
+                        @elseif ($booking->status == "cancel")
+                            <span class="badge bg-warning text-dark">تم الالغاء</span>  
+                        @else
+                            <span class="badge bg-warning text-dark">تم</span> 
+                        @endif
+            
+                        <a href="{{ route('Reservations.show', $booking->id) }}" class="badge bg-danger text-dark">عرض</a> 
+                        <a href="{{ route('Reservations.edit', $booking->id) }}" class="btn btn-sm btn-primary">
+                            <i class="fa fa-edit"></i> تعديل
+                        </a>
                     </div>
                 </div>
+               
+                <!-- Horizontal line after each customer's data -->
+                <hr>
+            @endforeach
+            
             </div>
         </div>
     </div>
