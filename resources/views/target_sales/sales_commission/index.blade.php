@@ -143,61 +143,59 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @foreach ($SalesCommissions as $SalesCommission)
                                     <tr>
-
                                         <td>
                                             <div class="d-flex align-items-center gap-3">
                                                 <div class="form-check mb-0">
                                                     <input class="form-check-input" type="checkbox" style="width: 15px; height: 15px;">
                                                 </div>
-                                                <span style="margin-top: 20px">3030</span>
+                                                <span style="margin-top: 20px">{{ $loop->iteration }}</span> <!-- الترقيم التسلسلي -->
                                             </div>
                                         </td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="avatar avatar-sm bg-secondary">
-                                                    <span class="avatar-content">م</span>
+                                                    <span class="avatar-content"></span>
                                                 </div>
-                                                محمد الادريسي #5
+                                                {{$SalesCommission->employee->name ?? ""}}
                                             </div>
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column">
-                                                <span>فاتورة #07859</span>
-                                                <small class="text-muted">08/07/2024</small>
+                                                <span>فاتورة #{{$SalesCommission->invoice_number ?? ""}}</span>
+                                                <small class="text-muted">{{ $SalesCommission->created_at ? $SalesCommission->created_at->format('Y-m-d') : '' }}</small>
                                             </div>
                                         </td>
-                                        <td>270.00 ر.س</td>
+                                        <td>{{ $SalesCommission->sales_amount ? number_format($SalesCommission->sales_amount * 1.15, 2) : '' }}</td>
                                         <td>
                                             <div class="d-flex flex-column">
-                                                <span>15</span>
+                                                <span>{{$SalesCommission->sales_quantity ?? ""}}</span>
                                                 <small class="text-muted">عناصر</small>
                                             </div>
                                         </td>
-                                        <td>8.10 ر.س</td>
+                                        <td>{{ $SalesCommission->sales_amount && $SalesCommission->ratio ? number_format((($SalesCommission->sales_amount * 1.15) * $SalesCommission->ratio) / 100, 2) : '' }}</td>
                                         <td>
                                             <div class="btn-group">
                                                 <div class="dropdown">
-                                                    <button
-                                                        class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                        type="button"id="dropdownMenuButton303"
-                                                        data-toggle="dropdown"
-                                                        aria-haspopup="true"aria-expanded="false"></button>
-                                                    <div class="dropdown-menu"
-                                                        aria-labelledby="dropdownMenuButton303">
+                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                        type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false">
+                                                    </button>
+                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                         <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('SalesCommission.show', 1) }}">
+                                                            <a class="dropdown-item" href="{{ route('SalesCommission.show', $SalesCommission->id) }}">
                                                                 <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                             </a>
                                                         </li>
-
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
                                     </tr>
+                                    @endforeach
                                 </tbody>
+                                
                             </table>
                         </div>
                     </div>

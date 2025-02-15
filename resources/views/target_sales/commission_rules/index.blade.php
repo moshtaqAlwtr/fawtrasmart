@@ -127,14 +127,25 @@
                         </tr>
                     </thead>
                     <tbody>
-
+                        @foreach ($commissions as  $commission )
                         <tr>
-                            <td>قواعد العمولة</td>
-                            <td>شهري</td>
-                            <td>3500</td>
+                            <td>{{$commission->name ?? ""}}</td>
+                            <td> @if($commission->commission_calculation == "monthly")
+                                {{$commission->name ?? ""}}
+                                <strong>شهري</strong>
+                                @elseif($commission->commission_calculation == "yearly")
+                                <strong>سنوي</strong>
+                                @else
+                                <strong>ربع سنوي </strong>
+                                @endif</td>
+                            <td>{{$commission->value ?? ""}}</td>
 
 
-                            <td>نشط</td>
+                            <td> @if ($commission->status == "active")
+                                <strong>نشط</strong>
+                                @else
+                                <strong>غير نشط </strong>
+                                @endif</td>
                             <td>
                                 <div class="btn-group">
                                     <div class="dropdown">
@@ -143,12 +154,12 @@
                                             aria-haspopup="true"aria-expanded="false"></button>
                                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                             <li>
-                                                <a class="dropdown-item" href="{{ route('CommissionRules.show', 1) }}">
+                                                <a class="dropdown-item" href="{{ route('CommissionRules.show', $commission->id) }}">
                                                     <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
                                             </li>
                                             <li>
-                                                <a class="dropdown-item" href="{{ route('CommissionRules.edit', 1) }}">
+                                                <a class="dropdown-item" href="{{ route('commission.edit', $commission->id) }}">
                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                 </a>
                                             </li>
@@ -188,7 +199,7 @@
                                         </div> --}}
                             <!--end delete-->
                         </tr>
-
+   @endforeach
                     </tbody>
                 </table>
                 {{-- @else

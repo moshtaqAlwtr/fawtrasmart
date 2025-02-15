@@ -15,6 +15,20 @@
 </style>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<!-- مكتبة Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<!-- تأكد من أنك قد أضفت مكتبة Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+<script>
+    let productsOptions = `@foreach($products as $product)
+        <option value="{{ $product->id }}">{{ $product->name }}</option>
+    @endforeach`;
+</script>
+
 
 @section('content')
     <div class="content-header row">
@@ -112,8 +126,8 @@
                                                 <label for="printing_method">حساب العمولة</label>
                                                 <div class="position-relative has-icon-left">
                                                     <select class="form-control" id="printing_method" name="commission_calculation">
-                                                        <option value="1">فواتير مدفوعة بالكامل</option>
-                                                        <option value="2">فواتير مدفوعة جزئيا</option>
+                                                        <option value="fully_paid">فواتير مدفوعة بالكامل</option>
+                                                        <option value="partially_paid">فواتير مدفوعة جزئيا</option>
                                                     </select>
                                                     <div class="form-control-position"></div>
                                                 </div>
@@ -126,7 +140,7 @@
                                                 <label for="employees">الموظفين</label>
                                                 <select id="employees" class="form-control select2" name="employee_id[]" multiple="multiple">
                                                     @foreach($employees as $employee)
-                                                        <option value="{{ $employee->id }}">{{ $employee->id}}</option>
+                                                        <option value="{{ $employee->id }}">{{ $employee->name}}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -163,6 +177,7 @@
                                                                 <thead>
                                                                     <tr>
                                                                         <th>البند</th>
+                                                                        <th></th>
                                                                         <th>نسبة العمولة</th>
                                                                         <th>الضبط</th>
                                                                     </tr>
@@ -172,10 +187,21 @@
                                                                         <td style="width:18%">
                                                                             <select name="items[0][product_id]" class="form-control product-select">
                                                                                 <option value="">اختر البند</option>
+                                                                                <option value="0">كل المنتجات</option>
+                                                                                <option value="1">البند</option>
                                                                             </select>
                                                                         </td>
                                                                         <td>
-                                                                            <input type="number" name="items[0][tax_1]" class="form-control tax" value="15" min="0" max="100" step="0.01">
+                                                                            <!-- الـ Select2 مع الخيارات للمنتجات -->
+                                                                            <select name="items[0][product_id]" class="form-control product-search">
+                                                                                <option value="">اختر البند</option>
+                                                                                @foreach($products as $product)
+                                                                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                                                @endforeach
+                                                                            </select>
+                                                                        </td>
+                                                                        <td>
+                                                                            <input type="number" name="items[0][commission_percentage]" class="form-control tax">
                                                                         </td>
                                                                         <td>
                                                                             <button type="button" class="btn btn-danger btn-sm remove-row">
@@ -184,6 +210,8 @@
                                                                         </td>
                                                                     </tr>
                                                                 </tbody>
+                                                                
+                                                                
                                                                 <tfoot>
                                                                     <tr>
                                                                         <td colspan="9" class="text-right">
@@ -307,10 +335,18 @@
                     <td style="width:18%">
                         <select name="items[${rowCount}][product_id]" class="form-control product-select">
                             <option value="">اختر البند</option>
+                            <option value="0">كل المنتجات</option>
+                            ${productsOptions}
                         </select>
                     </td>
                     <td>
-                        <input type="number" name="items[${rowCount}][tax_1]" class="form-control tax" value="15" min="0" max="100" step="0.01">
+                        <select name="items[${rowCount}][product_id]" class="form-control product-search">
+                            <option value="">اختر البند</option>
+                            ${productsOptions}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" name="items[${rowCount}][commission_percentage]" class="form-control tax">
                     </td>
                     <td>
                         <button type="button" class="btn btn-danger btn-sm remove-row">
@@ -328,6 +364,8 @@
     });
 </script>
 
+
+
 <script>
     $(document).ready(function() {
         $('#employees').select2({
@@ -337,6 +375,32 @@
     });
 </script>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+    // عند تغيير قيمة القائمة المنسدلة
+    $(document).on("change", ".product-select", function () {
+        var selectedOption = $(this).val();
+        var row = $(this).closest(".item-row"); // احصل على الصف الحالي
+        var inputField = row.find('input[name$="[product_id]"]'); // حقل الإدخال التالي
+
+        if (selectedOption === "0") {
+            inputField.val("0").prop("disabled", true); // أدخل 0 وجمّد الحقل
+        } else {
+            inputField.val("").prop("disabled", false); // فك التجميد وإفراغ الحقل
+        }
+    });
+});
+</script>
+
+<script>
+    $(document).ready(function() {
+        // تفعيل Select2 على العنصر
+        $('.product-search').select2({
+            placeholder: "اختر البند"
+        });
+    });
+    </script>
 
 
 

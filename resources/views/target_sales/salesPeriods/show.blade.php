@@ -88,31 +88,36 @@
                                     <div class="d-flex align-items-center">
 
                                         <div class="ml-2">
-                                            <h5 class="font-weight-bold fs-20 lh-1 mb-1">محمد الادريسي</h5>
-                                            <a href="" target="_blank"
-                                                class="text-inactive font-weight-medium fs-12 text-decoration-underline">#5</a>
+                                            <h5 class="font-weight-bold fs-20 lh-1 mb-1">{{$SalesCommission_periods->employee->name ?? ""}}</h5>
+                                            
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-6 lh-1">
-                                    <p class="fs-20 font-weight-bold mb-1">01/12/2024</p>
+                                    <p class="fs-20 font-weight-bold mb-1">{{ $SalesCommission_periods->created_at ? $SalesCommission_periods->created_at->format('Y-m-d') : '' }}</p>
                                     <p class="fs-14 font-weight-medium mb-0 text-inactive">من</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-6 lh-1">
-                                    <p class="fs-20 font-weight-bold mb-1">02/01/2025</p>
+                                    <p class="fs-20 font-weight-bold mb-1">{{ $SalesCommission_periods->created_at ? $SalesCommission_periods->created_at->format('Y-m-d') : '' }}</p>
                                     <p class="fs-14 font-weight-medium mb-0 text-inactive">إلي</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-6">
                                     <p class="text-inactive font-weight-medium mb-1">الهدف:</p>
-                                    <p class="font-weight-bold fs-18 text-dark-blue mb-0">3000</p>
-                                    <p class="font-weight-medium fs-14 text-danger mb-0"><i
-                                            class="fas fa-exclamation mr-1"></i>الهدف لم يتحقق</p>
+                                    <p class="font-weight-bold fs-18 text-dark-blue mb-0">{{ $SalesCommission_periods->commission->value ?? "" }}</p>
+                                    <p class="font-weight-medium fs-14 text-danger mb-0">
+                                        @if(($SalesCommission_periods->sum('sales_amount') * 1.15) >= ($SalesCommission_periods->commission->value ?? 0))
+                                            <span class="text-success">✅ تحقق الهدف</span>
+                                        @else
+                                            <span class="text-danger">❌ لم يتحقق الهدف</span>
+                                        @endif
+                                    </p>
+                                    
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -120,14 +125,14 @@
                                     <p class="text-inactive font-weight-semibold mb-1">المبيعات / الهدف:</p>
                                     <div>
                                         <div class="d-flex justify-content-between" style="margin-bottom: 2px;">
-                                            <span class="fs-5">3,000/0</span>
+                                            <span class="fs-5">{{ $SalesCommission_periods->commission->value ?? "" }}/{{ $SalesCommission_periods->sum('sales_amount') ? number_format($SalesCommission_periods->sum('sales_amount')* 1.15, 2) : '' }}</span>
                                         </div>
                                         <div class="progress" style="height: 4px; margin: 2px 0;">
                                             <div class="progress-bar bg-info" role="progressbar" style="width: 0%;"
                                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                         <div class="d-flex justify-content-between" style="margin-top: 2px;">
-                                            <span class="fs-5">0.00 ر.س</span>
+                                            <span class="fs-5"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -136,7 +141,7 @@
                                 <div class="mb-6">
                                     <div class="w-100 p-3 text-center bg-danger text-white">
                                         <p class="fs-14 fs-16-lg font-weight-semibold mb-0 opacity-75">إجمالي العمولة</p>
-                                        <p class="fs-16 fs-24-lg font-weight-bold mb-0">0.00 ر.س</p>
+                                        <p class="fs-16 fs-24-lg font-weight-bold mb-0">{{ $SalesCommission_periods->sum('sales_amount') && $SalesCommission_periods->sum('ratio') ? number_format((($SalesCommission_periods->sum('sales_amount') * 1.15) * $SalesCommission_periods->sum('ratio')) / 100, 2) : '' }} ر.س</p>
                                     </div>
                                 </div>
                             </div>
@@ -147,9 +152,7 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-6">
-                                    <p class="text-inactive font-weight-semibold mb-1">قواعد العمولة:</p>
-                                    <p class="font-weight-medium">عموله مبيعات <a href=""
-                                            class="text-decoration-underline" target="_blank">#1</a></p>
+                                    
                                 </div>
                             </div>
                         </div>

@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\InvoiceRequest;
 use App\Models\Account;
 use App\Models\Client;
+use App\Models\Commission;
+use App\Models\Commission_Products;
+use App\Models\CommissionUsers;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -14,6 +17,7 @@ use App\Models\JournalEntryDetail;
 use App\Models\PaymentsProcess;
 use App\Models\Product;
 use App\Models\ProductDetails;
+use App\Models\SalesCommission;
 use App\Models\StoreHouse;
 use App\Models\Treasury;
 use App\Models\User;
@@ -439,6 +443,105 @@ class InvoicesController extends Controller
 
                 $productDetails->decrement('quantity', $item['quantity']);
             }
+
+          // التحقق مما إذا كان للمستخدم قاعدة عمولة
+         // التحقق مما إذا كان للمستخدم قاعدة عمولة
+         $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
+
+        //  if (!$userHasCommission) {
+        //      return "no000"; // المستخدم لا يملك قاعدة عمولة
+        //   }
+
+        if ($userHasCommission) {
+        
+        // جلب جميع commission_id الخاصة بالمستخدم
+       $commissionIds = CommissionUsers::where('employee_id', auth()->user()->id)->pluck('commission_id');
+
+     // التحقق مما إذا كانت هناك أي عمولة نشطة في جدول Commission
+        $activeCommission = Commission::whereIn('id', $commissionIds)
+       ->where('status', 'active')
+         ->first();
+
+    //   if (!$activeCommission) {
+    //    return "not active"; // لا توجد عمولة نشطة، توقف هنا
+    //    }
+
+    if ($activeCommission) {
+        
+
+    //    // ✅ التحقق مما إذا كانت حالة الدفع في `invoice` تتطابق مع حساب العمولة في `commission`
+    //    if (
+    //  ($invoice->payment_status == 1 && $activeCommission->commission_calculation != "fully_paid") ||
+    //  ($invoice->payment_status == 2 && $activeCommission->commission_calculation != "partially_paid")
+    //  )   {
+    //  return "payment mismatch"; // حالتا الدفع لا تتطابقان
+    //   }
+
+   // البحث في جدول commission__products باستخدام هذه commission_id
+    $commissionProducts = Commission_Products::whereIn('commission_id', $commissionIds)->get();
+
+     // التحقق من وجود أي product_id = 0
+      if ($commissionProducts->contains('product_id', 0)) {
+       return "yesall";
+       }
+
+      // جلب جميع product_id الخاصة بالفاتورة
+      $invoiceProductIds = InvoiceItem::where('invoice_id', $invoice->id)->pluck('product_id');
+
+     // التحقق مما إذا كان أي من product_id في جدول commission__products يساوي أي من المنتجات في الفاتورة
+     if ($commissionProducts->whereIn('product_id', $invoiceProductIds)->isNotEmpty()) {
+        
+        // جلب بيانات العمولة المرتبطة بالفاتورة
+        $inAmount = Commission::whereIn('id', $commissionIds)->first();
+        $commissionProduct = Commission_Products::whereIn('commission_id', $commissionIds)->first();
+        if ($inAmount) {
+            if ($inAmount->target_type == "amount") {
+                
+                $invoiceTotal = InvoiceItem::where('invoice_id', $invoice->id)->sum('total');
+                $invoiceQyt = InvoiceItem::where('invoice_id', $invoice->id)->first();
+                // تحقق من أن قيمة العمولة تساوي أو أكبر من `total`
+                if ((float) $inAmount->value <= (float) $invoiceTotal) {
+                  
+                    
+                    $salesInvoice = new SalesCommission();
+                    $salesInvoice->invoice_number   = $invoice->id; // تعيين رقم الفاتورة الصحيح
+                    $salesInvoice->employee_id      = auth()->user()->id; // اسم الموظف
+                    $salesInvoice->sales_amount     = $invoiceTotal; // إجمالي المبيعات
+                    $salesInvoice->sales_quantity   = $invoiceQyt->quantity;
+                    $salesInvoice->commission_id    = $inAmount->id;
+                    $salesInvoice->ratio            = $commissionProduct->commission_percentage ?? 0;
+                    $salesInvoice->product_id            = $commissionProduct->product_id ?? 0; // رقم معرف العمولة
+                    $salesInvoice->save(); // حفظ السجل في قاعدة البيانات
+                    
+
+                }
+            } elseif($inAmount->target_type == "quantity") {
+                // تحقق من أن قيمة العمولة تساوي أو أكبر من `quantity`
+                $invoiceQuantity = InvoiceItem::where('invoice_id', $invoice->id)->sum('quantity');
+                
+                    if ((float) $inAmount->value <= (float) $invoiceQuantity) {
+                    $salesInvoice = new SalesCommission();
+                    $salesInvoice->invoice_number   = $invoice->id; // تعيين رقم الفاتورة الصحيح
+                    $salesInvoice->employee_id      = auth()->user()->id; // اسم الموظف
+                    $salesInvoice->sales_amount     = $invoiceTotal; // إجمالي المبيعات
+                    $salesInvoice->sales_quantity   = $invoiceQyt->quantity;
+                    $salesInvoice->commission_id    = $inAmount->id; // رقم معرف العمولة
+                    $salesInvoice->ratio            = $commissionProduct->commission_percentage ?? 0;
+                    $salesInvoice->product_id            = $commissionProduct->product_id ?? 0;
+                    $salesInvoice->save(); // حفظ السجل في قاعدة البيانات
+                    
+                }
+            }
+        }
+    }
+}
+        }
+
+  
+
+
+
+
 
             // ** معالجة المرفقات (attachments) إذا وجدت **
             if ($request->hasFile('attachments')) {

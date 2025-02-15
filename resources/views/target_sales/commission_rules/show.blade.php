@@ -61,7 +61,7 @@
 
     <div class="card">
         <div class="card-title p-2 d-flex align-items-center gap-2">
-            <a href="{{route('CommissionRules.edit',1)}}"
+            <a href="{{ route('commission.edit', $commission->id) }}"
                 class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center px-3"
                 style="min-width: 90px;">
                 تعديل <i class="fa fa-edit ms-1"></i>
@@ -110,24 +110,44 @@
                                                     <tbody class="text-end">
                                                         <tr>
                                                             <td class="text-muted" style="width: 50%;">الاسم:</td>
-                                                            <td>عمولة مبيعات</td>
+                                                            <td>{{$commission->name ?? "" }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">الفترة:</td>
-                                                            <td>شهري</td>
+                                                            <td> @if($commission->commission_calculation == "monthly")
+                                                                {{$commission->name ?? ""}}
+                                                                <strong>شهري</strong>
+                                                                @elseif($commission->commission_calculation == "yearly")
+                                                                <strong>سنوي</strong>
+                                                                @else
+                                                                <strong>ربع سنوي </strong>
+                                                                @endif</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">نوع الهدف:</td>
-                                                            <td><span class="text-muted">3000</span> <span
-                                                                    class="text-muted">(كمية)</span></td>
+                                                            <td><span class="text-muted">{{$commission->value}}</span> <span
+                                                                    class="text-muted">
+                                                                    @if($commission->target_type == "amount")
+                                                                    <span>(مبلغ)</span>
+                                                                    @else
+                                                                    <span>(كمية)</span>
+                                                                    @endif
+                                                                
+                                                                </span></td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">حساب العمولة:</td>
-                                                            <td>فواتير مدفوعة بالكامل</td>
+                                                            <td>
+                                                                @if($commission->commission_calculation == "fully_paid")
+                                                                <span> فواتير مدفوعة بالكامل </span>
+                                                                @else
+                                                                <span>  فواتير مدفوعة جزئيا </span>
+                                                                @endif
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">العملة:</td>
-                                                            <td>ر.س</td>
+                                                            <td>{{$commission->currency ?? "" }}</td>
                                                         </tr>
 
                                                     </tbody>
@@ -139,27 +159,18 @@
                                                 <div class="table-responsive">
                                                     <table class="table table-borderless">
                                                         <tbody>
+                                                            @foreach ($commissionUsers as $index => $user)
                                                             <tr>
+                                                                <td>{{ $loop->iteration }}</td> <!-- رقم التسلسل -->
                                                                 <td>
-                                                                    <div class="w-100 text-end"><span
-                                                                            class="badge bg-info">#2</span> راكان القضائي
+                                                                    <div class="w-100 text-end">
+                                                                        <span>{{ $user->employee->name }}</span>
                                                                     </div>
                                                                 </td>
                                                             </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="w-100 text-end"><span
-                                                                            class="badge bg-warning">#4</span> رشيد الرياض
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td>
-                                                                    <div class="w-100 text-end"><span
-                                                                            class="badge bg-secondary">#5</span> محمد
-                                                                        الادريسي</div>
-                                                                </td>
-                                                            </tr>
+                                                        @endforeach
+                                                        
+                                                        
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -178,11 +189,15 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
+                                                            @foreach ($CommissionProducts as $Commission)
                                                             <tr class="text-end">
                                                                 <td>-</td>
-                                                                <td>كل المنتجات</td>
-                                                                <td><span class="text-muted">3%</span></td>
+                                                                <td>
+                                                                    {{$Commission->products->name}}
+                                                                </td>
+                                                                <td><span class="text-muted">{{$Commission->commission_percentage}} %</span></td>
                                                             </tr>
+                                                            @endforeach
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -192,7 +207,7 @@
                                             <div class="mt-4">
                                                 <h6 class="mb-3">الملاحظات:</h6>
                                                 <div class="p-3  rounded">
-                                                    <p class="text-muted mb-0">لا توجد ملاحظات</p>
+                                                    <p class="text-muted mb-0">{{$commission->notes ?? "لا توجد ملاحظات"}}</p>
                                                 </div>
                                             </div>
                                         </div>

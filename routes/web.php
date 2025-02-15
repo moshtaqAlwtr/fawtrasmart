@@ -218,7 +218,12 @@ Route::group(
                 Route::get('/index', [CommissionController::class, 'index'])->name('commission.index');
                 Route::get('/create', [CommissionController::class, 'create'])->name('commission.create');
                 Route::post('/create', [CommissionController::class, 'store'])->name('commission.store');
-
+                Route::get('/products/search', [CommissionController::class, 'searchProducts'])->name('products.search');
+                Route::get('/edit/{id}', [CommissionController::class, 'edit'])->name('commission.edit');
+                Route::post('/update/{id}', [CommissionController::class, 'update'])->name('commission.update');
+                
             });
     },
 );
+
+
