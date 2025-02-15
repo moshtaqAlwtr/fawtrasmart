@@ -22,27 +22,32 @@
             </div>
         </div>
 
-        <div class="content-body">
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
-                        </div>
+        @include('layouts.alerts.success')
+        @include('layouts.alerts.error')
 
-                        <div>
-                            <a href="" class="btn btn-outline-danger">
-                                <i class="fa fa-ban"></i>الغاء
-                            </a>
-                            <button type="submit" class="btn btn-outline-primary">
-                                <i class="fa fa-save"></i>حفظ
-                            </button>
+        <div class="content-body">
+
+
+            <form class="form" action="{{route('BalanceType.store')}}"  method="post" enctype="multipart/form-data">
+                @csrf
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <div>
+                                <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                            </div>
+
+                            <div>
+                                <a href="" class="btn btn-outline-danger">
+                                    <i class="fa fa-ban"></i>الغاء
+                                </a>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fa fa-save"></i>حفظ
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <form class="form">
                 <div class="card" style="max-width: 90%; margin: 0 auto;">
                     <div class="card-header">
                         <h4 class="mb-0">تفاصيل نوع الرصيد</h4>
@@ -51,12 +56,14 @@
                         <div class="form-body row mb-2">
                             <div class="form-group col-md-6 mb-2">
                                 <label for="feedback2" class="mb-1">اسم الرصيد <span class="text-danger">*</span></label>
-                                <input type="text" id="feedback2" class="form-control" placeholder="اسم الرصيد">
+                                <input type="text" id="feedback2" name="name" class="form-control" placeholder="اسم الرصيد">
                             </div>
                             <div class="form-group col-md-6 mb-2">
                                 <label for="feedback1" class="mb-1">الحالة <span class="text-danger">*</span></label>
                                 <select name="status" class="form-control" id="">
-                                    <option value="1">الحالة </option>
+                                    <option value="">اختر الحالة </option>
+                                    <option value="1">نشط</option>
+                                    <option value="0">غير نشط</option>
                                 </select>
                             </div>
                         </div>
@@ -64,7 +71,7 @@
                         <div class="form-body row mb-2">
                             <div class="form-group col-md-6 mb-2">
                                 <label for="feedback1" class="mb-1">الوحدة <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control">
+                                <input type="text" name="unit" class="form-control">
                             </div>
 
                             <div class="col-md-6 mb-2">
@@ -73,7 +80,7 @@
                                         <div class="input-group-prepend w-100">
                                             <div class="input-group-text w-100">
                                                 <div class="custom-control custom-Checkbox d-flex justify-content-start align-items-center w-100">
-                                                    <input id="duration_checkbox" name="contract_type" class="custom-control-input" type="checkbox" value="duration">
+                                                    <input id="duration_checkbox" name="allow_decimal" class="custom-control-input" type="checkbox" value="1">
                                                     <label for="duration_checkbox" class="custom-control-label">اتاحة الارقام العشرية <span class="text-danger">*</span></label>
                                                 </div>
                                             </div>
@@ -86,7 +93,7 @@
                         <div class="form-body row">
                             <div class="form-group col-md-6">
                                 <label for="feedback1" class="mb-1">الوصف <span class="text-danger">*</span></label>
-                                <textarea class="form-control"></textarea>
+                                <textarea name="description" class="form-control"></textarea>
                             </div>
                         </div>
                     </div>
