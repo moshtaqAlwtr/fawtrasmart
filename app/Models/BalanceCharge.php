@@ -13,7 +13,7 @@ class BalanceCharge extends Model
 
     protected $fillable = [
         'client_id',
-        'status',
+        'balance_type_id',
         'value',
         'start_date',
         'end_date',
@@ -23,12 +23,12 @@ class BalanceCharge extends Model
 
     // Define relationships if needed
     public function client()
-    {
-        return $this->belongsTo(Client::class, 'client_id');
-    }
+{
+    return $this->belongsTo(Client::class);
+}
 
-    public function balanceType()
-    {
-        return $this->belongsTo(BalanceType::class, 'balance_type_id');
-    }
+public function balanceType()
+{
+    return $this->belongsTo(BalanceType::class);
+}
 }
