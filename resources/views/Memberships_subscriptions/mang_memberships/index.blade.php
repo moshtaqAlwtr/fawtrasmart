@@ -138,13 +138,13 @@
                                         <div>
                                             {{$membership->client->first_name ?? ""}}
                                             <br>
-                                            <small class="text-muted">#123234</small>
+                                            <small class="text-muted"></small>
                                         </div>
                                     </div>
                                 </td>
                                 <td><br><small class="text-muted">{{$membership->packege->commission_name ?? ""}}</small></td>
 
-                                <td><small class="text-muted">{{$membership->packege->period ?? ""}}</small></td>
+                                <td><small class="text-muted">{{$membership->end_date ?? ""}}</small></td>
 
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -179,8 +179,7 @@
                                                 </li>
 
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#"
-                                                        data-toggle="modal" data-target="#modal_DELETE">
+                                                    <a class="dropdown-item text-danger" href="{{ route('Memberships.delete', $membership->id) }}">
                                                         <i class="fa fa-trash me-2"></i>حذف
                                                     </a>
                                                 </li>

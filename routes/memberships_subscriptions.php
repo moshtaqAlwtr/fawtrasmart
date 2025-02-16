@@ -33,6 +33,10 @@ Route::group(
                     Route::post('/create', [MembershipsController::class, 'store'])->name('Memberships.store');
                     Route::get('/show/{id}', [MembershipsController::class, 'show'])->name('Memberships.show');
                     Route::get('/edit/{id}', [MembershipsController::class, 'edit'])->name('Memberships.edit');
+                    Route::put('/update/{id}', [MembershipsController::class, 'update'])->name('Memberships.update');
+                    Route::get('/delete/{id}', [MembershipsController::class, 'delete'])->name('Memberships.delete');
+                    Route::get('/renew/{id}', [MembershipsController::class, 'renew'])->name('Memberships.renew');
+                    Route::post('/renew/update/{id}', [MembershipsController::class, 'renew_update'])->name('Memberships.renew_update');
                 });
                 Route::prefix('SittingMemberships')->group(function () {
                     Route::get('/index', [SittingController::class, 'index'])->name('SittingMemberships.index');
