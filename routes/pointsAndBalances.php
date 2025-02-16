@@ -64,8 +64,13 @@ Route::group(
                 Route::prefix('ManagingBalanceConsumption')->group(function () {
                     Route::get('/index', [ManagingBalanceConsumptionController::class, 'index'])->name('ManagingBalanceConsumption.index');
                     Route::get('/create', [ManagingBalanceConsumptionController::class, 'create'])->name('ManagingBalanceConsumption.create');
-                    Route::get('/show/{id}', [ManagingBalanceConsumptionController::class, 'show'])->name('ManagingBalanceConsumption.show');
+                    Route::post('/store', [ManagingBalanceConsumptionController::class, 'store'])->name('ManagingBalanceConsumption.store');
                     Route::get('/edit/{id}', [ManagingBalanceConsumptionController::class, 'edit'])->name('ManagingBalanceConsumption.edit');
+                    Route::put('/update/{id}', [ManagingBalanceConsumptionController::class, 'update'])->name('ManagingBalanceConsumption.update');
+                    Route::delete('/destroy/{id}', [ManagingBalanceConsumptionController::class, 'destroy'])->name('ManagingBalanceConsumption.destroy');
+                    Route::get('/show/{id}', [ManagingBalanceConsumptionController::class, 'show'])->name('ManagingBalanceConsumption.show');
+                    Route::get('/updateStatus/{id}', [ManagingBalanceConsumptionController::class, 'updateStatus'])->name('ManagingBalanceConsumption.updateStatus');
+
                 });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingController::class, 'index'])->name('sitting.index');
