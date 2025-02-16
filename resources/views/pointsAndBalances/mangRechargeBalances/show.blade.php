@@ -68,9 +68,9 @@
                                 <small class="text-muted">
                                     <i class="fa fa-circle me-1" style="font-size: 8px;"></i>
                                     @if ($balanceCharge->client->status == 1)
-                                        <span class="badge bg-success">نشط</span>
+                                        <span class="badge bg-success">انتهى</span>
                                     @else
-                                        <span class="badge bg-danger">غير نشط</span>
+                                        <span class="badge bg-danger">موقوف</span>
                                     @endif
                                 </small>
                             </div>
@@ -88,11 +88,8 @@
                 style="min-width: 90px;">
                 <i class="fa fa-edit ms-1 text-info"></i> تعديل
             </a>
-
-            <a href="#"
-                class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_CANCEL1">
-                <i class="fa fa-ban ms-1 text-warning"></i> الغاء الايقاف
+            <a href="{{ route('MangRechargeBalances.updateStatus',$balanceCharge->id) }}" class="btn btn-outline-{{ $balanceCharge->status == 0 ? 'success' : 'danger' }} btn-sm waves-effect waves-light">
+                {{ $balanceCharge->status == 0 ? 'الغاء الايقاف' : 'ايقاف' }} <i class="fa {{ $balanceCharge->status == 0 ? 'fa-ban' : 'fa-ban' }}"></i>
             </a>
 
             <a href="#"

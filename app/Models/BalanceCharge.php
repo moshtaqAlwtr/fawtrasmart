@@ -18,6 +18,9 @@ class BalanceCharge extends Model
         'start_date',
         'end_date',
         'description',
+        'status',
+        'remaining',
+        'consumer',
         'contract_type',
     ];
 

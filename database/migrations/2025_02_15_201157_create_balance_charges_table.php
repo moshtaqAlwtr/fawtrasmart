@@ -15,6 +15,8 @@ class CreateBalanceChargesTable extends Migration
             $table->unsignedBigInteger('balance_type_id')->nullable();
             $table->unsignedBigInteger('invoice_id')->nullable();
             $table->decimal('value', 10, 2)->nullable();
+            $table->decimal('remaining', 10, 2)->nullable();
+            $table->decimal('consumer', 10, 2)->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->tinyInteger('status')->nullable()->default(1);
