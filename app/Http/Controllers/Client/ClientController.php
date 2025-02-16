@@ -9,7 +9,10 @@ use App\Models\Account;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\AppointmentNote;
+use App\Models\Booking;
 use App\Models\Installment;
+use App\Models\Memberships;
+use App\Models\Package;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
@@ -203,7 +206,12 @@ private function generateNextCode(string $lastChildCode): string
             'employee',
         ])->findOrFail($id);
 
-        return view('client.show', compact('client','installment'));
+        $bookings  = Booking::where('client_id',$id)->get();
+        $Client    = Client::find($id);
+        $packages	= Package::all();
+        $memberships = Memberships::all();
+
+        return view('client.show', compact('client','installment','bookings','Client','packages','memberships'));
     }
 
     public function contact()

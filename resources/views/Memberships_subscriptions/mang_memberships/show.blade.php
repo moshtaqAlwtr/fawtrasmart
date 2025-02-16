@@ -22,6 +22,8 @@
             </div>
         </div>
     </div>
+    @include('layouts.alerts.error')
+            @include('layouts.alerts.success')
     <div class="card">
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -39,7 +41,11 @@
                             <div class="d-flex align-items-center">
                                 <small class="text-success">
                                     <i class="fa fa-circle me-1" style="font-size: 8px;"></i>
-                                    غير نشط
+                                    @if($membership->status == "active")
+                                    نشط
+                                    @else
+                                    غير نشط 
+                                    @endif
                                 </small>
                             </div>
                         </div>
@@ -48,9 +54,9 @@
 
                 <div class="d-flex gap-2">
 
-                    <button class="btn btn-success">
+                    <a  href="{{ route('Memberships.renew', $membership->id) }}" class="btn btn-success">
                         <i class="fa fa-refresh"></i> تجديد
-                    </button>
+                    </a>
                     <div class="vr mx-1"></div>
                     <button class="btn btn-icon btn-outline-primary">
                         <i class="fa fa-chevron-up"></i>
@@ -83,18 +89,18 @@
                 <i class="fa fa-refresh ms-1 text-primary"></i> تجديد
             </a>
 
-            <!-- زر إلغاء الإيقاف -->
-            <a href="#"
+            <!-- زر إلغاء الإيقاف -->   
+            <a href="{{ route('Memberships.be_active', $membership->id) }}"
                 class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_CANCEL1">
+                style="min-width: 90px;">
                 <i class="fa fa-ban ms-1 text-warning"></i> إلغاء الإيقاف
             </a>
 
             <!-- زر إضافة فترة توقف -->
-            <a href="#"
+            <a href="{{ route('Memberships.deactive', $membership->id) }}"
                 class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_STOP1">
-                <i class="fa fa-clock ms-1 text-secondary"></i> أضف فترة توقف
+                style="min-width: 90px;">
+                <i class="fa ms-1 text-secondary"></i>  ايقاف
             </a>
         </div>
 

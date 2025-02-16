@@ -150,7 +150,7 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="rounded-circle bg-info" style="width: 8px; height: 8px;"></div>
                                         <span class="text-muted">
-                                          @if($membership->packege->status == 1)
+                                          @if($membership->status == "active")
                                           نشط
                                           @else
                                           غير نشط 

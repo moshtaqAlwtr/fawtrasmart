@@ -37,6 +37,8 @@ Route::group(
                     Route::get('/delete/{id}', [MembershipsController::class, 'delete'])->name('Memberships.delete');
                     Route::get('/renew/{id}', [MembershipsController::class, 'renew'])->name('Memberships.renew');
                     Route::post('/renew/update/{id}', [MembershipsController::class, 'renew_update'])->name('Memberships.renew_update');
+                    Route::get('/be_active/{id}', [MembershipsController::class, 'be_active'])->name('Memberships.be_active'); //تنشيط 
+                    Route::get('/deactive/{id}', [MembershipsController::class, 'deactive'])->name('Memberships.deactive');// الغاء التنشيط
                 });
                 Route::prefix('SittingMemberships')->group(function () {
                     Route::get('/index', [SittingController::class, 'index'])->name('SittingMemberships.index');

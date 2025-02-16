@@ -82,7 +82,24 @@ class MembershipsController extends Controller
         $packages = Package::all();
         return view('Memberships_subscriptions.mang_memberships.renewa',compact('membership','clients','packages'));
     }
+    
+    public function be_active($id) //الغاء الايقاف تنشيط
+    {
+        $membership = Memberships::findOrFail($id);
+        $membership->status = "active";
+        $membership->save();
+        return back()->with('success', 'تم تنشيط عضوية العميل.');
 
+    }
+
+    public function deactive($id) // ايقاق
+    {
+        $membership = Memberships::findOrFail($id);
+        $membership->status = "deactive";
+        $membership->save();
+        return back()->with('success', 'تم ايقاف عضوية العميل  .');
+
+    }
     public function renew_update(Request $request, $id)
     {
         $membership = Memberships::findOrFail($id);
