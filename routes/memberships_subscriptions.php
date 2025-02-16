@@ -30,6 +30,7 @@ Route::group(
                 Route::prefix('Memberships')->group(function () {
                     Route::get('/index', [MembershipsController::class, 'index'])->name('Memberships.index');
                     Route::get('/create', [MembershipsController::class, 'create'])->name('Memberships.create');
+                    Route::post('/create', [MembershipsController::class, 'store'])->name('Memberships.store');
                     Route::get('/show/{id}', [MembershipsController::class, 'show'])->name('Memberships.show');
                     Route::get('/edit/{id}', [MembershipsController::class, 'edit'])->name('Memberships.edit');
                 });

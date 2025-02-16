@@ -21,8 +21,15 @@ class ReservationsController extends Controller
       return view("reservations.index",compact('bookings'));
     }
 
+    public function client($id)
+    {
+        $bookings  = Booking::where('client_id',$id)->get();
+        $Client    = Client::find($id);
+        return view("reservations.client",compact('bookings','Client'));
+    }
+
     public function updateStatus(Request $request, $id)
-{
+  {
     $reservation = Booking::findOrFail($id);
     $reservation->update([
         'status' => $request->status
@@ -40,6 +47,7 @@ class ReservationsController extends Controller
         $Products   = Product::all();
         $Employees  = Employee::all();
         $Clients     = Client::all();
+       
         return view("reservations.create",compact('Products','Employees','Clients'));
     }
     public function BookingSettings()
@@ -129,7 +137,7 @@ class ReservationsController extends Controller
     $bookings = Booking::query();
 
     // البحث برقم هاتف العميل أو اسم العميل
-    if ($request->has('client')) {
+    if ($request->has('client_id')) {
         $bookings->whereHas('client', function ($query) use ($request) {
             $query->where('phone', 'like', '%' . $request->input('client') . '%')
                   ->orWhere('first_name', 'like', '%' . $request->input('client') . '%');
@@ -163,18 +171,11 @@ class ReservationsController extends Controller
      public function update(Request $request, string $id)
      {
         
-        //  $request->validate([
-        //      'product_id' => 'required',
-        //      'employee_id' => 'required',
-        //      'appointment_date' => 'required',
-        //      'start_time' => 'required',
-        //      'end_time' => 'required',
-        //      'client_id' => 'required',
-        //  ]);
-     
+      
+      
          $booking = Booking::findOrFail($id);
          $booking->update($request->all());
-     
+         
          return redirect()->route('Reservations.index')->with('success', 'تم تحديث الحجز بنجاح');
      }
     

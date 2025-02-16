@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-أضف حجز
+    أضف حجز
 @stop
 
 @section('content')
@@ -51,12 +51,15 @@
                 <div class="card p-3">
                     <h5>موعد جديد</h5>
                     <label for="serviceSelect" class="form-label">اختر خدمة</label>
-                    <select id="serviceSelect" class="form-select" name="product_id">
+                    <select id="serviceSelect" class="form-select @error('product_id') is-invalid @enderror" name="product_id">
                         <option value="">اختر خدمة</option>
                         @foreach ($Products as $Product)
-                            <option value="{{$Product->id}}" data-name="{{$Product->name}}">{{$Product->name}}</option>
+                            <option value="{{ $Product->id }}" {{ old('product_id') == $Product->id ? 'selected' : '' }}>{{ $Product->name }}</option>
                         @endforeach
                     </select>
+                    @error('product_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             <div class="col-md-4">
@@ -78,11 +81,14 @@
                 <div class="card p-3">
                     <h5>اختر الموظف</h5>
                     <label for="employeeSelect_1" class="form-label">اختر موظف</label>
-                    <select id="employeeSelect_1" class="form-select" name="employee_id">
+                    <select id="employeeSelect_1" class="form-select @error('employee_id') is-invalid @enderror" name="employee_id">
                         @foreach ($Employees as $Employee)
-                            <option value="{{$Employee->id}}">{{$Employee->first_name ?? ""}}</option>
+                            <option value="{{ $Employee->id }}" {{ old('employee_id') == $Employee->id ? 'selected' : '' }}>{{ $Employee->first_name ?? "" }}</option>
                         @endforeach
                     </select>
+                    @error('employee_id')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             <div class="col-md-4">
@@ -99,38 +105,46 @@
         </div>
     </div>
 
-    
     <!-- الخطوة 3: اختيار التاريخ والوقت -->
-<div id="step3" class="step" style="display: none;">
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card p-3">
-                <h5>اختر التاريخ والوقت</h5>
-                <label for="dateSelect" class="form-label">اختر التاريخ</label>
-                <input type="date" id="dateSelect" class="form-control" name="appointment_date">
+    <div id="step3" class="step" style="display: none;">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card p-3">
+                    <h5>اختر التاريخ والوقت</h5>
+                    <label for="dateSelect" class="form-label">اختر التاريخ</label>
+                    <input type="date" id="dateSelect" class="form-control @error('appointment_date') is-invalid @enderror" name="appointment_date" value="{{ old('appointment_date') }}">
+                    @error('appointment_date')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
 
-                <label for="startTime" class="form-label mt-3">وقت البدء</label>
-                <input type="time" id="startTime" class="form-control" name="start_time">
+                    <label for="startTime" class="form-label mt-3">وقت البدء</label>
+                    <input type="time" id="startTime" class="form-control @error('start_time') is-invalid @enderror" name="start_time" value="{{ old('start_time') }}">
+                    @error('start_time')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
 
-                <label for="endTime" class="form-label mt-3">وقت الانتهاء</label>
-                <input type="time" id="endTime" class="form-control" name="end_time">
+                    <label for="endTime" class="form-label mt-3">وقت الانتهاء</label>
+                    <input type="time" id="endTime" class="form-control @error('end_time') is-invalid @enderror" name="end_time" value="{{ old('end_time') }}">
+                    @error('end_time')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>تفاصيل الحجز</h5>
+                    <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep3">-</span></p>
+                    <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep3">-</span></p>
+                    <p><strong>التاريخ:</strong> <span id="selectedDate">-</span></p>
+                    <p><strong>الفترة الزمنية:</strong> <span id="selectedTimeRange">-</span></p>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card p-3">
-                <h5>تفاصيل الحجز</h5>
-                <p><strong>الخدمات المختارة:</strong> <span id="selectedServiceStep3">-</span></p>
-                <p><strong>الموظف المختار:</strong> <span id="selectedEmployeeStep3">-</span></p>
-                <p><strong>التاريخ:</strong> <span id="selectedDate">-</span></p>
-                <p><strong>الفترة الزمنية:</strong> <span id="selectedTimeRange">-</span></p>
-            </div>
+        <div class="text-end mt-3">
+            <button id="prevButton3" class="btn btn-secondary">السابق</button>
+            <button id="nextButton3" class="btn btn-primary">التالي</button>
         </div>
     </div>
-    <div class="text-end mt-3">
-        <button id="prevButton3" class="btn btn-secondary">السابق</button>
-        <button id="nextButton3" class="btn btn-primary">التالي</button>
-    </div>
-</div>
 
     <!-- الخطوة 4: اختيار العميل وحفظ البيانات -->
     <form id="clientForm" action="{{ route('Reservations.store') }}" method="POST" enctype="multipart/form-data">
@@ -141,11 +155,14 @@
                     <div class="card p-3">
                         <h5>اختر العميل</h5>
                         <label for="clientSelect" class="form-label">اختر عميل</label>
-                        <select id="clientSelect" class="form-select" name="client_id">
+                        <select id="clientSelect" class="form-select @error('client_id') is-invalid @enderror" name="client_id">
                             @foreach ($Clients as $Client)
-                                <option value="{{ $Client->id }}">{{ $Client->first_name ?? "" }}</option>
+                                <option value="{{ $Client->id }}" {{ old('client_id') == $Client->id ? 'selected' : '' }}>{{ $Client->first_name ?? "" }}</option>
                             @endforeach
                         </select>
+                        @error('client_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -165,7 +182,6 @@
             <input type="hidden" name="appointment_date" id="hiddenDate">
             <input type="hidden" name="start_time" id="hiddenTime1">
             <input type="hidden" name="end_time" id="hiddenTime12">
-            
             <input type="hidden" name="client_id" id="hiddenClient">
 
             <div class="text-end mt-3">

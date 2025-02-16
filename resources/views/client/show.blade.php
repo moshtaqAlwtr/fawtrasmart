@@ -70,6 +70,10 @@
                             class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
                             <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                         </a>
+                        <a href="{{ route('Reservations.client', $client->id) }}"
+                        class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
+                        <i class="fas fa-file-invoice me-1"></i>الحجوزات
+                    </a>
                         <a href="#" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
                             <i class="far fa-comment-alt me-1"></i> أرسل SMS
                         </a>

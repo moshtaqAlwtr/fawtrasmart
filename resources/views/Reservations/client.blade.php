@@ -9,7 +9,7 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">أدارة الحجوزات</h2>
+                    <h2 class="content-header-title float-left mb-0">حجوزات العميل : {{$Client->first_name ?? ""}} </h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a>
@@ -26,94 +26,9 @@
     @include('layouts.alerts.success')
     <div class="content-body">
 
+      
         <div class="card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-rtl flex-wrap">
-                    <div></div>
-
-                  
-                 
-                    <div>
-                                <a href="{{ route('Reservations.create') }}" class="btn btn-outline-success">
-                                    <i class="fa fa-plus me-2"></i>أضف حجز 
-                                </a>
-
-                                <a href="{{ route('appointments.index') }}"  class="btn btn-outline-primary">
-                                    <i class="fa fa-calendar-alt me-2"></i>المواعيد المحجوزة
-                                    </a>
-                            </div>
-                </div>
-            </div>
-        </div>
-        <div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">نموذج البحث</h5>
-    </div>
-    <div class="card-body">
-        <form id="clientForm" action="{{ route('Reservations.filter') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="row g-4">
-                <!-- الموظف -->
-                <div class="col-md-4">
-                    <label for="employee-search" class="form-label">رقم:</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="employee-search" 
-                        name="employee" 
-                        placeholder="البحث بالرقم">
-                </div>
-                <div class="col-md-4">
-                    <label for="employee-search" class="form-label">العميل:</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="employee-search" 
-                        name="client_id" 
-                        placeholder="البحث باسم العميل ">
-                </div>
-                <div class="col-md-4">
-                    <label for="employee-search" class="form-label">الموظف:</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="employee-search" 
-                        name="employee" 
-                        placeholder="البحث باسم الموظف ">
-                </div>
-
-                <!-- الفترة من -->
-                <div class="col-md-4">
-                    <label for="date_from" class="form-label">الفترة من:</label>
-                    <input type="date" name="date_from" id="date_from" value="{{ request('date_from') }}" class="form-control">
-                </div>
-
-                <!-- الفترة إلى -->
-                <div class="col-md-4">
-                    <label for="date_to" class="form-label">الفترة إلى:</label>
-                    <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <label for="group_by" class="form-label">الحالة  :</label>
-                    <select class="form-control" id="group_by" name="status">
-                        <option>أختر</option>
-                        <option value="confirm">تأكيد</option>
-                        <option value="review">تحت المراجعة</option>
-                        <option value="bill">حولت لفاتورة</option>
-                        <option value="cancel">تم الالغاء</option>
-                        <option value="done">تم </option>
-                    </select>
-                </div>
-            </div>
-            <div class="d-flex justify-content-start mt-3">
-                <!-- زر البحث -->
-                <button type="submit" class="btn btn-primary me-2 waves-effect waves-light">بحث</button>
-
-                <!-- زر الإلغاء -->
-                <button type="reset" class="btn btn-outline-warning waves-effect waves-light">إلغاء</button>
-            </div>
-        </form>
-    </div>
+   
 </div>
 
 

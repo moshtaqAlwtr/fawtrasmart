@@ -44,10 +44,10 @@ Route::group(
                 Route::get('/show/{id}', [ReservationsController::class, 'show'])->name('Reservations.show');
                 Route::post('/filter', [ReservationsController::class, 'filter'])->name('Reservations.filter');
                 Route::put('/reservations/update-status/{id}', [ReservationsController::class, 'updateStatus'])->name('reservations.updateStatus');
-
+                Route::get('/show/client/booking/{id}', [ReservationsController::class, 'client'])->name('Reservations.client');
                 Route::post('/store', [ReservationsController::class, 'store'])->name('Reservations.store');
                 Route::get('/edit/{id}', [ReservationsController::class, 'edit'])->name('Reservations.edit');
-                Route::post('/update/{id}', [ReservationsController::class, 'update'])->name('Reservations.update');
+                Route::put('/update/{id}', [ReservationsController::class, 'update'])->name('Reservations.update');
                 Route::get('/delete/{id}', [ReservationsController::class, 'delete'])->name('Reservations.delete');
             });
         }

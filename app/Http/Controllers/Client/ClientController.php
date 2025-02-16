@@ -190,6 +190,8 @@ private function generateNextCode(string $lastChildCode): string
     }
     public function show($id)
     {
+       
+       
         $installment = Installment::with('invoice.client')->findOrFail($id);
         $client = Client::with([
             'invoices' => function ($query) {

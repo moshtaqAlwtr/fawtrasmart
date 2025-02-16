@@ -9,7 +9,7 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">عرض الخدمة</h2>
+                    <h2 class="content-header-title float-left mb-0">عرض</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
@@ -20,12 +20,6 @@
             </div>
         </div>
     </div>
-    @if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
     <div class="card">
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -36,7 +30,7 @@
                     <div>
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex align-items-center gap-2">
-                                <h5 class="mb-0 fw-bolder">عرض الخدمة</h5>
+                                <h5 class="mb-0 fw-bolder">حجز العميل</h5>
                                 <small class="text-muted">#1</small>
                             </div>
                             <div class="vr mx-2"></div>

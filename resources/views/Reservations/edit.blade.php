@@ -27,7 +27,7 @@
     <div class="card">
         <form action="{{ route('Reservations.update', $booking->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
-          
+            @method('PUT')
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
@@ -43,15 +43,13 @@
                     </div>
                 </div>
             </div>
-        </form>
+       
     </div>
 
     <!-- Form Card -->
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('Reservations.update', $booking->id) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-              
+         
                 <!-- Booking Slots Division -->
                 <div class="mb-3">
                     <label for="serviceSelect" class="form-label">اختر خدمة</label>

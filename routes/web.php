@@ -158,7 +158,7 @@ Route::group(
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
-                    Route::get('/show/{id}', [ClientController::class, 'show'])->name('clients.show');
+                    Route::get('/show/client/{id}', [ClientController::class, 'show'])->name('clients.show');
                     Route::put('/update/{id}', [ClientController::class, 'update'])->name('clients.update');
                     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
                     Route::post('/delete-multiple', [ClientController::class, 'deleteMultiple'])->name('clients.deleteMultiple');
