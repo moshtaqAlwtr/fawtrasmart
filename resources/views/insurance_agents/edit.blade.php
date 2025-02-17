@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-أضف وكيل تأمين
+تعديل وكيل تأمين
 @stop
 
 @section('content')
@@ -9,7 +9,7 @@
     <div class="content-header-left col-md-9 col-12 mb-2">
         <div class="row breadcrumbs-top">
             <div class="col-12">
-                <h2 class="content-header-title float-left mb-0">أضف وكيل تأمين</h2>
+                <h2 class="content-header-title float-left mb-0">تعديل وكيل تأمين</h2>
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
@@ -24,8 +24,9 @@
     @include('layouts.alerts.error')
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('Insurance_Agents.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('Insurance_Agents.update', $insuranceAgent->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>
@@ -61,7 +62,7 @@
                         <div class="form-body row">
                             <div class="form-group col-md-6">
                                 <label for="name" class=""> الاسم </label>
-                                <input type="text" id="name" class="form-control" placeholder="" name="name">
+                                <input type="text" id="name" class="form-control" placeholder="" name="name" value="{{ old('name', $insuranceAgent->name) }}">
                             </div>
                             <div class="form-group col-6">
                                 <label for="attachments">المرفقات</label>
@@ -82,21 +83,21 @@
 
                             <div class="form-group col-md-6">
                                 <label for="phone" class=""> الهاتف </label>
-                                <input type="text" id="phone" class="form-control" placeholder="" name="phone">
+                                <input type="text" id="phone" class="form-control" placeholder="" name="phone" value="{{ old('phone', $insuranceAgent->phone) }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="email" class=""> الايميل  </label>
-                                <input type="text" id="email" class="form-control" placeholder="" name="email">
+                                <input type="text" id="email" class="form-control" placeholder="" name="email" value="{{ old('email', $insuranceAgent->email) }}">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="location" class=""> الموقع  </label>
-                                <input type="text" id="location" class="form-control" placeholder="" name="location">
+                                <input type="text" id="location" class="form-control" placeholder="" name="location" value="{{ old('location', $insuranceAgent->location) }}">
                             </div>
                             <div class="form-group col-md-6 mb-3">
                                 <label for="status" class="">الحالة <span class="text-danger">*</span></label>
                                 <select name="status" class="form-control" id="status">
-                                    <option value="1">نشط</option>
-                                    <option value="2">غير نشط</option>
+                                    <option value="1" {{ $insuranceAgent->status == 1 ? 'selected' : '' }}>نشط</option>
+                                    <option value="2" {{ $insuranceAgent->status == 2 ? 'selected' : '' }}>غير نشط</option>
                                 </select>
                             </div>
                         </div>

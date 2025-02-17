@@ -42,6 +42,13 @@ Route::group(
             });
 
 
+            Route::prefix('CourseOfWork')->group(function () {
+                Route::get('/create', [LoyaltyPointsSittingController::class, 'create'])->name('CourseOfWork.sitting');
+                Route::post('/store', [LoyaltyPointsSittingController::class,'store'])->name('CourseOfWork.store');
+
+            });
+
+
 
 
 
