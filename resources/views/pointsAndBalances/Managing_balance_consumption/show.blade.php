@@ -1,6 +1,5 @@
 @extends('master')
 
-
 @section('title')
     عرض معلومات الاستهلاك والارصدة
 @stop
@@ -26,19 +25,19 @@
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center gap-2">
                     <div class="avatar avatar-md bg-danger">
-                        <span class="avatar-content fs-4">أ</span>
+                        <span class="avatar-content fs-4">{{ substr($balanceConsumption->client->first_name, 0, 1) }}</span>
                     </div>
                     <div>
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex align-items-center gap-2">
-                                <h5 class="mb-0 fw-bolder">أسواق السلطان</h5>
-                                <small class="text-muted">#123234</small>
+                                <h5 class="mb-0 fw-bolder">{{ $balanceConsumption->client->first_name }} {{ $balanceConsumption->client->last_name }}</h5>
+                                <small class="text-muted">#{{ $balanceConsumption->client->id }}</small>
                             </div>
                             <div class="vr mx-2"></div>
                             <div class="d-flex align-items-center">
                                 <small class="text-muted">
                                     <i class="fa fa-circle me-1" style="font-size: 8px;"></i>
-                                    موقوف
+                                    {{ $balanceConsumption->contract_type == 'duration' ? 'انتهى' : 'موقوف' }}
                                 </small>
                             </div>
                         </div>
@@ -50,16 +49,14 @@
 
     <div class="card">
         <div class="card-title p-2 d-flex align-items-center gap-2">
-            <a href="{{ route('ManagingBalanceConsumption.edit', 1) }}"
+            <a href="{{ route('ManagingBalanceConsumption.edit', $balanceConsumption->id) }}"
                 class="btn btn-outline-info btn-sm d-inline-flex align-items-center justify-content-center px-3"
                 style="min-width: 90px;">
                 <i class="fa fa-edit ms-1 text-info"></i> تعديل
             </a>
 
-            <a href="#"
-                class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_CANCEL1">
-                <i class="fa fa-ban ms-1 text-warning"></i> الغاء الايقاف
+            <a href="{{ route('ManagingBalanceConsumption.updateStatus',$balanceConsumption->id) }}" class="btn btn-outline-{{ $balanceConsumption->status == 0 ? 'success' : 'danger' }} btn-sm waves-effect waves-light">
+                {{ $balanceConsumption->status == 0 ? 'الغاء الايقاف' : 'ايقاف' }} <i class="fa {{ $balanceConsumption->status == 0 ? 'fa-ban' : 'fa-ban' }}"></i>
             </a>
 
             <a href="#"
@@ -95,16 +92,16 @@
                                         <div class="d-flex align-items-center gap-2 p-3">
                                             <div class="bg-danger rounded-circle d-flex align-items-center justify-content-center"
                                                 style="width: 50px; height: 50px;">
-                                                <span class="text-white fs-4">ا</span>
+                                                <span class="text-white fs-4">{{ substr($balanceConsumption->client->first_name, 0, 1) }}</span>
                                             </div>
                                             <div class="d-flex flex-column">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <span class="fw-bold fs-5">اسواق السلطان</span>
+                                                    <span class="fw-bold fs-5">{{ $balanceConsumption->client->first_name }} {{ $balanceConsumption->client->last_name }}</span>
                                                     <a href="" class="text-decoration-underline text-muted"
-                                                        style="font-size: 0.9rem;">#123234</a>
+                                                        style="font-size: 0.9rem;">#{{ $balanceConsumption->client->id }}</a>
                                                 </div>
                                                 <div class="mt-2">
-                                                    <a href=""
+                                                    <a href="{{route('clients.show', $balanceConsumption->client->id) }}"
                                                         class="btn btn-light btn-sm d-flex align-items-center gap-1 px-3">
                                                         <i class="fa fa-user"></i>
                                                         عرض الصفحة الشخصية
@@ -122,17 +119,17 @@
                                             <div class="col-12">
                                                 <p class="text-muted mb-1">الرصيد المستخدم:</p>
                                                 <p class="lh-1">
-                                                    <span class="d-block fs-22 font-weight-bold">10</span>
+                                                    <span class="d-block fs-22 font-weight-bold">{{ $balanceConsumption->used_balance }}</span>
                                                     <span class="fs-12">نقطة</span>
                                                 </p>
                                             </div>
                                             <div class="col-12">
                                                 <p class="text-muted mb-1">نوع الرصيد:</p>
                                                 <p class="lh-16 mb-0 fs-14 font-weight-bold">
-                                                    نقاط الولاء
+                                                    {{ $balanceConsumption->balanceType->name }}
                                                     <a href=""
                                                         class="font-weight-normal fs-12 text-decoration-underline ml-2"
-                                                        target="_blank">#1</a>
+                                                        target="_blank">#{{ $balanceConsumption->balance_type_id }}</a>
                                                 </p>
                                             </div>
                                         </div>
@@ -146,7 +143,7 @@
                                             <div class="col-12">
                                                 <p class="text-muted mb-1">تاريخ الاستهلاك:</p>
                                                 <p class="lh-1">
-                                                    <span class="d-block fs-20 font-weight-bold">02/01/2025</span>
+                                                    <span class="d-block fs-20 font-weight-bold">{{ $balanceConsumption->consumption_date->format('d-m-Y') }}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -176,7 +173,7 @@
                                                                 </div>
                                                             </td>
                                                             <td>
-                                                                <span>10 نقطة</span>
+                                                                <span>{{ $balanceConsumption->used_balance }} نقطة</span>
                                                             </td>
                                                         </tr>
                                                     </tbody>
@@ -185,10 +182,9 @@
 
                                             <!-- الجزء الثاني: الوصف -->
                                             <div class="col-md-6">
-
                                                 <div class="p-3" style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
                                                     <p class="mb-0" style="font-size: 1.1rem;">
-                                                        هذا النص هو مثال لوصف يمكن أن يُضاف هنا. يمكن تخصيص الوصف حسب الحاجة.
+                                                        {{ $balanceConsumption->description ?? 'لا يوجد وصف متوفر' }}
                                                     </p>
                                                 </div>
                                             </div>
@@ -196,7 +192,29 @@
                                     </div>
                                 </div>
                             </div>
-
+                            <div class="modal fade text-left" id="modal_DELETE{{ $balanceConsumption->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #EA5455 !important;">
+                                            <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $balanceConsumption->name }}</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true" style="color: #DC3545">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <strong>هل انت متاكد من انك تريد الحذف ؟</strong>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
+                                            <form action="{{ route('ManagingBalanceConsumption.destroy', $balanceConsumption->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger waves-effect waves-light">تأكيد</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

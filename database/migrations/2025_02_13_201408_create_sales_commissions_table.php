@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('employee_id');
             $table->string('sales_amount');
             $table->string('sales_quantity');
+
             $table->string('commission_id');
             $table->float('ratio');
             $table->string('status')->default('open');

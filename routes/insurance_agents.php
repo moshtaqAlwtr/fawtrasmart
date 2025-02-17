@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\InsuranceAgents\InsuranceAgentsClassController;
 use App\Http\Controllers\InsuranceAgents\InsuranceAgentsController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -17,6 +18,22 @@ Route::group(
             // صفحة الفهرس
             Route::get('/index', [InsuranceAgentsController::class, 'index'])->name('Insurance_Agents.index');
             Route::get('create', [InsuranceAgentsController::class,    'create'])->name('Insurance_Agents.create');
+            Route::post('/store', [InsuranceAgentsController::class,'store'])->name('Insurance_Agents.store');
+            Route::get('/show/{id}', [InsuranceAgentsController::class, 'show'])->name('Insurance_Agents.show');
+            Route::get('/edit/{id}', [InsuranceAgentsController::class, 'edit'])->name('Insurance_Agents.edit');
+            Route::put('/update/{id}', [InsuranceAgentsController::class, 'update'])->name('Insurance_Agents.update');
+            Route::delete('/destroy/{id}', [InsuranceAgentsController::class, 'destroy'])->name('Insurance_Agents.destroy');
+            Route::get('/updateStatus/{id}', [InsuranceAgentsController::class, 'updateStatus'])->name('Insurance_Agents.updateStatus');
+
+
+        });
+        Route::prefix('InsuranceAgentsClass')->middleware(['auth', 'role:manager'])->group(function () {
+            // صفحة الفهرس
+
+            Route::get('create', [InsuranceAgentsClassController::class,    'create'])->name('InsuranceAgentsClass.create');
+            Route::post('/store', [InsuranceAgentsClassController::class,'store'])->name('InsuranceAgentsClass.store');
+            Route::put('/update/{id}', [InsuranceAgentsClassController::class, 'update'])->name('InsuranceAgentsClass.update');
+            Route::get('edit/{id}', [InsuranceAgentsClassController::class, 'edit'])->name('InsuranceAgentsClass.edit');
 
 
         });

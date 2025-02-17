@@ -22,6 +22,8 @@
             </div>
         </div>
     </div>
+    @include('layouts.alerts.error')
+            @include('layouts.alerts.success')
     <div class="card">
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between mb-3">
@@ -32,14 +34,18 @@
                     <div>
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex align-items-center gap-2">
-                                <h5 class="mb-0 fw-bolder">مباني </h5>
-                                <small class="text-muted">#1</small>
+                                <h5 class="mb-0 fw-bolder">{{$membership->client->first_name ?? ""}} </h5>
+                                <small class="text-muted"></small>
                             </div>
                             <div class="vr mx-2"></div>
                             <div class="d-flex align-items-center">
                                 <small class="text-success">
                                     <i class="fa fa-circle me-1" style="font-size: 8px;"></i>
-                                    غير نشط
+                                    @if($membership->status == "active")
+                                    نشط
+                                    @else
+                                    غير نشط 
+                                    @endif
                                 </small>
                             </div>
                         </div>
@@ -48,9 +54,9 @@
 
                 <div class="d-flex gap-2">
 
-                    <button class="btn btn-success">
+                    <a  href="{{ route('Memberships.renew', $membership->id) }}" class="btn btn-success">
                         <i class="fa fa-refresh"></i> تجديد
-                    </button>
+                    </a>
                     <div class="vr mx-1"></div>
                     <button class="btn btn-icon btn-outline-primary">
                         <i class="fa fa-chevron-up"></i>
@@ -68,38 +74,33 @@
     <div class="card">
         <div class="card-title p-2 d-flex align-items-center gap-2">
             <!-- زر تعديل -->
-            <a href="{{ route('MangRechargeBalances.edit', 1) }}"
+            <a href="{{ route('Memberships.edit', $membership->id) }}"
                 class="btn btn-outline-info btn-sm d-inline-flex align-items-center justify-content-center px-3"
                 style="min-width: 90px;">
                 <i class="fa fa-edit ms-1 text-info"></i> تعديل
             </a>
 
-            <!-- زر حذف -->
-            <a href="#"
-                class="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_DELETE1">
-                <i class="fa fa-trash ms-1 text-danger"></i> حذف
-            </a>
-
+         
+            
             <!-- زر تجديد -->
-            <a href="#"
+            <a href="{{ route('Memberships.renew', $membership->id) }}"
                 class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_RENEW1">
+                style="min-width: 90px;">
                 <i class="fa fa-refresh ms-1 text-primary"></i> تجديد
             </a>
 
-            <!-- زر إلغاء الإيقاف -->
-            <a href="#"
+            <!-- زر إلغاء الإيقاف -->   
+            <a href="{{ route('Memberships.be_active', $membership->id) }}"
                 class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_CANCEL1">
+                style="min-width: 90px;">
                 <i class="fa fa-ban ms-1 text-warning"></i> إلغاء الإيقاف
             </a>
 
             <!-- زر إضافة فترة توقف -->
-            <a href="#"
+            <a href="{{ route('Memberships.deactive', $membership->id) }}"
                 class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_STOP1">
-                <i class="fa fa-clock ms-1 text-secondary"></i> أضف فترة توقف
+                style="min-width: 90px;">
+                <i class="fa ms-1 text-secondary"></i>  ايقاف
             </a>
         </div>
 
@@ -138,12 +139,12 @@
                                             </div>
                                             <div class="d-flex flex-column">
                                                 <div class="d-flex align-items-center gap-2">
-                                                    <span class="fw-bold fs-5">اسواق ابو مدهش</span>
+                                                    <span class="fw-bold fs-5">{{$membership->client->first_name ?? ""}}</span>
                                                     <a href="" class="text-decoration-underline text-muted"
-                                                        style="font-size: 0.9rem;">#123136</a>
+                                                        style="font-size: 0.9rem;"></a>
                                                 </div>
-                                                <div class="mt-2">
-                                                    <a href=""
+                                                <div class="mt-2"> 
+                                                    <a href="{{ route('clients.show', $client->id) }}"
                                                         class="btn btn-light btn-sm d-flex align-items-center gap-1 px-3">
                                                         <i class="fa fa-user"></i>
                                                         عرض الصفحة الشخصية
@@ -161,7 +162,7 @@
                                             <div class="col-12">
                                                 <p class="text-muted mb-1">الباقة الحالية:</p>
                                                 <p class="lh-1">
-                                                    <span class="d-block fs-20 font-weight-bold">الاصول الثابتة</span>
+                                                    <span class="d-block fs-20 font-weight-bold">{{$membership->packege->commission_name ?? ""}}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -175,13 +176,13 @@
                                             <div class="col-md-6">
                                                 <p class="text-muted mb-1">تاريخ الالتحاق:</p>
                                                 <p class="lh-1">
-                                                    <span class="d-block fs-20 font-weight-bold">02/01/2025</span>
+                                                    <span class="d-block fs-20 font-weight-bold">{{$membership->join_date ?? ""}}</span>
                                                 </p>
                                             </div>
                                             <div class="col-md-6">
                                                 <p class="text-muted mb-1">تاريخ الانتهاء:</p>
                                                 <p class="lh-1">
-                                                    <span class="d-block fs-20 font-weight-bold">02/01/2025</span>
+                                                    <span class="d-block fs-20 font-weight-bold">{{$membership->end_date ?? ""}}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -193,7 +194,7 @@
                                 <div class="py-2 h-100">
                                     <div class="card h-100 p-3 d-block" style="background-color: #f8f9fa;">
                                         <p class="text-muted mb-1">الوصف:</p>
-                                        <p class="pre mb-0">تتمت</p>
+                                        <p class="pre mb-0">{{$membership->description ?? "لا يوجد وصف" }}</p>
                                     </div>
                                 </div>
                             </div>

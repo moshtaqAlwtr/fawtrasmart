@@ -25,31 +25,20 @@
         <div class="content-body">
             <div class="card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="btn-group">
-                                <button class="btn btn-light border">
-                                    <i class="fa fa-chevron-right"></i>
-                                </button>
-                                <button class="btn btn-light border">
-                                    <i class="fa fa-chevron-left"></i>
-                                </button>
-                            </div>
-                            <span class="mx-2">1 - 1 من 1</span>
-                            <div class="input-group" style="width: 150px">
-                                <input type="text" class="form-control text-center" value="صفحة 1 من 1">
-                            </div>
-                        </div>
-                        <div class="d-flex" style="gap: 15px">
-                            <button class="btn btn-primary">
-                                <i class="fas fa-sync-alt"></i>
-                                تجديد
-                            </button>
-                            <select class="form-select" style="width: auto">
-                                <option>العضوية #1</option>
-                            </select>
-                            <span class="badge bg-success d-flex align-items-center">نشط</span>
-                        </div>
+                    <div class="d-flex justify-content-between align-items-rtl flex-wrap">
+                        <div></div>
+    
+                      
+                     
+                        <div>
+                                    <a href="{{ route('Memberships.create') }}" class="btn btn-outline-success">
+                                        <i class="fa fa-plus me-2"></i>اضف عضوية     
+                                    </a>
+    
+                                    <a href="{{ route('Memberships.index') }}"  class="btn btn-outline-primary">
+                                        <i class="fa fa-calendar-alt me-2"></i> العضويات
+                                        </a>
+                                </div>
                     </div>
                 </div>
             </div>
@@ -116,7 +105,8 @@
                 </div>
 
             </div>
-
+            @include('layouts.alerts.error')
+            @include('layouts.alerts.success')
 
             <div class="card">
                 <div class="card-body">
@@ -135,6 +125,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach ($memberships as $membership)
+                                
+                            
                             <tr>
                                 <td>#1</td>
                                 <td>
@@ -143,20 +136,26 @@
                                             <span class="avatar-content">أ</span>
                                         </div>
                                         <div>
-                                            أسواق السلطان
+                                            {{$membership->client->first_name ?? ""}}
                                             <br>
-                                            <small class="text-muted">#123234</small>
+                                            <small class="text-muted"></small>
                                         </div>
                                     </div>
                                 </td>
-                                <td>نقاط الولاء<br><small class="text-muted">#1</small></td>
+                                <td><br><small class="text-muted">{{$membership->packege->commission_name ?? ""}}</small></td>
 
-                                <td><small class="text-muted">10-2-2024</small></td>
+                                <td><small class="text-muted">{{$membership->end_date ?? ""}}</small></td>
 
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="rounded-circle bg-info" style="width: 8px; height: 8px;"></div>
-                                        <span class="text-muted">موقوف</span>
+                                        <span class="text-muted">
+                                          @if($membership->status == "active")
+                                          نشط
+                                          @else
+                                          غير نشط 
+                                          @endif
+                                        </span>
                                     </div>
                                 </td>
                                 <td>
@@ -180,8 +179,7 @@
                                                 </li>
 
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#"
-                                                        data-toggle="modal" data-target="#modal_DELETE">
+                                                    <a class="dropdown-item text-danger" href="{{ route('Memberships.delete', $membership->id) }}">
                                                         <i class="fa fa-trash me-2"></i>حذف
                                                     </a>
                                                 </li>
@@ -190,6 +188,7 @@
                                     </div>
                                 </td>
                             </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

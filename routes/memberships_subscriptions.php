@@ -31,8 +31,15 @@ Route::group(
                 Route::prefix('Memberships')->group(function () {
                     Route::get('/index', [MembershipsController::class, 'index'])->name('Memberships.index');
                     Route::get('/create', [MembershipsController::class, 'create'])->name('Memberships.create');
+                    Route::post('/create', [MembershipsController::class, 'store'])->name('Memberships.store');
                     Route::get('/show/{id}', [MembershipsController::class, 'show'])->name('Memberships.show');
                     Route::get('/edit/{id}', [MembershipsController::class, 'edit'])->name('Memberships.edit');
+                    Route::put('/update/{id}', [MembershipsController::class, 'update'])->name('Memberships.update');
+                    Route::get('/delete/{id}', [MembershipsController::class, 'delete'])->name('Memberships.delete');
+                    Route::get('/renew/{id}', [MembershipsController::class, 'renew'])->name('Memberships.renew');
+                    Route::post('/renew/update/{id}', [MembershipsController::class, 'renew_update'])->name('Memberships.renew_update');
+                    Route::get('/be_active/{id}', [MembershipsController::class, 'be_active'])->name('Memberships.be_active'); //تنشيط 
+                    Route::get('/deactive/{id}', [MembershipsController::class, 'deactive'])->name('Memberships.deactive');// الغاء التنشيط
                 });
                 Route::prefix('SittingMemberships')->group(function () {
                     Route::get('/index', [SittingController::class, 'index'])->name('SittingMemberships.index');
