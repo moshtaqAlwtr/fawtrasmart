@@ -193,9 +193,7 @@ private function generateNextCode(string $lastChildCode): string
     }
     public function show($id)
     {
-       
-       
-        $installment = Installment::with('invoice.client')->findOrFail($id);
+        $installment = Installment::with('invoice.client')->get();
         $client = Client::with([
             'invoices' => function ($query) {
                 $query->orderBy('invoice_date', 'desc');

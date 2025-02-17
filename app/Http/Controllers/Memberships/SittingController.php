@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 class SittingController extends Controller
 {
   public function index() {
+<<<<<<< HEAD
     
     return view('Memberships_subscriptions.sitting_memberships.index');
   }
@@ -16,6 +17,13 @@ class SittingController extends Controller
   {
     // $setting = MembershipsSetthing::all();
     return view('Memberships_subscriptions.sitting_memberships.sitting');
+=======
+    return view('Memberships.sitting_memberships.index');
+  }
+  public function sitting()
+  {
+    return view('Memberships.sitting_memberships.sitting');
+>>>>>>> aa09ee3ca79613782193d543daa9551e2b01e331
   }
 
   public function store(Request $request)

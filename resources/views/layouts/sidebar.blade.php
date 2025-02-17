@@ -561,7 +561,7 @@
                         @endcan
 
                         @can('customer_loyalty_points_redeem_loyalty_points')
-                            <li><a href="{{ route('loyalty_points.settings') }}"><i class="feather icon-circle"></i><span
+                            <li><a href="{{ route('sittingLoyalty.sitting') }}"><i class="feather icon-circle"></i><span
                                         class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span>
                                 </a>
                             </li>
@@ -599,7 +599,7 @@
 
 
 
-           
+
 
             {{-- العضويات --}}
             @if (auth()->user()->hasAnyPermission(['membership_management', 'membership_setting_management']))
@@ -616,8 +616,13 @@
                                         data-i18n="Analytics">{{ trans('main_trans.Membership_management') }}</span></a>
                             </li>
                         @endcan
+<<<<<<< HEAD
                         
                         <li><a href="{{ route('Memberships.subscriptions') }}"><i class="feather icon-circle"></i><span class="menu-item"
+=======
+
+                        <li><a href="{{route('Memberships.subscriptions.index')}}"><i class="feather icon-circle"></i><span class="menu-item"
+>>>>>>> aa09ee3ca79613782193d543daa9551e2b01e331
                                     data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
                         </li>
 

@@ -37,7 +37,7 @@
                             <div class="d-flex align-items-center">
                                 <small class="text-muted">
                                     <i class="fa fa-circle me-1" style="font-size: 8px;"></i>
-                                    {{ $balanceConsumption->contract_type == 'duration' ? 'موقوف' : 'نشط' }}
+                                    {{ $balanceConsumption->contract_type == 'duration' ? 'انتهى' : 'موقوف' }}
                                 </small>
                             </div>
                         </div>
@@ -55,10 +55,8 @@
                 <i class="fa fa-edit ms-1 text-info"></i> تعديل
             </a>
 
-            <a href="#"
-                class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;" data-toggle="modal" data-target="#modal_CANCEL1">
-                <i class="fa fa-ban ms-1 text-warning"></i> الغاء الايقاف
+            <a href="{{ route('ManagingBalanceConsumption.updateStatus',$balanceConsumption->id) }}" class="btn btn-outline-{{ $balanceConsumption->status == 0 ? 'success' : 'danger' }} btn-sm waves-effect waves-light">
+                {{ $balanceConsumption->status == 0 ? 'الغاء الايقاف' : 'ايقاف' }} <i class="fa {{ $balanceConsumption->status == 0 ? 'fa-ban' : 'fa-ban' }}"></i>
             </a>
 
             <a href="#"
@@ -194,7 +192,29 @@
                                     </div>
                                 </div>
                             </div>
-
+                            <div class="modal fade text-left" id="modal_DELETE{{ $balanceConsumption->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header" style="background-color: #EA5455 !important;">
+                                            <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $balanceConsumption->name }}</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true" style="color: #DC3545">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <strong>هل انت متاكد من انك تريد الحذف ؟</strong>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
+                                            <form action="{{ route('ManagingBalanceConsumption.destroy', $balanceConsumption->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger waves-effect waves-light">تأكيد</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

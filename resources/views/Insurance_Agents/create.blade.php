@@ -20,131 +20,100 @@
         </div>
     </div>
 </div>
-
-
-
-
-<div class="container mt-5">
+    @include('layouts.alerts.success')
+    @include('layouts.alerts.error')
     <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="card-title text-center mb-0">أضافة وكيل تأمين</h5>
-        </div>
         <div class="card-body">
-            <!-- خطوات التنقل -->
-            <ul class="nav nav-tabs" id="steps" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="step1-tab" data-toggle="tab" href="#step1" role="tab" aria-controls="step1" aria-selected="true">الخطوة الأولى</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="step2-tab" data-toggle="tab" href="#step2" role="tab" aria-controls="step2" aria-selected="false">الخطوة الثانية</a>
-                </li>
-            </ul>
+            <form action="{{ route('Insurance_Agents.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('error') }}
+                    </div>
+                @endif
 
-            <!-- محتوى الخطوات -->
-            <div class="tab-content mt-3" id="stepsContent">
-                <!-- الخطوة الأولى -->
-                <div class="tab-pane fade show active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
-                    <form>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="name">الاسم</label>
-                                <input type="text" id="name" class="form-control" placeholder="أدخل الاسم">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="image">الصورة</label>
-                                <input type="file" id="image" class="form-control">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-rtl flex-wrap">
+                            <div></div>
+                            <div>
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="fa fa-plus me-2"></i>الغاء
+                                </button>
+                                <button type="submit" class="btn btn-outline-success">
+                                    <i class="fa fa-plus me-2"></i>حفظ
+                                </button>
                             </div>
                         </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <label for="phone">الهاتف</label>
-                                <input type="text" id="phone" class="form-control" placeholder="أدخل الهاتف">
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-body row">
+                            <div class="form-group col-md-6">
+                                <label for="name" class=""> الاسم </label>
+                                <input type="text" id="name" class="form-control" placeholder="" name="name">
                             </div>
-                            <div class="col-md-6">
-                                <label for="email">البريد الإلكتروني</label>
-                                <input type="email" id="email" class="form-control" placeholder="أدخل البريد الإلكتروني">
+                            <div class="form-group col-6">
+                                <label for="attachments">المرفقات</label>
+                                <input type="file" name="attachments" id="attachments" class="d-none">
+                                <div class="upload-area border rounded p-3 text-center position-relative"
+                                    onclick="document.getElementById('attachments').click()">
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                                        <span class="text-primary">اضغط هنا</span>
+                                        <span>أو</span>
+                                        <span class="text-primary">اختر من جهازك</span>
+                                    </div>
+                                    <div class="position-absolute end-0 top-50 translate-middle-y me-3">
+                                        <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <label for="status">الحالة</label>
-                                <select id="status" class="form-control">
-                                    <option value="active">نشط</option>
-                                    <option value="inactive">غير نشط</option>
+
+                            <div class="form-group col-md-6">
+                                <label for="phone" class=""> الهاتف </label>
+                                <input type="text" id="phone" class="form-control" placeholder="" name="phone">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="email" class=""> الايميل  </label>
+                                <input type="text" id="email" class="form-control" placeholder="" name="email">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="location" class=""> الموقع  </label>
+                                <input type="text" id="location" class="form-control" placeholder="" name="location">
+                            </div>
+                            <div class="form-group col-md-6 mb-3">
+                                <label for="status" class="">الحالة <span class="text-danger">*</span></label>
+                                <select name="status" class="form-control" id="status">
+                                    <option value="1">نشط</option>
+                                    <option value="2">غير نشط</option>
                                 </select>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary float-right mt-3" data-toggle="tab" href="#step2">التالي</button>
-                    </form>
+                    </div>
                 </div>
-
-                <!-- الخطوة الثانية -->
-                <div class="tab-pane fade" id="step2" role="tabpanel" aria-labelledby="step2-tab">
-                    <form id="dynamicForm">
-                        <div class="d-flex flex-wrap align-items-center mb-3">
-                            <input type="text" class="form-control col-md-2 mr-2" placeholder="الحد الأقصى للدفع">
-                            <input type="number" class="form-control col-md-2 mr-2" placeholder="% Client copayment">
-                            <input type="number" class="form-control col-md-2 mr-2" placeholder="% Company copayment">
-                            <input type="number" class="form-control col-md-2 mr-2" placeholder="الخصم">
-                            <select class="form-control col-md-2 mr-2">
-                                <option value="">Nothing selected</option>
-                                <option value="admin">العميل</option>
-                                <option value="user">المستخدم</option>
-                            </select>
-                            <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-
-                        <div id="newRowsContainer"></div>
-
-                        <button type="button" class="btn btn-success mt-3" id="addRow"><i class="fas fa-plus"></i> إضافة سطر</button>
-                        <button type="button" class="btn btn-secondary float-left mt-3" data-toggle="tab" href="#step1">السابق</button>
-                        <button type="submit" class="btn btn-primary float-right mt-3">حفظ</button>
-                    </form>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
-</div>
-
-
-
-<script>
-    // إضافة سطر جديد
-    document.getElementById('addRow').addEventListener('click', function () {
-        const newRow = `
-            <div class="d-flex flex-wrap align-items-center mb-3">
-                <input type="text" class="form-control col-md-2 mr-2" placeholder="الحد الأقصى للدفع">
-                <input type="number" class="form-control col-md-2 mr-2" placeholder="% Client copayment">
-                <input type="number" class="form-control col-md-2 mr-2" placeholder="% Company copayment">
-                <input type="number" class="form-control col-md-2 mr-2" placeholder="الخصم">
-                <select class="form-control col-md-2 mr-2">
-                    <option value="">Nothing selected</option>
-                    <option value="admin">العميل</option>
-                    <option value="user">المستخدم</option>
-                </select>
-                <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash-alt"></i></button>
-            </div>
-        `;
-        document.getElementById('newRowsContainer').insertAdjacentHTML('beforeend', newRow);
-    });
-
-    // حذف السطر
-    document.addEventListener('click', function (event) {
-        if (event.target.closest('.remove-row')) {
-            event.target.closest('.d-flex').remove();
-        }
-    });
-</script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
 @endsection
+
+
+
+
+
+
+
+
+
+
+

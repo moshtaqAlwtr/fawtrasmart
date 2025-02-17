@@ -130,7 +130,7 @@ class ManagingBalanceConsumptionController extends Controller
         $balanceConsumption = BalanceConsumption::findOrFail($id);
 
         // Toggle the status
-        $balanceConsumption->status = !$balanceConsumption->status;
+        $balanceConsumption->contract_type = !$balanceConsumption->contract_type;
         $balanceConsumption->save();
 
         // Redirect to the index page with a success message
