@@ -10,19 +10,19 @@ class MembershipsController extends Controller
 {
     public function index()
     {
-        return view('Memberships_subscriptions.mang_memberships.index');
+        return view('Memberships.mang_memberships.index');
     }
     public function create()
     {
 $clients = Client::all();
-        return view('Memberships_subscriptions.mang_memberships.create',compact('clients'));
+        return view('Memberships.mang_memberships.create',compact('clients'));
     }
     public function show()
     {
-        return view('Memberships_subscriptions.mang_memberships.show');
+        return view('Memberships.mang_memberships.show');
     }
     public function edit()
     {
-        return view('Memberships_subscriptions.mang_memberships.edit');
+        return view('Memberships.mang_memberships.edit');
     }
 }

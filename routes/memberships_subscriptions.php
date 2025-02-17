@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Memberships\MembershipsController;
 use App\Http\Controllers\Memberships\SittingController;
+use App\Http\Controllers\Memberships\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -24,7 +25,7 @@ Route::group(
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
     ],
     function () {
-        Route::prefix('MembershipsAndSubscriptions')
+        Route::prefix('Memberships')
             ->middleware(['auth', 'role:manager'])
             ->group(function () {
                 Route::prefix('Memberships')->group(function () {
@@ -38,7 +39,11 @@ Route::group(
                     Route::get('/sitting', [SittingController::class, 'sitting'])->name('SittingMemberships.sitting');
 
                 });
+                Route::prefix('Subscription')->group(function () {
+                    Route::get('/index', [SubscriptionController::class, 'index'])->name('Memberships.subscriptions.index');
+                    Route::get('/sitting', [SubscriptionController::class, 'sitting'])->name('Memberships.subscriptions.create');
 
+                });
             });
     },
 );

@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 class SittingController extends Controller
 {
   public function index() {
-    return view('Memberships_subscriptions.sitting_memberships.index');
+    return view('Memberships.sitting_memberships.index');
   }
   public function sitting()
   {
-    return view('Memberships_subscriptions.sitting_memberships.sitting');
+    return view('Memberships.sitting_memberships.sitting');
   }
 }

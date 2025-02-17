@@ -617,7 +617,7 @@
                             </li>
                         @endcan
 
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        <li><a href="{{route('Memberships.subscriptions.index')}}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
                         </li>
 
