@@ -81,6 +81,7 @@ class InsuranceAgentsController extends Controller
         return view('Insurance_Agents.edit', compact('insuranceAgent'));
     }
 
+
     // دالة لتحديث البيانات
     public function update(Request $request, $id)
     {
@@ -102,6 +103,11 @@ class InsuranceAgentsController extends Controller
         return redirect()->route('InsuranceAgentsClass.index')->with('success', 'تم تحديث وكيل التأمين بنجاح!');
     }
 
+    public function show($id)
+    {
+        $insuranceAgent = InsuranceAgent::findOrFail($id);
+        return view('Insurance_Agents.show', compact('insuranceAgent'));
+    }
     // دالة لحذف الوكيل التأمين
     public function destroy($id)
     {

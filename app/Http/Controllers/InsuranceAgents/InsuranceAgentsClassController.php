@@ -16,31 +16,34 @@ class InsuranceAgentsClassController extends Controller
     }
     public function store(Request $request)
     {
-        $request->validate([
-            'category_id' => 'required|exists:categories,id',
+        $validatedData = $request->validate([
             'insurance_agent_id' => 'required|exists:insurance_agents,id',
-            'discount' => 'nullable|numeric',
-            'company_copayment' => 'nullable|numeric',
-            'client_copayment' => 'nullable|numeric',
-            'max_copayment' => 'nullable|numeric',
-            'status' => 'nullable|integer',
-            'type' => 'nullable|integer',
+            'name' => 'required|string|max:255',
+            'category_id.*' => 'required|exists:categories,id',
+            'discount.*' => 'required|numeric',
+            'company_copayment.*' => 'required|numeric',
+            'client_copayment.*' => 'required|numeric',
+            'max_copayment.*' => 'required|numeric',
+            'type.*' => 'required|in:1,2',
         ]);
 
-        InsuranceAgentCategory::create([
-            'category_id' => $request->category_id,
-            'insurance_agent_id' => $request->insurance_agent_id,
-            'discount' => $request->discount,
-            'company_copayment' => $request->company_copayment,
-            'client_copayment' => $request->client_copayment,
-            'max_copayment' => $request->max_copayment,
-            'status' => $request->status,
-            'type' => $request->type,
-        ]);
+        // Loop through each row of data and save it
+        for ($i = 0; $i < count($request->category_id); $i++) {
+            // Create a new entry based on the validated data
+            InsuranceAgentCategory::create([
+                'insurance_agent_id' => $validatedData['insurance_agent_id'],
+                'name' => $validatedData['name'],
+                'category_id' => $validatedData['category_id'][$i],
+                'discount' => $validatedData['discount'][$i],
+                'company_copayment' => $validatedData['company_copayment'][$i],
+                'client_copayment' => $validatedData['client_copayment'][$i],
+                'max_copayment' => $validatedData['max_copayment'][$i],
+                'type' => $validatedData['type'][$i],
+            ]);
+        }
 
-        return redirect()->route('Insurance_Agents.index')->with('success', 'تم إضافة الفئة بنجاح!');
+        return redirect()->route('Insurance_Agents.index')->with('success', 'Data saved successfully!');
     }
-
     public function update(Request $request, $id)
     {
         // التحقق من البيانات المدخلة
