@@ -70,7 +70,7 @@ class InsuranceAgentsController extends Controller
         }
 
         // إعادة توجيه مع رسالة نجاح
-        return redirect()->route('InsuranceAgentsClass.create')->with('success', 'تم إضافة وكيل التأمين بنجاح!');
+        return redirect()->route('InsuranceAgentsClass.create', ['insurance_agent_id' => $insuranceAgent->id])->with('success', 'تم إضافة وكيل التأمين بنجاح!');
     }
     public function edit($id)
     {

@@ -152,7 +152,7 @@
                                     </td>
                                 </tr>
                                 <!-- Modal لحذف القسم -->
-                                <div class="modal fade" id="modal_DELETE {{ $->id }}" tabindex="-1" role="dialog"
+                                <div class="modal fade" id="modal_DELETE {{ $rule->id }}" tabindex="-1" role="dialog"
                                     aria-labelledby="myModalLabel1" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered" role="document"></div>
                                         <div class="modal-content">

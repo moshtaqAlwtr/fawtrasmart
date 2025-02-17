@@ -29,9 +29,9 @@ Route::group(
         });
         Route::prefix('InsuranceAgentsClass')->middleware(['auth', 'role:manager'])->group(function () {
             // صفحة الفهرس
-
-            Route::get('create', [InsuranceAgentsClassController::class,    'create'])->name('InsuranceAgentsClass.create');
+            Route::get('/create/{insurance_agent_id}', [InsuranceAgentsClassController::class, 'create'])->name('InsuranceAgentsClass.create');
             Route::post('/store', [InsuranceAgentsClassController::class,'store'])->name('InsuranceAgentsClass.store');
+
             Route::put('/update/{id}', [InsuranceAgentsClassController::class, 'update'])->name('InsuranceAgentsClass.update');
             Route::get('edit/{id}', [InsuranceAgentsClassController::class, 'edit'])->name('InsuranceAgentsClass.edit');
 
