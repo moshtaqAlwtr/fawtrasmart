@@ -38,11 +38,17 @@ Route::group(
                     Route::get('/renew/{id}', [MembershipsController::class, 'renew'])->name('Memberships.renew');
                     Route::post('/renew/update/{id}', [MembershipsController::class, 'renew_update'])->name('Memberships.renew_update');
                     Route::get('/be_active/{id}', [MembershipsController::class, 'be_active'])->name('Memberships.be_active'); //تنشيط 
-                    Route::get('/deactive/{id}', [MembershipsController::class, 'deactive'])->name('Memberships.deactive');// الغاء التنشيط
+                    Route::get('/deactive/{id}', [MembershipsController::class, 'deactive'])->name('Memberships.deactive');// الغاء التنشيط   
+                    Route::get('/create_invoice/{id}/{type?}', [MembershipsController::class, 'create_invoice'])->name('Memberships.create_invoice');
+                    Route::get('/subscriptions', [MembershipsController::class, 'subscriptions'])->name('Memberships.subscriptions');
+                    Route::get('/subscriptions/show/{id}', [MembershipsController::class, 'show_subscription'])->name('Memberships.show_subscription');
                 });
+                
                 Route::prefix('SittingMemberships')->group(function () {
                     Route::get('/index', [SittingController::class, 'index'])->name('SittingMemberships.index');
                     Route::get('/sitting', [SittingController::class, 'sitting'])->name('SittingMemberships.sitting');
+                    Route::post('/store', [SittingController::class, 'store'])->name('SittingMemberships.store');
+                    
 
                 });
 

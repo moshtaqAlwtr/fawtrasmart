@@ -14,6 +14,7 @@ class InvoiceItem extends Model
     protected $fillable = [
         'invoice_id',
         'product_id',
+        'packege_id',
         'quotation_id',
         'credit_note_id', // إضافة حقل credit_note_id
         'purchase_invoice_id',
@@ -30,6 +31,8 @@ class InvoiceItem extends Model
         'tax_1',
         'tax_2',
         'total',
+        'package',
+        'type',
     ];
 
     protected $casts = [

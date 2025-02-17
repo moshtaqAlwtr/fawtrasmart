@@ -3,15 +3,32 @@
 namespace App\Http\Controllers\Memberships;
 
 use App\Http\Controllers\Controller;
+use App\Models\MembershipsSetthing;
 use Illuminate\Http\Request;
 
 class SittingController extends Controller
 {
   public function index() {
+    
     return view('Memberships_subscriptions.sitting_memberships.index');
   }
   public function sitting()
   {
+    // $setting = MembershipsSetthing::all();
     return view('Memberships_subscriptions.sitting_memberships.sitting');
   }
+
+  public function store(Request $request)
+  {
+      // البحث عن السجل الأول، وإذا لم يكن موجودًا يتم إنشاؤه
+      $setting = MembershipsSetthing::firstOrNew();
+  
+      // تحديث القيم
+      $setting->days_allowed   = $request->days_allowed;
+      $setting->active_clients = $request->active_clients;
+      $setting->save(); // الحفظ سواء كان تحديثًا أو إدخالاً جديدًا
+  
+      return back()->with('success', 'تم التعديل بنجاح');
+  }
+  
 }

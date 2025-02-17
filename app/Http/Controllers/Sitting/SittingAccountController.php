@@ -11,4 +11,6 @@ class SittingAccountController extends Controller
     {
         return view('sitting.sittingAccount.index');
     }
+
+
 }

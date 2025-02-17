@@ -616,8 +616,8 @@
                                         data-i18n="Analytics">{{ trans('main_trans.Membership_management') }}</span></a>
                             </li>
                         @endcan
-
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        
+                        <li><a href="{{ route('Memberships.subscriptions') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
                         </li>
 

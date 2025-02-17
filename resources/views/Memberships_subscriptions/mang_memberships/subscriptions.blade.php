@@ -10,7 +10,7 @@
             <div class="content-header-left col-md-9 col-12 mb-2">
                 <div class="row breadcrumbs-top">
                     <div class="col-12">
-                        <h2 class="content-header-title float-left mb-0"> ادارة العضويات </h2>
+                        <h2 class="content-header-title float-left mb-0"> ادارة الاشتراكات </h2>
                         <div class="breadcrumb-wrapper col-12">
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
@@ -25,21 +25,7 @@
         <div class="content-body">
             <div class="card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-rtl flex-wrap">
-                        <div></div>
-    
-                      
-                     
-                        <div>
-                                    <a href="{{ route('Memberships.create') }}" class="btn btn-outline-success">
-                                        <i class="fa fa-plus me-2"></i>اضف عضوية     
-                                    </a>
-    
-                                    <a href="{{ route('Memberships.index') }}"  class="btn btn-outline-primary">
-                                        <i class="fa fa-calendar-alt me-2"></i> العضويات
-                                        </a>
-                                </div>
-                    </div>
+                   
                 </div>
             </div>
             <div class="card">
@@ -119,12 +105,13 @@
 
                                 <th>الباقة الحالية </th>
                                 <th>تاريخ الانتهاء</th>
-
+                                <th>رقم الفاتورة </th>
                                 <th>الحالة</th>
                                 <th>ترتيب بواسطة</th>
                             </tr>
                         </thead>
                         <tbody>
+                        
                             @foreach ($memberships as $membership)
                                 
                             
@@ -145,7 +132,7 @@
                                 <td><br><small class="text-muted">{{$membership->packege->commission_name ?? ""}}</small></td>
 
                                 <td><small class="text-muted">{{$membership->end_date ?? ""}}</small></td>
-
+                                <td><small class="text-muted">{{$membership->invoice_id ?? ""}}</small></td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="rounded-circle bg-info" style="width: 8px; height: 8px;"></div>
@@ -167,16 +154,11 @@
                                             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                 <li>
                                                     <a class="dropdown-item"
-                                                        href="{{ route('Memberships.show', $membership->id) }}">
+                                                        href="{{ route('Memberships.show_subscription', $membership->id) }}">
                                                         <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                     </a>
                                                 </li>
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('Memberships.edit', $membership->id) }}">
-                                                        <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                    </a>
-                                                </li>
+                                             
 
                                                 <li>
                                                     <a class="dropdown-item text-danger" href="{{ route('Memberships.delete', $membership->id) }}">
@@ -193,8 +175,6 @@
                     </table>
                 </div>
             </div>
-
-
 
 
         @endsection

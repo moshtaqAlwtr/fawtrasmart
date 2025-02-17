@@ -33,6 +33,8 @@ Route::group(
             ->group(function () {
                 Route::prefix('accountInfo')->group(function () {
                     Route::get('/index', [SittingInfoController::class, 'index'])->name('AccountInfo.index');
+                    Route::get('/create', [SittingInfoController::class, 'create'])->name('AccountInfo.create');
+                    Route::post('/store', [SittingInfoController::class, 'store'])->name('AccountInfo.store');
                 });
 
                 Route::prefix('SittingAccount')->group(function () {

@@ -35,11 +35,8 @@
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex align-items-center gap-2">
                                 <h5 class="mb-0 fw-bolder">{{$membership->client->first_name ?? ""}} </h5>
-                            
-                                
+                                <small class="text-muted"></small>
                             </div>
-                    
-                           
                             <div class="vr mx-2"></div>
                             <div class="d-flex align-items-center">
                                 <small class="text-success">
@@ -76,35 +73,8 @@
 
     <div class="card">
         <div class="card-title p-2 d-flex align-items-center gap-2">
-            <!-- زر تعديل -->
-            <a href="{{ route('Memberships.edit', $membership->id) }}"
-                class="btn btn-outline-info btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;">
-                <i class="fa fa-edit ms-1 text-info"></i> تعديل
-            </a>
+          
 
-         
-            
-            <!-- زر تجديد -->
-            <a href="{{ route('Memberships.renew', $membership->id) }}"
-                class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;">
-                <i class="fa fa-refresh ms-1 text-primary"></i> تجديد
-            </a>
-
-            <!-- زر إلغاء الإيقاف -->   
-            <a href="{{ route('Memberships.be_active', $membership->id) }}"
-                class="btn btn-outline-warning btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;">
-                <i class="fa fa-ban ms-1 text-warning"></i> إلغاء الإيقاف
-            </a>
-
-            <!-- زر إضافة فترة توقف -->
-            <a href="{{ route('Memberships.deactive', $membership->id) }}"
-                class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center justify-content-center px-3"
-                style="min-width: 90px;">
-                <i class="fa ms-1 text-secondary"></i>  ايقاف
-            </a>
         </div>
 
 
@@ -112,13 +82,11 @@
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#info" role="tab">
-                        <span>معلومات العضوية </span>
+                        <span>معلومات الاشتراك </span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#usage" role="tab">
-                        <span> التجديدات </span>
-                    </a>
+                  
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#activity" role="tab">

@@ -19,6 +19,7 @@ public function up()
         $table->foreignId('invoice_id')->nullable()->constrained('invoices')->onDelete('cascade');
         $table->foreignId('quotation_id')->nullable()->constrained('quotes')->onDelete('cascade');
         $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('cascade');
+        $table->foreignId('packege_id')->nullable(); // الباقة
         $table->foreignId('store_house_id')->nullable()->constrained('store_houses')->onDelete('cascade');
         $table->foreignId('quote_id')->nullable()->constrained('quotes')->onDelete('cascade');
         $table->foreignId('credit_note_id')->nullable()->constrained('credit_notifications')->onDelete('cascade');
@@ -36,6 +37,7 @@ public function up()
         $table->decimal('tax_1', 5, 2)->nullable();
         $table->decimal('tax_2', 5, 2)->nullable();
         $table->decimal('total', 10, 2)->nullable();
+        $table->enum('type', ['product', 'packege'])->default('product');
         $table->timestamps();
     });
 }

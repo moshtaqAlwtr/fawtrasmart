@@ -34,6 +34,8 @@
                     </div>
 
                     <div>
+                        <form action="{{ route('SittingMemberships.store') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
                         <a href="" class="btn btn-outline-danger">
                             <i class="fa fa-ban"></i>الغاء
                         </a>
@@ -44,8 +46,10 @@
                 </div>
             </div>
         </div>
-
-        <form class="form mt-4">
+      
+        @include('layouts.alerts.error')
+        @include('layouts.alerts.success')
+         
             <div class="card" style="max-width: 90%; margin: 0 auto;">
                 <div class="card-header">
                     <h1 class="fs-2 fw-bold mb-0">
@@ -53,24 +57,35 @@
                     </h1>
                 </div>
                 <div class="card-body">
-                    <div class="form-body row mb-5 align-items-center">
-                        <div class="form-group col-md-4 mb-3">
-                            <label for="feedback2">ايام السماح ؟ <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="feedback2">
+                    <form action="{{ route('SittingMemberships.store') }}" method="POST">
+                        @csrf
+                        @php
+                            $setting = \App\Models\MembershipsSetthing::first();
+                        @endphp
+                
+                        <div class="form-body row mb-5 align-items-center">
+                            <div class="form-group col-md-4 mb-3">
+                                <label for="feedback2">ايام السماح ؟ <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="feedback2" name="days_allowed" 
+                                    value="{{ $setting ? $setting->days_allowed : '' }}">
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="form-body row mb-5">
-                        <div class="form-group col-md-6 mb-3">
-                            <label for="feedback1"> السماح ب التسجيل الحضور الي <span class="text-danger">*</span></label>
-                            <select name="" class="form-control" id="">
-                                <option value=""> كل العملاء</option>
-                                <option value=""> كل العملاء المشتركين </option>
-                                <option value=""> المشتركين النشيطين </option>
-                            </select>
-
+                
+                        <div class="form-body row mb-5">
+                            <div class="form-group col-md-6 mb-3">
+                                <label for="feedback1"> السماح بتسجيل الحضور الي <span class="text-danger">*</span></label>
+                                <select class="form-control" name="active_clients">
+                                    <option value="all" {{ ($setting && $setting->active_clients == 'all') ? 'selected' : '' }}>كل العملاء</option>
+                                    <option value="only_registered" {{ ($setting && $setting->active_clients == 'only_registered') ? 'selected' : '' }}>كل العملاء المشتركين</option>
+                                    <option value="active_clients" {{ ($setting && $setting->active_clients == 'active_clients') ? 'selected' : '' }}>المشتركين النشيطين</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                
+                      
+                    </form>
+                </div>
+                
 
                     <div class="form-body row mb-5">
                         <div class="form-group col-md-6 mb-3">
