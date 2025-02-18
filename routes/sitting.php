@@ -35,10 +35,15 @@ Route::group(
                     Route::get('/index', [SittingInfoController::class, 'index'])->name('AccountInfo.index');
                     Route::get('/create', [SittingInfoController::class, 'create'])->name('AccountInfo.create');
                     Route::post('/store', [SittingInfoController::class, 'store'])->name('AccountInfo.store');
+                    Route::get('/backup', [SittingInfoController::class, 'backup'])->name('AccountInfo.backup'); 
+                    Route::post('/backup/download', [SittingInfoController::class, 'download'])->name('AccountInfo.download');                   
                 });
 
                 Route::prefix('SittingAccount')->group(function () {
                     Route::get('/index', [SittingAccountController::class, 'index'])->name('SittingAccount.index');
+                    Route::post('/create', [SittingAccountController::class, 'store'])->name('SittingAccount.store');
+                    Route::post('/Change_email', [SittingAccountController::class, 'Change_email'])->name('SittingAccount.Change_email');
+                    Route::post('/change_password', [SittingAccountController::class, 'change_password'])->name('SittingAccount.change_password');
                 });
 
                 Route::prefix('CurrencyRates')->group(function () {
@@ -53,6 +58,9 @@ Route::group(
                     Route::get('/index', [PaymentMethodsController::class, 'index'])->name('PaymentMethods.index');
                     Route::get('/create', [PaymentMethodsController::class, 'create'])->name('PaymentMethods.create');
                 });
+                
+
+                
             });
     },
 );

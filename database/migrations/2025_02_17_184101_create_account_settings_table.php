@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('account_settings', function (Blueprint $table) {
             $table->id();
+            $table->integer('user_id')->nullable();
             $table->string('currency')->nullable(); // العملة       
             $table->string('negative_currency_formats')->nullable();  // تنسيقات العملات السالبة 
-            $table->string('time_formula')->nullable(); //صيغة الوقت 
-            $table->string('timezone')->nullable(); // المنطقة الزمنية
+            $table->string('time_formula')->nullable(); //صيغة الوقت    
+            $table->string('timezone')->nullable(); // المنطقة الزمنية      
+            $table->string('attachments')->nullable();
+            $table->string('language')->nullable(); // اللغه    
+            $table->string('printing_method')->nullable(); // طريقة الطباعة   
             $table->enum('business_type', ['products', 'services', 'both'])->default('products'); // النوع
             $table->timestamps();
         });

@@ -34,36 +34,36 @@
                                 </div>
                             </div>
                         </div>
-                        <h3 class="mb-2">مؤسسة أعمال خاصة للتجارة</h3>
-                        
+                        <h3 class="mb-2">{{$client->trade_name ?? ""}}</h3>
+                       
                         <div class="profile-info-list">
                             <div class="info-item">
                                 <span class="info-label">الموقع الإلكتروني</span>
-                                <span class="info-value">jesst4you.daftra.com</span>
+                                <span class="info-value">https://fawtrasmart.com</span>
                             </div>
-                            <div class="info-item">
-                                <span class="info-label">المدينة</span>
-                                <span class="info-value">الرياض، الرياض</span>
+                            <div class="info-item"> 
+                                <span class="info-label">{{$client->city ?? ""}}</span>
+                                <span class="info-value">{{ $client->region ?? ""}}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">العملة الافتراضية</span>
-                                <span class="badge badge-light-primary">SAR</span>
+                                <span class="badge badge-light-primary">{{$account_setting->currency ?? "SAR"}}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">المنطقة الزمنية</span>
-                                <span class="info-value">Riyadh (UTC+03:00)</span>
+                                <span class="info-value">{{$account_setting->timezone}}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">صيغة التاريخ</span>
-                                <span class="info-value">d/m/Y (02/01/2025)</span>
+                                <span class="info-value">{{$account_setting->time_formula ?? ""}}</span>
                             </div>
                         </div>
 
                         <div class="mt-3">
-                            <button class="btn btn-gradient-primary w-100 waves-effect waves-float waves-light mb-2">
+                            <a href="{{ route('AccountInfo.backup') }}" class="btn btn-gradient-primary w-100 waves-effect waves-float waves-light mb-2">
                                 <i data-feather="download" class="mr-1"></i>
                                 تنزيل نسخة احتياطية
-                            </button>
+                            </a>
                             <button class="btn btn-outline-danger w-100 waves-effect">
                                 <i data-feather="x-circle" class="mr-1"></i>
                                 إلغاء هذا الحساب

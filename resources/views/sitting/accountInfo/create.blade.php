@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-    اضافة عضوية
+    بيانات الحساب 
 @stop
 
 @section('content')

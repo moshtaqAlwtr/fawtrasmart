@@ -5,72 +5,172 @@ namespace App\Http\Controllers\Sitting;
 use App\Http\Controllers\Controller;
 use App\Models\AccountSetting;
 use App\Models\BusinessData;
+use App\Models\Client;
+use App\Models\Employee;
+use App\Models\Expense;
+use App\Models\Invoice;
+use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\Revenue;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
+use ZipArchive;
+use Illuminate\Support\Facades\Response;
 
 class SittingInfoController extends Controller
 {
     public function index()
     {
-        return view('sitting.accountInfo.index');
+        $client   = Client::where('user_id',auth()->user()->id)->first();
+        $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
+        return view('sitting.accountInfo.index',compact('client','account_setting'));
     }
     public function create()
     {
         return view('sitting.accountInfo.create');
     }
 
+    public function Backup()
+    { 
+        
+        return view('sitting.accountInfo.Backup');
+    } 
+    public function download(Request $request)
+    {
+        // التحقق من البيانات المدخلة
+        $request->validate([
+            'data_types' => 'required|array',
+            'data_types.*' => 'in:invoices,clients,purchase_orders,products,expenses,revenues,employees,suppliers',
+            'file_format' => 'required|in:xml,json,csv',
+        ]);
+
+        // إنشاء ملف ZIP
+        $zip = new ZipArchive;
+        $zipFileName = 'backup_' . now()->format('Ymd_His') . '.zip';
+        $zipFilePath = storage_path('app/' . $zipFileName);
+
+        if ($zip->open($zipFilePath, ZipArchive::CREATE) === TRUE) {
+            foreach ($request->data_types as $dataType) {
+                // جلب البيانات بناءً على الاختيار
+                $data = [];
+                switch ($dataType) {
+                    case 'invoices':
+                        $data = Invoice::all();
+                        break;
+                    case 'clients':
+                        $data = Client::all();
+                        break;
+                    case 'purchase_orders':
+                        $data = PurchaseOrder::all();
+                        break;
+                    case 'products':
+                        $data = Product::all();
+                        break;
+                    case 'expenses':
+                        $data = Expense::all();
+                        break;
+                    case 'revenues':
+                        $data = Revenue::all();
+                        break;
+                    case 'employees':
+                        $data = Employee::all();
+                        break;
+                    case 'suppliers':
+                        $data = Supplier::all();
+                        break;
+                }
+
+                // تحويل البيانات إلى التنسيق المطلوب
+                $fileContent = '';
+                $fileName = $dataType . '_' . now()->format('Ymd_His');
+                switch ($request->file_format) {
+                    case 'xml':
+                        $fileContent = $this->arrayToXml($data->toArray());
+                        $fileName .= '.xml';
+                        break;
+                    case 'json':
+                        $fileContent = json_encode($data, JSON_PRETTY_PRINT);
+                        $fileName .= '.json';
+                        break;
+                    case 'csv':
+                        $fileContent = $this->arrayToCsv($data->toArray());
+                        $fileName .= '.csv';
+                        break;
+                }
+
+                // إضافة الملف إلى الأرشيف
+                $zip->addFromString($fileName, $fileContent);
+            }
+
+            $zip->close();
+        }
+
+        // تنزيل ملف ZIP
+        return response()->download($zipFilePath)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * تحويل المصفوفة إلى XML
+     */
+    private function arrayToXml(array $data, $rootNodeName = 'root', $xml = null)
+    {
+        if ($xml === null) {
+            $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><' . $rootNodeName . '/>');
+        }
+
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $key = is_numeric($key) ? 'item' : $key;
+                $this->arrayToXml($value, $key, $xml->addChild($key));
+            } else {
+                $key = is_numeric($key) ? 'item' : $key;
+                $xml->addChild($key, htmlspecialchars($value));
+            }
+        }
+
+        return $xml->asXML();
+    }
+
+    /**
+     * تحويل المصفوفة إلى CSV
+     */
+    private function arrayToCsv(array $data)
+    {
+        if (count($data) === 0) {
+            return '';
+        }
+
+        // فتح مخرجات CSV في الذاكرة
+        $output = fopen('php://temp', 'w');
+
+        // كتابة رأس CSV (الأعمدة)
+        fputcsv($output, array_keys($data[0]));
+
+        // كتابة البيانات
+        foreach ($data as $row) {
+            fputcsv($output, $row);
+        }
+
+        // إرجاع المحتوى كسلسلة نصية
+        rewind($output);
+        $csv = stream_get_contents($output);
+        fclose($output);
+
+        return $csv;
+    }
+  
+
+      
+   
     public function store(Request $request)
     {
      
          
-        // التحقق من المدخلات
-        // $request->validate([
-        //     'business_email' => 'required|email',
-        //     'first_name' => 'required|string|max:255',
-        //     'last_name' => 'required|string|max:255',
-        //     'phone' => 'required|string|max:15',
-        //     'mobile' => 'required|string|max:15',
-        //     'street_address1' => 'required|string|max:255',
-        //     'street_address2' => 'nullable|string|max:255',
-        //     'city' => 'required|string|max:100',
-        //     'postal_code' => 'required|string|max:10',
-        //     'country' => 'required|string|max:100',
-
-        //     'currency' => 'required|string|max:3',  // العملة
-        //     'timezone' => 'required|string',  // المنطقة الزمنية
-        //     'account_type' => 'required|string|in:product,service,product_service',  // نوع الحساب
-        // ]);
-
-        // تحقق من وجود بيانات في جدول بيانات العمل وتحديثها أو إدخالها
-        $workData = BusinessData::first();  // نحاول جلب أول سجل من جدول بيانات العمل
-        if ($workData) {
-            // إذا كانت البيانات موجودة نقوم بتحديثها
-            $workData->update($request->only([
-                'business_name', 'first_name', 'last_name', 'phone','mobile',
-                'street_address1', 'street_address2', 'city', 'postal_code', 'country'
-            ]));
-        } else {
-            // إذا لم تكن البيانات موجودة نقوم بإدخالها
-            BusinessData::create($request->only([
-                'business_name', 'first_name', 'last_name', 'phone','mobile',
-                'street_address1', 'street_address2', 'city', 'postal_code', 'country'
-            ]));
-        }
-       
-        // تحقق من وجود بيانات في جدول إعدادات الحساب وتحديثها أو إدخالها
-        $accountSettings = AccountSetting::first();  // نحاول جلب أول سجل من جدول إعدادات الحساب
-        if ($accountSettings) {
-            // إذا كانت البيانات موجودة نقوم بتحديثها
-            $accountSettings->update($request->only([
-                'currency', 'timezone', 'business_type'
-            ]));
-        } else {
-            // إذا لم تكن البيانات موجودة نقوم بإدخالها
-            AccountSetting::create($request->only([
-                'currency', 'timezone', 'business_type'
-            ]));
-        }
-
-        // إرجاع إلى صفحة النجاح مع رسالة
-        return redirect()->route('sitting.create')->with('success', 'تم حفظ البيانات بنجاح!');
+     
     }
 }
+
+
+
+
+
