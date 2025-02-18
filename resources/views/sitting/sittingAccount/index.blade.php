@@ -34,29 +34,29 @@
                 <div class="col-md-6 col-12">
                     <x-layout.card title="بيانات العميل">
                         <div class="row">
-                            <x-form.input label="الاسم التجاري" name="trade_name" icon="briefcase" required="true"
+                            <x-form.input label="الاسم التجاري" value="{!! old('trade_name', $client->trade_name ?? '') !!}" name="trade_name" icon="briefcase" required="true"
                                 col="12" />
 
-                            <x-form.input label="الاسم الأول" name="first_name" icon="user" col="6" />
-                            <x-form.input label="الاسم الأخير" name="last_name" icon="user" col="6" />
+                            <x-form.input label="الاسم الأول" value="{!! old('first_name', $client->first_name ?? '') !!}" name="first_name" icon="user" col="6" />
+                            <x-form.input label="الاسم الأخير" value="{!! old('last_name', $client->last_name ?? '') !!}"  name="last_name" icon="user" col="6" />
 
-                            <x-form.input label="الهاتف" name="phone" icon="phone" col="6" />
+                            <x-form.input label="الهاتف" value="{!! old('phone', $client->phone ?? '') !!}" name="phone" icon="phone" col="6" />
                             <x-form.input label="جوال" name="mobile" icon="smartphone" col="6" />
 
-                            <x-form.input label="عنوان الشارع 1" name="street1" icon="map-pin" col="6" />
-                            <x-form.input label="عنوان الشارع 2" name="street2" icon="map-pin" col="6" />
+                            <x-form.input label="عنوان الشارع 1" value="{!! old('street1', $client->street1 ?? '') !!}" name="street1" icon="map-pin" col="6" />
+                            <x-form.input label="عنوان الشارع 2" value="{!! old('street2', $client->street2 ?? '') !!}" name="street2" icon="map-pin" col="6" />
 
-                            <x-form.input label="المدينة" name="city" icon="map" col="4" />
-                            <x-form.input label="المنطقة" name="region" icon="map" col="4" />
-                            <x-form.input label="الرمز البريدي" name="postal_code" icon="mail" col="4" />
+                            <x-form.input label="المدينة" value="{!! old('city', $client->city ?? '') !!}" name="city" icon="map" col="4" />
+                            <x-form.input label="المنطقة" value="{!! old('region', $client->region ?? '') !!}" name="region" icon="map" col="4" />
+                            <x-form.input label="الرمز البريدي" value="{!! old('postal_code', $client->postal_code ?? '') !!}" name="postal_code" icon="mail" col="4" />
 
                             <x-form.select label="البلد" name="country" icon="globe" col="12">
                                 <option value="SA" selected>المملكة العربية السعودية (SA)</option>
                             </x-form.select>
 
-                            <x-form.input label="الرقم الضريبي (اختياري)" name="tax_number" icon="file-text"
+                            <x-form.input label="الرقم الضريبي (اختياري)" value="{!! old('tax_number', $client->tax_number ?? '') !!}" name="tax_number" icon="file-text"
                                 col="6" />
-                            <x-form.input label="سجل تجاري (اختياري)" name="commercial_registration" icon="file"
+                            <x-form.input label="سجل تجاري (اختياري)" value="{!! old('commercial_registration', $client->commercial_registration ?? '') !!}" name="commercial_registration" icon="file"
                                 col="6" />
                         </div>
                     </x-layout.card>

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->string('trade_name', 255);
             $table->string('first_name', 100)->nullable();
+            $table->integer('user_id')->nullable();
             $table->string('last_name', 100)->nullable();
             $table->string('phone', 20)->nullable();
             $table->string('mobile', 20)->nullable();

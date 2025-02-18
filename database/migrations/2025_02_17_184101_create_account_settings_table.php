@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('account_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('currency')->nullable(); // العملة
+            $table->string('currency')->nullable(); // العملة       
+            $table->string('negative_currency_formats')->nullable();  // تنسيقات العملات السالبة 
+            $table->string('time_formula')->nullable(); //صيغة الوقت 
             $table->string('timezone')->nullable(); // المنطقة الزمنية
             $table->enum('business_type', ['products', 'services', 'both'])->default('products'); // النوع
             $table->timestamps();
