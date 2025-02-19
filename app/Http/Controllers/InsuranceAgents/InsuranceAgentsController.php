@@ -106,7 +106,8 @@ class InsuranceAgentsController extends Controller
     public function show($id)
     {
         $insuranceAgent = InsuranceAgent::findOrFail($id);
-        return view('Insurance_Agents.show', compact('insuranceAgent'));
+        $categories = InsuranceAgentCategory::where('insurance_agent_id', $id)->get();
+        return view('Insurance_Agents.show', compact('insuranceAgent', 'categories'));
     }
     // دالة لحذف الوكيل التأمين
     public function destroy($id)
