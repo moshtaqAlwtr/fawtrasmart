@@ -139,7 +139,6 @@
             </div>
         </div>
     </div>
-
     <div class="card p-3">
         <table class="table table-striped">
             <thead>
@@ -148,16 +147,16 @@
                     <th>التصنيفات</th>
                     <th>الدفع المشترك%</th>
                     <th>الخصم%</th>
-                    <th>الترتيب</th>
+                    <th>إجراءات</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($categories as $category)
+                @foreach ($categories as $insuranceAgentCategory)
                     <tr>
-                        <td>{{ $category->name }}</td>
-                        <td>{{ $category->category->name ?? 'غير متوفر' }}</td>
-                        <td>{{ $category->client_copayment }}%</td>
-                        <td>{{ $category->discount }}%</td>
+                        <td>{{ $insuranceAgentCategory->name }}</td>
+                        <td>{{ $insuranceAgentCategory->category->name ?? 'غير متوفر' }}</td>
+                        <td>{{ $insuranceAgentCategory->client_copayment }}%</td>
+                        <td>{{ $insuranceAgentCategory->discount }}%</td>
                         <td>
                             <div class="btn-group">
                                 <div class="dropdown">
@@ -166,19 +165,19 @@
                                         aria-expanded="false"></button>
                                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('InsuranceAgentsClass.show', $agent->id) }}">
+                                            <a class="dropdown-item" href="{{ route('InsuranceAgentsClass.show', $insuranceAgentCategory->id) }}">
                                                 <i class="fa fa-eye me-2 text-primary"></i>عرض
                                             </a>
                                         </li>
 
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('InsuranceAgentsClass.edit', $agent->id) }}">
+                                            <a class="dropdown-item" href="{{ route('InsuranceAgentsClass.edit', $insuranceAgentCategory->id) }}">
                                                 <i class="fa fa-edit me-2 text-success"></i>تعديل
                                             </a>
                                         </li>
 
                                         <li>
-                                            <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $agent->id }}">
+                                            <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $insuranceAgentCategory->id }}">
                                                 <i class="fa fa-trash me-2"></i>حذف
                                             </a>
                                         </li>
@@ -187,6 +186,28 @@
                             </div>
                         </td>
                     </tr>
+                    <div class="modal fade" id="modal_DELETE{{ $insuranceAgentCategory->id }}" tabindex="-1" aria-labelledby="exampleModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">حذف وكيل تأمين</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    هل أنت متأكد من حذف الوكيل "{{ $insuranceAgentCategory->name }}"��
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                                    <form action="{{ route('InsuranceAgentsClass.destroy', $insuranceAgentCategory->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">تأكيد</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 @endforeach
                 @if ($categories->isEmpty())
                     <tr>
@@ -196,7 +217,6 @@
             </tbody>
         </table>
     </div>
-
     <!-- Modal DELETE -->
     <div class="modal fade" id="modal_DELETE{{ $insuranceAgent->id }}" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">

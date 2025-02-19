@@ -25,7 +25,7 @@
 
     <div class="card">
         <div class="card-content">
-            <form action="{{ route('InsuranceAgentsClass.update', $insuranceAgentClass->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('InsuranceAgentsClass.update', $insuranceAgentCategory->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 @if ($errors->any())
@@ -43,7 +43,7 @@
                     </div>
                 @endif
 
-                <input type="hidden" name="insurance_agent_id" value="{{ $insurance_agent_id }}"> <!-- حقل مخفي للمعرف -->
+                <input type="hidden" name="insurance_agent_id" value="{{ $insurance_agent_id }}">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-rtl flex-wrap">
@@ -63,7 +63,7 @@
                 <div class="card-body">
                     <div class="form-group col-md-12">
                         <label for="minimum_import_points" class=""> الاسم </label>
-                        <input type="text" id="minimum_import_points" class="form-control" placeholder="" name="name" value="{{ old('name', $insuranceAgentClass->name) }}">
+                        <input type="text" id="minimum_import_points" class="form-control" placeholder="" name="name" value="{{ old('name', $insuranceAgentCategory->name) }}">
                     </div>
 
                     <table class="table table-bordered table-striped">
@@ -78,43 +78,43 @@
                             </tr>
                         </thead>
                         <tbody id="statusTable">
-                            @foreach ($insuranceAgentClass->categories as $category) <!-- Assuming a relationship exists -->
-                                <tr data-status-id="{{ $category->id }}">
+                            @if ($insuranceAgentCategory->category)
+                                <tr data-status-id="{{ $insuranceAgentCategory->category->id }}">
                                     <td>
                                         <div class="form-group">
                                             <select class="form-control" name="category_id[]">
                                                 <option value="">اختر التصنيف</option>
                                                 @foreach ($categories as $cat)
-                                                    <option value="{{ $cat->id }}" {{ $cat->id == $category->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                                    <option value="{{ $cat->id }}" {{ $cat->id == $insuranceAgentCategory->category->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="form-group">
-                                            <input type="text" class="form-control" placeholder="" name="discount[]" value="{{ $category->discount }}">
+                                            <input type="text" class="form-control" placeholder="" name="discount[]" value="{{ $insuranceAgentCategory->discount }}">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="form-group">
-                                            <input type="number" class="form-control company-copayment" placeholder="" name="company_copayment[]" value="{{ $category->company_copayment }}">
+                                            <input type="number" class="form-control company-copayment" placeholder="" name="company_copayment[]" value="{{ $insuranceAgentCategory->company_copayment }}">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="form-group">
-                                            <input type="number" class="form-control client-copayment" placeholder="" name="client_copayment[]" value="{{ $category->client_copayment }}">
+                                            <input type="number" class="form-control client-copayment" placeholder="" name="client_copayment[]" value="{{ $insuranceAgentCategory->client_copayment }}">
                                         </div>
                                     </td>
                                     <td>
                                         <div class="form-group">
                                             <div class="row">
                                                 <div class="col-6">
-                                                    <input type="number" class="form-control numeric" step="any" name="max_copayment[]" value="{{ $category->max_copayment }}" />
+                                                    <input type="number" class="form-control numeric" step="any" name="max_copayment[]" value="{{ $insuranceAgentCategory->max_copayment }}" />
                                                 </div>
                                                 <div class="col-6">
                                                     <select name="type[]" class="form-control">
-                                                        <option value="1" {{ $category->type == 1 ? 'selected' : '' }}>العميل</option>
-                                                        <option value="2" {{ $category->type == 2 ? 'selected' : '' }}>شركه تأمين</option>
+                                                        <option value="1" {{ $insuranceAgentCategory->type == 1 ? 'selected' : '' }}>العميل</option>
+                                                        <option value="2" {{ $insuranceAgentCategory->type == 2 ? 'selected' : '' }}>شركه تأمين</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -126,7 +126,11 @@
                                         </a>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="6" class="text-center">لا توجد تصنيفات متاحة</td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
 

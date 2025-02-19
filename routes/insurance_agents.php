@@ -24,18 +24,15 @@ Route::group(
             Route::put('/update/{id}', [InsuranceAgentsController::class, 'update'])->name('Insurance_Agents.update');
             Route::delete('/destroy/{id}', [InsuranceAgentsController::class, 'destroy'])->name('Insurance_Agents.destroy');
             Route::get('/updateStatus/{id}', [InsuranceAgentsController::class, 'updateStatus'])->name('Insurance_Agents.updateStatus');
-
-
         });
         Route::prefix('InsuranceAgentsClass')->middleware(['auth', 'role:manager'])->group(function () {
             // صفحة الفهرس
             Route::get('/create/{insurance_agent_id}', [InsuranceAgentsClassController::class, 'create'])->name('InsuranceAgentsClass.create');
             Route::post('/store', [InsuranceAgentsClassController::class,'store'])->name('InsuranceAgentsClass.store');
-
+            Route::get('/show/{id}', [InsuranceAgentsClassController::class, 'show'])->name('InsuranceAgentsClass.show');
             Route::put('/update/{id}', [InsuranceAgentsClassController::class, 'update'])->name('InsuranceAgentsClass.update');
             Route::get('edit/{id}', [InsuranceAgentsClassController::class, 'edit'])->name('InsuranceAgentsClass.edit');
-
-
+            Route::delete('/destroy/{id}', [InsuranceAgentsClassController::class, 'destroy'])->name('InsuranceAgentsClass.destroy');
         });
     }
 );
