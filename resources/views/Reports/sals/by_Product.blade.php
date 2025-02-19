@@ -1,356 +1,330 @@
-<!-- العنوان -->
 @extends('master')
 
 @section('title')
-المبيعات اليومية للمنتجات 
+    تقرير مبيعاتالمنتجات اليومية
 @stop
 
+@section('css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
+@endsection
 
 @section('content')
-
-
-<div class="content-header row">
-    <div class="content-header-left col-md-9 col-12 mb-2">
-        <div class="row breadcrumbs-top">
-            <div class="col-12">
-                <h2 class="content-header-title float-left mb-0">المبيعات اليومية للمنتجات </h2>
-                <div class="breadcrumb-wrapper col-12">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="">الرئيسيه</a>
-                        </li>
-                        <li class="breadcrumb-item active">عرض
-                        </li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<div class="container mt-4">
-    <div class="card shadow">
-
-        <div class="card-body">
-            <!-- نموذج البحث -->
-            <form>
-                <div class="row">
-                    <!-- السطر الأول -->
-                    <div class="col-md-3">
-                        <label for="order"> البند:</label>
-                        <select class="form-control" id="order">
-                            <option>الكل</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="status">فاتورة:</label>
-                        <select class="form-control" id="status">
-                            <option>الكل</option>
-                            <option>فاتورة</option>
-                            <option>فاتورة مرتجعة </option>
-                            <option>أشعار دائن</option>
-                            <option>أشعار مدين</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="supplier">حالة الفاتورة:</label>
-                        <select class="form-control" id="supplier">
-                            <option>الكل </option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="supplier">التصنيف </label>
-                        <select class="form-control" id="supplier">
-                            <option>الكل </option>
-                            <option>منتج</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                    <!-- السطر الثاني -->
-                    <div class="col-md-3">
-                        <label for="employee">موظف :</label>
-                        <select class="form-control" id="employee">
-                            <option>الكل</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="date-range">الفترة من / إلى:</label>
-                        <input type="text" class="form-control" id="date-range" value="14/11/2024 - 14/12/2024">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="order"> العمله:</label>
-                        <select class="form-control" id="order">
-                            <option>ريال</option>
-                            <option>دولار</option>
-                            <option>جنيه</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="branch">فرع:</label>
-                        <select class="form-control" id="branch">
-                            <option>-None selected</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row md-4">
-                    <div class="col-md-3">
-                        <label for="supplier">العميل</label>
-                        <select class="form-control" id="supplier">
-                            <option>الكل </option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="order"> تصنيف العميل</label>
-                        <select class="form-control" id="order">
-                            <option>الكل</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="order"> الماركة</label>
-                        <select class="form-control" id="order">
-                            <option>الكل</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="order"> المخزن:</label>
-                        <select class="form-control" id="order">
-                            <option>الكل</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row mt-3">
-                <div class="vs-checkbox-con vs-checkbox-primary">
-                                                        <input type="checkbox" checked value="false">
-                                                        <span class="vs-checkbox">
-                                                            <span class="vs-checkbox--check">
-                                                                <i class="vs-icon feather icon-check"></i>
-                                                            </span>
-                                                        </span>
-                                                        <span class="">Show Draft Items</span>
-                                                    </div>
-                                                    </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">عرض التقرير</button>
-                    <button type="reset" class="btn btn-outline-warning waves-effect waves-light">ألغاء</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-body">
-            <!-- العنوان الرئيسي -->
-            <div class="row">
-                <!-- اسم المؤسسة - يمين -->
-                <div class="col-6 text-left">
-                    <p>مؤسسة أعمال خاصة للتجارة</p>
-                    <p>الرياض</p>
-                </div>
-
-                <!-- العنوان الفرعي و التاريخ - يسار -->
-                <div class="col-6 text-right">
-                    <div class="report-title">
-                        التقارير اليومية للمنتجات
-                    </div>
-                    <!-- المدة الزمنية -->
-                    <div class="report-subtitle">
-                        <strong>من:</strong> 15/11/2024
-                        <strong>إلى:</strong> 15/11/2024
-                    </div>
-                </div>
-            </div>
-
-            <!-- تبويبات رئيسية -->
-            <ul class="nav nav-tabs mt-4" id="reportTabs" role="tablist">
-                <!-- تبويب الملخص -->
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link active" id="summary-tab" data-bs-toggle="tab" href="#summary" role="tab"
-                        aria-controls="summary" aria-selected="true">الملخص</a>
-                </li>
-                <!-- تبويب التفاصيل -->
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link" id="details-tab" data-bs-toggle="tab" href="#details" role="tab"
-                        aria-controls="details" aria-selected="false">التفاصيل</a>
-                </li>
-                <!-- تبويب العميل -->
-                <li class="nav-item dropdown ms-auto" role="presentation">
-                    <a class="nav-link dropdown-toggle" id="exportDropdown" data-bs-toggle="dropdown" href="#"
-                        role="button" aria-expanded="false">العميل</a>
-                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <li><a class="dropdown-item" href="#">يومي</a></li>
-                        <li><a class="dropdown-item" href="#"> أسبوعي </a></li>
-                        <li><a class="dropdown-item" href="#">شهري</a></li>
-                        <li><a class="dropdown-item" href="#">سنوي</a></li>
-                        <li><a class="dropdown-item" href="#">موظف</a></li>
-                        <li><a class="dropdown-item" href="#">مسؤول مبيعات</a></li>
-                        <li><a class="dropdown-item" href="#">  العميل</a></li>
-                    </ul>
-                </li>
-                <!-- تبويبات خيارات التصدير والطباعة -->
-                <li class="nav-item dropdown ms-auto" role="presentation">
-                    <a class="nav-link dropdown-toggle" id="exportDropdown" data-bs-toggle="dropdown" href="#"
-                        role="button" aria-expanded="false">خيارات</a>
-                    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                        <li><a class="dropdown-item" href="#">طباعة</a></li>
-                        <li><a class="dropdown-item" href="#">تصدير إلى Excel</a></li>
-                        <li><a class="dropdown-item" href="#">تصدير إلى PDF</a></li>
-                    </ul>
-                </li>
-            </ul>
-
-
-
-            <!-- محتوى التبويبات -->
-            <div class="tab-content mt-4" id="reportTabsContent">
-                <!-- تبويب الملخص -->
-                <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
-                    <h4>الملخص</h4>
-                    <p>هنا يمكنك إضافة محتوى الملخص...</p>
-                </div>
-                <!-- تبويب التفاصيل -->
-                <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
-                    <h4>التفاصيل</h4>
-                   
-                    <div class="container mt-4">
-                        <!-- العنوان الأول للمؤسسة -->
-                        <div class="header text-center text-primary mb-4" style="font-size: 24px; font-weight: bold;">
-                            محمد المنصوب
+    <div class="container-fluid mt-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <form action="{{ route('salesReports.byProduct') }}" method="GET">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="product">البند:</label>
+                            <select name="product" class="form-control">
+                                <option value="">الكل</option>
+                                @foreach ($products as $product)
+                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-                        <div class="container mt-4">
-    <div class="card">
-        <div class="card-body">
-            <!-- العنوان الرئيسي -->
-            <div class="row mb-3">
-                <div class="col-12 text-center">
-                    <h4>التقرير التفصيلي للفواتير</h4>
-                    <p>التاريخ: 15/11/2024</p>
+                        <div class="col-md-3">
+                            <label for="employee">فاتورة:</label>
+                            <select name="employee" class="form-control">
+                                <option value="">فاتورة</option>
+                                <option value="1">مرتجع</option>
+                                <option value="2">اشعار مدين</option>
+                                <option value="2">اشعار دائن</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="employee">حالة الفاتورة:</label>
+                            <select name="status" class="form-control">
+                                <option value="">الكل</option>
+
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="employee">التصنيف:</label>
+                            <select name="status" class="form-control">
+                                <option value="">اختر التصنيف</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="employee">:المخزن</label>
+                            <select name="status" class="form-control">
+                                <option value="">اختر المخزن</option>
+                                @foreach ($storehouses as $storehouse)
+                                    <option value="{{ $storehouse->id }}">{{ $storehouse->name }}</option>
+                                @endforeach
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+
+                            <input type="checkbox" name="add_draft" class="INPUT" value="1" id="add_draft"
+                                style="margin-bottom: 30px" /><label for="add_draft">Show Draft
+                                Items</label>
+
+
+                        </div>
+                        <div class="col-md-3">
+                            <label for="employee">:ماركةال</label>
+                            <select name="status" class="form-control">
+                                <option value="">اختر الماركة</option>
+                                <option value="">2</option>
+                                <option value="">22</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="employee">:العميل</label>
+                            <select name="status" class="form-control">
+                                <option value="">اختر العميل</option>
+                                @foreach ($clients as $client)
+                                    <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                @endforeach
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="employee">:تصنيف العميل</label>
+                            <select name="status" class="form-control">
+                                <option value="">اختر التصنيف</option>
+                                @foreach ($client_categories as $client_category)
+                                    <option value="{{ $client_category->id }}">{{ $client_category->name }}</option>
+                                @endforeach
+
+                            </select>
+                        </div>
+
+
+                        <div class="col-md-3">
+                            <label for="branch">الفرع:</label>
+                            <select name="branch" class="form-control">
+                                <option value="">الكل</option>
+                                @foreach ($branches as $branch)
+                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="client">الموضف:</label>
+                            <select name="client" class="form-control">
+                                <option value="">الكل</option>
+                                @foreach ($employees as $employee)
+                                    <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="client">العملة:</label>
+                            <select name="client" class="form-control">
+                                <option value="">اختر العملة</option>
+
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-3">
+                            <label for="from_date">من تاريخ:</label>
+                            <input type="date" name="from_date" class="form-control"
+                                value="{{ $fromDate->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="to_date">إلى تاريخ:</label>
+                            <input type="date" name="to_date" class="form-control"
+                                value="{{ $toDate->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> عرض التقرير
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="report_period">الفترة:</label>
+                            <select name="report_period" id="report_period" class="form-control">
+                                <option value="">اختر الفترة</option>
+                                <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
+                                <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                                <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري</option>
+                                <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Tabs for Summary and Details --}}
+        <div class="card mt-4">
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="reportTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#summary">الملخص</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#details">التفاصيل</a>
+                    </li>
+                    <li class="nav-item dropdown ms-auto">
+                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#">خيارات</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">طباعة</a>
+                            <a class="dropdown-item" href="#">تصدير Excel</a>
+                            <a class="dropdown-item" href="#">تصدير PDF</a>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+                    {{-- Summary Tab --}}
+                    <div class="tab-pane fade show active" id="summary">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <canvas id="quantityChart"></canvas>
+                            </div>
+                            <div class="col-md-6">
+                                <canvas id="amountChart"></canvas>
+                            </div>
+                        </div>
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>المعرف</th>
+                                    <th>الاسم</th>
+                                    <th>كود المنتج</th>
+                                    <th>رقم الفاتورة</th>
+                                    <th>العميل</th>
+                                    <th>سعر الوحدة</th>
+                                    <th>الكمية</th>
+                                    <th>الخصم</th>
+                                    <th>الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($productSales as $sale)
+                                    <tr>
+                                        <td>{{ $sale->product->id }}</td>
+                                        <td>{{ $sale->product->name }}</td>
+                                        <td>{{ $sale->product->code }}</td>
+                                        <td>{{ $sale->invoice->code }}</td>
+                                        <td>{{ $sale->invoice->client->trade_name }}</td>
+                                        <td>{{ number_format($sale->unit_price, 2) }}</td>
+                                        <td>{{ $sale->quantity }}</td>
+                                        <td>{{ number_format($sale->discount_amount ?? 0, 2) }}</td>
+                                        <td>{{ number_format($sale->quantity * $sale->unit_price, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="6" class="text-end"><strong>المجموع</strong></td>
+                                    <td>{{ $productSales->sum('quantity') }}</td>
+                                    <td>{{ number_format($productSales->sum('discount_amount'), 2) }}</td>
+                                    <td>{{ number_format($productSales->sum(function($sale) {
+                                        return $sale->quantity * $sale->unit_price;
+                                    }), 2) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    {{-- Details Tab --}}
+                    <div class="tab-pane fade" id="details">
+                        <table class="table table-bordered mt-3">
+                            <thead>
+                                <tr>
+                                    <th>المعرف</th>
+                                    <th>الاسم</th>
+                                    <th>كود المنتج</th>
+                                    <th>رقم الفاتورة</th>
+                                    <th>العميل</th>
+                                    <th>سعر الوحدة</th>
+                                    <th>الكمية</th>
+                                    <th>الخصم</th>
+                                    <th>الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($productSales as $sale)
+                                    <tr>
+                                        <td>{{ $sale->product->id }}</td>
+                                        <td>{{ $sale->product->name }}</td>
+                                        <td>{{ $sale->product->code }}</td>
+                                        <td>{{ $sale->invoice->code }}</td>
+                                        <td>{{ $sale->invoice->client->trade_name }}</td>
+                                        <td>{{ number_format($sale->unit_price, 2) }}</td>
+                                        <td>{{ $sale->quantity }}</td>
+                                        <td>{{ number_format($sale->discount_amount ?? 0, 2) }}</td>
+                                        <td>{{ number_format($sale->quantity * $sale->unit_price, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+
+                        </table>
+                    </div>
                 </div>
             </div>
-
-            <!-- جدول الفواتير -->
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>المعرف</th>
-                        <th>الاسم</th>
-                        <th>كود المنتج</th>
-                        <th>موظف</th>
-                        <th>فاتورة</th>
-                        <th>العميل</th>
-                        <th>سعر الوحدة</th>
-                        <th>الكمية</th>
-                        <th>الخصم</th>
-                        <th>الإجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- صفوف البيانات -->
-                    <tr>
-                        <td>16/11/2024</td>
-                        <td>48</td>
-                        <td>عطر 50 ملي</td>
-                        <td>3961</td>
-                        <td>محمد المنصوب مدير</td>
-                        <td>فاتورة #08859</td>
-                        <td>تموينات النفط المتجدد #-123240</td>
-                        <td>18.00</td>
-                        <td>12</td>
-                        <td>0.00</td>
-                        <td>216.00</td>
-                    </tr>
-                    <tr>
-                        <td>16/11/2024</td>
-                        <td>48</td>
-                        <td>عطر 50 ملي</td>
-                        <td>3961</td>
-                        <td>محمد المنصوب مدير</td>
-                        <td>فاتورة #08860</td>
-                        <td>أسواق ومخابز مستقبل الخير حي اليرموك #419</td>
-                        <td>18.00</td>
-                        <td>15</td>
-                        <td>0.00</td>
-                        <td>270.00</td>
-                    </tr>
-                    <tr>
-                        <td>16/11/2024</td>
-                        <td>48</td>
-                        <td>عطر 50 ملي</td>
-                        <td>3961</td>
-                        <td>محمد المنصوب مدير</td>
-                        <td>فاتورة #08861</td>
-                        <td>أسواق ومخابز مستقبل الخير حي اليرموك #419</td>
-                        <td>18.00</td>
-                        <td>15</td>
-                        <td>0.00</td>
-                        <td>270.00</td>
-                    </tr>
-                    <tr>
-                        <td>16/11/2024</td>
-                        <td>48</td>
-                        <td>عطر 50 ملي</td>
-                        <td>3961</td>
-                        <td>محمد المنصوب مدير</td>
-                        <td>فاتورة مرتجعة #00787</td>
-                        <td>أسواق ومخابز مستقبل الخير حي اليرموك #419</td>
-                        <td>18.00</td>
-                        <td>-15</td>
-                        <td>0.00</td>
-                        <td>-270.00</td>
-                    </tr>
-                    <tr>
-                        <td>16/11/2024</td>
-                        <td>48</td>
-                        <td>عطر 50 ملي</td>
-                        <td>3961</td>
-                        <td>محمد الادريسي</td>
-                        <td>فاتورة #08862</td>
-                        <td>فرع تموينات شمال المجمعة #1130</td>
-                        <td>18.00</td>
-                        <td>12</td>
-                        <td>0.00</td>
-                        <td>216.00</td>
-                    </tr>
-                    <!-- المزيد من الصفوف كما هو موضح في المثال -->
-                    <!-- إجمالي -->
-                    <tr>
-                        <td colspan="9" class="text-end"><strong>المجموع</strong></td>
-                        <td>0.00</td>
-                        <td><strong>3,888.00</strong></td>
-                    </tr>
-                </tbody>
-            </table>
         </div>
     </div>
-</div>
+@endsection
 
-                </div>
-                <!-- تبويب العميل -->
-                <div class="tab-pane fade" id="client" role="tabpanel" aria-labelledby="client-tab">
-                    <h4>العميل</h4>
-                    <p>هنا يمكنك إضافة محتوى العميل...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Quantity Chart
+        const quantityCtx = document.getElementById('quantityChart').getContext('2d');
+        new Chart(quantityCtx, {
+            type: 'bar',
+            data: {
+                labels: @json($chartData['labels']),
+                datasets: [{
+                    label: 'الكمية',
+                    data: @json($chartData['quantities']),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'كمية المبيعات حسب المنتج'
+                    }
+                }
+            }
+        });
 
-
-
-
-<script>
-    // تفعيل الـ Datepicker على حقل الفترة
-    $('#date-range').datepicker({
-        format: 'dd/mm/yyyy',
-        startView: 1,
-        minViewMode: 0,
-        autoclose: true
-    });
-</script>
-
-
-
+        // Amount Chart
+        const amountCtx = document.getElementById('amountChart').getContext('2d');
+        new Chart(amountCtx, {
+            type: 'pie',
+            data: {
+                labels: @json($chartData['labels']),
+                datasets: [{
+                    label: 'المبلغ',
+                    data: @json($chartData['amounts']),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(75, 192, 192, 0.6)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'إجمالي المبيعات حسب المنتج'
+                    }
+                }
+            }
+        });
+    </script>
 @endsection

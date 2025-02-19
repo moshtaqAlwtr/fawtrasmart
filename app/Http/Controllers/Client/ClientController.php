@@ -10,6 +10,7 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\AppointmentNote;
 use App\Models\Booking;
+use App\Models\CategoriesClient;
 use App\Models\Installment;
 use App\Models\Memberships;
 use App\Models\Package;
@@ -29,11 +30,12 @@ class ClientController extends Controller
     public function create()
     {
         $employees = Employee::all();
+        $categories = CategoriesClient::all();
 
         $lastClient = Client::orderBy('code', 'desc')->first();
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
 
-        return view('client.create', compact('employees', 'newCode'));
+        return view('client.create', compact('employees', 'newCode','categories'));
     }
 
     public function store(ClientRequest $request)

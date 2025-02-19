@@ -2,7 +2,7 @@
 @extends('master')
 
 @section('title')
-المبيعات الأسبوعية للمنتجات 
+المبيعات  للمنتجات
 @stop
 
 
@@ -213,7 +213,7 @@
                 <!-- تبويب التفاصيل -->
                 <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
                     <h4>التفاصيل</h4>
-                   
+
                     <div class="container mt-4">
                         <!-- العنوان الأول للمؤسسة -->
                         <div class="header text-center text-primary mb-4" style="font-size: 24px; font-weight: bold;">

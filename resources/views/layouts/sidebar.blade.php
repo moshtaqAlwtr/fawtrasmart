@@ -617,7 +617,7 @@
                             </li>
                         @endcan
 <<<<<<< HEAD
-                        
+
                         <li><a href="{{ route('Memberships.subscriptions') }}"><i class="feather icon-circle"></i><span class="menu-item"
 =======
 
@@ -1229,7 +1229,7 @@
 
                 </a>
                 <ul class="menu-content">
-                    <li><a href="{{ route('sals_reports.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href="{{ route('salesReports.index') }}"><i class="feather icon-circle"></i><span
                                 class="menu-item" data-i18n="Analytics">
                                 {{ trans('main_trans.Sales_Report') }}</span></a>
                     </li>

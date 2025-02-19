@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Reports\Customers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invoice;
 use Illuminate\Http\Request;
 
 class CustomerReportController extends Controller
@@ -64,4 +65,7 @@ class CustomerReportController extends Controller
     {
         return view('reports.customers.customer-installments');
     }
+  // تأكد من استيراد نموذج Sale
+
+
 }
