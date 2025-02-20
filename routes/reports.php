@@ -48,6 +48,12 @@ Route::group(
             Route::get('/index', [SalesReportsController::class, 'index'])->name('salesReports.index');
             Route::get('/byCustomer', [SalesReportsController::class, 'byCustomer'])->name('salesReports.byCustomer');
             Route::get('/byEmployee', [SalesReportsController::class, 'byEmployee'])->name('salesReports.byEmployee');
+            Route::get('/byInvoice', [SalesReportsController::class, 'byInvoice'])->name('salesReports.byInvoice');
+            Route::get('/sales/by-employee/export', [SalesReportsController::class, 'exportByEmployeeToExcel'])->name('salesReports.byEmployee.export');
+            Route::get('/sales/by-employee/export', [SalesReportsController::class, 'exportByCustomerToExcel'])->name('salesReports.byCustomer.export');
+            Route::get('/sales/by-employee/export', [SalesReportsController::class, 'clientPaymentReport'])->name('salesReports.clientPaymentReport');
+            Route::get('/sales-reports/export-by-product', [SalesReportsController::class, 'exportByProductToExcel'])
+     ->name('salesReports.exportByProduct');
             Route::get('/salaryRep', [SalesReportsController::class, 'salaryRep'])->name('salesReports.salaryRep');
             Route::get('/byProduct', [SalesReportsController::class,    'byProduct'])->name('salesReports.byProduct');
             Route::get('/Weekly_by_Product', [SalesReportsController::class,  'WeeklybyProduct'])->name('reports.sals.Weekly_by_Product');

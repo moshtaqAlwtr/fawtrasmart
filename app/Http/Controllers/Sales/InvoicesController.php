@@ -199,9 +199,11 @@ class InvoicesController extends Controller
         $clients = Client::all();
         $users = User::all();
         $treasury = Treasury::all();
+        $employees = Employee::all();
+
         $invoiceType = 'normal'; // نوع الفاتورة عادي
 
-        return view('sales.invoices.create', compact('clients', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType'));
+        return view('sales.invoices.create', compact('clients', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
     }
 
     public function store(Request $request)

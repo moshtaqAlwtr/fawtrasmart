@@ -80,10 +80,10 @@
                                 </span>
                                 المبيعات حسب مندوب المبيعات
                                 <div class="ms-auto">
-                                    <a href="{{route('salesReports.salaryRep')}}" class="text-decoration-none">
+                                    <a href="{{route('salesReports.byEmployee')}}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="{{route('salesReports.salaryRep')}}" class="text-decoration-none ms-3">
+                                    <a href="{{route('salesReports.byEmployee')}}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -106,10 +106,10 @@
                                 </span>
                                 المبيعات اليومية للمنتجات
                                 <div class="ms-auto">
-                                    <a href="{{route('salesReports.byProduct')}}" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'daily']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="{{route('salesReports.byProduct')}}" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'daily']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -120,10 +120,10 @@
                                 </span>
                                 المبيعات الأسبوعية للمنتجات
                                 <div class="ms-auto">
-                                    <a href="prodact_salas_timeframe/weekly-sales-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'weekly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'weekly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -134,10 +134,10 @@
                                 </span>
                                 المبيعات الشهرية للمنتجات
                                 <div class="ms-auto">
-                                    <a href="prodact_salas_timeframe/monthly-detailed-product-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'monthly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'monthly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -148,10 +148,10 @@
                                 </span>
                                 المبيعات السنوية للمنتجات
                                 <div class="ms-auto">
-                                    <a href="prodact_salas_timeframe/annual-sales-product-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'yearly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byProduct', ['report_period' => 'yearly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -179,10 +179,10 @@
                                 </span>
                                 المبيعات اليومية
                                 <div class="ms-auto">
-                                    <a href="deitys_sales/detailed-daily-sales-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'daily']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'daily']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -193,10 +193,10 @@
                                 </span>
                                 المبيعات الأسبوعية
                                 <div class="ms-auto">
-                                    <a href="deitys_sales/detailed-weekly-sales-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'weekly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'weekly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -207,10 +207,10 @@
                                 </span>
                                 المبيعات الشهرية
                                 <div class="ms-auto">
-                                    <a href="deitys_sales/detailed-monthly-sales-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'monthly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'monthly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -221,10 +221,10 @@
                                 </span>
                                 المبيعات السنوية
                                 <div class="ms-auto">
-                                    <a href="deitys_sales/detailed-annual-sales-report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'yearly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byCustomer', ['report_period' => 'yearly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -248,7 +248,7 @@
                                 </span>
                                 المدفوعات حسب العميل
                                 <div class="ms-auto">
-                                    <a href="payments_report/payments-report-by-client.html" class="text-decoration-none">
+                                    <a href="{{route('salesReports.clientPaymentReport')}}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
                                     <a href="path-to-summary-page" class="text-decoration-none ms-3">

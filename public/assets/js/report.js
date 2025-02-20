@@ -1,73 +1,161 @@
+document.addEventListener('DOMContentLoaded', function() {
+    // Hide statistical analysis by default
+    const statisticalAnalysis = document.getElementById('statisticalAnalysis');
+    statisticalAnalysis.style.display = 'none';
 
-    function showCharts() {
-        document.getElementById('charts-container').style.display = 'block';
-        createPieChart();
-        createBarChart();
-    }
+    // View Toggle Functionality
+    const summaryViewBtn = document.getElementById('summaryViewBtn');
+    const detailViewBtn = document.getElementById('detailViewBtn');
+    const mainReportTable = document.getElementById('mainReportTable');
 
-    function createPieChart() {
-        var ctx = document.getElementById('pieChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
+    summaryViewBtn.addEventListener('click', function() {
+        summaryViewBtn.classList.add('active');
+        detailViewBtn.classList.remove('active');
+        mainReportTable.style.display = 'none';
+        statisticalAnalysis.style.display = 'block';
+    });
+
+    detailViewBtn.addEventListener('click', function() {
+        detailViewBtn.classList.add('active');
+        summaryViewBtn.classList.remove('active');
+        mainReportTable.style.display = 'block';
+        statisticalAnalysis.style.display = 'none';
+    });
+
+    // Print Functionality
+    document.getElementById('printBtn').addEventListener('click', function() {
+        window.print();
+    });
+
+    // Report Type Update Function
+    window.updateReportType = function(type) {
+        var form = document.getElementById('reportForm');
+        var fromDateInput = form.querySelector('input[name="from_date"]');
+        var toDateInput = form.querySelector('input[name="to_date"]');
+        var today = new Date();
+
+        // Remove any existing report type inputs
+        var existingReportTypeInputs = form.querySelectorAll('input[name="report_type"]');
+        existingReportTypeInputs.forEach(input => input.remove());
+
+        // Create hidden input for report type
+        var hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'report_type';
+        hiddenInput.value = type;
+        form.appendChild(hiddenInput);
+
+        // Update date inputs based on report type
+        switch(type) {
+            case 'yearly':
+                fromDateInput.value = (today.getFullYear() + '-01-01');
+                toDateInput.value = (today.getFullYear() + '-12-31');
+                break;
+            case 'monthly':
+                fromDateInput.value = today.getFullYear() + '-' +
+                    String(today.getMonth() + 1).padStart(2, '0') + '-01';
+                toDateInput.value = today.getFullYear() + '-' +
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                    new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                break;
+            case 'weekly':
+                let firstDay = new Date(today.setDate(today.getDate() - today.getDay()));
+                let lastDay = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+                fromDateInput.value = firstDay.getFullYear() + '-' +
+                    String(firstDay.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(firstDay.getDate()).padStart(2, '0');
+                toDateInput.value = lastDay.getFullYear() + '-' +
+                    String(lastDay.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(lastDay.getDate()).padStart(2, '0');
+                break;
+            case 'daily':
+                let todayFormatted = today.getFullYear() + '-' +
+                    String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(today.getDate()).padStart(2, '0');
+                fromDateInput.value = todayFormatted;
+                toDateInput.value = todayFormatted;
+                break;
+        }
+
+        // Submit the form
+        form.submit();
+    };
+
+    // Chart Rendering Function
+    function renderCharts(salesData, employeeData) {
+        // Sales Breakdown Pie Chart
+        var salesBreakdownCtx = document.getElementById('salesBreakdownChart').getContext('2d');
+        new Chart(salesBreakdownCtx, {
+            type: 'pie',
             data: {
-                labels: ['مدفوعة', 'غير مدفوعة', 'مرجع'],
+                labels: ['مدفوعة', 'غير مدفوعة', 'مرتجعة'],
                 datasets: [{
-                    data: [38.2, 61.2, 0.6],
-                    backgroundColor: ['#28a745', '#e74c3c', '#007bff']
+                    data: [
+                        salesData.paidAmount,
+                        salesData.unpaidAmount,
+                        salesData.returnedAmount
+                    ],
+                    backgroundColor: [
+                        'rgba(40, 167, 69, 0.7)',   // Green for Paid
+                        'rgba(255, 193, 7, 0.7)',   // Yellow for Unpaid
+                        'rgba(220, 53, 69, 0.7)'    // Red for Returned
+                    ]
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'توزيع المبيعات'
+                    },
                     legend: {
                         position: 'bottom'
                     }
                 }
             }
         });
-    }
 
-    function createBarChart() {
-        var ctx = document.getElementById('barChart').getContext('2d');
-        new Chart(ctx, {
+        // Employee Performance Bar Chart
+        var employeePerformanceCtx = document.getElementById('employeePerformanceChart').getContext('2d');
+        new Chart(employeePerformanceCtx, {
             type: 'bar',
             data: {
-                labels: ['شركة 1', 'شركة 2', 'شركة 3', 'شركة 4', 'شركة 5'],
+                labels: employeeData.map(emp => emp.name),
                 datasets: [
                     {
-                        label: 'الإجمالي',
-                        data: [450, 900, 300, 500, 700],
-                        backgroundColor: '#42a5f5'
+                        label: 'إجمالي المبيعات',
+                        data: employeeData.map(emp => emp.totalAmount),
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)'
                     },
                     {
                         label: 'مدفوعة',
-                        data: [300, 600, 200, 400, 500],
-                        backgroundColor: '#28a745'
+                        data: employeeData.map(emp => emp.paidAmount),
+                        backgroundColor: 'rgba(40, 167, 69, 0.6)'
                     },
                     {
                         label: 'غير مدفوعة',
-                        data: [150, 300, 100, 100, 200],
-                        backgroundColor: '#e74c3c'
-                    },
-                    {
-                        label: 'مرجع',
-                        data: [0, 0, 0, 0, 0],
-                        backgroundColor: '#007bff'
+                        data: employeeData.map(emp => emp.unpaidAmount),
+                        backgroundColor: 'rgba(255, 193, 7, 0.6)'
                     }
                 ]
             },
             options: {
                 responsive: true,
                 scales: {
-                    x: {
-                        ticks: {
-                            autoSkip: false,
-                            maxRotation: 45,
-                            minRotation: 45
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'المبيعات (SAR)'
                         }
                     }
                 },
                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'أداء الموظفين'
+                    },
                     legend: {
                         position: 'bottom'
                     }
@@ -75,34 +163,49 @@
             }
         });
     }
-    document.addEventListener('DOMContentLoaded', function() {
-        const dropdownItems = document.querySelectorAll('.dropdown-item');
-        const dropdownButton = document.getElementById('clientDropdown');
 
-        dropdownItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const clientType = this.getAttribute('data-client-type');
-                dropdownButton.innerHTML = `<i class="fa-solid fa-user"></i> ${this.textContent}`;
-            });
-        });
+
+    // Expose renderCharts to global scope for Blade template to call
+    window.renderCharts = renderCharts;
+});
+document.addEventListener('DOMContentLoaded', function() {
+    // View Toggle Functionality
+    const summaryViewBtn = document.getElementById('summaryViewBtn');
+    const detailViewBtn = document.getElementById('detailViewBtn');
+    const mainReportTable = document.getElementById('mainReportTable');
+    const detailedReportTable = document.getElementById('detailedReportTable');
+
+    // Function to reset view
+    function resetView() {
+        mainReportTable.style.display = 'none';
+        detailedReportTable.style.display = 'none';
+
+        summaryViewBtn.classList.remove('active');
+        detailViewBtn.classList.remove('active');
+    }
+
+    // Initially show main report table
+    mainReportTable.style.display = 'block';
+    summaryViewBtn.classList.add('active');
+
+    // Summary View Handler
+    summaryViewBtn.addEventListener('click', function() {
+        resetView();
+
+        summaryViewBtn.classList.add('active');
+        mainReportTable.style.display = 'block';
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get references to the buttons and tables
-        const detailsButton = document.getElementById('detailsButton');
-        const summaryButton = document.getElementById('summaryButton');
-        const mainReportTable = document.getElementById('mainReportTable');
-        const detailedTable = document.getElementById('detailedTable');
+    // Detailed View Handler
+    detailViewBtn.addEventListener('click', function() {
+        resetView();
 
-        // Details button click handler
-        detailsButton.addEventListener('click', function() {
-            mainReportTable.style.display = 'none';
-            detailedTable.style.display = 'block';
-        });
-
-        // Summary button click handler
-        summaryButton.addEventListener('click', function() {
-            mainReportTable.style.display = 'block';
-            detailedTable.style.display = 'none';
-        });
+        detailViewBtn.classList.add('active');
+        detailedReportTable.style.display = 'block';
     });
+
+    // Print Functionality
+    document.getElementById('printBtn').addEventListener('click', function() {
+        window.print();
+    });
+});
