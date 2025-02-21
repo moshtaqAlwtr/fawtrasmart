@@ -152,10 +152,10 @@
     <div class="card mb-3 no-print">
         <div class="card-body d-flex justify-content-between align-items-center">
             <div>
-                <a href="{{ route('salesReports.byEmployee.export', request()->query()) }}"
-                   class="btn btn-success me-2" id="exportBtn">
-                    <i class="fas fa-file-export me-2"></i> تصدير
+                <a href="javascript:void(0)" class="btn btn-success me-2"id="exportExcel">
+                    <i class="fas fa-file-export me-2"></i> تصدير إكسل
                 </a>
+
                 <button class="btn btn-info" id="printBtn">
                     <i class="fas fa-print me-2"></i> طباعة
                 </button>
@@ -375,8 +375,31 @@
     </div>
 </div>
 @endsection
-
 @section('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{{ asset('assets/css/report.css') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Excel Export
+    $('#exportExcel').on('click', function() {
+        // Get the table (use the main report table)
+        const table = document.querySelector('#mainReportTable table');
+
+        // Create a new workbook and worksheet
+        const wb = XLSX.utils.table_to_book(table, {
+            raw: true,
+            cellDates: true
+        });
+
+        // Generate file name with current date
+        const today = new Date();
+        const fileName = `تقرير_المبيعات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+
+        // Export the workbook
+        XLSX.writeFile(wb, fileName);
+    });
+});
+</script>
 @endsection

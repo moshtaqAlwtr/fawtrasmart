@@ -166,7 +166,7 @@
                             <div class="d-flex justify-content-end mb-3">
 
 
-                                    <a href="{{route('salesReports.exportByProduct')}}" class="btn btn-success me-2">
+                                    <a href="" class="btn btn-success me-2" id="exportExcel">
                                         <i class="fas fa-file-excel me-2"></i>تصدير اكسل
                                     </a>
                                 </form>
@@ -411,8 +411,9 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
     <script>
-        // Quantity Chart
+        // الرسومات البيانية (كما هي سابقًا)
         const quantityCtx = document.getElementById('quantityChart').getContext('2d');
         new Chart(quantityCtx, {
             type: 'bar',
@@ -435,7 +436,6 @@
             }
         });
 
-        // Amount Chart
         const amountCtx = document.getElementById('amountChart').getContext('2d');
         new Chart(amountCtx, {
             type: 'pie',
@@ -463,13 +463,28 @@
             }
         });
 
-        // Export functionality (placeholder - you'll need to implement actual export logic)
+        // تصدير Excel
         document.getElementById('exportExcel').addEventListener('click', function() {
-            alert('تصدير Excel قيد التطوير');
+            // العثور على جدول التقرير
+            const table = document.querySelector('#summary table');
+
+            // إنشاء كتاب Excel
+            const wb = XLSX.utils.table_to_book(table, {
+                raw: true,
+                cellDates: true
+            });
+
+            // توليد اسم الملف مع التاريخ الحالي
+            const today = new Date();
+            const fileName = `تقرير_مبيعات_المنتجات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+
+            // تصدير الكتاب
+            XLSX.writeFile(wb, fileName);
         });
 
+        // تصدير PDF (يمكنك استبدال هذا بمكتبة PDF مناسبة)
         document.getElementById('exportPDF').addEventListener('click', function() {
-            alert('تصدير PDF قيد التطوير');
+            window.print(); // طباعة الصفحة كـ PDF
         });
     </script>
 @endsection
