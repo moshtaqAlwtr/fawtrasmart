@@ -58,6 +58,8 @@ Route::group(
                 Route::get('/payment-method-report', [SalesReportsController::class, 'paymentMethodReport'])->name('salesReports.paymentMethodReport');
                 Route::get('/papatyment', [SalesReportsController::class, 'patyment'])->name('salesReports.patyment');
                 Route::get('/reports/profits', [SalesReportsController::class, 'profits'])->name('salesReports.profits');
+                Route::get('/sales-reports/profit-timeline', [SalesReportsController::class, 'profitTimeline'])
+                ->name('salesReports.profitTimeline');
                 Route::get('/reports/customerProfits', [SalesReportsController::class, 'customerProfits'])->name('salesReports.customerProfits');
                 Route::get('/reports/employeeProfits', [SalesReportsController::class, 'employeeProfits'])->name('salesReports.employeeProfits');
                 Route::get('/salaryRep', [SalesReportsController::class, 'salaryRep'])->name('salesReports.salaryRep');

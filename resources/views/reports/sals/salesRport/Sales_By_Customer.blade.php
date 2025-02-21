@@ -273,6 +273,12 @@
                                     <td>{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</td>
                                     <td>{{ $invoice->employee->full_name ?? 'غير محدد' }}</td>
 
+                                    @php
+                                        // Calculate total paid amount
+                                        $paidAmount = $invoice->payments->sum('amount');
+                                        $remainingAmount = $invoice->grand_total - $paidAmount;
+                                    @endphp
+
                                     @if (in_array($invoice->type, ['return', 'returned']))
                                         <td>-</td>
                                         <td>-</td>
@@ -289,22 +295,19 @@
                                         @endphp
                                     @else
                                         <td>
-                                            {{ number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2) }}
+                                            {{ number_format($paidAmount, 2) }}
                                         </td>
                                         <td>
-                                            {{ number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2) }}
+                                            {{ number_format($remainingAmount > 0 ? $remainingAmount : 0, 2) }}
                                         </td>
                                         <td>-</td>
                                         <td>{{ number_format($invoice->grand_total, 2) }}</td>
 
                                         @php
-                                            if ($invoice->payment_status == 1) {
-                                                $clientPaidTotal += $invoice->grand_total;
-                                                $grandPaidTotal += $invoice->grand_total;
-                                            } else {
-                                                $clientUnpaidTotal += $invoice->due_value;
-                                                $grandUnpaidTotal += $invoice->due_value;
-                                            }
+                                            $clientPaidTotal += $paidAmount;
+                                            $clientUnpaidTotal += max($remainingAmount, 0);
+                                            $grandPaidTotal += $paidAmount;
+                                            $grandUnpaidTotal += max($remainingAmount, 0);
                                             $clientOverallTotal += $invoice->grand_total;
                                             $grandOverallTotal += $invoice->grand_total;
                                         @endphp

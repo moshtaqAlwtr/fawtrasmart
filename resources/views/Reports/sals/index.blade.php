@@ -434,7 +434,7 @@
                                 </span>
                                 الأرباح اليومية
                                 <div class="ms-auto">
-                                    <a href="profit_report_pred/dely_profit.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.profitTimeline') }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
                                     <a href="path-to-summary-page" class="text-decoration-none ms-3">

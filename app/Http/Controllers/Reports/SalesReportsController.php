@@ -1694,6 +1694,7 @@ $branches=Branch::select('id', 'name')->get();
             'branches' => $branches
         ]);
     }
+
     public function Wsales()
     {
         return view('reports.sals.W_Sales');
