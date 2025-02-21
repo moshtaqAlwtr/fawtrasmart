@@ -123,7 +123,7 @@
     <div class="card mb-3 no-print">
         <div class="card-body d-flex justify-content-between align-items-center">
             <div>
-                <a href="{{ route('salesReports.byCustomer.export', request()->query()) }}"
+                <a href="{{ route('salesReports.exportByCustomerToExcel', request()->query()) }}"
                    class="btn btn-success me-2" id="exportBtn">
                     <i class="fas fa-file-export me-2"></i> تصدير
                 </a>

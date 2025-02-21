@@ -17,6 +17,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -125,16 +126,7 @@ class SalesReportsController extends Controller
             $chartData['values'][] = $clientInvoices->sum('grand_total');
         }
 
-        return view('reports.sals.Sales_By_Customer', compact(
-            'groupedInvoices',
-            'clients',
-            'branches',
-            'totals',
-            'chartData',
-            'fromDate',
-            'toDate',
-            'reportPeriod'
-        ));
+        return view('reports.sals.salesRport.Sales_By_Customer', compact('groupedInvoices', 'clients', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'reportPeriod'));
     }
     public function byEmployee(Request $request)
     {
@@ -289,7 +281,7 @@ class SalesReportsController extends Controller
             ]);
         }
 
-        return view('reports.sals.Sales_By_Employee', compact('groupedInvoices', 'employees', 'clients', 'categories', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'employeeTotals'));
+        return view('reports.sals.salesRport.Sales_By_Employee', compact('groupedInvoices', 'employees', 'clients', 'categories', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'employeeTotals'));
     }
     public function byInvoice(Request $request)
     {
@@ -304,7 +296,7 @@ class SalesReportsController extends Controller
         // Default report period
         $branches = Branch::all();
         $reportPeriod = $request->input('report_period', 'monthly');
-        $invoices=Invoice::all();
+        $invoices = Invoice::all();
         // Query for invoices with desسtailed filtering
         $query = Invoice::with([
             'client' => function ($query) {
@@ -361,7 +353,7 @@ class SalesReportsController extends Controller
         $clients = Client::all();
         $employees = User::all();
 
-        return view('reports.sals.by_invoice', compact('groupedInvoices','invoices', 'clients','branches', 'employees', 'fromDate', 'toDate', 'reportPeriod', 'chartData'));
+        return view('reports.sals..by_invoice', compact('groupedInvoices', 'invoices', 'clients', 'branches', 'employees', 'fromDate', 'toDate', 'reportPeriod', 'chartData'));
     }
 
     private function prepareChartData($invoices)
@@ -539,7 +531,6 @@ class SalesReportsController extends Controller
         $writer->save('php://output');
         exit();
     }
-
 
     public function exportByCustomerToExcel(Request $request)
     {
@@ -828,9 +819,8 @@ class SalesReportsController extends Controller
         }
 
         // Return view with all necessary data
-        return view('reports.sals.p', array_merge(compact('products', 'employees', 'branches', 'clients', 'productSales', 'groupedProductSales', 'productTotals', 'chartData', 'categories', 'fromDate', 'storehouses', 'client_categories', 'toDate'), ['reportPeriod' => $request->input('report_period', 'daily')]));
+        return view('reports.sals.salesRport.by_Product', array_merge(compact('products', 'employees', 'branches', 'clients', 'productSales', 'groupedProductSales', 'productTotals', 'chartData', 'categories', 'fromDate', 'storehouses', 'client_categories', 'toDate'), ['reportPeriod' => $request->input('report_period', 'daily')]));
     }
-
 
     public function exportByProductToExcel(Request $request)
     {
@@ -1053,46 +1043,657 @@ class SalesReportsController extends Controller
     }
 
     public function clientPaymentReport(Request $request)
-{
-    // الفلاتر الأساسية
-    $clients = Client::all();
-    $branches = Branch::all();
+    {
+        // Fetch dropdown data
+        $clients = Client::all();
+        $branches = Branch::all();
+        $customerCategories = CategoriesClient::all();
+        $employees = User::all();
+        $paymentMethods = [['id' => 1, 'name' => 'نقدي'], ['id' => 2, 'name' => 'شيك'], ['id' => 3, 'name' => 'تحويل بنكي'], ['id' => 4, 'name' => 'بطاقة ائتمان']];
 
-    // تحديد نطاق التاريخ الافتراضي
-    $fromDate = $request->input('from_date', now()->startOfMonth());
-    $toDate = $request->input('to_date', now()->endOfMonth());
+        // Default date range with Carbon conversion
+        $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->startOfMonth();
+        $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now()->endOfMonth();
 
-    // تحديد فترة التقرير
-    $reportPeriod = $request->input('report_period', 'monthly');
+        // Build the query with all necessary relationships
+        $query = PaymentsProcess::with(['client', 'employee', 'invoice']);
 
-    // بناء الاستعلام
-    $query = PaymentsProcess::with(['client'])
-        ->whereBetween('payment_date', [$fromDate, $toDate]);
+        // Apply filters based on request parameters
+        if ($request->filled('customer_category')) {
+            $query->whereHas('client', function ($q) use ($request) {
+                $q->where('category_id', $request->input('customer_category'));
+            });
+        }
 
-    // تطبيق الفلاتر
-    if ($request->filled('client')) {
-        $query->where('clients_id', $request->client);
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->input('client'));
+        }
+
+        if ($request->filled('branch')) {
+            $query->whereHas('invoice', function ($q) use ($request) {
+                $q->where('branch_id', $request->input('branch'));
+            });
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->input('payment_method'));
+        }
+
+        if ($request->filled('collector')) {
+            $query->where('employee_id', $request->input('collector'));
+        }
+
+        // Date range filter
+        $query->whereBetween('payment_date', [$fromDate, $toDate]);
+
+        // Fetch payments
+        $payments = $query->get();
+
+        // Prepare chart data
+        $chartData = $this->prepareChartData1($payments);
+
+        // Calculate summary totals
+        $summaryTotals = [
+            'total_paid' => $payments->sum('amount'),
+            'total_unpaid' => $payments->sum(function ($payment) {
+                return $payment->invoice ? $payment->invoice->due_value : 0;
+            }),
+            'total_reference' => $payments->sum(function ($payment) {
+                return $payment->reference_number ? $payment->amount : 0;
+            }),
+        ];
+
+        return view('reports.sals.payments.client_report', compact('payments', 'clients', 'branches', 'customerCategories', 'employees', 'paymentMethods', 'chartData', 'summaryTotals', 'fromDate', 'toDate'));
     }
 
-    // تجميع المدفوعات
-    $payments = $query->get();
+    // Helper method to prepare chart data
+    protected function prepareChartData1($payments)
+    {
+        // Group payments by client
+        $groupedPayments = $payments->groupBy('clients_id');
 
-    // تجهيز بيانات الرسم البياني
-    $chartData = $this->prepareChartData($payments);
+        $chartLabels = [];
+        $chartValues = [];
 
-    return view('reports.sals.payments.client_report', compact(
-        'payments',
-        'clients',
-        'branches',
-        'chartData',
-        'fromDate',
-        'toDate',
-        'reportPeriod'
-    ));
-}
+        foreach ($groupedPayments as $clientId => $clientPayments) {
+            $client = Client::find($clientId);
+            $chartLabels[] = $client ? $client->trade_name : "عميل $clientId";
+            $chartValues[] = $clientPayments->sum('amount');
+        }
 
+        return [
+            'labels' => $chartLabels,
+            'values' => $chartValues,
+        ];
+    }
 
+    public function employeePaymentReport(Request $request)
+    {
+        // Fetch dropdown data
+        $clients = Client::all();
+        $branches = Branch::all();
+        $customerCategories = CategoriesClient::all();
+        $employees = User::all();
+        $paymentMethods = [['id' => 1, 'name' => 'نقدي'], ['id' => 2, 'name' => 'شيك'], ['id' => 3, 'name' => 'تحويل بنكي'], ['id' => 4, 'name' => 'بطاقة ائتمان']];
 
+        // Default date range with Carbon conversion
+        $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->startOfMonth();
+        $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now()->endOfMonth();
+
+        // Build the query with all necessary relationships
+        $query = PaymentsProcess::with(['client', 'employee', 'invoice']);
+
+        // Apply filters based on request parameters
+        if ($request->filled('customer_category')) {
+            $query->whereHas('client', function ($q) use ($request) {
+                $q->where('category_id', $request->input('customer_category'));
+            });
+        }
+
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->input('client'));
+        }
+
+        if ($request->filled('branch')) {
+            $query->whereHas('invoice', function ($q) use ($request) {
+                $q->where('branch_id', $request->input('branch'));
+            });
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->input('payment_method'));
+        }
+
+        if ($request->filled('collector')) {
+            $query->where('employee_id', $request->input('collector'));
+        }
+
+        // Date range filter
+        $query->whereBetween('payment_date', [$fromDate, $toDate]);
+
+        // Fetch payments
+        $payments = $query->get();
+
+        // Prepare chart data for employees
+        $chartData = $this->prepareEmployeeChartData($payments);
+
+        // Calculate summary totals
+        $summaryTotals = [
+            'total_paid' => $payments->sum('amount'),
+            'total_payments_count' => $payments->count(),
+            'average_payment' => $payments->avg('amount'),
+        ];
+
+        return view('reports.sals.payments.employee_report', compact('payments', 'clients', 'branches', 'customerCategories', 'employees', 'paymentMethods', 'chartData', 'summaryTotals', 'fromDate', 'toDate'));
+    }
+
+    // Helper method to prepare chart data for employees
+    protected function prepareEmployeeChartData($payments)
+    {
+        // Group payments by employee
+        $groupedPayments = $payments->groupBy('employee_id');
+
+        $chartLabels = [];
+        $chartValues = [];
+
+        foreach ($groupedPayments as $employeeId => $employeePayments) {
+            $employee = User::find($employeeId);
+            $chartLabels[] = $employee ? $employee->name : "موظف $employeeId";
+            $chartValues[] = $employeePayments->sum('amount');
+        }
+
+        return [
+            'labels' => $chartLabels,
+            'values' => $chartValues,
+        ];
+    }
+
+    public function paymentMethodReport(Request $request)
+    {
+        // Fetch dropdown data
+        $clients = Client::all();
+        $branches = Branch::all();
+        $employees = Employee::all();
+        $paymentMethods = [['id' => 1, 'name' => 'نقدي'], ['id' => 2, 'name' => 'شيك'], ['id' => 3, 'name' => 'تحويل بنكي'], ['id' => 4, 'name' => 'بطاقة ائتمان']];
+
+        // Default date range with Carbon conversion
+        $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->startOfMonth();
+        $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now()->endOfMonth();
+
+        // Build the query with all necessary relationships
+        $query = PaymentsProcess::with(['client', 'invoice', 'invoice.employee']);
+
+        // Apply filters based on request parameters
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->input('client'));
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->input('payment_method'));
+        }
+
+        // Date range filter
+        $query->whereBetween('payment_date', [$fromDate, $toDate]);
+
+        // Fetch payments
+        $payments = $query->get();
+
+        // Prepare chart data for payment methods
+        $chartData = $this->preparePaymentMethodChartData($payments, $paymentMethods);
+
+        // Calculate summary totals
+        $summaryTotals = [
+            'total_paid' => $payments->sum('amount'),
+            'total_payments_count' => $payments->count(),
+            'average_payment' => $payments->avg('amount'),
+        ];
+
+        return view('reports.sals.payments.payment_method_report', compact('payments', 'clients', 'branches', 'paymentMethods', 'chartData', 'employees', 'summaryTotals', 'fromDate', 'toDate'));
+    }
+
+    // Helper method to prepare chart data for payment methods
+    protected function preparePaymentMethodChartData($payments, $paymentMethodsConfig)
+    {
+        // Group payments by payment method
+        $groupedPayments = $payments->groupBy('payment_method');
+
+        $chartLabels = [];
+        $chartValues = [];
+
+        foreach ($paymentMethodsConfig as $method) {
+            $methodPayments = $groupedPayments->get($method['id'], collect());
+            $totalAmount = $methodPayments->sum('amount');
+
+            $chartLabels[] = $method['name'];
+            $chartValues[] = $totalAmount;
+        }
+
+        return [
+            'labels' => $chartLabels,
+            'values' => $chartValues,
+        ];
+    }
+    public function patyment(Request $request)
+    {
+        try {
+            // Default to current month if no date range specified
+            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+            $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+
+            $employees = Employee::all();
+            $branches = Branch::all();
+
+            // Default report period
+            $reportPeriod = $request->input('report_period', 'monthly');
+
+            // Base query for payments
+            $query = PaymentsProcess::with(['client'])
+                ->whereBetween('payment_date', [$fromDate, $toDate]);
+
+            // Apply filters
+            if ($request->filled('client')) {
+                $query->where('client_id', $request->input('client'));
+            }
+
+            if ($request->filled('payment_method')) {
+                $query->where('payment_method', $request->input('payment_method'));
+            }
+
+            if ($request->filled('payment_status')) {
+                $query->where('payment_status', $request->input('payment_status'));
+            }
+
+            // Fetch payments
+            $payments = $query->get();
+
+            // Group payments based on report period
+            $groupedPayments = $payments->groupBy(function($payment) use ($reportPeriod) {
+                switch ($reportPeriod) {
+                    case 'daily':
+                        return $payment->payment_date->format('Y-m-d');
+                    case 'weekly':
+                        return $payment->payment_date->format('Y-W');
+                    case 'monthly':
+                        return $payment->payment_date->format('Y-m');
+                    case 'yearly':
+                        return $payment->payment_date->format('Y');
+                    default:
+                        return $payment->payment_date->format('Y-m-d');
+                }
+            });
+
+            // Prepare chart data
+            $chartData = [
+                'labels' => $groupedPayments->keys()->toArray(),
+                'values' => $groupedPayments->map(function($periodPayments) {
+                    return $periodPayments->sum('amount');
+                })->values()->toArray(),
+                'paymentMethods' => [
+                    $payments->where('payment_method', 1)->count(), // Cash
+                    $payments->where('payment_method', 2)->count(), // Check
+                    $payments->where('payment_method', 3)->count(), // Bank Transfer
+                ],
+                'paymentStatuses' => [
+                    $payments->where('payment_status', 1)->count(), // Paid
+                    $payments->where('payment_status', 2)->count(), // Unpaid
+                ]
+            ];
+
+            // Fetch clients for filter dropdown
+            $clients = Client::all();
+
+            return view('reports.sals.payments.payment', [
+                'payments' => $payments,
+                'groupedPayments' => $groupedPayments,
+                'chartData' => $chartData,
+                'clients' => $clients,
+                'fromDate' => Carbon::parse($fromDate),
+                'toDate' => Carbon::parse($toDate),
+                'reportPeriod' => $reportPeriod,
+                'employees' => $employees,
+                'branches' => $branches,
+            ]);
+        } catch (\Exception $e) {
+            // Log the full error
+            Log::error('Error in payments report', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Optionally, return an error view or redirect with a message
+            return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
+        }
+    }
+
+    public function profits(Request $request)
+    {
+        // Default date range (current month)
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+
+        // Prepare the base query for invoice items with product details
+        $query = InvoiceItem::select(
+            'products.id',
+            'products.name',
+            'products.purchase_price',
+            'products.sale_price',
+            'products.brand',
+            'categories.name as category_name',
+            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
+            DB::raw('SUM(invoice_items.total) as total_value'),
+            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
+        )
+        ->join('products', 'invoice_items.product_id', '=', 'products.id')
+        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+        ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+
+        // Apply product filter
+        if ($request->has('products') && !empty($request->input('products'))) {
+            $query->whereIn('products.id', $request->input('products'));
+        }
+
+        // Apply category filter
+        if ($request->has('categories') && !empty($request->input('categories'))) {
+            $query->whereIn('products.category_id', $request->input('categories'));
+        }
+
+        // Apply brand filter
+        if ($request->has('brands') && !empty($request->input('brands'))) {
+            $query->whereIn('products.brand', $request->input('brands'));
+        }
+
+        // Apply branch filter (if you have a branch_id in invoices or a way to link branches)
+        if ($request->has('branches') && !empty($request->input('branches'))) {
+            $query->whereIn('invoices.branch_id', $request->input('branches'));
+        }
+
+        // Group the results
+        $profitsReport = $query
+            ->groupBy(
+                'products.id',
+                'products.name',
+                'products.purchase_price',
+                'products.sale_price',
+                'products.brand',
+                'categories.name'
+            )
+            ->get()
+            ->map(function($product) {
+                // Use product's purchase price for cost calculation
+                $avgCostPrice = $product->purchase_price;
+                $totalCost = $product->total_quantity * $avgCostPrice;
+
+                // Calculate profit
+                $profit = $product->total_value - $totalCost;
+
+                // Calculate profit percentages
+                $profitPercentage = $product->total_value > 0
+                    ? ($profit / $product->total_value) * 100
+                    : 0;
+
+                // Calculate markup
+                $markup = $avgCostPrice > 0
+                    ? (($product->avg_selling_price - $avgCostPrice) / $avgCostPrice) * 100
+                    : 0;
+
+                return [
+                    'name' => $product->name,
+                    'category_name' => $product->category_name,
+                    'brand' => $product->brand,
+                    'total_quantity' => $product->total_quantity,
+                    'total_value' => $product->total_value,
+                    'purchase_price' => $avgCostPrice,
+                    'sale_price' => $product->sale_price,
+                    'avg_selling_price' => $product->avg_selling_price,
+                    'total_cost' => $totalCost,
+                    'profit' => $profit,
+                    'profit_percentage' => $profitPercentage,
+                    'markup_percentage' => $markup
+                ];
+            })
+            // Filter out products with zero quantity
+            ->filter(function($product) {
+                return $product['total_quantity'] > 0;
+            })
+            // Sort by profit in descending order
+            ->sortByDesc('profit');
+
+        // Calculate additional insights
+        $insights = [
+            'total_products' => $profitsReport->count(),
+            'total_quantity_sold' => $profitsReport->sum('total_quantity'),
+            'total_revenue' => $profitsReport->sum('total_value'),
+            'total_cost' => $profitsReport->sum('total_cost'),
+            'total_profit' => $profitsReport->sum('profit'),
+            'avg_profit_margin' => $profitsReport->sum('total_value') > 0
+                ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100
+                : 0,
+            'top_profit_product' => $profitsReport->first(),
+            'lowest_profit_product' => $profitsReport->last()
+        ];
+
+        // Fetch additional data for filters
+        $products = Product::select('id', 'name')->get();
+        $categories = Category::select('id', 'name')->get();
+        $brands = Product::distinct()->pluck('brand');
+        $branches = Branch::select('id', 'name')->get(); // Assuming you have a Branch model
+
+        return view('reports.sals.proudect_proifd.proudect_proifd', [
+            'profitsReport' => $profitsReport,
+            'insights' => $insights,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'products' => $products,
+            'categories' => $categories,
+            'brands' => $brands,
+            'branches' => $branches
+        ]);
+
+    }
+    public function employeeProfits(Request $request)
+    {
+        // Default date range (current month)
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+$products = Product::select('id', 'name')->get();
+        $categories = Category::select('id', 'name')->get();
+$branches=Branch::select('id', 'name')->get();
+        $brands = Product::distinct()->pluck('brand');
+        // Prepare the base query for invoice items with employee details
+        $query = InvoiceItem::select(
+            'users.id as employee_id',
+            'users.name as employee_name',
+            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
+            DB::raw('SUM(invoice_items.total) as total_value'),
+            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
+        )
+        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+        ->join('users', 'invoices.created_by', '=', 'users.id')
+        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+
+        // Apply employee filter
+        if ($request->has('employees') && is_array($request->input('employees')) && !empty($request->input('employees'))) {
+            $query->whereIn('users.id', $request->input('employees'));
+        }
+
+        // Group the results by employee
+        $employeeProfitsReport = $query
+            ->groupBy('users.id', 'users.name')
+            ->get()
+            ->map(function($employee) {
+                // Calculate total cost (assuming a standard markup or using product purchase prices)
+                $totalCost = $employee->total_value / 1.3; // Assuming 30% markup as an example
+                $profit = $employee->total_value - $totalCost;
+
+                // Calculate profit percentages
+                $profitPercentage = $employee->total_value > 0
+                    ? ($profit / $employee->total_value) * 100
+                    : 0;
+
+                return [
+                    'employee_id' => $employee->employee_id,
+                    'name' => $employee->employee_name,
+                    'total_quantity' => $employee->total_quantity,
+                    'total_value' => $employee->total_value,
+                    'avg_selling_price' => $employee->avg_selling_price,
+                    'total_cost' => $totalCost,
+                    'profit' => $profit,
+                    'profit_percentage' => $profitPercentage
+                ];
+            })
+            // Filter out employees with zero sales
+            ->filter(function($employee) {
+                return $employee['total_quantity'] > 0;
+            })
+            // Sort by profit in descending order
+            ->sortByDesc('profit');
+
+        // Calculate additional insights
+        $insights = [
+            'total_employees' => $employeeProfitsReport->count(),
+            'total_quantity_sold' => $employeeProfitsReport->sum('total_quantity'),
+            'total_revenue' => $employeeProfitsReport->sum('total_value'),
+            'total_cost' => $employeeProfitsReport->sum('total_cost'),
+            'total_profit' => $employeeProfitsReport->sum('profit'),
+            'avg_profit_margin' => $employeeProfitsReport->sum('total_value') > 0
+                ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100
+                : 0,
+            'top_performing_employee' => $employeeProfitsReport->first() ?: null,
+            'lowest_performing_employee' => $employeeProfitsReport->last() ?: null
+        ];
+
+        // Fetch additional data for filters
+        $employees = User::select('id', 'name')->get();
+
+        return view('reports.sals.proudect_proifd.employee_profits', [
+            'employeeProfitsReport' => $employeeProfitsReport,
+            'insights' => $insights,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'employees' => $employees,
+            'products' => $products,
+            'categories' => $categories,
+            'brands' => $brands,
+            'branches' => $branches
+
+        ]);
+
+    }
+    public function customerProfits(Request $request)
+    {
+        // Default date range (current month)
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        // Fetch filter options
+        $products = Product::select('id', 'name')->get();
+        $categories = Category::select('id', 'name')->get();
+        $branches = Branch::select('id', 'name')->get();
+        $brands = Product::distinct()->pluck('brand');
+
+        // Prepare the base query for invoice items with client details
+        $query = InvoiceItem::select(
+            'clients.id as client_id',
+            'clients.trade_name as client_name',
+            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
+            DB::raw('SUM(invoice_items.total) as total_value'),
+            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
+        )
+        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+        ->join('clients', 'invoices.client_id', '=', 'clients.id')
+        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+
+        // Apply filters
+        if ($request->has('clients') && is_array($request->input('clients')) && !empty($request->input('clients'))) {
+            $query->whereIn('clients.id', $request->input('clients'));
+        }
+
+        // Apply product filter
+        if ($request->has('products') && is_array($request->input('products')) && !empty($request->input('products'))) {
+            $query->whereIn('invoice_items.product_id', $request->input('products'));
+        }
+
+        // Apply category filter
+        if ($request->has('categories') && is_array($request->input('categories')) && !empty($request->input('categories'))) {
+            $query->whereHas('product', function($q) use ($request) {
+                $q->whereIn('category_id', $request->input('categories'));
+            });
+        }
+
+        // Apply brand filter
+        if ($request->has('brands') && is_array($request->input('brands')) && !empty($request->input('brands'))) {
+            $query->whereHas('product', function($q) use ($request) {
+                $q->whereIn('brand', $request->input('brands'));
+            });
+        }
+
+        // Apply branch filter
+        if ($request->has('branches') && is_array($request->input('branches')) && !empty($request->input('branches'))) {
+            $query->whereIn('invoices.branch_id', $request->input('branches'));
+        }
+
+        // Group the results by client
+        $clientProfitsReport = $query
+            ->groupBy('clients.id', 'clients.trade_name')
+            ->get()
+            ->map(function($client) {
+                // Calculate total cost (assuming a standard markup or using product purchase prices)
+                $totalCost = $client->total_value / 1.3; // Assuming 30% markup as an example
+                $profit = $client->total_value - $totalCost;
+
+                // Calculate profit percentages
+                $profitPercentage = $client->total_value > 0
+                    ? ($profit / $client->total_value) * 100
+                    : 0;
+
+                return [
+                    'client_id' => $client->client_id,
+                    'name' => $client->client_name,
+                    'total_quantity' => $client->total_quantity,
+                    'total_value' => $client->total_value,
+                    'avg_selling_price' => $client->avg_selling_price,
+                    'total_cost' => $totalCost,
+                    'profit' => $profit,
+                    'profit_percentage' => $profitPercentage
+                ];
+            })
+            // Filter out clients with zero sales
+            ->filter(function($client) {
+                return $client['total_quantity'] > 0;
+            })
+            // Sort by profit in descending order
+            ->sortByDesc('profit');
+
+        // Calculate additional insights
+        $insights = [
+            'total_clients' => $clientProfitsReport->count(),
+            'total_quantity_sold' => $clientProfitsReport->sum('total_quantity'),
+            'total_revenue' => $clientProfitsReport->sum('total_value'),
+            'total_cost' => $clientProfitsReport->sum('total_cost'),
+            'total_profit' => $clientProfitsReport->sum('profit'),
+            'avg_profit_margin' => $clientProfitsReport->sum('total_value') > 0
+                ? ($clientProfitsReport->sum('profit') / $clientProfitsReport->sum('total_value')) * 100
+                : 0,
+            'top_performing_client' => $clientProfitsReport->first() ?: null,
+            'lowest_performing_client' => $clientProfitsReport->last() ?: null
+        ];
+
+        // Fetch additional data for filters
+        $clients = Client::select('id', 'trade_name as name')->get();
+
+        return view('reports.sals.payments.customer_profit', [
+            'clientProfitsReport' => $clientProfitsReport,
+            'insights' => $insights,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'clients' => $clients,
+            'products' => $products,
+            'categories' => $categories,
+            'brands' => $brands,
+            'branches' => $branches
+        ]);
+    }
     public function Wsales()
     {
         return view('reports.sals.W_Sales');
@@ -1187,3 +1788,4 @@ class SalesReportsController extends Controller
         return view('reports.sals.Sales_By_Customer');
     }
 }
+

@@ -251,7 +251,7 @@
                                     <a href="{{route('salesReports.clientPaymentReport')}}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{route('salesReports.clientPaymentReport')}}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -262,10 +262,10 @@
                                 </span>
                                 المدفوعات حسب الموظف
                                 <div class="ms-auto">
-                                    <a href="payments_report/payments-report-by-employee.html" class="text-decoration-none">
+                                    <a href="{{route('salesReports.employeePaymentReport')}}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{route('salesReports.employeePaymentReport')}}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -276,10 +276,10 @@
                                 </span>
                                 المدفوعات حسب طريقة الدفع
                                 <div class="ms-auto">
-                                    <a href="payments_report/payments-report-by-payment-method.html" class="text-decoration-none">
+                                    <a href="{{route('salesReports.paymentMethodReport')}}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{route('salesReports.paymentMethodReport')}}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -305,10 +305,10 @@
                                 </span>
                                 المدفوعات اليومية
                                 <div class="ms-auto">
-                                    <a href="payments_report_timfram/deliy_payment_report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'daily']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'daily']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -319,10 +319,10 @@
                                 </span>
                                 المدفوعات الأسبوعية
                                 <div class="ms-auto">
-                                    <a href="payments_report_timfram/week_payment_report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'weekly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'weekly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -333,10 +333,10 @@
                                 </span>
                                 المدفوعات الشهرية
                                 <div class="ms-auto">
-                                    <a href="payments_report_timfram/monty_payment_report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'monthly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'monthly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -347,10 +347,10 @@
                                 </span>
                                 المدفوعات السنوية
                                 <div class="ms-auto">
-                                    <a href="payments_report_timfram/year_payment_report.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'yearly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.patyment', ['report_period' => 'yearly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -374,12 +374,10 @@
                                 </span>
                                 أرباح مبيعات الأصناف - المنتجات
                                 <div class="ms-auto">
-                                    <a href="profit_report/profit-report-by-product.html" class="text-decoration-none">
-                                        <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                    <a href="{{ route('salesReports.profits') }}" class="text-decoration-none">
+                                        <i class="fa-solid fa-eyes"></i> عرض
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
-                                        <i class="fa-solid fa-clipboard"></i> الملخص
-                                    </a>
+
                                 </div>
                             </li>
                             <li class="list-group-item">
@@ -388,11 +386,8 @@
                                 </span>
                                 أرباح مبيعات الأصناف - العميل
                                 <div class="ms-auto">
-                                    <a href="profit_report/profit-report-by-client.htm" class="text-decoration-none">
-                                        <i class="fa-solid fa-file-lines"></i> التفاصيل
-                                    </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
-                                        <i class="fa-solid fa-clipboard"></i> الملخص
+                                    <a href="{{route('salesReports.customerProfits')}}" class="text-decoration-none">
+                                        <i class="fa-solid fa-eyes"></i> عرض
                                     </a>
                                 </div>
                             </li>
@@ -402,11 +397,8 @@
                                 </span>
                                 أرباح مبيعات الأصناف - موظف
                                 <div class="ms-auto">
-                                    <a href="profit_report/profit-report-by-employee.html" class="text-decoration-none">
-                                        <i class="fa-solid fa-file-lines"></i> التفاصيل
-                                    </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
-                                        <i class="fa-solid fa-clipboard"></i> الملخص
+                                    <a href="{{ route('salesReports.employeeProfits') }}" class="text-decoration-none">
+                                        <i class="fa-solid fa-eyes"></i> عرض
                                     </a>
                                 </div>
                             </li>
@@ -416,11 +408,8 @@
                                 </span>
                                 أرباح مبيعات الأصناف - مسؤول مبيعات
                                 <div class="ms-auto">
-                                    <a href="profit_report/profit-report-by-sales-manager.html" class="text-decoration-none">
-                                        <i class="fa-solid fa-file-lines"></i> التفاصيل
-                                    </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
-                                        <i class="fa-solid fa-clipboard"></i> الملخص
+                                    <a href="{{route('salesReports.customerProfits')}}" class="text-decoration-none">
+                                        <i class="fa-solid fa-eyes"></i> عرض
                                     </a>
                                 </div>
                             </li>
