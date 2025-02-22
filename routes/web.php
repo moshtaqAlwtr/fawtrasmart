@@ -44,6 +44,7 @@ Route::group(
                         Route::post('/store', [InvoicesController::class, 'store'])->name('invoices.store');
                         Route::delete('/delete/{id}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
                         Route::get('/{id}/generatePdf', [InvoicesController::class, 'generatePdf'])->name('invoices.generatePdf');
+                        
                     });
 
                 Route::prefix('ReturnIInvoices')->group(function () {

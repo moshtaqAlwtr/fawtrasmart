@@ -422,6 +422,8 @@ class InvoicesController extends Controller
                 'paid_amount' => $advance_payment,
             ]);
 
+   
+
             // ** تحديث رصيد حساب أبناء العميل **
 
             // إضافة المبلغ الإجمالي للفاتورة إلى رصيد أبناء العميل
@@ -451,7 +453,50 @@ class InvoicesController extends Controller
 
                 $productDetails->decrement('quantity', $item['quantity']);
             }
-
+         
+           // جلب بيانات الموظف والمستخدم
+           $employee_name = Employee::where('id', $invoice->employee_id)->first();
+           $user_name = User::where('id', $invoice->created_by)->first();
+            $client_name = Client::find($invoice->client_id);
+           // جلب جميع المنتجات المرتبطة بالفاتورة
+           $invoiceItems = InvoiceItem::where('invoice_id', $invoice->id)->get();
+           
+           // تجهيز قائمة المنتجات
+           $productsList = "";
+           foreach ($invoiceItems as $item) {
+               $product = Product::find($item->product_id);
+               $productName = $product ? $product->name : "منتج غير معروف";
+               $productsList .= "▫️ *{$productName}* - الكمية: {$item->quantity}, السعر: {$item->unit_price} \n";
+           }
+           
+           // رابط API التلقرام
+           $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+           
+           // تجهيز الرسالة
+           $message = "📜 *فاتورة جديدة* 📜\n";
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "🆔 *رقم الفاتورة:* `$code`\n";
+           $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
+           $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
+           $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
+           $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
+           $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "📦 *المنتجات:* \n" . $productsList;
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
+           
+           
+           // إرسال الرسالة إلى التلقرام
+           $response = Http::post($telegramApiUrl, [
+               'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
+               'text' => $message,
+               'parse_mode' => 'Markdown',
+               'timeout' => 30,
+           ]);
+           
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();

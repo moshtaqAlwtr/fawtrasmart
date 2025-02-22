@@ -181,6 +181,7 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
+        Telegram\Bot\Laravel\TelegramServiceProvider::class,
         // ...
         Spatie\Permission\PermissionServiceProvider::class,
       
@@ -213,7 +214,7 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'ExampleClass' => App\Example\ExampleClass::class,
-     
+     'Telegram' => Telegram\Bot\Laravel\Facades\Telegram::class,
     ])->toArray(),
 
 ];
