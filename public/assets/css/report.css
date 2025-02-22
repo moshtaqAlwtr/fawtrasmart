@@ -1,0 +1,204 @@
+
+    /* أنماط عامة */
+    body {
+        background-color: #f4f7fc;
+        direction: rtl;
+        font-family: 'Tajawal', sans-serif;
+    }
+
+    /* أنماط البطاقات (Cards) */
+    .card {
+        border: none;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .card-title {
+        display: flex;
+        align-items: center;
+        font-weight: bold;
+        color: #374957;
+    }
+
+    .card-title i {
+        margin-left: 10px;
+        color: #5869b7;
+    }
+
+    /* أنماط الأزرار */
+    .btn-primary {
+        background: linear-gradient(45deg, #6a11cb, #2575fc);
+        border: none;
+    }
+
+    .btn-export {
+        background: linear-gradient(45deg, #ff5722, #e64a19);
+        color: #fff;
+    }
+
+    .btn-print {
+        background: linear-gradient(45deg, #4caf50, #388e3c);
+        color: #fff;
+    }
+
+    /* أنماط الجداول */
+    .table thead {
+        background: linear-gradient(45deg, #42a5f5, #1e88e5);
+        color: #fff;
+    }
+
+    .table tbody tr {
+        transition: background-color 0.3s;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f0f0f5;
+    }
+
+    /* أنماط القوائم (List Groups) */
+    .list-group-item {
+        border: none;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.3s;
+    }
+
+    .list-group-item:hover {
+        background-color: #f0f0f5;
+    }
+
+    .list-icon {
+        width: 30px;
+        height: 30px;
+        margin-left: 15px;
+        border-radius: 50%;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    /* ألوان الأيقونات */
+    .list-icon.blue {
+        background-color: #17a2b8;
+    }
+
+    .list-icon.orange {
+        background-color: #fd7e14;
+    }
+
+    .list-icon.red {
+        background-color: #e74c3c;
+    }
+
+    .list-icon.green {
+        background-color: #28a745;
+    }
+
+    .list-icon.teal {
+        background-color: #20c997;
+    }
+
+    .list-icon.purple {
+        background-color: #6f42c1;
+    }
+
+    /* تدرجات الألوان للأيقونات */
+    .list-icon.gradient-orange {
+        background: linear-gradient(45deg, #ffa726, #fb8c00);
+    }
+
+    .list-icon.gradient-red {
+        background: linear-gradient(45deg, #ef5350, #e53935);
+    }
+
+    .list-icon.gradient-teal {
+        background: linear-gradient(45deg, #26a69a, #00897b);
+    }
+
+    .list-icon.gradient-purple {
+        background: linear-gradient(45deg, #ab47bc, #8e24aa);
+    }
+
+    .list-icon.gradient-green {
+        background: linear-gradient(45deg, #66bb6a, #43a047);
+    }
+
+    .list-icon.gradient-blue {
+        background: linear-gradient(45deg, #42a5f5, #1e88e5);
+    }
+
+    /* أنماط الرسوم البيانية (Charts) */
+    #charts-container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    #charts .chart-wrapper {
+        max-width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #charts canvas {
+        width: 100% !important;
+        height: 300px !important;
+    }
+
+    .report-container {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-top: 30px;
+    }
+    .filter-card {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .table-profits {
+        direction: rtl;
+        text-align: right;
+    }
+    .profit-positive {
+        color: #28a745;
+        font-weight: bold;
+    }
+    .profit-negative {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .card-header {
+        background: linear-gradient(to left, #2c3e50, #3498db);
+        color: white;
+    }
+    .table-dark {
+        background-color: #2c3e50;
+    }
+    .insights-badge {
+        font-size: 0.9rem;
+        margin-right: 5px;
+    }
+    .filter-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .btn-filter {
+        background-color: #3498db;
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .btn-filter:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+    }

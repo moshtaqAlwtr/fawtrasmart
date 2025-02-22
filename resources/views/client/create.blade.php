@@ -59,9 +59,9 @@
                     </div>
                 </div>
             </div>
-        <div class="row">
+            <div class="row">
 
-            <div class="col-md-6 col-12">
+                <div class="col-md-6 col-12">
 
                     <div class="card">
                         <div class="card-header">
@@ -287,7 +287,9 @@
                                                         <!-- الحقول الديناميكية ستضاف هنا -->
                                                     </div>
                                                     <div class="text-right mt-1">
-                                                        <button type="button" class="btn btn-outline-success mr-1 mb-1 إضافة"  onclick="addContactFields()">
+                                                        <button type="button"
+                                                            class="btn btn-outline-success mr-1 mb-1 إضافة"
+                                                            onclick="addContactFields()">
                                                             <i class="feather icon-plus"></i> إضافة جهة اتصال
                                                         </button>
                                                     </div>
@@ -300,208 +302,209 @@
                         </div>
                     </div>
 
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title">بيانات الحساب</h4>
-                    </div>
-                    <div class="card-content">
-                        <div class="card-body">
-                            <div class="form-body">
-                                <div class="row">
-                                    <!-- رقم الكود -->
-                                    <div class="col-6 mb-3">
-                                        <div class="form-group">
-                                            <label for="code">رقم الكود <span class="text-danger">*</span></label>
-                                            <div class="position-relative has-icon-left">
-                                                <input type="text" id="code" class="form-control" name="code"
-                                                    value="{{ old('code', $newCode) }}" readonly>
-                                                <div class="form-control-position">
-                                                    <i class="feather icon-hash"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-
-                                    <!-- طريقة الفاتورة -->
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-group">
-                                            <label for="printing_method">طريقة الفاتورة</label>
-                                            <div class="position-relative has-icon-left">
-                                                <select class="form-control" id="printing_method" name="printing_method">
-                                                    <option value="1"
-                                                        {{ old('printing_method') == 1 ? 'selected' : '' }}>الطباعة
-                                                    </option>
-                                                    <option value="2"
-                                                        {{ old('printing_method') == 2 ? 'selected' : '' }}>ارسل عبر
-                                                        البريد</option>
-                                                </select>
-                                                <div class="form-control-position">
-                                                    <i class="feather icon-file-text"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- الرصيد الافتتاحي -->
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-group">
-                                            <label for="opening_balance">الرصيد الافتتاحي</label>
-                                            <div class="position-relative has-icon-left">
-                                                <input type="number" id="opening_balance" class="form-control"
-                                                    name="opening_balance" value="{{ old('opening_balance') }}">
-                                                <div class="form-control-position">
-                                                    <i class="feather icon-dollar-sign"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- تاريخ الرصيد الاستحقاق -->
-                                    <div class="col-md-6 mb-3">
-                                        <div class="form-group">
-                                            <label for="opening_balance_date">تاريخ الرصيد الاستحقاق</label>
-                                            <div class="position-relative has-icon-left">
-                                                <input type="date" id="opening_balance_date" class="form-control"
-                                                    name="opening_balance_date"
-                                                    value="{{ old('opening_balance_date', date('Y-m-d')) }}">
-                                                <div class="form-control-position">
-                                                    <i class="feather icon-calendar"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- العملة -->
-                                    <div class="col-md-12 mb-3">
-                                        <div class="form-group">
-                                            <label for="currency">العملة</label>
-                                            <div class="position-relative has-icon-left">
-                                                <select class="form-control" id="currency" name="currency">
-                                                    <option value="SAR"
-                                                        {{ old('currency') == 'SAR' ? 'selected' : '' }}>SAR</option>
-                                                    <option value="USD"
-                                                        {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
-                                                    <option value="EUR"
-                                                        {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR</option>
-                                                </select>
-                                                <div class="form-control-position">
-                                                    <i class="feather icon-credit-card"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- البريد الإلكتروني -->
-                                    <div class="col-md-12 mb-3">
-                                        <div class="form-group">
-                                            <label for="email">البريد الإلكتروني</label>
-                                            <div class="position-relative has-icon-left">
-                                                <input type="email" id="email" class="form-control" name="email"
-                                                    value="{{ old('email') }}">
-                                                <div class="form-control-position">
-                                                    <i class="feather icon-mail"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- التصنيف -->
-                                    <div class="col-md-12 mb-3">
-                                        <div class="form-group">
-                                            <label for="category">التصنيف</label>
-                                            <input list="classifications" class="form-control" id="client_type"
-                                                name="category" placeholder="اكتب التصنيف"
-                                                value="{{ old('category') }}">
-                                            <datalist id="classifications">
-                                                <option value="عميل فردي">
-                                                <option value="طيور لبن">
-                                                <option value="أجل">
-                                                <option value="طيور">
-                                                <option value="السعودي والسلمي">
-                                                <option value="العربية والدار البيضاء">
-                                            </datalist>
-                                        </div>
-                                    </div>
-
-                                    <!-- الملاحظات -->
-                                    <div class="col-md-12 mb-3">
-                                        <label for="notes">الملاحظات</label>
-                                        <textarea class="form-control" id="notes" name="notes" rows="5" style="resize: none;">{{ old('notes') }}</textarea>
-                                    </div>
-
-                                    <!-- المرفقات -->
-                                    <div class="col-md-12 mb-3">
-                                        <div class="form-group">
-                                            <label for="attachments">المرفقات</label>
-                                            <input type="file" name="attachments" id="attachments" class="d-none">
-                                            <div class="upload-area border rounded p-3 text-center position-relative"
-                                                onclick="document.getElementById('attachments').click()">
-                                                <div class="d-flex align-items-center justify-content-center gap-2">
-                                                    <i class="fas fa-cloud-upload-alt text-primary"></i>
-                                                    <span class="text-primary">اضغط هنا</span>
-                                                    <span>أو</span>
-                                                    <span class="text-primary">اختر من جهازك</span>
-                                                </div>
-                                                <div class="position-absolute end-0 top-50 translate-middle-y me-3">
-                                                    <i class="fas fa-file-alt fs-3 text-secondary"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-12">
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">بيانات الحساب</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-body">
+                                    <div class="row">
+                                        <!-- رقم الكود -->
+                                        <div class="col-6 mb-3">
                                             <div class="form-group">
-                                                <label for="language">نوع العميل </label>
+                                                <label for="code">رقم الكود <span class="text-danger">*</span></label>
                                                 <div class="position-relative has-icon-left">
-                                                    <select class="form-control" name="client_type" id="client_type">
-                                                        <option value="1"
-                                                            {{ old('client_type') == 1 ? 'selected' : '' }}>عميل VIP
-                                                        </option>
-                                                        <option value="2"
-                                                            {{ old('client_type') == 2 ? 'selected' : '' }}>عميل عادي
-                                                            عادي</option>
-                                                        {{-- --}}
-
-                                                    </select>
+                                                    <input type="text" id="code" class="form-control"
+                                                        name="code" value="{{ old('code', $newCode) }}" readonly>
                                                     <div class="form-control-position">
-
+                                                        <i class="feather icon-hash"></i>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="col-md-12 mb-3">
+
+                                        <!-- طريقة الفاتورة -->
+                                        <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="employee_id" class="form-label">الموظف المسؤول</label>
-                                                <select name="employee_id" id="employee_id" class="form-control @error('employee_id') is-invalid @enderror">
-                                                    <option value="">اختر الموظف</option>
-                                                    @foreach($employees as $employee)
-                                                        <option value="{{ $employee->employee_id }}">
-                                                            {{ $employee->full_name }}
+                                                <label for="printing_method">طريقة الفاتورة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <select class="form-control" id="printing_method"
+                                                        name="printing_method">
+                                                        <option value="1"
+                                                            {{ old('printing_method') == 1 ? 'selected' : '' }}>الطباعة
                                                         </option>
-                                                    @endforeach
-                                                </select>
-                                                @error('employee_id')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
+                                                        <option value="2"
+                                                            {{ old('printing_method') == 2 ? 'selected' : '' }}>ارسل عبر
+                                                            البريد</option>
+                                                    </select>
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-file-text"></i>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
+                                        <!-- الرصيد الافتتاحي -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="opening_balance">الرصيد الافتتاحي</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="number" id="opening_balance" class="form-control"
+                                                        name="opening_balance" value="{{ old('opening_balance') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-dollar-sign"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- تاريخ الرصيد الاستحقاق -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="opening_balance_date">تاريخ الرصيد الاستحقاق</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="date" id="opening_balance_date" class="form-control"
+                                                        name="opening_balance_date"
+                                                        value="{{ old('opening_balance_date', date('Y-m-d')) }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-calendar"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- العملة -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="currency">العملة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <select class="form-control" id="currency" name="currency">
+                                                        <option value="SAR"
+                                                            {{ old('currency') == 'SAR' ? 'selected' : '' }}>SAR</option>
+                                                        <option value="USD"
+                                                            {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
+                                                        <option value="EUR"
+                                                            {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR</option>
+                                                    </select>
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-credit-card"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- البريد الإلكتروني -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="email">البريد الإلكتروني</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="email" id="email" class="form-control"
+                                                        name="email" value="{{ old('email') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-mail"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- التصنيف -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="category">التصنيف</label>
+                                                <input list="classifications" class="form-control" id="client_type"
+                                                    name="category" placeholder="اكتب التصنيف"
+                                                    value="{{ old('category') }}">
+                                                <datalist id="classifications">
+                                                    @foreach ($categories as $category)
+                                                        <option value="{{ $category->id }}">{{ $category->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </datalist>
+                                            </div>
+                                        </div>
+
+                                        <!-- الملاحظات -->
+                                        <div class="col-md-12 mb-3">
+                                            <label for="notes">الملاحظات</label>
+                                            <textarea class="form-control" id="notes" name="notes" rows="5" style="resize: none;">{{ old('notes') }}</textarea>
+                                        </div>
+
+                                        <!-- المرفقات -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="attachments">المرفقات</label>
+                                                <input type="file" name="attachments" id="attachments"
+                                                    class="d-none">
+                                                <div class="upload-area border rounded p-3 text-center position-relative"
+                                                    onclick="document.getElementById('attachments').click()">
+                                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                                                        <span class="text-primary">اضغط هنا</span>
+                                                        <span>أو</span>
+                                                        <span class="text-primary">اختر من جهازك</span>
+                                                    </div>
+                                                    <div class="position-absolute end-0 top-50 translate-middle-y me-3">
+                                                        <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="language">نوع العميل </label>
+                                                    <div class="position-relative has-icon-left">
+                                                        <select class="form-control" name="client_type" id="client_type">
+                                                            <option value="1"
+                                                                {{ old('client_type') == 1 ? 'selected' : '' }}>عميل VIP
+                                                            </option>
+                                                            <option value="2"
+                                                                {{ old('client_type') == 2 ? 'selected' : '' }}>عميل عادي
+                                                                عادي</option>
+                                                            {{-- --}}
+
+                                                        </select>
+                                                        <div class="form-control-position">
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="employee_id" class="form-label">الموظف المسؤول</label>
+                                                    <select name="employee_id" id="employee_id"
+                                                        class="form-control @error('employee_id') is-invalid @enderror">
+                                                        <option value="">اختر الموظف</option>
+                                                        @foreach ($employees as $employee)
+                                                            <option value="{{ $employee->employee_id }}">
+                                                                {{ $employee->full_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('employee_id')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- لغة العرض -->
+
                                     </div>
-
-                                    <!-- لغة العرض -->
-
                                 </div>
                             </div>
                         </div>
                     </div>
-                                 </div>
 
-            </div>
+                </div>
 
-            </form>
-        </div>
+        </form>
+    </div>
 
 
     </div>

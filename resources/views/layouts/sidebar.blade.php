@@ -628,6 +628,7 @@
                                 </a>
                             </li>
                         @endcan
+<<<<<<< HEAD
         
                         <li>
                             <a href="{{ route('Memberships.subscriptions') }}">
@@ -636,6 +637,16 @@
                                     {{ trans('main_trans.Subscription_management') }}
                                 </span>
                             </a>
+=======
+<<<<<<< HEAD
+
+                        <li><a href="{{ route('Memberships.subscriptions') }}"><i class="feather icon-circle"></i><span class="menu-item"
+=======
+
+                        <li><a href="{{route('Memberships.subscriptions.index')}}"><i class="feather icon-circle"></i><span class="menu-item"
+>>>>>>> aa09ee3ca79613782193d543daa9551e2b01e331
+                                    data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
+>>>>>>> d4699b3f12e5b5a2494448bdd0d0ac31ada94c6b
                         </li>
         
                         {{-- <li>
@@ -1273,7 +1284,7 @@
 
                 </a>
                 <ul class="menu-content">
-                    <li><a href="{{ route('sals_reports.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href="{{ route('salesReports.index') }}"><i class="feather icon-circle"></i><span
                                 class="menu-item" data-i18n="Analytics">
                                 {{ trans('main_trans.Sales_Report') }}</span></a>
                     </li>

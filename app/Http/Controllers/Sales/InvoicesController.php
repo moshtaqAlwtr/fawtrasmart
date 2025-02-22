@@ -203,9 +203,11 @@ class InvoicesController extends Controller
         $clients = Client::all();
         $users = User::all();
         $treasury = Treasury::all();
+        $employees = Employee::all();
+
         $invoiceType = 'normal'; // نوع الفاتورة عادي
 
-        return view('sales.invoices.create', compact('clients', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType'));
+        return view('sales.invoices.create', compact('clients', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
     }
 
     public function store(Request $request)
@@ -422,7 +424,6 @@ class InvoicesController extends Controller
 
             // ** تحديث رصيد حساب أبناء العميل **
 
-
             // إضافة المبلغ الإجمالي للفاتورة إلى رصيد أبناء العميل
 
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
@@ -448,104 +449,86 @@ class InvoicesController extends Controller
                 $productDetails->decrement('quantity', $item['quantity']);
             }
 
-          // التحقق مما إذا كان للمستخدم قاعدة عمولة
-         // التحقق مما إذا كان للمستخدم قاعدة عمولة
-         $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
+            // التحقق مما إذا كان للمستخدم قاعدة عمولة
+            // التحقق مما إذا كان للمستخدم قاعدة عمولة
+            $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
 
-        //  if (!$userHasCommission) {
-        //      return "no000"; // المستخدم لا يملك قاعدة عمولة
-        //   }
+            //  if (!$userHasCommission) {
+            //      return "no000"; // المستخدم لا يملك قاعدة عمولة
+            //   }
 
-        if ($userHasCommission) {
-        
-        // جلب جميع commission_id الخاصة بالمستخدم
-       $commissionIds = CommissionUsers::where('employee_id', auth()->user()->id)->pluck('commission_id');
+            if ($userHasCommission) {
+                // جلب جميع commission_id الخاصة بالمستخدم
+                $commissionIds = CommissionUsers::where('employee_id', auth()->user()->id)->pluck('commission_id');
 
-     // التحقق مما إذا كانت هناك أي عمولة نشطة في جدول Commission
-        $activeCommission = Commission::whereIn('id', $commissionIds)
-       ->where('status', 'active')
-         ->first();
+                // التحقق مما إذا كانت هناك أي عمولة نشطة في جدول Commission
+                $activeCommission = Commission::whereIn('id', $commissionIds)->where('status', 'active')->first();
 
-    //   if (!$activeCommission) {
-    //    return "not active"; // لا توجد عمولة نشطة، توقف هنا
-    //    }
+                //   if (!$activeCommission) {
+                //    return "not active"; // لا توجد عمولة نشطة، توقف هنا
+                //    }
 
-    if ($activeCommission) {
-        
+                if ($activeCommission) {
+                    //    // ✅ التحقق مما إذا كانت حالة الدفع في `invoice` تتطابق مع حساب العمولة في `commission`
+                    //    if (
+                    //  ($invoice->payment_status == 1 && $activeCommission->commission_calculation != "fully_paid") ||
+                    //  ($invoice->payment_status == 2 && $activeCommission->commission_calculation != "partially_paid")
+                    //  )   {
+                    //  return "payment mismatch"; // حالتا الدفع لا تتطابقان
+                    //   }
 
-    //    // ✅ التحقق مما إذا كانت حالة الدفع في `invoice` تتطابق مع حساب العمولة في `commission`
-    //    if (
-    //  ($invoice->payment_status == 1 && $activeCommission->commission_calculation != "fully_paid") ||
-    //  ($invoice->payment_status == 2 && $activeCommission->commission_calculation != "partially_paid")
-    //  )   {
-    //  return "payment mismatch"; // حالتا الدفع لا تتطابقان
-    //   }
+                    // البحث في جدول commission__products باستخدام هذه commission_id
+                    $commissionProducts = Commission_Products::whereIn('commission_id', $commissionIds)->get();
 
-   // البحث في جدول commission__products باستخدام هذه commission_id
-    $commissionProducts = Commission_Products::whereIn('commission_id', $commissionIds)->get();
+                    // التحقق من وجود أي product_id = 0
+                    if ($commissionProducts->contains('product_id', 0)) {
+                        return 'yesall';
+                    }
 
-     // التحقق من وجود أي product_id = 0
-      if ($commissionProducts->contains('product_id', 0)) {
-       return "yesall";
-       }
+                    // جلب جميع product_id الخاصة بالفاتورة
+                    $invoiceProductIds = InvoiceItem::where('invoice_id', $invoice->id)->pluck('product_id');
 
-      // جلب جميع product_id الخاصة بالفاتورة
-      $invoiceProductIds = InvoiceItem::where('invoice_id', $invoice->id)->pluck('product_id');
+                    // التحقق مما إذا كان أي من product_id في جدول commission__products يساوي أي من المنتجات في الفاتورة
+                    if ($commissionProducts->whereIn('product_id', $invoiceProductIds)->isNotEmpty()) {
+                        // جلب بيانات العمولة المرتبطة بالفاتورة
+                        $inAmount = Commission::whereIn('id', $commissionIds)->first();
+                        $commissionProduct = Commission_Products::whereIn('commission_id', $commissionIds)->first();
+                        if ($inAmount) {
+                            if ($inAmount->target_type == 'amount') {
+                                $invoiceTotal = InvoiceItem::where('invoice_id', $invoice->id)->sum('total');
+                                $invoiceQyt = InvoiceItem::where('invoice_id', $invoice->id)->first();
+                                // تحقق من أن قيمة العمولة تساوي أو أكبر من `total`
+                                if ((float) $inAmount->value <= (float) $invoiceTotal) {
+                                    $salesInvoice = new SalesCommission();
+                                    $salesInvoice->invoice_number = $invoice->id; // تعيين رقم الفاتورة الصحيح
+                                    $salesInvoice->employee_id = auth()->user()->id; // اسم الموظف
+                                    $salesInvoice->sales_amount = $invoiceTotal; // إجمالي المبيعات
+                                    $salesInvoice->sales_quantity = $invoiceQyt->quantity;
+                                    $salesInvoice->commission_id = $inAmount->id;
+                                    $salesInvoice->ratio = $commissionProduct->commission_percentage ?? 0;
+                                    $salesInvoice->product_id = $commissionProduct->product_id ?? 0; // رقم معرف العمولة
+                                    $salesInvoice->save(); // حفظ السجل في قاعدة البيانات
+                                }
+                            } elseif ($inAmount->target_type == 'quantity') {
+                                // تحقق من أن قيمة العمولة تساوي أو أكبر من `quantity`
+                                $invoiceQuantity = InvoiceItem::where('invoice_id', $invoice->id)->sum('quantity');
 
-     // التحقق مما إذا كان أي من product_id في جدول commission__products يساوي أي من المنتجات في الفاتورة
-     if ($commissionProducts->whereIn('product_id', $invoiceProductIds)->isNotEmpty()) {
-        
-        // جلب بيانات العمولة المرتبطة بالفاتورة
-        $inAmount = Commission::whereIn('id', $commissionIds)->first();
-        $commissionProduct = Commission_Products::whereIn('commission_id', $commissionIds)->first();
-        if ($inAmount) {
-            if ($inAmount->target_type == "amount") {
-                
-                $invoiceTotal = InvoiceItem::where('invoice_id', $invoice->id)->sum('total');
-                $invoiceQyt = InvoiceItem::where('invoice_id', $invoice->id)->first();
-                // تحقق من أن قيمة العمولة تساوي أو أكبر من `total`
-                if ((float) $inAmount->value <= (float) $invoiceTotal) {
-                  
-                    
-                    $salesInvoice = new SalesCommission();
-                    $salesInvoice->invoice_number   = $invoice->id; // تعيين رقم الفاتورة الصحيح
-                    $salesInvoice->employee_id      = auth()->user()->id; // اسم الموظف
-                    $salesInvoice->sales_amount     = $invoiceTotal; // إجمالي المبيعات
-                    $salesInvoice->sales_quantity   = $invoiceQyt->quantity;
-                    $salesInvoice->commission_id    = $inAmount->id;
-                    $salesInvoice->ratio            = $commissionProduct->commission_percentage ?? 0;
-                    $salesInvoice->product_id            = $commissionProduct->product_id ?? 0; // رقم معرف العمولة
-                    $salesInvoice->save(); // حفظ السجل في قاعدة البيانات
-                    
-
-                }
-            } elseif($inAmount->target_type == "quantity") {
-                // تحقق من أن قيمة العمولة تساوي أو أكبر من `quantity`
-                $invoiceQuantity = InvoiceItem::where('invoice_id', $invoice->id)->sum('quantity');
-                
-                    if ((float) $inAmount->value <= (float) $invoiceQuantity) {
-                    $salesInvoice = new SalesCommission();
-                    $salesInvoice->invoice_number   = $invoice->id; // تعيين رقم الفاتورة الصحيح
-                    $salesInvoice->employee_id      = auth()->user()->id; // اسم الموظف
-                    $salesInvoice->sales_amount     = $invoiceTotal; // إجمالي المبيعات
-                    $salesInvoice->sales_quantity   = $invoiceQyt->quantity;
-                    $salesInvoice->commission_id    = $inAmount->id; // رقم معرف العمولة
-                    $salesInvoice->ratio            = $commissionProduct->commission_percentage ?? 0;
-                    $salesInvoice->product_id            = $commissionProduct->product_id ?? 0;
-                    $salesInvoice->save(); // حفظ السجل في قاعدة البيانات
-                    
+                                if ((float) $inAmount->value <= (float) $invoiceQuantity) {
+                                    $salesInvoice = new SalesCommission();
+                                    $salesInvoice->invoice_number = $invoice->id; // تعيين رقم الفاتورة الصحيح
+                                    $salesInvoice->employee_id = auth()->user()->id; // اسم الموظف
+                                    $salesInvoice->sales_amount = $invoiceTotal; // إجمالي المبيعات
+                                    $salesInvoice->sales_quantity = $invoiceQyt->quantity;
+                                    $salesInvoice->commission_id = $inAmount->id; // رقم معرف العمولة
+                                    $salesInvoice->ratio = $commissionProduct->commission_percentage ?? 0;
+                                    $salesInvoice->product_id = $commissionProduct->product_id ?? 0;
+                                    $salesInvoice->save(); // حفظ السجل في قاعدة البيانات
+                                }
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-}
-        }
-
-  
-
-
-
-
 
             // ** معالجة المرفقات (attachments) إذا وجدت **
             if ($request->hasFile('attachments')) {
@@ -584,7 +567,7 @@ class InvoicesController extends Controller
             // 1. حساب العميل (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' => $invoice->client->id  , // حساب العميل
+                'account_id' => $invoice->client->id, // حساب العميل
                 'description' => 'فاتورة مبيعات',
                 'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
                 'credit' => 0,
@@ -640,23 +623,22 @@ class InvoicesController extends Controller
                 $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
 
                 // البحث عن حساب الخزينة الرئيسية
-                $mainTreasuryAccount = Account::whereHas('parent.parent', function($query) {
-                    $query->where('name', 'الأصول')
-                          ->whereHas('children', function($subQuery) {
-                              $subQuery->where('name', 'الأصول المتداولة');
-                          });
-                })
-                ->where('name', 'الخزينة الرئيسية')
-                ->first();
+                // $mainTreasuryAccount = Account::whereHas('parent.parent', function ($query) {
+                //     $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
+                //         $subQuery->where('name', 'الأصول المتداولة');
+                //     });
+                // })
+                //     ->where('name', 'الخزينة الرئيسية')
+                //     ->first();
 
-                // التأكد من وجود حساب الخزينة الرئيسية
-                if (!$mainTreasuryAccount) {
-                    throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
-                }
+                // // التأكد من وجود حساب الخزينة الرئيسية
+                // if (!$mainTreasuryAccount) {
+                //     throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+                // }
 
                 // البحث عن حساب العميل الفرعي
                 $clientAccount = Account::where('name', $invoice->client->trade_name)
-                    ->whereHas('parent', function($query) {
+                    ->whereHas('parent', function ($query) {
                         $query->where('name', 'العملاء');
                     })
                     ->first();
@@ -694,12 +676,12 @@ class InvoicesController extends Controller
                 // 1. حساب الخزينة الرئيسية (مدين)
                 $treasuryDetail = JournalEntryDetail::create([
                     'journal_entry_id' => $paymentJournalEntry->id,
-                    'account_id' => $mainTreasuryAccount->id,
+                    // 'account_id' => ,
                     'description' => 'استلام دفعة نقدية',
                     'debit' => $payment_amount,
                     'credit' => 0,
                     'is_debit' => true,
-                    'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
+                    // 'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
                     'client_account_id' => $clientAccount->id, // تخزين معرف حساب العميل
                 ]);
 
@@ -711,7 +693,7 @@ class InvoicesController extends Controller
                     'debit' => 0,
                     'credit' => $payment_amount,
                     'is_debit' => false,
-                    'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
+                    // 'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
                     'client_account_id' => $clientAccount->id, // تخزين معرف حساب العميل
                 ]);
             }

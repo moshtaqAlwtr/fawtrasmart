@@ -215,9 +215,9 @@
                                                 <span>مسئول المبيعات :</span>
                                             </div>
                                             <div class="col-md-9">
-                                                <select name="created_by" class="form-control " id="">
-                                                    @foreach ($users as $user)
-                                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                <select name="employee_id" class="form-control " id="">
+                                                    @foreach ($employees as $user)
+                                                        <option value="{{ $user->id }}">{{ $user->full_name}}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -284,7 +284,7 @@
                         <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
                         <div class="table-responsive">
                             <table class="table" id="items-table">
-                                
+
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">

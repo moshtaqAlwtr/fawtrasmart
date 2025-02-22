@@ -36,6 +36,15 @@ class Invoice extends Model
     {
         return $this->belongsTo(Treasury::class);
     }
+    public function    employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+    public function    branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
 
     // العلاقة مع المستخدم الذي أنشأ الفاتورة
     public function createdByUser(): BelongsTo
