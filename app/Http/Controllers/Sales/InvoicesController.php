@@ -441,9 +441,15 @@ class InvoicesController extends Controller
                         'quantity' => 0,
                     ]);
                 }
-
-                if ($item['quantity'] > $productDetails->quantity) {
-                    throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
+                 $proudect = Product::where('id', $item['product_id'])->first();
+                 dd([
+                    'item_quantity' => $item['quantity'],
+                    'product_details_quantity' => $productDetails->quantity
+                ]);
+                 if ($proudect->type !== "services") {
+                    if ((int) $item['quantity'] > (int) $productDetails->quantity) {
+                        throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
+                    }
                 }
 
                 $productDetails->decrement('quantity', $item['quantity']);
