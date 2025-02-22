@@ -124,7 +124,7 @@
                                                 <span>رقم الفاتورة :</span>
                                             </div>
                                             <div class="col-md-8">
-                                                <label class="form-control">{{$invoice_number}}</label>
+                                                <label class="form-control"></label>
                                             </div>
                                         </div>
                                     </div>
@@ -207,11 +207,12 @@
                         </div>
                     </div>
                 </div>
+                <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
             </div>
             <div class="card">
                 <div class="card-content">
                     <div class="card-body">
-                        <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
+
                         <div class="table-responsive">
                             <table class="table" id="items-table">
                                 <thead>
