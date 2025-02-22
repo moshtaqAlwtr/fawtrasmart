@@ -47,7 +47,11 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
+                        @if($product == "products")
                         <h4 class="card-title">تفاصيل المنتج</h4>
+                        @else
+                        <h4 class="card-title">تفاصيل الخدمة</h4>
+                        @endif
                     </div>
                     <div class="card-content">
                         <div class="card-body">
@@ -268,6 +272,7 @@
 
         </div>
 
+        @if($product == "products")
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">ادارة المخزون</h4>
@@ -321,7 +326,7 @@
                 </div>
             </div>
         </div>
-
+       @endif
 
         <div class="card">
             <div class="card-header">

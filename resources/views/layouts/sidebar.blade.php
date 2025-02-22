@@ -72,6 +72,12 @@
                     'sales_view_own_credit_notices',
                     ])
                 )
+              @php
+              // جلب جميع الإعدادات من جدول application_settings
+              $settings = \App\Models\ApplicationSetting::pluck('status', 'key')->toArray();
+            @endphp
+
+@if(isset($settings['sales']) && $settings['sales'] === 'active')
                 <li class="nav-item {{ request()->is("$getLocal/sales/*") ? 'active open' : '' }}">
                     <a href="index.html"><i class="feather icon-align-justify">
                         </i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.sales') }}</span>
@@ -148,9 +154,11 @@
                     </ul>
 
                 </li>
+                @endif
             @endif
 
             {{-- نقاط البيع --}}
+            @if(isset($settings['pos']) && $settings['pos'] === 'active')
             <li class="nav-item">
                 <a href="#">
                     <i class="feather icon-monitor"></i>
@@ -184,9 +192,11 @@
                     </li>
                 </ul>
             </li>
-
+            @endif
             {{-- المتجر الكتروني --}}
+
             @can('online_store_content_management')
+            @if(isset($settings['ecommerce']) && $settings['ecommerce'] === 'active')
                 <li class=" nav-item {{ request()->is("$getLocal/online_store/*") ? 'active open' : '' }}"><a href="index.html">
                         <i class="feather icon-shopping-cart">
                         </i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Online_store') }}</span>
@@ -200,10 +210,12 @@
                         </li>
                     </ul>
                 </li>
+                @endif
             @endcan
 
             {{-- التصنيع --}}
             @can('online_store_content_management')
+            @if(isset($settings['manufacturing']) && $settings['manufacturing'] === 'active')
                 <li class="nav-item">
                     <a href="index.html">
                         <i class="feather icon-layers"></i>
@@ -245,6 +257,7 @@
                         </li>
                     </ul>
                 </li>
+                @endif
             @endcan
 
             <!-- إدارة الحجوزات -->
@@ -255,6 +268,7 @@
                         'rental_unit_manage_rental_settings',
                     ])
                 )
+                @if(isset($settings['booking_management']) && $settings['booking_management'] === 'active')
                 <li class="nav-item"><a href="#">
                         <i class="feather icon-bookmark"></i> <!-- أيقونة الحجز -->
                         <span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Reservations') }}</span>
@@ -283,9 +297,10 @@
                     </ul>
                 </li>
             @endif
-
+            @endif
             <!-- إدارة الأقساط -->
             @can('salaries_loans_manage')
+            @if(isset($settings['installments_management']) && $settings['installments_management'] === 'active')
                 <li class="nav-item"><a href="index.html">
                         <i class="feather icon-credit-card"></i> <!-- أيقونة الأقساط -->
                         <span class="menu-title"
@@ -306,6 +321,7 @@
                         @endcan
                     </ul>
                 </li>
+                @endif
             @endcan
 
             <!-- إدارة المبيعات المستهدفة والعمولات -->
@@ -316,6 +332,7 @@
                         'targeted_sales_commissions_manage_sales_periods',
                     ])
                 )
+                @if(isset($settings['target_sales_commissions']) && $settings['target_sales_commissions'] === 'active')
                 <li class="nav-item"><a href="index.html">
                         <i class="feather icon-pie-chart"></i> <!-- أيقونة المبيعات والعمولات -->
                         <span class="menu-title"
@@ -344,6 +361,7 @@
                         @endcan
                     </ul>
                 </li>
+                @endif
             @endif
 
             <!-- إدارة الوحدات والإيجارات -->
@@ -354,6 +372,7 @@
                         'rental_unit_manage_rental_settings',
                     ])
                 )
+                 @if(isset($settings['rental_management']) && $settings['rental_management'] === 'active')
                 <li class="nav-item"><a href="index.html">
                         <i class="feather icon-home"></i> <!-- أيقونة الوحدات والإيجارات -->
                         <span class="menu-title"
@@ -390,11 +409,13 @@
                         @endcan
                     </ul>
                 </li>
+                @endif
             @endif
 
             <!-- أوامر التوريد -->
 
             @if (Auth::user()->hasAnyPermission(['supply_orders_view_all', 'supply_orders_add']))
+            @if(isset($settings['work_orders']) && $settings['work_orders'] === 'active')
                 <li class="nav-item"><a href="{{ route('SupplyOrders.index') }}">
                         <i class="feather icon-truck"></i> <!-- أيقونة أوامر التوريد -->
                         <span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Supply_orders') }}</span>
@@ -420,9 +441,11 @@
                         </li>
                     </ul>
                 </li>
+                @endif   
             @endif
 
             <!-- دورات العمل -->
+            @if(isset($settings['workflow']) && $settings['workflow'] === 'active')
             <li class="nav-item"><a href="">
                     <i class="feather icon-refresh-ccw"></i> <!-- أيقونة دورات العمل -->
                     <span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Business_cycles') }}</span>
@@ -432,7 +455,7 @@
                                 data-i18n="Analytics">{{ trans('main_trans.Settings') }}</span></a></li>
                 </ul>
             </li>
-
+           @endif
             <!-- العملاء -->
             @if (
                     auth()->user()->hasAnyPermission([
@@ -441,6 +464,7 @@
                         'clients_edit_client_settings',
                     ])
                 )
+                 @if(isset($settings['customers']) && $settings['customers'] === 'active')
                 <li class="nav-item">
                     <a href="#">
                         <i class="feather icon-user"></i> <!-- أيقونة العملاء -->
@@ -490,6 +514,7 @@
 
                     </ul>
                 </li>
+                @endif
             @endif
 
             <!-- نقاط الارصدة -->
@@ -501,6 +526,7 @@
                         'points_credits_transactions_manage',
                     ])
                 )
+                @if(isset($settings['points_balances']) && $settings['points_balances'] === 'active')
                 <li class="nav-item">
                     <a href="#">
                         <i class="feather icon-layers"></i> <!-- أيقونة نقاط الارصدة -->
@@ -537,6 +563,7 @@
                         @endcan
                     </ul>
                 </li>
+                @endif
             @endif
 
             <!-- نقاط الولاء -->
@@ -546,6 +573,7 @@
                         'customer_loyalty_points_redeem_loyalty_points',
                     ])
                 )
+                  @if(isset($settings['customer_loyalty_points']) && $settings['customer_loyalty_points'] === 'active')
                 <li class="nav-item">
                     <a href="#">
                         <i class="feather icon-layers"></i> <!-- أيقونة نقاط الولاء -->
@@ -568,34 +596,12 @@
                         @endcan
                     </ul>
                 </li>
+                @endif
             @endif
 
 
 
-  <!-- قواعد العمولة  -->
-  @if (
-    auth()->user()->hasAnyPermission([
-        'customer_loyalty_points_managing_customer_bases',
-        'customer_loyalty_points_redeem_loyalty_points',
-    ])
-)
-<li class="nav-item">
-    <a href="#">
-        <i class="feather icon-layers"></i> <!-- قواعد العمولة  -->
-        <span class="menu-title" data-i18n="Dashboard"> المبيعات المستهدفة</span>
-    </a>
-    <ul class="menu-content">
-        @can('customer_loyalty_points_managing_customer_bases')
-            <li><a href="{{ route('commission.create') }}"><i class="feather icon-circle"></i><span
-                        class="menu-item"
-                        data-i18n="Analytics">قواعد العمولة</span>
-                </a>
-            </li>
-        @endcan
 
-    </ul>
-</li>
-@endif
 
 
 
@@ -603,41 +609,62 @@
 
             {{-- العضويات --}}
             @if (auth()->user()->hasAnyPermission(['membership_management', 'membership_setting_management']))
-                <li class=" nav-item"><a href="index.html">
-                        <i class="feather icon-users">
-                        </i><span class="menu-title" data-i18n="Dashboard">
-                            {{ trans('main_trans.Memberships') }}</span>
-
+            @if(isset($settings['membership']) && $settings['membership'] === 'active')
+                <li class="nav-item">
+                    <a href="index.html">
+                        <i class="feather icon-users"></i>
+                        <span class="menu-title" data-i18n="Dashboard">
+                            {{ trans('main_trans.Memberships') }}
+                        </span>
                     </a>
                     <ul class="menu-content">
                         @can('membership_management')
-                            <li><a href="{{ route('Memberships.index') }}"><i class="feather icon-circle"></i><span
-                                        class="menu-item"
-                                        data-i18n="Analytics">{{ trans('main_trans.Membership_management') }}</span></a>
+                            <li>
+                                <a href="{{ route('Memberships.index') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item" data-i18n="Analytics">
+                                        {{ trans('main_trans.Membership_management') }}
+                                    </span>
+                                </a>
                             </li>
                         @endcan
-<<<<<<< HEAD
-                        
-                        <li><a href="{{ route('Memberships.subscriptions') }}"><i class="feather icon-circle"></i><span class="menu-item"
-=======
-
-                        <li><a href="{{route('Memberships.subscriptions.index')}}"><i class="feather icon-circle"></i><span class="menu-item"
->>>>>>> aa09ee3ca79613782193d543daa9551e2b01e331
-                                    data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
+        
+                        <li>
+                            <a href="{{ route('Memberships.subscriptions') }}">
+                                <i class="feather icon-circle"></i>
+                                <span class="menu-item" data-i18n="eCommerce">
+                                    {{ trans('main_trans.Subscription_management') }}
+                                </span>
+                            </a>
                         </li>
-
+        
+                        {{-- <li>
+                            <a href="{{ route('Memberships.subscriptions.index') }}">
+                                <i class="feather icon-circle"></i>
+                                <span class="menu-item" data-i18n="eCommerce">
+                                    {{ trans('main_trans.Subscription_management') }}
+                                </span>
+                            </a>
+                        </li> --}}
+        
                         @can('membership_setting_management')
-                            <li><a href="{{route('SittingMemberships.index')}}"><i class="feather icon-circle"></i><span
-                                        class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                            <li>
+                                <a href="{{ route('SittingMemberships.index') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item" data-i18n="eCommerce">
+                                        {{ trans('main_trans.Settings') }}
+                                    </span>
+                                </a>
                             </li>
                         @endcan
                     </ul>
-
                 </li>
             @endif
-
+        @endif
+        
             {{-- حضور العملاء --}}
             @can('customer_attendance_display')
+            @if(isset($settings['customer_attendance']) && $settings['customer_attendance'] === 'active')
                 <li class=" nav-item"><a href="index.html">
                         <i class="feather icon-user-check">
                         </i><span class="menu-title" data-i18n="Dashboard">
@@ -653,9 +680,11 @@
                         @endcan
                     </ul>
                 </li>
+                @endif
             @endcan
 
             {{-- وكلاء التامين --}}
+            @if(isset($settings['insurance']) && $settings['insurance'] === 'active')
             <li class=" nav-item"><a href="index.html">
                     <i class="feather icon-users">
                     </i><span class="menu-title" data-i18n="Dashboard">
@@ -675,7 +704,7 @@
                 </ul>
 
             </li>
-
+        @endif
             {{-- ادارة المخازن --}}
             @if (
                     Auth::user()->hasAnyPermission([
@@ -689,6 +718,7 @@
                         'products_delete_price_groups',
                     ])
                 )
+                @if(isset($settings['inventory_management']) && $settings['inventory_management'] === 'active')
                 <li class=" nav-item {{ request()->is("$getLocal/stock/*") ? 'active open' : '' }}"><a href="">
                         <i class="feather icon-box">
                         </i><span class="menu-title" data-i18n="Dashboard">
@@ -752,10 +782,12 @@
                     </ul>
 
                 </li>
+                 @endif
             @endif
 
             {{-- المشتريات --}}
             @if (auth()->user()->hasAnyPermission(['purchase_cycle_orders_manage_orders']))
+            @if(isset($settings['purchase_cycle']) && $settings['purchase_cycle'] === 'active')
                 <li class=" nav-item"><a href="index.html">
                         <i class="fa fa-shopping-cart">
                         </i><span class="menu-title" data-i18n="Dashboard">
@@ -816,9 +848,10 @@
 
                 </li>
             @endif
-
+            @endif
             {{-- تتبع الوقت --}}
             @if (auth()->user()->hasAnyPermission(['track_time_view_other_employees_work_hours']))
+            @if(isset($settings['time_tracking']) && $settings['time_tracking'] === 'active')
                 <li class=" nav-item"><a href="index.html">
                         <i class="feather icon-watch">
                         </i><span class="menu-title" data-i18n="Dashboard">
@@ -841,6 +874,7 @@
                     </ul>
 
                 </li>
+                @endif
             @endif
 
             {{-- المالية --}}
@@ -852,6 +886,7 @@
                         'finance_edit_default_cashbox',
                     ])
                 )
+                @if(isset($settings['finance']) && $settings['finance'] === 'active')
                             <li class=" nav-item {{ request()->is("$getLocal/finance/*") ? 'active open' : '' }}">
                                 <a href="index.html">
                                     <i class="feather icon-dollar-sign">
@@ -891,7 +926,7 @@
 
                             </li>
             @endif
-
+            @endif
             {{-- الحسابات العامة --}}
             @if (
                     auth()->user()->hasAnyPermission([
@@ -902,6 +937,7 @@
                         'g_a_d_r_add_new_assets',
                     ])
                 )
+                  @if(isset($settings['general_accounts_journal_entries']) && $settings['general_accounts_journal_entries'] === 'active')
                             <li class=" nav-item {{ request()->is("$getLocal/Accounts/*") ? 'active open' : '' }}"><a href="index.html">
                                     <i class="feather icon-pie-chart">
                                     </i><span class="menu-title" data-i18n="Dashboard">
@@ -951,9 +987,10 @@
 
                             </li>
             @endif
-
+            @endif
             {{-- الشيكات --}}
             @if (auth()->user()->hasAnyPermission(['check_cycle_view_checkbook', 'check_cycle_manage_received_checks']))
+            @if(isset($settings['cheque_cycle']) && $settings['cheque_cycle'] === 'active')
                 <li class=" nav-item {{ request()->is("$getLocal/cheques*") ? 'active open' : '' }}"><a href="index.html">
                         <i class="feather icon-dollar-sign">
                         </i><span class="menu-title" data-i18n="Dashboard">
@@ -979,9 +1016,10 @@
 
                 </li>
             @endif
-
+            @endif
             {{-- الطلبات --}}
             @if (auth()->user()->hasAnyPermission(['orders_management', 'orders_setting_management']))
+            @if(isset($settings['orders']) && $settings['orders'] === 'active')
                 <li class=" nav-item"><a href="index.html">
                         <i class="feather icon-briefcase">
                         </i><span class="menu-title" data-i18n="Dashboard">
@@ -1002,9 +1040,10 @@
                     </ul>
                 </li>
             @endif
-
+            @endif
             {{-- الموظفين --}}
             @if (auth()->user()->hasAnyPermission(['employees_view_profile', 'employees_roles_add']))
+            @if(isset($settings['employees']) && $settings['employees'] === 'active')
                 <li class=" nav-item {{ request()->is("$getLocal/hr/*") ? 'active open' : '' }}">
                     <a href="index.html">
                         <i class="fa fa-users"></i><span class="menu-title" data-i18n="Dashboard">
@@ -1040,9 +1079,10 @@
 
                 </li>
             @endif
-
+            @endif
             {{-- الهيكل التنظيمي --}}
             @can('hr_system_management')
+            @if(isset($settings['organizational_structure']) && $settings['organizational_structure'] === 'active')
                 <li class=" nav-item {{ request()->is("$getLocal/OrganizationalStructure/*") ? 'active open' : '' }}">
                     <a href="index.html">
                         <i class="feather icon-layers">
@@ -1074,8 +1114,9 @@
                         </li>
                     </ul>
                 </li>
+                
             @endcan
-
+            @endif
             {{-- الحضور --}}
             @if(
                     auth()->user()->hasAnyPermission([
@@ -1086,6 +1127,7 @@
                         'staff_attendance_settings_manage',
                     ])
                 )
+                 @if(isset($settings['employee_attendance']) && $settings['employee_attendance'] === 'active')
                             <li class="nav-item {{ (request()->is("$getLocal/presence/*") ? 'active open' : '') }}"><a
                                     href="index.html">
 
@@ -1160,7 +1202,7 @@
                                 </ul>
                             </li>
             @endif
-
+            @endif
             {{-- المرتبات --}}
             @if (
                     auth()->user()->hasAnyPermission([
@@ -1171,6 +1213,7 @@
                         'salaries_loans_manage',
                     ])
                 )
+                 @if(isset($settings['salaries']) && $settings['salaries'] === 'active')
                             <li class=" nav-item"><a href="index.html">
                                     <i class="feather icon-dollar-sign">
                                     </i><span class="menu-title" data-i18n="Dashboard">
@@ -1219,6 +1262,7 @@
                                     @endcan
                                 </ul>
                             </li>
+            @endif
             @endif
 
             {{-- التقارير --}}
@@ -1298,6 +1342,8 @@
             </li>
 
             {{-- الفروع --}}
+            
+            @if(isset($settings['branches']) && $settings['branches'] === 'active')
             <li class=" nav-item"><a href="index.html">
                     <i class="feather  icon-briefcase">
                     </i><span class="menu-title" data-i18n="Dashboard">
@@ -1322,7 +1368,7 @@
                 </ul>
 
             </li>
-
+      @endif
             {{-- القوالب --}}
             <li class=" nav-item"><a href="index.html">
                     <i class="feather icon-dollar-sign">
@@ -1341,9 +1387,11 @@
                     <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Emails') }}</span></a>
                     </li>
+                    @if(isset($settings['sms']) && $settings['sms'] === 'active')
                     <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.SMS_Models') }}</span></a>
                     </li>
+                    @endif
                     <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Terms_and_Conditions') }}</span></a>
                     </li>
@@ -1383,21 +1431,21 @@
                         <li><a href="{{ route('PaymentMethods.index') }}"><i class="feather icon-circle"></i><span
                                     class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Payment_Methods') }}</span></a></li>
-
-                        <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                                  
+                        <li><a href="{{ route('Sms.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.SMS_Settings') }}</span></a></li>
 
                         <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Sequential_Numbering_Settings') }}</span></a>
                         </li>
-                        <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                        <li><a href="{{ route('TaxSitting.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Tax_Settings') }}</span></a>
                         </li>
-                        <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                        <li><a href="{{ route('Application.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Applications_Management') }}</span></a>
                         </li>
-
-                        <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                        
+                        <li><a href="{{ route('AccountInfo.backgroundColor') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.System_Logo_and_Colors') }}</span></a>
                         </li>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sales;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\InvoiceRequest;
 use App\Models\Account;
+use App\Models\AccountSetting;
 use App\Models\Client;
 use App\Models\Commission;
 use App\Models\Commission_Products;
@@ -189,7 +190,10 @@ class InvoicesController extends Controller
         $employees = Employee::all();
         $invoice_number = $this->generateInvoiceNumber();
 
-        return view('sales.invoices.index', compact('invoices', 'clients', 'users', 'invoice_number', 'employees'));
+        $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
+        $client   = Client::where('user_id',auth()->user()->id)->first();
+
+        return view('sales.invoices.index', compact('invoices','account_setting','client', 'clients', 'users', 'invoice_number', 'employees'));
     }
 
     public function create()
@@ -754,6 +758,8 @@ class InvoicesController extends Controller
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
+        $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
+        $client   = Client::where('user_id',auth()->user()->id)->first();
 
         $invoice_number = $this->generateInvoiceNumber();
 
@@ -764,7 +770,7 @@ class InvoicesController extends Controller
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
 
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.show', compact('invoice_number', 'clients', 'employees', 'invoice', 'barcodeImage'));
+        return view('sales.invoices.show', compact('invoice_number','account_setting','client', 'clients', 'employees', 'invoice', 'barcodeImage'));
     }
     public function edit($id)
     {

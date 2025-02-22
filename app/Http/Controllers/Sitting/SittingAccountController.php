@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sitting;
 use App\Http\Controllers\Controller;
 use App\Models\AccountSetting;
 use App\Models\Client;
+use App\Models\ColorSitting;
 use App\Models\User;
 use Illuminate\Container\Attributes\Storage;
 use Illuminate\Http\Request;
@@ -18,10 +19,12 @@ class SittingAccountController extends Controller
     {
         
         $client          = Client::where('user_id',auth()->user()->id)->first();
-        $user = User::find(auth()->id());
+        $user            = User::find(auth()->id());
         $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
         return view('sitting.sittingAccount.index',compact('client','account_setting','user'));
     }
+
+  
 
     public function store(Request $request)
     {
@@ -36,7 +39,7 @@ class SittingAccountController extends Controller
         if (!$AccountSetting) {
             // إذا لم يكن هناك سجل للمستخدم، يتم إنشاؤه
             $AccountSetting = new AccountSetting();
-            $AccountSetting->user_id = auth()->user()->id();
+            $AccountSetting->user_id = auth()->user()->id;
         }
     
         // تحديث الحقول
@@ -157,7 +160,44 @@ class SittingAccountController extends Controller
     }
 
 
+    public function color()
+    {
+        $backgroundColor = ColorSitting::find(1);
+   
+        $backgroundColorr = $backgroundColor->color;
+        return view('sitting.backgroundColor.index',compact('backgroundColor','backgroundColorr'));
+    }
 
+    public function backgroundColor()
+    {
+        $background = ColorSitting::find(1);
+        $backgroundColor = $background->color;
+        return view('layouts.header',compact('backgroundColor'));
+    }
+   
+    public function updateColor(Request $request)
+    {
+        $request->validate([
+            'color' => 'required|string|max:7', // التأكد أن الكود لون صالح
+        ]);
+    
+        // البحث عن اللون، وإذا لم يكن موجودًا يتم إنشاؤه
+        $backgroundColor = ColorSitting::first(); 
+    
+        if ($backgroundColor) {
+            // تحديث اللون إذا كان موجودًا
+            $backgroundColor->color = $request->color;
+            $backgroundColor->save();
+        } else {
+            // إنشاء لون جديد إذا لم يكن هناك سجل
+            $backgroundColor = new ColorSitting();
+            $backgroundColor->color = $request->color;
+            $backgroundColor->save();
+        }
+    
+        return redirect()->back()->with('success', 'تم تحديث اللون بنجاح');
+    }
+    
     
 
 }

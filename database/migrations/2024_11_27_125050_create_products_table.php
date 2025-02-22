@@ -35,7 +35,8 @@ class CreateProductsTable extends Migration
             $table->tinyInteger('tax2')->nullable(); // الضريبة الثانية
             $table->decimal('min_sale_price', 10, 2)->nullable(); // أقل سعر بيع
             $table->decimal('discount', 10, 2)->nullable(); // الخصم
-            $table->tinyInteger('discount_type')->nullable()->comment('(1_percentage) (2_currency)'); // نوع الخصم
+            $table->tinyInteger('discount_type')->nullable()->comment('(1_percentage) (2_currency)'); // نوع الخصم   
+            $table->enum('type', ['products', 'services'])->default('products'); // النوع
             $table->decimal('profit_margin', 10, 2)->nullable(); // هامش الربح
             $table->bigInteger('created_by'); // نوع هامش الربح
             $table->timestamps(); // created_at و updated_at

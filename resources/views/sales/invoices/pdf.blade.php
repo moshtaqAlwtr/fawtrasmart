@@ -125,7 +125,8 @@
             <td class="info-label">رقم الفاتورة:</td>
             <td class="info-value">{{ str_pad($invoice->id, 5, '0', STR_PAD_LEFT) }}</td>
             <td class="info-label">تاريخ الفاتورة:</td>
-            <td class="info-value">{{ $invoice->created_at->format('Y/m/d') }}</td>
+            <td class="info-value"> {{ $invoice->created_at ? $invoice->created_at->format($account_setting->time_formula ?? 'H:i:s d/m/Y') : '' }}</td>
+           
         </tr>
         <tr>
             <td class="info-label">العميل:</td>
@@ -163,23 +164,23 @@
 
     <div class="totals">
 
-        <p>المجموع الكلي: {{ number_format($invoice->grand_total ?? 0, 2) }} ريال</p>
-        <p>ضريبة القيمة المضافة (15%): {{ number_format($invoice->tax_total ?? 0, 2) }} ريال</p>
+        <p>المجموع الكلي: {{ number_format($invoice->grand_total ?? 0, 2) }}  {{ $account_setting->currency ?? 'SAR' }}</p>
+        <p>ضريبة القيمة المضافة (15%): {{ number_format($invoice->tax_total ?? 0, 2) }}  {{ $account_setting->currency ?? 'SAR' }}</p>
 
         @if(($invoice->shipping_cost ?? 0) > 0)
-            <p>تكلفة الشحن: {{ number_format($invoice->shipping_cost, 2) }} ريال</p>
+            <p>تكلفة الشحن: {{ number_format($invoice->shipping_cost, 2) }}  {{ $account_setting->currency ?? 'SAR' }}</p>
         @endif
 
         @if(($invoice->total_discount ?? 0) > 0)
-            <p>الخصم: {{ number_format($invoice->total_discount, 2) }} ريال</p>
+            <p>الخصم: {{ number_format($invoice->total_discount, 2) }}  {{ $account_setting->currency ?? 'SAR' }}</p>
         @endif
 
         @if(($invoice->advance_payment ?? 0) > 0)
-            <p>الدفعة المقدمة: {{ number_format($invoice->advance_payment, 2) }} ريال</p>
+            <p>الدفعة المقدمة: {{ number_format($invoice->advance_payment, 2) }}  {{ $account_setting->currency ?? 'SAR' }}</p>
         @endif
 
         @if(($invoice->due_value ?? 0) > 0)
-            <p> المبلغ المستحق: {{ number_format($invoice->due_value, 2) }} ريال</p>
+            <p> المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}  {{ $account_setting->currency ?? 'SAR' }}</p>
         @endif
 
 

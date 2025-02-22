@@ -4,7 +4,7 @@
     <div class="content-body">
         <div class="row">
             <!-- القائمة الجانبية -->
-            <div class="col-md-3 mb-2">
+            {{-- <div class="col-md-3 mb-2">
                 <div class="card">
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush">
@@ -51,16 +51,17 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- نموذج إضافة وسيلة دفع -->
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title">إضافة وسيلة دفع مخصصة</h4>
                     </div>
                     <div class="card-body">
-                        <form id="paymentMethodForm">
+                        <form id="paymentStatusForm" action="{{ route('PaymentMethods.store') }}" method="POST">
+                            @csrf
                             <!-- الاسم -->
                             <div class="mb-3">
                                 <label class="form-label">الاسم</label>
@@ -70,36 +71,36 @@
                             <!-- التعليمات -->
                             <div class="mb-3">
                                 <label class="form-label">التعليمات</label>
-                                <textarea class="form-control" name="instructions" rows="3"></textarea>
+                                <textarea class="form-control" name="description" rows="3"></textarea>
                             </div>
 
                             <!-- التفعيل للعملاء -->
                             <div class="mb-3">
-                                <label class="form-label">التفعيل للعملاء على الترتيب</label>
+                                <label class="form-label">التفعيل للعملاء على الانترنت</label>
                                 <div class="mt-2">
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="activation" id="active" value="1" checked>
+                                        <input class="form-check-input" type="radio" name="is_online" id="active" value="active" checked>
                                         <label class="form-check-label" for="active">تم تفعيله</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="activation" id="inactive" value="0">
+                                        <input class="form-check-input" type="radio" name="is_online" id="inactive" value="inactive">
                                         <label class="form-check-label" for="inactive">تم تعطيله</label>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- العملة الافتراضية -->
-                            <div class="mb-3">
+                            {{-- <div class="mb-3">
                                 <label class="form-label">العملة الافتراضية</label>
                                 <select class="form-select" name="currency">
                                     <option value="">لا شيء</option>
                                     <option value="SAR">ريال سعودي</option>
                                     <option value="USD">دولار أمريكي</option>
                                 </select>
-                            </div>
+                            </div> --}}
 
                             <!-- مصاريف الدفع -->
-                            <div class="mb-3">
+                            {{-- <div class="mb-3">
                                 <label class="form-label">مصاريف الدفع</label>
                                 <div class="mt-2">
                                     <div class="form-check form-check-inline">
@@ -111,23 +112,35 @@
                                         <label class="form-check-label" for="hasFees">حساب</label>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <!-- الحالة -->
                             <div class="mb-4">
                                 <label class="form-label">الحالة</label>
                                 <div class="mt-2">
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="status" id="statusActive" value="1">
+                                        <input class="form-check-input" type="radio" name="status" id="statusActive" value="active">
                                         <label class="form-check-label" for="statusActive">نشط</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="status" id="statusInactive" value="0" checked>
+                                        <input class="form-check-input" type="radio" name="status" id="statusInactive" value="inactive" checked>
                                         <label class="form-check-label" for="statusInactive">غير نشط</label>
                                     </div>
                                 </div>
                             </div>
-
+                            <div class="mb-4">
+                                <label class="form-label">الحالة</label>
+                                <div class="mt-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type" id="statusActive" value="normal">
+                                        <label class="form-check-label" for="statusActive">عادية</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="type" id="statusInactive" value="electronic" checked>
+                                        <label class="form-check-label" for="statusInactive">الكترونية</label>
+                                    </div>
+                                </div>
+                            </div>
                             <!-- أزرار التحكم -->
                             <div class="d-flex justify-content-between">
                                 <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
@@ -137,6 +150,7 @@
                                     <i class="fas fa-save me-1"></i> حفظ
                                 </button>
                             </div>
+                            
                         </form>
                     </div>
                 </div>

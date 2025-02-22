@@ -30,7 +30,7 @@ class MembershipsController extends Controller
     {
         $packages	= Package::all();
         $memberships = Memberships::all();
-        return view('Memberships_subscriptions.mang_memberships.index',compact('memberships'));
+        return view('memberships.mang_memberships.index',compact('memberships'));
     }
 
     public function subscriptions()
@@ -40,14 +40,14 @@ class MembershipsController extends Controller
             $query->where('is_paid', 1);
         })->get();
         
-        return view('Memberships_subscriptions.mang_memberships.subscriptions', compact('memberships', 'packages'));
+        return view('memberships.mang_memberships.subscriptions', compact('memberships', 'packages'));
         
     }
     public function create()
     {
         $clients = Client::all();
         $packages	= Package::all();
-        return view('Memberships_subscriptions.mang_memberships.create',compact('clients','packages'));
+        return view('memberships.mang_memberships.create',compact('clients','packages'));
     }
     public function store(Request $request)
     {
@@ -316,10 +316,12 @@ class MembershipsController extends Controller
     
     public function show($id)
     {
+        
         $MembershipsSetthing = MembershipsSetthing::find(1);
-        $membership = Memberships::find($id);
-        $client     = Client::findOrFail($membership->client_id);
-        return view('Memberships_subscriptions.mang_memberships.show',compact('membership','client','MembershipsSetthing'));
+        return   $membership = Memberships::find($id);
+        
+         $client     = Client::find($membership->client_id);
+        return view('memberships.mang_memberships.show',compact('membership','client','MembershipsSetthing'));
     }
    
     public function show_subscription($id)
@@ -327,7 +329,7 @@ class MembershipsController extends Controller
          
         $membership = Subscriptions::find($id);
         $client     = Client::findOrFail($membership->client_id);
-        return view('Memberships_subscriptions.mang_memberships.show_subscription',compact('membership','client'));
+        return view('memberships.mang_memberships.show_subscription',compact('membership','client'));
     }
    
    public function create_invoice($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
@@ -349,14 +351,14 @@ class MembershipsController extends Controller
         $treasury = Treasury::all();
         $employees = Employee::all();
     
-        return view('Memberships_subscriptions.mang_memberships.create_invoice', compact('invoiceId', 'amount', 'treasury', 'employees', 'type'));
+        return view('memberships.mang_memberships.create_invoice', compact('invoiceId', 'amount', 'treasury', 'employees', 'type'));
     }
     public function edit($id)
     {
         $membership = Memberships::findOrFail($id);
         $clients = Client::all();
         $packages = Package::all();
-        return view('Memberships_subscriptions.mang_memberships.edit',compact('membership','clients','packages'));
+        return view('memberships.mang_memberships.edit',compact('membership','clients','packages'));
     }
 
     public function renew($id)
@@ -364,7 +366,7 @@ class MembershipsController extends Controller
         $membership = Memberships::findOrFail($id);
         $clients = Client::all();
         $packages = Package::all();
-        return view('Memberships_subscriptions.mang_memberships.renewa',compact('membership','clients','packages'));
+        return view('memberships.mang_memberships.renewa',compact('membership','clients','packages'));
     }
     
     public function be_active($id) //الغاء الايقاف تنشيط

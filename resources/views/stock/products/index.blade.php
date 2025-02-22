@@ -36,10 +36,27 @@
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <div>بحث في المنتجات</div>
                             <div>
+                                @if(optional($account_setting)->business_type == "products")
                                 <a href="{{ route('products.create') }}" class="btn btn-outline-success">
-                                    <i class="fa fa-plus me-2"></i>منتج جديدة
+                                    <i class="fa fa-plus me-2"></i>منتج جديد
                                 </a>
-
+                            @elseif(optional($account_setting)->business_type == "services")
+                                <a href="{{ route('products.create_services') }}" class="btn btn-outline-warning">
+                                    <i class="fa fa-plus me-2"></i>خدمة جديدة
+                                </a>
+                                @elseif(optional($account_setting)->business_type == "both")
+                                <a href="{{ route('products.create') }}" class="btn btn-outline-success">
+                                    <i class="fa fa-plus me-2"></i>منتج جديد
+                                </a>
+                                <a href="{{ route('products.create_services') }}" class="btn btn-outline-warning">
+                                    <i class="fa fa-plus me-2"></i>خدمة جديدة
+                                </a>
+                            @else
+                                <a href="{{ route('products.create') }}" class="btn btn-outline-success">
+                                    <i class="fa fa-plus me-2"></i>منتج جديد
+                                </a>
+                            @endif
+                            
                                 <button class="btn btn-outline-primary">
                                     <i class="fa fa-calendar-alt me-2"></i>مجموعه المنتجات
                                 </button>
@@ -136,107 +153,101 @@
 
         </div>
 
-        @if (@isset($products) && !@empty($products) && count($products) > 0)
-            @foreach ($products as $product)
-                <div class="card">
-                    <div class="card-body">
-                        <div class="row border-bottom py-2 align-items-center">
-
-                            <div class="col-md-3">
-                                <p class="mb-">{{ $product->name }}</p>
-                                <small class="text-muted">#{{ $product->serial_number }}</small>
-                            </div>
-
-                            <div class="col-md-3">
-                                <p class="mb-0"><small>{{ $product->created_at }}</small></p>
-                                <small class="text-muted">بواسطة: {{ $product->user->name ?? ""}}</small>
-                            </div>
-
-                            @if ($product->totalQuantity() > 0)
-                                <div class="col-md-2 text-center">
-                                    <span class="badge badge-pill badge badge-success">في المخزن</span>
+        @if (isset($products) && !empty($products) && count($products) > 0)
+        @foreach ($products as $product)
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row border-bottom py-2 align-items-center">
+                        <!-- اسم المنتج -->
+                        <div class="col-md-3">
+                            <p class="mb-0">{{ $product->name }}</p>
+                            <small class="text-muted">#{{ $product->serial_number }}</small>
+                        </div>
+    
+                        <!-- تاريخ الإنشاء والمستخدم -->
+                        <div class="col-md-3">
+                            <p class="mb-0"><small>{{ $product->created_at }}</small></p>
+                            <small class="text-muted">بواسطة: {{ $product->user->name ?? "" }}</small>
+                        </div>
+    
+                        <!-- حالة المنتج -->
+                        <div class="col-md-2 text-center">
+                            @if ($product->type == "products")
+                                @if ($product->totalQuantity() > 0)
+                                    <span class="badge badge-success">في المخزن</span>
                                     <br>
                                     <small><i class="fa fa-cubes"></i> {{ number_format($product->totalQuantity()) }} متاح</small>
-                                </div>
+                                @else
+                                    <span class="badge badge-danger">مخزون نفد</span>
+                                    <br>
+                                    <small><i class="fa fa-cubes"></i> {{ number_format($product->totalQuantity()) }} متاح</small>
+                                @endif
                             @else
-                                <div class="col-md-2 text-center">
-                                    <span class="badge badge-pill badge badge-danger">مخزون نفد</span>
-                                    <br>
-                                    <small><i class="fa fa-cubes"></i> {{ number_format($product->totalQuantity()) }} متاح</small>
-                                </div>
+                                <span class="badge 
+                                    {{ $product->status == 0 ? 'badge-primary' : ($product->status == 1 ? 'badge-danger' : 'badge-secondary') }}">
+                                    {{ $product->status == 0 ? 'نشط' : ($product->status == 1 ? 'موقوف' : 'غير نشط') }}
+                                </span>
                             @endif
-
-                            <div class="col-md-2">
-                                @if ($product->purchase_price)
-                                    <p class="mb-0"><i class="fa fa-shopping-cart"></i> <small>{{ $product->purchase_price }}</small></p>
-                                @endif
-                                @if ($product->sale_price)
-                                    <i class="fa fa-car"></i> <small>{{ $product->sale_price }}</small>
-                                @endif
-                            </div>
-
-                            <div class="col-md-2 text-end">
-                                <div class="btn-group">
-                                    <div class="dropdown">
-                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
-                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('products.show',$product->id) }}">
-                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('products.edit',$product->id) }}">
-                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                </a>
-                                            </li>
-
-                                            <li>
-                                                <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $product->id }}">
-                                                    <i class="fa fa-trash me-2"></i>حذف
-                                                </a>
-                                            </li>
-                                        </div>
+                        </div>
+    
+                        <!-- الأسعار -->
+                        <div class="col-md-2 d-flex flex-column text-center">
+                            @if ($product->purchase_price)
+                                <p class="mb-0"><i class="fa fa-shopping-cart"></i> <small>{{ $product->purchase_price }}</small></p>
+                            @endif
+                            @if ($product->sale_price)
+                                <p class="mb-0"><i class="fa fa-car"></i> <small>{{ $product->sale_price }}</small></p>
+                            @endif
+                        </div>
+    
+                        <!-- الإجراءات -->
+                        <div class="col-md-2 text-end">
+                            <div class="btn-group">
+                                <div class="dropdown">
+                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm" type="button"
+                                        id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
+                                        aria-expanded="false"></button>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                        <li><a class="dropdown-item" href="{{ route('products.show',$product->id) }}">
+                                            <i class="fa fa-eye me-2 text-primary"></i>عرض</a></li>
+                                        <li><a class="dropdown-item" href="{{ route('products.edit',$product->id) }}">
+                                            <i class="fa fa-edit me-2 text-success"></i>تعديل</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $product->id }}">
+                                            <i class="fa fa-trash me-2"></i>حذف</a></li>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
-
-                <!-- Modal delete -->
-                <div class="modal fade text-left" id="modal_DELETE{{ $product->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-scrollable" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header" style="background-color: #EA5455 !important;">
-                                <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $product->name }}</h4>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true" style="color: #DC3545">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <strong>
-                                    هل انت متاكد من انك تريد الحذف ؟
-                                </strong>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                                <a href="{{ route('products.delete',$product->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!--end delete-->
-
-            @endforeach
-        @else
-            <div class="alert alert-danger text-xl-center" role="alert">
-                <p class="mb-0">
-                    لا توجد منتجات مضافه حتى الان
-                </p>
             </div>
-        @endif
+    
+            <!-- Modal delete -->
+            <div class="modal fade text-left" id="modal_DELETE{{ $product->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-scrollable" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h4 class="modal-title" id="myModalLabel1">حذف {{ $product->name }}</h4>
+                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <strong>هل انت متأكد من أنك تريد الحذف؟</strong>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-light" data-dismiss="modal">إلغاء</button>
+                            <a href="{{ route('products.delete', $product->id) }}" class="btn btn-danger">تأكيد</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End delete -->
+        @endforeach
+    @else
+        <p class="text-center text-muted">لا توجد منتجات متاحة.</p>
+    @endif
+    
         {{ $products->links('pagination::bootstrap-5') }}
     </div>
 

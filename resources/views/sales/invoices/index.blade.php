@@ -474,7 +474,8 @@
                                     <td>
                                         <div class="mb-1">
 
-                                            {{ $invoice->created_at ? $invoice->created_at->format('H:i:s d/m/Y') : '' }}
+                                            {{ $invoice->created_at ? $invoice->created_at->format($account_setting->time_formula ?? 'H:i:s d/m/Y') : '' }}
+
                                         </div>
                                         <div class="text-muted small">
                                             <i class="fas fa-user me-1"></i>
@@ -511,12 +512,12 @@
                                         <div class="text-center mb-2">
                                             <h6 class="mb-1 font-weight-bold">
                                                 {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
-                                                {{ $invoice->currency ?? 'SAR' }}
+                                                {{ $account_setting->currency ?? 'SAR' }}
                                             </h6>
                                             @if ($invoice->due_value > 0)
                                                 <div class="text-danger small">
                                                     المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
-                                                    {{ $invoice->currency ?? 'SAR' }}
+                                                    {{ $account_setting->currency ?? 'SAR' }}
                                                 </div>
                                             @endif
                                         </div>

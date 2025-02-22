@@ -1,6 +1,7 @@
 <nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
     <div class="navbar-wrapper">
-        <div class="navbar-container content">
+        <div class="navbar-container content" style="background-color: {{ $backgroundColorr ?? '#ffffff' }};">
+
             <div class="navbar-collapse" id="navbar-mobile">
                 <div class="mr-auto float-left bookmark-wrapper d-flex align-items-center">
                     <ul class="nav navbar-nav">

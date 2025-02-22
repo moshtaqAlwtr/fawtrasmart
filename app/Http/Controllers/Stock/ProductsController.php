@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Stock;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ProductsRequest;
+use App\Models\AccountSetting;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductDetails;
@@ -23,7 +24,8 @@ class ProductsController extends Controller
     public function index(Request $request)
     {
         $products = Product::orderBy('id', 'DESC')->paginate(5);
-        return view('stock.products.index',compact('products'));
+        $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
+        return view('stock.products.index',compact('products','account_setting'));
     }
 
     public function search(Request $request)
@@ -73,6 +75,17 @@ class ProductsController extends Controller
         return view('stock.products.create',compact('categories','serial_number'));
     }
 
+    public function create_services()
+    {
+        $record_count = DB::table('products')->count();
+        $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
+       
+
+        $categories = Category::select('id','name')->get();
+        return view('stock.products.create_services',compact('categories','serial_number'));
+    }
+    
+
     public function edit($id)
     {
         $categories = Category::select('id','name')->get();
@@ -103,6 +116,7 @@ class ProductsController extends Controller
 
     public function store(ProductsRequest $request)
     {
+       
         try{
 
             DB::beginTransaction();
@@ -116,6 +130,7 @@ class ProductsController extends Controller
             $product->supplier_id = $request->supplier_id;
             $product->barcode = $request->barcode;
             $product->track_inventory = $request->track_inventory;
+            $product->barcode = $request->barcode;
             $product->inventory_type = $request->inventory_type;
             $product->low_stock_alert = $request->low_stock_alert;
             $product->sales_cost_account = $request->sales_cost_account;
@@ -130,6 +145,7 @@ class ProductsController extends Controller
             $product->min_sale_price = $request->min_sale_price;
             $product->discount = $request->discount;
             $product->discount_type = $request->discount_type;
+            $product->type = $request->type;
             $product->profit_margin = $request->profit_margin;
             $product->created_by = Auth::user()->id;
 
@@ -154,7 +170,11 @@ class ProductsController extends Controller
             ]);
 
             DB::commit();
+            if($product->type == "services"){
+                return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
+            }
             return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
+            
 
         } # End Try
         catch(\Exception $ex){
@@ -163,6 +183,7 @@ class ProductsController extends Controller
         }
     }# End Stor
 
+    // اضافة الخدمة
     public function update(ProductsRequest $request ,$id)
     {
         try{

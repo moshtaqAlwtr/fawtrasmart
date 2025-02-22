@@ -67,18 +67,22 @@
                 <div class="card-title p-2">
                     <a href="{{ route('products.edit',$product->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i class="fa fa-edit"></i></a>
                     <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modal_DELETE{{ $product->id }}">حذف <i class="fa fa-trash"></i></a>
+                    @if($product == "products")
                     <a href="{{ route('store_permits_management.manual_conversion') }}" class="btn btn-outline-success btn-sm">نقل <i class="fa fa-reply-all"></i></a>
                     <a href="{{ route('store_permits_management.create') }}" class="btn btn-outline-info btn-sm">اضف عمليه <i class="fa fa-plus"></i></a>
                     <a href="{{ route('store_permits_management.manual_disbursement') }}" class="btn btn-outline-warning btn-sm">عمليه صرف <i class="fa fa-minus"></i></a>
+                    @endif
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home" role="tab" aria-selected="false">معلومات</a>
                         </li>
+                        @if($product == "products")
                         <li class="nav-item">
                             <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" aria-controls="profile" role="tab" aria-selected="false">حركة المخزون</a>
                         </li>
+                        @endif
                         <li class="nav-item">
                             <a class="nav-link" id="about-tab" data-toggle="tab" href="#about" aria-controls="about" role="tab" aria-selected="true">الجدول الزمني</a>
                         </li>
@@ -95,8 +99,9 @@
 
                                 <table class="table">
                                     <thead class="table-light">
-                                        <tr>
+                                        <tr>@if($product->type == "products")
                                             <th class="text-center"><i class="feather icon-package text-info font-medium-5 mr-1"></i>اجمالي المخزون</th>
+                                            @endif
                                             <th class="text-center"><i class="feather icon-shopping-cart text-warning font-medium-5 mr-1"></i>اجمالي القطع المباعه</th>
                                             <th class="text-center"><i class="feather icon-calendar text-danger font-medium-5 mr-1"></i>آخر 28 أيام</th>
                                             <th class="text-center"><i class="feather icon-calendar text-primary font-medium-5 mr-1"></i>آخر 7 أيام</th>
@@ -105,6 +110,7 @@
                                     </thead>
                                     <tbody>
                                         <tr>
+                                            @if($product->type == "products")
                                             <td class="text-center">
                                                 <h4 class="text-bold-700">{{ $total_quantity ? number_format($total_quantity) : 'غير متوفر' }}</h4>
                                                 <br>
@@ -122,6 +128,7 @@
 
                                                 <a href="{{ route('products.manual_stock_adjust',$product->id) }}" class="btn btn-outline-info">اضف عميله على المخزون</a>
                                             </td>
+                                            @endif
                                             <td class="text-center">
                                                 <h4 class="text-bold-700">{{ $total_sold ? number_format($total_sold) : 0 }}<small>قطع</small></h4>
                                             </td>

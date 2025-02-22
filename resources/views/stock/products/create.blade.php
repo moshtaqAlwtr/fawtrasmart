@@ -69,6 +69,7 @@
                                                 @enderror
                                             </div>
                                         </div>
+                                        <input type="hidden" name="type" value="products">
                                         <div class="col-4">
                                             <div class="form-group">
                                                 <label for="email-id-vertical">الرقم التسلسلي</label>

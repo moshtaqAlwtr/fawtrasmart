@@ -9,6 +9,7 @@ use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
+use App\Models\PaymentMethod;
 use App\Models\PaymentsProcess;
 use App\Models\Treasury;
 use Illuminate\Http\Request;
@@ -137,8 +138,9 @@ class PaymentProcessController extends Controller
     // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
     $treasury = Treasury::all();
     $employees = Employee::all();
+    $payments = PaymentMethod::where('type','normal')->where('status','active')->get();
 
-    return view('sales.payment.create', compact('invoiceId', 'amount', 'treasury', 'employees', 'type'));
+    return view('sales.payment.create', compact('invoiceId','payments', 'amount', 'treasury', 'employees', 'type'));
 }
     public function store(ClientPaymentRequest $request)
     {

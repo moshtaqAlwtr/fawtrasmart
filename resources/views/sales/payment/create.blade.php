@@ -74,11 +74,11 @@
                         <label for="payment_method" class="form-label">وسيلة الدفع <span style="color: red">*</span></label>
                         <select name="payment_type" class="form-control" id="payment_method" required>
                             <option value="">اختر نوع الدفع</option>
-                            <option value="1">كاش</option>
-                            <option value="2">شيك</option>
-                            <option value="3">تحويل بنكي</option>
-                            <option value="4">اونلاين</option>
-                            <option value="5">أخرى</option>
+                            @foreach ($payments as $payment)
+                            <option value="{{$payment->id}}">{{$payment->name}}</option> 
+                            @endforeach
+                          
+                           
                         </select>
                     </div>
                     <div class="col-md-6">

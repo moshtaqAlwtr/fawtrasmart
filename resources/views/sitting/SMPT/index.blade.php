@@ -55,7 +55,7 @@
                             </div>
                         </div>
 
-                        <div id="advanced-options" style="display: none;">
+                        {{-- <div id="advanced-options" style="display: none;">
                             <div class="row">
                                 <x-form.form-input label="اسم مستخدم SMTP" name="smtp_username" type="text" icon="user"
                                     col="4" />
@@ -74,15 +74,15 @@
                                     style="font-size: 16px; font-weight: 500; margin-right: 10px;">
                                     يتطلب هذا الاتصال SSL</label>
                             </div>
-                        </div>
+                        </div> --}}
 
                         <div class="row mt-3">
                             <div class="col-12">
-                                <button type="button" class="btn btn-primary me-2">
+                                {{-- <button type="button" class="btn btn-primary me-2">
                                     <i class="fas fa-envelope"></i> Outlook
-                                </button>
+                                </button> --}}
                                 <button type="button" class="btn btn-danger">
-                                    <i class="fab fa-google"></i> Gmail
+                                    <i class="fab fa-google"></i> اضافة
                                 </button>
                             </div>
                         </div>

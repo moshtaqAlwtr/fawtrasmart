@@ -1,9 +1,8 @@
-@props(['title', 'icon', 'link' => null, 'linkText' => null, 'index' => null])
+@props(['title', 'icon', 'index', 'checked' => false])
 
 <div class="col-md-4 mb-4">
     <div class="card payment-card border" role="button" style="cursor: pointer;">
         <div class="card-body">
-            <!-- القسم العلوي للبطاقة -->
             <div class="d-flex justify-content-between align-items-center p-3">
                 <div class="icon-wrapper">
                     <i class="{{ $icon }}"></i>
@@ -15,26 +14,27 @@
                     @endif
                 </div>
             </div>
-            <!-- القسم السفلي للبطاقة -->
+
             <div class="card-footer bg-light py-2 px-3 d-flex justify-content-between align-items-center">
-                <!-- زر التفعيل -->
-                <div class="custom-control custom-switch custom-switch-success">
-                    <input type="checkbox" class="custom-control-input" id="switch{{ $index }}" checked>
-                    <label class="custom-control-label" for="switch{{ $index }}"></label>
-                </div>
-                <!-- الأزرار -->
-                <div class="d-flex align-items-center gap-3">
-                    <a href="#" class="action-icon">
-                        <i class="far fa-star"></i>
-                    </a>
-                    <a href="#" class="action-icon">
-                        <i class="fas fa-cog"></i>
-                    </a>
+                <div x-data="{ isChecked: {{ $checked ? 'true' : 'false' }} }">
+                    <div class="custom-control custom-switch custom-switch-success">
+                        <input type="checkbox" class="custom-control-input" :id="'switch-' + {{ $index }}"
+                            x-model="isChecked"
+                            x-on:change="$refs.hiddenInput.value = isChecked ? 'active' : 'inactive'"
+                        >
+                        <label class="custom-control-label" :for="'switch-' + {{ $index }}"></label>
+                    </div>
+
+                    <input type="hidden" x-ref="hiddenInput" name="payments[{{ $index }}][status]" 
+                        :value="isChecked ? 'active' : 'inactive'">
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
 
 <style>
 .payment-card {

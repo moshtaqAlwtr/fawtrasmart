@@ -99,12 +99,19 @@
                             </x-form.select>
 
                             <x-form.select label="صيغة الوقت" name="time_formula" icon="calendar" col="6">
+                                @php
+                                    // تعيين قيمة افتراضية إذا لم تكن موجودة
+                                    $defaultTimeFormula = 'd/m/Y';
+                                @endphp
+                            
                                 @foreach (['d/m/Y', 'm/d/Y', 'Y-m-d', 'd-m-Y', 'M d, Y', 'F d, Y'] as $format)
-                                    <option value="{{ $format }}" {{ old('time_formula', $account_setting->time_formula) == $format ? 'selected' : '' }}>
+                                    <option value="{{ $format }}" 
+                                        {{ old('time_formula', $account_setting->time_formula ?? $defaultTimeFormula) == $format ? 'selected' : '' }}>
                                         {{ $format }} ({{ now()->format($format) }})
                                     </option>
                                 @endforeach
                             </x-form.select>
+                            
                             
 
                             <x-form.select label="اللغة" name="language" icon="globe" col="12">
