@@ -546,7 +546,6 @@ class SalesReportsController extends Controller
         return view('reports.sals.salesRport.by_Product', array_merge(compact('products', 'employees', 'branches', 'clients', 'productSales', 'groupedProductSales', 'productTotals', 'chartData', 'categories', 'fromDate', 'storehouses', 'client_categories', 'toDate'), ['reportPeriod' => $request->input('report_period', 'daily')]));
     }
 
-
     public function clientPaymentReport(Request $request)
     {
         // Fetch dropdown data
@@ -792,8 +791,7 @@ class SalesReportsController extends Controller
             $reportPeriod = $request->input('report_period', 'monthly');
 
             // Base query for payments
-            $query = PaymentsProcess::with(['client'])
-                ->whereBetween('payment_date', [$fromDate, $toDate]);
+            $query = PaymentsProcess::with(['client'])->whereBetween('payment_date', [$fromDate, $toDate]);
 
             // Apply filters
             if ($request->filled('client')) {
@@ -812,7 +810,7 @@ class SalesReportsController extends Controller
             $payments = $query->get();
 
             // Group payments based on report period
-            $groupedPayments = $payments->groupBy(function($payment) use ($reportPeriod) {
+            $groupedPayments = $payments->groupBy(function ($payment) use ($reportPeriod) {
                 switch ($reportPeriod) {
                     case 'daily':
                         return $payment->payment_date->format('Y-m-d');
@@ -830,9 +828,12 @@ class SalesReportsController extends Controller
             // Prepare chart data
             $chartData = [
                 'labels' => $groupedPayments->keys()->toArray(),
-                'values' => $groupedPayments->map(function($periodPayments) {
-                    return $periodPayments->sum('amount');
-                })->values()->toArray(),
+                'values' => $groupedPayments
+                    ->map(function ($periodPayments) {
+                        return $periodPayments->sum('amount');
+                    })
+                    ->values()
+                    ->toArray(),
                 'paymentMethods' => [
                     $payments->where('payment_method', 1)->count(), // Cash
                     $payments->where('payment_method', 2)->count(), // Check
@@ -841,7 +842,7 @@ class SalesReportsController extends Controller
                 'paymentStatuses' => [
                     $payments->where('payment_status', 1)->count(), // Paid
                     $payments->where('payment_status', 2)->count(), // Unpaid
-                ]
+                ],
             ];
 
             // Fetch clients for filter dropdown
@@ -862,7 +863,7 @@ class SalesReportsController extends Controller
             // Log the full error
             Log::error('Error in payments report', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             // Optionally, return an error view or redirect with a message
@@ -877,21 +878,11 @@ class SalesReportsController extends Controller
         $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
         // Prepare the base query for invoice items with product details
-        $query = InvoiceItem::select(
-            'products.id',
-            'products.name',
-            'products.purchase_price',
-            'products.sale_price',
-            'products.brand',
-            'categories.name as category_name',
-            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
-            DB::raw('SUM(invoice_items.total) as total_value'),
-            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
-        )
-        ->join('products', 'invoice_items.product_id', '=', 'products.id')
-        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-        ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+        $query = InvoiceItem::select('products.id', 'products.name', 'products.purchase_price', 'products.sale_price', 'products.brand', 'categories.name as category_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
+            ->join('products', 'invoice_items.product_id', '=', 'products.id')
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
 
         // Apply product filter
         if ($request->has('products') && !empty($request->input('products'))) {
@@ -915,16 +906,9 @@ class SalesReportsController extends Controller
 
         // Group the results
         $profitsReport = $query
-            ->groupBy(
-                'products.id',
-                'products.name',
-                'products.purchase_price',
-                'products.sale_price',
-                'products.brand',
-                'categories.name'
-            )
+            ->groupBy('products.id', 'products.name', 'products.purchase_price', 'products.sale_price', 'products.brand', 'categories.name')
             ->get()
-            ->map(function($product) {
+            ->map(function ($product) {
                 // Use product's purchase price for cost calculation
                 $avgCostPrice = $product->purchase_price;
                 $totalCost = $product->total_quantity * $avgCostPrice;
@@ -933,14 +917,10 @@ class SalesReportsController extends Controller
                 $profit = $product->total_value - $totalCost;
 
                 // Calculate profit percentages
-                $profitPercentage = $product->total_value > 0
-                    ? ($profit / $product->total_value) * 100
-                    : 0;
+                $profitPercentage = $product->total_value > 0 ? ($profit / $product->total_value) * 100 : 0;
 
                 // Calculate markup
-                $markup = $avgCostPrice > 0
-                    ? (($product->avg_selling_price - $avgCostPrice) / $avgCostPrice) * 100
-                    : 0;
+                $markup = $avgCostPrice > 0 ? (($product->avg_selling_price - $avgCostPrice) / $avgCostPrice) * 100 : 0;
 
                 return [
                     'name' => $product->name,
@@ -954,11 +934,11 @@ class SalesReportsController extends Controller
                     'total_cost' => $totalCost,
                     'profit' => $profit,
                     'profit_percentage' => $profitPercentage,
-                    'markup_percentage' => $markup
+                    'markup_percentage' => $markup,
                 ];
             })
             // Filter out products with zero quantity
-            ->filter(function($product) {
+            ->filter(function ($product) {
                 return $product['total_quantity'] > 0;
             })
             // Sort by profit in descending order
@@ -971,11 +951,9 @@ class SalesReportsController extends Controller
             'total_revenue' => $profitsReport->sum('total_value'),
             'total_cost' => $profitsReport->sum('total_cost'),
             'total_profit' => $profitsReport->sum('profit'),
-            'avg_profit_margin' => $profitsReport->sum('total_value') > 0
-                ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100
-                : 0,
+            'avg_profit_margin' => $profitsReport->sum('total_value') > 0 ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100 : 0,
             'top_profit_product' => $profitsReport->first(),
-            'lowest_profit_product' => $profitsReport->last()
+            'lowest_profit_product' => $profitsReport->last(),
         ];
 
         // Fetch additional data for filters
@@ -992,30 +970,23 @@ class SalesReportsController extends Controller
             'products' => $products,
             'categories' => $categories,
             'brands' => $brands,
-            'branches' => $branches
+            'branches' => $branches,
         ]);
-
     }
     public function employeeProfits(Request $request)
     {
         // Default date range (current month)
         $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-$products = Product::select('id', 'name')->get();
+        $products = Product::select('id', 'name')->get();
         $categories = Category::select('id', 'name')->get();
-$branches=Branch::select('id', 'name')->get();
+        $branches = Branch::select('id', 'name')->get();
         $brands = Product::distinct()->pluck('brand');
         // Prepare the base query for invoice items with employee details
-        $query = InvoiceItem::select(
-            'users.id as employee_id',
-            'users.name as employee_name',
-            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
-            DB::raw('SUM(invoice_items.total) as total_value'),
-            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
-        )
-        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-        ->join('users', 'invoices.created_by', '=', 'users.id')
-        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+        $query = InvoiceItem::select('users.id as employee_id', 'users.name as employee_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->join('users', 'invoices.created_by', '=', 'users.id')
+            ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
 
         // Apply employee filter
         if ($request->has('employees') && is_array($request->input('employees')) && !empty($request->input('employees'))) {
@@ -1026,15 +997,13 @@ $branches=Branch::select('id', 'name')->get();
         $employeeProfitsReport = $query
             ->groupBy('users.id', 'users.name')
             ->get()
-            ->map(function($employee) {
+            ->map(function ($employee) {
                 // Calculate total cost (assuming a standard markup or using product purchase prices)
                 $totalCost = $employee->total_value / 1.3; // Assuming 30% markup as an example
                 $profit = $employee->total_value - $totalCost;
 
                 // Calculate profit percentages
-                $profitPercentage = $employee->total_value > 0
-                    ? ($profit / $employee->total_value) * 100
-                    : 0;
+                $profitPercentage = $employee->total_value > 0 ? ($profit / $employee->total_value) * 100 : 0;
 
                 return [
                     'employee_id' => $employee->employee_id,
@@ -1044,11 +1013,11 @@ $branches=Branch::select('id', 'name')->get();
                     'avg_selling_price' => $employee->avg_selling_price,
                     'total_cost' => $totalCost,
                     'profit' => $profit,
-                    'profit_percentage' => $profitPercentage
+                    'profit_percentage' => $profitPercentage,
                 ];
             })
             // Filter out employees with zero sales
-            ->filter(function($employee) {
+            ->filter(function ($employee) {
                 return $employee['total_quantity'] > 0;
             })
             // Sort by profit in descending order
@@ -1061,11 +1030,9 @@ $branches=Branch::select('id', 'name')->get();
             'total_revenue' => $employeeProfitsReport->sum('total_value'),
             'total_cost' => $employeeProfitsReport->sum('total_cost'),
             'total_profit' => $employeeProfitsReport->sum('profit'),
-            'avg_profit_margin' => $employeeProfitsReport->sum('total_value') > 0
-                ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100
-                : 0,
+            'avg_profit_margin' => $employeeProfitsReport->sum('total_value') > 0 ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100 : 0,
             'top_performing_employee' => $employeeProfitsReport->first() ?: null,
-            'lowest_performing_employee' => $employeeProfitsReport->last() ?: null
+            'lowest_performing_employee' => $employeeProfitsReport->last() ?: null,
         ];
 
         // Fetch additional data for filters
@@ -1080,16 +1047,28 @@ $branches=Branch::select('id', 'name')->get();
             'products' => $products,
             'categories' => $categories,
             'brands' => $brands,
-            'branches' => $branches
-
+            'branches' => $branches,
         ]);
-
     }
     public function customerProfits(Request $request)
     {
-        // Default date range (current month)
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+        // الحصول على الفترة الزمنية
+        $reportPeriod = $request->input('report_period', 'monthly'); // الافتراضي هو شهري
+
+        // إعداد نطاق التاريخ بناءً على الفترة الزمنية
+        if ($reportPeriod == 'daily') {
+            $fromDate = Carbon::now()->startOfDay()->format('Y-m-d');
+            $toDate = Carbon::now()->endOfDay()->format('Y-m-d');
+        } elseif ($reportPeriod == 'weekly') {
+            $fromDate = Carbon::now()->startOfWeek()->format('Y-m-d');
+            $toDate = Carbon::now()->endOfWeek()->format('Y-m-d');
+        } elseif ($reportPeriod == 'yearly') {
+            $fromDate = Carbon::now()->startOfYear()->format('Y-m-d');
+            $toDate = Carbon::now()->endOfYear()->format('Y-m-d');
+        } else {
+            $fromDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+            $toDate = Carbon::now()->endOfMonth()->format('Y-m-d');
+        }
 
         // Fetch filter options
         $products = Product::select('id', 'name')->get();
@@ -1098,16 +1077,10 @@ $branches=Branch::select('id', 'name')->get();
         $brands = Product::distinct()->pluck('brand');
 
         // Prepare the base query for invoice items with client details
-        $query = InvoiceItem::select(
-            'clients.id as client_id',
-            'clients.trade_name as client_name',
-            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
-            DB::raw('SUM(invoice_items.total) as total_value'),
-            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
-        )
-        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-        ->join('clients', 'invoices.client_id', '=', 'clients.id')
-        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+        $query = InvoiceItem::select('clients.id as client_id', 'clients.trade_name as client_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+            ->join('clients', 'invoices.client_id', '=', 'clients.id')
+            ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
 
         // Apply filters
         if ($request->has('clients') && is_array($request->input('clients')) && !empty($request->input('clients'))) {
@@ -1121,14 +1094,14 @@ $branches=Branch::select('id', 'name')->get();
 
         // Apply category filter
         if ($request->has('categories') && is_array($request->input('categories')) && !empty($request->input('categories'))) {
-            $query->whereHas('product', function($q) use ($request) {
+            $query->whereHas('product', function ($q) use ($request) {
                 $q->whereIn('category_id', $request->input('categories'));
             });
         }
 
         // Apply brand filter
         if ($request->has('brands') && is_array($request->input('brands')) && !empty($request->input('brands'))) {
-            $query->whereHas('product', function($q) use ($request) {
+            $query->whereHas('product', function ($q) use ($request) {
                 $q->whereIn('brand', $request->input('brands'));
             });
         }
@@ -1142,15 +1115,13 @@ $branches=Branch::select('id', 'name')->get();
         $clientProfitsReport = $query
             ->groupBy('clients.id', 'clients.trade_name')
             ->get()
-            ->map(function($client) {
+            ->map(function ($client) {
                 // Calculate total cost (assuming a standard markup or using product purchase prices)
                 $totalCost = $client->total_value / 1.3; // Assuming 30% markup as an example
                 $profit = $client->total_value - $totalCost;
 
                 // Calculate profit percentages
-                $profitPercentage = $client->total_value > 0
-                    ? ($profit / $client->total_value) * 100
-                    : 0;
+                $profitPercentage = $client->total_value > 0 ? ($profit / $client->total_value) * 100 : 0;
 
                 return [
                     'client_id' => $client->client_id,
@@ -1160,11 +1131,11 @@ $branches=Branch::select('id', 'name')->get();
                     'avg_selling_price' => $client->avg_selling_price,
                     'total_cost' => $totalCost,
                     'profit' => $profit,
-                    'profit_percentage' => $profitPercentage
+                    'profit_percentage' => $profitPercentage,
                 ];
             })
             // Filter out clients with zero sales
-            ->filter(function($client) {
+            ->filter(function ($client) {
                 return $client['total_quantity'] > 0;
             })
             // Sort by profit in descending order
@@ -1177,11 +1148,9 @@ $branches=Branch::select('id', 'name')->get();
             'total_revenue' => $clientProfitsReport->sum('total_value'),
             'total_cost' => $clientProfitsReport->sum('total_cost'),
             'total_profit' => $clientProfitsReport->sum('profit'),
-            'avg_profit_margin' => $clientProfitsReport->sum('total_value') > 0
-                ? ($clientProfitsReport->sum('profit') / $clientProfitsReport->sum('total_value')) * 100
-                : 0,
+            'avg_profit_margin' => $clientProfitsReport->sum('total_value') > 0 ? ($clientProfitsReport->sum('profit') / $clientProfitsReport->sum('total_value')) * 100 : 0,
             'top_performing_client' => $clientProfitsReport->first() ?: null,
-            'lowest_performing_client' => $clientProfitsReport->last() ?: null
+            'lowest_performing_client' => $clientProfitsReport->last() ?: null,
         ];
 
         // Fetch additional data for filters
@@ -1196,102 +1165,7 @@ $branches=Branch::select('id', 'name')->get();
             'products' => $products,
             'categories' => $categories,
             'brands' => $brands,
-            'branches' => $branches
+            'branches' => $branches,
         ]);
     }
-
-    public function Wsales()
-    {
-        return view('reports.sals.W_Sales');
-    }
-    public function Msales()
-    {
-        return view('reports.sals.M_Sales');
-    }
-    public function Asales()
-    {
-        return view('reports.sals.A_Sales');
-    }
-    public function byCust()
-    {
-        return view('reports.sals.Payments_by_Customer');
-    }
-    public function byembl()
-    {
-        return view('reports.sals.Payments_by_Employee');
-    }
-    public function bypay()
-    {
-        return view('reports.sals.Payments_by_Payment_Method');
-    }
-    public function DailyPayments()
-    {
-        return view('reports.sals.Daily_Payments');
-    }
-    public function WeeklyPayments()
-    {
-        return view('reports.sals.Weekly_Payments');
-    }
-    public function MonthlyPayments()
-    {
-        return view('reports.sals.Monthly_Payments');
-    }
-    public function productsprofit()
-    {
-        return view('reports.sals.products_profit');
-    }
-    public function CustomerProfit()
-    {
-        return view('reports.sals.Customer_Profit');
-    }
-    public function EmployeeProfit()
-    {
-        return view('reports.sals.Employee_Profit');
-    }
-    public function ManagerProfit()
-    {
-        return view('reports.sals.Manager_Profit');
-    }
-    public function DailyProfits()
-    {
-        return view('reports.sals.Daily_Profits');
-    }
-    public function WeeklyProfits()
-    {
-        return view('reports.sals.Weekly_Profits');
-    }
-    public function AnnualProfits()
-    {
-        return view('reports.sals.Annual_Profits');
-    }
-    public function ItemSalesByItem()
-    {
-        return view('reports.sals.Sales_By_Item');
-    }
-
-    public function ItemSalesByCategory()
-    {
-        return view('reports.sals.Sales_By_Category');
-    }
-
-    public function ItemSalesByBrand()
-    {
-        return view('reports.sals.Sales_By_Brand');
-    }
-
-    public function ItemSalesByEmployee()
-    {
-        return view('reports.sals.Sales_By_Employee');
-    }
-
-    public function ItemSalesBySalesRep()
-    {
-        return view('reports.sals.Sales_By_SalesRep');
-    }
-
-    public function ItemSalesByCustomer()
-    {
-        return view('reports.sals.Sales_By_Customer');
-    }
 }
-

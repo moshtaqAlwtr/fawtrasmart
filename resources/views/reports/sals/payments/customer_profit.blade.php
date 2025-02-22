@@ -92,6 +92,17 @@
                                 <div class="row">
                                     <div class="col-md-3 mb-3">
                                         <label class="form-label filter-label">
+                                            <i class="fas fa-calendar-alt me-2"></i>حدد المدة الزمنية
+                                        </label>
+                                        <select name="report_period" class="form-control" onchange="this.form.submit()">
+                                            <option value="monthly" {{ request()->input('report_period') == 'monthly' ? 'selected' : '' }}>شهري</option>
+                                            <option value="weekly" {{ request()->input('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                                            <option value="daily" {{ request()->input('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
+                                            <option value="yearly" {{ request()->input('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label class="form-label filter-label">
                                             <i class="fas fa-calendar-alt me-2"></i>الفترة من
                                         </label>
                                         <input type="date" name="from_date" class="form-control"
