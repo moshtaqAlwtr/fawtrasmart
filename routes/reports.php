@@ -54,8 +54,10 @@ Route::group(
                 Route::get('/exportByCustomerToExcel', [SalesReportsController::class, 'exportByCustomerToExcel'])->name('salesReports.exportByCustomerToExcel');
                 Route::get('/sales/by-employee/export', [SalesReportsController::class, 'clientPaymentReport'])->name('salesReports.clientPaymentReport');
                 Route::get('/sales-reports/export-by-product', [SalesReportsController::class, 'exportByProductToExcel'])->name('salesReports.exportByProduct');
+                Route::get('/sales-reports/ProfitReportTime', [SalesReportsController::class, 'ProfitReportTime'])->name('salesReports.ProfitReportTime');
                 Route::get('/employee-payment-report', [SalesReportsController::class, 'employeePaymentReport'])->name('salesReports.employeePaymentReport');
                 Route::get('/payment-method-report', [SalesReportsController::class, 'paymentMethodReport'])->name('salesReports.paymentMethodReport');
+                Route::get('/byItem', [SalesReportsController::class, 'byItem'])->name('salesReports.byItem');
                 Route::get('/papatyment', [SalesReportsController::class, 'patyment'])->name('salesReports.patyment');
                 Route::get('/reports/profits', [SalesReportsController::class, 'profits'])->name('salesReports.profits');
                 Route::get('/sales-reports/profit-timeline', [SalesReportsController::class, 'profitTimeline'])

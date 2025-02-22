@@ -408,7 +408,7 @@
                                 </span>
                                 أرباح مبيعات الأصناف - مسؤول مبيعات
                                 <div class="ms-auto">
-                                    <a href="{{route('salesReports.customerProfits')}}" class="text-decoration-none">
+                                    <a href="{{route('salesReports.employeeProfits')}}" class="text-decoration-none">
                                         <i class="fa-solid fa-eyes"></i> عرض
                                     </a>
                                 </div>
@@ -434,10 +434,10 @@
                                 </span>
                                 الأرباح اليومية
                                 <div class="ms-auto">
-                                    <a href="{{ route('salesReports.profitTimeline') }}" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'daily']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'daily']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -448,10 +448,24 @@
                                 </span>
                                 الأرباح الأسبوعية
                                 <div class="ms-auto">
-                                    <a href="profit_report_pred/week_profit.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'weekly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'weekly']) }}" class="text-decoration-none ms-3">
+                                        <i class="fa-solid fa-clipboard"></i> الملخص
+                                    </a>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <span class="list-icon gradient-blue">
+                                    <i class="fa-solid fa-calendar-month"></i>
+                                </span>
+                                الأرباح الشهرية
+                                <div class="ms-auto">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'monthly']) }}" class="text-decoration-none">
+                                        <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                    </a>
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'monthly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -462,10 +476,10 @@
                                 </span>
                                 الأرباح السنوية
                                 <div class="ms-auto">
-                                    <a href="profit_report_pred/year_profit.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'yearly']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.ProfitReportTime', ['report_period' => 'yearly']) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
@@ -482,84 +496,97 @@
                             تقارير مبيعات البنود المقسمة
                         </h5>
                         <ul class="list-group list-group-flush">
+                            <!-- مبيعات البنود حسب البند -->
                             <li class="list-group-item">
                                 <span class="list-icon gradient-orange">
                                     <i class="fa-solid fa-box"></i>
                                 </span>
-                                مبيعات البنود حسب البند <div class="ms-auto">
-                                    <a href="items_sales/item-sales-by-item.html" class="text-decoration-none">
+                                مبيعات البنود حسب البند
+                                <div class="ms-auto">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'item']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'item', 'summary' => true]) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
                             </li>
+
+                            <!-- مبيعات البنود حسب التصنيف -->
                             <li class="list-group-item">
                                 <span class="list-icon gradient-red">
                                     <i class="fa-solid fa-tags"></i>
                                 </span>
                                 مبيعات البنود حسب التصنيف
                                 <div class="ms-auto">
-                                    <a href="items_sales/item-sales-by-category.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'category']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'category', 'summary' => true]) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
                             </li>
+
+                            <!-- مبيعات البنود حسب الماركة -->
                             <li class="list-group-item">
                                 <span class="list-icon gradient-teal">
                                     <i class="fa-solid fa-tag"></i>
                                 </span>
-                                مبيعات البنود حسب الماركة <div class="ms-auto">
-                                    <a href="items_sales/item-sales-by-brand.html" class="text-decoration-none">
+                                مبيعات البنود حسب الماركة
+                                <div class="ms-auto">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'brand']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'brand', 'summary' => true]) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
                             </li>
+
+                            <!-- مبيعات البنود حسب الموظف -->
                             <li class="list-group-item">
                                 <span class="list-icon gradient-purple">
                                     <i class="fa-solid fa-user-tie"></i>
                                 </span>
                                 مبيعات البنود حسب الموظف
                                 <div class="ms-auto">
-                                    <a href="items_sales/item-sales-by-employee.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'employee']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'employee', 'summary' => true]) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
                             </li>
+
+                            <!-- مبيعات البنود حسب مندوب المبيعات -->
                             <li class="list-group-item">
                                 <span class="list-icon gradient-green">
                                     <i class="fa-solid fa-handshake"></i>
                                 </span>
                                 مبيعات البنود حسب مندوب المبيعات
                                 <div class="ms-auto">
-                                    <a href="items_sales/item-sales-by-sales-rep.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'sales_manager']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'sales_manager', 'summary' => true]) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
                             </li>
+
+                            <!-- مبيعات البنود حسب العميل -->
                             <li class="list-group-item">
                                 <span class="list-icon gradient-blue">
                                     <i class="fa-solid fa-user"></i>
                                 </span>
                                 مبيعات البنود حسب العميل
                                 <div class="ms-auto">
-                                    <a href="items_sales/item-sales-by-client.html" class="text-decoration-none">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'client']) }}" class="text-decoration-none">
                                         <i class="fa-solid fa-file-lines"></i> التفاصيل
                                     </a>
-                                    <a href="path-to-summary-page" class="text-decoration-none ms-3">
+                                    <a href="{{ route('salesReports.byItem', ['filter' => 'client', 'summary' => true]) }}" class="text-decoration-none ms-3">
                                         <i class="fa-solid fa-clipboard"></i> الملخص
                                     </a>
                                 </div>
