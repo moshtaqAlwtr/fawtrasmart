@@ -442,10 +442,7 @@ class InvoicesController extends Controller
                     ]);
                 }
                  $proudect = Product::where('id', $item['product_id'])->first();
-                 dd([
-                    'item_quantity' => $item['quantity'],
-                    'product_details_quantity' => $productDetails->quantity
-                ]);
+                
                  if ($proudect->type !== "services") {
                     if ((int) $item['quantity'] > (int) $productDetails->quantity) {
                         throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
