@@ -67,7 +67,7 @@
                 <div class="card-title p-2">
                     <a href="{{ route('products.edit',$product->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i class="fa fa-edit"></i></a>
                     <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modal_DELETE{{ $product->id }}">حذف <i class="fa fa-trash"></i></a>
-                    @if($product == "products")
+                    @if($product->type == "products")
                     <a href="{{ route('store_permits_management.manual_conversion') }}" class="btn btn-outline-success btn-sm">نقل <i class="fa fa-reply-all"></i></a>
                     <a href="{{ route('store_permits_management.create') }}" class="btn btn-outline-info btn-sm">اضف عمليه <i class="fa fa-plus"></i></a>
                     <a href="{{ route('store_permits_management.manual_disbursement') }}" class="btn btn-outline-warning btn-sm">عمليه صرف <i class="fa fa-minus"></i></a>
@@ -78,7 +78,7 @@
                         <li class="nav-item">
                             <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home" role="tab" aria-selected="false">معلومات</a>
                         </li>
-                        @if($product == "products")
+                        @if($product->type == "products")
                         <li class="nav-item">
                             <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" aria-controls="profile" role="tab" aria-selected="false">حركة المخزون</a>
                         </li>
