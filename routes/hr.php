@@ -42,6 +42,8 @@ Route::group(
                 Route::get('/login/to/{id}', [EmployeeController::class, 'login_to'])->name('employee.login_to');
                 Route::get('/export/view',[EmployeeController::class,'export_view'])->name('employee.export_view');
                 Route::post('/export',[EmployeeController::class,'export'])->name('employee.export');
+                Route::get('/send_email/{id}',[EmployeeController::class,'send_email'])->name('employee.send_email');
+                
             });
 
             # employee managing employee roles

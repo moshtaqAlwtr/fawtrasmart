@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
+
 
 class EmployeeController extends Controller
 {
@@ -30,6 +33,45 @@ class EmployeeController extends Controller
         $employees = Employee::select()->orderBy('id','DESC')->get();
         return view('hr.employee.index', compact('clients', 'employees'));
     }
+
+    public function send_email($id)
+    {
+        $employee = User::where('employee_id', $id)->first();
+    
+        if (!$employee) {
+            return response()->json(['message' => 'الموظف غير موجود'], 404);
+        }
+    
+        // توليد كلمة مرور جديدة عشوائية
+        $newPassword = $this->generateRandomPassword();
+    
+        // تحديث كلمة المرور في قاعدة البيانات بعد تشفيرها
+        $employee->password = Hash::make($newPassword);
+        $employee->save();
+    
+        // إعداد بيانات البريد
+        $details = [
+            'name' => $employee->name,
+            'email' => $employee->email,
+            'password' => $newPassword // إرسال كلمة المرور الجديدة مباشرة
+        ];
+    
+        // إرسال البريد
+        Mail::to($employee->email)->send(new TestMail($details));
+    
+        // return back()->with('message', 'تم إرسال البريد بنجاح!');
+        return redirect()->back()->with( ['success'=>'تم  ارسال البريد بنجاح .']);
+
+    }
+    
+    /**
+     * دالة لتوليد كلمة مرور عشوائية
+     */
+    private function generateRandomPassword($length = 10)
+    {
+        return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
+    }
+    
 
     public function create()
     {
@@ -43,6 +85,8 @@ class EmployeeController extends Controller
         $employees = Employee::select('id','first_name','middle_name')->get();
         return view('hr.employee.create',compact('employees','job_roles','departments','job_titles','job_levels','job_types','branches','shifts'));
     }
+
+    
 
     public function store(EmployeeRequest $request)
     {
