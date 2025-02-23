@@ -7,9 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductsRequest;
 use App\Models\AccountSetting;
 use App\Models\Category;
+use App\Models\GeneralSettings;
 use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\StoreHouse;
+use App\Models\SubUnit;
+use App\Models\TemplateUnit;
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
 use Carbon\Carbon;
@@ -70,10 +73,38 @@ class ProductsController extends Controller
     {
         $record_count = DB::table('products')->count();
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
+        $SubUnits = collect(); // متغير فارغ للوحدات الفرعية
+        $TemplateUnit = TemplateUnit::where('status', 1)->get();
+    // التأكد من أن هناك قوالب وحدات متاحة
+    if ($TemplateUnit->isNotEmpty()) {
+        $firstTemplateUnit = $TemplateUnit->first(); // القالب الأول افتراضيًا
+        $SubUnits = SubUnit::where('template_unit_id', $firstTemplateUnit->id)->get();
 
-        $categories = Category::select('id','name')->get();
-        return view('stock.products.create',compact('categories','serial_number'));
+       
     }
+       $generalSettings = GeneralSettings::select()->first();
+        $role = $generalSettings->enable_multi_units_system == 1;
+        $categories = Category::select('id','name')->get();
+        return view('stock.products.create',compact('categories','role','serial_number','TemplateUnit','SubUnits'));
+    }
+
+    public function getSubUnits(Request $request)
+    {
+        // إذا لم يتم تحديد أي قالب، جلب الوحدات الفرعية لأول قالب
+        if (!$request->has('template_unit_id') || !$request->template_unit_id) {
+            $firstTemplateUnit = TemplateUnit::where('status', 1)->first();
+            if ($firstTemplateUnit) {
+                $subUnits = SubUnit::where('template_unit_id', $firstTemplateUnit->id)->get();
+            } else {
+                $subUnits = [];
+            }
+        } else {
+            $subUnits = SubUnit::where('template_unit_id', $request->template_unit_id)->get();
+        }
+    
+        return response()->json($subUnits);
+    }
+    
 
     public function create_services()
     {
@@ -105,26 +136,31 @@ class ProductsController extends Controller
         $sold_last_28_days = $product->totalSoldLast28Days();
         $sold_last_7_days = $product->totalSoldLast7Days();
         $average_cost = $product->averageCost();
+        $firstTemplateUnit = null;
+        $firstTemplateUnit = optional(TemplateUnit::find($product->sub_unit_id))->base_unit_name;
+
 
         $stock_movements = WarehousePermitsProducts::where('product_id', $id)
             ->with(['warehousePermits' => function ($query) {
                 $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
             }])->get();
 
-        return view('stock.products.show',compact('product','total_quantity','storeQuantities','total_sold','sold_last_28_days','sold_last_7_days','average_cost','stock_movements'));
+        return view('stock.products.show',compact('product','firstTemplateUnit','total_quantity','storeQuantities','total_sold','sold_last_28_days','sold_last_7_days','average_cost','stock_movements'));
     }
 
     public function store(ProductsRequest $request)
     {
+        // dd($request->all());
        
         try{
 
             DB::beginTransaction();
             $product = new Product();
-
+ 
             $product->name = $request->name;
             $product->description = $request->description;
             $product->category_id = $request->category_id;
+            $product->sub_unit_id = $request->sub_unit_id;
             $product->serial_number = $request->serial_number;
             $product->brand = $request->brand;
             $product->supplier_id = $request->supplier_id;
@@ -140,6 +176,8 @@ class ProductsController extends Controller
             $product->status = $request->status;
             $product->purchase_price = $request->purchase_price;
             $product->sale_price = $request->sale_price;
+            $product->purchase_unit_id = $request->purchase_unit_id;
+            $product->sales_unit_id = $request->sales_unit_id;
             $product->tax1 = $request->tax1;
             $product->tax2 = $request->tax2;
             $product->min_sale_price = $request->min_sale_price;
@@ -251,11 +289,17 @@ class ProductsController extends Controller
     {
         $product = Product::findOrFail($id);
         $storehouses = StoreHouse::select(['name','id'])->get();
-        return view('stock.products.manual_stock_adjust',compact('product','storehouses'));
+        $generalSettings = GeneralSettings::select()->first();
+        $role = $generalSettings->enable_multi_units_system == 1;
+      
+        $SubUnits = $product->sub_unit_id ? SubUnit::where('template_unit_id', $product->sub_unit_id)->get() : collect();
+
+        return view('stock.products.manual_stock_adjust',compact('product','role','storehouses','SubUnits'));
     }
 
     public function add_manual_stock_adjust(Request $request, $id)
     {
+        
         $request->validate([
             'quantity' => 'required|numeric|min:1',
             'type' => 'required|in:1,2',
@@ -316,9 +360,17 @@ class ProductsController extends Controller
         }
 
         // تحديث الكمية بناءً على العملية (إضافة أو سحب)
+        $SubUnit = SubUnit::find($request->sub_unit_id);
+
+        if ($SubUnit) {
+            $conversionFactor = $SubUnit->conversion_factor;
+        } else {
+            $conversionFactor = 1; // قيمة افتراضية في حالة عدم وجود الوحدة
+        }
+        
         $product->quantity = ($type == 2)
-            ? $product->quantity - $request->quantity
-            : $product->quantity + $request->quantity;
+            ? $product->quantity - ($request->quantity * $conversionFactor)
+            : $product->quantity + ($request->quantity * $conversionFactor);
             $product->type = $request->type;
             $product->unit_price = $request->unit_price;
             $product->date = $request->date;

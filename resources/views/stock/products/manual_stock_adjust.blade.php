@@ -59,7 +59,23 @@
                                                 </select>
                                             </div>
                                         </div>
-
+                                       @if($role)
+                                        <div class="col-3">
+                                            <div class="form-group">
+                                                <label for="quantity">الكمية</label>
+                                                <div class="input-group">
+                                                    <input type="text" id="quantity" class="form-control" name="quantity" value="{{ old('quantity') }}">
+                                                    <select class="form-select form-select-sm" id="sub-unit" name="sub_unit_id" style="width: auto;">
+                                                        @foreach ($SubUnits as $key => $SubUnit)
+                                                            <option value="{{ $SubUnit->id }}" {{ $key == 0 ? 'selected' : '' }}>
+                                                                {{ $SubUnit->larger_unit_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <label for="first-name-vertical">الكمية</label>

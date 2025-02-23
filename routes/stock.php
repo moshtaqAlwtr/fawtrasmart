@@ -42,6 +42,8 @@ Route::group(
         Route::prefix('products')->group(function () {
             Route::get('/index',[ProductsController::class,'index'])->name('products.index')->middleware('permission:products_view_all_products');
             Route::get('/create',[ProductsController::class,'create'])->name('products.create')->middleware('permission:products_add_product');
+            Route::get('/get-sub-units', [ProductsController::class, 'getSubUnits'])->name('products.getSubUnits');
+
             Route::get('/create/services',[ProductsController::class,'create_services'])->name('products.create_services')->middleware('permission:products_add_product'); // عرض صفحة اضافة خدمة
             Route::get('/show/{id}',[ProductsController::class,'show'])->name('products.show')->middleware('permission:products_view_all_products');
             Route::get('/edit/{id}',[ProductsController::class,'edit'])->name('products.edit') ->middleware('permission:products_edit_delete_all_products');

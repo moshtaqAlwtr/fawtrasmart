@@ -29,6 +29,12 @@ class ManagingEmployeeRolesController extends Controller
         return view('hr.managing_employee_roles.create', compact('role'));
     }
 
+    public function create_test()
+    {
+        $role = Role::all();
+        return view('hr.managing_employee_roles.create_test', compact('role'));
+    }
+
     public function store(Request $request)
     {
         try {

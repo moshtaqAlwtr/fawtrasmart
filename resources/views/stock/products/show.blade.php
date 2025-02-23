@@ -112,7 +112,7 @@
                                         <tr>
                                             @if($product->type == "products")
                                             <td class="text-center">
-                                                <h4 class="text-bold-700">{{ $total_quantity ? number_format($total_quantity) : 'غير متوفر' }}</h4>
+                                                <h4 class="text-bold-700">{{ $total_quantity ? number_format($total_quantity) : 'غير متوفر' }} {{$firstTemplateUnit ?? ""}}</h4>
                                                 <br>
 
                                                 @if ($storeQuantities->isNotEmpty())

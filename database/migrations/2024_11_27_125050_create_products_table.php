@@ -12,6 +12,7 @@ class CreateProductsTable extends Migration
             $table->id();
             $table->string('name', 255); // الاسم
             $table->text('description')->nullable(); // الوصف
+            $table->integer('sub_unit_id')->nullable(); // قالب الوحدة
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade')->nullable();
             $table->string('serial_number')->nullable(); // الرقم التسلسلي
             $table->string('brand', 100)->nullable(); // الماركة
@@ -31,6 +32,8 @@ class CreateProductsTable extends Migration
             $table->tinyInteger('status')->default(1)->comment('(1=>active) (2=>stopped) (3=>not active)'); // الحالة
             $table->decimal('purchase_price', 10, 2)->nullable(); // سعر الشراء
             $table->decimal('sale_price', 10, 2)->nullable(); // سعر البيع
+            $table->integer('purchase_unit_id')->nullable();
+            $table->integer('sales_unit_id')->nullable();
             $table->tinyInteger('tax1')->nullable(); // الضريبة الأولى
             $table->tinyInteger('tax2')->nullable(); // الضريبة الثانية
             $table->decimal('min_sale_price', 10, 2)->nullable(); // أقل سعر بيع

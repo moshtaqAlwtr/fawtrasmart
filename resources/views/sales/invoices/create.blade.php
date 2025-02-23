@@ -319,7 +319,7 @@
                                         <td data-label="الضريبة 2">
                                             <input type="number" name="items[0][tax_2]" class="form-control tax" value="0" min="0" max="100" step="0.01">
                                         </td>
-                                        <input type="hidden" name="items[0][store_house_id]" value="2">
+                                        <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
                                         </td>

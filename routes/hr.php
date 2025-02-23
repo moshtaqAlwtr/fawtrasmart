@@ -49,6 +49,7 @@ Route::group(
             # employee managing employee roles
             Route::prefix('managing_employee_roles')->group(function () {
                 Route::get('/index',[ManagingEmployeeRolesController::class,'index'])->name('managing_employee_roles.index');
+                Route::get('/create_test',[ManagingEmployeeRolesController::class,'create_test'])->name('managing_employee_roles.create_test');
                 Route::get('/create',[ManagingEmployeeRolesController::class,'create'])->name('managing_employee_roles.create');
                 Route::post('/store',[ManagingEmployeeRolesController::class,'store'])->name('managing_employee_roles.store');
                 Route::get('/edit/{id}',[ManagingEmployeeRolesController::class,'edit'])->name('managing_employee_roles.edit');
