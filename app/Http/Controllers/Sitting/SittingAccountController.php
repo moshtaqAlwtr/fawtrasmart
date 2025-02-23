@@ -164,7 +164,7 @@ class SittingAccountController extends Controller
     {
         $backgroundColor = ColorSitting::find(1);
    
-        $backgroundColorr = $backgroundColor->color;
+        $backgroundColorr = $backgroundColor->color ?? '#ffffff';
         return view('sitting.backgroundColor.index',compact('backgroundColor','backgroundColorr'));
     }
 
