@@ -7,7 +7,7 @@
 @section('css')
     <style>
         .section-header {
-            cursor: pointer; /* تغيير المؤشر إلى يد للإشارة إلى أنه قابل للنقر */
+            cursor: pointer;
             font-weight: bold;
         }
     </style>
@@ -49,7 +49,7 @@
                 </div>
             @endif
 
-            <form class="form-horizontal" action="" method="POST" enctype="multipart/form-data">
+            <form class="form-horizontal" action="{{ route('Bom.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="card">
                     <div class="card-body">
@@ -86,12 +86,12 @@
                                 </div>
                                 <div class="form-group col-md-4">
                                     <label for="">كود <span style="color: red">*</span></label>
-                                    <input type="text" class="form-control" name="code" value="{{ old('code') }}">
+                                    <input type="text" class="form-control" name="code" value="{{ $serial_number }}">
                                 </div>
 
                                 <div class="form-group col-md-2 mt-2">
                                     <div class="custom-control custom-switch custom-switch-success custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="customSwitch1">
+                                        <input type="checkbox" class="custom-control-input" id="customSwitch1" name="status" checked="1" value="1">
                                         <label class="custom-control-label" for="customSwitch1">
                                         </label>
                                         <span class="switch-label">نشط</span>
@@ -100,40 +100,44 @@
 
                                 <div class="form-group col-md-2 mt-2">
                                     <div class="custom-control custom-switch custom-switch-success custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="customSwitch2">
-                                        <label class="custom-control-label" for="customSwitch1">
+                                        <input type="checkbox" class="custom-control-input" id="customSwitch2" name="default" value="1">
+                                        <label class="custom-control-label" for="customSwitch2">
                                         </label>
-                                        <span class="switch-label">غير نشط</span>
+                                        <span class="switch-label">الافتراضي</span>
                                     </div>
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label for="">المنتجات <span class="text-danger">*</span></label>
-                                    <select class="form-control" name="store_houses_id">
+                                    <select class="form-control" name="product_id">
                                         @foreach ($products as $product)
-                                            <option value="{{ $product->id }}" {{ old('store_houses_id') == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                                            <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label for="">الحساب <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="basicSelect" name="sub_account">
-                                        <option value="1" {{ old('sub_account') == 0 ? 'selected' : '' }}>الحساب الفرعي 1</option>
-                                        <option value="2" {{ old('sub_account') == 1 ? 'selected' : '' }}>الحساب الفرعي 2</option>
+                                    <select class="form-control" id="basicSelect" name="account_id">
+                                        <option value="" disabled selected>-- اختر الحساب --</option>
+                                        @foreach ($accounts as $account)
+                                            <option value="{{ $account->id }}" {{ old('account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label>الكمية <span style="color: red">*</span></label>
-                                    <input type="number" class="form-control" name="number" value="{{ old('number') }}">
+                                    <input type="number" class="form-control" name="quantity" value="{{ old('quantity') }}">
                                 </div>
 
                                 <div class="form-group col-md-6">
                                     <label for="">مسار الانتاج <span class="text-danger">*</span></label>
-                                    <select class="form-control" id="basicSelect" name="sub_account">
-                                        <option value="1" {{ old('sub_account') == 0 ? 'selected' : '' }}>الحساب الفرعي 1</option>
-                                        <option value="2" {{ old('sub_account') == 1 ? 'selected' : '' }}>الحساب الفرعي 2</option>
+                                    <select class="form-control" id="basicSelect" name="production_path_id">
+                                        <option value="" disabled selected>-- اختر المسار الانتاج --</option>
+                                        @foreach ($paths as $path)
+                                            <option value="{{ $path->id }}" {{ old('production_path_id') == $path->id ? 'selected' : '' }}>{{ $path->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -211,7 +215,8 @@
                                                 <tr>
                                                     <th>محطة العمل</th>
                                                     <th>نوع التكلفة</th>
-                                                    <th>المبلغ</th>
+                                                    <th>وقت التشغيل</th>
+                                                    <th>التكلفة</th>
                                                     <th>الوصف</th>
                                                     <th>المرحلة الإنتاجية</th>
                                                     <th>الإجمالي</th>
@@ -241,8 +246,8 @@
                                             <thead style="background: #f8f8f8">
                                                 <tr>
                                                     <th>المنتجات</th>
-                                                    <th>الكمية</th>
                                                     <th>السعر</th>
+                                                    <th>الكمية</th>
                                                     <th>المرحلة الإنتاجية</th>
                                                     <th>الإجمالي</th>
                                                     <th></th>
@@ -267,6 +272,7 @@
                                     <div class="d-flex justify-content-between p-1" style="background: #CCF5FA;">
                                         <strong>إجمالي التكلفة : </strong>
                                         <strong class="total-cost">0.00 ر.س</strong>
+                                        <input type="hidden" name="last_total_cost" id="last_total_cost">
                                     </div>
                                 </div>
 
@@ -282,6 +288,13 @@
 @endsection
 
 @section('scripts')
+
+    <script>
+        function updateLastTotalCost() {
+            const totalCost = parseFloat(document.querySelector('.total-cost').textContent) || 0;
+            document.getElementById('last_total_cost').value = totalCost.toFixed(2);
+        }
+    </script>
 
     <script>
         // Function to update the raw material count
@@ -340,10 +353,13 @@
 
             // Update the total cost display
             document.querySelector('.total-cost').textContent = totalCost.toFixed(2) + ' ر.س';
+
+            // Update the hidden input field
+            updateLastTotalCost();
         }
     </script>
 
-    <!--  المواد الخام -->
+    <!-- المواد الخام -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const itemsTable = document.getElementById('itemsTable').querySelector('tbody');
@@ -402,23 +418,24 @@
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
                     <td>
-                        <select name="product_id[]" class="form-control select2 product-select">
+                        <select name="raw_product_id[]" class="form-control select2 product-select">
                             <option value="" disabled selected>-- اختر البند --</option>
                             @foreach ($products as $product)
                                 <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="unit_price[]" class="form-control unit-price" readonly></td>
-                    <td><input type="number" name="quantity[]" class="form-control quantity" value="1" min="1"></td>
+                    <td><input type="number" name="raw_unit_price[]" class="form-control unit-price" readonly></td>
+                    <td><input type="number" name="raw_quantity[]" class="form-control quantity" value="1" min="1"></td>
                     <td>
-                        <select name="product_id[]" class="form-control select2 product-select">
-                            <option value="" disabled selected>-- اختر المرحلة الانتاجية --</option>
-                            <option value="1">مرحلة 1</option>
-                            <option value="2">مرحلة 2</option>
+                        <select name="raw_production_stage_id[]" class="form-control select2 product-select" required>
+                            
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="total[]" class="form-control total" readonly></td>
+                    <td><input type="number" name="raw_total[]" class="form-control total" readonly></td>
                     <td>
                         <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
                     </td>
@@ -491,30 +508,31 @@
                 const exNewRow = document.createElement('tr');
                 exNewRow.innerHTML = `
                     <td>
-                        <select name="account_id[]" class="form-control select2 product-select">
+                        <select name="expenses_account_id[]" class="form-control select2 product-select">
                             <option value="" disabled selected>-- اختر الحساب --</option>
-                            <option value="1">حساب 1</option>
-                            <option value="2">حساب 2</option>
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account->id }}" {{ old('account') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                            @endforeach
                         </select>
                     </td>
                     <td>
-                        <select name="cost_type[]" class="form-control select2 product-select">
-                            <option value="" disabled selected>-- اختر نوع التكلفة --</option>
+                        <select name="expenses_cost_type[]" class="form-control select2 product-select">
                             <option value="1">مبلغ ثابت</option>
                             <option value="2">بناءً على الكمية</option>
                             <option value="3">معادلة</option>
                         </select>
                     </td>
                     <td><input type="number" name="expenses_price[]" class="form-control expenses-price"></td>
-                    <td><textarea name="description[]" class="form-control" rows="1"></textarea></td>
+                    <td><textarea name="expenses_description[]" class="form-control" rows="1"></textarea></td>
                     <td>
-                        <select name="product_id[]" class="form-control select2 product-select">
-                            <option value="" disabled selected>-- اختر المرحلة الانتاجية --</option>
-                            <option value="1">مرحلة 1</option>
-                            <option value="2">مرحلة 2</option>
+                        <select name="expenses_production_stage_id[]" class="form-control select2 product-select" required>
+                            
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="total[]" class="form-control expenses-total" readonly></td>
+                    <td><input type="number" name="expenses_total[]" class="form-control expenses-total" readonly></td>
                     <td>
                         <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
                     </td>
@@ -558,8 +576,10 @@
 
             // Function to calculate total for a row
             function calculateTotal(row) {
-                const manufacturingPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
-                const manufacturingTotal = manufacturingPrice; // يمكن تعديل هذه العملية إذا كان الإجمالي يتطلب حسابات أخرى
+                const totalCost = parseFloat(row.querySelector('.total_cost').value) || 0;
+                const operatingTime = parseFloat(row.querySelector('.operating_time').value) || 0;
+                const manufacturingTotal = totalCost * operatingTime;
+
                 row.querySelector('.manufacturing-total').value = manufacturingTotal.toFixed(2);
                 updateGrandTotal();
                 updateTotalCost();
@@ -574,11 +594,40 @@
                 document.querySelector('.manufacturing-grand-total').textContent = manufacturingGrandTotal.toFixed(2);
             }
 
+            // Function to fetch total_cost from the server
+            function fetchTotalCost(workstationId, row) {
+                fetch(`/api/workstations/${workstationId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.total_cost !== undefined) {
+                            row.querySelector('.total_cost').value = data.total_cost;
+                            calculateTotal(row); // إعادة حساب الإجمالي بعد تعبئة total_cost
+                        } else {
+                            console.error("total_cost غير موجود في الاستجابة:", data);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching total cost:', error));
+            }
+
             // Attach events to a row
             function attachRowEvents(row) {
-                const priceInput = row.querySelector('.unit-price');
-                priceInput.addEventListener('input', function () {
+                const totalCostInput = row.querySelector('.total_cost');
+                const operatingTimeInput = row.querySelector('.operating_time');
+                const workstationSelect = row.querySelector('select[name="workstation_id[]"]');
+
+                totalCostInput.addEventListener('input', function () {
                     calculateTotal(row);
+                });
+
+                operatingTimeInput.addEventListener('input', function () {
+                    calculateTotal(row);
+                });
+
+                workstationSelect.addEventListener('change', function () {
+                    const workstationId = this.value;
+                    if (workstationId) {
+                        fetchTotalCost(workstationId, row);
+                    }
                 });
             }
 
@@ -591,37 +640,38 @@
                     <td>
                         <select name="workstation_id[]" class="form-control select2 product-select">
                             <option value="" disabled selected>-- اختر محطة العمل --</option>
-                            <option value="1">محطة 1</option>
-                            <option value="2">محطة 2</option>
+                            @foreach ($workstations as $workstation)
+                                <option value="{{ $workstation->id }}">{{ $workstation->name }}</option>
+                            @endforeach
                         </select>
                     </td>
                     <td>
-                        <select name="cost_type[]" class="form-control select2 product-select">
-                            <option value="" disabled selected>-- اختر نوع التكلفة --</option>
+                        <select name="manu_cost_type[]" class="form-control select2 product-select">
                             <option value="1">مبلغ ثابت</option>
                             <option value="2">بناءً على الكمية</option>
                             <option value="3">معادلة</option>
                         </select>
                     </td>
-                    <td><input type="number" name="price[]" class="form-control unit-price"></td>
-                    <td><textarea name="description[]" class="form-control" rows="1"></textarea></td>
+                    <td><input type="number" name="operating_time[]" class="form-control operating_time"></td>
+                    <td><input type="number" name="manu_total_cost[]" class="form-control total_cost" readonly></td>
+                    <td><textarea name="manu_description[]" class="form-control" rows="1"></textarea></td>
                     <td>
-                        <select name="product_stage_id[]" class="form-control select2 product-select">
-                            <option value="" disabled selected>-- اختر المرحلة الانتاجية --</option>
-                            <option value="1">مرحلة 1</option>
-                            <option value="2">مرحلة 2</option>
+                        <select name="manu_production_stage_id[]" class="form-control select2 product-select" required>
+                            
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="total[]" class="form-control manufacturing-total" readonly></td>
+                    <td><input type="number" name="manu_total[]" class="form-control manufacturing-total" readonly></td>
                     <td>
                         <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
                     </td>
                 `;
 
                 manufacturingTable.appendChild(newRow);
-                attachRowEvents(newRow); // Attach events to the new row
-                updateManufacturingCount();
-                updateTotalCost(); // Update the total cost
+                attachRowEvents(newRow);
+                updateTotalCost();
             });
 
             // Remove Row
@@ -631,8 +681,7 @@
                     if (manufacturingTable.rows.length > 1) {
                         row.remove();
                         updateGrandTotal();
-                        updateManufacturingCount();
-                        updateTotalCost(); // Update the total cost
+                        updateTotalCost();
                     } else {
                         Swal.fire({
                             icon: 'warning',
@@ -648,6 +697,7 @@
             manufacturingTable.querySelectorAll('tr').forEach(attachRowEvents);
         });
     </script>
+
     <!-- المواد الهالكة -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -707,23 +757,24 @@
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
                     <td>
-                        <select name="product_id[]" class="form-control select2 end-life-product-select">
+                        <select name="end_life_product_id[]" class="form-control select2 end-life-product-select">
                             <option value="" disabled selected>-- اختر البند --</option>
                             @foreach ($products as $product)
                                 <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="unit_price[]" class="form-control end-life-unit-price" readonly></td>
-                    <td><input type="number" name="quantity[]" class="form-control end-life-quantity" value="1" min="1"></td>
+                    <td><input type="number" name="end_life_unit_price[]" class="form-control end-life-unit-price"></td>
+                    <td><input type="number" name="end_life_quantity[]" class="form-control end-life-quantity" value="1" min="1"></td>
                     <td>
-                        <select name="product_stage_id[]" class="form-control select2 product-select">
-                            <option value="" disabled selected>-- اختر المرحلة الانتاجية --</option>
-                            <option value="1">مرحلة 1</option>
-                            <option value="2">مرحلة 2</option>
+                        <select name="end_life_production_stage_id[]" class="form-control select2 product-select" required>
+                            
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
                         </select>
                     </td>
-                    <td><input type="number" name="total[]" class="form-control end-life-total" readonly></td>
+                    <td><input type="number" name="end_life_total[]" class="form-control end-life-total" readonly></td>
                     <td>
                         <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
                     </td>

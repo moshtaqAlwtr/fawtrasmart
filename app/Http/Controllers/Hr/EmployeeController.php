@@ -90,7 +90,7 @@ class EmployeeController extends Controller
 
     public function store(EmployeeRequest $request)
     {
-        try{
+        
             DB::beginTransaction();
             $employee_data = $request->except('_token','allow_system_access','send_credentials');
 
@@ -131,10 +131,7 @@ class EmployeeController extends Controller
 
             DB::commit();
             return redirect()->route('employee.show',$new_employee->id)->with( ['success'=>'تم اضافه الموظف بنجاج !!']);
-        }catch(\Exception $exception){
-            DB::rollback();
-            return redirect()->route('employee.index')->with( ['error'=>$exception]);
-        }
+       
 
     }
 

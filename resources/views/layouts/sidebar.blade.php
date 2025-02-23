@@ -215,8 +215,7 @@
 
             {{-- التصنيع --}}
             @can('online_store_content_management')
-            @if(isset($settings['manufacturing']) && $settings['manufacturing'] === 'active')
-                <li class="nav-item">
+                <li class="nav-item {{ request()->is("$getLocal/Manufacturing/*") ? 'active open' : '' }}">
                     <a href="index.html">
                         <i class="feather icon-layers"></i>
                         <span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Manufacturing') }}</span>
@@ -224,40 +223,37 @@
                     <ul class="menu-content">
                         <li>
                             <a href="{{ route('BOM.index') }}">
-                                <i class="feather icon-circle"></i>
-                                <span class="menu-item"
-                                    data-i18n="Analytics">{{ trans('main_trans.Bill_of_Materials') }}</span>
+                                <i class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/BOM/*") ? 'active' : '' }}"></i> <span class="menu-item" data-i18n="Analytics">{{ trans('main_trans.Bill_of_Materials') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('manufacturing.orders.index') }}">
-                                <i class="feather icon-circle"></i>
+                                <i class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/Orders/*") ? 'active' : '' }}"></i>
                                 <span class="menu-item"
                                     data-i18n="Analytics">{{ trans('main_trans.Manufacturing_Orders') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('manufacturing.indirectcosts.index') }}">
-                                <i class="feather icon-circle"></i>
+                                <i class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/indirectcosts/*") ? 'active' : '' }}"></i>
                                 <span class="menu-item"
                                     data-i18n="Analytics">{{ trans('main_trans.Indirect_Costs') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('manufacturing.workstations.index') }}">
-                                <i class="feather icon-circle"></i>
+                                <i class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/Workstations/*") ? 'active' : '' }}"></i>
                                 <span class="menu-item" data-i18n="Analytics">{{ trans('main_trans.Workstations') }}</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ route('Manufacturing.settings.index') }}">
-                                <i class="feather icon-circle"></i>
+                                <i class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/Settings/*") ? 'active' : '' }}"></i>
                                 <span class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span>
                             </a>
                         </li>
                     </ul>
                 </li>
-                @endif
             @endcan
 
             <!-- إدارة الحجوزات -->
@@ -441,7 +437,7 @@
                         </li>
                     </ul>
                 </li>
-                @endif   
+                @endif
             @endif
 
             <!-- دورات العمل -->
@@ -629,7 +625,7 @@
                             </li>
                         @endcan
 <<<<<<< HEAD
-        
+
                         <li>
                             <a href="{{ route('Memberships.subscriptions') }}">
                                 <i class="feather icon-circle"></i>
@@ -648,7 +644,7 @@
                                     data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
 >>>>>>> d4699b3f12e5b5a2494448bdd0d0ac31ada94c6b
                         </li>
-        
+
                         {{-- <li>
                             <a href="{{ route('Memberships.subscriptions.index') }}">
                                 <i class="feather icon-circle"></i>
@@ -657,7 +653,7 @@
                                 </span>
                             </a>
                         </li> --}}
-        
+
                         @can('membership_setting_management')
                             <li>
                                 <a href="{{ route('SittingMemberships.index') }}">
@@ -672,7 +668,7 @@
                 </li>
             @endif
         @endif
-        
+
             {{-- حضور العملاء --}}
             @can('customer_attendance_display')
             @if(isset($settings['customer_attendance']) && $settings['customer_attendance'] === 'active')
@@ -1125,7 +1121,7 @@
                         </li>
                     </ul>
                 </li>
-                
+
             @endcan
             @endif
             {{-- الحضور --}}
@@ -1353,7 +1349,7 @@
             </li>
 
             {{-- الفروع --}}
-            
+
             @if(isset($settings['branches']) && $settings['branches'] === 'active')
             <li class=" nav-item"><a href="index.html">
                     <i class="feather  icon-briefcase">
@@ -1442,7 +1438,7 @@
                         <li><a href="{{ route('PaymentMethods.index') }}"><i class="feather icon-circle"></i><span
                                     class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Payment_Methods') }}</span></a></li>
-                                  
+
                         <li><a href="{{ route('Sms.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.SMS_Settings') }}</span></a></li>
 
@@ -1455,7 +1451,7 @@
                         <li><a href="{{ route('Application.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Applications_Management') }}</span></a>
                         </li>
-                        
+
                         <li><a href="{{ route('AccountInfo.backgroundColor') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.System_Logo_and_Colors') }}</span></a>
                         </li>
