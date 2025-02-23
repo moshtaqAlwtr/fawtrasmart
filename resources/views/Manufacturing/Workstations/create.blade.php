@@ -1,265 +1,316 @@
 @extends('master')
 
 @section('title')
-أضافة محطة عمل
+محطة العمل
 @stop
 
+@section('css')
+    <style>
+        .section-header {
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+@endsection
+
 @section('content')
-
-<div class="content-header row">
-    <div class="content-header-left col-md-9 col-12 mb-2">
-        <div class="row breadcrumbs-top">
-            <div class="col-12">
-                <h2 class="content-header-title float-left mb-0">أضافة محطة عمل</h2>
-                <div class="breadcrumb-wrapper col-12">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
-                        <li class="breadcrumb-item active">عرض</li>
-                    </ol>
+    <div class="content-header row">
+        <div class="content-header-left col-md-9 col-12 mb-2">
+            <div class="row breadcrumbs-top">
+                <div class="col-12">
+                    <h2 class="content-header-title float-left mb-0">محطة العمل</h2>
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="">الرئيسيه</a>
+                            </li>
+                            <li class="breadcrumb-item active">اضافة
+                            </li>
+                        </ol>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
-            </div>
-            <div>
-                <a href="" class="btn btn-outline-danger">
-                    <i class="fa fa-ban"></i> الغاء
-                </a>
-                <button type="submit" class="btn btn-outline-primary">
-                    <i class="fa fa-save"></i> حفظ
-                </button>
-            </div>
+    <div class="content-body">
+        <div class="container-fluid">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <form class="form-horizontal" action="{{ route('manufacturing.workstations.store') }}" method="POST">
+                @csrf
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <div>
+                                <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                            </div>
+
+                            <div>
+                                <a href="{{ route('manufacturing.workstations.index') }}" class="btn btn-outline-danger">
+                                    <i class="fa fa-ban"></i>الغاء
+                                </a>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fa fa-save"></i>حفظ
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <h4 class="card-title">معلومات محطة العمل</h4>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+
+                                <div class="form-group col-md-6">
+                                    <label for="">الاسم <span style="color: red">*</span></label>
+                                    <input type="text" class="form-control" name="name" value="{{ old('name') }}">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="">كود <span style="color: red">*</span></label>
+                                    <input type="text" class="form-control" name="code" value="{{ $serial_number }}">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="">الوحدة</label>
+                                    <input type="text" class="form-control" name="unit" value="{{ old('unit') }}">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="">الوصف</label>
+                                    <textarea name="description" class="form-control" rows="2">{{ old('description') }}</textarea>
+                                </div>
+
+                                <br>
+
+                                <div class="form-group col-md-12">
+                                    <p onclick="toggleSection('rawMaterials')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="fa fa-money"></i> المصروفات (<span id="rawMaterialCount">1</span>)</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="rawMaterials">
+                                        <table class="table table-striped" id="itemsTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>التكلفة</th>
+                                                    <th>الحساب</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="number" name="cost_expenses[]" class="form-control unit-price" oninput="calculateTotalCost()"></td>
+                                                    <td>
+                                                        <select name="account_expenses[]" class="form-control select2 product-select">
+                                                            <option value="" disabled selected>-- اختر الحساب --</option>
+                                                            @foreach ($accounts as $account)
+                                                                <option value="{{ $account->id }}" {{ old('account_expenses') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                    <td style="width: 10px">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-trash"></i></button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <hr>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="addRow"><i class="fa fa-plus"></i> إضافة</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-12">
+                                    <p onclick="toggleSection('expenses')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="fa fa-money"></i> الاجور</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="expenses" style="display: none">
+                                        <table class="table table-striped" id="ExpensesTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>التكلفة</th>
+                                                    <th>الحساب</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="number" name="cost_wages" class="form-control unit-price" oninput="calculateTotalCost()"></td>
+                                                    <td>
+                                                        <select name="account_wages" class="form-control select2 product-select">
+                                                            <option value="" disabled selected>-- اختر الحساب --</option>
+                                                            @foreach ($accounts as $account)
+                                                                <option value="{{ $account->id }}" {{ old('account_expenses') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-12">
+                                    <p onclick="toggleSection('manufacturing')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="feather icon-folder"></i> أصل</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="manufacturing" style="display: none">
+                                        <table class="table table-striped" id="manufacturingTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>التكلفة</th>
+                                                    <th>أصل</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="number" name="cost_origin" class="form-control unit-price" oninput="calculateTotalCost()"></td>
+                                                    <td>
+                                                        <select name="origin" class="form-control select2 product-select">
+                                                            <option value="" disabled selected>-- اختر الحساب --</option>
+                                                            @foreach ($accounts as $account)
+                                                                <option value="{{ $account->id }}" {{ old('account_expenses') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </td>
+                                                    <td style="width: 15%">
+                                                        <div class="custom-control custom-switch custom-switch-success custom-control-inline">
+                                                            <input type="checkbox" class="custom-control-input" id="customSwitch1" name="automatic_depreciation" value="1">
+                                                            <label class="custom-control-label" for="customSwitch1">
+                                                            </label>
+                                                            <span class="switch-label">إهلاك تلقائي</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-6"></div>
+
+                                <div class="form-group col-md-6">
+                                    <div class="d-flex justify-content-between p-1" style="background: #CCF5FA;">
+                                        <strong>إجمالي التكلفة : </strong>
+                                        <strong class="total-cost">0.00 ر.س</strong>
+                                        <input type="hidden" name="total_cost">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
-</div>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+@endsection
 
-<div class="card mt-4">
-    <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="name" class="form-label">الاسم</label>
-                    <input type="text" class="form-control" id="name" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="code" class="form-label">الكود</label>
-                    <input type="text" class="form-control" id="code" value="000001" required>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="unit" class="form-label">الوحدة</label>
-                    <input type="text" class="form-control" id="unit" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="description" class="form-label">الوصف</label>
-                    <input type="text" class="form-control" id="description" required>
-                </div>
-            </div>
+@section('scripts')
+    <script>
+        // Function to calculate total cost
+        function calculateTotalCost() {
+            let totalCost = 0;
 
-<div class="card mt-4">
-    <div class="card-body">
-        <h4 class="mb-4">المصروفات</h4>
-        <table class="table table-bordered" id="dailyCostTable">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 50%;">التكلفة</th>
-                    <th style="width: 40%;">الحساب</th>
-                    <th style="width: 10%;">حذف</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="number" class="form-control" value="0"></td>
-                    <td><input type="number" class="form-control" value="0"></td>
-                    <td class="text-center">
-                        <button class="btn btn-danger btn-sm delete-row">🗑️</button>
-                    </td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="1" class="text-center">الإجمالي</td>
-                    <td class="text-center" id="totalDailyCost">0</td>
-                </tr>
-            </tfoot>
-        </table>
-        <div class="d-flex">
-            <button class="btn btn-secondary me-2" id="addDailyBulkRows">إضافة بالجملة</button>
-            <button class="btn btn-primary" id="addDailyCostRow">إضافة</button>
-        </div>
-    </div>
-</div>
+            // Calculate expenses
+            document.querySelectorAll('[name="cost_expenses[]"]').forEach(input => {
+                totalCost += parseFloat(input.value) || 0;
+            });
 
-<div class="card mt-4">
-    <div class="card-body">
-        <h4 class="mb-4">الأصل</h4>
-        <table class="table table-bordered" id="assetsTable">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 50%;">التكلفة</th>
-                    <th style="width: 40%;">أصل</th>
-                    <th style="width: 10%;">حذف</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="number" class="form-control" value="0"></td>
-                    <td><input type="number" class="form-control" value="0"></td>
-                    <td class="text-center">
-                        <button class="btn btn-danger btn-sm delete-row">🗑️</button>
-                    </td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="1" class="text-center">الإجمالي</td>
-                    <td class="text-center" id="totalAssetsCost">0</td>
-                </tr>
-            </tfoot>
-        </table>
-        <div class="d-flex">
-            <button class="btn btn-secondary me-2" id="addAssetsBulkRows">إضافة بالجملة</button>
-            <button class="btn btn-primary" id="addAssetsRow">إضافة</button>
-        </div>
-    </div>
-</div>
+            // Calculate wages
+            const wages = parseFloat(document.querySelector('[name="cost_wages"]').value) || 0;
+            totalCost += wages;
 
-<div class="card mt-4">
-    <div class="card-body">
-        <h4 class="mb-4">الأجور</h4>
-        <table class="table table-bordered" id="manufacturingTable">
-            <thead class="table-light">
-                <tr>
-                    <th style="width: 50%;">التكلفة</th>
-                    <th style="width: 40%;">الحساب</th>
-                    <th style="width: 10%;">حذف</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="number" class="form-control" value="0"></td>
-                    <td><input type="number" class="form-control" value="0"></td>
-                    <td class="text-center">
-                        <button class="btn btn-danger btn-sm delete-row">🗑️</button>
-                    </td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="1" class="text-center">الإجمالي</td>
-                    <td class="text-center" id="totalManufacturingCost">0</td>
-                </tr>
-            </tfoot>
-        </table>
-        <div class="d-flex">
-            <button class="btn btn-secondary me-2" id="addManufacturingBulkRows">إضافة بالجملة</button>
-            <button class="btn btn-primary" id="addManufacturingRow">إضافة</button>
-        </div>
-    </div>
-</div>
+            // Calculate origin
+            const origin = parseFloat(document.querySelector('[name="cost_origin"]').value) || 0;
+            totalCost += origin;
 
-<script>
-    // Function to add a new row to a table
-    function addRowToTable(tableBody) {
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td><input type="number" class="form-control" value="0"></td>
-            <td><input type="number" class="form-control" value="0"></td>
-            <td class="text-center">
-                <button class="btn btn-danger btn-sm delete-row">🗑️</button>
-            </td>
-        `;
-        tableBody.appendChild(newRow);
-    }
+            // Update the total cost display
+            document.querySelector('.total-cost').textContent = totalCost.toFixed(2) + ' ر.س';
 
-    // Function to update the total of a table
-    function updateTotal(table, totalId) {
-        const inputs = table.querySelectorAll('tbody input[type="number"]');
-        let total = 0;
-        inputs.forEach(input => {
-            total += parseFloat(input.value) || 0;
+            document.querySelector('input[name="total_cost"]').value = totalCost.toFixed(2);
+        }
+
+        // Function to toggle section visibility
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section.style.display === "none") {
+                section.style.display = "block";
+            } else {
+                section.style.display = "none";
+            }
+        }
+
+        // Function to update raw material count
+        function updateRawMaterialCount() {
+            const rowCount = document.querySelectorAll('#itemsTable tbody tr').length;
+            document.getElementById('rawMaterialCount').textContent = rowCount;
+        }
+
+        // Add row to expenses table
+        document.getElementById('addRow').addEventListener('click', function () {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="number" name="cost_expenses[]" class="form-control unit-price" oninput="calculateTotalCost()"></td>
+                <td>
+                    <select name="account_expenses[]" class="form-control select2 product-select">
+                        <option value="" disabled selected>-- اختر الحساب --</option>
+                        @foreach ($accounts as $account)
+                            <option value="{{ $account->id }}" {{ old('account_expenses') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                        @endforeach
+                    </select>
+                </td>
+                <td style="width: 10px">
+                    <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-trash"></i></button>
+                </td>
+            `;
+            document.querySelector('#itemsTable tbody').appendChild(newRow);
+            updateRawMaterialCount();
         });
-        document.getElementById(totalId).textContent = total.toFixed(2);
-    }
 
-    // Initialize assets table
-    const assetsTable = document.getElementById('assetsTable');
-    const addAssetsRow = document.getElementById('addAssetsRow');
-    const addAssetsBulkRows = document.getElementById('addAssetsBulkRows');
-
-    addAssetsRow.addEventListener('click', () => {
-        const tableBody = assetsTable.querySelector('tbody');
-        addRowToTable(tableBody);
-        updateTotal(assetsTable, 'totalAssetsCost');
-    });
-
-    addAssetsBulkRows.addEventListener('click', () => {
-        const tableBody = assetsTable.querySelector('tbody');
-        const bulkCount = prompt("كم عدد الصفوف التي ترغب في إضافتها؟", "3");
-        if (bulkCount && !isNaN(bulkCount)) {
-            for (let i = 0; i < Number(bulkCount); i++) {
-                addRowToTable(tableBody);
+        // Remove row from expenses table
+        document.querySelector('#itemsTable').addEventListener('click', function (e) {
+            if (e.target.classList.contains('removeRow')) {
+                const row = e.target.closest('tr');
+                if (document.querySelectorAll('#itemsTable tbody tr').length > 1) {
+                    row.remove();
+                    updateRawMaterialCount();
+                    calculateTotalCost();
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        text: 'لا يمكنك حذف جميع الصفوف!',
+                        confirmButtonText: 'حسناً',
+                        confirmButtonColor: '#d33'
+                    });
+                }
             }
-        }
-        updateTotal(assetsTable, 'totalAssetsCost');
-    });
-
-    assetsTable.addEventListener('input', (event) => {
-        if (event.target.type === 'number') {
-            updateTotal(assetsTable, 'totalAssetsCost');
-        }
-    });
-
-    assetsTable.addEventListener('click', (event) => {
-        if (event.target.classList.contains('delete-row')) {
-            event.target.closest('tr').remove();
-            updateTotal(assetsTable, 'totalAssetsCost');
-        }
-    });
-
-    // Initialize manufacturing table
-    const manufacturingTable = document.getElementById('manufacturingTable');
-    const addManufacturingRow = document.getElementById('addManufacturingRow');
-    const addManufacturingBulkRows = document.getElementById('addManufacturingBulkRows');
-
-    addManufacturingRow.addEventListener('click', () => {
-        const tableBody = manufacturingTable.querySelector('tbody');
-        addRowToTable(tableBody);
-        updateTotal(manufacturingTable, 'totalManufacturingCost');
-    });
-
-    addManufacturingBulkRows.addEventListener('click', () => {
-        const tableBody = manufacturingTable.querySelector('tbody');
-        const bulkCount = prompt("كم عدد الصفوف التي ترغب في إضافتها؟", "3");
-        if (bulkCount && !isNaN(bulkCount)) {
-            for (let i = 0; i < Number(bulkCount); i++) {
-                addRowToTable(tableBody);
-            }
-        }
-        updateTotal(manufacturingTable, 'totalManufacturingCost');
-    });
-
-    manufacturingTable.addEventListener('input', (event) => {
-        if (event.target.type === 'number') {
-            updateTotal(manufacturingTable, 'totalManufacturingCost');
-        }
-    });
-
-    manufacturingTable.addEventListener('click', (event) => {
-        if (event.target.classList.contains('delete-row')) {
-            event.target.closest('tr').remove();
-            updateTotal(manufacturingTable, 'totalManufacturingCost');
-        }
-    });
-</script>
-
+        });
+    </script>
 @endsection

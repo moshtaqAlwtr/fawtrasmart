@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\Commission;
 use App\Models\Commission_Products;
 use App\Models\CommissionUsers;
+use App\Models\DefaultWarehouses;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -259,7 +260,7 @@ class InvoicesController extends Controller
 
                     // التحقق من وجود store_house_id في جدول store_houses
                     $store_house_id = $item['store_house_id'] ?? null;
-
+                   
                     // البحث عن المستودع
                     $storeHouse = null;
                     if ($store_house_id) {
@@ -275,7 +276,37 @@ class InvoicesController extends Controller
                         }
                         $store_house_id = $storeHouse->id;
                     }
+                    // الحصول على المستخدم الحالي
+           $user = Auth::user(); 
 
+         // التحقق مما إذا كان للمستخدم employee_id
+         // الحصول على المستخدم الحالي
+        $user = Auth::user();
+
+// التحقق مما إذا كان للمستخدم employee_id والبحث عن المستودع الافتراضي
+          if ($user && $user->employee_id) {
+    $defaultWarehouse = DefaultWarehouses::where('employee_id', $user->employee_id)->first();
+    
+    // التحقق مما إذا كان هناك مستودع افتراضي واستخدام storehouse_id إذا وجد
+             if ($defaultWarehouse && $defaultWarehouse->storehouse_id) {
+              $storeHouse = StoreHouse::find($defaultWarehouse->storehouse_id);
+             } else {
+              $storeHouse = StoreHouse::where('major', 1)->first();
+            }
+         } else {
+    // إذا لم يكن لديه employee_id، يتم تعيين storehouse الافتراضي
+      $storeHouse = StoreHouse::where('major', 1)->first();
+           }
+
+// التأكد من أن storeHouse ليس فارغًا قبل محاولة الوصول إلى ID
+    $store_house_id = $storeHouse ? $storeHouse->id : null;
+
+
+
+         // إرجاع store_id
+        // return $storeId;
+
+                   
                     // حساب تفاصيل الكمية والأسعار
                     $quantity = floatval($item['quantity']);
                     $unit_price = floatval($item['unit_price']);
@@ -435,7 +466,7 @@ class InvoicesController extends Controller
 
                 // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
                 $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
-
+               
                 if (!$productDetails) {
                     $productDetails = ProductDetails::create([
                         'store_house_id' => $item['store_house_id'],
@@ -444,7 +475,7 @@ class InvoicesController extends Controller
                     ]);
                 }
                  $proudect = Product::where('id', $item['product_id'])->first();
-                
+                        
                  if ($proudect->type !== "services") {
                     if ((int) $item['quantity'] > (int) $productDetails->quantity) {
                         throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
@@ -770,6 +801,7 @@ class InvoicesController extends Controller
                 ->withInput()
                 ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
         }
+        //edit
     }
     private function getSalesAccount()
     {
