@@ -20,7 +20,8 @@ class TestMail extends Mailable
 
     public function build()
     {
-        return $this->subject('اختبار إرسال البريد')
-                    ->view('emails.test');
+        return $this->subject('تفاصيل تسجيل الدخول')
+        ->view('emails.login_credentials')
+        ->with('details', $this->details);
     }
 }

@@ -25,6 +25,9 @@
 <!-- تضمين مكتبة Bootstrap Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
+@include('layouts.alerts.error')
+@include('layouts.alerts.success')
+
 <div class="container my-5">
     <div class="row g-4">
         <!-- البوكس الأول -->
@@ -32,7 +35,7 @@
             <a href="{{ route('Manufacturing.settings.General') }}" class="text-decoration-none">
             <div class="card text-center p-4 shadow-sm">
                 <div class="card-body">
-                    <i class="bi bi-gear text-primary" style="font-size: 2rem;"></i>
+                    <i class="bi bi-gear text-primary" style="font-size: 5rem;"></i>
                     <h5 class="card-title mt-3">الأعدادات العامة</h5>
                 </div>
             </div>
@@ -41,10 +44,10 @@
 
         <!-- البوكس الثاني -->
         <div class="col-md-4">
-            <a href="{{ route('Manufacturing.settings.Paths.index') }}" class="text-decoration-none">
+            <a href="{{ route('manufacturing.paths.index') }}" class="text-decoration-none">
             <div class="card text-center p-4 shadow-sm">
                 <div class="card-body">
-                    <i class="bi bi-diagram-3 text-success" style="font-size: 2rem;"></i>
+                    <i class="bi bi-diagram-3 text-success" style="font-size: 5rem;"></i>
                     <h5 class="card-title mt-3">مسارات الإنتاج</h5>
                 </div>
             </div>
@@ -56,7 +59,7 @@
             <a href="{{ route('Manufacturing.settings.Manual') }}" class="text-decoration-none">
             <div class="card text-center p-4 shadow-sm">
                 <div class="card-body">
-                    <i class="bi bi-hammer text-warning" style="font-size: 2rem;"></i>
+                    <i class="bi bi-hammer text-warning" style="font-size: 5rem;"></i>
                     <h5 class="card-title mt-3" style="font-size: 15px">الحالات اليدوية لطلبات التصنيع</h5>
                 </div>
             </div>

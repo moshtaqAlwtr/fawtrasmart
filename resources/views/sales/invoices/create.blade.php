@@ -216,8 +216,8 @@
                                             </div>
                                             <div class="col-md-9">
                                                 <select name="employee_id" class="form-control " id="">
-                                                    @foreach ($employees as $user)
-                                                        <option value="{{ $user->id }}">{{ $user->full_name}}</option>
+                                                    @foreach ($employees as $employee)
+                                                        <option value="{{ $employee->id }}">{{ $employee->full_name}}</option>
                                                     @endforeach
                                                 </select>
                                             </div>

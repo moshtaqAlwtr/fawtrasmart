@@ -1,21 +1,29 @@
 @extends('master')
 
 @section('title')
- أضافة أمر تصنيع
+أوامر التصنيع
 @stop
 
-@section('content')
+@section('css')
+    <style>
+        .section-header {
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+@endsection
 
+@section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">أضافة أمر تصنيع</h2>
+                    <h2 class="content-header-title float-left mb-0">أوامر التصنيع</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a>
                             </li>
-                            <li class="breadcrumb-item active">عرض
+                            <li class="breadcrumb-item active">اضافة
                             </li>
                         </ol>
                     </div>
@@ -23,620 +31,804 @@
             </div>
         </div>
     </div>
-\
+
+    <div class="content-body">
+        <div class="container-fluid">
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <form class="form-horizontal" action="{{ route('manufacturing.orders.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                            <div>
+                                <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                            </div>
+
+                            <div>
+                                <a href="{{ route('manufacturing.orders.index') }}" class="btn btn-outline-danger">
+                                    <i class="fa fa-ban"></i>الغاء
+                                </a>
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fa fa-save"></i>حفظ
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <div class="card-body">
+                            <h4 class="card-title">معلومات قائمة مواد الإنتاج</h4>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+
+                                <div class="form-group col-md-4">
+                                    <label for="">الاسم <span style="color: red">*</span></label>
+                                    <input type="text" class="form-control" name="name" value="{{ old('name') }}">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="">كود <span style="color: red">*</span></label>
+                                    <input type="text" class="form-control" name="code" value="{{ $serial_number }}">
+                                </div>
+
+                                <div class="form-group col-md-2">
+                                    <label for="">التاريخ من<span style="color: red">*</span></label>
+                                    <input type="date" class="form-control" name="from_date" value="{{ old('from_date') }}">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="">التاريخ الى<span style="color: red">*</span></label>
+                                    <input type="date" class="form-control" name="to_date" value="{{ old('to_date') }}">
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="">الحساب <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="basicSelect" name="account_id">
+                                        <option value="" disabled selected>-- اختر الحساب --</option>
+                                        @foreach ($accounts as $account)
+                                            <option value="{{ $account->id }}" {{ old('account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="">الموظفين <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="basicSelect" name="employee_id">
+                                        <option value="" disabled selected>-- اختر الموظفين --</option>
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->id }}" {{ old('employee_id') == $employee->id ? 'selected' : '' }}>{{ $employee->full_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="">العميل <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="basicSelect" name="client_id">
+                                        <option value="" disabled selected>-- اختر العميل --</option>
+                                        @foreach ($clients as $client)
+                                            <option value="{{ $client->id }}" {{ old('client_id') == $client->id ? 'selected' : '' }}>{{ $client->trade_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <hr>
+                                <div class="form-group col-md-6">
+                                    <label for="">المنتجات <span class="text-danger">*</span></label>
+                                    <select class="form-control" name="product_id">
+                                        <option value="" disabled selected>-- اختر المنتج --</option>
+                                        @foreach ($products as $product)
+                                            <option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label>الكمية المطلوبة <span style="color: red">*</span></label>
+                                    <input type="number" class="form-control" name="quantity" value="{{ old('quantity') }}">
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="">قائمة مواد الانتاج <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="basicSelect" name="production_material_id">
+                                        <option value="" disabled selected>-- اختر قائمة مواد الانتاج --</option>
+                                        @foreach ($production_materials as $material)
+                                            <option value="{{ $material->id }}" {{ old('production_material_id') == $material->id ? 'selected' : '' }}>{{ $material->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="form-group col-md-6">
+                                    <label for="">مسار الانتاج <span class="text-danger">*</span></label>
+                                    <select class="form-control" id="basicSelect" name="production_path_id">
+                                        <option value="" disabled selected>-- اختر المسار الانتاج --</option>
+                                        @foreach ($paths as $path)
+                                            <option value="{{ $path->id }}" {{ old('production_path_id') == $path->id ? 'selected' : '' }}>{{ $path->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <div class="card">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                                <div class="form-group col-md-12 mt-4">
+                                    <p onclick="toggleSection('rawMaterials')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="feather icon-package"></i> المواد الخام (<span id="rawMaterialCount">0</span>)</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="rawMaterials">
+                                        <table class="table table-striped" id="itemsTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>المنتجات</th>
+                                                    <th>سعر الوحدة</th>
+                                                    <th>الكمية</th>
+                                                    <th>المرحلة الإنتاجية</th>
+                                                    <th>الإجمالي</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                        </table>
+                                        <hr>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="addRow"><i class="fa fa-plus"></i> إضافة</button>
+                                            <strong style="margin-left: 13rem;"><small class="text-muted">الإجمالي الكلي : </small><span class="grand-total">0.00</span></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-12">
+                                    <p onclick="toggleSection('expenses')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="fa fa-money"></i> المصروفات (<span id="rowExpensesCount">0</span>)</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="expenses" style="display: none">
+                                        <table class="table table-striped" id="ExpensesTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>الحساب</th>
+                                                    <th>نوع التكلفة</th>
+                                                    <th>المبلغ</th>
+                                                    <th>الوصف</th>
+                                                    <th>المرحلة الإنتاجية</th>
+                                                    <th>الإجمالي</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                        </table>
+                                        <hr>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="ExpensesAddRow"><i class="fa fa-plus"></i> إضافة</button>
+                                            <strong style="margin-left: 13rem;"><small class="text-muted">الإجمالي الكلي : </small><span class="expenses-grand-total">0.00</span></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-12">
+                                    <p onclick="toggleSection('manufacturing')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="feather icon-settings"></i> عمليات التصنيع (<span id="manufacturingCount">0</span>)</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="manufacturing" style="display: none">
+                                        <table class="table table-striped" id="manufacturingTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>محطة العمل</th>
+                                                    <th>نوع التكلفة</th>
+                                                    <th>وقت التشغيل</th>
+                                                    <th>التكلفة</th>
+                                                    <th>الوصف</th>
+                                                    <th>المرحلة الإنتاجية</th>
+                                                    <th>الإجمالي</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                        </table>
+                                        <hr>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="manufacturingAddRow"><i class="fa fa-plus"></i> إضافة</button>
+                                            <strong style="margin-left: 13rem;"><small class="text-muted">الإجمالي الكلي : </small><span class="manufacturing-grand-total">0.00</span></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-12">
+                                    <p onclick="toggleSection('endLife')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
+                                        <span class="p-1 font-weight-bold"><i class="feather icon-trash-2"></i> المواد الهالكة (<span id="EndLifeCount">0</span>)</span>
+                                        <i class="feather icon-plus-circle p-1"></i>
+                                    </p>
+                                    <div id="endLife" style="display: none">
+                                        <table class="table table-striped" id="EndLifeTable">
+                                            <thead style="background: #f8f8f8">
+                                                <tr>
+                                                    <th>المنتجات</th>
+                                                    <th>السعر</th>
+                                                    <th>الكمية</th>
+                                                    <th>المرحلة الإنتاجية</th>
+                                                    <th>الإجمالي</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+                                            </tbody>
+                                        </table>
+                                        <hr>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <button type="button" class="btn btn-outline-success btn-sm" id="EndLifeAddRow"><i class="fa fa-plus"></i> إضافة</button>
+                                            <strong style="margin-left: 13rem;"><small class="text-muted">الإجمالي الكلي : </small><span class="end-life-grand-total">0.00</span></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br><hr>
+
+                                <div class="form-group col-md-6"></div>
+
+                                <div class="form-group col-md-6">
+                                    <div class="d-flex justify-content-between p-1" style="background: #CCF5FA;">
+                                        <strong>إجمالي التكلفة : </strong>
+                                        <strong class="total-cost">0.00 ر.س</strong>
+                                        <input type="hidden" name="last_total_cost" id="last_total_cost">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-    
-                <div>
-                    <a href="" class="btn btn-outline-danger">
-                        <i class="fa fa-ban"></i>الغاء
-                    </a>
-                    <button type="submit" class="btn btn-outline-primary">
-                        <i class="fa fa-save"></i>حفظ
-                    </button>
-                </div>
-    
-            </div>
+            </form>
         </div>
     </div>
-        <div class="card mt-4">
-           <div class="card-body">
-            <form>
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <label for="name" class="form-label">الاسم</label>
-                        <input type="text" class="form-control" id="name" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="code" class="form-label">الكود</label>
-                        <input type="text" class="form-control" id="code" value="000001" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="date" class="form-label">التاريخ من</label>
-                        <input type="date" class="form-control" id="date" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="date" class="form-label">التاريخ ألى</label>
-                        <input type="date" class="form-control" id="date" required>
-                    </div>
-               
-                </div>
-                
-               
-            <div class="row mb-3">
-             
-                <div class="col-md-6">
-                    <label for="account" class="form-label">الحساب <span class="text-danger">*</span></label>
-                    <select class="form-control" id="account" required>
-                        <option value="">اختر الحساب</option>
-                        <option value="1">حساب 1</option>
-                        <option value="2">حساب 2</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="account" class="form-label">الموظفين <span class="text-danger">*</span></label>
-                    <select class="form-control" id="account" required>
-                        <option value="">اختر موظف</option>
-                        <option value="1">موظف 1</option>
-                        <option value="2">موظف 2</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="account" class="form-label">العميل <span class="text-danger">*</span></label>
-                    <select class="form-control" id="account" required>
-                        <option value="">اختر العميل</option>
-                        <option value="1">عميل 1</option>
-                        <option value="2">عميل 2</option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="products" class="form-label">المنتجات <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="products" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="products" class="form-label">الكمية <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="products" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="products" class="form-label">قائمة المواد<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="products" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="products" class="form-label">مسار الأنتاج <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="products" required>
-                </div>
-            </div>
-   
-           
-            <div class="card mt-4">
-                <div class="card-body">
-                <h4>المواد الخام</h4>
-                <table class="table table-bordered table-striped text-center align-middle">
-                    <thead class="table-light">
-                                <tr>
-                                    <th>المنتجات</th>
-                                    <th>الكمية</th>
-                                    <th>السعر</th>
-                                    <th>المرحلة الإنتاجية</th>
-                                    <th>المجموع</th>
-                                    <th>إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="raw-materials-body">
-                                <tr>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">اختر المنتج</option>
-                                            <option value="1">منتج 1</option>
-                                            <option value="2">منتج 2</option>
-                                        </select>
-                                    </td>
-                                    <td><input type="number" class="form-control form-control-sm quantity" step="0.01" value="0"></td>
-                                    <td><input type="number" class="form-control form-control-sm price" step="0.01" value="0"></td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">اختر المرحلة</option>
-                                            <option value="1">مرحلة 1</option>
-                                            <option value="2">مرحلة 2</option>
-                                        </select>
-                                    </td>
-                                    <td class="row-total">0.00</td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger btn-sm remove-row">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="4" class="text-end fw-bold">الإجمالي</td>
-                                    <td id="total-amount">0.00</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        <button type="button" class="btn btn-primary btn-sm m-3" id="add-raw-material-row">
-                            <i class="bi bi-plus"></i> إضافة
-                        </button>
-                    </div>
-                </div>
-            </div>
-                         
-                <!-- المواد الخام -->
+@endsection
 
-                    <div class="card mt-4">
-                        <div class="card-body">
-                        <h4>المصروفات</h4>
-                        <table class="table table-bordered table-striped text-center align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>الحساب</th>
-                                    <th>نوع التكلفة</th>
-                                    <th>المبلغ</th>
-                                    <th>الوصف</th>
-                                    <th>المرحلة الإنتاجية</th>
-                                    <th>المجموع</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="expensesTable">
-                                <tr>
-                                    <td><input type="text" class="form-control form-control-sm" placeholder="الحساب"></td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="fixed">مبلغ ثابت</option>
-                                            <option value="variable">مبلغ متغير</option>
-                                        </select>
-                                    </td>
-                                    <td class="row-total">0.00</td>
-                                   
-                                    <td><input type="text" class="form-control form-control-sm" placeholder="الوصف"></td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="1">المرحلة 1</option>
-                                            <option value="2">المرحلة 2</option>
-                                        </select>
-                                    </td>
-                                    <td class="row-total">0.00</td>
-                                    
-                                 
-                                 
-                                    <td>
-                                        <button class="btn btn-outline-danger btn-sm remove-row">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                
-                                <tr>
-                                    
-                                    <td colspan="0" class="text-start">
-                                        <button id="addRowBtn" class="btn btn-success btn-sm">إضافة +</button>
-                                       
-                                    </td>
-                                    <td colspan="25" class="text-end">
-                                        <strong>الإجمالي:</strong> <span id="totalAmount">0.00</span>
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            <div class="card mt-4">
-                <div class="card-body">
-                <h4>عمليات التصنيع</h4>
-                <table class="table table-bordered table-striped text-center align-middle">
-                    <thead class="table-light">
-                                <tr>
-                                    <th>محطة العمل</th>
-                                    <th>نوع التكلفة</th>
-                                    <th>وقت التشغيل</th>
-                                    <th>الوصف</th>
-                                    <th>المرحلة الإنتاجية</th>
-                                    <th>المجموع</th>
-                                    <th>إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="manufacturing-body">
-                                <tr>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">اختر المحطة</option>
-                                            <option value="1">محطة 1</option>
-                                            <option value="2">محطة 2</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">اختر النوع</option>
-                                            <option value="fixed">مبلغ ثابت</option>
-                                            <option value="variable">مبلغ متغير</option>
-                                        </select>
-                                    </td>
-                                    <td><input type="number" class="form-control form-control-sm runtime" step="0.01" value="0"></td>
-                                    <td><input type="text" class="form-control form-control-sm" placeholder="الوصف"></td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">اختر المرحلة</option>
-                                            <option value="1">مرحلة 1</option>
-                                            <option value="2">مرحلة 2</option>
-                                        </select>
-                                    </td>
-                                    <td class="row-total">0.00</td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger btn-sm remove-row">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="5" class="text-end fw-bold">الإجمالي</td>
-                                    <td id="total-amount">0.00</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                        <button type="button" class="btn btn-primary btn-sm m-3" id="add-manufacturing-row">
-                            <i class="bi bi-plus"></i> إضافة
-                        </button>
-                    </div>
-                </div>
-                <div class="card mt-4">
-                    <!-- المواد الهالكة -->
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">المواد الهالكة <span class="badge bg-secondary" id="row-count">(1)</span></h5>
-                            <button class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </div>
-                        <div class="card-body p-0">
-                            <table class="table table-bordered text-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>المنتجات</th>
-                                        <th>الكمية</th>
-                                        <th>السعر</th>
-                                        <th>المرحلة الإنتاجية</th>
-                                        <th>المجموع</th>
-                                        <th>إجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="waste-materials-body">
-                                    <tr>
-                                        <td>
-                                            <select class="form-select form-select-sm">
-                                                <option value="">اختر المنتج</option>
-                                                <option value="1">منتج 1</option>
-                                                <option value="2">منتج 2</option>
-                                            </select>
-                                        </td>
-                                        <td><input type="number" class="form-control form-control-sm quantity" step="0.01" value="0"></td>
-                                        <td><input type="number" class="form-control form-control-sm price" step="0.01" value="0"></td>
-                                        <td>
-                                            <select class="form-select form-select-sm">
-                                                <option value="">اختر المرحلة</option>
-                                                <option value="1">مرحلة 1</option>
-                                                <option value="2">مرحلة 2</option>
-                                            </select>
-                                        </td>
-                                        <td class="row-total">0.00</td>
-                                        <td>
-                                            <button type="button" class="btn btn-danger btn-sm remove-row">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="4" class="text-end fw-bold">الإجمالي</td>
-                                        <td id="total-amount">0.00</td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                            <button type="button" class="btn btn-primary btn-sm m-3" id="add-waste-material-row">
-                                <i class="bi bi-plus"></i> إضافة
-                            </button>
-                        </div>
-                    </div>
-                    <!-- التكلفة الإجمالية -->
-                    <div class="mt-3 text-center">
-                        <h5 class="bg-dark text-white py-2">إجمالي التكلفة: <span id="final-total">0.00</span> ريال</h5>
-                    </div>
-                </div>
-            <script>
-                // Function to add a new row
-                function addRow() {
-                    const tableBody = document.getElementById('raw-materials-body');
-                    const newRow = `
-                        <tr>
-                            <td>
-                                <select class="form-select form-select-sm">
-                                    <option value="">اختر المنتج</option>
-                                    <option value="1">منتج 1</option>
-                                    <option value="2">منتج 2</option>
-                                </select>
-                            </td>
-                            <td><input type="number" class="form-control form-control-sm" step="0.01"></td>
-                            <td><input type="number" class="form-control form-control-sm" step="0.01"></td>
-                            <td>
-                                <select class="form-select form-select-sm">
-                                    <option value="">اختر المرحلة</option>
-                                    <option value="1">مرحلة 1</option>
-                                    <option value="2">مرحلة 2</option>
-                                </select>
-                            </td>
-                            <td>0.00</td>
-                            <td>
-                                <button type="button" class="btn btn-danger btn-sm remove-row">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.insertAdjacentHTML('beforeend', newRow);
-                }
-        
-                // Add row event listener
-                document.getElementById('add-raw-material-row').addEventListener('click', addRow);
-        
-                // Remove row functionality
-                document.body.addEventListener('click', function (e) {
-                    if (e.target.closest('.remove-row')) {
-                        e.target.closest('tr').remove();
-                    }
+@section('scripts')
+
+    <script>
+        function updateLastTotalCost() {
+            const totalCost = parseFloat(document.querySelector('.total-cost').textContent) || 0;
+            document.getElementById('last_total_cost').value = totalCost.toFixed(2);
+        }
+    </script>
+
+    <script>
+        // Function to update the raw material count
+        function updateRawMaterialCount() {
+            const rowCount = document.querySelectorAll('#itemsTable tbody tr').length;
+            document.getElementById('rawMaterialCount').textContent = rowCount;
+        }
+        // Function to update the raw material count
+        function updateRawExpensesCount() {
+            const rowCount = document.querySelectorAll('#ExpensesTable tbody tr').length;
+            document.getElementById('rowExpensesCount').textContent = rowCount;
+        }
+        // Function to update the manufacturing count
+        function updateManufacturingCount() {
+            const rowCount = document.querySelectorAll('#manufacturingTable tbody tr').length;
+            document.getElementById('manufacturingCount').textContent = rowCount;
+        }
+        // Function to update the end life count
+        function updateEndLifeCount() {
+            const rowCount = document.querySelectorAll('#EndLifeTable tbody tr').length;
+            document.getElementById('EndLifeCount').textContent = rowCount;
+        }
+    </script>
+
+    <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section.style.display === "none") {
+                section.style.display = "block";
+            } else {
+                section.style.display = "none";
+            }
+        }
+    </script>
+
+    <script>
+        // Function to calculate the grand total for all sections
+        function updateTotalCost() {
+            let totalCost = 0;
+
+            // Add raw materials total
+            const rawMaterialsTotal = parseFloat(document.querySelector('.grand-total').textContent) || 0;
+            totalCost += rawMaterialsTotal;
+
+            // Add expenses total
+            const expensesTotal = parseFloat(document.querySelector('.expenses-grand-total').textContent) || 0;
+            totalCost += expensesTotal;
+
+            // Add manufacturing total
+            const manufacturingTotal = parseFloat(document.querySelector('.manufacturing-grand-total').textContent) || 0;
+            totalCost += manufacturingTotal;
+
+            // Add end life total
+            const endLifeTotal = parseFloat(document.querySelector('.end-life-grand-total').textContent) || 0;
+            totalCost += endLifeTotal;
+
+            // Update the total cost display
+            document.querySelector('.total-cost').textContent = totalCost.toFixed(2) + ' ر.س';
+
+            // Update the hidden input field
+            updateLastTotalCost();
+        }
+    </script>
+
+    <!-- المواد الخام -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const itemsTable = document.getElementById('itemsTable').querySelector('tbody');
+            const addRowButton = document.getElementById('addRow');
+
+            // Function to calculate total for a row
+            function calculateTotal(row) {
+                const unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+                const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                const total = unitPrice * quantity;
+                row.querySelector('.total').value = total.toFixed(2);
+                updateGrandTotal();
+                updateTotalCost();
+            }
+
+            // Function to update grand total
+            function updateGrandTotal() {
+                let grandTotal = 0;
+                document.querySelectorAll('.total').forEach(totalInput => {
+                    grandTotal += parseFloat(totalInput.value) || 0;
                 });
-            </script>
-        
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const expensesTable = document.getElementById("expensesTable");
-                const totalAmountEl = document.getElementById("totalAmount");
-        
-                // إضافة صف جديد
-                document.getElementById("addRowBtn").addEventListener("click", () => {
-                    const newRow = `
-              <tr>
-                                    <td><input type="text" class="form-control form-control-sm" placeholder="الحساب"></td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="fixed">مبلغ ثابت</option>
-                                            <option value="variable">مبلغ متغير</option>
-                                        </select>
-                                    </td>
-                                    <td class="row-total">0.00</td>
-                                   
-                                    <td><input type="text" class="form-control form-control-sm" placeholder="الوصف"></td>
-                                    <td>
-                                        <select class="form-select form-select-sm">
-                                            <option value="1">المرحلة 1</option>
-                                            <option value="2">المرحلة 2</option>
-                                        </select>
-                                    </td>
-                                    <td class="row-total">0.00</td>
-                                    
-                                 
-                                 
-                                    <td>
-                                        <button class="btn btn-outline-danger btn-sm remove-row">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-            `;
-                    expensesTable.insertAdjacentHTML("beforeend", newRow);
-                    updateTotal();
-                });
-        
-                // إزالة صف
-                expensesTable.addEventListener("click", (e) => {
-                    if (e.target.closest(".remove-row")) {
-                        e.target.closest("tr").remove();
-                        updateTotal();
-                    }
-                });
-        
-                // تحديث المجموع لكل صف
-                expensesTable.addEventListener("input", (e) => {
-                    if (e.target.classList.contains("amount-input")) {
-                        const row = e.target.closest("tr");
-                        const amount = parseFloat(e.target.value) || 0;
-                        row.querySelector(".row-total").textContent = amount.toFixed(2);
-                        updateTotal();
-                    }
-                });
-        
-                // حساب الإجمالي
-                function updateTotal() {
-                    let total = 0;
-                    document.querySelectorAll(".row-total").forEach((cell) => {
-                        total += parseFloat(cell.textContent) || 0;
+                document.querySelector('.grand-total').textContent = grandTotal.toFixed(2);
+            }
+
+            // Function to attach event listeners to a row
+            function attachRowEvents(row) {
+                const productSelect = row.querySelector('.product-select');
+                const quantityInput = row.querySelector('.quantity');
+
+                if (productSelect) {
+                    productSelect.addEventListener('change', function () {
+                        const selectedOption = productSelect.options[productSelect.selectedIndex];
+                        const unitPrice = selectedOption.getAttribute('data-price');
+                        row.querySelector('.unit-price').value = unitPrice;
+                        calculateTotal(row);
                     });
-                    totalAmountEl.textContent = total.toFixed(2);
+                }
+
+                if (quantityInput) {
+                    quantityInput.addEventListener('input', function () {
+                        calculateTotal(row);
+                    });
+                }
+            }
+
+            // Attach events to the first row
+            const firstRow = document.getElementById('firstRow');
+            if (firstRow) {
+                attachRowEvents(firstRow);
+            }
+
+            // Add Row
+            addRowButton.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>
+                        <select name="raw_product_id[]" class="form-control select2 product-select">
+                            <option value="" disabled selected>-- اختر البند --</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">{{ $product->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td><input type="number" name="raw_unit_price[]" class="form-control unit-price" readonly></td>
+                    <td><input type="number" name="raw_quantity[]" class="form-control quantity" value="1" min="1"></td>
+                    <td>
+                        <select name="raw_production_stage_id[]" class="form-control select2 product-select" required>
+
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td><input type="number" name="raw_total[]" class="form-control total" readonly></td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
+                    </td>
+                `;
+
+                itemsTable.appendChild(newRow);
+                attachRowEvents(newRow); // Attach events to the new row
+                updateRawMaterialCount(); // Update the raw material count
+                updateTotalCost(); // Update the total cost
+            });
+
+            // Remove Row
+            itemsTable.addEventListener('click', function (e) {
+                if (e.target.classList.contains('removeRow')) {
+                    const row = e.target.closest('tr');
+                    if (itemsTable.rows.length > 1) {
+                        row.remove();
+                        updateGrandTotal();
+                        updateRawMaterialCount(); // Update the raw material count
+                        updateTotalCost(); // Update the total cost
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'لا يمكنك حذف جميع الصفوف!',
+                            confirmButtonText: 'حسناً',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
                 }
             });
-        </script>
-    
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const manufacturingBody = document.getElementById("manufacturing-body");
-        const totalAmountEl = document.getElementById("total-amount");
-        const rowCountEl = document.getElementById("row-count");
 
-        // إضافة صف جديد
-        document.getElementById("add-manufacturing-row").addEventListener("click", () => {
-            const newRow = `
-            <tr>
-                <td>
-                    <select class="form-select form-select-sm">
-                        <option value="">اختر المحطة</option>
-                        <option value="1">محطة 1</option>
-                        <option value="2">محطة 2</option>
-                    </select>
-                </td>
-                <td>
-                    <select class="form-select form-select-sm">
-                        <option value="">اختر النوع</option>
-                        <option value="fixed">مبلغ ثابت</option>
-                        <option value="variable">مبلغ متغير</option>
-                    </select>
-                </td>
-                <td><input type="number" class="form-control form-control-sm runtime" step="0.01" value="0"></td>
-                <td><input type="text" class="form-control form-control-sm" placeholder="الوصف"></td>
-                <td>
-                    <select class="form-select form-select-sm">
-                        <option value="">اختر المرحلة</option>
-                        <option value="1">مرحلة 1</option>
-                        <option value="2">مرحلة 2</option>
-                    </select>
-                </td>
-                <td class="row-total">0.00</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm remove-row">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>`;
-            manufacturingBody.insertAdjacentHTML("beforeend", newRow);
-            updateRowCount();
         });
+    </script>
+    <!-- المصروفات -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ExpensesTable = document.getElementById('ExpensesTable').querySelector('tbody');
+            const ExpensesAddRowButton = document.getElementById('ExpensesAddRow');
 
-        // إزالة صف
-        manufacturingBody.addEventListener("click", (e) => {
-            if (e.target.closest(".remove-row")) {
-                e.target.closest("tr").remove();
-                updateTotal();
-                updateRowCount();
+            // Function to calculate total for a row
+            function calculateTotal(row) {
+                const expensesPrice = parseFloat(row.querySelector('.expenses-price').value) || 0;
+                const expensesTotal = expensesPrice;
+                row.querySelector('.expenses-total').value = expensesTotal.toFixed(2);
+                updateGrandTotal();
+                updateTotalCost();
             }
-        });
 
-        // تحديث المجموع لكل صف
-        manufacturingBody.addEventListener("input", (e) => {
-            if (e.target.classList.contains("runtime")) {
-                const row = e.target.closest("tr");
-                const runtime = parseFloat(row.querySelector(".runtime").value) || 0;
-                const rowTotal = (runtime).toFixed(2); // يمكن التعديل لحساب أكثر تعقيدًا
-                row.querySelector(".row-total").textContent = rowTotal;
-                updateTotal();
+            // Function to update grand total
+            function updateGrandTotal() {
+                let expensesGrandTotal = 0;
+                document.querySelectorAll('.expenses-total').forEach(totalInput => {
+                    expensesGrandTotal += parseFloat(totalInput.value) || 0;
+                });
+                document.querySelector('.expenses-grand-total').textContent = expensesGrandTotal.toFixed(2);
             }
-        });
 
-        // تحديث العدد الكلي للصفوف
-        function updateRowCount() {
-            const rowCount = manufacturingBody.querySelectorAll("tr").length;
-            rowCountEl.textContent = `(${rowCount})`;
-        }
+            // Attach events to a row
+            function attachRowEvents(row) {
+                const priceInput = row.querySelector('.expenses-price');
+                priceInput.addEventListener('input', function () {
+                    calculateTotal(row);
+                });
+            }
 
-        // تحديث الإجمالي الكلي
-        function updateTotal() {
-            let total = 0;
-            manufacturingBody.querySelectorAll(".row-total").forEach((cell) => {
-                total += parseFloat(cell.textContent) || 0;
+            // Add Row
+            ExpensesAddRowButton.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const exNewRow = document.createElement('tr');
+                exNewRow.innerHTML = `
+                    <td>
+                        <select name="expenses_account_id[]" class="form-control select2 product-select">
+                            <option value="" disabled selected>-- اختر الحساب --</option>
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account->id }}" {{ old('account') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td>
+                        <select name="expenses_cost_type[]" class="form-control select2 product-select">
+                            <option value="1">مبلغ ثابت</option>
+                            <option value="2">بناءً على الكمية</option>
+                            <option value="3">معادلة</option>
+                        </select>
+                    </td>
+                    <td><input type="number" name="expenses_price[]" class="form-control expenses-price"></td>
+                    <td><textarea name="expenses_description[]" class="form-control" rows="1"></textarea></td>
+                    <td>
+                        <select name="expenses_production_stage_id[]" class="form-control select2 product-select" required>
+
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td><input type="number" name="expenses_total[]" class="form-control expenses-total" readonly></td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
+                    </td>
+                `;
+
+                ExpensesTable.appendChild(exNewRow);
+                attachRowEvents(exNewRow); // Attach events to the new row
+                updateRawExpensesCount();
+                updateTotalCost(); // Update the total cost
             });
-            totalAmountEl.textContent = total.toFixed(2);
-        }
 
-        // تحديث العدد والإجمالي عند البداية
-        updateRowCount();
-        updateTotal();
-    });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const materialsBody = document.getElementById("waste-materials-body");
-        const totalAmountEl = document.getElementById("total-amount");
-        const finalTotalEl = document.getElementById("final-total");
-        const rowCountEl = document.getElementById("row-count");
-
-        // إضافة صف جديد
-        document.getElementById("add-waste-material-row").addEventListener("click", () => {
-            const newRow = `
-            <tr>
-                <td>
-                    <select class="form-select form-select-sm">
-                        <option value="">اختر المنتج</option>
-                        <option value="1">منتج 1</option>
-                        <option value="2">منتج 2</option>
-                    </select>
-                </td>
-                <td><input type="number" class="form-control form-control-sm quantity" step="0.01" value="0"></td>
-                <td><input type="number" class="form-control form-control-sm price" step="0.01" value="0"></td>
-                <td>
-                    <select class="form-select form-select-sm">
-                        <option value="">اختر المرحلة</option>
-                        <option value="1">مرحلة 1</option>
-                        <option value="2">مرحلة 2</option>
-                    </select>
-                </td>
-                <td class="row-total">0.00</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm remove-row">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>`;
-            materialsBody.insertAdjacentHTML("beforeend", newRow);
-            updateRowCount();
-        });
-
-        // إزالة صف
-        materialsBody.addEventListener("click", (e) => {
-            if (e.target.closest(".remove-row")) {
-                e.target.closest("tr").remove();
-                updateTotal();
-                updateRowCount();
-            }
-        });
-
-        // تحديث المجموع لكل صف
-        materialsBody.addEventListener("input", (e) => {
-            if (e.target.classList.contains("quantity") || e.target.classList.contains("price")) {
-                const row = e.target.closest("tr");
-                const quantity = parseFloat(row.querySelector(".quantity").value) || 0;
-                const price = parseFloat(row.querySelector(".price").value) || 0;
-                const rowTotal = (quantity * price).toFixed(2);
-                row.querySelector(".row-total").textContent = rowTotal;
-                updateTotal();
-            }
-        });
-
-        // تحديث العدد الكلي للصفوف
-        function updateRowCount() {
-            const rowCount = materialsBody.querySelectorAll("tr").length;
-            rowCountEl.textContent = `(${rowCount})`;
-        }
-
-        // تحديث الإجمالي الكلي
-        function updateTotal() {
-            let total = 0;
-            materialsBody.querySelectorAll(".row-total").forEach((cell) => {
-                total += parseFloat(cell.textContent) || 0;
+            // Remove Row
+            ExpensesTable.addEventListener('click', function (e) {
+                if (e.target.classList.contains('removeRow')) {
+                    const row = e.target.closest('tr');
+                    if (ExpensesTable.rows.length > 1) {
+                        row.remove();
+                        updateGrandTotal();
+                        updateRawExpensesCount();
+                        updateTotalCost(); // Update the total cost
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'لا يمكنك حذف جميع الصفوف!',
+                            confirmButtonText: 'حسناً',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                }
             });
-            totalAmountEl.textContent = total.toFixed(2);
-            finalTotalEl.textContent = total.toFixed(2);
-        }
 
-        // تحديث العدد والإجمالي عند البداية
-        updateRowCount();
-        updateTotal();
-    });
-</script>
-    @endsection
+            // Attach events to existing rows
+            ExpensesTable.querySelectorAll('tr').forEach(attachRowEvents);
+        });
+    </script>
+    <!-- عمليات التصنيع -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const manufacturingTable = document.getElementById('manufacturingTable').querySelector('tbody');
+            const manufacturingAddRowButton = document.getElementById('manufacturingAddRow');
+
+            // Function to calculate total for a row
+            function calculateTotal(row) {
+                const totalCost = parseFloat(row.querySelector('.total_cost').value) || 0;
+                const operatingTime = parseFloat(row.querySelector('.operating_time').value) || 0;
+                const manufacturingTotal = totalCost * operatingTime;
+
+                row.querySelector('.manufacturing-total').value = manufacturingTotal.toFixed(2);
+                updateGrandTotal();
+                updateTotalCost();
+            }
+
+            // Function to update grand total
+            function updateGrandTotal() {
+                let manufacturingGrandTotal = 0;
+                document.querySelectorAll('.manufacturing-total').forEach(totalInput => {
+                    manufacturingGrandTotal += parseFloat(totalInput.value) || 0;
+                });
+                document.querySelector('.manufacturing-grand-total').textContent = manufacturingGrandTotal.toFixed(2);
+            }
+
+            // Function to fetch total_cost from the server
+            function fetchTotalCost(workstationId, row) {
+                fetch(`/api/workstations/${workstationId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.total_cost !== undefined) {
+                            row.querySelector('.total_cost').value = data.total_cost;
+                            calculateTotal(row); // إعادة حساب الإجمالي بعد تعبئة total_cost
+                        } else {
+                            console.error("total_cost غير موجود في الاستجابة:", data);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching total cost:', error));
+            }
+
+            // Attach events to a row
+            function attachRowEvents(row) {
+                const totalCostInput = row.querySelector('.total_cost');
+                const operatingTimeInput = row.querySelector('.operating_time');
+                const workstationSelect = row.querySelector('select[name="workstation_id[]"]');
+
+                totalCostInput.addEventListener('input', function () {
+                    calculateTotal(row);
+                });
+
+                operatingTimeInput.addEventListener('input', function () {
+                    calculateTotal(row);
+                });
+
+                workstationSelect.addEventListener('change', function () {
+                    const workstationId = this.value;
+                    if (workstationId) {
+                        fetchTotalCost(workstationId, row);
+                    }
+                });
+            }
+
+            // Add Row
+            manufacturingAddRowButton.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>
+                        <select name="workstation_id[]" class="form-control select2 product-select">
+                            <option value="" disabled selected>-- اختر محطة العمل --</option>
+                            @foreach ($workstations as $workstation)
+                                <option value="{{ $workstation->id }}">{{ $workstation->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td>
+                        <select name="manu_cost_type[]" class="form-control select2 product-select">
+                            <option value="1">مبلغ ثابت</option>
+                            <option value="2">بناءً على الكمية</option>
+                            <option value="3">معادلة</option>
+                        </select>
+                    </td>
+                    <td><input type="number" name="operating_time[]" class="form-control operating_time"></td>
+                    <td><input type="number" name="manu_total_cost[]" class="form-control total_cost" readonly></td>
+                    <td><textarea name="manu_description[]" class="form-control" rows="1"></textarea></td>
+                    <td>
+                        <select name="manu_production_stage_id[]" class="form-control select2 product-select" required>
+
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td><input type="number" name="manu_total[]" class="form-control manufacturing-total" readonly></td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
+                    </td>
+                `;
+
+                manufacturingTable.appendChild(newRow);
+                attachRowEvents(newRow);
+                updateTotalCost();
+            });
+
+            // Remove Row
+            manufacturingTable.addEventListener('click', function (e) {
+                if (e.target.classList.contains('removeRow')) {
+                    const row = e.target.closest('tr');
+                    if (manufacturingTable.rows.length > 1) {
+                        row.remove();
+                        updateGrandTotal();
+                        updateTotalCost();
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'لا يمكنك حذف جميع الصفوف!',
+                            confirmButtonText: 'حسناً',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                }
+            });
+
+            // Attach events to existing rows
+            manufacturingTable.querySelectorAll('tr').forEach(attachRowEvents);
+        });
+    </script>
+
+    <!-- المواد الهالكة -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const EndLifeTable = document.getElementById('EndLifeTable').querySelector('tbody');
+            const EndLifeAddRowButton = document.getElementById('EndLifeAddRow');
+
+            // Function to calculate total for a row
+            function calculateTotal(row) {
+                const EndLifeUnitPrice = parseFloat(row.querySelector('.end-life-unit-price').value) || 0;
+                const EndLifeQuantity = parseFloat(row.querySelector('.end-life-quantity').value) || 0;
+                const total = EndLifeUnitPrice * EndLifeQuantity;
+                row.querySelector('.end-life-total').value = total.toFixed(2);
+                updateGrandTotal();
+                updateTotalCost();
+            }
+
+            // Function to update grand total
+            function updateGrandTotal() {
+                let grandTotal = 0;
+                document.querySelectorAll('.end-life-total').forEach(totalInput => {
+                    grandTotal += parseFloat(totalInput.value) || 0;
+                });
+                document.querySelector('.end-life-grand-total').textContent = grandTotal.toFixed(2);
+            }
+
+            // Function to attach event listeners to a row
+            function attachRowEvents(row) {
+                const productSelect = row.querySelector('.end-life-product-select');
+                const quantityInput = row.querySelector('.end-life-quantity');
+
+                if (productSelect) {
+                    productSelect.addEventListener('change', function () {
+                        const selectedOption = productSelect.options[productSelect.selectedIndex];
+                        const unitPrice = selectedOption.getAttribute('data-price');
+                        row.querySelector('.end-life-unit-price').value = unitPrice || 0;
+                        calculateTotal(row);
+                    });
+                }
+
+                if (quantityInput) {
+                    quantityInput.addEventListener('input', function () {
+                        calculateTotal(row);
+                    });
+                }
+            }
+
+            // Attach events to the first row
+            const firstRow = document.getElementById('firstRow');
+            if (firstRow) {
+                attachRowEvents(firstRow);
+            }
+
+            // Add Row
+            EndLifeAddRowButton.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>
+                        <select name="end_life_product_id[]" class="form-control select2 end-life-product-select">
+                            <option value="" disabled selected>-- اختر البند --</option>
+                            @foreach ($products as $product)
+                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">{{ $product->name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td><input type="number" name="end_life_unit_price[]" class="form-control end-life-unit-price"></td>
+                    <td><input type="number" name="end_life_quantity[]" class="form-control end-life-quantity" value="1" min="1"></td>
+                    <td>
+                        <select name="end_life_production_stage_id[]" class="form-control select2 product-select" required>
+
+                            @foreach ($stages as $stage)
+                                <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td><input type="number" name="end_life_total[]" class="form-control end-life-total" readonly></td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
+                    </td>
+                `;
+
+                EndLifeTable.appendChild(newRow);
+                attachRowEvents(newRow); // Attach events to the new row
+                updateEndLifeCount();
+                updateTotalCost(); // Update the total cost
+            });
+
+            // Remove Row
+            EndLifeTable.addEventListener('click', function (e) {
+                if (e.target.classList.contains('removeRow')) {
+                    const row = e.target.closest('tr');
+                    if (EndLifeTable.rows.length > 1) {
+                        row.remove();
+                        updateGrandTotal();
+                        updateEndLifeCount();
+                        updateTotalCost(); // Update the total cost
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'لا يمكنك حذف جميع الصفوف!',
+                            confirmButtonText: 'حسناً',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                }
+            });
+
+        });
+    </script>
+
+@endsection

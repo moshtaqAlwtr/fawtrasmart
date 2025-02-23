@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-أعدادات عامة 
+أعدادات عامة
 @stop
 
 @section('content')
@@ -21,6 +21,10 @@
         </div>
     </div>
 </div>
+
+@include('layouts.alerts.success')
+@include('layouts.alerts.error')
+
 <div class="card">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -32,7 +36,7 @@
                 <a href="" class="btn btn-outline-danger">
                     <i class="fa fa-ban"></i>الغاء
                 </a>
-                <button type="submit" class="btn btn-outline-primary">
+                <button type="submit" form="general_form" class="btn btn-outline-primary">
                     <i class="fa fa-save"></i>حفظ
                 </button>
             </div>
@@ -40,19 +44,22 @@
         </div>
     </div>
 </div>
+
 <div class="card mt-4">
     <div class="card">
-      <div class="card-header bg-light">
-        <strong>الإعدادات العامة</strong>
-      </div>
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between">
-          <label for="toggleSwitch" class="form-label mb-0">تجاوز الكمية المطلوبة في أمر التصنيع</label>
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="toggleSwitch">
-          </div>
+        <div class="card-header" style="background-color: #f8f8f8">
+            <strong class="mb-1">الإعدادات العامة</strong>
         </div>
-      </div>
+            <form id="general_form" action="{{ route('Manufacturing.general_settings.update') }}" method="POST">
+                @csrf
+                <div class="card-body">
+                    <div class="custom-control custom-switch custom-switch-success custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="customSwitch1" name="quantity_exceeded" value="1" {{ optional($general_settings)->quantity_exceeded == 1 ? 'checked' : '' }}>
+                        <label class="custom-control-label" for="customSwitch1"></label>
+                        <span class="switch-label">تجاوز الكمية المطلوبة في أمر التصنيع</span>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
 @endsection

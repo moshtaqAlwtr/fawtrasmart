@@ -104,4 +104,12 @@ class InvoiceItem extends Model
     {
         return $this->hasMany(PaymentVoucherDetail::class, 'invoice_item_id');
     }
+    public function item()
+    {
+        return $this->belongsTo(Product::class); // Adjust if your foreign key is different
+    }
+
+
+
+
 }

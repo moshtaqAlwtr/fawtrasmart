@@ -224,6 +224,11 @@
                                                             <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $employee->id }}">
                                                                 <i class="fa fa-trash me-2"></i>حذف
                                                             </a>
+                                                            <li>    
+                                                                <a class="dropdown-item text-primary" href="{{ route('employee.send_email',$employee->id) }}">
+                                                                    <i class="fa fa-paper-plane me-2"></i> ارسال بيانات الدخول بالبريد
+                                                                </a>
+                                                                
                                                         </li>
                                                     </div>
                                                 </div>

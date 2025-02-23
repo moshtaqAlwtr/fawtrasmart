@@ -12,6 +12,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\PaymentsProcess;
 use App\Models\Product;
+use App\Models\Status;
 use App\Models\StoreHouse;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -283,78 +284,7 @@ class SalesReportsController extends Controller
 
         return view('reports.sals.salesRport.Sales_By_Employee', compact('groupedInvoices', 'employees', 'clients', 'categories', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'employeeTotals'));
     }
-    public function byInvoice(Request $request)
-    {
-        // Default date range (current month)
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-        // Validate and parse dates
-        $fromDate = Carbon::parse($fromDate);
-        $toDate = Carbon::parse($toDate);
-
-        // Default report period
-        $branches = Branch::all();
-        $reportPeriod = $request->input('report_period', 'monthly');
-        $invoices = Invoice::all();
-        // Query for invoices with desسtailed filtering
-        $query = Invoice::with([
-            'client' => function ($query) {
-                $query->withDefault(['trade_name' => 'غير محدد']);
-            },
-            'createdByUser' => function ($query) {
-                $query->withDefault(['name' => 'غير محدد']);
-            },
-        ])->whereBetween('invoice_date', [$fromDate, $toDate]);
-
-        // Apply filters
-        if ($request->filled('invoice_type')) {
-            $typeMap = [
-                '1' => 'return',
-                '2' => 'debit_note',
-                '3' => 'credit_note',
-            ];
-            $query->where('type', $typeMap[$request->input('invoice_type')]);
-        }
-
-        // Apply client filter
-        if ($request->filled('client')) {
-            $query->where('client_id', $request->input('client'));
-        }
-
-        // Apply employee filter
-        if ($request->filled('employee')) {
-            $query->where('created_by', $request->input('employee'));
-        }
-
-        // Fetch invoices
-        $invoices = $query->get();
-
-        // Group invoices by period
-        $groupedInvoices = $invoices->groupBy(function ($invoice) use ($reportPeriod) {
-            switch ($reportPeriod) {
-                case 'daily':
-                    return $invoice->invoice_date->format('Y-m-d');
-                case 'weekly':
-                    return $invoice->invoice_date->format('Y-W');
-                case 'monthly':
-                    return $invoice->invoice_date->format('Y-m');
-                case 'yearly':
-                    return $invoice->invoice_date->format('Y');
-                default:
-                    return $invoice->invoice_date->format('Y-m-d');
-            }
-        });
-
-        // Prepare chart data
-        $chartData = $this->prepareChartData($invoices);
-
-        // Fetch dropdowns data
-        $clients = Client::all();
-        $employees = User::all();
-
-        return view('reports.sals..by_invoice', compact('groupedInvoices', 'invoices', 'clients', 'branches', 'employees', 'fromDate', 'toDate', 'reportPeriod', 'chartData'));
-    }
 
     private function prepareChartData($invoices)
     {
@@ -870,186 +800,217 @@ class SalesReportsController extends Controller
             return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
         }
     }
-
     public function profits(Request $request)
     {
-        // Default date range (current month)
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+        try {
+            // نطاق التاريخ الافتراضي (الشهر الحالي)
+            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+            $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-        // Prepare the base query for invoice items with product details
-        $query = InvoiceItem::select('products.id', 'products.name', 'products.purchase_price', 'products.sale_price', 'products.brand', 'categories.name as category_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
-            ->join('products', 'invoice_items.product_id', '=', 'products.id')
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
-            ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+            // إعداد الاستعلام الأساسي
+            $query = InvoiceItem::select(
+                'products.id',
+                'products.name',
+                'products.purchase_price',
+                'products.sale_price',
+                'products.brand',
+                'categories.name as category_name',
+                DB::raw('SUM(invoice_items.quantity) as total_quantity'),
+                DB::raw('SUM(invoice_items.total) as total_value'),
+                DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
+            )
+                ->join('products', 'invoice_items.product_id', '=', 'products.id')
+                ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+                ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+                ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
 
-        // Apply product filter
-        if ($request->has('products') && !empty($request->input('products'))) {
-            $query->whereIn('products.id', $request->input('products'));
+            // تطبيق الفلاتر
+            $query = $this->applyFilters($query, $request, 'products');
+
+            // تنفيذ الاستعلام
+            $profitsReport = $query
+                ->groupBy('products.id', 'products.name', 'products.purchase_price', 'products.sale_price', 'products.brand', 'categories.name')
+                ->get()
+                ->map(function ($product) {
+                    // حساب التكلفة والربح
+                    $totalCost = $product->total_quantity * $product->purchase_price;
+                    $profit = $product->total_value - $totalCost;
+                    $profitPercentage = $product->total_value > 0 ? ($profit / $product->total_value) * 100 : 0;
+                    $markup = $product->purchase_price > 0 ? (($product->avg_selling_price - $product->purchase_price) / $product->purchase_price) * 100 : 0;
+
+                    return [
+                        'name' => $product->name,
+                        'category_name' => $product->category_name,
+                        'brand' => $product->brand,
+                        'total_quantity' => $product->total_quantity,
+                        'total_value' => $product->total_value,
+                        'purchase_price' => $product->purchase_price,
+                        'sale_price' => $product->sale_price,
+                        'avg_selling_price' => $product->avg_selling_price,
+                        'total_cost' => $totalCost,
+                        'profit' => $profit,
+                        'profit_percentage' => $profitPercentage,
+                        'markup_percentage' => $markup,
+                    ];
+                })
+                ->filter(function ($product) {
+                    return $product['total_quantity'] > 0; // تصفية العناصر ذات الكمية الصفرية
+                })
+                ->sortByDesc('profit'); // ترتيب حسب الربح
+
+            // حساب الإحصائيات
+            $insights = $this->calculateInsights($profitsReport);
+
+            // جلب البيانات للفلاتر
+            $filterData = $this->getFilterData();
+
+            return view('reports.sals.proudect_proifd.proudect_proifd', [
+                'profitsReport' => $profitsReport,
+                'insights' => $insights,
+                'fromDate' => $fromDate,
+                'toDate' => $toDate,
+                'products' => $filterData['products'],
+                'categories' => $filterData['categories'],
+                'brands' => $filterData['brands'],
+                'branches' => $filterData['branches'],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in profits report: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'حدث خطأ أثناء جلب التقرير.');
         }
-
-        // Apply category filter
-        if ($request->has('categories') && !empty($request->input('categories'))) {
-            $query->whereIn('products.category_id', $request->input('categories'));
-        }
-
-        // Apply brand filter
-        if ($request->has('brands') && !empty($request->input('brands'))) {
-            $query->whereIn('products.brand', $request->input('brands'));
-        }
-
-        // Apply branch filter (if you have a branch_id in invoices or a way to link branches)
-        if ($request->has('branches') && !empty($request->input('branches'))) {
-            $query->whereIn('invoices.branch_id', $request->input('branches'));
-        }
-
-        // Group the results
-        $profitsReport = $query
-            ->groupBy('products.id', 'products.name', 'products.purchase_price', 'products.sale_price', 'products.brand', 'categories.name')
-            ->get()
-            ->map(function ($product) {
-                // Use product's purchase price for cost calculation
-                $avgCostPrice = $product->purchase_price;
-                $totalCost = $product->total_quantity * $avgCostPrice;
-
-                // Calculate profit
-                $profit = $product->total_value - $totalCost;
-
-                // Calculate profit percentages
-                $profitPercentage = $product->total_value > 0 ? ($profit / $product->total_value) * 100 : 0;
-
-                // Calculate markup
-                $markup = $avgCostPrice > 0 ? (($product->avg_selling_price - $avgCostPrice) / $avgCostPrice) * 100 : 0;
-
-                return [
-                    'name' => $product->name,
-                    'category_name' => $product->category_name,
-                    'brand' => $product->brand,
-                    'total_quantity' => $product->total_quantity,
-                    'total_value' => $product->total_value,
-                    'purchase_price' => $avgCostPrice,
-                    'sale_price' => $product->sale_price,
-                    'avg_selling_price' => $product->avg_selling_price,
-                    'total_cost' => $totalCost,
-                    'profit' => $profit,
-                    'profit_percentage' => $profitPercentage,
-                    'markup_percentage' => $markup,
-                ];
-            })
-            // Filter out products with zero quantity
-            ->filter(function ($product) {
-                return $product['total_quantity'] > 0;
-            })
-            // Sort by profit in descending order
-            ->sortByDesc('profit');
-
-        // Calculate additional insights
-        $insights = [
-            'total_products' => $profitsReport->count(),
-            'total_quantity_sold' => $profitsReport->sum('total_quantity'),
-            'total_revenue' => $profitsReport->sum('total_value'),
-            'total_cost' => $profitsReport->sum('total_cost'),
-            'total_profit' => $profitsReport->sum('profit'),
-            'avg_profit_margin' => $profitsReport->sum('total_value') > 0 ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100 : 0,
-            'top_profit_product' => $profitsReport->first(),
-            'lowest_profit_product' => $profitsReport->last(),
-        ];
-
-        // Fetch additional data for filters
-        $products = Product::select('id', 'name')->get();
-        $categories = Category::select('id', 'name')->get();
-        $brands = Product::distinct()->pluck('brand');
-        $branches = Branch::select('id', 'name')->get(); // Assuming you have a Branch model
-
-        return view('reports.sals.proudect_proifd.proudect_proifd', [
-            'profitsReport' => $profitsReport,
-            'insights' => $insights,
-            'fromDate' => $fromDate,
-            'toDate' => $toDate,
-            'products' => $products,
-            'categories' => $categories,
-            'brands' => $brands,
-            'branches' => $branches,
-        ]);
     }
+
+    /**
+     * تقرير أرباح الموظفين
+     */
     public function employeeProfits(Request $request)
     {
-        // Default date range (current month)
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-        $products = Product::select('id', 'name')->get();
-        $categories = Category::select('id', 'name')->get();
-        $branches = Branch::select('id', 'name')->get();
-        $brands = Product::distinct()->pluck('brand');
-        // Prepare the base query for invoice items with employee details
-        $query = InvoiceItem::select('users.id as employee_id', 'users.name as employee_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->join('users', 'invoices.created_by', '=', 'users.id')
-            ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+        try {
+            // نطاق التاريخ الافتراضي (الشهر الحالي)
+            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        // Apply employee filter
-        if ($request->has('employees') && is_array($request->input('employees')) && !empty($request->input('employees'))) {
-            $query->whereIn('users.id', $request->input('employees'));
+            // إعداد الاستعلام الأساسي
+            $query = InvoiceItem::select(
+                'users.id as employee_id',
+                'users.name as employee_name',
+                DB::raw('SUM(invoice_items.quantity) as total_quantity'),
+                DB::raw('SUM(invoice_items.total) as total_value'),
+                DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
+            )
+                ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+                ->join('users', 'invoices.created_by', '=', 'users.id')
+                ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+
+            // تطبيق الفلاتر
+            $query = $this->applyFilters($query, $request, 'employees');
+
+            // تنفيذ الاستعلام
+            $employeeProfitsReport = $query
+                ->groupBy('users.id', 'users.name')
+                ->get()
+                ->map(function ($employee) {
+                    // حساب التكلفة والربح
+                    $totalCost = $employee->total_value / 1.3; // افتراض نسبة ربح 30%
+                    $profit = $employee->total_value - $totalCost;
+                    $profitPercentage = $employee->total_value > 0 ? ($profit / $employee->total_value) * 100 : 0;
+
+                    return [
+                        'employee_id' => $employee->employee_id,
+                        'name' => $employee->employee_name,
+                        'total_quantity' => $employee->total_quantity,
+                        'total_value' => $employee->total_value,
+                        'avg_selling_price' => $employee->avg_selling_price,
+                        'total_cost' => $totalCost,
+                        'profit' => $profit,
+                        'profit_percentage' => $profitPercentage,
+                    ];
+                })
+                ->filter(function ($employee) {
+                    return $employee['total_quantity'] > 0; // تصفية الموظفين بدون مبيعات
+                })
+                ->sortByDesc('profit'); // ترتيب حسب الربح
+
+            // حساب الإحصائيات
+            $insights = $this->calculateInsights($employeeProfitsReport);
+
+            // جلب البيانات للفلاتر
+            $filterData = $this->getFilterData();
+
+            return view('reports.sals.proudect_proifd.employee_profits', [
+                'employeeProfitsReport' => $employeeProfitsReport,
+                'insights' => $insights,
+                'fromDate' => $fromDate,
+                'toDate' => $toDate,
+                'employees' => User::select('id', 'name')->get(),
+                'products' => $filterData['products'],
+                'categories' => $filterData['categories'],
+                'brands' => $filterData['brands'],
+                'branches' => $filterData['branches'],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in employee profits report: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'حدث خطأ أثناء جلب التقرير.');
+        }
+    }
+
+    /**
+     * تطبيق الفلاتر على الاستعلام
+     */
+    private function applyFilters($query, $request, $type)
+    {
+        if ($type === 'products') {
+            if ($request->has('products') && !empty($request->input('products'))) {
+                $query->whereIn('products.id', $request->input('products'));
+            }
+            if ($request->has('categories') && !empty($request->input('categories'))) {
+                $query->whereIn('products.category_id', $request->input('categories'));
+            }
+            if ($request->has('brands') && !empty($request->input('brands'))) {
+                $query->whereIn('products.brand', $request->input('brands'));
+            }
+            if ($request->has('branches') && !empty($request->input('branches'))) {
+                $query->whereIn('invoices.branch_id', $request->input('branches'));
+            }
+        } elseif ($type === 'employees') {
+            if ($request->has('employees') && !empty($request->input('employees'))) {
+                $query->whereIn('users.id', $request->input('employees'));
+            }
         }
 
-        // Group the results by employee
-        $employeeProfitsReport = $query
-            ->groupBy('users.id', 'users.name')
-            ->get()
-            ->map(function ($employee) {
-                // Calculate total cost (assuming a standard markup or using product purchase prices)
-                $totalCost = $employee->total_value / 1.3; // Assuming 30% markup as an example
-                $profit = $employee->total_value - $totalCost;
-
-                // Calculate profit percentages
-                $profitPercentage = $employee->total_value > 0 ? ($profit / $employee->total_value) * 100 : 0;
-
-                return [
-                    'employee_id' => $employee->employee_id,
-                    'name' => $employee->employee_name,
-                    'total_quantity' => $employee->total_quantity,
-                    'total_value' => $employee->total_value,
-                    'avg_selling_price' => $employee->avg_selling_price,
-                    'total_cost' => $totalCost,
-                    'profit' => $profit,
-                    'profit_percentage' => $profitPercentage,
-                ];
-            })
-            // Filter out employees with zero sales
-            ->filter(function ($employee) {
-                return $employee['total_quantity'] > 0;
-            })
-            // Sort by profit in descending order
-            ->sortByDesc('profit');
-
-        // Calculate additional insights
-        $insights = [
-            'total_employees' => $employeeProfitsReport->count(),
-            'total_quantity_sold' => $employeeProfitsReport->sum('total_quantity'),
-            'total_revenue' => $employeeProfitsReport->sum('total_value'),
-            'total_cost' => $employeeProfitsReport->sum('total_cost'),
-            'total_profit' => $employeeProfitsReport->sum('profit'),
-            'avg_profit_margin' => $employeeProfitsReport->sum('total_value') > 0 ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100 : 0,
-            'top_performing_employee' => $employeeProfitsReport->first() ?: null,
-            'lowest_performing_employee' => $employeeProfitsReport->last() ?: null,
-        ];
-
-        // Fetch additional data for filters
-        $employees = User::select('id', 'name')->get();
-
-        return view('reports.sals.proudect_proifd.employee_profits', [
-            'employeeProfitsReport' => $employeeProfitsReport,
-            'insights' => $insights,
-            'fromDate' => $fromDate,
-            'toDate' => $toDate,
-            'employees' => $employees,
-            'products' => $products,
-            'categories' => $categories,
-            'brands' => $brands,
-            'branches' => $branches,
-        ]);
+        return $query;
     }
+
+    /**
+     * حساب الإحصائيات
+     */
+    private function calculateInsights($report)
+    {
+        return [
+            'total_items' => $report->count(),
+            'total_quantity_sold' => $report->sum('total_quantity'),
+            'total_revenue' => $report->sum('total_value'),
+            'total_cost' => $report->sum('total_cost'),
+            'total_profit' => $report->sum('profit'),
+            'avg_profit_margin' => $report->sum('total_value') > 0 ? ($report->sum('profit') / $report->sum('total_value')) * 100 : 0,
+            'top_item' => $report->first(),
+            'lowest_item' => $report->last(),
+        ];
+    }
+
+    /**
+     * جلب بيانات الفلاتر
+     */
+    private function getFilterData()
+    {
+        return [
+            'products' => Product::select('id', 'name')->get(),
+            'categories' => Category::select('id', 'name')->get(),
+            'brands' => Product::distinct()->pluck('brand'),
+            'branches' => Branch::select('id', 'name')->get(),
+        ];
+    }
+
     public function customerProfits(Request $request)
     {
         // الحصول على الفترة الزمنية
@@ -1156,7 +1117,7 @@ class SalesReportsController extends Controller
         // Fetch additional data for filters
         $clients = Client::select('id', 'trade_name as name')->get();
 
-        return view('reports.sals.payments.customer_profit', [
+        return view('reports.sals.proudect_proifd.customer_profit', [
             'clientProfitsReport' => $clientProfitsReport,
             'insights' => $insights,
             'fromDate' => $fromDate,
@@ -1168,4 +1129,212 @@ class SalesReportsController extends Controller
             'branches' => $branches,
         ]);
     }
-}
+    public function ProfitReportTime(Request $request)
+    {
+        // إعداد نطاق التاريخ
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        // إعداد الاستعلام الأساسي لجلب بيانات الفواتير
+        $query = Invoice::with(['client', 'employee', 'items.product'])
+            ->whereBetween('invoice_date', [$fromDate, $toDate]);
+
+        // تطبيق الفلاتر
+        if ($request->has('customer_category') && $request->input('customer_category') != 'all') {
+            $query->whereHas('client', function ($q) use ($request) {
+                $q->where('category_id', $request->input('customer_category'));
+            });
+        }
+
+        if ($request->has('customer') && $request->input('customer') != 'all') {
+            $query->where('client_id', $request->input('customer'));
+        }
+
+        if ($request->has('branch') && $request->input('branch') != 'none') {
+            $query->where('branch_id', $request->input('branch'));
+        }
+
+        if ($request->has('status') && $request->input('status') != 'all') {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->has('order_origin') && $request->input('order_origin') != 'all') {
+            $query->where('employee_id', $request->input('order_origin'));
+        }
+
+        if ($request->has('clients') && is_array($request->input('clients')) && !empty($request->input('clients'))) {
+            $query->whereIn('client_id', $request->input('clients'));
+        }
+
+        if ($request->has('products') && is_array($request->input('products')) && !empty($request->input('products'))) {
+            $query->whereHas('items', function ($q) use ($request) {
+                $q->whereIn('product_id', $request->input('products'));
+            });
+        }
+
+        if ($request->has('categories') && is_array($request->input('categories')) && !empty($request->input('categories'))) {
+            $query->whereHas('items.product', function ($q) use ($request) {
+                $q->whereIn('category_id', $request->input('categories'));
+            });
+        }
+
+        if ($request->has('brands') && is_array($request->input('brands')) && !empty($request->input('brands'))) {
+            $query->whereHas('items.product', function ($q) use ($request) {
+                $q->whereIn('brand', $request->input('brands'));
+            });
+        }
+
+        if ($request->has('branches') && is_array($request->input('branches')) && !empty($request->input('branches'))) {
+            $query->whereIn('branch_id', $request->input('branches'));
+        }
+
+        // تنفيذ الاستعلام
+        $invoices = $query->get();
+
+        // تجهيز البيانات للتقرير
+        $clientProfitsReport = [];
+        foreach ($invoices as $invoice) {
+            $invoiceTotalPurchasePrice = 0; // مجموع سعر الشراء للفاتورة
+            $invoiceTotalSellingPrice = 0; // مجموع سعر البيع للفاتورة
+
+            foreach ($invoice->items as $item) {
+                $totalSellingPrice = ($item->product->sale_price * $item->quantity) - $item->discount; // إجمالي سعر البيع
+                $totalCost = $item->product->purchase_price * $item->quantity; // إجمالي تكلفة الشراء
+                $profit = $totalSellingPrice - $totalCost; // الربح
+
+                // تحديث المجاميع للفاتورة
+                $invoiceTotalPurchasePrice += $totalCost;
+                $invoiceTotalSellingPrice += $totalSellingPrice;
+
+                $clientProfitsReport[] = [
+                    'client_id' => $invoice->client->id,
+                    'invoice_number' => $invoice->code,
+                    'name' => $invoice->client->trade_name,
+                    'employee' => $invoice->employee->full_name,
+                    'product_name' => $item->product->name,
+                    'total_quantity' => $item->quantity,
+                    'purchase_price' => $item->product->purchase_price,
+                    'selling_price' => $item->product->sale_price,
+                    'discount' => $item->discount,
+                    'profit' => $profit,
+                    'invoice_date' => $invoice->invoice_date, // تاريخ الفاتورة
+                    'invoice_total_purchase' => $invoiceTotalPurchasePrice, // مجموع سعر الشراء للفاتورة
+                    'invoice_total_selling' => $invoiceTotalSellingPrice, // مجموع سعر البيع للفاتورة
+                ];
+            }
+        }
+
+        // جلب بيانات العملاء
+        $clients = Client::select('id', 'trade_name as name')->get();
+
+        return view('reports.sals.proudect_proifd.profit_timeline', [
+            'clientProfitsReport' => $clientProfitsReport,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'clients' => $clients,
+            'customerCategories' => CategoriesClient::pluck('name', 'id'),
+            'customers' => Client::pluck('trade_name', 'id'),
+            'branches' => Branch::pluck('name', 'id'),
+            'reportPeriod' => $request->input('report_period', 'monthly'), // تمرير المتغير إلى العرض
+            'employees' => Employee::all(),
+        ]);
+    }
+    public function byItem(Request $request)
+    {
+        // استرداد جميع البيانات المطلوبة للتصفية
+        $clients = Client::all();
+        $employees = Employee::all();
+        $products = Product::all();
+        $branches = Branch::all();
+        $categories = Category::all();
+        $storehouses = Storehouse::all();
+        // $brands = Brand::all();
+        $salesManagers = User::all();
+
+        // استرداد البيانات المصفاة بناءً على الطلب
+        $invoices = Invoice::query()
+            ->with(['items', 'client', 'employee', 'branch'])
+            ->when($request->filled('item'), function ($query) use ($request) {
+                $query->whereHas('items', function ($q) use ($request) {
+                    $q->where('item', $request->item);
+                });
+            })
+            ->when($request->filled('category'), function ($query) use ($request) {
+                $query->whereHas('items.product', function ($q) use ($request) {
+                    $q->where('category_id', $request->category);
+                });
+            })
+            ->when($request->filled('brand'), function ($query) use ($request) {
+                $query->whereHas('items.product', function ($q) use ($request) {
+                    $q->where('brand_id', $request->brand);
+                });
+            })
+            ->when($request->filled('employee'), function ($query) use ($request) {
+                $query->where('employee_id', $request->employee);
+            })
+            ->when($request->filled('sales_manager'), function ($query) use ($request) {
+                $query->where('sales_manager_id', $request->sales_manager);
+            })
+            ->when($request->filled('client'), function ($query) use ($request) {
+                $query->where('client_id', $request->client);
+            })
+            ->when($request->filled('period'), function ($query) use ($request) {
+                $now = Carbon::now();
+                switch ($request->period) {
+                    case 'daily':
+                        $query->whereDate('invoice_date', $now->toDateString());
+                        break;
+                    case 'weekly':
+                        $query->whereBetween('invoice_date', [$now->startOfWeek()->toDateString(), $now->endOfWeek()->toDateString()]);
+                        break;
+                    case 'monthly':
+                        $query->whereMonth('invoice_date', $now->month);
+                        break;
+                    case 'yearly':
+                        $query->whereYear('invoice_date', $now->year);
+                        break;
+                }
+            })
+            ->when($request->filled('from_date') && $request->filled('to_date'), function ($query) use ($request) {
+                $startDate = Carbon::parse($request->from_date)->startOfDay();
+                $endDate = Carbon::parse($request->to_date)->endOfDay();
+                $query->whereBetween('invoice_date', [$startDate, $endDate]);
+            })
+            ->get();
+
+        // تجميع البيانات لعرضها في الجدول
+        $reportData = [];
+        foreach ($invoices as $invoice) {
+            foreach ($invoice->items as $item) {
+                $reportData[] = [
+                    'id' => $item->id,
+                    'name' => $item->item,
+                    'product_code' => $item->product ? $item->product->code : 'N/A',
+                    'date' => $invoice->invoice_date->format('Y-m-d'),
+                    'employee' => $invoice->employee ? $invoice->employee->full_name : 'N/A',
+                    'invoice' => $invoice->code,
+                    'client' => $invoice->client ? $invoice->client->trade_name : 'N/A',
+                    'unit_price' => $item->unit_price,
+                    'quantity' => $item->quantity,
+                    'discount' => $item->discount,
+                    'total' => $item->total,
+                ];
+            }
+        }
+
+        // تمرير البيانات إلى العرض
+        return view('reports.sals.salesRport.itemReport', [
+            'reportData' => $reportData,
+            'clients' => $clients,
+            'employees' => $employees,
+            'products' => $products,
+            'branches' => $branches,
+            'categories' => $categories,
+            'storehouses' => $storehouses,
+            // 'brands' => $brands,
+            'salesManagers' => $salesManagers,
+        ]);
+    }   }
+
+
+
