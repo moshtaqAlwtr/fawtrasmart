@@ -801,6 +801,7 @@ class InvoicesController extends Controller
                 ->withInput()
                 ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
         }
+        //edit
     }
     private function getSalesAccount()
     {
