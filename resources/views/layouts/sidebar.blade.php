@@ -441,7 +441,7 @@
                         </li>
                     </ul>
                 </li>
-                @endif   
+                @endif
             @endif
 
             <!-- دورات العمل -->
@@ -629,7 +629,7 @@
                             </li>
                         @endcan
 <<<<<<< HEAD
-        
+
                         <li>
                             <a href="{{ route('Memberships.subscriptions') }}">
                                 <i class="feather icon-circle"></i>
@@ -648,7 +648,7 @@
                                     data-i18n="eCommerce">{{ trans('main_trans.Subscription_management') }}</span></a>
 >>>>>>> d4699b3f12e5b5a2494448bdd0d0ac31ada94c6b
                         </li>
-        
+
                         {{-- <li>
                             <a href="{{ route('Memberships.subscriptions.index') }}">
                                 <i class="feather icon-circle"></i>
@@ -657,7 +657,7 @@
                                 </span>
                             </a>
                         </li> --}}
-        
+
                         @can('membership_setting_management')
                             <li>
                                 <a href="{{ route('SittingMemberships.index') }}">
@@ -672,7 +672,7 @@
                 </li>
             @endif
         @endif
-        
+
             {{-- حضور العملاء --}}
             @can('customer_attendance_display')
             @if(isset($settings['customer_attendance']) && $settings['customer_attendance'] === 'active')
@@ -1125,7 +1125,7 @@
                         </li>
                     </ul>
                 </li>
-                
+
             @endcan
             @endif
             {{-- الحضور --}}
@@ -1289,61 +1289,61 @@
                                 {{ trans('main_trans.Sales_Report') }}</span></a>
                     </li>
 
-                    <li><a href="{{ route('reports.purchases.orders') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Purchases_Report') }}</span></a>
                     </li>
-                    <li><a href="{{ route('reports.general_accounts.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.General_Accounts_Report') }}</span></a>
                     </li>
 
-                    <li><a href="{{ route('reports_Checks.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Cheques_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.sms.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.SMS_Report') }}</span></a>
                     </li>
 
-                    <li><a href="{{ route('reports.Balances.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Points_and_Balances_Report') }}</span></a>
                     </li>
 
-                    <li><a href="{{ route('reports.employees.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Employees_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.Memberships.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Attendance_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('Rentals.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Achievements_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.Workflow.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Work_Cycle_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.orders.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Supply_Orders_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.customers.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href="{{ route('ClientReport.index') }}"><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Customers_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.inventory.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Suppliers_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.time_tracking.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Units_Tracking_Report') }}</span></a></li>
 
-                    <li><a href="{{ route('reports.Activity.index') }}"><i class="feather icon-circle"></i><span
+                    <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Account_Activity_Log') }}</span></a></li>
 
@@ -1353,7 +1353,7 @@
             </li>
 
             {{-- الفروع --}}
-            
+
             @if(isset($settings['branches']) && $settings['branches'] === 'active')
             <li class=" nav-item"><a href="index.html">
                     <i class="feather  icon-briefcase">
@@ -1442,7 +1442,7 @@
                         <li><a href="{{ route('PaymentMethods.index') }}"><i class="feather icon-circle"></i><span
                                     class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Payment_Methods') }}</span></a></li>
-                                  
+
                         <li><a href="{{ route('Sms.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.SMS_Settings') }}</span></a></li>
 
@@ -1455,7 +1455,7 @@
                         <li><a href="{{ route('Application.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Applications_Management') }}</span></a>
                         </li>
-                        
+
                         <li><a href="{{ route('AccountInfo.backgroundColor') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.System_Logo_and_Colors') }}</span></a>
                         </li>
