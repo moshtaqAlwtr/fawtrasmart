@@ -213,7 +213,7 @@ class InvoicesController extends Controller
 
     public function store(Request $request)
     {
-        // try {
+        try {
             // $telegramApiUrl = env('TELEGRAM_BOT_TOKEN');
 
             // // تحقق من قيمة المتغير
@@ -501,32 +501,32 @@ class InvoicesController extends Controller
            }
            
            // رابط API التلقرام
-        //    $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+           $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
            
-        //    // تجهيز الرسالة
-        //    $message = "📜 *فاتورة جديدة* 📜\n";
-        //    $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        //    $message .= "🆔 *رقم الفاتورة:* `$code`\n";
-        //    $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
-        //    $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
-        //    $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
-        //    $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        //    $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
-        //    $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
-        //    $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
-        //    $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        //    $message .= "📦 *المنتجات:* \n" . $productsList;
-        //    $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        //    $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
+           // تجهيز الرسالة
+           $message = "📜 *فاتورة جديدة* 📜\n";
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "🆔 *رقم الفاتورة:* `$code`\n";
+           $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
+           $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
+           $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
+           $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
+           $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "📦 *المنتجات:* \n" . $productsList;
+           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+           $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
            
            
-        //    // إرسال الرسالة إلى التلقرام
-        //    $response = Http::post($telegramApiUrl, [
-        //        'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
-        //        'text' => $message,
-        //        'parse_mode' => 'Markdown',
-        //        'timeout' => 30,
-        //    ]);
+           // إرسال الرسالة إلى التلقرام
+           $response = Http::post($telegramApiUrl, [
+               'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
+               'text' => $message,
+               'parse_mode' => 'Markdown',
+               'timeout' => 30,
+           ]);
            
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
@@ -793,14 +793,14 @@ class InvoicesController extends Controller
             return redirect()
                 ->route('invoices.show', $invoice->id)
                 ->with('success', sprintf('تم إنشاء فاتورة المبيعات بنجاح. رقم الفاتورة: %s', $invoice->code));
-        // } catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollback();
             Log::error('خطأ في إنشاء فاتورة المبيعات: ' . $e->getMessage());
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
-        // }
+        }
     }
     private function getSalesAccount()
     {
