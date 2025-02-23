@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-مسار الإنتاج
+تعديل مسار الإنتاج
 @stop
 
 @section('css')
@@ -18,11 +18,11 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">مسار الإنتاج</h2>
+                    <h2 class="content-header-title float-left mb-0">تعديل مسار الإنتاج</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">إضافة</li>
+                            <li class="breadcrumb-item active">تعديل</li>
                         </ol>
                     </div>
                 </div>
@@ -47,8 +47,9 @@
                 </div>
             @endif
 
-            <form class="form-horizontal" action="{{ route('manufacturing.paths.store') }}" method="POST">
+            <form class="form-horizontal" action="{{ route('manufacturing.paths.update', $path->id) }}" method="POST">
                 @csrf
+
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -60,7 +61,7 @@
                                     <i class="fa fa-ban"></i> إلغاء
                                 </a>
                                 <button type="submit" class="btn btn-outline-primary">
-                                    <i class="fa fa-save"></i> حفظ
+                                    <i class="fa fa-save"></i> تحديث
                                 </button>
                             </div>
                         </div>
@@ -77,18 +78,18 @@
                             <div class="row">
                                 <div class="form-group col-md-6">
                                     <label for="">الاسم <span style="color: red">*</span></label>
-                                    <input type="text" class="form-control" name="name" value="{{ old('name') }}">
+                                    <input type="text" class="form-control" name="name" value="{{ old('name', $path->name) }}">
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label for="">كود <span style="color: red">*</span></label>
-                                    <input type="text" class="form-control" name="code" value="{{ $serial_number }}">
+                                    <input type="text" class="form-control" name="code" value="{{ old('code', $path->code) }}">
                                 </div>
 
                                 <br>
 
                                 <div class="form-group col-md-12">
                                     <p onclick="toggleSection('rawMaterials')" class="d-flex justify-content-between section-header" style="background: #DBDEE2; width: 100%;">
-                                        <span class="p-1 font-weight-bold"><i class="feather icon-package mr-1"></i> المرحلة الإنتاجية (<span id="rawMaterialCount">1</span>)</span>
+                                        <span class="p-1 font-weight-bold"><i class="feather icon-package mr-1"></i> المراحل الإنتاجية (<span id="rawMaterialCount">{{ count($path->stages) }}</span>)</span>
                                         <i class="feather icon-plus-circle p-1"></i>
                                     </p>
                                     <div id="rawMaterials">
@@ -101,13 +102,15 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
-                                                    <td style="width: 10%" class="row-number">1</td>
-                                                    <td><input type="text" name="stage_name[]" class="form-control unit-price"></td>
-                                                    <td style="width: 10%">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
-                                                    </td>
-                                                </tr>
+                                                @foreach ($path->stages as $index => $stage)
+                                                    <tr>
+                                                        <td style="width: 10%" class="row-number">{{ $index + 1 }}</td>
+                                                        <td><input type="text" name="stage_name[]" class="form-control" value="{{ old("stage_name.$index", $stage->stage_name) }}"></td>
+                                                        <td style="width: 10%">
+                                                            <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
                                             </tbody>
                                         </table>
                                         <hr>
@@ -156,8 +159,8 @@
 
                 const newRow = document.createElement('tr');
                 newRow.innerHTML = `
-                    <td style="width: 10%" class="row-number"></td> <!-- سيتم تحديث الرقم لاحقًا -->
-                    <td><input type="text" name="stage_name[]" class="form-control unit-price"></td>
+                    <td style="width: 10%" class="row-number"></td>
+                    <td><input type="text" name="stage_name[]" class="form-control"></td>
                     <td style="width: 10%">
                         <button type="button" class="btn btn-outline-danger btn-sm removeRow"><i class="fa fa-minus"></i></button>
                     </td>

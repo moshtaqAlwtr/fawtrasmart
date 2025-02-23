@@ -32,7 +32,7 @@
                 <div class="card-body">
                     <div class="card-title">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <div>بحث </div>
+                            <div></div>
                             <div>
                                 <a href="{{ route('manufacturing.orders.create') }}" class="btn btn-outline-success">
                                     <i class="fa fa-plus me-2"></i>أضف أمر تصنيع
@@ -43,6 +43,9 @@
                 </div>
             </div>
         </div>
+
+        @include('layouts.alerts.error')
+        @include('layouts.alerts.success')
 
         <!-- كرت البحث -->
         <div class="card mt-3">
@@ -109,63 +112,99 @@
         <!-- كرت الجدول -->
         <div class="card mt-4">
             <div class="card-body">
-                <h4 class="card-title">نتائج البحث</h4>
-                <table class="table table-striped table-hover text-right">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>الاسم</th>
-                            <th>المنتج الرئيسي</th>
-                            <th>الكمية</th>
-                            <th>التاريخ</th>
-                            <th>التكلفة الإجمالية</th>
-                            <th>العميل</th>
-                            <th>الحالة</th>
-                            <th>ترتيب</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>أمر تصنيع 1</td>
-                            <td>عطر 50 ملي</td>
-                            <td>3600</td>
-                            <td>
-                                <div>يبدأ: 13/01/2025</div>
-                                <div>ينتهي: 15/01/2025</div>
-                            </td>
-                            <td>19,592 ر.س</td>
-                            <td>
-                                <div>POS Client</div>
-                                <div>#000002</div>
-                            </td>
-                            <td><span class="badge badge-primary">قيد التنفيذ</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <div class="dropdown">
-                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button" id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                            <li>
-                                                <a class="dropdown-item" href="">
-                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="">
-                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item text-danger" href="#">
-                                                    <i class="fa fa-trash me-2"></i>حذف
-                                                </a>
-                                            </li>
+                @if(isset($orders) && count($orders) > 0)
+                    <table class="table table-striped">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>الاسم</th>
+                                <th>المنتج الرئيسي</th>
+                                <th>الكمية</th>
+                                <th>التاريخ</th>
+                                <th>التكلفة الإجمالية</th>
+                                <th>العميل</th>
+                                <th>الحالة</th>
+                                <th>ترتيب</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($orders as $order)
+                                <tr>
+                                    <td>
+                                        <strong>{{ $order->name }}</strong><br>
+                                        <small class="text-muted">{{ $order->code }}</small>
+                                    </td>
+                                    <td>{{ $order->product->name }}</td>
+                                    <td><strong>{{ $order->quantity }}</strong></td>
+                                    <td>
+                                        <div>يبدأ : <strong>{{ $order->from_date }}</strong></div>
+                                        <div>ينتهي : <strong>{{ $order->to_date }}</strong></div>
+                                    </td>
+                                    <td><strong>{{ number_format($order->last_total_cost) }} ر.س</strong></td>
+                                    <td>
+                                        <strong>{{ $order->client->trade_name }}</strong><br>
+                                        <small class="text-muted">#{{ $order->client->code }}</small>
+                                    </td>
+                                    <td><span class="badge badge-primary">قيد التنفيذ</span></td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 btn-sm" type="button" id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('manufacturing.orders.show', $order->id) }}">
+                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('manufacturing.orders.edit', $order->id) }}">
+                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $order->id }}">
+                                                            <i class="fa fa-trash me-2"></i>حذف
+                                                        </a>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Modal delete -->
+                                    <div class="modal fade text-left" id="modal_DELETE{{ $order->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header" style="background-color: #EA5455 !important;">
+                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $order->name }}</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true" style="color: #DC3545">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <strong>
+                                                        هل انت متاكد من انك تريد الحذف ؟
+                                                    </strong>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
+                                                    <a href="{{ route('manufacturing.orders.delete', $order->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                        <!-- أضف المزيد من الصفوف حسب الحاجة -->
-                    </tbody>
-                </table>
+                                    <!--end delete-->
+
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="alert alert-danger text-xl-center" role="alert">
+                        <p class="mb-0">
+                            لا توجد اوامر تصنيع مضافة حتى الان !!
+                        </p>
+                    </div>
+                @endif
             </div>
         </div>
 
