@@ -284,7 +284,19 @@
                         <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
                         <div class="table-responsive">
                             <table class="table" id="items-table">
-
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>الوصف</th>
+                                        <th>الكمية</th>
+                                        <th>السعر</th>
+                                        <th>الخصم</th>
+                                        <th>الضريبة 1</th>
+                                        <th>الضريبة 2</th>
+                                        <th>المجموع</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">

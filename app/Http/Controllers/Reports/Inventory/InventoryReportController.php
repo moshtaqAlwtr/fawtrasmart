@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Reports\Inventory;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\StoreHouse;
 use Illuminate\Http\Request;
 
 class InventoryReportController extends Controller
@@ -13,69 +16,35 @@ class InventoryReportController extends Controller
         return view('reports.inventory.index');
     }
 
-    // تقرير ورقة الجرد
-    public function inventoryCount()
+    // تقرير المخزون بالمخازن
+    public function inventorySheet( Request $request)
     {
-        return view('reports.inventory.inventoryCount');
+
+ // جلب جميع التصنيفات والعلامات التجارية والمستودعات للفلترة
+ $categories = Category::all();
+ $brands = Product::distinct('brand')->pluck('brand');
+ $warehouses = StoreHouse::all();
+
+ // جلب البيانات مع الفلترة
+ $products = Product::query()
+     ->with(['category', 'product_details'])
+     ->when($request->category, function ($query, $category) {
+         return $query->where('category_id', $category);
+     })
+     ->when($request->brand, function ($query, $brand) {
+         return $query->where('brand', $brand);
+     })
+     ->when($request->warehouse, function ($query, $warehouse) {
+         return $query->whereHas('product_details', function ($q) use ($warehouse) {
+             $q->where('store_house_id', $warehouse);
+         });
+     })
+     ->get();
+
+
+        return view('reports.inventory.stock_report.inventory_sheet', compact('products', 'categories', 'brands', 'warehouses'));
     }
 
-    // تقرير ملخص عمليات المخزون
-    public function inventorySummary()
-    {
-        return view('reports.inventory.inventorySummary');
-    }
 
-    // تقرير الحركة التفصيلية للمخزون
-    public function inventoryMovement()
-    {
-        return view('reports.inventory.inventoryMovement');
-    }
 
-    // تقرير قيمة المخزون
-    public function inventoryValue()
-    {
-        return view('reports.inventory.inventoryValue');
-    }
-
-    // تقرير ملخص رصيد المخازن
-    public function inventoryBalanceSummary()
-    {
-        return view('reports.inventory.inventoryBalanceSummary');
-    }
-
-    // تقرير ميزان مراجعة منتجات
-    public function productTrialBalance()
-    {
-        return view('reports.inventory.productTrialBalance');
-    }
-
-    // تقرير تفاصيل حركات المخزون لكل منتج
-    public function productMovementDetails()
-    {
-        return view('reports.inventory.productMovementDetails');
-    }
-
-    // تقرير تتبع المنتجات برقم الشحنة و تاريخ الانتهاء
-    public function trackProductsByBatchAndExpiry()
-    {
-        return view('reports.inventory.trackProductsByBatchAndExpiry');
-    }
-
-    // تقرير تتبع المنتجات بالرقم المتسلسل
-    public function trackProductsBySerialNumber()
-    {
-        return view('reports.inventory.trackProductsBySerialNumber');
-    }
-
-    // تقرير تتبع المنتجات برقم الشحنة
-    public function trackProductsByBatch()
-    {
-        return view('reports.inventory.trackProductsByBatch');
-    }
-
-    // تقرير تتبع المنتجات باستخدام تاريخ الانتهاء
-    public function trackProductsByExpiry()
-    {
-        return view('reports.inventory.trackProductsByExpiry');
-    }
 }

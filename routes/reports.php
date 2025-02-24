@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Reports\Customers\CustomerReportController;
+use App\Http\Controllers\Reports\Inventory\InventoryReportController;
 use App\Http\Controllers\Reports\OrdersReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Reports\ReportsController;
@@ -76,5 +77,10 @@ Route::group(
 
 
             });
+            Route::prefix('StorHouseReport')->group(function () {
+                Route::get('/', [InventoryReportController::class, 'index'])->name('StorHouseReport.index');
+                Route::get('/inventorySheet', [InventoryReportController::class,'inventorySheet'])->name('StorHouseReport.inventorySheet');
+            });
+
     },
 );

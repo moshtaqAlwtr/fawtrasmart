@@ -1331,9 +1331,9 @@
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Customers_Report') }}</span></a></li>
 
-                    <li><a href=""><i class="feather icon-circle"></i><span
+                    <li><a href="{{ route('StorHouseReport.index') }}"><i class="feather icon-circle"></i><span
                                 class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Suppliers_Report') }}</span></a></li>
+                                data-i18n="eCommerce">{{ trans('main_trans.Stock_Report') }}</span></a></li>
 
                     <li><a href=""><i class="feather icon-circle"></i><span
                                 class="menu-item"

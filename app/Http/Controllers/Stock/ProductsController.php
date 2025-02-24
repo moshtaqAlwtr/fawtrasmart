@@ -80,10 +80,11 @@ class ProductsController extends Controller
         $firstTemplateUnit = $TemplateUnit->first(); // القالب الأول افتراضيًا
         $SubUnits = SubUnit::where('template_unit_id', $firstTemplateUnit->id)->get();
 
-       
+
     }
        $generalSettings = GeneralSettings::select()->first();
-        $role = $generalSettings->enable_multi_units_system == 1;
+       $role = $generalSettings ? $generalSettings->enable_multi_units_system == 1 : false;
+
         $categories = Category::select('id','name')->get();
         return view('stock.products.create',compact('categories','role','serial_number','TemplateUnit','SubUnits'));
     }
@@ -101,21 +102,21 @@ class ProductsController extends Controller
         } else {
             $subUnits = SubUnit::where('template_unit_id', $request->template_unit_id)->get();
         }
-    
+
         return response()->json($subUnits);
     }
-    
+
 
     public function create_services()
     {
         $record_count = DB::table('products')->count();
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
-       
+
 
         $categories = Category::select('id','name')->get();
         return view('stock.products.create_services',compact('categories','serial_number'));
     }
-    
+
 
     public function edit($id)
     {
@@ -151,12 +152,12 @@ class ProductsController extends Controller
     public function store(ProductsRequest $request)
     {
         // dd($request->all());
-       
+
         try{
 
             DB::beginTransaction();
             $product = new Product();
- 
+
             $product->name = $request->name;
             $product->description = $request->description;
             $product->category_id = $request->category_id;
@@ -212,7 +213,7 @@ class ProductsController extends Controller
                 return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
             }
             return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
-            
+
 
         } # End Try
         catch(\Exception $ex){
@@ -290,8 +291,8 @@ class ProductsController extends Controller
         $product = Product::findOrFail($id);
         $storehouses = StoreHouse::select(['name','id'])->get();
         $generalSettings = GeneralSettings::select()->first();
-        $role = $generalSettings->enable_multi_units_system == 1;
-      
+        $role = $generalSettings ? $generalSettings->enable_multi_units_system == 1 : false;
+
         $SubUnits = $product->sub_unit_id ? SubUnit::where('template_unit_id', $product->sub_unit_id)->get() : collect();
 
         return view('stock.products.manual_stock_adjust',compact('product','role','storehouses','SubUnits'));
@@ -299,7 +300,7 @@ class ProductsController extends Controller
 
     public function add_manual_stock_adjust(Request $request, $id)
     {
-        
+
         $request->validate([
             'quantity' => 'required|numeric|min:1',
             'type' => 'required|in:1,2',
@@ -367,7 +368,7 @@ class ProductsController extends Controller
         } else {
             $conversionFactor = 1; // قيمة افتراضية في حالة عدم وجود الوحدة
         }
-        
+
         $product->quantity = ($type == 2)
             ? $product->quantity - ($request->quantity * $conversionFactor)
             : $product->quantity + ($request->quantity * $conversionFactor);

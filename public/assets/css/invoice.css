@@ -1,0 +1,101 @@
+
+    .custom-table {
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .custom-table thead tr {
+        background: linear-gradient(to right, #f8f9fa, #ffffff);
+    }
+
+    .custom-table th {
+        font-weight: 600;
+        padding: 1rem;
+        border-bottom: 2px solid #e9ecef;
+        color: #495057;
+    }
+
+    .invoice-row {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .invoice-row:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.02);
+    }
+
+    .invoice-number {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        background: #f8f9fa;
+        padding: 0.3rem 0.8rem;
+        border-radius: 6px;
+    }
+
+    .client-name strong {
+        color: #2c3e50;
+    }
+
+    .amount {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .currency {
+        color: #6c757d;
+        font-weight: normal;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+        border-radius: 6px;
+    }
+
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .bg-danger-subtle { background-color: #f8d7da; }
+    .bg-info-subtle { background-color: #cff4fc; }
+    .bg-primary-subtle { background-color: #cfe2ff; }
+    .bg-secondary-subtle { background-color: #e2e3e5; }
+
+    .date-info {
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .creator-info {
+        font-size: 0.85rem;
+    }
+
+    td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .client-info, .amount-info {
+        padding: 0.5rem 0;
+    }
+
+    .tax-info, .address-info {
+        font-size: 0.85rem;
+    }
+
+    /* تحسين مظهر البادج */
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 1em;
+        border-radius: 6px;
+    }
+
+    /* تحسين الأيقونات */
+    .fas {
+        width: 16px;
+        text-align: center;
+    }

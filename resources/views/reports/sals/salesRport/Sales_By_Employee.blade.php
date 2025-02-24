@@ -117,7 +117,7 @@
                             @foreach($employees as $employee)
                                 <option value="{{ $employee->id }}"
                                     {{ request('order_origin') == $employee->id ? 'selected' : '' }}>
-                                    {{ $employee->name }}
+                                    {{ $employee->full_name }}
                                 </option>
                             @endforeach
                         </select>
@@ -246,7 +246,7 @@
                             {{-- Employee Group Header --}}
                             <tr class="table-secondary">
                                 <td colspan="8">
-                                    {{ $invoices->first()->createdByUser->name ?? 'موظف ' . $employeeId }}
+                                    {{ $invoices->first()->employee->full_name ?? 'موظف ' . $employeeId }}
                                 </td>
                             </tr>
 
@@ -261,7 +261,7 @@
                             {{-- Invoices for this employee --}}
                             @foreach ($invoices as $invoice)
                                 <tr class="{{ in_array($invoice->type, ['return', 'returned']) ? 'table-return text-return' : '' }}">
-                                    <td>{{ $invoice->createdByUser->name ?? 'موظف ' . $employeeId }}</td>
+                                    <td>{{ $invoice->employee->full_name ?? 'موظف ' . $employeeId }}</td>
                                     <td>{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</td>
                                     <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}</td>
                                     <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
