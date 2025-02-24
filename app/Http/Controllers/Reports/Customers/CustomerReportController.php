@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Reports\Customers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\CategoriesClient;
 use App\Models\Client;
 use App\Models\CostCenter;
 use App\Models\Employee;
+use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\PaymentsProcess;
@@ -554,17 +556,96 @@ class CustomerReportController extends Controller
         return view('reports.customers.CustomerReport.customer_account_statement', compact('accountStatements', 'journalEntries', 'costCenters', 'accounts', 'branches', 'customers', 'salesManagers', 'categories'));
     }
     // عرض مواعيد العملاء
-    public function customerAppointments()
+
+    public function customerAppointments(Request $request)
     {
-        return view('reports.customers.customer-appointments');
+        // جلب جميع العملاء والموظفين للفلترة
+        $clients = Client::all();
+        $employees = Employee::all();
+
+        // بدء بناء الاستعلام
+        $query = Appointment::with(['client', 'employee', 'notes']);
+
+        // تطبيق الفلترة بناءً على القيم المدخلة
+        if ($request->has('client') && $request->client != '') {
+            $query->where('client_id', $request->client);
+        }
+
+        if ($request->has('employee') && $request->employee != '') {
+            $query->where('employee_id', $request->employee);
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('created_by') && $request->created_by != '') {
+            $query->whereHas('notes', function ($q) use ($request) {
+                $q->where('user_id', $request->created_by);
+            });
+        }
+
+        if ($request->has('date_from') && $request->date_from != '') {
+            $query->whereDate('appointment_date', '>=', $request->date_from);
+        }
+
+        if ($request->has('date_to') && $request->date_to != '') {
+            $query->whereDate('appointment_date', '<=', $request->date_to);
+        }
+
+        if ($request->has('view_details') && $request->view_details == 'on') {
+            $query->with('notes');
+        }
+
+        // جلب البيانات المفلترة
+        $appointments = $query->orderBy('appointment_date', 'desc')->get();
+
+        // عرض الواجهة مع البيانات
+        return view('reports.customers.CustomerReport.customer_apptilmition', compact('appointments', 'clients', 'employees'));
     }
 
     // عرض أقساط العملاء
-    public function customerInstallments()
-    {
-        // ��لب ��ميع الفواتير التي تم ��نشا��ها من قبل المو��فين
+    public function customerInstallments(Request $request)
+{
+    // جلب جميع الفواتير مع الأقساط المرتبطة بها
+    $installments = Installment::query();
 
-        return view('reports.customers.customer-installments');
+    // تطبيق الفلاتر بناءً على المدخلات
+    if ($request->has('client') && $request->client != '') {
+        $installments->where('client_id', $request->client);
     }
+
+    if ($request->has('category') && $request->category != '') {
+        $installments->where('category_id', $request->category);
+    }
+
+    if ($request->has('from_date') && $request->from_date != '') {
+        $installments->where('date', '>=', $request->from_date);
+    }
+
+    if ($request->has('to_date') && $request->to_date != '') {
+        $installments->where('date', '<=', $request->to_date);
+    }
+
+    if ($request->has('status') && $request->status != '') {
+        $installments->where('status', $request->status);
+    }
+
+    if ($request->has('branch') && $request->branch != '') {
+        $installments->where('branch_id', $request->branch);
+    }
+
+    // جلب البيانات المفلترة
+    $installments = $installments->get();
+
+    // جلب البيانات الأخرى
+    $clients = Client::all();
+    $employees = Employee::all();
+    $branches = Branch::all();
+    $categories = CategoriesClient::all();
+
+    // عرض الواجهة مع البيانات
+    return view('reports.customers.CustomerReport.customer_installment', compact('installments', 'clients', 'employees', 'branches', 'categories'));
+}
     // تأكد من استيراد نموذج Sale
 }
