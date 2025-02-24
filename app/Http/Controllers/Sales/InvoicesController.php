@@ -23,6 +23,8 @@ use App\Models\SalesCommission;
 use App\Models\StoreHouse;
 use App\Models\Treasury;
 use App\Models\User;
+use App\Models\WarehousePermits;
+use App\Models\WarehousePermitsProducts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -453,7 +455,9 @@ class InvoicesController extends Controller
                 'paid_amount' => $advance_payment,
             ]);
 
-   
+     
+         
+
 
             // ** تحديث رصيد حساب أبناء العميل **
 
@@ -463,10 +467,12 @@ class InvoicesController extends Controller
             foreach ($items_data as $item) {
                 $item['invoice_id'] = $invoice->id;
                 InvoiceItem::create($item);
-
+            
                 // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
-                $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
-               
+                $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])
+                    ->where('product_id', $item['product_id'])
+                    ->first();
+            
                 if (!$productDetails) {
                     $productDetails = ProductDetails::create([
                         'store_house_id' => $item['store_house_id'],
@@ -474,16 +480,45 @@ class InvoicesController extends Controller
                         'quantity' => 0,
                     ]);
                 }
-                 $proudect = Product::where('id', $item['product_id'])->first();
-                        
-                 if ($proudect->type !== "services") {
+            
+                $proudect = Product::where('id', $item['product_id'])->first();
+            
+                if ($proudect->type !== "services") {
                     if ((int) $item['quantity'] > (int) $productDetails->quantity) {
                         throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
                     }
                 }
-
+            
+                // ** حساب المخزون قبل وبعد التعديل **
+                $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+                $stock_before = $total_quantity;
+                $stock_after = $stock_before - $item['quantity'];
+            
+                // ** تحديث المخزون **
                 $productDetails->decrement('quantity', $item['quantity']);
+            
+                // ** تسجيل المبيعات في حركة المخزون **
+                $wareHousePermits = new WarehousePermits();
+                $wareHousePermits->permission_type = 10;
+                $wareHousePermits->permission_date = $invoice->created_at;
+                $wareHousePermits->number = $invoice->id;
+                $wareHousePermits->grand_total = $invoice->grand_total;
+                $wareHousePermits->store_houses_id = $storeHouse->id;
+                $wareHousePermits->created_by = auth()->user()->id;
+                $wareHousePermits->save();
+            
+                // ** تسجيل البيانات في WarehousePermitsProducts **
+                WarehousePermitsProducts::create([
+                    'quantity' => $item['quantity'],
+                    'total' => $item['total'], 
+                    'unit_price' => $item['unit_price'],                   
+                    'product_id' => $item['product_id'],                              
+                    'stock_before' => $stock_before, // المخزون قبل التحديث
+                    'stock_after' => $stock_after,   // المخزون بعد التحديث
+                    'warehouse_permits_id' => $wareHousePermits->id,
+                ]);
             }
+            
          
            // جلب بيانات الموظف والمستخدم
            $employee_name = Employee::where('id', $invoice->employee_id)->first();
