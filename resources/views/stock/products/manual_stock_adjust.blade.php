@@ -75,13 +75,16 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        @endif
+
+                                        @else
                                         <div class="col-3">
                                             <div class="form-group">
                                                 <label for="first-name-vertical">الكمية</label>
                                                 <input type="text" id="first-name-vertical" class="form-control" name="quantity" value="{{ old('quantity') }}">
                                             </div>
                                         </div>
+                                        @endif
+                                    
 
                                         <div class="col-3">
                                             <div class="form-group">
