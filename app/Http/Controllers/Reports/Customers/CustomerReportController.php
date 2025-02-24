@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Reports\Customers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Account;
 use App\Models\Branch;
 use App\Models\CategoriesClient;
 use App\Models\Client;
+use App\Models\CostCenter;
 use App\Models\Employee;
 use App\Models\Invoice;
+use App\Models\JournalEntry;
 use App\Models\PaymentsProcess;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -358,27 +361,19 @@ class CustomerReportController extends Controller
                     'net_sales' => $netSales,
                     'total_payments' => $clientPayments,
                     'adjustments' => 0, // يمكن إضافة حساب التسويات لاحقاً
-                    'balance' => $balance
+                    'balance' => $balance,
                 ];
             }
         }
 
         // ترتيب النتائج حسب الرصيد تنازلياً
-        usort($clientBalances, function($a, $b) {
+        usort($clientBalances, function ($a, $b) {
             return $b['balance'] <=> $a['balance'];
         });
 
-        return view('reports.customers.CustomerReport.customer_blances', compact(
-            'clientBalances',
-            'employees',
-            'branches',
-            'clients',
-            'totalSales',
-            'totalPayments',
-            'totalBalance'
-        ))->with('totalClients', count($clientBalances));
+        return view('reports.customers.CustomerReport.customer_blances', compact('clientBalances', 'employees', 'branches', 'clients', 'totalSales', 'totalPayments', 'totalBalance'))->with('totalClients', count($clientBalances));
     }
-        // تمرير البيانات إلى العرض
+    // تمرير البيانات إلى العرض
 
     // عرض مبيعات العملاء
 
@@ -399,7 +394,7 @@ class CustomerReportController extends Controller
         }
 
         if ($request->filled('client_category')) {
-            $query->whereHas('client', function($q) use ($request) {
+            $query->whereHas('client', function ($q) use ($request) {
                 $q->where('category', $request->client_category);
             });
         }
@@ -416,26 +411,28 @@ class CustomerReportController extends Controller
         $invoices = $query->get();
 
         // تجميع الفواتير حسب العميل
-        $groupedInvoices = $invoices->groupBy(function($invoice) {
-            return $invoice->client->trade_name ?? $invoice->client->name ?? 'عميل غير معروف';
-        })->map(function($clientInvoices) {
-            return $clientInvoices->map(function($invoice) {
-                $valueBeforeTax = $invoice->grand_total - $invoice->tax_total; // حساب القيمة قبل الضريبة
+        $groupedInvoices = $invoices
+            ->groupBy(function ($invoice) {
+                return $invoice->client->trade_name ?? ($invoice->client->name ?? 'عميل غير معروف');
+            })
+            ->map(function ($clientInvoices) {
+                return $clientInvoices->map(function ($invoice) {
+                    $valueBeforeTax = $invoice->grand_total - $invoice->tax_total; // حساب القيمة قبل الضريبة
 
-                return (object) [
-                    'date' => Carbon::parse($invoice->invoice_date)->format('d/m/Y'),
-                    'type' => 'فاتورة',
-                    'client_name' => $invoice->client->trade_name ?? $invoice->client->name ?? '',
-                    'document_number' => $invoice->document_number,
-                    'branch' => $invoice->employee->branch->name ?? 'Main Branch',
-                    'shipping_cost' => $invoice->shipping_cost ?? 0,
-                    'value' => $valueBeforeTax, // القيمة قبل الضريبة
-                    'taxes' => $invoice->tax_total ?? 0,
-                    'groups' => $invoice->groups ?? 0,
-                    'total' => $invoice->grand_total ?? 0 // المجموع النهائي بعد الضرائب
-                ];
+                    return (object) [
+                        'date' => Carbon::parse($invoice->invoice_date)->format('d/m/Y'),
+                        'type' => 'فاتورة',
+                        'client_name' => $invoice->client->trade_name ?? ($invoice->client->name ?? ''),
+                        'document_number' => $invoice->document_number,
+                        'branch' => $invoice->employee->branch->name ?? 'Main Branch',
+                        'shipping_cost' => $invoice->shipping_cost ?? 0,
+                        'value' => $valueBeforeTax, // القيمة قبل الضريبة
+                        'taxes' => $invoice->tax_total ?? 0,
+                        'groups' => $invoice->groups ?? 0,
+                        'total' => $invoice->grand_total ?? 0, // المجموع النهائي بعد الضرائب
+                    ];
+                });
             });
-        });
 
         // الحصول على قائمة العملاء للفلتر
         $clients = Client::all();
@@ -445,14 +442,10 @@ class CustomerReportController extends Controller
             'value' => $invoices->sum('value'),
             'taxes' => $invoices->sum('taxes'),
             'groups' => $invoices->sum('groups'),
-            'total' => $invoices->sum('total')
+            'total' => $invoices->sum('total'),
         ];
 
-        return view('reports.customers.CustomerReport.customer_sales', compact(
-            'groupedInvoices',
-            'grandTotals',
-            'clients'
-        ));
+        return view('reports.customers.CustomerReport.customer_sales', compact('groupedInvoices', 'grandTotals', 'clients'));
     }
     // عرض مدفوعات العملاء
     public function customerPayments(Request $request)
@@ -476,7 +469,7 @@ class CustomerReportController extends Controller
         }
 
         if ($request->filled('client_category')) {
-            $query->whereHas('client', function($q) use ($request) {
+            $query->whereHas('client', function ($q) use ($request) {
                 $q->where('category', $request->client_category);
             });
         }
@@ -493,17 +486,73 @@ class CustomerReportController extends Controller
             return redirect()->back()->with('error', 'لا توجد بيانات مطابقة للمعايير المحددة.');
         }
 
-        // الحصول على قائمة العملاء للفلتر
-        $clients = Client::all();
+        // إعداد البيانات للرسم البياني
+        $paymentLabels = ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي'];
+        $paymentData = [$payments->where('payment_method', 'cash')->count(), $payments->where('payment_method', 'credit_card')->count(), $payments->where('payment_method', 'bank_transfer')->count()];
 
-        return view('reports.customers.CustomerReport.customer_payments', compact('payments', 'clients'));
+        // الحصول على قائمة العملاء والفروع والموظفين للفلتر
+        $clients = Client::all();
+        $employees = Employee::all(); // جلب جميع الموظفين
+        $branches = Branch::all(); // جلب جميع الفروع
+        $clientCategories = CategoriesClient::all();
+        return view('reports.customers.CustomerReport.customer_payments', compact('payments', 'clients', 'employees', 'branches', 'paymentLabels', 'paymentData', 'clientCategories'));
     }
     // عرض كشف حساب العملاء
-    public function customerStatements()
+    public function customerAccountStatement(Request $request)
     {
-        return view('reports.customers.customer-statements');
-    }
+        // إعداد الاستعلام الأساسي لجلب كشف حساب العملاء
+        $query = Account::query()
+            ->with(['customer', 'branch'])
+            ->orderBy('created_at', 'desc');
 
+        // تطبيق الفلاتر
+        if ($request->filled('branch')) {
+            $query->where('branch_id', $request->branch);
+        }
+
+        if ($request->filled('days')) {
+            $query->where('created_at', '>=', now()->subDays($request->days));
+        }
+
+        if ($request->filled('financial_year')) {
+            if (in_array('current', $request->financial_year)) {
+                $query->whereYear('created_at', date('Y'));
+            }
+            if (!in_array('all', $request->financial_year)) {
+                $query->whereIn(DB::raw('YEAR(created_at)'), $request->financial_year);
+            }
+        }
+
+        if ($request->filled('customer_type')) {
+            $query->where('customer_type_id', $request->customer_type);
+        }
+
+        if ($request->filled('customer')) {
+            $query->where('customer_id', $request->customer);
+        }
+
+        if ($request->filled('sales_manager')) {
+            $query->where('employee_id', $request->sales_manager);
+        }
+
+        // جلب البيانات
+        $accountStatements = $query->get();
+
+        // جلب القيود المحاسبية
+        $journalEntries = JournalEntry::with(['details', 'client', 'employee', 'costCenter'])
+            ->orderBy('date', 'desc')
+            ->get();
+
+        // الحصول على قائمة الفروع، العملاء، ومديري المبيعات للفلتر
+        $branches = Branch::all();
+        $customers = Client::all();
+        $salesManagers = Employee::all();
+        $categories = CategoriesClient::all();
+        $accounts = Account::all();
+        $costCenters = CostCenter::all();
+
+        return view('reports.customers.CustomerReport.customer_account_statement', compact('accountStatements', 'journalEntries', 'costCenters', 'accounts', 'branches', 'customers', 'salesManagers', 'categories'));
+    }
     // عرض مواعيد العملاء
     public function customerAppointments()
     {
@@ -513,6 +562,8 @@ class CustomerReportController extends Controller
     // عرض أقساط العملاء
     public function customerInstallments()
     {
+        // ��لب ��ميع الفواتير التي تم ��نشا��ها من قبل المو��فين
+
         return view('reports.customers.customer-installments');
     }
     // تأكد من استيراد نموذج Sale

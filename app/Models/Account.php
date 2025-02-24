@@ -31,4 +31,24 @@ class Account extends Model
     {
         return $this->hasMany(Transaction::class, 'account_id');
     }
+
+    // العلاقة مع الحسابات التابعة للفرع
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    // العلاقة مع الموظفين
+    public function salesManager()
+    {
+        return $this->belongsToMany(Employee::class);
+    }
+
+    // العلاقة مع الحسابات التابعة للموظفين الذين يحصلون عليها صلاحية التصريح
+
+public function customer()
+{
+    return $this->belongsTo(Client::class);
+}
+
 }

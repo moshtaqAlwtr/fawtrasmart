@@ -43,6 +43,7 @@ Route::group(
             Route::get('/customerBalances', [CustomerReportController::class, 'customerBalances'])->name('ClientReport.customerBalances');
             Route::get('/customerSales', [CustomerReportController::class, 'customerSales'])->name('ClientReport.customerSales');
             Route::get('/customerPayments', [CustomerReportController::class, 'customerPayments'])->name('ClientReport.customerPayments');
+            Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
         });
 
 

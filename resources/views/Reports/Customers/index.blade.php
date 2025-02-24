@@ -181,7 +181,7 @@
                                 </span>
                                 كشف حساب العملاء
                                 <div class="ms-auto">
-                                    <a href="customer_account.html" class="text-decoration-none text-dark"><i
+                                    <a href="{{route('ClientReport.customerAccountStatement')}}" class="text-decoration-none text-dark"><i
                                             class="fas fa-eye"></i> عرض</a>
                                 </div>
                             </li>
