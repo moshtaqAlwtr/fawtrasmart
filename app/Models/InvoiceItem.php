@@ -108,8 +108,4 @@ class InvoiceItem extends Model
     {
         return $this->belongsTo(Product::class); // Adjust if your foreign key is different
     }
-
-
-
-
 }

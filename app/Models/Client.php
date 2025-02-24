@@ -10,7 +10,7 @@ class Client extends Model
     public $timestamps = true;
 
     // الحقول القابلة للتعبئة
-    protected $fillable = ['trade_name', 'first_name', 'last_name', 'phone', 'mobile', 'street1', 'street2', 'category', 'city', 'region', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id'];
+    protected $fillable = ['trade_name', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id'];
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -194,5 +194,9 @@ class Client extends Model
     public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->last_name}");
+    }
+    public function category()
+    {
+        return $this->hasMany(CategoriesClient::class, 'classification_id');
     }
 }
