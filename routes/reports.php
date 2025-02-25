@@ -3,9 +3,11 @@
 use App\Http\Controllers\Reports\Customers\CustomerReportController;
 use App\Http\Controllers\Reports\Inventory\InventoryReportController;
 use App\Http\Controllers\Reports\OrdersReportController;
+use App\Http\Controllers\Reports\PurchasesReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Reports\ReportsController;
 use App\Http\Controllers\Reports\SalesReportsController;
+use App\Models\PurchaseQuotation;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 require __DIR__ . '/auth.php';
@@ -19,22 +21,9 @@ Route::group(
         Route::prefix('Reports')
             ->middleware(['auth'])
             ->group(function () {
-                Route::get('/purchases/orders', [ReportsController::class, 'purchases'])->name('reports.purchases.orders');
-                Route::get('/purchases/by_supplier', [ReportsController::class, 'supplier'])->name('reports.purchases.by_supplier');
-                Route::get('/purchases/supplier_directory', [ReportsController::class, 'supplierDirectory'])->name('reports.purchases.supplier_directory');
-                Route::get('/purchases/by_employee', [ReportsController::class, 'employee'])->name('reports.purchases.by_employee');
-                Route::get('/purchases/balances', [ReportsController::class, 'balances'])->name('reports.purchases.balances');
-                Route::get('/purchases/aged', [ReportsController::class, 'aged'])->name('reports.purchases.aged');
-                Route::get('/purchases/payments', [ReportsController::class, 'payments'])->name('reports.purchases.payments');
-                Route::get('/purchases/suppliers_purchases', [ReportsController::class, 'suppliersPurchases'])->name('reports.purchases.suppliers_purchases');
-                Route::get('/purchases/supplier_statement', [ReportsController::class, 'supplierStatement'])->name('reports.purchases.supplier_statement');
-                Route::get('/purchases/daily_payments', [ReportsController::class, 'dailyPayments'])->name('reports.purchases.daily_payments');
-                Route::get('/purchases/weekly_payments', [ReportsController::class, 'weeklyPayments'])->name('reports.purchases.weekly_payments');
-                Route::get('/purchases/monthly_payments', [ReportsController::class, 'monthlyPayments'])->name('reports.purchases.monthly_payments');
-                Route::get('/purchases/annual_payments', [ReportsController::class, 'annualPayments'])->name('reports.purchases.annual_payments');
-                Route::get('/products/by_product', [ReportsController::class, 'byProduct'])->name('reports.purchases.by_product');
-                Route::get('/purchases/by_supplier', [ReportsController::class, 'purchasesBySupplier'])->name('reports.purchases.by_supplier');
-                Route::get('/purchases/products_by_employee', [ReportsController::class, 'productsByEmployee'])->name('reports.purchases.products_by_employee');
+                Route::get('/index', [PurchasesReportController::class, 'index'])->name('ReportsPurchases.index');
+
+
             });
         Route::prefix('ClientReport')->group(function () {
             Route::get('/', [CustomerReportController::class, 'index'])->name('ClientReport.index');
@@ -47,6 +36,11 @@ Route::group(
             Route::get('/customerAppointments', [CustomerReportController::class, 'customerAppointments'])->name('ClientReport.customerAppointments');
             Route::get('/customerInstallments', [CustomerReportController::class, 'customerInstallments'])->name('ClientReport.customerInstallments');
             Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
+        });
+        Route::prefix('ReportsPurchases')->group(function () {
+            Route::get('/', [PurchasesReportController::class, 'index'])->name('ReportsPurchases.index');
+            Route::get('/bySupplier', [PurchasesReportController::class, 'bySupplier'])->name('ReportsPurchases.bySupplier');
+
         });
 
 
@@ -80,6 +74,12 @@ Route::group(
             Route::prefix('StorHouseReport')->group(function () {
                 Route::get('/', [InventoryReportController::class, 'index'])->name('StorHouseReport.index');
                 Route::get('/inventorySheet', [InventoryReportController::class,'inventorySheet'])->name('StorHouseReport.inventorySheet');
+                Route::get('/summaryInventory', [InventoryReportController::class,'summaryInventory'])->name('StorHouseReport.summaryInventory');
+                Route::get('/detailedMovementInventory', [InventoryReportController::class,'detailedMovementInventory'])->name('StorHouseReport.detailedMovementInventory');
+                Route::get('/valueInventory', [InventoryReportController::class,'valueInventory'])->name('StorHouseReport.valueInventory');
+                Route::get('/inventoryBlance', [InventoryReportController::class,'inventoryBlance'])->name('StorHouseReport.inventoryBlance');
+                Route::get('/trialBalance', [InventoryReportController::class,'trialBalance'])->name('StorHouseReport.trialBalance');
+                Route::get('/Inventory_mov_det_product', [InventoryReportController::class,'Inventory_mov_det_product'])->name('StorHouseReport.Inventory_mov_det_product');
             });
 
     },

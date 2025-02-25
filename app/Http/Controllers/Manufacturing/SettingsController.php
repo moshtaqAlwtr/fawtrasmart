@@ -16,18 +16,18 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        return view('Manufacturing.settings.index');
+        return view('manufacturing.settings.index');
     }
     public function General()
     {
         $general_settings = ManufacturingGeneralSetting::first();
-        return view('Manufacturing.settings.General', compact('general_settings'));
+        return view('manufacturing.settings.General', compact('general_settings'));
     }
 
     public function Manual()
     {
         $order_manual_status = ManufacturingOrderStatuses::with('manualOrderStatus')->first();
-        return view('Manufacturing.settings.manual.index', compact('order_manual_status'));
+        return view('manufacturing.settings.manual.index', compact('order_manual_status'));
     }
 
 
@@ -42,7 +42,7 @@ class SettingsController extends Controller
             ['quantity_exceeded' => $request->has('quantity_exceeded') ? 1 : 0]
         );
 
-        return redirect()->route('Manufacturing.settings.General')->with(['success' => 'تم تحديث الإعدادات بنجاح']);
+        return redirect()->route('manufacturing.settings.general')->with(['success' => 'تم تحديث الإعدادات بنجاح']);
     }
 
     public function order_manual_status(Request $request)
