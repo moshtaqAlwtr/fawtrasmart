@@ -227,7 +227,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        @endif
+                                        @else
                                         <div class="col-12">
                                             <div class="row">
                                                 <div class="col-6">
@@ -244,6 +244,8 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @endif
+                                        
                                         <div class="col-12">
                                             <div class="row">
                                                 <div class="col-6">

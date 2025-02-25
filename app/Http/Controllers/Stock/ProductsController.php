@@ -152,7 +152,7 @@ class ProductsController extends Controller
     {
         // dd($request->all());
        
-        try{
+        // try{
 
             DB::beginTransaction();
             $product = new Product();
@@ -214,11 +214,7 @@ class ProductsController extends Controller
             return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
             
 
-        } # End Try
-        catch(\Exception $ex){
-                DB::rollback();
-            return redirect()->back()->with(['error'=> 'حدث خطاء ما يرجى المحاوله مره اخره'])->withInput();
-        }
+       
     }# End Stor
 
     // اضافة الخدمة
