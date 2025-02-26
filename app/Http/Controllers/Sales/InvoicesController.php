@@ -10,7 +10,7 @@ use App\Models\Client;
 use App\Models\Commission;
 use App\Models\Commission_Products;
 use App\Models\CommissionUsers;
-use App\Models\DefaultWarehouses;
+use App\Models\DefaultWarehouses; 
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -303,7 +303,14 @@ class InvoicesController extends Controller
 // التأكد من أن storeHouse ليس فارغًا قبل محاولة الوصول إلى ID
     $store_house_id = $storeHouse ? $storeHouse->id : null;
 
-
+    if ($user && $user->employee_id) {
+        $MainTreasury = Account::where('deposit_permissions', 1)
+            ->where('value_of_deposit_permissions', $user->employee_id)
+            ->first();
+    } else {
+        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+    }
+    
 
          // إرجاع store_id
         // return $storeId;
@@ -677,17 +684,19 @@ class InvoicesController extends Controller
                 // 'created_by_employee' => Auth::id(),
             ]);
 
+            $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
             // إضافة تفاصيل القيد المحاسبي
             // 1. حساب العميل (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' => $invoice->client->id, // حساب العميل
+                'account_id' => $clientaccounts->id, // حساب العميل
                 'description' => 'فاتورة مبيعات',
                 'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
                 'credit' => 0,
                 'is_debit' => true,
             ]);
 
+            
             // 2. حساب المبيعات (دائن)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
@@ -709,27 +718,66 @@ class InvoicesController extends Controller
             ]);
 
             // ** تحديث رصيد حساب المبيعات (إيرادات) **
+            // if ($salesAccount) {
+            //     $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
+            //     $salesAccount->save();
+            // }
+
+             // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
             if ($salesAccount) {
-                $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
+                $amount = $amount_after_discount; 
+                $salesAccount->balance += $amount;
                 $salesAccount->save();
+            
+                // تحديث جميع الحسابات الرئيسية المتصلة به
+                $this->updateParentBalanceSalesAccount($salesAccount->parent_id, $amount);
             }
 
             // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
-            $revenueAccount = Account::where('name', 'الإيرادات')->first();
-            if ($revenueAccount) {
-                $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
-                $revenueAccount->save();
-            }
+            // $revenueAccount = Account::where('name', 'الإيرادات')->first();
+            // if ($revenueAccount) {
+            //     $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
+            //     $revenueAccount->save();
+            // }
 
-            // تحديث رصيد حساب القيمة المضافة (الخصوم)
-            $vatAccount->balance += $tax_total; // قيمة الضريبة
-            $vatAccount->save();
+           
+            // $vatAccount->balance += $tax_total; // قيمة الضريبة
+            // $vatAccount->save();
+
+             //تحديث رصيد حساب القيمة المضافة (الخصوم)
+            if ($vatAccount) {
+                $amount = $tax_total; 
+                $vatAccount->balance += $amount;
+                $vatAccount->save();
+            
+                // تحديث جميع الحسابات الرئيسية المتصلة به
+                $this->updateParentBalance($vatAccount->parent_id, $amount);
+            }
+            
+
 
             // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
-            $assetsAccount = Account::where('name', 'الأصول')->first();
-            if ($assetsAccount) {
-                $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-                $assetsAccount->save();
+            // $assetsAccount = Account::where('name', 'الأصول')->first();
+            // if ($assetsAccount) {
+            //     $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+            //     $assetsAccount->save();
+            // }
+            // تحديث رصيد حساب الخزينة الرئيسية
+            // $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            // if ($MainTreasury) {
+            //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+            //     $MainTreasury->save();
+            // }
+
+             // تحديث رصيد حساب الخزينة الرئيسية
+             
+            if ($MainTreasury) {
+                $amount = $total_with_tax; 
+                $MainTreasury->balance += $amount;
+                $MainTreasury->save();
+            
+                // تحديث جميع الحسابات الرئيسية المتصلة به
+                $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
             }
 
             // ** الخطوة السابعة: إنشاء سجل الدفع إذا كان هناك دفعة مقدمة أو دفع كامل **
@@ -737,18 +785,18 @@ class InvoicesController extends Controller
                 $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
 
                 // البحث عن حساب الخزينة الرئيسية
-                // $mainTreasuryAccount = Account::whereHas('parent.parent', function ($query) {
-                //     $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
-                //         $subQuery->where('name', 'الأصول المتداولة');
-                //     });
-                // })
-                //     ->where('name', 'الخزينة الرئيسية')
-                //     ->first();
+              //  $mainTreasuryAccount = Account::whereHas('parent.parent', function ($query) {
+                 //   $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
+                  //      $subQuery->where('name', 'الأصول المتداولة');
+                   // });
+               // }) 
+                $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')
+                    ->first();
 
-                // // التأكد من وجود حساب الخزينة الرئيسية
-                // if (!$mainTreasuryAccount) {
-                //     throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
-                // }
+                // التأكد من وجود حساب الخزينة الرئيسية
+                if (!$mainTreasuryAccount) {
+                    throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+                }
 
                 // البحث عن حساب العميل الفرعي
                 $clientAccount = Account::where('name', $invoice->client->trade_name)
@@ -790,7 +838,7 @@ class InvoicesController extends Controller
                 // 1. حساب الخزينة الرئيسية (مدين)
                 $treasuryDetail = JournalEntryDetail::create([
                     'journal_entry_id' => $paymentJournalEntry->id,
-                    // 'account_id' => ,
+                    'account_id' => $mainTreasuryAccount->id,
                     'description' => 'استلام دفعة نقدية',
                     'debit' => $payment_amount,
                     'credit' => 0,
@@ -802,7 +850,7 @@ class InvoicesController extends Controller
                 // 2. حساب العميل (دائن)
                 $clientDetail = JournalEntryDetail::create([
                     'journal_entry_id' => $paymentJournalEntry->id,
-                    'account_id' => $clientAccount->id,
+                    'account_id' => $clientaccounts->id,
                     'description' => 'دفعة من العميل',
                     'debit' => 0,
                     'credit' => $payment_amount,
@@ -848,8 +896,53 @@ class InvoicesController extends Controller
         }
 
         return $salesAccount->id;
+
     }
 
+    private function updateParentBalance($parentId, $amount)
+    {   //تحديث الحسابات المرتبطة بالقيمة المضافة
+        if ($parentId) {
+            $vatAccount = Account::find($parentId);
+            if ($vatAccount) {
+                $vatAccount->balance += $amount;
+                $vatAccount->save();
+    
+                // استدعاء الوظيفة نفسها لتحديث الحساب الأعلى منه
+                $this->updateParentBalance($vatAccount->parent_id, $amount);
+            }
+        }
+    }
+
+    private function updateParentBalanceMainTreasury($parentId, $amount)
+    {
+          // تحديث رصيد الحسابات المرتبطة الخزينة الرئيسية
+        if ($parentId) {
+            $MainTreasury = Account::find($parentId);
+            if ($MainTreasury) {
+                $MainTreasury->balance += $amount;
+                $MainTreasury->save();
+    
+                // استدعاء الوظيفة نفسها لتحديث الحساب الأعلى منه
+                $this->updateParentBalance($MainTreasury->parent_id, $amount);
+            }
+        }
+    }
+    
+
+      private function updateParentBalanceSalesAccount($parentId, $amount)
+    {
+          // تحديث رصيد الحسابات المرتبطة  المبيعات
+        if ($parentId) {
+            $MainTreasury = Account::find($parentId);
+            if ($MainTreasury) {
+                $MainTreasury->balance += $amount;
+                $MainTreasury->save();
+    
+                // استدعاء الوظيفة نفسها لتحديث الحساب الأعلى منه
+                $this->updateParentBalanceSalesAccount($MainTreasury->parent_id, $amount);
+            }
+        }
+    }
     public function show($id)
     {
         $clients = Client::all();

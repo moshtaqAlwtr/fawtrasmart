@@ -146,7 +146,7 @@
                         </header>
                     </div>
                     <!--/ User Chat profile area -->
-
+                  
                     <!-- Chat Sidebar area -->
                     <div class="sidebar-content card">
                         <span class="sidebar-close-icon">
@@ -177,7 +177,7 @@
                         </div>
                     </div>
                     <!--/ Chat Sidebar area -->
-
+                    
                 </div>
             </div>
             <div class="content-right">
@@ -210,9 +210,23 @@
                                         <div class="">
                                             <table class="table" dir="rtl">
                                                 <tbody id="table-body">
-
+            
                                                 </tbody>
                                             </table>
+                                        </div>
+                                        <div class="content-right">
+                                            <div class="content-wrapper">
+                                                <div class="content-body">
+                                                    <div id="loading-spinner" style="display: none;">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="sr-only">جار التحميل...</span>
+                                                        </div>
+                                                    </div>
+                                        
+                                                    <!-- مكان عرض البيانات -->
+                                                    <div id="table-container"></div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <button id="addAccountModalButton"
@@ -486,24 +500,49 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function() {
-            // جلب بيانات الشجرة من الـ API
-            $('#tree').jstree({
-                'core': {
-                    'themes': {
-                        'rtl': true,
-                        // 'dots': false,
-                        'icons': true
-                    },
+    $(document).ready(function() {
+    $('#tree').jstree({
+        'core': {
+            'themes': {
+                'rtl': true,
+                'icons': true
+            },
+            'data': {
+                'url': '/accounts/tree',
+                'dataType': 'json'
+            }
+        }
+    });
 
-                    'data': {
-                        'url': '/accounts/tree', // رابط الـ API
-                        'dataType': 'json'
-                    }
+    $('#tree').on('select_node.jstree', function(e, data) {
+        const nodeId = data.node.id;
+        const node = data.node;
+
+        if (node.children.length === 0) {
+            $('#loading-spinner').show();
+            $('#table-container').hide();
+
+            $.ajax({
+                url: `/Accounts/accounts_chart/testone/${nodeId}`,
+                type: 'GET',
+                success: function(response) {
+                    $('#loading-spinner').hide();
+                    $('#table-container').html(response).show();
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'خطأ!',
+                        text: 'حدث خطأ أثناء جلب البيانات.',
+                        icon: 'error',
+                    });
+                    $('#loading-spinner').hide();
                 }
             });
-
-        });
+        } else {
+            $('#table-container').hide();
+        }
+    });
+});
 
         $(document).ready(function() {
             // جلب الآباء عند تحميل الصفحة
@@ -988,23 +1027,75 @@
                 }
             });
         });
-        $('#tree').on('select_node.jstree', function(e, data) {
-            const nodeId = data.node.id;
-            const normalizedNodeName = data.node.text.trim().toLowerCase();
-
-            if (normalizedNodeName === 'المبيعات') {
-                // توجيه المستخدم إلى صفحة تفاصيل المبيعات
-                window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
-            } else if (normalizedNodeName === 'القيمة المضافة المحصلة') {
-                // توجيه المستخدم إلى صفحة تفاصيل القيمة المضافة
-                window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
-            } else if (normalizedNodeName === 'مردودات المبيعات') {
-                // توجيه المستخدم إلى صفحة تفاصيل القيمة المضافة
-                window.location.href = `/Accounts/accounts_chart/showDetails/${nodeId}`;
-            }
-
-        });
+       
     </script>
+    <script>
+$(document).ready(function() {
+    // جلب القيود عند تحديد فرع من الشجرة
+    $('#tree').on('select_node.jstree', function(e, data) {
+        const nodeId = data.node.id; // ID العقدة المحددة
+        const node = data.node;
+
+        // التحقق مما إذا كان الحساب لديه أبناء (آخر جذر)
+        if (node.children.length === 0) {
+            // إظهار مؤشر التحميل
+            $('#loading-spinner').show();
+            $('#table-container').hide();
+
+            // جلب القيود المرتبطة بالحساب
+            $.ajax({
+                url: `/Accounts/accounts_chart/${nodeId}/journal-entries`, // رابط API لجلب القيود
+                type: 'GET',
+                success: function(response) {
+                    const tableBody = $('#table-body');
+                    tableBody.empty(); // تفريغ الجدول
+
+                    if (response.length > 0) {
+                        response.forEach(entry => {
+                            // إنشاء الرابط بشكل ديناميكي
+                            const showUrl = `/ar/Accounts/journal/show/${entry.id}`;
+
+                            tableBody.append(`
+                                <tr>
+                                    <td>${entry.account.name} (${entry.account.code})</td>
+                                    <td>${entry.description}</td>
+                                    <td>${entry.amount}</td>
+                                    <td>
+                                        <a href="${showUrl}" class="btn btn-sm btn-info">
+                                            عرض القيد
+                                        </a>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        tableBody.append('<tr><td colspan="4">لا توجد قيود لهذا الحساب.</td></tr>');
+                    }
+
+                    // إخفاء مؤشر التحميل وإظهار الجدول
+                    $('#loading-spinner').hide();
+                    $('#table-container').show();
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'خطأ!',
+                        text: 'حدث خطأ أثناء جلب القيود.',
+                        icon: 'error',
+                    });
+
+                    // إخفاء مؤشر التحميل في حالة الخطأ
+                    $('#loading-spinner').hide();
+                }
+            });
+        } else {
+            // إخفاء الجدول إذا كان الحساب لديه أبناء
+            $('#table-container').hide();
+        }
+    });
+});
+
+
+        </script>
 
 </body>
 <!-- END: Body-->
