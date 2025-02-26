@@ -126,7 +126,7 @@
                             <div class="icon-box icon1 ml-2"><i class="fas fa-book"></i></div>
                             ملخص عمليات المخزون
                         </div>
-                        <a href="stock_reprt_a/Summary_inventory_operations.html" class="view-button"><i
+                        <a href="{{ route('StorHouseReport.summaryInventory') }}" class="view-button"><i
                                 class="fas fa-eye"></i> عرض</a>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -135,7 +135,7 @@
                             <div class="icon-box icon2 ml-2"><i class="fas fa-exchange-alt"></i></div>
                             الحركة التفصيلية للمخزون
                         </div>
-                        <a href="stock_reprt_a/Detailed_movement_inventory.html" class="view-button"><i
+                        <a href="{{ route('StorHouseReport.detailedMovementInventory') }}" class="view-button"><i
                                 class="fas fa-eye"></i> عرض</a>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -144,7 +144,7 @@
                             <div class="icon-box icon3 ml-2"><i class="fas fa-dollar-sign"></i></div>
                             قيمة المخزون
                         </div>
-                        <a href="stock_reprt_a/Value_fo _inventory.html" class="view-button"><i class="fas fa-eye"></i>
+                        <a href="{{route('StorHouseReport.valueInventory')}}" class="view-button"><i class="fas fa-eye"></i>
                             عرض</a>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -153,7 +153,7 @@
                             <div class="icon-box icon4 ml-2"><i class="fas fa-truck"></i></div>
                             ملخص رصيد المخازن
                         </div>
-                        <a href="stock_reprt_a/Inventory_balance_summary.html" class="view-button"><i
+                        <a href="{{route('StorHouseReport.inventoryBlance')}}" class="view-button"><i
                                 class="fas fa-eye"></i> عرض</a>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -162,7 +162,7 @@
                             <div class="icon-box icon3 ml-2"><i class="fas fa-balance-scale"></i></div>
                             ميزان مراجعة المنتجات
                         </div>
-                        <a href="stock_reprt_a/Inventory_trial_balance.html" class="view-button"><i
+                        <a href="{{route('StorHouseReport.trialBalance')}}" class="view-button"><i
                                 class="fas fa-eye"></i> عرض</a>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -171,9 +171,18 @@
                             <div class="icon-box icon4 ml-2"><i class="fas fa-box-open"></i></div>
                             تفاصيل حركة المخزون لكل منتج
                         </div>
-                        <a href="stock_reprt_a/Details_inventory_transactions.html" class="view-button"><i
+                        <a href="{{route('StorHouseReport.Inventory_mov_det_product')}}" class="view-button"><i
                                 class="fas fa-eye"></i> عرض</a>
                     </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center"
+                    onclick="window.location.href='stock_reprt_a/Details_inventory_transactions.html'">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-box icon4 ml-2"><i class="fas fa-box-open"></i></div>
+                        صرف المخزون لفواتير الشراء و المرتجعات
+                    </div>
+                    <a href="{{route('StorHouseReport.Inventory_mov_det_product')}}" class="view-button"><i
+                            class="fas fa-eye"></i> عرض</a>
+                </li>
 
                 </ul>
             </div>

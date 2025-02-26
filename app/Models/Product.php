@@ -61,6 +61,7 @@ class Product extends Model
             ->sum('quantity');
     }
 
+
     public function warehousePermitsProducts()
     {
         return $this->hasMany(WarehousePermitsProducts::class, 'product_id');
@@ -82,4 +83,5 @@ class Product extends Model
             'invoice_id' // Foreign key on invoice_items table
         );
     }
+
 }
