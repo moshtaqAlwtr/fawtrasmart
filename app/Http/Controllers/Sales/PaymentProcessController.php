@@ -11,6 +11,7 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\PaymentMethod;
 use App\Models\PaymentsProcess;
+use App\Models\PurchaseInvoice;
 use App\Models\Treasury;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -122,27 +123,6 @@ class PaymentProcessController extends Controller
         return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
     }
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
-{
-    if ($type === 'installment') {
-        // إذا كانت العملية لقسط، احصل على تفاصيل القسط
-        $installment = Installment::with('invoice')->findOrFail($id);
-        $amount = $installment->amount; // مبلغ القسط
-        $invoiceId = $installment->invoice->id; // معرف الفاتورة
-    } else {
-        // إذا كانت العملية لفاتورة، احصل على تفاصيل الفاتورة
-        $invoice = Invoice::findOrFail($id);
-        $amount = $invoice->grand_total; // قيمة الفاتورة
-        $invoiceId = $invoice->id; // معرف الفاتورة
-    }
-
-    // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
-    $treasury = Treasury::all();
-    $employees = Employee::all();
-    $payments = PaymentMethod::where('type','normal')->where('status','active')->get();
-
-    return view('sales.payment.create', compact('invoiceId','payments', 'amount', 'treasury', 'employees', 'type'));
-}
-public function createPurchase($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
 {
     if ($type === 'installment') {
         // إذا كانت العملية لقسط، احصل على تفاصيل القسط
@@ -348,7 +328,7 @@ public function store(ClientPaymentRequest $request)
     public function getInvoiceDetails($invoice_id)
 {
     try {
-        $invoice = Invoice::findOrFail($invoice_id);
+        $invoice = PurchaseInvoice::findOrFail($invoice_id);
 
         // حساب المبلغ المدفوع والمتبقي
         $totalPayments = PaymentsProcess::where('invoice_id', $invoice->id)
@@ -387,7 +367,14 @@ public function storePurchase(ClientPaymentRequest $request)
         $data = $request->validated();
 
         // التحقق من وجود الفاتورة وجلب تفاصيلها
-        $invoice = Invoice::findOrFail($data['invoice_id']);
+        $invoice = PurchaseInvoice::findOrFail($data['invoice_id']);
+
+        // ** التحقق المسبق من حالة الفاتورة **
+        if ($invoice->is_paid) {
+            return back()
+                ->with('error', 'لا يمكن إضافة دفعة. الفاتورة مدفوعة بالكامل بالفعل.')
+                ->withInput();
+        }
 
         // حساب إجمالي المدفوعات السابقة
         $totalPreviousPayments = PaymentsProcess::where('invoice_id', $invoice->id)
@@ -476,6 +463,22 @@ public function storePurchase(ClientPaymentRequest $request)
             ->withInput();
     }
 }
+
+public function createPurchase($id)
+{
+    // التحقق من وجود الفاتورة وعدم دفعها بالكامل
+    $invoice = PurchaseInvoice::findOrFail($id);
+
+    if ($invoice->is_paid) {
+        return redirect()->route('invoicePurchases.index')
+            ->with('error', 'لا يمكن إضافة دفعة. الفاتورة مدفوعة بالكامل بالفعل.');
+    }
+
+    $payments = PaymentsProcess::where('invoice_id', $id)->get();
+    $employees = Employee::all();
+
+    return view('purchases.supplier_payments.create', compact('payments', 'employees', 'id', 'invoice'));
+}
     public function show($id)
     {
         $payment = PaymentsProcess::with(['invoice.client', 'invoice.payments_process', 'employee'])->findOrFail($id);
@@ -495,7 +498,7 @@ public function storePurchase(ClientPaymentRequest $request)
 
             $employees = Employee::all();
 
-            return view('Purchases.Supplier_Payments.show', compact('payment', 'employees'));
+            return view('purchases.supplier_payments.show', compact('payment', 'employees'));
         } catch (\Exception $e) {
             return redirect()->route('PaymentSupplier.indexPurchase')
                 ->with('error', 'حدث خطأ أثناء عرض تفاصيل الدفع: ' . $e->getMessage());
@@ -679,9 +682,12 @@ public function storePurchase(ClientPaymentRequest $request)
                 ->withInput();
         }
     }
+
+
     public function destroy($id)
     {
         PaymentsProcess::destroy($id);
         return redirect()->route('paymentsClient.index')->with('success', 'تم حذف عملية الدفع بنجاح');
     }
 }
+

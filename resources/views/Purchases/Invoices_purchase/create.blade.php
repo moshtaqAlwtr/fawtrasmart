@@ -122,7 +122,7 @@
                                                 <span>التاريخ:</span>
                                             </div>
                                             <div class="col-md-8">
-                                                <input class="form-control" type="date" name="date">
+                                                <input class="form-control" type="date" name="date" value="{{ date('Y-m-d') }}">
                                             </div>
                                         </div>
                                     </div>
@@ -207,7 +207,7 @@
                                     <tr class="item-row">
                                         <td style="width:18%">
                                             <select name="items[0][product_id]"
-                                                class="form-control product-select select2">
+                                                class="form-control product-select ">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
                                                     <option value="{{ $item->id }}" data-price="{{ $item->price }}">
@@ -224,8 +224,13 @@
                                                 value="1" min="1" required>
                                         </td>
                                         <td>
-                                            <input type="number" name="items[0][unit_price]" class="form-control price"
-                                                step="0.01" required>
+                                            <input type="number"
+                                                   name="items[0][unit_price]"
+                                                   class="form-control price"
+                                                   step="0.01"
+                                                   value="{{ $item->purchase_price }}"
+                                                   data-product-id="{{ $item->id }}"
+                                                   required>
                                         </td>
                                         <td>
                                             <div class="input-group">

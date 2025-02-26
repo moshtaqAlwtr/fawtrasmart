@@ -38,8 +38,15 @@ Route::group(
             Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
         });
         Route::prefix('ReportsPurchases')->group(function () {
+
             Route::get('/', [PurchasesReportController::class, 'index'])->name('ReportsPurchases.index');
             Route::get('/bySupplier', [PurchasesReportController::class, 'bySupplier'])->name('ReportsPurchases.bySupplier');
+            Route::get('/purchaseByEmployee', [PurchasesReportController::class, 'purchaseByEmployee'])->name('ReportsPurchases.purchaseByEmployee');
+            Route::get('/SuppliersDirectory', [PurchasesReportController::class, 'SuppliersDirectory'])->name('ReportsPurchases.SuppliersDirectory');
+            Route::get('/balnceSuppliers', [PurchasesReportController::class, 'balnceSuppliers'])->name('ReportsPurchases.balnceSuppliers');
+            Route::get('/purchaseSupplier', [PurchasesReportController::class, 'purchaseSupplier'])->name('ReportsPurchases.purchaseSupplier');
+            Route::get('/paymentPurchases', [PurchasesReportController::class, 'paymentPurchases'])->name('ReportsPurchases.paymentPurchases');
+
 
         });
 

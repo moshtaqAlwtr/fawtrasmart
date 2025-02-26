@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-    تقرير المشتريات بحسب الموردين
+    تقرير المشتريات بحسب الموظف
 @endsection
 
 @section('css')
@@ -28,13 +28,13 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-header">
-            <h3>تقرير المشتريات بحسب الموردين</h3>
+            <h3>تقرير المشتريات بحسب الموظف</h3>
         </div>
 
         {{-- Filter Section --}}
         <div class="card-body">
             <div class="filter-card">
-                <form action="{{ route('ReportsPurchases.bySupplier') }}" method="GET" id="reportForm">
+                <form action="{{ route('ReportsPurchases.purchaseByEmployee') }}" method="GET" id="reportForm">
                     <div class="row g-3">
                         {{-- First Row of Filters --}}
                         <div class="col-md-3">
@@ -104,7 +104,7 @@
             <button type="submit" class="btn btn-primary w-80">
                 <i class="fas fa-filter me-2"></i> تصفية التقرير
             </button>
-            <a href="{{ route('ReportsPurchases.bySupplier') }}" class="btn btn-primary w-20">
+            <a href="{{ route('ReportsPurchases.purchaseByEmployee') }}" class="btn btn-primary w-20">
                 <i class="fas fa-filter me-2"></i> الغاء الفلتر
             </a>
         </div>
@@ -132,32 +132,16 @@
             </div>
         </div>
 
-        <div class="card-body">
+          {{-- جدول التقرير --}}
+          <div class="card-body">
             <div class="table-responsive">
                 <table id="purchaseReportTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>
-                                @switch($reportPeriod)
-                                    @case('daily')
-                                        التاريخ (يومي)
-                                    @break
-                                    @case('weekly')
-                                        الأسبوع
-                                    @break
-                                    @case('monthly')
-                                        الشهر
-                                    @break
-                                    @case('yearly')
-                                        السنة
-                                    @break
-                                    @default
-                                        التاريخ
-                                @endswitch
-                            </th>
-                            <th>المورد</th>
-                            <th>رقم الفاتورة</th>
+                            <th>التاريخ</th>
                             <th>الموظف</th>
+                            <th>رقم الفاتورة</th>
+                            <th>الفرع</th>
                             <th>مدفوعة (SAR)</th>
                             <th>غير مدفوعة (SAR)</th>
                             <th>مرتجع (SAR)</th>
@@ -165,7 +149,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- Initialize grand totals --}}
                         @php
                             $grandPaidTotal = 0;
                             $grandUnpaidTotal = 0;
@@ -173,110 +156,68 @@
                             $grandOverallTotal = 0;
                         @endphp
 
-                        @foreach ($groupedPurchaseInvoices as $supplierId => $invoices)
-                            {{-- Supplier Group Header --}}
-                            <tr class="table-secondary">
-                                <td colspan="8">
-                                    {{ $invoices->first()->supplier->trade_name ?? 'مورد ' . $supplierId }}
-                                </td>
-                            </tr>
-
-                            {{-- Initialize totals for each supplier --}}
+                        @foreach ($groupedPurchaseInvoices as $employeeId => $invoices)
                             @php
-                                $supplierPaidTotal = 0;
-                                $supplierUnpaidTotal = 0;
-                                $supplierReturnedTotal = 0;
-                                $supplierOverallTotal = 0;
+                                $employeePaidTotal = 0;
+                                $employeeUnpaidTotal = 0;
+                                $employeeReturnedTotal = 0;
+                                $employeeOverallTotal = 0;
                             @endphp
 
-                            {{-- Invoices for this supplier --}}
+                            <tr class="table-secondary">
+                                <td colspan="8">{{ $invoices->first()->creator->name ?? 'موظف ' . $employeeId }}</td>
+                            </tr>
+
                             @foreach ($invoices as $invoice)
+                                @php
+                                    $paidAmount = $invoice->is_paid == 1 ? $invoice->grand_total : $invoice->payments_process->sum('amount');
+                                    $remainingAmount = $invoice->is_paid == 0 ? max($invoice->grand_total - $paidAmount, 0) : 0;
+                                    $returnedAmount = in_array($invoice->type, ['return', 'returned']) ? $invoice->grand_total : 0;
+
+                                    $employeePaidTotal += $paidAmount;
+                                    $employeeUnpaidTotal += $remainingAmount;
+                                    $employeeReturnedTotal += $returnedAmount;
+                                    $employeeOverallTotal += $invoice->grand_total;
+
+                                    $grandPaidTotal += $paidAmount;
+                                    $grandUnpaidTotal += $remainingAmount;
+                                    $grandReturnedTotal += $returnedAmount;
+                                    $grandOverallTotal += $invoice->grand_total;
+                                @endphp
+
                                 <tr class="{{ in_array($invoice->type, ['return', 'returned']) ? 'table-return text-return' : '' }}">
-                                    <td>
-                                        @switch($reportPeriod)
-                                            @case('daily')
-                                                {{ \Carbon\Carbon::parse($invoice->date)->format('d/m/Y') }}
-                                            @break
-                                            @case('weekly')
-                                                الأسبوع {{ \Carbon\Carbon::parse($invoice->date)->weekOfYear }}
-                                                ({{ \Carbon\Carbon::parse($invoice->date)->startOfWeek()->format('d/m/Y') }}
-                                                - {{ \Carbon\Carbon::parse($invoice->date)->endOfWeek()->format('d/m/Y') }})
-                                            @break
-                                            @case('monthly')
-                                                {{ \Carbon\Carbon::parse($invoice->date)->format('m/Y') }}
-                                            @break
-                                            @case('yearly')
-                                                {{ \Carbon\Carbon::parse($invoice->date)->format('Y') }}
-                                            @break
-                                            @default
-                                                {{ \Carbon\Carbon::parse($invoice->date)->format('d/m/Y') }}
-                                        @endswitch
-                                    </td>
-                                    <td>{{ $invoice->supplier->trade_name ?? 'مورد ' . $supplierId }}</td>
-                                    <td>{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</td>
-                                    <td>{{ $invoice->createdByUser->name ?? 'غير محدد' }}</td>
-
-                                    @php
-                                        // Calculate total paid amount
-                                        $paidAmount = $invoice->payments_process->sum('amount');
-                                        $remainingAmount = $invoice->grand_total - $paidAmount;
-                                    @endphp
-
-                                    @if (in_array($invoice->type, ['return', 'returned']))
-                                        <td>-</td>
-                                        <td>-</td>
-                                        <td class="text-return">
-                                            {{ number_format($invoice->grand_total, 2) }}
-                                        </td>
-                                        <td class="text-return">
-                                            {{ number_format($invoice->grand_total, 2) }}
-                                        </td>
-
-                                        @php
-                                            $supplierReturnedTotal += $invoice->grand_total;
-                                            $grandReturnedTotal += $invoice->grand_total;
-                                        @endphp
-                                    @else
-                                        <td>
-                                            {{ number_format($paidAmount, 2) }}
-                                        </td>
-                                        <td>
-                                            {{ number_format($remainingAmount > 0 ? $remainingAmount : 0, 2) }}
-                                        </td>
-                                        <td>-</td>
-                                        <td>{{ number_format($invoice->grand_total, 2) }}</td>
-
-                                        @php
-                                            $supplierPaidTotal += $paidAmount;
-                                            $supplierUnpaidTotal += max($remainingAmount, 0);
-                                            $grandPaidTotal += $paidAmount;
-                                            $grandUnpaidTotal += max($remainingAmount, 0);
-                                            $supplierOverallTotal += $invoice->grand_total;
-                                            $grandOverallTotal += $invoice->grand_total;
-                                        @endphp
-                                    @endif
+                                    <td>{{ \Carbon\Carbon::parse($invoice->date)->format('d/m/Y') }}</td>
+                                    <td>{{ $invoice->creator->name ?? 'غير محدد' }}</td>
+                                    <td>{{ $invoice->code }}</td>
+                                    <td>{{ $invoice->branch->name ?? 'غير محدد' }}</td>
+                                    <td>{{ number_format($paidAmount, 2) }}</td>
+                                    <td>{{ number_format($remainingAmount, 2) }}</td>
+                                    <td>{{ number_format($returnedAmount, 2) }}</td>
+                                    <td>{{ number_format($invoice->grand_total, 2) }}</td>
                                 </tr>
                             @endforeach
 
-                            {{-- Supplier Total Summary Row --}}
+                            {{-- إجمالي لكل موظف --}}
                             <tr class="table-info">
-                                <td colspan="4">مجموع المورد</td>
-                                <td>{{ number_format($supplierPaidTotal, 2) }}</td>
-                                <td>{{ number_format($supplierUnpaidTotal, 2) }}</td>
-                                <td>{{ number_format($supplierReturnedTotal, 2) }}</td>
-                                <td>{{ number_format($supplierPaidTotal + $supplierUnpaidTotal + $supplierReturnedTotal, 2) }}</td>
+                                <td colspan="4">إجمالي الموظف</td>
+                                <td>{{ number_format($employeePaidTotal, 2) }}</td>
+                                <td>{{ number_format($employeeUnpaidTotal, 2) }}</td>
+                                <td>{{ number_format($employeeReturnedTotal, 2) }}</td>
+                                <td>{{ number_format($employeeOverallTotal, 2) }}</td>
                             </tr>
                         @endforeach
+                    </tbody>
 
-                        {{-- Grand Total Row --}}
+                    {{-- الإجمالي الكلي --}}
+                    <tfoot>
                         <tr class="table-dark">
-                            <td colspan="4">المجموع الكلي</td>
+                            <td colspan="4">الإجمالي الكلي</td>
                             <td>{{ number_format($grandPaidTotal, 2) }}</td>
                             <td>{{ number_format($grandUnpaidTotal, 2) }}</td>
                             <td>{{ number_format($grandReturnedTotal, 2) }}</td>
-                            <td>{{ number_format($grandPaidTotal + $grandUnpaidTotal + $grandReturnedTotal, 2) }}</td>
+                            <td>{{ number_format($grandOverallTotal, 2) }}</td>
                         </tr>
-                    </tbody>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -362,81 +303,84 @@
     </div>
 </div>
 @endsection
-ً@section('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // بيانات المخطط البياني لحالة الدفع
-        const paymentStatusChartData = @json($paymentStatusChartData);
+@section('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // بيانات المخطط البياني لحالة الدفع
+            const paymentStatusChartData = @json($paymentStatusChartData);
 
-        // إنشاء مخطط دائري لحالة الدفع
-        const paymentStatusChart = new Chart(document.getElementById('paymentStatusChart'), {
-            type: 'pie',
-            data: {
-                labels: paymentStatusChartData.labels,
-                datasets: [{
-                    data: paymentStatusChartData.values,
-                    backgroundColor: paymentStatusChartData.colors,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'حالة الدفع'
-                    }
-                }
-            }
-        });
-
-        // بيانات المخطط البياني للموردين
-        const supplierChartData = @json($supplierChartData);
-
-        // إنشاء مخطط شريطي للموردين
-        const supplierChart = new Chart(document.getElementById('supplierChart'), {
-            type: 'bar',
-            data: {
-                labels: supplierChartData.labels,
-                datasets: [{
-                    label: 'إجمالي المشتريات',
-                    data: supplierChartData.values,
-                    backgroundColor: supplierChartData.colors,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false,
-                    },
-                    title: {
-                        display: true,
-                        text: 'المشتريات بحسب الموردين'
-                    }
+            // إنشاء مخطط دائري لحالة الدفع
+            const paymentStatusChart = new Chart(document.getElementById('paymentStatusChart'), {
+                type: 'pie',
+                data: {
+                    labels: paymentStatusChartData.labels,
+                    datasets: [{
+                        data: paymentStatusChartData.values,
+                        backgroundColor: paymentStatusChartData.colors,
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'حالة الدفع'
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        // تصدير الجدول إلى Excel
-        $('#exportExcel').on('click', function() {
-            const table = document.getElementById('purchaseReportTable');
-            const wb = XLSX.utils.table_to_book(table, { raw: true });
-            const today = new Date();
-            const fileName = `تقرير_المشتريات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
-            XLSX.writeFile(wb, fileName);
+            // بيانات المخطط البياني للموظفين
+            const employeeChartData = @json($employeeChartData);
+
+            // إنشاء مخطط شريطي للموظفين
+            const employeeChart = new Chart(document.getElementById('employeeChart'), {
+                type: 'bar',
+                data: {
+                    labels: employeeChartData.labels,
+                    datasets: [{
+                        label: 'إجمالي المشتريات',
+                        data: employeeChartData.values,
+                        backgroundColor: employeeChartData.colors,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: 'المشتريات بحسب الموظفين'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // تصدير الجدول إلى Excel
+            $('#exportExcel').on('click', function() {
+                const table = document.getElementById('purchaseReportTable');
+                const wb = XLSX.utils.table_to_book(table, {
+                    raw: true
+                });
+                const today = new Date();
+                const fileName =
+                    `تقرير_المشتريات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+            });
         });
-    });
-</script>
+    </script>
 @endsection

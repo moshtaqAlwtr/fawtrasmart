@@ -127,7 +127,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
                                 تقرير مشتريات حسب الموظف
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.purchaseByEmployee')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
@@ -147,7 +147,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-address-book"></i></div>
                                 دليل الموردين
                             </div>
-                            <a href="Product_tracking/Track_expiry_date.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.SuppliersDirectory')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_serial_num.html'">
@@ -155,7 +155,7 @@
                                 <div class="icon-box icon2 ml-2"><i class="fas fa-balance-scale"></i></div>
                                 ارصدة الموردين
                             </div>
-                            <a href="Product_tracking/Track_serial_num.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.balnceSuppliers')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
@@ -171,7 +171,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-shopping-cart"></i></div>
                                 مشتريات الموردين
                             </div>
-                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.purchaseSupplier')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
@@ -179,7 +179,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-money-bill-wave"></i></div>
                                 مدفوعات مشتريات الموردين
                             </div>
-                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.paymentPurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">

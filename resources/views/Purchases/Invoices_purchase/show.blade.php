@@ -11,7 +11,7 @@
             <h2 class="content-header-title mb-0">
                 فاتورة الشراء {{ $purchaseInvoice->code }}
                 <span class="badge {{ $purchaseInvoice->status == 1 ? 'bg-warning' : 'bg-success' }}">
-                    {{ $purchaseInvoice->status == 1 ? 'غير مدفوعة' : 'مستلم' }}
+                    {{ $purchaseInvoice->status == 1 ? 'مدفوعة' : 'مستلم' }}
                 </span>
             </h2>
             <small>المورد: {{ $purchaseInvoice->supplier->name }} - Journal #{{ $purchaseInvoice->code }}</small>
