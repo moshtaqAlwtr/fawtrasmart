@@ -69,7 +69,8 @@ class ClientController extends Controller
     if ($customers) {
         $customerAccount = new Account();
         $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
-
+        $customerAccount->client_id = $client->id; 
+        
         // تعيين كود الحساب الفرعي بناءً على كود الحسابات
         $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
         $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود

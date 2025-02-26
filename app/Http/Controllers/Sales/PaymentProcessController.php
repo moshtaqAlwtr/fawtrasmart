@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ClientPaymentRequest;
+use App\Models\Account;
 use App\Models\Employee;
 use App\Models\Installment;
 use App\Models\Invoice;
@@ -221,6 +222,9 @@ public function store(ClientPaymentRequest $request)
             // إنشاء سجل الدفع
             $payment = PaymentsProcess::create($data);
 
+            $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')
+            ->first();
+            $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
             // تحديث المبلغ المدفوع في الفاتورة
             $invoice->advance_payment = $newTotalPayments;
             $invoice->payment_status = $payment_status;
@@ -242,7 +246,7 @@ public function store(ClientPaymentRequest $request)
             // 1. حساب الصندوق/البنك (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' =>$invoice->account_id,
+                'account_id' => $mainTreasuryAccount->id,
                 'description' => 'استلام دفعة نقدية',
                 'debit' => $data['amount'],
                 'credit' => 0,
@@ -252,7 +256,7 @@ public function store(ClientPaymentRequest $request)
             // 2. حساب العميل (دائن)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' => $invoice->client->account_id,
+                'account_id' => $clientaccounts->id,
                 'description' => 'دفعة من العميل',
                 'debit' => 0,
                 'credit' => $data['amount'],

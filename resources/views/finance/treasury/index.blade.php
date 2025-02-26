@@ -121,11 +121,11 @@
                                 @foreach ($treasuries as $treasury)
                                     <tr>
                                         <td>
-                                            <p><strong>@if($treasury->type == 0) <i class="fa fa-archive"></i> @else <i class="fa fa-bank"></i> @endif {{ $treasury->name }}</strong></p>
-                                            <small>@if($treasury->type == 0) خزينة @else حساب بنكي @endif</small>
+                                            <p><strong>@if($treasury->type_accont == 0) <i class="fa fa-archive"></i> @else <i class="fa fa-bank"></i> @endif {{ $treasury->name }}</strong></p>
+                                            <small>@if($treasury->type_accont == 0) خزينة @else حساب بنكي @endif</small>
                                         </td>
                                         <td>{{ $treasury->description }}</td>
-                                        <td>0.00</td>
+                                        <td>{{  $treasury->balance }}</td>
                                         <td>
                                             @if ($treasury->status == 0)
                                                 <span class="badge badge-pill badge badge-success">نشط</span>
