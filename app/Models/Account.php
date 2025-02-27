@@ -35,6 +35,18 @@ class Account extends Model
         return $this->belongsTo(Account::class, 'parent_id');
     }
 
+    public function ancestors()
+    {
+        $path = [];
+        $account = $this;
+
+        while ($account) {
+            $path[] = $account;
+            $account = $account->parent;
+        }
+
+        return array_reverse($path); // لعرض الهيكل من الجذر إلى الفرع الأخير
+    }
     // العلاقة مع المعاملات
     public function transactions()
     {

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Employee;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
 use App\Models\Treasury;
 use Illuminate\Http\Request;
 
@@ -121,6 +123,44 @@ public function transfer(Request $request)
 
     // إضافة إلى الخزينة المستقبلة
     $toTreasury->updateBalance($request->amount, 'add');
+
+         // # القيد 
+        // إنشاء القيد المحاسبي للتحويل
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $fromTreasury->id,
+            'date' => now(),
+            'description' => 'تحويل المالية',
+            'status' => 1,
+            'currency' => 'SAR',
+          
+            // 'created_by_employee' => Auth::id(),
+        ]);
+
+        
+        // إضافة تفاصيل القيد المحاسبي
+        // 1. حساب المورد (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $fromTreasury->id, // حساب المورد
+            'description' => 'تحويل المالية من ' . $fromTreasury->code,
+            'debit' => 0, 
+            'credit' => $request->amount, //دائن
+            'is_debit' => false,
+        ]);
+
+       
+    
+        // 2. حساب الخزينة (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $toTreasury->id, // حساب المبيعات
+           'description' => 'تحوي المالية الى' . $toTreasury->code,
+            'debit' => $request->amount, //مدين
+            'credit' => 0, 
+            'is_debit' => true,
+        ]);
+
+       
 
     return redirect()->route('treasury.index')->with('success', 'تم التحويل بنجاح!');
 }

@@ -167,6 +167,33 @@ class AccountsChartController extends Controller
         // $journalEntries = JournalEntryDetail::where('account_id', $id)->get();
         return view('accounts.accounts_chart.tree', compact('accounts'));
     }
+    public function getAccountWithBalance($accountId)
+{
+    // جلب الحساب مع الفروع الفرعية
+    $account = Account::with('children')->find($accountId);
+
+    if (!$account) {
+        return response()->json(['error' => 'الحساب غير موجود'], 404);
+    }
+
+    // حساب الرصيد الكلي (بما في ذلك الفروع الفرعية)
+    $account->total_balance = $this->calculateTotalBalance($account);
+
+    return response()->json($account);
+}
+
+// دالة متكررة لحساب الرصيد الكلي
+private function calculateTotalBalance($account)
+{
+    $totalBalance = $account->balance; // الرصيد الأساسي للحساب
+
+    // جمع أرصدة الفروع الفرعية
+    foreach ($account->children as $child) {
+        $totalBalance += $this->calculateTotalBalance($child);
+    }
+
+    return $totalBalance;
+}
     public function getJournalEntries($accountId)
     {
         // جلب القيود المرتبطة بحساب معين

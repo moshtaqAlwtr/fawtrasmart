@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Purchases;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\InvoiceItem;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
 use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
@@ -152,7 +154,7 @@ class PurchaseOrdersRequestsController extends Controller
 
     public function store(Request $request)
     {
-        try {
+        // try {
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
             $code = $request->code;
             if (!$code) {
@@ -320,16 +322,17 @@ class PurchaseOrdersRequestsController extends Controller
                 }
             }
 
+       
             DB::commit(); // تأكيد التغييرات
             return redirect()->route('OrdersRequests.index')->with('success', 'تم إنشاء امر شراء  بنجاح');
-        } catch (\Exception $e) {
+        // } catch (\Exception $e) {
             DB::rollback(); // تراجع عن التغييرات في حالة حدوث خطأ
             Log::error('خطأ في إنشاء   امر شراء   ' . $e->getMessage()); // تسجيل الخطأ
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('error', 'عذراً، حدث خطأ أثناء حفظ امر شراء   : ' . $e->getMessage());
-        }
+        // }
     }
     public function edit($id)
     {

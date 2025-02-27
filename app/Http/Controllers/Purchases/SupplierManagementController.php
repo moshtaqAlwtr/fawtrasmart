@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Purchases;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SupplierRequest;
+use App\Models\Account;
 use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -108,6 +109,22 @@ class SupplierManagementController extends Controller
                 ]),
             );
 
+            $suppliers = Account::where('name', 'الموردون')->first(); // الحصول على حساب العملاء الرئيسي
+    if ($suppliers) {
+        $customerAccount = new Account();
+        $customerAccount->name = $supplier->trade_name; // استخدام trade_name كاسم الحساب
+        $customerAccount->supplier_id = $supplier->id; 
+        
+        // تعيين كود الحساب الفرعي بناءً على كود الحسابات
+        $lastChild = Account::where('parent_id', $suppliers->id)->orderBy('code', 'desc')->first();
+        $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $suppliers->code . '1'; // استخدام نفس منطق توليد الكود
+        $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
+
+        $customerAccount->balance_type = 'credit'; // أو 'credit' حسب الحاجة
+        $customerAccount->parent_id = $suppliers->id; // ربط الحساب الفرعي بحساب العملاء
+        $customerAccount->is_active = false;
+        $customerAccount->save();
+    }
             // معالجة المرفقات
             $this->handleAttachment($request, $supplier);
 
@@ -125,6 +142,16 @@ class SupplierManagementController extends Controller
                 ->with('error', 'حدث خطأ: ' . $e->getMessage());
         }
     }
+    private function generateNextCode(string $lastChildCode): string
+{
+    // استخراج الرقم الأخير من الكود
+    $lastNumber = intval(substr($lastChildCode, -1));
+    // زيادة الرقم الأخير بمقدار 1
+    $newNumber = $lastNumber + 1;
+    // إعادة بناء الكود مع الرقم الجديد
+    return substr($lastChildCode, 0, -1) . $newNumber;
+}
+
     public function show($id)
     {
         $supplier = Supplier::findOrFail($id);

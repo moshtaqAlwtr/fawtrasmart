@@ -62,7 +62,7 @@ Route::group(
                 Route::prefix('journal')->group(function () {
                     Route::get('/index', [JournalEntryController::class, 'index'])->name('journal.index');
                     Route::get('/create', [JournalEntryController::class, 'create'])->name('journal.create');
-                    Route::get('/store', [JournalEntryController::class, 'store'])->name('journal.store');
+                    Route::post('/store', [JournalEntryController::class, 'store'])->name('journal.store');
                     Route::get('/show/{id}', [JournalEntryController::class, 'show'])->name('journal.show');
                     Route::get('/edit/{id}', [JournalEntryController::class, 'edit'])->name('journal.edit');
                     Route::put('/update/{id}', [JournalEntryController::class, 'update'])->name('journal.update');
@@ -77,7 +77,7 @@ Route::group(
                     Route::get('/index', [AccountsChartController::class, 'index'])->name('accounts_chart.index');
                     Route::get('/testone/{accountId}', [AccountsChartController::class, 'testone'])->name('accounts_chart.testone');
                     Route::get('/getJournalEntries/{accountId}/journal-entries', [AccountsChartController::class, 'getJournalEntries'])->name('accounts_chart.getJournalEntries');
-                   
+                    Route::get('/accounts/{accountId}/balance', [AccountsChartController::class, 'getAccountWithBalance']);
                     
                     Route::delete('/destroy/{id}', [AccountsChartController::class, 'destroy'])->name('accounts_chart.destroy');
                     Route::get('/showDetails/{id}', [AccountsChartController::class, 'showDetails'])->name('accounts_chart.showDetails');                    Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts_chart.details');
