@@ -22,6 +22,7 @@ use App\Models\ProductDetails;
 use App\Models\SalesCommission;
 use App\Models\StoreHouse;
 use App\Models\Treasury;
+use App\Models\TreasuryEmployee;
 use App\Models\User;
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
@@ -300,16 +301,24 @@ class InvoicesController extends Controller
       $storeHouse = StoreHouse::where('major', 1)->first();
            }
 
-// التأكد من أن storeHouse ليس فارغًا قبل محاولة الوصول إلى ID
+// الخزينة الاقتراضيه للموظف
     $store_house_id = $storeHouse ? $storeHouse->id : null;
 
-    if ($user && $user->employee_id) {
-        $MainTreasury = Account::where('deposit_permissions', 1)
-            ->where('value_of_deposit_permissions', $user->employee_id)
-            ->first();
+   $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+if ($user && $user->employee_id) {
+    // تحقق مما إذا كان treasury_id فارغًا أو null
+    if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+        $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
     } else {
+        // إذا كان treasury_id null أو غير موجود، اختر الخزينة الرئيسية
         $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
     }
+} else {
+    // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، اختر الخزينة الرئيسية
+    $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+}
+
     
 
          // إرجاع store_id
