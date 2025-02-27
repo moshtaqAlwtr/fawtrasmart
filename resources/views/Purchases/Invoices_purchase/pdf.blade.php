@@ -69,7 +69,7 @@
         <p>مؤسسة اعمال عتمة للتجارة</p>
         <p>رقم الفاتورة: {{ $purchaseInvoice->code }}</p>
         <p>الحالة:
-            {{ $purchaseInvoice->status == 1 ? 'غير مدفوعة' : ($purchaseInvoice->status == 2 ? 'مدفوعة' : 'قيد المراجعة') }}
+            {{ $purchaseInvoice->status == 1 ? ' مدفوعة' : ($purchaseInvoice->status == 2 ? 'مدفوعة' : 'قيد المراجعة') }}
         </p>
     </div>
 

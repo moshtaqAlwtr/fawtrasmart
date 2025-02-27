@@ -55,24 +55,24 @@
                         <div class="form-body">
                             <div class="row">
 
-                                <div class="col-6">
+                                <div class="col-4">
                                     <div class="form-group">
                                         <label for="first-name-vertical">النوع</label>
                                         <input type="text" disabled id="first-name-vertical" class="form-control" value="خزينة">
                                     </div>
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-4">
                                     <div class="form-group">
                                         <label for="first-name-vertical">الحالة</label>
-                                        <select class="form-control" id="basicSelect" name="status">
-                                            <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>نشط</option>
-                                            <option value="1" {{ old('status') == 1 ? 'selected' : '' }}>غير نشط</option>
+                                        <select class="form-control" id="basicSelect" name="is_active">
+                                            <option value="0" {{ old('is_active') == 0 ? 'selected' : '' }}>نشط</option>
+                                            <option value="1" {{ old('is_active') == 1 ? 'selected' : '' }}>غير نشط</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <div class="col-6">
+                                <div class="col-4">
                                     <div class="form-group">
                                         <label for="email-id-vertical">اسم الخزينة<span style="color: red">*</span></label>
                                         <input type="text" id="email-id-vertical" class="form-control"name="name" value="{{ old('name') }}">
@@ -84,12 +84,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-6">
-                                    <div class="form-group">
-                                        <label for="email-id-vertical">الوصف</label>
-                                        <textarea name="description" class="form-control" id="basicTextarea" rows="2">{{ old('description') }}</textarea>
-                                    </div>
-                                </div>
+                               
 
                             </div>
 

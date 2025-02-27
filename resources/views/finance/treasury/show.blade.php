@@ -22,18 +22,24 @@
             </div>
         </div>
     </div>
-
+    <div class="card">
+        <div class="card-title p-2">
+         
+            <a href="{{ route('treasury.transferin') }}" class="btn btn-outline-success btn-sm">تحويل <i class="fa fa-reply-all"></i></a>
+       
+           
+        </div>
     <div class="content-body">
 
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
-                        <strong>@if($treasury->type == 0) <i class="fa fa-archive"></i> @else <i class="fa fa-bank"></i> @endif {{ $treasury->name }}</strong>
+                        <strong>@if($treasury->type_accont == 0) <i class="fa fa-archive"></i> @else <i class="fa fa-bank"></i> @endif {{ $treasury->name }}</strong>
                     </div>
 
                     <div>
-                        @if ($treasury->status == 0)
+                        @if ($treasury->is_active == 0)
                             <div class="badge badge-pill badge badge-success">نشط</div>
                         @else
                             <div class="badge badge-pill badge badge-danger">غير نشط</div>
@@ -74,24 +80,24 @@
                                     <table class="table">
                                         <tr>
                                             <td><small>الاسم</small> : <strong>{{ $treasury->name }}</strong></td>
-                                            @if($treasury->type == 1)
-                                                <td><small>اسم الحساب البنكي</small> : <strong>{{ $treasury->bank_name }}</strong></td>
-                                                <td><small>رقم الحساب</small> : <strong>{{ $treasury->account_number }}</strong></td>
+                                            @if($treasury->type_accont == 1)
+                                                <td><small>اسم الحساب البنكي</small> : <strong>{{ $treasury->name }}</strong></td>
+                                                {{-- <td><small>رقم الحساب</small> : <strong>{{ $treasury->account_number }}</strong></td> --}}
                                             @endif
                                         </tr>
                                         <tr>
-                                            <td><small>النوع</small> : <strong>@if($treasury->type == 0) خزينة @else حساب بنكي @endif</strong></td>
-                                            <td><small>الحاله</small> : <span> @if ($treasury->status == 0)
+                                            <td><small>النوع</small> : <strong>@if($treasury->type_accont == 0) خزينة @else حساب بنكي @endif</strong></td>
+                                            <td><small>الحاله</small> : <span> @if ($treasury->is_active == 0)
                                                 <div class="badge badge-pill badge badge-success">نشط</div>
                                                     @else
                                                         <div class="badge badge-pill badge badge-danger">غير نشط</div>
                                                     @endif
                                                 </span>
                                             </td>
-                                            <td><small>المبلغ</small> : <strong style="color: #00CFE8">0.00</strong></td>
+                                            <td><small>المبلغ</small> : <strong style="color: #00CFE8">{{  $treasury->balance }}</strong></td>
                                         </tr>
                                         <tr>
-                                            <td style="width: 30%"><strong>الوصف</strong> : <small>{{ $treasury->description }}</small></td>
+                                            <td style="width: 30%"><strong>الوصف</strong> : <small>{{ $treasury->description ?? ""}}</small></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -131,7 +137,7 @@
                                                     @if($treasury->withdraw_permissions !== 0)
                                                         @if ($treasury->withdraw_permissions == 1)
                                                         <!---employee_id--->
-                                                            {{ $treasury->value_of_withdraw_permissions }}
+                                                        {{ App\Models\Employee::find($treasury->value_of_deposit_permissions)->full_name }}
                                                         @elseif ($treasury->withdraw_permissions == 2)
                                                         <!---functional_role_id--->
                                                             {{ $treasury->value_of_withdraw_permissions }}

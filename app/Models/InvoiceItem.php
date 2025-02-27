@@ -67,6 +67,11 @@ class InvoiceItem extends Model
     {
         return $this->belongsTo(Quote::class, 'quotation_id');
     }
+    // في ملف InvoiceItem.php
+public function storeHouse()
+{
+    return $this->belongsTo(StoreHouse::class, 'store_house_id');
+}
 
     public function creditNote()
     {

@@ -142,12 +142,26 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <select name="details[0][account_id]" class="form-control" required>
-                                        <option value="">اختر الحساب</option>
-                                        @foreach($accounts as $account)
-                                            <option value="{{ $account->id }}">{{ $account->name }}</option>
-                                        @endforeach
-                                    </select>
+                                    @if(!empty($accountPath))
+                              <ul>
+                                         @foreach($accountPath as $parent)
+                                     <li>{{ $parent->name }}</li>
+                                                              @endforeach
+                                               </ul>
+                                             @endif
+
+                                             <select name="details[0][account_id]" class="form-control account-search" required>
+                                                <option value="">اختر الحساب</option>
+                                                @foreach($sortedAccounts as $account)
+                                                <option value="{{ $account->id }}">
+                                                    @php
+                                                        $indentation = str_repeat('—', $account->level);  // حساب المسافة البادئة بناءً على المستوى
+                                                    @endphp
+                                                    {{ $indentation }} {{ $account->name }} ({{ $account->code }})
+                                                </option>
+                                            @endforeach
+                                            </select>
+                                            
                                 </td>
                                 <td>
                                     <input type="number" name="details[0][debit]" class="form-control debit calc-tax" min="0" step="0.01">
@@ -224,22 +238,47 @@
     </form>
 </div>
 @endsection
-
 @section('scripts')
+<!-- إضافة مكتبة Select2 -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
 <script>
 $(document).ready(function() {
     let rowCount = 1;
+
+    // تهيئة Select2 للعناصر الموجودة عند تحميل الصفحة
+    $('.account-search').select2({
+        placeholder: "ابحث عن الحساب أو الكود...",
+        allowClear: true,
+        width: '100%',
+        // تفعيل البحث في الحقلين: الاسم والكود
+        matcher: function(params, data) {
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+            if (data.text.toLowerCase().includes(params.term.toLowerCase()) || data.id.includes(params.term)) {
+                return data;
+            }
+            return null;
+        }
+    });
 
     // إضافة سطر جديد
     $('#add-row').click(function() {
         let newRow = `
             <tr>
                 <td>
-                    <select name="details[${rowCount}][account_id]" class="form-control" required>
+                    <select name="details[${rowCount}][account_id]" class="form-control account-search" required>
                         <option value="">اختر الحساب</option>
-                        @foreach($accounts as $account)
-                            <option value="{{ $account->id }}">{{ $account->name }}</option>
-                        @endforeach
+                          @foreach($sortedAccounts as $account)
+                                                <option value="{{ $account->id }}">
+                                                    @php
+                                                        $indentation = str_repeat('—', $account->level);  // حساب المسافة البادئة بناءً على المستوى
+                                                    @endphp
+                                                    {{ $indentation }} {{ $account->name }} ({{ $account->code }})
+                                                </option>
+                                            @endforeach
                     </select>
                 </td>
                 <td>
@@ -280,8 +319,18 @@ $(document).ready(function() {
                     <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
-            `;
-        $('#entries-table tbody').append(newRow);
+        `;
+
+        let newRowElement = $(newRow);
+        $('#entries-table tbody').append(newRowElement);
+
+        // تهيئة Select2 فقط للعناصر الجديدة مع ضبط العرض لمنع التمدد
+        newRowElement.find('.account-search').select2({
+            placeholder: "ابحث عن الحساب...",
+            allowClear: true,
+            width: '100%'
+        });
+
         rowCount++;
         updateTotals();
     });
@@ -292,16 +341,16 @@ $(document).ready(function() {
         updateTotals();
     });
 
-    // تحديث المجاميع
+    // تحديث المجاميع عند تغيير الإدخالات
     $(document).on('input', '.debit, .credit', function() {
         updateTotals();
     });
 
-    // حساب الضريبة لكل سطر
+    // حساب الضريبة لكل سطر عند تغيير القيم
     $(document).on('change', '.calc-tax', function() {
         let row = $(this).closest('tr');
         calculateRowTax(row);
-        calculateTotals();
+        updateTotals();
     });
 
     function calculateRowTax(row) {
@@ -319,7 +368,7 @@ $(document).ready(function() {
         row.find('.tax-amount').val(taxAmount.toFixed(2));
     }
 
-    function calculateTotals() {
+    function updateTotals() {
         let totalDebit = 0;
         let totalCredit = 0;
         let totalTax = 0;

@@ -50,17 +50,43 @@ class JournalEntryController extends Controller
     public function create()
     {
         $journalEntry = JournalEntry::all();
-        $accounts = ChartOfAccount::all();
         $clients = Client::all();
         $employees = Employee::all();
         $entryDetails = JournalEntryDetail::all();
         $costCenters = CostCenter::all();
-
-        return view('Accounts.journal.create', compact('accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
+    
+        // جلب جميع الحسابات
+        $accounts = Account::select('id', 'name', 'code', 'parent_id')
+            ->with('parent')
+            ->get();
+    
+        // بناء شجرة الحسابات
+        $sortedAccounts = $this->buildAccountTree($accounts);
+    
+        return view('Accounts.journal.create', compact('sortedAccounts','accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
     }
+    private function buildAccountTree($accounts, $parentId = null, $level = 0)
+    {
+        $tree = [];
+    
+        foreach ($accounts as $account) {
+            if ($account->parent_id == $parentId) {
+                $account->level = $level;
+                $tree[] = $account;
+                // إضافة الحسابات الفرعية عبر البحث في الحسابات
+                $tree = array_merge($tree, $this->buildAccountTree($accounts, $account->id, $level + 1));
+            }
+        }
+    
+        return $tree;
+    }
+    
+        
 
     public function store(Request $request)
     {
+
+      
         $request->validate([
             'journal_entry.date' => 'required|date',
             'journal_entry.description' => 'required|string|max:500',
@@ -70,10 +96,10 @@ class JournalEntryController extends Controller
             'journal_entry.currency' => 'nullable|string|max:10',
             'journal_entry.attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'details' => 'required|array|min:1',
-            'details.*.account_id' => 'required|exists:chart_of_accounts,id',
+            'details.*.account_id' => 'required',
             'details.*.description' => 'nullable|string|max:255',
-            'details.*.debit' => 'required_without:details.*.credit|numeric|min:0',
-            'details.*.credit' => 'required_without:details.*.debit|numeric|min:0',
+            'details.*.debit' => 'required_without:details',
+            'details.*.credit' => 'required_without:details',
             'details.*.cost_center_id' => 'nullable|exists:cost_centers,id',
         ]);
 

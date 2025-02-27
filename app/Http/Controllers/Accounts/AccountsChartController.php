@@ -9,6 +9,7 @@ use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -160,10 +161,60 @@ class AccountsChartController extends Controller
     public function index()
     {
         // $accounts = Account::with('children')->whereNull('parent_id')->get();
-        $accounts = Account::with('children')->get();
+        // $accounts = Account::with('children')->get();
+        $accounts = Account::with(['children', 'journalEntries'])->get();
+       
+        // $journalEntries = JournalEntryDetail::where('account_id', $id)->get();
         return view('accounts.accounts_chart.tree', compact('accounts'));
     }
+    public function getAccountWithBalance($accountId)
+{
+    // جلب الحساب مع الفروع الفرعية
+    $account = Account::with('children')->find($accountId);
 
+    if (!$account) {
+        return response()->json(['error' => 'الحساب غير موجود'], 404);
+    }
+
+    // حساب الرصيد الكلي (بما في ذلك الفروع الفرعية)
+    $account->total_balance = $this->calculateTotalBalance($account);
+
+    return response()->json($account);
+}
+
+// دالة متكررة لحساب الرصيد الكلي
+private function calculateTotalBalance($account)
+{
+    $totalBalance = $account->balance; // الرصيد الأساسي للحساب
+
+    // جمع أرصدة الفروع الفرعية
+    foreach ($account->children as $child) {
+        $totalBalance += $this->calculateTotalBalance($child);
+    }
+
+    return $totalBalance;
+}
+    public function getJournalEntries($accountId)
+    {
+        // جلب القيود المرتبطة بحساب معين
+        $journalEntries = JournalEntryDetail::where('account_id', $accountId)
+            ->with('account')
+            ->get();
+    
+        return response()->json($journalEntries);
+    }
+    public function testone($accountId)
+    {
+        
+        $journalEntries = JournalEntryDetail::where('account_id', $accountId)
+        ->with('account')
+        ->get();
+
+       
+
+        return view('accounts.accounts_chart.tree_details', compact('journalEntries'));
+    
+    }
     public function store_account(Request $request)
     {
         $validated = $request->validateWithBag(

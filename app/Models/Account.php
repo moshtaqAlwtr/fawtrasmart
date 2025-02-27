@@ -11,13 +11,22 @@ class Account extends Model
 
     protected $table = 'accounts';
     protected $fillable = [
-        'name', 'code', 'parent_id', 'type', 'category', 'balance', 'is_active', 'branch_id'
+        'name', 'code', 'parent_id', 'type', 'category', 'balance', 'is_active', 'branch_id','client_id'
     ];
 
     // العلاقة مع الحسابات الفرعية
     public function children()
     {
         return $this->hasMany(Account::class, 'parent_id');
+    }
+    public function updateBalance($amount, $operation = 'add')
+    {
+        if ($operation === 'add') {
+            $this->balance += $amount;
+        } elseif ($operation === 'subtract') {
+            $this->balance -= $amount;
+        }
+        $this->save();
     }
 
     // العلاقة مع الحساب الرئيسي
@@ -26,6 +35,18 @@ class Account extends Model
         return $this->belongsTo(Account::class, 'parent_id');
     }
 
+    public function ancestors()
+    {
+        $path = [];
+        $account = $this;
+
+        while ($account) {
+            $path[] = $account;
+            $account = $account->parent;
+        }
+
+        return array_reverse($path); // لعرض الهيكل من الجذر إلى الفرع الأخير
+    }
     // العلاقة مع المعاملات
     public function transactions()
     {
@@ -49,6 +70,10 @@ class Account extends Model
 public function customer()
 {
     return $this->belongsTo(Client::class);
+}
+public function journalEntries()
+{
+    return $this->hasMany(JournalEntryDetail::class, 'account_id');
 }
 
 }
