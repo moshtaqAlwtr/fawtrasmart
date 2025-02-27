@@ -191,7 +191,7 @@
                                 </span>
                                 مواعيد العملاء
                                 <div class="ms-auto">
-                                    <a href="customer_apptlmition.html" class="text-decoration-none text-dark"><i
+                                    <a href="{{route('ClientReport.customerAppointments')}}" class="text-decoration-none text-dark"><i
                                             class="fas fa-eye"></i> عرض</a>
                                 </div>
                             </li>
@@ -201,7 +201,7 @@
                                 </span>
                                 أقساط العملاء
                                 <div class="ms-auto">
-                                    <a href="customer_install.html" class="text-decoration-none text-dark"><i
+                                    <a href="{{route('ClientReport.customerInstallments')}}" class="text-decoration-none text-dark"><i
                                             class="fas fa-eye"></i> عرض</a>
                                 </div>
                             </li>

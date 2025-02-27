@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Reports\Customers\CustomerReportController;
+use App\Http\Controllers\Reports\Inventory\InventoryReportController;
 use App\Http\Controllers\Reports\OrdersReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Reports\ReportsController;
@@ -43,6 +44,8 @@ Route::group(
             Route::get('/customerBalances', [CustomerReportController::class, 'customerBalances'])->name('ClientReport.customerBalances');
             Route::get('/customerSales', [CustomerReportController::class, 'customerSales'])->name('ClientReport.customerSales');
             Route::get('/customerPayments', [CustomerReportController::class, 'customerPayments'])->name('ClientReport.customerPayments');
+            Route::get('/customerAppointments', [CustomerReportController::class, 'customerAppointments'])->name('ClientReport.customerAppointments');
+            Route::get('/customerInstallments', [CustomerReportController::class, 'customerInstallments'])->name('ClientReport.customerInstallments');
             Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
         });
 
@@ -74,5 +77,10 @@ Route::group(
 
 
             });
+            Route::prefix('StorHouseReport')->group(function () {
+                Route::get('/', [InventoryReportController::class, 'index'])->name('StorHouseReport.index');
+                Route::get('/inventorySheet', [InventoryReportController::class,'inventorySheet'])->name('StorHouseReport.inventorySheet');
+            });
+
     },
 );

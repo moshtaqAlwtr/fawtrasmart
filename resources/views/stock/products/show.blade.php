@@ -247,7 +247,9 @@
                                                                     <small><abbr title="سعر الوحدة">{{ $product->sale_price }} ر.س</abbr></small>
                                                                 </td>
                                                             </tr>
-                                                        @else
+
+                                                       
+                                                        @elseif($stock_movement->warehousePermits->permission_type != 10)
                                                             {{-- العمليات العادية (إضافة أو صرف) --}}
                                                             <tr>
                                                                 <td>
@@ -278,8 +280,30 @@
                                                                     <strong>{{ number_format($stock_movement->stock_after) }}</strong><br>
                                                                     <small><abbr title="سعر الوحدة">{{ $product->sale_price }} ر.س</abbr></small>
                                                                 </td>
+
                                                             </tr>
+                                                                      
                                                         @endif
+                                                        @if ($stock_movement->warehousePermits->permission_type == 10)     
+                                                        {{--   حساب مبيعات الفواتير--}}
+                                                        <tr>
+                                                           <td>
+                                                               <strong>{{ $stock_movement->warehousePermits->permission_date }} (#{{ $stock_movement->warehousePermits->id }})</strong><br>
+                                                               <span> فاتورة رقم ({{ $stock_movement->warehousePermits->number }}#)</span><br>
+                                                             
+                                                           </td>
+                                                           <td>
+                                                               <strong>{{ number_format($stock_movement->quantity) }}</strong>
+                                                               <i class="feather icon-minus text-danger"></i>
+                                                               <br>
+                                                               <small><abbr class="initialism" title="سعر الوحدة">{{ $product->sale_price ?? 0.00 }}&nbsp;ر.س</abbr></small>
+                                                           </td>
+                                                           <td>
+                                                               <strong>{{ number_format($stock_movement->stock_after) }}</strong><br>
+                                                               <small><abbr title="سعر الوحدة">{{ $product->sale_price }} ر.س</abbr></small>
+                                                           </td>
+                                                       </tr> 
+                                                       @endif
                                                     @endforeach
                                                 </tbody>
                                             </table>

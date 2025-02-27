@@ -21,11 +21,11 @@ class InstallmentsController extends Controller
         if ($request->filled('status') && $request->status != 'الكل') {
             // Assuming 1 for مكتمل and 2 for غير مكتمل
             if ($request->status == '1') {
-                $query->whereHas('invoice', function($q) {
+                $query->whereHas('invoice', function ($q) {
                     $q->where('status', 'مكتمل'); // Adjust based on your actual field
                 });
             } elseif ($request->status == '2') {
-                $query->whereHas('invoice', function($q) {
+                $query->whereHas('invoice', function ($q) {
                     $q->where('status', 'غير مكتمل'); // Adjust based on your actual field
                 });
             }
@@ -36,7 +36,7 @@ class InstallmentsController extends Controller
         }
 
         if ($request->filled('client')) {
-            $query->whereHas('invoice.client', function($q) use ($request) {
+            $query->whereHas('invoice.client', function ($q) use ($request) {
                 $q->where('trade_name', 'like', '%' . $request->client . '%'); // Adjust based on your actual field
             });
         }
@@ -92,7 +92,7 @@ class InstallmentsController extends Controller
             'invoice_id' => 'required|exists:invoices,id',
             'amount' => 'nullable|numeric',
             'installment_number' => 'nullable|integer',
-'payment_rate'=>'nullable|integer',
+            'payment_rate' => 'nullable|integer',
             'due_date' => 'nullable|date',
         ]);
 
@@ -185,11 +185,11 @@ class InstallmentsController extends Controller
         if ($request->filled('status') && $request->status != 'الكل') {
             // Assuming 1 for مكتمل and 2 for غير مكتمل
             if ($request->status == '1') {
-                $query->whereHas('invoice', function($q) {
+                $query->whereHas('invoice', function ($q) {
                     $q->where('status', 'مكتمل'); // Adjust based on your actual field
                 });
             } elseif ($request->status == '2') {
-                $query->whereHas('invoice', function($q) {
+                $query->whereHas('invoice', function ($q) {
                     $q->where('status', 'غير مكتمل'); // Adjust based on your actual field
                 });
             }
@@ -200,7 +200,7 @@ class InstallmentsController extends Controller
         }
 
         if ($request->filled('client')) {
-            $query->whereHas('invoice.client', function($q) use ($request) {
+            $query->whereHas('invoice.client', function ($q) use ($request) {
                 $q->where('trade_name', 'like', '%' . $request->client . '%'); // Adjust based on your actual field
             });
         }
@@ -225,34 +225,34 @@ class InstallmentsController extends Controller
         return view('installments.installments_detites.agreement_installments', compact('installments'));
     }
 
-   public function show($id)
-{
-    // استرجاع القسط مع الفاتورة والعميل
-    $installment = Installment::with('invoice.client')->findOrFail($id);
-    $invoice = Invoice::findOrFail($installment->invoice_id);
+    public function show($id)
+    {
+        // استرجاع القسط مع الفاتورة والعميل
+        $installment = Installment::with('invoice.client')->findOrFail($id);
+        $invoice = Invoice::findOrFail($installment->invoice_id);
 
-    // استرجاع جميع الأقساط المرتبطة بالفاتورة
-    $installments = Installment::where('invoice_id', $invoice->id)->get();
+        // استرجاع جميع الأقساط المرتبطة بالفاتورة
+        $installments = Installment::where('invoice_id', $invoice->id)->get();
 
-    return view('installments.show', compact('installment', 'invoice', 'installments'));
+        return view('installments.show', compact('installment', 'invoice', 'installments'));
+    }
+    public function edit_amount($id)
+    {
+        $installment = Installment::with('invoice.client')->findOrFail($id);
+        $clients = Client::all(); // Assuming you have a Client model to get all clients
+        $invoice = $installment->invoice; // Get the related invoice
+
+        // Return the edit view with the installment data
+        return view('installments.installments_detites.edit', compact('installment', 'clients', 'invoice'));
+    }
+    public function show_amount($id)
+    {
+        $installment = Installment::with('invoice.client')->findOrFail($id);
+        $invoice = Invoice::findOrFail($installment->invoice_id);
+
+        // ا��ترجا�� ��ميع الأقسا�� المرتبطة بالفاتورة
+        $installments = Installment::where('invoice_id', $invoice->id)->get();
+
+        return view('installments.installments_detites.show', compact('installment', 'invoice', 'installments'));
+    }
 }
-public function edit_amount($id){
-    $installment = Installment::with('invoice.client')->findOrFail($id);
-    $clients = Client::all(); // Assuming you have a Client model to get all clients
-    $invoice = $installment->invoice; // Get the related invoice
-
-    // Return the edit view with the installment data
-    return view('installments.installments_detites.edit', compact('installment', 'clients', 'invoice'));
-
-}
-public  function show_amount($id) {
-    $installment = Installment::with('invoice.client')->findOrFail($id);
-    $invoice = Invoice::findOrFail($installment->invoice_id);
-
-    // ا��ترجا�� ��ميع الأقسا�� المرتبطة بالفاتورة
-    $installments = Installment::where('invoice_id', $invoice->id)->get();
-
-    return view('installments.installments_detites.show', compact('installment', 'invoice', 'installments'));
-}
-}
-
