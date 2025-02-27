@@ -60,7 +60,10 @@ class Product extends Model
             ->where('created_at', '>=', Carbon::now()->subDays(7))
             ->sum('quantity');
     }
-
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
 
     public function warehousePermitsProducts()
     {

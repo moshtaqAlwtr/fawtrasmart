@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Reports;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\Employee;
+use App\Models\InvoiceItem;
 use App\Models\PaymentsProcess;
+use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PurchasesReportController extends Controller
 {
@@ -433,5 +438,300 @@ public function paymentPurchases(Request $request)
 
     return view('reports.purchases.purchaseReport.paymentPurchases', compact('groupedInvoices', 'suppliers', 'branches', 'totalGrandTotal', 'totalPaid', 'totalRemaining', 'chartData'));
 }
+public function prodectPurchases(Request $request)
+{
+    // جلب البيانات المطلوبة للفلترة
+    $suppliers = Supplier::all();
+    $employees = Employee::all();
+    $products = Product::all();
+
+    // جلب فواتير المنتجات مع العلاقات
+    $productInvoices = InvoiceItem::query()
+        ->with(['product', 'invoice', 'purchaseInvoice', 'employee'])
+        ->when($request->supplier_id, function ($query) use ($request) {
+            $query->whereHas('product', function ($q) use ($request) {
+                $q->where('supplier_id', $request->supplier_id);
+            });
+        })
+        ->when($request->employee_id, function ($query) use ($request) {
+            $query->whereHas('invoice', function ($q) use ($request) {
+                $q->where('employee_id', $request->employee_id);
+            });
+        })
+        ->when($request->product_id, function ($query) use ($request) {
+            $query->where('product_id', $request->product_id);
+        })
+        ->when($request->from_date, function ($query) use ($request) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        })
+        ->when($request->to_date, function ($query) use ($request) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        })
+        ->orderBy('created_at', $request->order_by == 'asc' ? 'asc' : 'desc')
+        ->get();
+
+    // تجميع الفواتير حسب المنتج
+    $groupedInvoices = $productInvoices->groupBy('product_id');
+
+    // حساب الإجماليات لكل منتج
+    $productTotals = [];
+    foreach ($groupedInvoices as $productId => $invoices) {
+        $productTotals[$productId] = [
+            'total_quantity' => $invoices->sum('quantity'),
+            'total_tax' => $invoices->sum(function ($invoice) {
+                return $invoice->tax_1 + $invoice->tax_2;
+            }),
+            'total_amount' => $invoices->sum('total'),
+        ];
+    }
+
+    // حساب الإجماليات الكلية
+    $totalQuantity = $productInvoices->sum('quantity');
+    $totalTax = $productInvoices->sum(function ($invoice) {
+        return $invoice->tax_1 + $invoice->tax_2;
+    });
+    $totalAmount = $productInvoices->sum('total');
+
+    // بيانات المخطط البياني
+    $chartData = [
+        'labels' => $groupedInvoices->map(function ($invoices) {
+            return $invoices->first()->supplier->trade_name ?? 'غير معروف'; // استخدام قيمة افتراضية إذا كان supplier غير موجود
+        }),
+        'data' => $groupedInvoices->map(function ($invoices) {
+            return $invoices->sum('grand_total');
+        }),
+    ];
+
+    return view('reports.purchases.prodect.prodect_purchases', compact('groupedInvoices', 'productTotals', 'chartData', 'suppliers', 'employees', 'products', 'totalQuantity', 'totalTax', 'totalAmount'));
+}
+public function supplierPurchases(Request $request)
+{
+    // جلب البيانات المطلوبة للفلترة
+    $suppliers = Supplier::all();
+    $employees = Employee::all();
+    $products = Product::all();
+
+    // جلب فواتير المنتجات مع العلاقات
+    $productInvoices = InvoiceItem::query()
+        ->with(['product', 'invoice', 'purchaseInvoice.supplier', 'purchaseInvoice.creator']) // تحميل العلاقة مع purchaseInvoice.supplier
+        ->when($request->supplier_id, function ($query) use ($request) {
+            $query->whereHas('purchaseInvoice', function ($q) use ($request) {
+                $q->where('supplier_id', $request->supplier_id);
+            });
+        })
+        ->when($request->employee_id, function ($query) use ($request) {
+            $query->whereHas('invoice', function ($q) use ($request) {
+                $q->where('employee_id', $request->employee_id);
+            });
+        })
+        ->when($request->product_id, function ($query) use ($request) {
+            $query->where('product_id', $request->product_id);
+        })
+        ->when($request->from_date, function ($query) use ($request) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        })
+        ->when($request->to_date, function ($query) use ($request) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        })
+        ->orderBy('created_at', $request->order_by == 'asc' ? 'asc' : 'desc')
+        ->get();
+
+    // تجميع الفواتير حسب المورد
+    $groupedInvoices = $productInvoices->groupBy('purchaseInvoice.supplier_id');
+
+    // حساب الإجماليات لكل مورد
+    $supplierTotals = [];
+    foreach ($groupedInvoices as $supplierId => $invoices) {
+        $supplierTotals[$supplierId] = [
+            'total_quantity' => $invoices->sum('quantity'),
+            'total_tax' => $invoices->sum(function ($invoice) {
+                return $invoice->tax_1 + $invoice->tax_2;
+            }),
+            'total_amount' => $invoices->sum('total'),
+        ];
+    }
+
+    // حساب الإجماليات الكلية
+    $totalQuantity = $productInvoices->sum('quantity');
+    $totalTax = $productInvoices->sum(function ($invoice) {
+        return $invoice->tax_1 + $invoice->tax_2;
+    });
+    $totalAmount = $productInvoices->sum('total');
+
+    // بيانات المخطط البياني
+    $chartData = [
+        'labels' => $groupedInvoices->map(function ($invoices) {
+            return $invoices->first()->purchaseInvoice->supplier->trade_name ?? 'غير معروف'; // استخدام قيمة افتراضية إذا كان supplier غير موجود
+        }),
+        'data' => $groupedInvoices->map(function ($invoices) {
+            return $invoices->sum('total');
+        }),
+    ];
+
+    return view('reports.purchases.prodect.supplier_purchases', compact('groupedInvoices', 'supplierTotals', 'chartData', 'suppliers', 'employees', 'products', 'totalQuantity', 'totalTax', 'totalAmount'));
+}
+public function employeePurchases(Request $request)
+{
+    // جلب البيانات المطلوبة للفلترة
+    $suppliers = Supplier::all();
+    $employees = Employee::all();
+    $products = Product::all();
+
+    // جلب فواتير المنتجات مع العلاقات
+    $productInvoices = InvoiceItem::query()
+        ->with(['product', 'purchaseInvoice.creator', 'purchaseInvoice.supplier']) // تحميل العلاقة مع invoice.employee
+        ->when($request->supplier_id, function ($query) use ($request) {
+            $query->whereHas('purchaseInvoice', function ($q) use ($request) {
+                $q->where('supplier_id', $request->supplier_id);
+            });
+        })
+        ->when($request->employee_id, function ($query) use ($request) {
+            $query->whereHas('invoice', function ($q) use ($request) {
+                $q->where('employee_id', $request->employee_id);
+            });
+        })
+        ->when($request->product_id, function ($query) use ($request) {
+            $query->where('product_id', $request->product_id);
+        })
+        ->when($request->from_date, function ($query) use ($request) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        })
+        ->when($request->to_date, function ($query) use ($request) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        })
+        ->orderBy('created_at', $request->order_by == 'asc' ? 'asc' : 'desc')
+        ->get();
+
+    // تجميع الفواتير حسب الموظف
+    $groupedInvoices = $productInvoices->groupBy('invoice.employee_id');
+
+    // حساب الإجماليات لكل موظف
+    $employeeTotals = [];
+    foreach ($groupedInvoices as $employeeId => $invoices) {
+        $employeeTotals[$employeeId] = [
+            'total_quantity' => $invoices->sum('quantity'),
+            'total_tax' => $invoices->sum(function ($invoice) {
+                return $invoice->tax_1 + $invoice->tax_2;
+            }),
+            'total_amount' => $invoices->sum('total'),
+        ];
+    }
+
+    // حساب الإجماليات الكلية
+    $totalQuantity = $productInvoices->sum('quantity');
+    $totalTax = $productInvoices->sum(function ($invoice) {
+        return $invoice->tax_1 + $invoice->tax_2;
+    });
+    $totalAmount = $productInvoices->sum('total');
+
+    // بيانات المخطط البياني
+    $chartData = [
+        'labels' => $groupedInvoices->map(function ($invoices) {
+            return $invoices->first()->invoice->employee->full_name ?? 'غير معروف'; // استخدام قيمة افتراضية إذا كان employee غير موجود
+        }),
+        'data' => $groupedInvoices->map(function ($invoices) {
+            return $invoices->sum('total');
+        }),
+    ];
+
+    return view('reports.purchases.prodect.employee_purchases', compact('groupedInvoices', 'employeeTotals', 'chartData', 'suppliers', 'employees', 'products', 'totalQuantity', 'totalTax', 'totalAmount'));
+}
+
+public function supplierPayments(Request $request)
+{
+    try {
+        // Default to current month if no date range specified
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+
+        $employees = Employee::all();
+        $branches = Branch::all();
+
+        // Default report period
+        $reportPeriod = $request->input('report_period', 'monthly');
+
+        // Base query for payments
+        $query = PaymentsProcess::with(['supplier', 'purchase', 'employee','purchase.creator'])
+            ->whereNotNull('purchases_id')
+            ->whereBetween('payment_date', [$fromDate, $toDate]);
+
+        // Apply filters
+        if ($request->filled('supplier')) {
+            $query->where('supplier_id', $request->input('supplier'));
+        }
+
+        if ($request->filled('payment_method')) {
+            $query->where('payment_method', $request->input('payment_method'));
+        }
+
+        if ($request->filled('employee')) {
+            $query->where('employee_id', $request->input('employee'));
+        }
+
+        if ($request->filled('branch')) {
+            $query->where('branch_id', $request->input('branch'));
+        }
+
+        // Fetch payments
+        $payments = $query->get();
+
+        // Group payments based on report period
+        $groupedPayments = $payments->groupBy(function ($payment) use ($reportPeriod) {
+            switch ($reportPeriod) {
+                case 'daily':
+                    return $payment->payment_date->format('Y-m-d');
+                case 'weekly':
+                    return $payment->payment_date->format('Y-W');
+                case 'monthly':
+                    return $payment->payment_date->format('Y-m');
+                case 'yearly':
+                    return $payment->payment_date->format('Y');
+                default:
+                    return $payment->payment_date->format('Y-m-d');
+            }
+        });
+
+        // Prepare chart data
+        $chartData = [
+            'labels' => $groupedPayments->keys()->toArray(),
+            'values' => $groupedPayments
+                ->map(function ($periodPayments) {
+                    return $periodPayments->sum('amount');
+                })
+                ->values()
+                ->toArray(),
+            'paymentMethods' => [
+                $payments->where('payment_method', 1)->count(), // Cash
+                $payments->where('payment_method', 2)->count(), // Check
+                $payments->where('payment_method', 3)->count(), // Bank Transfer
+            ],
+        ];
+
+        // Fetch suppliers for filter dropdown
+        $suppliers = Supplier::all();
+
+        return view('reports.purchases.purchaseReport.supplier_payments', [
+            'payments' => $payments,
+            'groupedPayments' => $groupedPayments,
+            'chartData' => $chartData,
+            'suppliers' => $suppliers,
+            'fromDate' => Carbon::parse($fromDate),
+            'toDate' => Carbon::parse($toDate),
+            'reportPeriod' => $reportPeriod,
+            'employees' => $employees,
+            'branches' => $branches,
+        ]);
+    } catch (\Exception $e) {
+        // Log the full error
+        Log::error('Error in supplier payments report', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        // Return an error view or redirect with a message
+        return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
+    }
+}
+
 }
 

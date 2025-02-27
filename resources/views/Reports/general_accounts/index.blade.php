@@ -1,254 +1,450 @@
 @extends('master')
 
 @section('title')
-تقارير الحسابات العامة
+    تقرير الحسابات العامة
 @stop
 
+@section('css')
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .card {
+            border: none;
+            background-color: #edf2f7;
+        }
+
+        .section-title {
+            background-color: #d8e3e8;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .icon-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .icon1 {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+        }
+
+        .icon2 {
+            background: linear-gradient(45deg, #86a8e7, #91eae4);
+        }
+
+        .icon3 {
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+        }
+
+        .icon4 {
+            background: linear-gradient(45deg, #00f260, #0575e6);
+        }
+
+        .icon5 {
+            background: linear-gradient(45deg, #f7971e, #ffd200);
+        }
+
+        .view-button {
+            color: #6c757d;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .view-button i {
+            margin-left: 5px;
+        }
+
+        .list-group-item {
+            padding: 15px 20px;
+            background-color: #f7f9fc;
+            border: none;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+@endsection
 
 @section('content')
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
-
-<div class="content-header row">
-    <div class="content-header-left col-md-9 col-12 mb-2">
-        <div class="row breadcrumbs-top">
-            <div class="col-12">
-                <h2 class="content-header-title float-left mb-0">تقارير الحسابات العامة</h2>
-                <div class="breadcrumb-wrapper col-12">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="">الرئيسيه</a>
-                        </li>
-                        <li class="breadcrumb-item active">عرض
-                        </li>
-                    </ol>
+    <div class="content-header row mb-3">
+        <div class="content-header-left col-md-12">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="content-header-title float-start mb-0">تقارير الحسابات العامة</h2>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="container mt-4">
-    <div class="row">
-        <!-- كرت تقرير الموردين -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-book"></i> تقارير الحسابات العامة</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-book text-success"></i> تقرير الضرائب
-                            <a href="{{route('reports.general_accounts.Tax_Report')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-money-bill-alt text-info"></i> أقرار ضريبي 
-                            <a href="{{route('reports.general_accounts.Tax_Declaration')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-chart-line text-warning"></i> قائمة الدخل
-                            <a href="{{route('reports.general_accounts.income_Statement')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-shopping-cart text-danger"></i> الميزانية العمومية
-                            <a href="{{route('reports.general_accounts.Balance_Sheet')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-file-invoice-dollar text-primary"></i>  الربح والخسارة 
-                            <a href="{{route('reports.general_accounts.Profit_Loss')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-receipt text-secondary"></i> الحركات المالية
-                            <a href="{{route('reports.general_accounts.Financial_Transactions')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-receipt text-secondary"></i> التدفقات النقدية
-                            <a href="{{route('reports.general_accounts.Cash_Flow_Report')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-receipt text-secondary"></i> الأصول 
-                            <a href="{{route('reports.general_accounts.Assets')}}" class="btn btn-link p-0">عرض</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-       
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-user-tie"></i> تقارير القيود اليومية</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-user-tie text-danger"></i>تقرير ميزان مراجعة مجاميع وأرصدة
-                            <a href="{{route('reports.general_accounts.Trial_Balance_Summary_and_Balances_Report')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> تقرير حساب مراجعة
-                            <a href="{{route('reports.general_accounts.Trial_Balance_Account_Report')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-balance-scale text-white"></i>تقرير ميزان مراجعة أرصدة
-
-                            <a href="{{route('reports.general_accounts.Trial_Balance_Balances_Report')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> حساب الأستاذ
-                            <a href="{{route('reports.general_accounts.General_Ledger')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i>مراكز التكلفة
-                            <a href="{{route('reports.general_accounts.Cost_Centers')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> تقرير القيود
-                            <a href="{{route('reports.general_accounts.Journal_Entries_Report')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> دليل الحسابات العامة
-                            <a href="{{route('reports.general_accounts.General_Chart_of_Accounts')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                    </ul>
+                <div class="col-md-6">
+                    <div class="breadcrumb-wrapper float-start">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
+                            <li class="breadcrumb-item active">عرض</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- كرت تقارير المدفوعات -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-calendar-alt"></i> تقارير المصروفات بالمدة الزمنية</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-day text-info"></i> المصروفات اليومية
-                            <a href="{{route('reports.general_accounts.Daily_Expenses')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt ml-2"></i>
+                        تقارير الحسابات العامة
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-file-invoice-dollar"></i></div>
+                                تقرير الضرائب
+                            </div>
+                            <a href="{{ route('GeneralAccountReports.taxReport') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-week text-warning"></i> المصروفات الأسبوعية
-                            <a href="{{route('reports.general_accounts.Daily_Expenses')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-file-signature"></i></div>
+                                اقرار ضرائب
+                            </div>
+                            <a href="{{ route('ReportsPurchases.purchaseByEmployee') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-alt text-primary"></i> المصروفات الشهرية
-                            <a href="{{route('reports.general_accounts.Monthly_Expenses')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-chart-line"></i></div>
+                                قائمة الدخل
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-alt text-primary"></i> المصروفات السنوية
-                            <a href="{{route('reports.general_accounts.Monthly_Expenses')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-balance-scale"></i></div>
+                                الميزانية العمومية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-coins"></i></div>
+                                الربح و الخسارة
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-exchange-alt"></i></div>
+                                الحركات المالية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-money-bill-wave"></i></div>
+                                تقرير التدفقات النقدية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-building"></i></div>
+                                الاصول
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- تقارير الموردين -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt ml-2"></i>
+
+                        تقارير القيود اليومية
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-address-book"></i></div>
+                                تقرير ميزان المراجعه مجاميع الارصدة
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_serial_num.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon2 ml-2"><i class="fas fa-balance-scale"></i></div>
+                                تقرير حساب المراجعة
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon3 ml-2"><i class="fas fa-clock"></i></div>
+                                تقرير حساب مراجعة الارصدة
+                            </div>
+                            <a href="Product_tracking/Track_shipment_num.html" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon4 ml-2"><i class="fas fa-shopping-cart"></i></div>
+                                حساب الاستاذ العام
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon4 ml-2"><i class="fas fa-money-bill-wave"></i></div>
+                                مراكز التكلفة
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon4 ml-2"><i class="fas fa-file-invoice"></i></div>
+                                تقرير القيود
+                            </div>
+                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon4 ml-2"><i class="fas fa-file-invoice"></i></div>
+                                دليل الحسابات العامة
+                            </div>
+                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <!-- كرت تقارير مشتريات المنتجات -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-box"></i> تقارير المصروفات المقسمة</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-box text-secondary"></i> المصروفات حسب التصنيف
-                            <a href="{{route('reports.general_accounts.Expenses_By_Category')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+        <div class="row">
+
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt ml-2"></i>
+
+                        تقارير المصاريف المقسمة
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
+                                مصروفات حسب التصنيف
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="mb-2">
-                            <i class="fas fa-truck text-danger"></i> المصروفات حسب الموظف
-                            <a href="{{route('reports.general_accounts.Expenses_By_Employee')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
+                                مصروفات حسب البائع
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> المصروفات حسب البائع
-                            <a href="{{route('reports.general_accounts.Expenses_By_Vendor')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
+                                مصروفات حسب الموضف
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> المصروفات حسب العميل
-                            <a href="{{route('reports.general_accounts.Expenses_By_Customer')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
+                                مصروفات حسب العميل
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- تقارير المدفوعات بالمدة الزمنية -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt ml-2"></i>
+                        تقارير المصروفات بالمدة الزمنية
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-sun"></i></div>
+                                المصروفات اليومية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_serial_num.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
+                                المصروفات الاسبوعية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon3 ml-2"><i class="fas fa-calendar-alt"></i></div>
+                                المصروفات الشهرية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon4 ml-2"><i class="fas fa-calendar-check"></i></div>
+                                المدفوعات السنوية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+
+
+            <!-- تقارير المدفوعات بالمدة الزمنية -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt ml-2"></i>
+                        تقارير المصروفات بالمدة الزمنية
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-sun"></i></div>
+سندات القبض حسب التصنيف
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_serial_num.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
+                                سندات القبض حسب البائع
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon3 ml-2"><i class="fas fa-calendar-alt"></i></div>
+                                سندات القبض حسب الموضف
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon4 ml-2"><i class="fas fa-calendar-check"></i></div>
+                                سندات القبض حسب العميل
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="section-title">
+                        <i class="fas fa-file-alt ml-2"></i>
+
+                        تقرير سندات القبض المقسمة
+
+
+
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
+                                سندات القبض اليومية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
+                                سندات القبض الاسبوعية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
+                                سندات القبض الشهرية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
+                                سندات القبض السنوية
+                            </div>
+                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
-    <div class="row">
-        <!-- كرت تقارير المدفوعات -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-calendar-alt"></i> تقارير سندات القبض بالمدة الزمنية</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-day text-info"></i> سندات القبض اليومية
-                            <a href="{{route('reports.general_accounts.Daily_Receivables')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-week text-warning"></i> سندات القبض الأسبوعية
-                            <a href="{{route('reports.general_accounts.Weekly_Receivables')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-alt text-primary"></i> سندات القبض الشهرية
-                            <a href="{{route('reports.general_accounts.Monthly_Receivables')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-calendar-alt text-primary"></i> سندات القبض السنوية
-                            <a href="{{route('reports.general_accounts.Annual_Receivables')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- كرت تقارير مشتريات المنتجات -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h5 class="card-title text-primary"><i class="fas fa-box"></i> تقارير سندات القبض المقسمة</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <i class="fas fa-box text-secondary"></i> سندات القبض حسب التصنيف
-                            <a href="{{route('reports.general_accounts.Receivables_By_Category')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-truck text-danger"></i> سندات القبض حسب البائع
-                            <a href="{{route('reports.general_accounts.Receivables_By_Vendor')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> سندات القبض حسب الموظف
-                            <a href="{{route('reports.general_accounts.Receivables_By_Employee')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-user text-success"></i> سندات القبض حسب العميل
-                            <a href="{{route('reports.general_accounts.Receivables_By_Customer')}}" class="btn btn-link p-0">التفاصيل</a> | 
-                            <a href="#" class="btn btn-link p-0">الملخص</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
-</div>
+@endsection
 
-
-
+@section('scripts')
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 @endsection

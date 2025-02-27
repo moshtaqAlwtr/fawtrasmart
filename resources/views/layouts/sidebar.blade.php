@@ -1289,7 +1289,7 @@
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Purchases_Report') }}</span></a>
                     </li>
-                    <li><a href=""><i class="feather icon-circle"></i><span
+                    <li><a href="{{ route('GeneralAccountReports.index') }}"><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.General_Accounts_Report') }}</span></a>
                     </li>

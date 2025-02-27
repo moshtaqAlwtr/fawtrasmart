@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Reports\Customers\CustomerReportController;
+use App\Http\Controllers\Reports\GeneralAccountsController;
 use App\Http\Controllers\Reports\Inventory\InventoryReportController;
 use App\Http\Controllers\Reports\OrdersReportController;
 use App\Http\Controllers\Reports\PurchasesReportController;
@@ -46,7 +47,10 @@ Route::group(
             Route::get('/balnceSuppliers', [PurchasesReportController::class, 'balnceSuppliers'])->name('ReportsPurchases.balnceSuppliers');
             Route::get('/purchaseSupplier', [PurchasesReportController::class, 'purchaseSupplier'])->name('ReportsPurchases.purchaseSupplier');
             Route::get('/paymentPurchases', [PurchasesReportController::class, 'paymentPurchases'])->name('ReportsPurchases.paymentPurchases');
-
+            Route::get('/prodectPurchases', [PurchasesReportController::class, 'prodectPurchases'])->name('ReportsPurchases.prodectPurchases');
+            Route::get('/supplierPurchases', [PurchasesReportController::class, 'supplierPurchases'])->name('ReportsPurchases.supplierPurchases');
+            Route::get('/employeePurchases', [PurchasesReportController::class, 'employeePurchases'])->name('ReportsPurchases.employeePurchases');
+            Route::get('/supplierPayments', [PurchasesReportController::class, 'supplierPayments'])->name('ReportsPurchases.supplierPayments');
 
         });
 
@@ -90,4 +94,11 @@ Route::group(
             });
 
     },
+    Route::prefix('GeneralAccountReports')->group(function () {
+
+        Route::get('/', [GeneralAccountsController::class, 'index'])->name('GeneralAccountReports.index');
+        Route::get('/taxReport', [GeneralAccountsController::class, 'taxReport'])->name('GeneralAccountReports.taxReport');
+    })
+
+
 );

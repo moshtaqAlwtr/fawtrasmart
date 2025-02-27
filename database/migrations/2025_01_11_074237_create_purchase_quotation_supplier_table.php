@@ -22,6 +22,7 @@ return new class extends Migration {
 
             $table->timestamps();
 
+
             // تحديد اسم مخصص وقصير للـ unique index
             $table->unique(['purchase_quotation_id', 'supplier_id'], 'quote_supplier_unique');
         });

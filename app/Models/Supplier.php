@@ -69,5 +69,29 @@ public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->last_name}");
     }
+    public function getFullAddressAttribute()
+    {
+        $address = [];
+        if ($this->street1) {
+            $address[] = $this->street1;
+        }
+        if ($this->street2) {
+            $address[] = $this->street2;
+        }
+        if ($this->city) {
+            $address[] = $this->city;
+        }
+        if ($this->region) {
+            $address[] = $this->region;
+        }
+        if ($this->postal_code) {
+            $address[] = $this->postal_code;
+        }
+        if ($this->country) {
+            $address[] = $this->country;
+        }
+
+        return implode(', ', $address);
+    }
 
 }

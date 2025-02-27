@@ -109,6 +109,10 @@ public function storeHouse()
     {
         return $this->hasMany(PaymentVoucherDetail::class, 'invoice_item_id');
     }
+    public  function employee(){
+        return $this->belongsTo(Employee::class, 'employee_id'); // Adjust if your foreign key is different
+    }
+
     public function item()
     {
         return $this->belongsTo(Product::class); // Adjust if your foreign key is different

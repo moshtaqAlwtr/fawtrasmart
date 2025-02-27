@@ -209,7 +209,7 @@
                                 <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
                                 تقرير مشتريات المنتجات حسب المنتج
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.prodectPurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -217,7 +217,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
                                 تقرير مشتريات المنتجات حسب المورد
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.supplierPurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -225,7 +225,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
                                 تقرير مشتريات المنتجات حسب الموظف
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.employeePurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
@@ -245,7 +245,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-sun"></i></div>
                                 المدفوعات اليومية
                             </div>
-                            <a href="Product_tracking/Track_expiry_date.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'daily'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_serial_num.html'">
@@ -253,7 +253,7 @@
                                 <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
                                 المدفوعات الاسبوعية
                             </div>
-                            <a href="Product_tracking/Track_serial_num.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'weekly'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
@@ -261,7 +261,7 @@
                                 <div class="icon-box icon3 ml-2"><i class="fas fa-calendar-alt"></i></div>
                                 المدفوعات الشهرية
                             </div>
-                            <a href="Product_tracking/Track_shipment_num.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'monthly'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
@@ -269,7 +269,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-calendar-check"></i></div>
                                 المدفوعات السنوية
                             </div>
-                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'yearly'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
