@@ -37,7 +37,7 @@ class PaymentsProcess extends Model
 
     public function client()
     {
-        return $this->belongsTo(Client::class, 'clients_id');
+        return $this->belongsTo(Client::class, 'client_id');
     }
 
     public function purchase()
@@ -45,8 +45,18 @@ class PaymentsProcess extends Model
         return $this->belongsTo(PurchaseInvoice::class, 'purchases_id');
     }
 
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
     public function treasury()
     {
         return $this->belongsTo(Treasury::class, 'treasury_id');
     }
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
+    }
+
 }

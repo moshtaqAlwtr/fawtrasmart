@@ -83,9 +83,28 @@
                                             </div>
                                         </div>
                                         <div class="col-12">
+                                            <div class="row">
+                                                <div class="col-12">
                                             <div class="form-group">
                                                 <label for="password-vertical">الصور</label>
                                                 <input type="file" name="images" class="form-control"name="contact">
+                                            </div>
+                                                </div>
+                                                  <!-- قالب الوحدة -->
+                                                  @if($role)
+                                                  <div class="col-6">
+                                                    <div class="form-group">
+                                                        <label for="template-unit">قالب الوحدة</label>
+                                                        <select id="template-unit" name="sub_unit_id" class="form-control">
+                                                            @foreach ($TemplateUnit as $key => $Templat)
+                                                                <option value="{{ $Templat->id }}" {{ $key == 0 ? 'selected' : '' }}>
+                                                                    {{ $Templat->template ?? "" }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                @endif
                                             </div>
                                         </div>
 
@@ -190,6 +209,25 @@
                         <div class="card-body">
                                 <div class="form-body">
                                     <div class="row">
+                                        @if($role)
+                                        <div class="col-12">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <div class="form-group d-flex align-items-center">
+                                                        <input placeholder="سعر الشراء" type="text" id="purchase-price" class="form-control me-2" name="purchase_price" value="{{ old('purchase_price') }}">
+                                                        <select class="form-control" id="purchase-type" name="purchase_unit_id"></select>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-6">
+                                                    <div class="form-group d-flex align-items-center">
+                                                        <input placeholder="سعر البيع" type="text" id="sale-price" class="form-control me-2" name="sale_price" value="{{ old('sale_price') }}">
+                                                        <select class="form-control" id="sale-type" name="sales_unit_id"></select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @else
                                         <div class="col-12">
                                             <div class="row">
                                                 <div class="col-6">
@@ -206,6 +244,8 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @endif
+                                        
                                         <div class="col-12">
                                             <div class="row">
                                                 <div class="col-6">
@@ -409,5 +449,45 @@
         document.getElementById("featured_product").disabled = true;
     }
 </script>
+<!-- jQuery + Ajax لجلب البيانات -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    function fetchSubUnits(templateUnitId) {
+        if (templateUnitId) {
+            $.ajax({
+                url: '/stock/products/get-sub-units',
+                type: 'GET',
+                data: { template_unit_id: templateUnitId },
+                success: function(response) {
+                    if (response.length > 0) {
+                        $('#purchase-type, #sale-type').empty();
+                        $.each(response, function(index, subUnit) {
+                            $('#purchase-type, #sale-type').append('<option value="' + subUnit.id + '">' + subUnit.sub_discrimination + '</option>');
+                        });
 
+                        // تحديد أول قيمة تلقائيًا
+                        $('#purchase-type, #sale-type').val(response[0].id);
+                    } else {
+                        $('#purchase-type, #sale-type').empty().append('<option value="">لا توجد وحدات فرعية</option>');
+                    }
+                }
+            });
+        } else {
+            $('#purchase-type, #sale-type').empty().append('<option value="">لا توجد وحدات فرعية</option>');
+        }
+    }
+
+    // جلب أول القيم عند تحميل الصفحة
+    let firstTemplateUnitId = $('#template-unit').val();
+    fetchSubUnits(firstTemplateUnitId);
+
+    // عند تغيير قالب الوحدة
+    $('#template-unit').change(function() {
+        let templateUnitId = $(this).val();
+        fetchSubUnits(templateUnitId);
+    });
+});
+</script>
 @endsection

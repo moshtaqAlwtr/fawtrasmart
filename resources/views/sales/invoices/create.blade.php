@@ -284,7 +284,19 @@
                         <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
                         <div class="table-responsive">
                             <table class="table" id="items-table">
-
+                                <thead>
+                                    <tr>
+                                        <th>المنتج</th>
+                                        <th>الوصف</th>
+                                        <th>الكمية</th>
+                                        <th>السعر</th>
+                                        <th>الخصم</th>
+                                        <th>الضريبة 1</th>
+                                        <th>الضريبة 2</th>
+                                        <th>المجموع</th>
+                                        <th>الإجراءات</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">
@@ -319,7 +331,7 @@
                                         <td data-label="الضريبة 2">
                                             <input type="number" name="items[0][tax_2]" class="form-control tax" value="0" min="0" max="100" step="0.01">
                                         </td>
-                                        <input type="hidden" name="items[0][store_house_id]" value="2">
+                                        <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
                                         </td>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ClientPaymentRequest;
+use App\Models\Account;
 use App\Models\Employee;
 use App\Models\Installment;
 use App\Models\Invoice;
@@ -11,6 +12,7 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\PaymentMethod;
 use App\Models\PaymentsProcess;
+use App\Models\PurchaseInvoice;
 use App\Models\Treasury;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -142,7 +144,8 @@ class PaymentProcessController extends Controller
 
     return view('sales.payment.create', compact('invoiceId','payments', 'amount', 'treasury', 'employees', 'type'));
 }
-    public function store(ClientPaymentRequest $request)
+
+public function store(ClientPaymentRequest $request)
     {
         try {
             DB::beginTransaction();
@@ -219,6 +222,9 @@ class PaymentProcessController extends Controller
             // إنشاء سجل الدفع
             $payment = PaymentsProcess::create($data);
 
+            $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')
+            ->first();
+            $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
             // تحديث المبلغ المدفوع في الفاتورة
             $invoice->advance_payment = $newTotalPayments;
             $invoice->payment_status = $payment_status;
@@ -240,7 +246,7 @@ class PaymentProcessController extends Controller
             // 1. حساب الصندوق/البنك (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' =>$invoice->account_id,
+                'account_id' => $mainTreasuryAccount->id,
                 'description' => 'استلام دفعة نقدية',
                 'debit' => $data['amount'],
                 'credit' => 0,
@@ -250,7 +256,7 @@ class PaymentProcessController extends Controller
             // 2. حساب العميل (دائن)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
-                'account_id' => $invoice->client->account_id,
+                'account_id' => $clientaccounts->id,
                 'description' => 'دفعة من العميل',
                 'debit' => 0,
                 'credit' => $data['amount'],
@@ -326,7 +332,7 @@ class PaymentProcessController extends Controller
     public function getInvoiceDetails($invoice_id)
 {
     try {
-        $invoice = Invoice::findOrFail($invoice_id);
+        $invoice = PurchaseInvoice::findOrFail($invoice_id);
 
         // حساب المبلغ المدفوع والمتبقي
         $totalPayments = PaymentsProcess::where('invoice_id', $invoice->id)
@@ -356,31 +362,127 @@ class PaymentProcessController extends Controller
 }
 
 
-    public function storePurchase(ClientPaymentRequest $request)
-    {
-        try {
-            // استرجاع البيانات المصادق عليها
-            $data = $request->validated();
+public function storePurchase(ClientPaymentRequest $request)
+{
+    try {
+        DB::beginTransaction();
 
-            $data['purchases_id'] = $request->input('purchases_id');
-            $data['type'] = 'supplier payments'; // تصحيح هنا
+        // استرجاع البيانات المصادق عليها
+        $data = $request->validated();
 
-            // معالجة المرفقات
-            if ($request->hasFile('attachments')) {
-                $filename = $request->file('attachments')->store('payment_attachments', 'public');
-                $data['attachments'] = $filename;
-            }
+        // التحقق من وجود الفاتورة وجلب تفاصيلها
+        $invoice = PurchaseInvoice::findOrFail($data['invoice_id']);
 
-            // إنشاء السجل
-            PaymentsProcess::create($data);
-
-            return redirect()->route('PaymentSupplier.indexPurchase')->with('success', 'تم تسجيل عملية الدفع بنجاح');
-        } catch (\Exception $e) {
+        // ** التحقق المسبق من حالة الفاتورة **
+        if ($invoice->is_paid) {
             return back()
-                ->with('error', 'حدث خطأ أثناء تسجيل عملية الدفع: ' . $e->getMessage())
+                ->with('error', 'لا يمكن إضافة دفعة. الفاتورة مدفوعة بالكامل بالفعل.')
                 ->withInput();
         }
+
+        // حساب إجمالي المدفوعات السابقة
+        $totalPreviousPayments = PaymentsProcess::where('invoice_id', $invoice->id)
+            ->where('type', 'purchase payments')
+            ->where('payment_status', '!=', 5) // استثناء المدفوعات الفاشلة
+            ->sum('amount');
+
+        // حساب المبلغ المتبقي للدفع
+        $remainingAmount = $invoice->grand_total - $totalPreviousPayments;
+
+        // التحقق من أن مبلغ الدفع لا يتجاوز المبلغ المتبقي
+        if ($data['amount'] > $remainingAmount) {
+            return back()
+                ->with('error', 'مبلغ الدفع يتجاوز المبلغ المتبقي للفاتورة. المبلغ المتبقي هو: ' . number_format($remainingAmount, 2))
+                ->withInput();
+        }
+
+        // تعيين حالة الدفع الافتراضية كمسودة
+        $payment_status = 3; // مسودة
+
+        // تحديد حالة الدفع بناءً على المبلغ المدفوع والمبلغ المتبقي
+        $newTotalPayments = $totalPreviousPayments + $data['amount'];
+
+        if ($newTotalPayments >= $invoice->grand_total) {
+            $payment_status = 1; // مكتمل
+            $invoice->is_paid = true;
+            $invoice->due_value = 0;
+        } else {
+            $payment_status = 2; // غير مكتمل
+            $invoice->is_paid = false;
+            $invoice->due_value = $invoice->grand_total - $newTotalPayments;
+        }
+
+        // إضافة البيانات الإضافية للدفعة
+        $data['type'] = 'purchase payments';
+        $data['created_by'] = Auth::id();
+        $data['payment_status'] = $payment_status;
+
+        // معالجة المرفقات
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $data['attachments'] = $filename;
+            }
+        }
+
+        // إنشاء سجل الدفع
+        $payment = PaymentsProcess::create($data);
+
+        // تحديث المبلغ المدفوع في الفاتورة
+        $invoice->advance_payment = $newTotalPayments;
+        $invoice->payment_status = $payment_status;
+        $invoice->save();
+
+        // إنشاء قيد محاسبي للدفعة
+        $this->createPaymentJournalEntry($invoice, $data['amount']);
+
+        DB::commit();
+
+        // إعداد رسالة النجاح مع حالة الدفع
+        $paymentStatusText = match($payment_status) {
+            1 => 'مكتمل',
+            2 => 'غير مكتمل',
+            3 => 'مسودة',
+            4 => 'تحت المراجعة',
+            5 => 'فاشلة',
+            default => 'غير معروف'
+        };
+
+        $successMessage = sprintf(
+            'تم تسجيل عملية الدفع بنجاح. المبلغ المدفوع: %s، المبلغ المتبقي: %s - حالة الدفع: %s',
+            number_format($data['amount'], 2),
+            number_format($invoice->due_value, 2),
+            $paymentStatusText
+        );
+
+        return redirect()->route('paymentsPurchase.index')->with('success', $successMessage);
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في تسجيل عملية الدفع: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء تسجيل عملية الدفع: ' . $e->getMessage())
+            ->withInput();
     }
+}
+
+public function createPurchase($id)
+{
+    // التحقق من وجود الفاتورة وعدم دفعها بالكامل
+    $invoice = PurchaseInvoice::findOrFail($id);
+
+    if ($invoice->is_paid) {
+        return redirect()->route('invoicePurchases.index')
+            ->with('error', 'لا يمكن إضافة دفعة. الفاتورة مدفوعة بالكامل بالفعل.');
+    }
+
+    $payments = PaymentsProcess::where('invoice_id', $id)->get();
+    $employees = Employee::all();
+
+    return view('purchases.supplier_payments.create', compact('payments', 'employees', 'id', 'invoice'));
+}
     public function show($id)
     {
         $payment = PaymentsProcess::with(['invoice.client', 'invoice.payments_process', 'employee'])->findOrFail($id);
@@ -400,7 +502,7 @@ class PaymentProcessController extends Controller
 
             $employees = Employee::all();
 
-            return view('Purchases.Supplier_Payments.show', compact('payment', 'employees'));
+            return view('purchases.supplier_payments.show', compact('payment', 'employees'));
         } catch (\Exception $e) {
             return redirect()->route('PaymentSupplier.indexPurchase')
                 ->with('error', 'حدث خطأ أثناء عرض تفاصيل الدفع: ' . $e->getMessage());
@@ -584,9 +686,12 @@ class PaymentProcessController extends Controller
                 ->withInput();
         }
     }
+
+
     public function destroy($id)
     {
         PaymentsProcess::destroy($id);
         return redirect()->route('paymentsClient.index')->with('success', 'تم حذف عملية الدفع بنجاح');
     }
 }
+

@@ -67,6 +67,11 @@ class InvoiceItem extends Model
     {
         return $this->belongsTo(Quote::class, 'quotation_id');
     }
+    // في ملف InvoiceItem.php
+public function storeHouse()
+{
+    return $this->belongsTo(StoreHouse::class, 'store_house_id');
+}
 
     public function creditNote()
     {
@@ -104,12 +109,12 @@ class InvoiceItem extends Model
     {
         return $this->hasMany(PaymentVoucherDetail::class, 'invoice_item_id');
     }
+    public  function employee(){
+        return $this->belongsTo(Employee::class, 'employee_id'); // Adjust if your foreign key is different
+    }
+
     public function item()
     {
         return $this->belongsTo(Product::class); // Adjust if your foreign key is different
     }
-
-
-
-
 }

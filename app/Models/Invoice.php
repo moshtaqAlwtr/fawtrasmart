@@ -42,7 +42,7 @@ class Invoice extends Model
     }
     public function    branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Branch::class, 'branch_id');
     }
 
 
@@ -114,4 +114,5 @@ class Invoice extends Model
     {
         return $this->hasMany(JournalEntry::class, 'reference_id');
     }
+
 }

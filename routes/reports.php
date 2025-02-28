@@ -1,9 +1,14 @@
 <?php
 
+use App\Http\Controllers\Reports\Customers\CustomerReportController;
+use App\Http\Controllers\Reports\GeneralAccountsController;
+use App\Http\Controllers\Reports\Inventory\InventoryReportController;
 use App\Http\Controllers\Reports\OrdersReportController;
+use App\Http\Controllers\Reports\PurchasesReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Reports\ReportsController;
 use App\Http\Controllers\Reports\SalesReportsController;
+use App\Models\PurchaseQuotation;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 require __DIR__ . '/auth.php';
@@ -17,31 +22,39 @@ Route::group(
         Route::prefix('Reports')
             ->middleware(['auth'])
             ->group(function () {
-                Route::get('/purchases/orders', [ReportsController::class, 'purchases'])->name('reports.purchases.orders');
-                Route::get('/purchases/by_supplier', [ReportsController::class, 'supplier'])->name('reports.purchases.by_supplier');
-                Route::get('/purchases/supplier_directory', [ReportsController::class, 'supplierDirectory'])->name('reports.purchases.supplier_directory');
-                Route::get('/purchases/by_employee', [ReportsController::class, 'employee'])->name('reports.purchases.by_employee');
-                Route::get('/purchases/balances', [ReportsController::class, 'balances'])->name('reports.purchases.balances');
-                Route::get('/purchases/aged', [ReportsController::class, 'aged'])->name('reports.purchases.aged');
-                Route::get('/purchases/payments', [ReportsController::class, 'payments'])->name('reports.purchases.payments');
-                Route::get('/purchases/suppliers_purchases', [ReportsController::class, 'suppliersPurchases'])->name('reports.purchases.suppliers_purchases');
-                Route::get('/purchases/supplier_statement', [ReportsController::class, 'supplierStatement'])->name('reports.purchases.supplier_statement');
-                Route::get('/purchases/daily_payments', [ReportsController::class, 'dailyPayments'])->name('reports.purchases.daily_payments');
-                Route::get('/purchases/weekly_payments', [ReportsController::class, 'weeklyPayments'])->name('reports.purchases.weekly_payments');
-                Route::get('/purchases/monthly_payments', [ReportsController::class, 'monthlyPayments'])->name('reports.purchases.monthly_payments');
-                Route::get('/purchases/annual_payments', [ReportsController::class, 'annualPayments'])->name('reports.purchases.annual_payments');
-                Route::get('/products/by_product', [ReportsController::class, 'byProduct'])->name('reports.purchases.by_product');
-                Route::get('/purchases/by_supplier', [ReportsController::class, 'purchasesBySupplier'])->name('reports.purchases.by_supplier');
-                Route::get('/purchases/products_by_employee', [ReportsController::class, 'productsByEmployee'])->name('reports.purchases.products_by_employee');
+                Route::get('/index', [PurchasesReportController::class, 'index'])->name('ReportsPurchases.index');
+
+
             });
-        Route::prefix('reports/orders')->group(function () {
-            Route::get('/', [OrdersReportController::class, 'index'])->name('reports.orders.index');
-            Route::get('/supply-order', [OrdersReportController::class, 'supplyOrder'])->name('reports.orders.supplyOrder');
-            Route::get('/tagged-supply-orders', [OrdersReportController::class, 'taggedSupplyOrders'])->name('reports.orders.taggedSupplyOrders');
-            Route::get('/supply-orders-schedule', [OrdersReportController::class, 'supplyOrdersSchedule'])->name('reports.orders.supplyOrdersSchedule');
-            Route::get('/supply-orders-profit-summary', [OrdersReportController::class, 'supplyOrdersProfitSummary'])->name('reports.orders.supplyOrdersProfitSummary');
-            Route::get('/supply-orders-profit-details', [OrdersReportController::class, 'supplyOrdersProfitDetails'])->name('reports.orders.supplyOrdersProfitDetails');
+        Route::prefix('ClientReport')->group(function () {
+            Route::get('/', [CustomerReportController::class, 'index'])->name('ClientReport.index');
+            Route::get('/debtReconstructionInv', [CustomerReportController::class, 'debtReconstructionInv'])->name('ClientReport.debtReconstructionInv');
+            Route::get('/debtAgingGeneralLedger', [CustomerReportController::class, 'debtAgingGeneralLedger'])->name('ClientReport.debtAgingGeneralLedger');
+            Route::get('/customerGuide', [CustomerReportController::class, 'customerGuide'])->name('ClientReport.customerGuide');
+            Route::get('/customerBalances', [CustomerReportController::class, 'customerBalances'])->name('ClientReport.customerBalances');
+            Route::get('/customerSales', [CustomerReportController::class, 'customerSales'])->name('ClientReport.customerSales');
+            Route::get('/customerPayments', [CustomerReportController::class, 'customerPayments'])->name('ClientReport.customerPayments');
+            Route::get('/customerAppointments', [CustomerReportController::class, 'customerAppointments'])->name('ClientReport.customerAppointments');
+            Route::get('/customerInstallments', [CustomerReportController::class, 'customerInstallments'])->name('ClientReport.customerInstallments');
+            Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
         });
+        Route::prefix('ReportsPurchases')->group(function () {
+
+            Route::get('/', [PurchasesReportController::class, 'index'])->name('ReportsPurchases.index');
+            Route::get('/bySupplier', [PurchasesReportController::class, 'bySupplier'])->name('ReportsPurchases.bySupplier');
+            Route::get('/purchaseByEmployee', [PurchasesReportController::class, 'purchaseByEmployee'])->name('ReportsPurchases.purchaseByEmployee');
+            Route::get('/SuppliersDirectory', [PurchasesReportController::class, 'SuppliersDirectory'])->name('ReportsPurchases.SuppliersDirectory');
+            Route::get('/balnceSuppliers', [PurchasesReportController::class, 'balnceSuppliers'])->name('ReportsPurchases.balnceSuppliers');
+            Route::get('/purchaseSupplier', [PurchasesReportController::class, 'purchaseSupplier'])->name('ReportsPurchases.purchaseSupplier');
+            Route::get('/paymentPurchases', [PurchasesReportController::class, 'paymentPurchases'])->name('ReportsPurchases.paymentPurchases');
+            Route::get('/prodectPurchases', [PurchasesReportController::class, 'prodectPurchases'])->name('ReportsPurchases.prodectPurchases');
+            Route::get('/supplierPurchases', [PurchasesReportController::class, 'supplierPurchases'])->name('ReportsPurchases.supplierPurchases');
+            Route::get('/employeePurchases', [PurchasesReportController::class, 'employeePurchases'])->name('ReportsPurchases.employeePurchases');
+            Route::get('/supplierPayments', [PurchasesReportController::class, 'supplierPayments'])->name('ReportsPurchases.supplierPayments');
+
+        });
+
+
         Route::prefix('salesReports')
             ->middleware(['auth'])
             ->group(function () {
@@ -66,33 +79,26 @@ Route::group(
                 Route::get('/reports/employeeProfits', [SalesReportsController::class, 'employeeProfits'])->name('salesReports.employeeProfits');
                 Route::get('/salaryRep', [SalesReportsController::class, 'salaryRep'])->name('salesReports.salaryRep');
                 Route::get('/byProduct', [SalesReportsController::class, 'byProduct'])->name('salesReports.byProduct');
-                Route::get('/Weekly_by_Product', [SalesReportsController::class, 'WeeklybyProduct'])->name('reports.sals.Weekly_by_Product');
-                Route::get('/Monthly_by_Product', [SalesReportsController::class, 'MonthlybyProduct'])->name('reports.sals.Monthly_by_Product');
-                Route::get('/Annual_by_Product', [SalesReportsController::class, 'AnnualbyProduct'])->name('reports.sals.Annual_by_Product');
-                Route::get('/D_Sales', [SalesReportsController::class, 'Dsales'])->name('reports.sals.D_Sales');
-                Route::get('/W_Sales', [SalesReportsController::class, 'Wsales'])->name('reports.sals.W_Sales');
-                Route::get('/M_Sales', [SalesReportsController::class, 'Msales'])->name('reports.sals.M_Sales');
-                Route::get('/A_Sales', [SalesReportsController::class, 'Asales'])->name('reports.sals.A_Sales');
-                Route::get('/Payments_by_Customer', [SalesReportsController::class, 'byCust'])->name('reports.sals.Payments_by_Customer');
-                Route::get('/Payments_by_Employee', [SalesReportsController::class, 'byembl'])->name('reports.sals.Payments_by_Employee');
-                Route::get('/Payments_by_Payment_Method', [SalesReportsController::class, 'bypay'])->name('reports.sals.Payments_by_Payment_Method');
-                Route::get('/Daily_Payments', [SalesReportsController::class, 'DailyPayments'])->name('reports.sals.Daily_Payments');
-                Route::get('/Weekly_Payments', [SalesReportsController::class, 'WeeklyPayments'])->name('reports.sals.Weekly_Payments');
-                Route::get('/Monthly_Payments', [SalesReportsController::class, 'MonthlyPayments'])->name('reports.sals.Monthly_Payments');
-                Route::get('/Annual_Payments', [SalesReportsController::class, 'AnnualPayments'])->name('reports.sals.Annual_Payments');
-                Route::get('/products_profit', [SalesReportsController::class, 'productsprofit'])->name('reports.sals.products_profit');
-                Route::get('/Customer_Profit', [SalesReportsController::class, 'CustomerProfit'])->name('reports.sals.Customer_Profit');
-                Route::get('/Employee_Profit', [SalesReportsController::class, 'EmployeeProfit'])->name('reports.sals.Employee_Profit');
-                Route::get('/Manager_Profit', [SalesReportsController::class, 'ManagerProfit'])->name('reports.sals.Manager_Profit');
-                Route::get('/Daily_Profits', [SalesReportsController::class, 'DailyProfits'])->name('reports.sals.Daily_Profits');
-                Route::get('/Weekly_Profits', [SalesReportsController::class, 'WeeklyProfits'])->name('reports.sals.Weekly_Profits');
-                Route::get('/Annual_Profits', [SalesReportsController::class, 'AnnualProfits'])->name('reports.sals.Annual_Profits');
-                Route::get('/Item_Sales_By_Item', [SalesReportsController::class, 'ItemSalesByItem'])->name('reports.sals.Sales_By_Item');
-                Route::get('/Item_Sales_By_Category', [SalesReportsController::class, 'ItemSalesByCategory'])->name('reports.sals.Sales_By_Category');
-                Route::get('/Item_Sales_By_Brand', [SalesReportsController::class, 'ItemSalesByBrand'])->name('reports.sals.Sales_By_Brand');
-                Route::get('/Item_Sales_By_Employee', [SalesReportsController::class, 'ItemSalesByEmployee'])->name('reports.sals.Sales_By_Employee');
-                Route::get('/Item_Sales_By_SalesRep', [SalesReportsController::class, 'ItemSalesBySalesRep'])->name('reports.sals.Sales_By_SalesRep');
-                Route::get('/Item_Sales_By_Customer', [SalesReportsController::class, 'ItemSalesByCustomer'])->name('reports.sals.Sales_By_Customer');
+
+
             });
+            Route::prefix('StorHouseReport')->group(function () {
+                Route::get('/', [InventoryReportController::class, 'index'])->name('StorHouseReport.index');
+                Route::get('/inventorySheet', [InventoryReportController::class,'inventorySheet'])->name('StorHouseReport.inventorySheet');
+                Route::get('/summaryInventory', [InventoryReportController::class,'summaryInventory'])->name('StorHouseReport.summaryInventory');
+                Route::get('/detailedMovementInventory', [InventoryReportController::class,'detailedMovementInventory'])->name('StorHouseReport.detailedMovementInventory');
+                Route::get('/valueInventory', [InventoryReportController::class,'valueInventory'])->name('StorHouseReport.valueInventory');
+                Route::get('/inventoryBlance', [InventoryReportController::class,'inventoryBlance'])->name('StorHouseReport.inventoryBlance');
+                Route::get('/trialBalance', [InventoryReportController::class,'trialBalance'])->name('StorHouseReport.trialBalance');
+                Route::get('/Inventory_mov_det_product', [InventoryReportController::class,'Inventory_mov_det_product'])->name('StorHouseReport.Inventory_mov_det_product');
+            });
+
     },
+    Route::prefix('GeneralAccountReports')->group(function () {
+
+        Route::get('/', [GeneralAccountsController::class, 'index'])->name('GeneralAccountReports.index');
+        Route::get('/taxReport', [GeneralAccountsController::class, 'taxReport'])->name('GeneralAccountReports.taxReport');
+    })
+
+
 );

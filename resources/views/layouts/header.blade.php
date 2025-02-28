@@ -170,7 +170,7 @@
                         </ul>
                     </li>
                     <li class="dropdown dropdown-user nav-item"><a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
-                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{ auth()->user()->name }}</span><span class="user-status">متصل</span></div>
+                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{ auth()->user()->name ?? "" }}</span><span class="user-status">متصل</span></div>
                             <span>
                                 @php
                                     $firstLetter = mb_substr(auth()->user()->name, 0, 1, "UTF-8");

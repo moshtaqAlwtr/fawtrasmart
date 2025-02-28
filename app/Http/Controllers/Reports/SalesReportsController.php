@@ -132,7 +132,7 @@ class SalesReportsController extends Controller
     public function byEmployee(Request $request)
     {
         // Get base data for dropdowns
-        $employees = User::all();
+        $employees = Employee::all();
         $branches = Branch::all();
         $categories = CategoriesClient::all();
         $clients = Client::all();
@@ -166,7 +166,7 @@ class SalesReportsController extends Controller
 
         // Order Origin (Employee) Filter
         if ($request->filled('order_origin')) {
-            $invoices->where('created_by', $request->order_origin);
+            $invoices->where('employee_id', $request->order_origin);
         }
 
         // Date range filter with Carbon parsing

@@ -5,11 +5,17 @@ namespace App\Http\Controllers\Purchases;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\InvoiceItem;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
+use App\Models\PaymentsProcess;
 use App\Models\Product;
+use App\Models\ProductDetails;
 use App\Models\PurchaseInvoice;
+use App\Models\StoreHouse;
 use App\Models\Supplier;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -97,8 +103,9 @@ class InvoicesPurchaseController extends Controller
         $suppliers = Supplier::all();
         $items = Product::all();
         $accounts = Account::all();
+        $storeHouses = StoreHouse::all(); // إضافة المستودعات
 
-        return view('Purchases.Invoices_purchase.create', compact('suppliers', 'items', 'accounts'));
+        return view('purchases.invoices_purchase.create', compact('suppliers', 'items', 'accounts', 'storeHouses'));
     }
 
     public function store(Request $request)
@@ -128,10 +135,7 @@ class InvoicesPurchaseController extends Controller
             if ($request->has('items') && count($request->items)) {
                 foreach ($request->items as $item) {
                     // جلب المنتج
-                    $product = Product::find($item['product_id']);
-                    if (!$product) {
-                        throw new \Exception('المنتج غير موجود: ' . $item['product_id']);
-                    }
+                    $product = Product::findOrFail($item['product_id']);
 
                     // حساب تفاصيل الكمية والأسعار
                     $quantity = floatval($item['quantity']);
@@ -165,6 +169,7 @@ class InvoicesPurchaseController extends Controller
                         'tax_1' => floatval($item['tax_1'] ?? 0),
                         'tax_2' => floatval($item['tax_2'] ?? 0),
                         'total' => $item_total - $item_discount,
+                        'store_house_id' => $item['store_house_id'] ?? null, // إضافة معرف المستودع
                     ];
                 }
             }
@@ -203,61 +208,62 @@ class InvoicesPurchaseController extends Controller
             // ** الحساب النهائي للمجموع الكلي **
             $total_with_tax = $amount_after_discount + $total_tax + $shipping_cost + $shipping_tax;
 
-            // ** حساب المبلغ المتبقي بعد الدفعة المقدمة (إن وجدت) **
-            $advance_payment = floatval($request->advance_payment ?? 0);
-            $grand_total = $total_with_tax - $advance_payment;
-
-            // ** حالة الفاتورة بناءً على المدفوعات والاستلام **
-            $status = 1; // الحالة الافتراضية (مدفوع بالكامل)
-            if ($advance_payment > 0) {
-                if ($advance_payment < $total_with_tax) {
-                    $status = 2; // مدفوع جزئيًا
-                } else {
-                    $status = 1; // مدفوع بالكامل
-                    $grand_total = 0;
-                }
-            } elseif ($request->has('is_paid') && $request->has('is_received')) {
-                $status = 4; // مدفوع ومستلم
-                $grand_total = 0;
-            } elseif ($request->has('is_paid')) {
-                $status = 5; // مدفوع (غير مستلم)
-                $grand_total = 0;
-            } elseif ($request->has('is_received')) {
-                $status = 3; // مستلم (غير مدفوع)
-            }
-
             // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
             $purchaseInvoice = PurchaseInvoice::create([
                 'supplier_id' => $request->supplier_id,
                 'code' => $code,
-                'type' => 2,
+                'type' => 2, // نوع الفاتورة: مشتريات
                 'date' => $request->date,
                 'terms' => $request->terms ?? 0,
                 'notes' => $request->notes,
-                'status' => $status,
+                'status' => 1, // مدفوع بالكامل
                 'created_by' => Auth::id(),
                 'account_id' => $request->account_id,
                 'discount_amount' => $invoice_discount, // تخزين الخصم الإضافي للفاتورة
                 'discount_type' => $request->has('discount_type') ? ($request->discount_type === 'percentage' ? 2 : 1) : 1,
-                'advance_payment' => $advance_payment,
                 'payment_type' => $request->payment_type ?? 1,
                 'shipping_cost' => $shipping_cost,
                 'tax_type' => $request->tax_type ?? 1,
                 'payment_method' => $request->payment_method,
                 'reference_number' => $request->reference_number,
                 'received_date' => $request->received_date,
-                'is_paid' => $status == 2 || $status == 4,
-                'is_received' => $request->has('is_received'),
+                'is_paid' => true, // مدفوعة بالكامل
+                'is_received' => true, // مستلمة
                 'subtotal' => $total_amount,
                 'total_discount' => $final_total_discount, // تخزين الخصم الإجمالي
                 'total_tax' => $total_tax + $shipping_tax, // إضافة ضريبة التوصيل إلى مجموع الضرائب
-                'grand_total' => $grand_total,
+                'grand_total' => $total_with_tax, // تخزين المبلغ الإجمالي الكامل
+                'due_value' => 0, // لا توجد قيمة مستحقة لأن الفاتورة مدفوعة بالكامل
             ]);
 
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $purchaseInvoice->id; // تعيين purchase_invoice_id
-                InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+                $invoiceItem = InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+
+                // ** الخطوة السادسة: تحديث كميات المنتجات في المستودع **
+                // البحث عن المستودع الرئيسي إذا لم يتم تحديده
+                $storeHouseId = $item['store_house_id'] ?? null;
+                if (!$storeHouseId) {
+                    $mainStoreHouse = StoreHouse::where('major', true)->first();
+                    $storeHouseId = $mainStoreHouse ? $mainStoreHouse->id : null;
+                }
+
+                // إنشاء سجل تفاصيل المنتج لتتبع الحركة
+                if ($storeHouseId) {
+                    ProductDetails::create([
+                        'product_id' => $item['product_id'],
+                        'store_house_id' => $storeHouseId,
+                        'quantity' => floatval($item['quantity']),
+                        'unit_price' => floatval($item['unit_price']),
+                        'date' => $request->date ? Carbon::parse($request->date) : now(),
+                        'time' => now()->format('H:i:s'),
+                        'type_of_operation' => 1, // إضافة كمية
+                        'type' => 1, // إضافة كمية
+                        'purchase_invoice_id' => $purchaseInvoice->id,
+                        'comments' => 'إضافة كمية من فاتورة شراء رقم ' . $purchaseInvoice->code
+                    ]);
+                }
             }
 
             // ** معالجة المرفقات (attachments) إذا وجدت **
@@ -271,15 +277,164 @@ class InvoicesPurchaseController extends Controller
                 }
             }
 
+            // ** الخطوة السابعة: إنشاء عملية دفع تلقائية **
+            $paymentData = [
+                'purchases_id' => $purchaseInvoice->id,
+                'supplier_id' => $request->supplier_id,
+                'amount' => $total_with_tax, // المبلغ الكامل للفاتورة
+                'payment_date' => $request->date ?? now(),
+                'payment_method' => $request->payment_method ?? 1, // طريقة الدفع الافتراضية
+                'type' => 'supplier payments', // نوع الدفعة: مدفوعات مورد
+                'payment_status' => 1, // مكتمل
+                'created_by' => Auth::id(),
+                'notes' => 'دفعة تلقائية لفاتورة المشتريات رقم ' . $purchaseInvoice->code
+            ];
+
+            // إنشاء سجل الدفع
+            $payment = PaymentsProcess::create($paymentData);
+
+             //القيود 
+          // إنشاء القيد المحاسبي للفاتورة
+          $journalEntry = JournalEntry::create([
+            'reference_number' => $purchaseInvoice->code,
+            'date' => now(),
+            'description' => 'فاتورة شراء رقم ' . $purchaseInvoice->code,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $purchaseInvoice->supplier_id,
+            'invoice_id' => $purchaseInvoice->id,
+            // 'created_by_employee' => Auth::id(),
+        ]);
+
+        // # القيد الاول
+        $supplieraccounts = Account::where('supplier_id', $purchaseInvoice->supplier_id)->first();
+        // إضافة تفاصيل القيد المحاسبي
+        // 1. حساب المورد (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $supplieraccounts->id, // حساب العميل
+            'description' => 'فاتورة شراء # ' . $purchaseInvoice->code,
+            'debit' => 0, 
+            'credit' => $total_with_tax,// المبلغ الكلي للفاتورة دائن)
+            'is_debit' => false,
+        ]);
+
+       
+        $mainstore = Account::where('name','المخزون الرئيسي')->first();
+        // 2. حساب المخزون (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $mainstore->id, // حساب المخزون الرئيسي
+            'description' => ' فاتورة شراء # ' . $purchaseInvoice->code,
+            'debit' => $total_with_tax, //مدين
+            'credit' => 0, 
+            'is_debit' => true,
+        ]);
+
+         
+
+        $tax_total =   $total_tax + $shipping_tax;
+
+        $taxaccounts = Account::where('name','القيمة المضافة المدفوعة')->first();
+        // 3. حساب القيمة المضافة المدفوعه (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $taxaccounts->id, // حساب القيمة المضافة المحصلة
+             'description' => ' القيمه المضافه المدفوعه فاتورة شراء # ' . $purchaseInvoice->code,
+            'debit' => $tax_total,
+            'credit' => 0, // قيمة الضريبة ()
+            'is_debit' => true,
+        ]);
+
+        // # القيد الثاني
+        // إنشاء القيد المحاسبي للفاتورة
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $purchaseInvoice->code,
+            'date' => now(),
+            'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $purchaseInvoice->supplier_id,
+            'invoice_id' => $purchaseInvoice->id,
+            // 'created_by_employee' => Auth::id(),
+        ]);
+
+        // # القيد الاول
+        $supplieraccounts = Account::where('supplier_id', $purchaseInvoice->supplier_id)->first();
+        // إضافة تفاصيل القيد المحاسبي
+        // 1. حساب المورد (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $supplieraccounts->id, // حساب المورد
+            'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
+            'debit' => $total_with_tax, //مدين
+            'credit' => 0,
+            'is_debit' => true,
+        ]);
+
+       
+        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        // 2. حساب الخزينة (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $MainTreasury->id, // حساب المبيعات
+           'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
+            'debit' => 0, //مدين
+            'credit' => $total_with_tax, 
+            'is_debit' => false,
+        ]);
+
+        // الخزينة الرئيسية
+        if ($MainTreasury) {
+            $amount = $total_with_tax; 
+            $MainTreasury->balance += $amount;
+           
+            $MainTreasury->save();
+        
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+        //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+         }
+         
+           // حساب المورد 
+        if ($supplieraccounts) {
+            $amount = $total_with_tax; 
+            $supplieraccounts->balance += $amount;
+         
+            $supplieraccounts->save();
+         
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+        //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+         }   
+
+            // القيمة المضافه المدفوعة  
+        if ($taxaccounts) {
+            $amount = $tax_total; 
+            $taxaccounts->balance += $amount;
+            $taxaccounts->save();
+        
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+        //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+         } 
+
+         // المخزون الرئيسي
+         if ($mainstore) {
+            $amount = $total_with_tax; 
+            $mainstore->balance += $amount;
+            $mainstore->save();
+        
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+        //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+         }
+
             DB::commit(); // تأكيد التغييرات
-            return redirect()->route('invoicePurchases.index')->with('success', 'تم إنشاء فاتورة المشتريات بنجاح');
+            return redirect()->route('invoicePurchases.index')->with('success', 'تم إنشاء فاتورة المشتريات وعملية الدفع بنجاح');
         } catch (\Exception $e) {
             DB::rollback(); // تراجع عن التغييرات في حالة حدوث خطأ
-            Log::error('خطأ في إنشاء فاتورة المشتريات: ' . $e->getMessage()); // تسجيل الخطأ
+            Log::error('خطأ في إنشاء فاتورة المشتريات والدفع: ' . $e->getMessage()); // تسجيل الخطأ
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المشتريات: ' . $e->getMessage());
+                ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المشتريات والدفع: ' . $e->getMessage());
         }
     }
     public function edit($id)

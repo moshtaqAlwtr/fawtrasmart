@@ -36,7 +36,7 @@
                     </div>
                     <div class="d-flex">
                         <input type="text" class="form-control me-2" placeholder="الكلمة المفتاحية">
-                      
+
                         <div class="dropdown">
     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dateRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
         الفترة من / إلى
@@ -50,11 +50,11 @@
         <li class="dropdown-divider"></li>
         <li>
             <a class="dropdown-item dropdown-toggle" href="#">الفترة من / إلى</a>
-          
+
                 <li><a class="dropdown-item" href="#">تاريخ محدد</a></li>
                 <li><a class="dropdown-item" href="#">كل التواريخ قبل</a></li>
                 <li><a class="dropdown-item" href="#">كل التواريخ بعد</a></li>
-          
+
         </li>
     </ul>
 </div>

@@ -14,7 +14,7 @@ class TreasuryEmployee extends Model
 
     public function treasury()
     {
-        return $this->belongsTo(Treasury::class, 'treasury_id');
+        return $this->belongsTo(Account::class, 'treasury_id');
     }
 
     public function employee()

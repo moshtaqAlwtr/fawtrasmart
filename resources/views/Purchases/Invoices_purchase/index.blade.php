@@ -214,7 +214,7 @@
         <div class="card">
             <div class="card-body">
                 @if ($purchaseInvoices->count() > 0)
-                    <table class="table">
+                    <table class="table table-hover table-striped">
                         <thead>
                             <tr>
                                 <th style="width: 5%">
@@ -225,7 +225,7 @@
                                 <th>التاريخ</th>
                                 <th>طريقة الدفع</th>
                                 <th>المبلغ الإجمالي</th>
-                                <th>حالة الدفع</th>
+
                                 <th>حالة الاستلام</th>
                                 <th style="width: 10%">خيارات</th>
                             </tr>
@@ -234,14 +234,12 @@
                             @foreach ($purchaseInvoices as $invoice)
                                 <tr>
                                     <td>
-                                        <input type="checkbox" class="form-check-input order-checkbox"
-                                            value="{{ $invoice->id }}">
+                                        <input type="checkbox" class="form-check-input order-checkbox" value="{{ $invoice->id }}">
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar me-2" style="background-color: #4B6584">
-                                                <span
-                                                    class="avatar-content">{{ substr($invoice->reference_number, 0, 1) }}</span>
+                                                <span class="avatar-content">{{ Str::upper(substr($invoice->reference_number, 0, 1)) }}</span>
                                             </div>
                                             <div>
                                                 {{ $invoice->reference_number }}
@@ -252,90 +250,61 @@
                                     <td>{{ $invoice->supplier->trade_name ?? 'غير محدد' }}</td>
                                     <td>{{ \Carbon\Carbon::parse($invoice->date)->format('Y-m-d') }}</td>
                                     <td>
-                                        @if ($invoice->payment_method == '1')
-                                            <span class="badge bg-success">نقدي</span>
-                                        @elseif($invoice->payment_method == '2')
-                                            <span class="badge bg-warning">آجل</span>
-                                        @else
-                                            <span class="badge bg-secondary">غير محدد</span>
-                                        @endif
+                                        @switch($invoice->payment_method)
+                                            @case('1')
+                                                <span class="badge bg-success">نقدي</span>
+                                                @break
+                                            @case('2')
+                                                <span class="badge bg-warning">آجل</span>
+                                                @break
+                                            @default
+                                                <span class="badge bg-secondary">غير محدد</span>
+                                        @endswitch
                                     </td>
-                                    <td>{{ number_format($invoice->grand_total, 2) }}</td>
+                                    <td>{{ number_format($invoice->grand_total, 2) }} ريال</td>
+
                                     <td>
-                                        @if ($invoice->is_paid)
-                                            <span class="badge bg-success">تم الدفع</span>
-                                        @else
-                                            <span class="badge bg-warning">غير مدفوع</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($invoice->status == 1)
-                                            <span class="badge bg-success">مدفوع بالكامل</span>
-                                        @elseif($invoice->status == 2)
-                                            <span class="badge bg-warning">مدفوع جزئيًا</span>
-                                        @elseif($invoice->status == 3)
-                                            <span class="badge bg-danger">مستلم (غير مدفوع)</span>
-                                        @elseif($invoice->status == 4)
-                                            <span class="badge bg-success">مدفوع ومستلم</span>
-                                        @elseif($invoice->status == 5)
-                                            <span class="badge bg-info">مدفوع (غير مستلم)</span>
-                                        @else
-                                            <span class="badge bg-secondary">غير محدد</span>
-                                        @endif
+                                        @switch($invoice->status)
+                                            @case(1)
+                                                <span class="badge bg-success">مدفوعة  </span>
+                                                @break
+                                            @case(2)
+                                                <span class="badge bg-warning">مدفوع جزئيًا</span>
+                                                @break
+                                            @case(3)
+                                                <span class="badge bg-danger">مستلم (غير مدفوع)</span>
+                                                @break
+                                            @case(4)
+                                                <span class="badge bg-success">مدفوع ومستلم</span>
+                                                @break
+                                            @case(5)
+                                                <span class="badge bg-info">مدفوع (غير مستلم)</span>
+                                                @break
+                                            @default
+                                                <span class="badge bg-secondary">غير محدد</span>
+                                        @endswitch
                                     </td>
                                     <td>
                                         <div class="btn-group">
                                             <div class="dropdown">
                                                 <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                    type="button" id="dropdownMenuButton{{ $invoice->id }}"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                        type="button"
+                                                        data-bs-toggle="dropdown"
+                                                        aria-expanded="false">
                                                 </button>
-                                                <div class="dropdown-menu dropdown-menu-end"
-                                                    aria-labelledby="dropdownMenuButton{{ $invoice->id }}">
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('invoicePurchases.show', $invoice->id) }}">
+                                                <div class="dropdown-menu dropdown-menu-end">
+                                                    <a class="dropdown-item" href="{{ route('invoicePurchases.show', $invoice->id) }}">
                                                         <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                     </a>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('invoicePurchases.edit', $invoice->id) }}">
+                                                    <a class="dropdown-item" href="{{ route('invoicePurchases.edit', $invoice->id) }}">
                                                         <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                     </a>
                                                     <a class="dropdown-item" href="" target="_blank">
                                                         <i class="fa fa-print me-2 text-info"></i>طباعة
                                                     </a>
-                                                    <a class="dropdown-item text-danger" href="#"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#deleteModal{{ $invoice->id }}">
+                                                    <a class="dropdown-item text-danger delete-invoice" href="#" data-id="{{ $invoice->id }}">
                                                         <i class="fa fa-trash me-2"></i>حذف
                                                     </a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Modal delete -->
-                                        <div class="modal fade" id="deleteModal{{ $invoice->id }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-danger text-white">
-                                                        <h5 class="modal-title">حذف فاتورة المشتريات</h5>
-                                                        <button type="button" class="btn-close"
-                                                            data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <p>هل أنت متأكد من حذف فاتورة المشتريات رقم
-                                                            "{{ $invoice->reference_number }}"؟</p>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-light"
-                                                            data-bs-dismiss="modal">إلغاء</button>
-                                                        <form
-                                                            action="{{ route('invoicePurchases.destroy', $invoice->id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger">حذف</button>
-                                                        </form>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -344,6 +313,8 @@
                             @endforeach
                         </tbody>
                     </table>
+
+
                 @else
                     <div class="alert alert-info text-center" role="alert">
                         <p class="mb-0">لا يوجد فواتير مشتريات مضافة حتى الآن</p>
@@ -351,6 +322,7 @@
                 @endif
             </div>
         </div>
+
 
 
 
@@ -403,5 +375,52 @@
                     icon.classList.add('fa-times');
                 }
             }
+
         </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const deleteButtons = document.querySelectorAll('.delete-invoice');
+
+                    deleteButtons.forEach(button => {
+                        button.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const invoiceId = this.getAttribute('data-id');
+
+                            Swal.fire({
+                                title: 'تأكيد الحذف',
+                                text: 'هل أنت متأكد من حذف هذه الفاتورة؟',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3085d6',
+                                cancelButtonColor: '#d33',
+                                confirmButtonText: 'نعم، احذف',
+                                cancelButtonText: 'إلغاء'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // إرسال طلب حذف باستخدام AJAX
+                                    axios.delete(`/invoicePurchases/${invoiceId}`)
+                                        .then(response => {
+                                            Swal.fire(
+                                                'تم الحذف!',
+                                                'تم حذف الفاتورة بنجاح.',
+                                                'success'
+                                            ).then(() => {
+                                                // إعادة تحميل الصفحة
+                                                window.location.reload();
+                                            });
+                                        })
+                                        .catch(error => {
+                                            Swal.fire(
+                                                'خطأ!',
+                                                'حدث خطأ أثناء حذف الفاتورة.',
+                                                'error'
+                                            );
+                                        });
+                                }
+                            });
+                        });
+                    });
+                });
+                </script>
     @endsection
+

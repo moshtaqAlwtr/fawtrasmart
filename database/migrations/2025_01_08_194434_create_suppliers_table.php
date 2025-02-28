@@ -34,20 +34,21 @@ class CreateSuppliersTable extends Migration
             $table->string('commercial_registration')->nullable(); // السجل التجاري
 
             // المعلومات المالية
-            $table->decimal('opening_balance', 15, 2)->default(0); // الرصيد الافتتاحي
+            $table->decimal('opening_balance', 15, 2)->nullable(); // الرصيد الافتتاحي
             $table->date('opening_balance_date')->nullable(); // تاريخ الرصيد الافتتاحي
-            $table->string('currency')->default('SAR'); // العملة
+            $table->string('currency')->default('SAR')->nullable(); // العملة
 
             // معلومات إضافية
             $table->text('notes')->nullable(); // الملاحظات
             $table->string('attachments')->nullable(); // المرفقات
-
+            $table->unsignedBigInteger('employee_id')->nullable();
             // التتبع
             $table->unsignedBigInteger('created_by')->nullable();
+
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
 
-
+            $table->foreign('employee_id')->references('id')->on('employees')->onDelete('set null');
             // العلاقات
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
             $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
