@@ -421,7 +421,7 @@
                         <select name="raw_product_id[]" class="form-control select2 product-select">
                             <option value="" disabled selected>-- اختر البند --</option>
                             @foreach ($products as $product)
-                                <option value="{{ $product->id }}" data-price="{{ $product->sale_price }}">{{ $product->name }}</option>
+                                <option value="{{ $product->id }}" data-price="{{ $product->purchase_price }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
                     </td>
@@ -429,7 +429,7 @@
                     <td><input type="number" name="raw_quantity[]" class="form-control quantity" value="1" min="1"></td>
                     <td>
                         <select name="raw_production_stage_id[]" class="form-control select2 product-select" required>
-                            
+
                             @foreach ($stages as $stage)
                                 <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
                             @endforeach
@@ -526,7 +526,7 @@
                     <td><textarea name="expenses_description[]" class="form-control" rows="1"></textarea></td>
                     <td>
                         <select name="expenses_production_stage_id[]" class="form-control select2 product-select" required>
-                            
+
                             @foreach ($stages as $stage)
                                 <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
                             @endforeach
@@ -657,7 +657,7 @@
                     <td><textarea name="manu_description[]" class="form-control" rows="1"></textarea></td>
                     <td>
                         <select name="manu_production_stage_id[]" class="form-control select2 product-select" required>
-                            
+
                             @foreach ($stages as $stage)
                                 <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
                             @endforeach
@@ -768,7 +768,7 @@
                     <td><input type="number" name="end_life_quantity[]" class="form-control end-life-quantity" value="1" min="1"></td>
                     <td>
                         <select name="end_life_production_stage_id[]" class="form-control select2 product-select" required>
-                            
+
                             @foreach ($stages as $stage)
                                 <option value="{{ $stage->id }}">{{ $stage->stage_name }}</option>
                             @endforeach
