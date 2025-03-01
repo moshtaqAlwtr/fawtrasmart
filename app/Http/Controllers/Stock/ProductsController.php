@@ -151,18 +151,11 @@ class ProductsController extends Controller
 
     public function store(ProductsRequest $request)
     {
-        // dd($request->all());
-<<<<<<< HEAD
-       
-        // try{
-=======
-
-        try{
->>>>>>> a174ebe41f914e7b9f768dfaeaddf74a56ba4343
-
+        try {
             DB::beginTransaction();
+            
             $product = new Product();
-
+    
             $product->name = $request->name;
             $product->description = $request->description;
             $product->category_id = $request->category_id;
@@ -172,7 +165,6 @@ class ProductsController extends Controller
             $product->supplier_id = $request->supplier_id;
             $product->barcode = $request->barcode;
             $product->track_inventory = $request->track_inventory;
-            $product->barcode = $request->barcode;
             $product->inventory_type = $request->inventory_type;
             $product->low_stock_alert = $request->low_stock_alert;
             $product->sales_cost_account = $request->sales_cost_account;
@@ -181,7 +173,6 @@ class ProductsController extends Controller
             $product->tags = $request->tags;
             $product->status = $request->status;
             $product->purchase_price = $request->purchase_price;
-            $product->sale_price = $request->sale_price;
             $product->purchase_unit_id = $request->purchase_unit_id;
             $product->sales_unit_id = $request->sales_unit_id;
             $product->tax1 = $request->tax1;
@@ -192,36 +183,39 @@ class ProductsController extends Controller
             $product->type = $request->type;
             $product->profit_margin = $request->profit_margin;
             $product->created_by = Auth::user()->id;
-
-            if($request->has('available_online')){
+    
+            if ($request->has('available_online')) {
                 $product->available_online = 1;
             }
-
-            if($request->has('featured_product')){
+    
+            if ($request->has('featured_product')) {
                 $product->featured_product = 1;
             }
-
-            if($request->hasFile('images'))
-            {
-                $product->images = $this->UploadImage('assets/uploads/product',$request->images);
-            } # End If
-
+    
+            if ($request->hasFile('images')) {
+                $product->images = $this->UploadImage('assets/uploads/product', $request->images);
+            }
+    
             $product->save();
-
+    
             ProductDetails::create([
                 'quantity' => 0,
                 'product_id' => $product->id,
             ]);
-
+    
             DB::commit();
-            if($product->type == "services"){
-                return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
+    
+            if ($product->type == "services") {
+                return redirect()->route('products.index')->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
             }
-            return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
-
-
-       
-    }# End Stor
+    
+            return redirect()->route('products.index')->with(['success' => 'تم إضافة المنتج بنجاح !!']);
+    
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
+        }
+    }
 
     // اضافة الخدمة
     public function update(ProductsRequest $request ,$id)
