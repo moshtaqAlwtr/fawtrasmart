@@ -152,13 +152,9 @@ class ProductsController extends Controller
     public function store(ProductsRequest $request)
     {
         // dd($request->all());
-<<<<<<< HEAD
-       
-        // try{
-=======
 
-        try{
->>>>>>> a174ebe41f914e7b9f768dfaeaddf74a56ba4343
+
+     //   try{
 
             DB::beginTransaction();
             $product = new Product();
@@ -220,7 +216,7 @@ class ProductsController extends Controller
             return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
 
 
-       
+
     }# End Stor
 
     // اضافة الخدمة

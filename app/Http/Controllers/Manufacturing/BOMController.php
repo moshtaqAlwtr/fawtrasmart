@@ -19,7 +19,7 @@ class BOMController extends Controller
     public function index()
     {
         $materials = ProductionMaterials::select()->get();
-        return view('Manufacturing.BOM.index', compact('materials'));
+        return view('manufacturing.bom.index', compact('materials'));
     }
     public function create()
     {
@@ -30,7 +30,7 @@ class BOMController extends Controller
         $paths = ProductionPath::select('id','name')->get();
         $stages = ProductionStage::select('id','stage_name')->get();
         $workstations = WorkStations::select('id','name','total_cost')->get();
-        return view('Manufacturing.BOM.create', compact('products','accounts','paths','serial_number','stages','workstations'));
+        return view('manufacturing.bom.create', compact('products','accounts','paths','serial_number','stages','workstations'));
     }
 
     public function store(ProductionMaterialRequest $request)
@@ -113,7 +113,7 @@ class BOMController extends Controller
         $stages = ProductionStage::select('id','stage_name')->get();
         $workstations = WorkStations::select('id','name','total_cost')->get();
         $productionMaterialItems = ProductionMaterialsItem::where('production_material_id', $id)->get();
-        return view('Manufacturing.BOM.edit', compact('productionMaterial','products','accounts','paths','stages','workstations','productionMaterialItems'));
+        return view('manufacturing.bom.edit', compact('productionMaterial','products','accounts','paths','stages','workstations','productionMaterialItems'));
     }
 
     public function update(ProductionMaterialRequest $request, $id)
@@ -201,7 +201,7 @@ class BOMController extends Controller
         $stages = ProductionStage::all();
         $workstations = WorkStations::all();
 
-        return view('Manufacturing.BOM.show', compact(
+        return view('manufacturing.bom.show', compact(
             'productionMaterial',
             'productionMaterialItems',
             'products',

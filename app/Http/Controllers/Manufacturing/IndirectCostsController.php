@@ -16,13 +16,13 @@ class IndirectCostsController extends Controller
     public function index()
     {
         $indirectCosts = IndirectCost::with('indirectCostItems')->get();
-        return view('manufacturing.indirectcosts.index', compact('indirectCosts'));
+        return view('manufacturing.indirectCosts.index', compact('indirectCosts'));
     }
     public function create()
     {
         $accounts = Account::select('id', 'name')->get();
         $manufacturing_orders = ManufacturOrders::select('id', 'name')->get();
-        return view('manufacturing.indirectcosts.create', compact( 'accounts','manufacturing_orders'));
+        return view('manufacturing.indirectCosts.create', compact( 'accounts','manufacturing_orders'));
     }
 
     public function store(IndirectCostsRequest $request)
@@ -60,7 +60,7 @@ class IndirectCostsController extends Controller
         $indirectCost = IndirectCost::with('indirectCostItems')->findOrFail($id);
         $accounts = Account::select('id', 'name')->get();
         $manufacturing_orders = ManufacturOrders::select('id', 'name')->get();
-        return view('manufacturing.indirectcosts.edit', compact('indirectCost', 'accounts', 'manufacturing_orders'));
+        return view('manufacturing.indirectCosts.edit', compact('indirectCost', 'accounts', 'manufacturing_orders'));
     }
 
     public function update(IndirectCostsRequest $request, $id)
@@ -100,7 +100,7 @@ class IndirectCostsController extends Controller
     public function show($id)
     {
         $indirectCost = IndirectCost::with('indirectCostItems')->findOrFail($id);
-        return view('manufacturing.indirectcosts.show', compact('indirectCost'));
+        return view('manufacturing.indirectCosts.show', compact('indirectCost'));
     }
 
     public function destroy($id)

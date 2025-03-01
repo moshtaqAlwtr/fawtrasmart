@@ -21,7 +21,7 @@ class SettingsController extends Controller
     public function General()
     {
         $general_settings = ManufacturingGeneralSetting::first();
-        return view('manufacturing.settings.General', compact('general_settings'));
+        return view('manufacturing.settings.general', compact('general_settings'));
     }
 
     public function Manual()
@@ -96,7 +96,7 @@ class SettingsController extends Controller
         $paths = $query->get();
         $production_stages = ProductionStage::select('id', 'stage_name')->get();
 
-        return view('Manufacturing.settings.Paths.index', compact('paths', 'production_stages'));
+        return view('manufacturing.settings.Paths.index', compact('paths', 'production_stages'));
     }
 
     public function paths_create()
@@ -104,7 +104,7 @@ class SettingsController extends Controller
         $record_count = DB::table('production_paths')->count();
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
 
-        return view('Manufacturing.settings.Paths.create', compact('serial_number'));
+        return view('manufacturing.settings.Paths.create', compact('serial_number'));
     }
 
     public function paths_store(Request $request)
@@ -136,7 +136,7 @@ class SettingsController extends Controller
     {
         $path = ProductionPath::findOrFail($id);
         $paths = ProductionPath::with('stages')->orderBy('created_at', 'desc')->get();
-        return view('Manufacturing.settings.Paths.show', compact('path', 'paths'));
+        return view('manufacturing.settings.Paths.show', compact('path', 'paths'));
     }
 
     public function paths_edit($id)
