@@ -83,18 +83,23 @@
         }
 
         table {
-            max-height: 400px;
-            overflow-y: auto;
-            /* إضافة شريط تمرير رأسي */
-            display: block;
+            width: 100%; /* جعل الجدول يأخذ العرض الكامل */
+            border-collapse: collapse; /* تجنب التباعد بين الخلايا */
         }
 
         .table-container {
-            max-height: 400px;
-            /* تحديد ارتفاع الحاوية */
-            overflow-y: auto;
-            /* إضافة شريط التمرير */
+            max-height: 400px; /* تحديد ارتفاع الحاوية */
+          overflow-y: auto; /* إضافة شريط التمرير */
+         border: 1px solid #ddd; /* إضافة حدود للحاوية */
+         border-radius: 5px; /* تقريب الزوايا */
+         margin-bottom: 20px; /* تباعد من الأسفل */
         }
+        table th,
+table td {
+    padding: 12px; /* زيادة التباعد داخل الخلايا */
+    text-align: right; /* محاذاة النص لليمين */
+    border-bottom: 1px solid #ddd; /* إضافة حدود بين الصفوف */
+}
 
         #table-body tr {
             cursor: pointer;
@@ -103,6 +108,49 @@
         #table-body tr:hover {
             background-color: #f0f8ff;
         }
+        #tree {
+    max-height: 400px; /* تحديد ارتفاع الشجرة */
+    overflow-y: auto; /* إضافة شريط التمرير */
+    padding: 10px; /* تباعد داخلي */
+    border: 1px solid #ddd; /* إضافة حدود */
+    border-radius: 5px; /* تقريب الزوايا */
+    background-color: #f8f9fa; /* لون خلفية */
+}
+
+.jstree-node {
+    margin-bottom: 5px; /* تباعد بين العقد */
+}
+
+.jstree-anchor {
+    font-size: 14px; /* حجم الخط */
+    color: #333; /* لون النص */
+}
+
+.jstree-anchor:hover {
+    color: #7367F0; /* لون النص عند التمرير */
+}
+
+.jstree-icon {
+    margin-left: 5px; /* تباعد بين الأيقونة والنص */
+}
+body {
+    font-family: 'Cairo', sans-serif; /* استخدام خط Cairo */
+    direction: rtl; /* النص من اليمين لليسار */
+}
+
+.card {
+    border-radius: 10px; /* تقريب زوايا الكارت */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* إضافة ظل */
+}
+
+.modal-content {
+    border-radius: 10px; /* تقريب زوايا المودال */
+}
+
+.btn {
+    border-radius: 5px; /* تقريب زوايا الأزرار */
+}
+
     </style>
 
 </head>
