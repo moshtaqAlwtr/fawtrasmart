@@ -185,6 +185,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @if($product->type == "compiled")
                             <div class="card">
                                 <div class="card-header">
                                     <strong>منتجات التجميعة :</strong>
@@ -205,6 +206,7 @@
                                     </div>
                                 </div>
                             </div>
+                            @endif
                         </div>
 
                         <div class="tab-pane" id="profile" aria-labelledby="profile-tab" role="tabpanel">

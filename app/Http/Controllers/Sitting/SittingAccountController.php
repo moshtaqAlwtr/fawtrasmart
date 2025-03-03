@@ -28,84 +28,83 @@ class SittingAccountController extends Controller
 
     public function store(Request $request)
     {
-        
-        $request->validate([
-            'attachments' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // دعم صور JPG و PNG بحد أقصى 2MB
-        ]);
+        try {
+            // التحقق من صحة البيانات المدخلة
+            $request->validate([
+                'attachments' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // دعم صور JPG و PNG بحد أقصى 2MB
+            ]);
     
-        // البحث عن الإعدادات الخاصة بالمستخدم الحالي
-        $AccountSetting = AccountSetting::where('user_id', auth()->id())->first();
+            // البحث عن الإعدادات الخاصة بالمستخدم الحالي
+            $AccountSetting = AccountSetting::where('user_id', auth()->id())->first();
     
-        if (!$AccountSetting) {
-            // إذا لم يكن هناك سجل للمستخدم، يتم إنشاؤه
-            $AccountSetting = new AccountSetting();
-            $AccountSetting->user_id = auth()->user()->id;
+            if (!$AccountSetting) {
+                // إذا لم يكن هناك سجل للمستخدم، يتم إنشاؤه
+                $AccountSetting = new AccountSetting();
+                $AccountSetting->user_id = auth()->user()->id;
+            }
+    
+            // تحديث الحقول
+            $AccountSetting->currency = $request->currency;
+            $AccountSetting->timezone = $request->timezone;
+            $AccountSetting->negative_currency_formats = $request->negative_currency_formats;
+            $AccountSetting->time_formula = $request->time_formula;
+            $AccountSetting->business_type = $request->business_type;
+            $AccountSetting->printing_method = $request->printing_method;
+            $AccountSetting->language = $request->language;
+    
+            if ($request->hasFile('attachments')) {
+                // رفع الصورة الجديدة إلى مجلد storage/app/public/attachments
+                $logoPath = $request->file('attachments')->store('attachments', 'public');
+    
+                // تحديث مسار الصورة في قاعدة البيانات
+                $AccountSetting->attachments = $logoPath;
+            }
+    
+            $AccountSetting->save();
+    
+            // البحث عن العميل الخاص بالمستخدم الحالي
+            $Client = Client::where('user_id', auth()->id())->first();
+    
+            if (!$Client) {
+                // إذا لم يكن هناك سجل للمستخدم، يتم إنشاؤه
+                $Client = new Client();
+                $Client->user_id = auth()->id();
+            }
+    
+            // تحديث حقول العميل
+            $Client->employee_id = $request->employee_id;
+            $Client->user_id = auth()->user()->id;
+            $Client->category = $request->category;
+            $Client->attachments = $request->attachments;
+            $Client->notes = $request->notes;
+            $Client->client_type = $request->client_type;
+            $Client->email = $request->email;
+            $Client->currency = $request->currency;
+            $Client->code = $request->code;
+            $Client->opening_balance_date = $request->opening_balance_date;
+            $Client->commercial_registration = $request->commercial_registration;
+            $Client->country = $request->country;
+            $Client->postal_code = $request->postal_code;
+            $Client->street2 = $request->street2;
+            $Client->street1 = $request->street1;
+            $Client->region = $request->region;
+            $Client->city = $request->city;
+            $Client->mobile = $request->mobile;
+            $Client->phone = $request->phone;
+            $Client->last_name = $request->last_name;
+            $Client->trade_name = $request->trade_name;
+            $Client->tax_number = $request->tax_number;
+            $Client->commercial_registration = $request->commercial_registration;
+    
+            $Client->save();
+    
+            // إعادة التوجيه مع رسالة نجاح
+            return redirect()->route('SittingAccount.index')->with('success', 'تم حفظ البيانات بنجاح!');
+    
+        } catch (\Exception $e) {
+            // إعادة التوجيه مع رسالة خطأ في حالة حدوث استثناء
+            return redirect()->back()->withInput()->with('error', 'حدث خطأ أثناء حفظ البيانات: ' . $e->getMessage());
         }
-    
-        // تحديث الحقول
-        $AccountSetting->currency = $request->currency;
-        $AccountSetting->timezone = $request->timezone;
-        $AccountSetting->negative_currency_formats = $request->negative_currency_formats;
-        $AccountSetting->time_formula = $request->time_formula;
-        $AccountSetting->business_type = $request->business_type;
-        $AccountSetting->printing_method = $request->printing_method;
-        $AccountSetting->language = $request->language;
-    
-        if ($request->hasFile('attachments')) {
-         
-           
-            // رفع الصورة الجديدة إلى مجلد storage/app/public/attachments
-            $logoPath = $request->file('attachments')->store('attachments', 'public');
-    
-            // تحديث مسار الصورة في قاعدة البيانات
-            $AccountSetting->attachments = $logoPath;
-        }
-    
-        $AccountSetting->save();
-       
-   
-        
-
-        $Client = Client::where('user_id', auth()->id())->first();
-    
-        if (!$Client) {
-            // إذا لم يكن هناك سجل للمستخدم، يتم إنشاؤه
-            $Client = new Client();
-            $Client->user_id = $Client->user_id = auth()->id();
-
-        }
-        $Client->employee_id = $request->employee_id;
-        $Client->user_id  = auth()->user()->id;
-        $Client->category = $request->category;
-        $Client->attachments = $request->attachments;
-        $Client->notes = $request->notes;
-        $Client->client_type = $request->client_type;
-        $Client->email = $request->email;
-        $Client->currency = $request->currency;
-        $Client->code = $request->code;
-        $Client->opening_balance_date = $request->opening_balance_date;
-        $Client->commercial_registration = $request->commercial_registration;
-        $Client->country = $request->country;
-        $Client->postal_code = $request->postal_code;
-        $Client->street2 = $request->street2;
-        $Client->street1 = $request->street1;
-        $Client->region = $request->region;
-        $Client->city = $request->city;
-        $Client->mobile = $request->mobile;
-        $Client->phone = $request->phone;
-        $Client->last_name = $request->last_name;
-        $Client->trade_name = $request->trade_name;
-        $Client->tax_number = $request->tax_number;
-        $Client->commercial_registration = $request->commercial_registration;
-        
-        
-    
-        
-        $Client->save();
-        
-        return redirect()->route('SittingAccount.index')->with('success', 'تم حفظ البيانات بنجاح!');
-
-
     }
 
     //تغيير البريد الالكتروني
