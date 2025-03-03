@@ -382,7 +382,7 @@
         
                         <!-- أزرار التحكم -->
                         <button type="button" id="add-product" class="btn btn-primary mt-3">إضافة منتج</button>
-                        <button type="submit" class="btn btn-success mt-3">حفظ</button>
+                        {{-- <button type="submit" class="btn btn-success mt-3">حفظ</button> --}}
                     </div>
                 </div>
             </div>
