@@ -98,6 +98,20 @@ Route::group(
 
         Route::get('/', [GeneralAccountsController::class, 'index'])->name('GeneralAccountReports.index');
         Route::get('/taxReport', [GeneralAccountsController::class, 'taxReport'])->name('GeneralAccountReports.taxReport');
+        Route::get('/taxDeclaration', [GeneralAccountsController::class, 'taxDeclaration'])->name('GeneralAccountReports.taxDeclaration');
+        Route::get('/incomeStatement', [GeneralAccountsController::class, 'incomeStatement'])->name('GeneralAccountReports.incomeStatement');
+
+        Route::get('/splitExpensesByCategory', [GeneralAccountsController::class, 'splitExpensesByCategory'])->name('GeneralAccountReports.splitExpensesByCategory');
+        Route::get('/splitExpensesBySeller', [GeneralAccountsController::class, 'splitExpensesBySeller'])->name('GeneralAccountReports.splitExpensesBySeller');
+        Route::get('/splitExpensesByEmployee', [GeneralAccountsController::class, 'splitExpensesByEmployee'])->name('GeneralAccountReports.splitExpensesByEmployee');
+        Route::get('/splitExpensesByClient', [GeneralAccountsController::class, 'splitExpensesByClient'])->name('GeneralAccountReports.splitExpensesByClient');
+        Route::get('/splitExpensesByTimePeriod', [GeneralAccountsController::class, 'splitExpensesByTimePeriod'])->name('GeneralAccountReports.splitExpensesByTimePeriod');
+        Route::get('/ReceiptByCategory', [GeneralAccountsController::class, 'ReceiptByCategory'])->name('GeneralAccountReports.ReceiptByCategory');
+        Route::get('/ReceiptBySeller', [GeneralAccountsController::class, 'ReceiptBySeller'])->name('GeneralAccountReports.ReceiptBySeller');
+        Route::get('/ReceiptByEmployee', [GeneralAccountsController::class, 'ReceiptByEmployee'])->name('GeneralAccountReports.ReceiptByEmployee');
+
+                Route::get('/ReceiptByClient', [GeneralAccountsController::class, 'ReceiptByClient'])->name('GeneralAccountReports.ReceiptByClient');
+        Route::get('/ReceiptByTimePeriod', [GeneralAccountsController::class, 'ReceiptByTimePeriod'])->name('GeneralAccountReports.ReceiptByTimePeriod');
     })
 
 

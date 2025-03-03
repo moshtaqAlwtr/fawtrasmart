@@ -22,5 +22,19 @@ class Expense extends Model
     {
         return $this->belongsTo(ExpensesCategory::class, 'expenses_category_id');
     }
-    
+
+    public function treasury()
+    {
+        return $this->belongsTo(Treasury::class, 'treasury_id');
+    }
+
+    public function employee(){
+        return $this->belongsTo(Employee::class, 'employee_id');
+    }
+    public function branch(){
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
+    public function client(){
+        return $this->belongsTo(Client::class, 'client_id');
+    }
 }

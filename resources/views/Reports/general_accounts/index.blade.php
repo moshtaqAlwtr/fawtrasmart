@@ -118,7 +118,8 @@
                                 <div class="icon-box icon5 ml-2"><i class="fas fa-file-invoice-dollar"></i></div>
                                 تقرير الضرائب
                             </div>
-                            <a href="{{ route('GeneralAccountReports.taxReport') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.taxReport') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -126,7 +127,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-file-signature"></i></div>
                                 اقرار ضرائب
                             </div>
-                            <a href="{{ route('ReportsPurchases.purchaseByEmployee') }}" class="view-button"><i
+                            <a href="{{ route('GeneralAccountReports.taxDeclaration') }}" class="view-button"><i
                                     class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -135,7 +136,8 @@
                                 <div class="icon-box icon5 ml-2"><i class="fas fa-chart-line"></i></div>
                                 قائمة الدخل
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.incomeStatement') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -270,7 +272,8 @@
                                 <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
                                 مصروفات حسب التصنيف
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByCategory') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -278,7 +281,8 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
                                 مصروفات حسب البائع
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesBySeller') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -286,7 +290,8 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
                                 مصروفات حسب الموضف
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByEmployee') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -294,7 +299,8 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
                                 مصروفات حسب العميل
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByClient') }}" class="view-button"><i
+                                    class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
@@ -309,36 +315,40 @@
                     </div>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
+                            onclick="window.location.href=''">
                             <div class="d-flex align-items-center">
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-sun"></i></div>
                                 المصروفات اليومية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByTimePeriod', ['period' => 'daily']) }}"
+                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_serial_num.html'">
+                            onclick="window.location.href=''">
                             <div class="d-flex align-items-center">
                                 <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
                                 المصروفات الاسبوعية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByTimePeriod', ['period' => 'weekly']) }}"
+                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
+                        <l class="list-group-item d-flex justify-content-between align-items-center"
+                            onclick="window.location.href=''">
                             <div class="d-flex align-items-center">
                                 <div class="icon-box icon3 ml-2"><i class="fas fa-calendar-alt"></i></div>
                                 المصروفات الشهرية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
-                        </li>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByTimePeriod', ['period' => 'monthly']) }}"
+                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </l i>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
+                            onclick="window.location.href=''">
                             <div class="d-flex align-items-center">
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-calendar-check"></i></div>
                                 المدفوعات السنوية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.splitExpensesByTimePeriod', ['period' => 'yearly']) }}"
+                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
@@ -361,9 +371,9 @@
                             onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
                             <div class="d-flex align-items-center">
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-sun"></i></div>
-سندات القبض حسب التصنيف
+                                سندات القبض حسب التصنيف
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByCategory') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_serial_num.html'">
@@ -371,7 +381,7 @@
                                 <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
                                 سندات القبض حسب البائع
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptBySeller') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
@@ -379,7 +389,7 @@
                                 <div class="icon-box icon3 ml-2"><i class="fas fa-calendar-alt"></i></div>
                                 سندات القبض حسب الموضف
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByEmployee') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
@@ -387,7 +397,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-calendar-check"></i></div>
                                 سندات القبض حسب العميل
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByClient') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
@@ -409,7 +419,7 @@
                                 <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
                                 سندات القبض اليومية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'daily']) }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -417,7 +427,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
                                 سندات القبض الاسبوعية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'weekly']) }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -425,7 +435,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
                                 سندات القبض الشهرية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'monthly']) }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
@@ -433,7 +443,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
                                 سندات القبض السنوية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'yearly']) }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>

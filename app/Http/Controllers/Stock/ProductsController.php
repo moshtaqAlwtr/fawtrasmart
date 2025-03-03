@@ -152,9 +152,16 @@ class ProductsController extends Controller
 
     public function store(ProductsRequest $request)
     {
-        try {
-            DB::beginTransaction();
+        // dd($request->all());
 
+
+     //   try{
+
+            DB::beginTransaction();
+<<<<<<< HEAD
+
+=======
+>>>>>>> a49ec78e95ccc2f5d1d01d3b7c886c0da07a0cb7
             $product = new Product();
 
             $product->name = $request->name;
@@ -166,6 +173,7 @@ class ProductsController extends Controller
             $product->supplier_id = $request->supplier_id;
             $product->barcode = $request->barcode;
             $product->track_inventory = $request->track_inventory;
+            $product->barcode = $request->barcode;
             $product->inventory_type = $request->inventory_type;
             $product->low_stock_alert = $request->low_stock_alert;
             $product->sales_cost_account = $request->sales_cost_account;
@@ -174,6 +182,7 @@ class ProductsController extends Controller
             $product->tags = $request->tags;
             $product->status = $request->status;
             $product->purchase_price = $request->purchase_price;
+            $product->sale_price = $request->sale_price;
             $product->purchase_unit_id = $request->purchase_unit_id;
             $product->sales_unit_id = $request->sales_unit_id;
             $product->tax1 = $request->tax1;
@@ -185,6 +194,7 @@ class ProductsController extends Controller
             $product->profit_margin = $request->profit_margin;
             $product->created_by = Auth::user()->id;
 
+<<<<<<< HEAD
             if ($request->has('available_online')) {
                 $product->available_online = 1;
             }
@@ -196,6 +206,20 @@ class ProductsController extends Controller
             if ($request->hasFile('images')) {
                 $product->images = $this->UploadImage('assets/uploads/product', $request->images);
             }
+=======
+            if($request->has('available_online')){
+                $product->available_online = 1;
+            }
+
+            if($request->has('featured_product')){
+                $product->featured_product = 1;
+            }
+
+            if($request->hasFile('images'))
+            {
+                $product->images = $this->UploadImage('assets/uploads/product',$request->images);
+            } # End If
+>>>>>>> a49ec78e95ccc2f5d1d01d3b7c886c0da07a0cb7
 
             $product->save();
 
@@ -205,6 +229,7 @@ class ProductsController extends Controller
             ]);
 
             DB::commit();
+<<<<<<< HEAD
 
             if ($product->type == "services") {
                 return redirect()->route('products.index')->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
@@ -216,6 +241,16 @@ class ProductsController extends Controller
             return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
         }
     }
+=======
+            if($product->type == "services"){
+                return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
+            }
+            return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
+
+
+
+    }# End Stor
+>>>>>>> a49ec78e95ccc2f5d1d01d3b7c886c0da07a0cb7
 
     // اضافة الخدمة
     public function update(ProductsRequest $request, $id)
