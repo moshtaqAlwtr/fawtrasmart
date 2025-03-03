@@ -82,6 +82,7 @@
                             <a href="{{ route('employee.login_to',$user->id) }}"><i class="ficon feather icon-user"></i> <small>تسجيل الدخول ك {{ $employee->full_name }}</small></a><br>
                             <a href=""><i class="ficon feather icon-smartphone"></i> <small>إعداد تطبيق الحضور</small></a>
                         </div>
+                        
                     </div>
                 </div>
             </div>
@@ -125,7 +126,7 @@
                                                         <p><small>الفروع المسموح الدخول به </small>: <strong>{{ $employee->branch_id }}</strong></p>
                                                     </td>
                                                     <td>
-                                                        <p><small>الدور الوظيفي </small>: <strong>{{ $employee->Job_role_id }}</strong></p>
+                                                        <p><small>الدور الوظيفي </small>: <strong>{{ $employee->job_role->role_name ?? "غير محدد" }}</strong></p>
                                                         <p><small>لغة العرض </small>: <strong>{{ $employee->language == 1 ? 'العربية' : 'انجليزي' }}</strong></p>
                                                     </td>
                                                 </tr>
