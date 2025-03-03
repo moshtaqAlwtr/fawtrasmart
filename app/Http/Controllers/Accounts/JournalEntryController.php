@@ -85,7 +85,7 @@ class JournalEntryController extends Controller
 
     public function store(Request $request)
     {
-
+           
       
         $request->validate([
             'journal_entry.date' => 'required|date',
