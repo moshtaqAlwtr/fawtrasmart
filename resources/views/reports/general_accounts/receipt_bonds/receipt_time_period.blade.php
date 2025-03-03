@@ -179,21 +179,21 @@
                         @php
                             // تجميع البيانات حسب الفترة الزمنية
                             $groupedReceipts = $receipts->groupBy(function ($receipt) use ($reportPeriod) {
-                                $date = Carbon::parse($receipt->date);
+                                $date = date_create($receipt->date); // استخدام date_create بدلاً من Carbon::parse
 
                                 switch ($reportPeriod) {
                                     case 'daily':
-                                        return $date->format('Y-m-d');
+                                        return date_format($date, 'Y-m-d'); // استخدام date_format بدلاً من ->format()
                                     case 'weekly':
-                                        return $date->year . ' Week ' . $date->weekOfYear;
+                                        return date_format($date, 'Y') . ' Week ' . date_format($date, 'W'); // الأسبوع
                                     case 'monthly':
-                                        return $date->format('Y-m');
+                                        return date_format($date, 'Y-m');
                                     case 'quarterly':
-                                        return $date->year . ' Q' . ceil($date->month / 3);
+                                        return date_format($date, 'Y') . ' Q' . ceil(date_format($date, 'm') / 3); // الربع
                                     case 'yearly':
-                                        return $date->year;
+                                        return date_format($date, 'Y');
                                     default:
-                                        return $date->format('Y-m-d');
+                                        return date_format($date, 'Y-m-d');
                                 }
                             });
                         @endphp
@@ -219,8 +219,7 @@
                                     <td>{{ $receipt->branch->name ?? 'N/A' }}</td>
                                     <td>{{ number_format($receipt->amount, 2) }}</td>
                                     <td>{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
-                                    <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}
-                                    </td>
+                                    <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
                                 </tr>
                             @endforeach
 
@@ -228,10 +227,8 @@
                             <tr style="background-color: #e9ecef;">
                                 <td colspan="10"><strong>المجموع</strong></td>
                                 <td><strong>{{ number_format($receiptsInPeriod->sum('amount'), 2) }}</strong></td>
-                                <td><strong>{{ number_format($receiptsInPeriod->sum('tax1_amount') + $receiptsInPeriod->sum('tax2_amount'), 2) }}</strong>
-                                </td>
-                                <td><strong>{{ number_format($receiptsInPeriod->sum('amount') + $receiptsInPeriod->sum('tax1_amount') + $receiptsInPeriod->sum('tax2_amount'), 2) }}</strong>
-                                </td>
+                                <td><strong>{{ number_format($receiptsInPeriod->sum('tax1_amount') + $receiptsInPeriod->sum('tax2_amount'), 2) }}</strong></td>
+                                <td><strong>{{ number_format($receiptsInPeriod->sum('amount') + $receiptsInPeriod->sum('tax1_amount') + $receiptsInPeriod->sum('tax2_amount'), 2) }}</strong></td>
                             </tr>
                         @endforeach
                     </tbody>

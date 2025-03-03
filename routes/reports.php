@@ -109,9 +109,12 @@ Route::group(
         Route::get('/ReceiptByCategory', [GeneralAccountsController::class, 'ReceiptByCategory'])->name('GeneralAccountReports.ReceiptByCategory');
         Route::get('/ReceiptBySeller', [GeneralAccountsController::class, 'ReceiptBySeller'])->name('GeneralAccountReports.ReceiptBySeller');
         Route::get('/ReceiptByEmployee', [GeneralAccountsController::class, 'ReceiptByEmployee'])->name('GeneralAccountReports.ReceiptByEmployee');
-
-                Route::get('/ReceiptByClient', [GeneralAccountsController::class, 'ReceiptByClient'])->name('GeneralAccountReports.ReceiptByClient');
+        Route::get('/ReceiptByClient', [GeneralAccountsController::class, 'ReceiptByClient'])->name('GeneralAccountReports.ReceiptByClient');
         Route::get('/ReceiptByTimePeriod', [GeneralAccountsController::class, 'ReceiptByTimePeriod'])->name('GeneralAccountReports.ReceiptByTimePeriod');
+        Route::get('/trialBalance', [GeneralAccountsController::class, 'trialBalance'])->name('GeneralAccountReports.trialBalance');
+        Route::get('/accountBalanceReview', [GeneralAccountsController::class, 'accountBalanceReview'])->name('GeneralAccountReports.accountBalanceReview');
+        Route::get('/generalLedger', [GeneralAccountsController::class, 'generalLedger'])->name('GeneralAccountReports.generalLedger');
+
     })
 
 
