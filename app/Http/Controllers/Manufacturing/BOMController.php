@@ -35,8 +35,9 @@ class BOMController extends Controller
 
     public function store(ProductionMaterialRequest $request)
     {
+
         DB::beginTransaction();
-        try {
+        // try {
             if ($request->default == 1) {
                 $existingDefault = ProductionMaterials::where('default', 1)->first();
 
@@ -69,7 +70,7 @@ class BOMController extends Controller
                         'raw_quantity' => $request->raw_quantity[$index],
                         'raw_total' => $request->raw_total[$index],
 
-                        'expenses_account_id' => $request->expenses_account_id[$index] ?? null,
+                        'expenses_account_id' => $request->expenses_account_id ?? null,
                         'expenses_cost_type' => $request->expenses_cost_type[$index] ?? null,
                         'expenses_production_stage_id' => $request->expenses_production_stage_id[$index] ?? null,
                         'expenses_price' => $request->expenses_price[$index] ?? null,
@@ -98,10 +99,10 @@ class BOMController extends Controller
 
             return redirect()->route('BOM.index')->with(['success'=>'تم حفظ البيانات بنجاح.']);
 
-        } catch (\Exception $e) {
+        // } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->route('BOM.index')->with(['error'=>'حدث خطأ ما.']);
-        }
+        // }
     }
 
     public function edit($id)

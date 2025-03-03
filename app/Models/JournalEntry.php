@@ -105,4 +105,7 @@ class JournalEntry extends Model
         $totalCredit = $this->details()->sum('credit');
         return $totalDebit == $totalCredit;
     }
+    public function branch(){
+        return $this->belongsTo(Branch::class);
+    }
 }

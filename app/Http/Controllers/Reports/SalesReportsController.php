@@ -31,7 +31,7 @@ class SalesReportsController extends Controller
     // تقارير المبيعات
     public function index()
     {
-        return view('Reports.sals.index');
+        return view('reports.sals.index');
     }
     public function byCustomer(Request $request)
     {

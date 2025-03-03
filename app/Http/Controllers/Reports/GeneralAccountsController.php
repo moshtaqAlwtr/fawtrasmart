@@ -16,6 +16,7 @@ use App\Models\JournalEntryDetail;
 use App\Models\PurchaseInvoice;
 use App\Models\Receipt;
 use App\Models\ReceiptCategory;
+use App\Models\SupplyOrder;
 use App\Models\Treasury;
 use App\Models\User;
 use Carbon\Carbon;
@@ -1325,6 +1326,141 @@ private function getDateRange($dateRange)
 }
 
 public function CostCentersReport(Request $request){
-    return view('reports.general_accounts.daily_restrictions_reports.cost_centers_report');
+   // فلترة البيانات بناءً على المدخلات
+   $query = JournalEntry::query();
+
+   if ($request->filled('dateRange')) {
+       $query->where('date', $request->dateRange);
+   }
+
+   if ($request->filled('account')) {
+       $query->where('account_id', $request->account);
+   }
+
+   if ($request->filled('branch')) {
+       $query->where('branch_id', $request->branch);
+   }
+
+   if ($request->filled('cost_center')) {
+       $query->where('cost_center_id', $request->cost_center);
+   }
+
+   if ($request->filled('financial_year')) {
+       $query->whereIn('financial_year', $request->financial_year);
+   }
+   $journalEntries = $query->with(['details.account', 'costCenter'])->get();
+   // الحصول على البيانات المطلوبة للفلترة
+   $accounts = Account::all();
+   $costCenters = CostCenter::all();
+   $branches = Branch::all();
+   $users = User::all();
+
+   return view('reports.general_accounts.daily_restrictions_reports.cost_centers_report', compact('journalEntries', 'accounts', 'costCenters', 'branches', 'users'));
+
 }
+public function ReportJournal(Request $request)
+{
+    // فلترة البيانات بناءً على المدخلات
+    $query = JournalEntry::query();
+
+    // فلترة حسب المصدر (نوع القيد)
+    if ($request->filled('treasury')) {
+        $query->where('entity_type', $request->treasury);
+    }
+
+    // فلترة حسب الحساب الفرعي
+    if ($request->filled('account')) {
+        $query->whereHas('details', function($q) use ($request) {
+            $q->where('account_id', $request->account);
+        });
+    }
+
+    // فلترة حسب الفترة من
+    if ($request->filled('from_date')) {
+        $query->whereDate('date', '>=', $request->from_date);
+    }
+
+    // فلترة حسب الفترة إلى
+    if ($request->filled('to_date')) {
+        $query->whereDate('date', '<=', $request->to_date);
+    }
+
+    // فلترة حسب أمر التوريد
+    if ($request->filled('supply')) {
+        $query->where('supply_order_id', $request->supply);
+    }
+
+    // فلترة حسب الفرع
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->branch);
+    }
+
+    // جلب البيانات مع التفاصيل والحسابات المرتبطة
+    $journalEntries = $query->with(['details.account', 'branch'])->get();
+
+    // حساب الإجمالي لكل قيد
+    $journalEntries->each(function ($entry) {
+        $entry->total_debit = $entry->details->sum('debit');
+        $entry->total_credit = $entry->details->sum('credit');
+    });
+
+    // تحضير البيانات للعرض
+    $accounts = Account::all();
+    $branches = Branch::all();
+    $supplyOrders = SupplyOrder::all();
+
+    // إرجاع العرض مع البيانات
+    return view('reports.general_accounts.daily_restrictions_reports.report_journal',
+        compact('journalEntries', 'accounts', 'branches', 'supplyOrders')
+    );
+}
+public function ChartOfAccounts(Request $request)
+{
+    // فلترة البيانات بناءً على المدخلات
+    $query = Account::query();
+
+    // فلترة حسب مستوى الحساب
+    if ($request->filled('account_level')) {
+        if ($request->account_level == 'main') {
+            $query->whereNull('parent_id'); // حسابات رئيسية
+        } elseif ($request->account_level == 'sub') {
+            $query->whereNotNull('parent_id'); // حسابات فرعية
+        }
+    }
+
+    // فلترة حسب نوع الحساب (مدين/دائن)
+    if ($request->filled('account_type')) {
+        $query->where('type', $request->account_type);
+    }
+
+    // فلترة حسب نوع الحساب (عملاء/موردين)
+    if ($request->filled('account_category')) {
+        $query->where('category', $request->account_category);
+    }
+
+    // فلترة حسب الفرع
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->branch);
+    }
+
+    // ترتيب حسب الكود
+    if ($request->filled('order_by')) {
+        if ($request->order_by == 'asc') {
+            $query->orderBy('code', 'asc');
+        } elseif ($request->order_by == 'desc') {
+            $query->orderBy('code', 'desc');
+        }
+    }
+
+    // جلب البيانات
+    $accounts = $query->with(['branch', 'parent'])->get();
+
+    // تحضير البيانات للعرض
+    $branches = Branch::all();
+
+    return view('reports.general_accounts.daily_restrictions_reports.chart_of_account_report',
+        compact('accounts', 'branches')
+    );
+}
+
 }

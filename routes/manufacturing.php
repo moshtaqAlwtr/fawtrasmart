@@ -83,7 +83,7 @@ Route::group(
                 # الأعدادات
                 Route::prefix('Settings')->group(function () {
                 Route::get('/index',[SettingsController::class,'index'])->name('Manufacturing.settings.index');
-                Route::get('/General',[SettingsController::class,'General'])->name('Manufacturing.settings.General');
+                Route::get('/General',[SettingsController::class,'General'])->name('manufacturing.settings.general');
                 Route::post('general_settings/update',[SettingsController::class,'general_settings'])->name('Manufacturing.general_settings.update');
                 Route::get('/Manual',[SettingsController::class,'Manual'])->name('Manufacturing.settings.Manual');
                 Route::post('order_manual_status/update',[SettingsController::class,'order_manual_status'])->name('Manufacturing.order_manual_status.update');

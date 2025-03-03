@@ -141,7 +141,7 @@ class ProductsController extends Controller
         $firstTemplateUnit = null;
         $firstTemplateUnit = optional(TemplateUnit::find($product->sub_unit_id))->base_unit_name;
         $CompiledProducts = CompiledProducts::where('compile_id',$id)->get();
-       
+
         $stock_movements = WarehousePermitsProducts::where('product_id', $id)
             ->with(['warehousePermits' => function ($query) {
                 $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
@@ -155,13 +155,12 @@ class ProductsController extends Controller
         // dd($request->all());
 
 
-     //   try{
+       try{
 
             DB::beginTransaction();
-<<<<<<< HEAD
 
-=======
->>>>>>> a49ec78e95ccc2f5d1d01d3b7c886c0da07a0cb7
+
+
             $product = new Product();
 
             $product->name = $request->name;
@@ -194,7 +193,7 @@ class ProductsController extends Controller
             $product->profit_margin = $request->profit_margin;
             $product->created_by = Auth::user()->id;
 
-<<<<<<< HEAD
+
             if ($request->has('available_online')) {
                 $product->available_online = 1;
             }
@@ -206,7 +205,7 @@ class ProductsController extends Controller
             if ($request->hasFile('images')) {
                 $product->images = $this->UploadImage('assets/uploads/product', $request->images);
             }
-=======
+
             if($request->has('available_online')){
                 $product->available_online = 1;
             }
@@ -219,7 +218,7 @@ class ProductsController extends Controller
             {
                 $product->images = $this->UploadImage('assets/uploads/product',$request->images);
             } # End If
->>>>>>> a49ec78e95ccc2f5d1d01d3b7c886c0da07a0cb7
+
 
             $product->save();
 
@@ -229,7 +228,7 @@ class ProductsController extends Controller
             ]);
 
             DB::commit();
-<<<<<<< HEAD
+
 
             if ($product->type == "services") {
                 return redirect()->route('products.index')->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
@@ -240,8 +239,8 @@ class ProductsController extends Controller
             DB::rollBack();
             return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
         }
-    }
-=======
+
+
             if($product->type == "services"){
                 return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
             }
@@ -250,7 +249,7 @@ class ProductsController extends Controller
 
 
     }# End Stor
->>>>>>> a49ec78e95ccc2f5d1d01d3b7c886c0da07a0cb7
+
 
     // اضافة الخدمة
     public function update(ProductsRequest $request, $id)
@@ -331,9 +330,9 @@ class ProductsController extends Controller
     }
     public function compiled_store(Request $request)
     {
-        // dd($request->all());
 
-        // try {
+
+        try {
             DB::beginTransaction();
 
             $product = new Product();
@@ -384,25 +383,25 @@ class ProductsController extends Controller
 
             // تحقق من صحة البيانات
             $request->validate([
-            
+
                 'products' => 'required|array', // تأكد من وجود بيانات المنتجات
                 'products.*.product_id' => 'required|exists:products,id', // تأكد من وجود product_id في جدول products
                 'products.*.quantity' => 'required|numeric|min:1', // تأكد من أن الكمية رقم صحيح أكبر من 0
             ]);
 
-           
+
             foreach ($request->products as $productData) {
                 $compiledProduct = new CompiledProducts();
-                
+
                 // تعيين compile_id إلى المنتج التجميعي
                 $compiledProduct->compile_id = $product->id;  // هذا هو المنتج التجميعي ويجب أن يتكرر لجميع المنتجات المرتبطة به
-                
+
                 // تعيين product_id إلى المنتج الفرعي
                 $compiledProduct->product_id = $productData['product_id'];  // معرّف المنتج الفردي
-                
+
                 // تعيين الكمية
                 $compiledProduct->qyt = $productData['quantity'];  // الكمية الخاصة بالمنتج
-                
+
                 // حفظ البيانات في جدول CompiledProducts
                 $compiledProduct->save();
             }
@@ -420,10 +419,10 @@ class ProductsController extends Controller
             }
 
             return redirect()->route('products.index')->with(['success' => 'تم إضافة المنتج بنجاح !!']);
-        // } catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
-        // }
+        }
     }
     public function delete($id)
     {

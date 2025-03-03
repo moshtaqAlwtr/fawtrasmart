@@ -114,6 +114,9 @@ Route::group(
         Route::get('/trialBalance', [GeneralAccountsController::class, 'trialBalance'])->name('GeneralAccountReports.trialBalance');
         Route::get('/accountBalanceReview', [GeneralAccountsController::class, 'accountBalanceReview'])->name('GeneralAccountReports.accountBalanceReview');
         Route::get('/generalLedger', [GeneralAccountsController::class, 'generalLedger'])->name('GeneralAccountReports.generalLedger');
+        Route::get('/CostCentersReport', [GeneralAccountsController::class, 'CostCentersReport'])->name('GeneralAccountReports.CostCentersReport');
+        Route::get('/ReportJournal', [GeneralAccountsController::class, 'ReportJournal'])->name('GeneralAccountReports.ReportJournal');
+        Route::get('/ChartOfAccounts', [GeneralAccountsController::class, 'ChartOfAccounts'])->name('GeneralAccountReports.ChartOfAccounts');
 
     })
 

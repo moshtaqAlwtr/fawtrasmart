@@ -237,7 +237,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-money-bill-wave"></i></div>
                                 مراكز التكلفة
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{route('GeneralAccountReports.CostCentersReport')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
@@ -245,7 +245,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-file-invoice"></i></div>
                                 تقرير القيود
                             </div>
-                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i
+                            <a href="{{route('GeneralAccountReports.ReportJournal')}}" class="view-button"><i
                                     class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -254,7 +254,7 @@
                                 <div class="icon-box icon4 ml-2"><i class="fas fa-file-invoice"></i></div>
                                 دليل الحسابات العامة
                             </div>
-                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i
+                            <a href="{{route('GeneralAccountReports.ChartOfAccounts')}}" class="view-button"><i
                                     class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>

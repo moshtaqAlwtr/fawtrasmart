@@ -45,7 +45,7 @@
     </div>
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('GeneralAccountReports.generalLedger') }}" method="GET">
+            <form action="{{ route('GeneralAccountReports.CostCentersReport') }}" method="GET">
                 <div class="row">
                     <div class="col-md-3">
                         <label for="dateRangeDropdown" class="form-label me-2">الفترة:</label>
@@ -77,8 +77,6 @@
                         <select id="branch" name="branch" class="form-control">
                             <option value="">حساب رئيسي </option>
                             <option value="">حساب فرعي </option>
-
-
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -125,8 +123,6 @@
                             <option value="1"> عرض الحسابات التي عليها معاملات </option>
                             <option value="2"> اخفاء الحسابات الصفرية</option>
                         </select>
-
-
                     </div>
 
                     <div class="col-md-3">
@@ -138,8 +134,6 @@
                             <option value="2"> المستوى الرابع</option>
                             <option value="2"> المستوى الخامس</option>
                         </select>
-
-
                     </div>
                     <div class="col-md-3">
                         <label for="cost-center" class="form-label">مركز التكلفة:</label>
@@ -168,7 +162,7 @@
                 <div class="row mt-3">
                     <div class="col-md-12 text-center">
                         <button type="submit" class="btn-custom">عرض التقرير</button>
-                        <a href="{{ route('GeneralAccountReports.generalLedger') }}" class="btn-custom">إلغاء
+                        <a href="{{ route('GeneralAccountReports.CostCentersReport') }}" class="btn-custom">إلغاء
                             الفلتر</a>
                         <button type="button" class="btn-custom" onclick="exportTableToExcel()">تصدير إلى Excel</button>
                         <button type="button" class="btn-custom" onclick="exportTableToPDF()">تصدير إلى PDF</button>
@@ -180,60 +174,48 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped" id="costCentersTable">
                     <thead>
                         <tr class="report-results-head">
-                            <th rowspan="2" class="first-column no-sort">رقم</th>
-                            <th rowspan="2" class="first-column no-sort">رقم القيد</th>
+                            <th rowspan="2" class="first-column no-sort">المعرف</th>
                             <th rowspan="2" class="first-column no-sort">التاريخ</th>
-                            <th rowspan="2" class="first-column no-sort">الموظف</th>
-                            <th rowspan="2" class="no-sort">الوصف</th>
-                            <th colspan="2"> العملية </th>
-                            <th colspan="2"> الرصيد </th>
+                            <th class="first-column no-sort" colspan="2">الحساب الفرعي</th>
+                            <th rowspan="2" class="first-column no-sort">رقم القيد</th>
+                            <th rowspan="2" class="first-column no-sort">الوصف</th>
+                            <th rowspan="2" class="first-column no-sort">نسبة</th>
+                            <th colspan="2" class="first-column no-sort">العملية</th>
+                            <th colspan="2" class="first-column no-sort">الرصيد</th>
                         </tr>
-                        <tr>
-                            <td class="no-sort">مدين (SAR)</td>
-                            <td class="no-sort">دائن (SAR)</td>
-                            <td class="no-sort">مدين (SAR)</td>
-                            <td class="no-sort">دائن (SAR)</td>
+                        <tr class="report-results-head">
+                            <th class="first-column no-sort">الكود</th>
+                            <th class="first-column no-sort">الاسم</th>
+                            <th class="first-column no-sort">مدين</th>
+                            <th class="first-column no-sort">دائن</th>
+                            <th class="first-column no-sort">مدين</th>
+                            <th class="first-column no-sort">دائن</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- صف "الحساب المبيعات" -->
-                        @if ($salesAccount)
-                            <tr>
-                                <td colspan="11" class="text-center" style="font-weight: bold; background-color: #f8f9fa;">{{ $salesAccount->name }}{{$salesAccount->code}}</td>
-
-                            </tr>
-                        @endif
-
-                        <!-- البيانات العادية -->
                         @foreach ($journalEntries as $entry)
                             @foreach ($entry->details as $detail)
-                                <tr>
-                                    <td>{{ $entry->id }}</td>
-                                    <td>{{ $entry->reference_number }}</td>
-                                    <td>{{ $entry->date }}</td>
-                                    <td>{{ $entry->employee ? $entry->employee->full_name : 'غير متوفر' }}</td>
-                                    <td>{{ $detail->description }}</td>
-                                    <td>{{ $detail->debit }}</td>
-                                    <td>{{ $detail->credit }}</td>
-                                    <td>{{ $detail->account->balance }}</td>
-                                    <td>{{ $detail->account->balance }}</td>
-                                </tr>
+                            <tr>
+                                <td>{{ $entry->id }}</td>
+                                <td>{{ $entry->date->format('Y-m-d') }}</td>
+                                <td>{{ optional($detail->account)->code ?? 'N/A' }}</td>
+                                <td>{{ optional($detail->account)->name ?? 'N/A' }}</td>
+                                <td>{{ $entry->reference_number }}</td>
+                                <td>{{ $entry->description }}</td>
+                                <td>{{ $entry->percentage ?? 0 }}</td>
+                                <td>{{ $detail->debit ?? 0 }}</td>
+                                <td>{{ $detail->credit ?? 0 }}</td>
+                                <td>{{ $detail->balance_debit ?? 0 }}</td>
+                                <td>{{ $detail->balance_credit ?? 0 }}</td>
+                            </tr>
                             @endforeach
                         @endforeach
                     </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="5" class="text-end">الإجمالي:</th>
-                            <th>{{ $totalDebit }}</th>
-                            <th>{{ $totalCredit }}</th>
-                            <th>{{ $totalBalanceDebit }}</th>
-                            <th>{{ $totalBalanceCredit }}</th>
-                        </tr>
-                    </tfoot>
                 </table>
+
             </div>
         </div>
     </div>
@@ -246,9 +228,9 @@
     <script>
         // تصدير إلى Excel
         function exportTableToExcel() {
-            const table = document.getElementById('generalLedgerTable');
+            const table = document.getElementById('costCentersTable');
             const workbook = XLSX.utils.table_to_book(table);
-            XLSX.writeFile(workbook, 'تقرير_الأستاذ_العام.xlsx');
+            XLSX.writeFile(workbook, 'تقرير_مراكز_التكلفة.xlsx');
         }
 
         // تصدير إلى PDF
@@ -257,21 +239,29 @@
             const doc = new jsPDF();
 
             doc.autoTable({
-                html: '#generalLedgerTable',
+                html: '#costCentersTable',
                 theme: 'grid',
-                headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-                styles: { font: 'tajawal', fontSize: 10 },
-                margin: { top: 20 },
-                didDrawPage: function (data) {
-                    doc.text('تقرير الأستاذ العام', data.settings.margin.left, 10);
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255
+                },
+                styles: {
+                    font: 'tajawal',
+                    fontSize: 10
+                },
+                margin: {
+                    top: 20
+                },
+                didDrawPage: function(data) {
+                    doc.text('تقرير مراكز التكلفة', data.settings.margin.left, 10);
                 }
             });
 
-            doc.save('تقرير_الأستاذ_العام.pdf');
+            doc.save('تقرير_مراكز_التكلفة.pdf');
         }
 
         // فلترة الجدول
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const filters = {
                 dateRange: document.getElementById('selectedDateRange'),
                 account: document.getElementById('account'),
@@ -280,7 +270,7 @@
                 // أضف بقية المدخلات هنا
             };
 
-            const tableRows = document.querySelectorAll('#generalLedgerTable tbody tr');
+            const tableRows = document.querySelectorAll('#costCentersTable tbody tr');
 
             function applyFilters() {
                 const dateRange = filters.dateRange.value.toLowerCase();
@@ -289,10 +279,10 @@
                 const costCenter = filters.costCenter.value.toLowerCase();
 
                 tableRows.forEach(row => {
-                    const rowDate = row.cells[2].textContent.toLowerCase();
-                    const rowAccount = row.cells[4].textContent.toLowerCase();
-                    const rowBranch = row.cells[5].textContent.toLowerCase();
-                    const rowCostCenter = row.cells[6].textContent.toLowerCase();
+                    const rowDate = row.cells[1].textContent.toLowerCase();
+                    const rowAccount = row.cells[3].textContent.toLowerCase();
+                    const rowBranch = row.cells[4].textContent.toLowerCase();
+                    const rowCostCenter = row.cells[5].textContent.toLowerCase();
 
                     const matchDate = !dateRange || rowDate.includes(dateRange);
                     const matchAccount = !account || rowAccount.includes(account);

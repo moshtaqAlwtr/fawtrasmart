@@ -499,14 +499,14 @@ class InvoicesController extends Controller
                 }
 
                 $proudect = Product::where('id', $item['product_id'])->first();
-                
+
                 if ($proudect->type == "products" || ($proudect->type == "compiled" && $proudect->compile_type !== "Instant")) {
-                    
+
                     if ((int) $item['quantity'] > (int) $productDetails->quantity) {
                         throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
                     }
                 }
-                
+
                 if ($proudect->type == "products") {
                     // ** حساب المخزون قبل وبعد التعديل **
                     $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
@@ -903,7 +903,7 @@ class InvoicesController extends Controller
                 //   $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
                 //      $subQuery->where('name', 'الأصول المتداولة');
                 // });
-                // }) 
+                // })
                 $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')
                     ->first();
 
