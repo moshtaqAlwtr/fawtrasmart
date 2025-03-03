@@ -10,7 +10,8 @@ use App\Models\Client;
 use App\Models\Commission;
 use App\Models\Commission_Products;
 use App\Models\CommissionUsers;
-use App\Models\DefaultWarehouses; 
+use App\Models\CompiledProducts;
+use App\Models\DefaultWarehouses;
 use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -194,10 +195,10 @@ class InvoicesController extends Controller
         $employees = Employee::all();
         $invoice_number = $this->generateInvoiceNumber();
 
-        $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
-        $client   = Client::where('user_id',auth()->user()->id)->first();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        $client   = Client::where('user_id', auth()->user()->id)->first();
 
-        return view('sales.invoices.index', compact('invoices','account_setting','client', 'clients', 'users', 'invoice_number', 'employees'));
+        return view('sales.invoices.index', compact('invoices', 'account_setting', 'client', 'clients', 'users', 'invoice_number', 'employees'));
     }
 
     public function create()
@@ -263,7 +264,7 @@ class InvoicesController extends Controller
 
                     // التحقق من وجود store_house_id في جدول store_houses
                     $store_house_id = $item['store_house_id'] ?? null;
-                   
+
                     // البحث عن المستودع
                     $storeHouse = null;
                     if ($store_house_id) {
@@ -280,51 +281,51 @@ class InvoicesController extends Controller
                         $store_house_id = $storeHouse->id;
                     }
                     // الحصول على المستخدم الحالي
-           $user = Auth::user(); 
+                    $user = Auth::user();
 
-         // التحقق مما إذا كان للمستخدم employee_id
-         // الحصول على المستخدم الحالي
-        $user = Auth::user();
+                    // التحقق مما إذا كان للمستخدم employee_id
+                    // الحصول على المستخدم الحالي
+                    $user = Auth::user();
 
-// التحقق مما إذا كان للمستخدم employee_id والبحث عن المستودع الافتراضي
-          if ($user && $user->employee_id) {
-    $defaultWarehouse = DefaultWarehouses::where('employee_id', $user->employee_id)->first();
-    
-    // التحقق مما إذا كان هناك مستودع افتراضي واستخدام storehouse_id إذا وجد
-             if ($defaultWarehouse && $defaultWarehouse->storehouse_id) {
-              $storeHouse = StoreHouse::find($defaultWarehouse->storehouse_id);
-             } else {
-              $storeHouse = StoreHouse::where('major', 1)->first();
-            }
-         } else {
-    // إذا لم يكن لديه employee_id، يتم تعيين storehouse الافتراضي
-      $storeHouse = StoreHouse::where('major', 1)->first();
-           }
+                    // التحقق مما إذا كان للمستخدم employee_id والبحث عن المستودع الافتراضي
+                    if ($user && $user->employee_id) {
+                        $defaultWarehouse = DefaultWarehouses::where('employee_id', $user->employee_id)->first();
 
-// الخزينة الاقتراضيه للموظف
-    $store_house_id = $storeHouse ? $storeHouse->id : null;
+                        // التحقق مما إذا كان هناك مستودع افتراضي واستخدام storehouse_id إذا وجد
+                        if ($defaultWarehouse && $defaultWarehouse->storehouse_id) {
+                            $storeHouse = StoreHouse::find($defaultWarehouse->storehouse_id);
+                        } else {
+                            $storeHouse = StoreHouse::where('major', 1)->first();
+                        }
+                    } else {
+                        // إذا لم يكن لديه employee_id، يتم تعيين storehouse الافتراضي
+                        $storeHouse = StoreHouse::where('major', 1)->first();
+                    }
 
-   $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+                    // الخزينة الاقتراضيه للموظف
+                    $store_house_id = $storeHouse ? $storeHouse->id : null;
 
-if ($user && $user->employee_id) {
-    // تحقق مما إذا كان treasury_id فارغًا أو null
-    if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-        $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-    } else {
-        // إذا كان treasury_id null أو غير موجود، اختر الخزينة الرئيسية
-        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-    }
-} else {
-    // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، اختر الخزينة الرئيسية
-    $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-}
+                    $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
 
-    
+                    if ($user && $user->employee_id) {
+                        // تحقق مما إذا كان treasury_id فارغًا أو null
+                        if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                            $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+                        } else {
+                            // إذا كان treasury_id null أو غير موجود، اختر الخزينة الرئيسية
+                            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+                        }
+                    } else {
+                        // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، اختر الخزينة الرئيسية
+                        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+                    }
 
-         // إرجاع store_id
-        // return $storeId;
 
-                   
+
+                    // إرجاع store_id
+                    // return $storeId;
+
+
                     // حساب تفاصيل الكمية والأسعار
                     $quantity = floatval($item['quantity']);
                     $unit_price = floatval($item['unit_price']);
@@ -471,8 +472,8 @@ if ($user && $user->employee_id) {
                 'paid_amount' => $advance_payment,
             ]);
 
-     
-         
+
+
 
 
             // ** تحديث رصيد حساب أبناء العميل **
@@ -483,12 +484,12 @@ if ($user && $user->employee_id) {
             foreach ($items_data as $item) {
                 $item['invoice_id'] = $invoice->id;
                 InvoiceItem::create($item);
-            
+
                 // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
                 $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])
                     ->where('product_id', $item['product_id'])
                     ->first();
-            
+
                 if (!$productDetails) {
                     $productDetails = ProductDetails::create([
                         'store_house_id' => $item['store_house_id'],
@@ -496,89 +497,193 @@ if ($user && $user->employee_id) {
                         'quantity' => 0,
                     ]);
                 }
-            
+
                 $proudect = Product::where('id', $item['product_id'])->first();
-            
-                if ($proudect->type !== "services") {
+                
+                if ($proudect->type == "products" || ($proudect->type == "compiled" && $proudect->compile_type !== "Instant")) {
+                    
                     if ((int) $item['quantity'] > (int) $productDetails->quantity) {
                         throw new \Exception('الكمية المطلوبة (' . $item['quantity'] . ') غير متاحة في المخزون. الكمية المتاحة: ' . $productDetails->quantity);
                     }
                 }
-            
-                // ** حساب المخزون قبل وبعد التعديل **
-                $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
-                $stock_before = $total_quantity;
-                $stock_after = $stock_before - $item['quantity'];
-            
-                // ** تحديث المخزون **
-                $productDetails->decrement('quantity', $item['quantity']);
-            
-                // ** تسجيل المبيعات في حركة المخزون **
-                $wareHousePermits = new WarehousePermits();
-                $wareHousePermits->permission_type = 10;
-                $wareHousePermits->permission_date = $invoice->created_at;
-                $wareHousePermits->number = $invoice->id;
-                $wareHousePermits->grand_total = $invoice->grand_total;
-                $wareHousePermits->store_houses_id = $storeHouse->id;
-                $wareHousePermits->created_by = auth()->user()->id;
-                $wareHousePermits->save();
-            
-                // ** تسجيل البيانات في WarehousePermitsProducts **
-                WarehousePermitsProducts::create([
-                    'quantity' => $item['quantity'],
-                    'total' => $item['total'], 
-                    'unit_price' => $item['unit_price'],                   
-                    'product_id' => $item['product_id'],                              
-                    'stock_before' => $stock_before, // المخزون قبل التحديث
-                    'stock_after' => $stock_after,   // المخزون بعد التحديث
-                    'warehouse_permits_id' => $wareHousePermits->id,
-                ]);
+                
+                if ($proudect->type == "products") {
+                    // ** حساب المخزون قبل وبعد التعديل **
+                    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+                    $stock_before = $total_quantity;
+                    $stock_after = $stock_before - $item['quantity'];
+
+                    // ** تحديث المخزون **
+                    $productDetails->decrement('quantity', $item['quantity']);
+
+                    // ** تسجيل المبيعات في حركة المخزون **
+                    $wareHousePermits = new WarehousePermits();
+                    $wareHousePermits->permission_type = 10;
+                    $wareHousePermits->permission_date = $invoice->created_at;
+                    $wareHousePermits->number = $invoice->id;
+                    $wareHousePermits->grand_total = $invoice->grand_total;
+                    $wareHousePermits->store_houses_id = $storeHouse->id;
+                    $wareHousePermits->created_by = auth()->user()->id;
+                    $wareHousePermits->save();
+
+                    // ** تسجيل البيانات في WarehousePermitsProducts **
+                    WarehousePermitsProducts::create([
+                        'quantity' => $item['quantity'],
+                        'total' => $item['total'],
+                        'unit_price' => $item['unit_price'],
+                        'product_id' => $item['product_id'],
+                        'stock_before' => $stock_before, // المخزون قبل التحديث
+                        'stock_after' => $stock_after,   // المخزون بعد التحديث
+                        'warehouse_permits_id' => $wareHousePermits->id,
+                    ]);
+                }
+
+                if ($proudect->type == "compiled" && $proudect->compile_type == "Instant") {
+                    // ** حساب المخزون قبل وبعد التعديل للمنتج التجميعي **
+                    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+                    $stock_before = $total_quantity;
+
+                    // ** الحركة الأولى: إضافة الكمية إلى المخزن **
+                    $wareHousePermits = new WarehousePermits();
+                    $wareHousePermits->permission_type = 1; // إضافة للمخزون منتج مجمع خارجي
+                    $wareHousePermits->permission_date = $invoice->created_at;
+                    $wareHousePermits->number = $invoice->id;
+                    $wareHousePermits->grand_total = $invoice->grand_total;
+                    $wareHousePermits->store_houses_id = $storeHouse->id;
+                    $wareHousePermits->created_by = auth()->user()->id;
+                    $wareHousePermits->save();
+
+                    // ** تحديث المخزون: إضافة الكمية **
+                    $productDetails->increment('quantity', $item['quantity']); // إضافة الكمية بدلاً من خصمها
+
+                    // ** تسجيل البيانات في WarehousePermitsProducts للإضافة **
+                    WarehousePermitsProducts::create([
+                        'quantity' => $item['quantity'],
+                        'total' => $item['total'],
+                        'unit_price' => $item['unit_price'],
+                        'product_id' => $item['product_id'],
+                        'stock_before' => $stock_before, // المخزون قبل التحديث
+                        'stock_after' => $stock_before + $item['quantity'], // المخزون بعد الإضافة
+                        'warehouse_permits_id' => $wareHousePermits->id,
+                    ]);
+
+                    // ** الحركة الثانية: خصم الكمية من المخزن **
+                    $wareHousePermits = new WarehousePermits();
+                    $wareHousePermits->permission_type = 10; // خصم من الفاتورة
+                    $wareHousePermits->permission_date = $invoice->created_at;
+                    $wareHousePermits->number = $invoice->id;
+                    $wareHousePermits->grand_total = $invoice->grand_total;
+                    $wareHousePermits->store_houses_id = $storeHouse->id;
+                    $wareHousePermits->created_by = auth()->user()->id;
+                    $wareHousePermits->save();
+
+                    // ** تحديث المخزون: خصم الكمية **
+                    $productDetails->decrement('quantity', $item['quantity']); // خصم الكمية
+
+                    // ** تسجيل البيانات في WarehousePermitsProducts للخصم **
+                    WarehousePermitsProducts::create([
+                        'quantity' => $item['quantity'],
+                        'total' => $item['total'],
+                        'unit_price' => $item['unit_price'],
+                        'product_id' => $item['product_id'],
+                        'stock_before' => $stock_before + $item['quantity'], // المخزون قبل الخصم (بعد الإضافة)
+                        'stock_after' => $stock_before, // المخزون بعد الخصم (يعود إلى القيمة الأصلية)
+                        'warehouse_permits_id' => $wareHousePermits->id,
+                    ]);
+
+                    // ** الحصول على المنتجات التابعة للمنتج التجميعي **
+                    $CompiledProducts = CompiledProducts::where('compile_id', $item['product_id'])->get();
+
+                    foreach ($CompiledProducts as $compiledProduct) {
+                        // ** حساب المخزون قبل وبعد التعديل للمنتج التابع **
+                        $total_quantity = DB::table('product_details')->where('product_id', $compiledProduct->product_id)->sum('quantity');
+                        $stock_before = $total_quantity;
+                        $stock_after = $stock_before - ($compiledProduct->qyt * $item['quantity']); // خصم الكمية المطلوبة
+
+                        // ** تسجيل المبيعات في حركة المخزون للمنتج التابع **
+                        $wareHousePermits = new WarehousePermits();
+                        $wareHousePermits->permission_type = 10; // خصم من الفاتورة
+                        $wareHousePermits->permission_date = $invoice->created_at;
+                        $wareHousePermits->number = $invoice->id;
+                        $wareHousePermits->grand_total = $invoice->grand_total;
+                        $wareHousePermits->store_houses_id = $storeHouse->id;
+                        $wareHousePermits->created_by = auth()->user()->id;
+                        $wareHousePermits->save();
+
+                        // ** تسجيل البيانات في WarehousePermitsProducts للمنتج التابع **
+                        WarehousePermitsProducts::create([
+                            'quantity' => $compiledProduct->qyt * $item['quantity'],
+                            'total' => $item['total'],
+                            'unit_price' => $item['unit_price'],
+                            'product_id' => $compiledProduct->product_id,
+                            'stock_before' => $stock_before, // المخزون قبل التحديث
+                            'stock_after' => $stock_after,   // المخزون بعد التحديث
+                            'warehouse_permits_id' => $wareHousePermits->id,
+                        ]);
+
+                        // ** تحديث المخزون للمنتج التابع **
+                        $compiledProductDetails = ProductDetails::where('store_house_id', $item['store_house_id'])
+                            ->where('product_id', $compiledProduct->product_id)
+                            ->first();
+
+                        if (!$compiledProductDetails) {
+                            $compiledProductDetails = ProductDetails::create([
+                                'store_house_id' => $item['store_house_id'],
+                                'product_id' => $compiledProduct->product_id,
+                                'quantity' => 0,
+                            ]);
+                        }
+
+                        $compiledProductDetails->decrement('quantity', $compiledProduct->qyt * $item['quantity']);
+                    }
+                }
             }
-            
-         
-           // جلب بيانات الموظف والمستخدم
-           $employee_name = Employee::where('id', $invoice->employee_id)->first();
-           $user_name = User::where('id', $invoice->created_by)->first();
+
+
+
+            // جلب بيانات الموظف والمستخدم
+            $employee_name = Employee::where('id', $invoice->employee_id)->first();
+            $user_name = User::where('id', $invoice->created_by)->first();
             $client_name = Client::find($invoice->client_id);
-           // جلب جميع المنتجات المرتبطة بالفاتورة
-           $invoiceItems = InvoiceItem::where('invoice_id', $invoice->id)->get();
-           
-           // تجهيز قائمة المنتجات
-           $productsList = "";
-           foreach ($invoiceItems as $item) {
-               $product = Product::find($item->product_id);
-               $productName = $product ? $product->name : "منتج غير معروف";
-               $productsList .= "▫️ *{$productName}* - الكمية: {$item->quantity}, السعر: {$item->unit_price} \n";
-           }
-           
-           // رابط API التلقرام
-           $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
-           
-           // تجهيز الرسالة
-           $message = "📜 *فاتورة جديدة* 📜\n";
-           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-           $message .= "🆔 *رقم الفاتورة:* `$code`\n";
-           $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
-           $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
-           $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
-           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-           $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
-           $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
-           $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
-           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-           $message .= "📦 *المنتجات:* \n" . $productsList;
-           $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-           $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
-           
-           
-           // إرسال الرسالة إلى التلقرام
-           $response = Http::post($telegramApiUrl, [
-               'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
-               'text' => $message,
-               'parse_mode' => 'Markdown',
-               'timeout' => 30,
-           ]);
-           
+            // جلب جميع المنتجات المرتبطة بالفاتورة
+            $invoiceItems = InvoiceItem::where('invoice_id', $invoice->id)->get();
+
+            // تجهيز قائمة المنتجات
+            $productsList = "";
+            foreach ($invoiceItems as $item) {
+                $product = Product::find($item->product_id);
+                $productName = $product ? $product->name : "منتج غير معروف";
+                $productsList .= "▫️ *{$productName}* - الكمية: {$item->quantity}, السعر: {$item->unit_price} \n";
+            }
+
+            // // رابط API التلقرام
+            // $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+
+            // // تجهيز الرسالة
+            // $message = "📜 *فاتورة جديدة* 📜\n";
+            // $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            // $message .= "🆔 *رقم الفاتورة:* `$code`\n";
+            // $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
+            // $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
+            // $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
+            // $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            // $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
+            // $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
+            // $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
+            // $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            // $message .= "📦 *المنتجات:* \n" . $productsList;
+            // $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            // $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
+
+
+            // // إرسال الرسالة إلى التلقرام
+            // $response = Http::post($telegramApiUrl, [
+            //     'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
+            //     'text' => $message,
+            //     'parse_mode' => 'Markdown',
+            //     'timeout' => 30,
+            // ]);
+
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
@@ -705,7 +810,7 @@ if ($user && $user->employee_id) {
                 'is_debit' => true,
             ]);
 
-            
+
             // 2. حساب المبيعات (دائن)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
@@ -732,12 +837,12 @@ if ($user && $user->employee_id) {
             //     $salesAccount->save();
             // }
 
-             // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
+            // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
             if ($salesAccount) {
-                $amount = $amount_after_discount; 
+                $amount = $amount_after_discount;
                 $salesAccount->balance += $amount;
                 $salesAccount->save();
-            
+
                 // تحديث جميع الحسابات الرئيسية المتصلة به
                 $this->updateParentBalanceSalesAccount($salesAccount->parent_id, $amount);
             }
@@ -749,20 +854,20 @@ if ($user && $user->employee_id) {
             //     $revenueAccount->save();
             // }
 
-           
+
             // $vatAccount->balance += $tax_total; // قيمة الضريبة
             // $vatAccount->save();
 
-             //تحديث رصيد حساب القيمة المضافة (الخصوم)
+            //تحديث رصيد حساب القيمة المضافة (الخصوم)
             if ($vatAccount) {
-                $amount = $tax_total; 
+                $amount = $tax_total;
                 $vatAccount->balance += $amount;
                 $vatAccount->save();
-            
+
                 // تحديث جميع الحسابات الرئيسية المتصلة به
                 $this->updateParentBalance($vatAccount->parent_id, $amount);
             }
-            
+
 
 
             // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
@@ -778,13 +883,13 @@ if ($user && $user->employee_id) {
             //     $MainTreasury->save();
             // }
 
-             // تحديث رصيد حساب الخزينة الرئيسية
-             
+            // تحديث رصيد حساب الخزينة الرئيسية
+
             if ($MainTreasury) {
-                $amount = $total_with_tax; 
+                $amount = $total_with_tax;
                 $MainTreasury->balance += $amount;
                 $MainTreasury->save();
-            
+
                 // تحديث جميع الحسابات الرئيسية المتصلة به
                 $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
             }
@@ -794,11 +899,11 @@ if ($user && $user->employee_id) {
                 $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
 
                 // البحث عن حساب الخزينة الرئيسية
-              //  $mainTreasuryAccount = Account::whereHas('parent.parent', function ($query) {
-                 //   $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
-                  //      $subQuery->where('name', 'الأصول المتداولة');
-                   // });
-               // }) 
+                //  $mainTreasuryAccount = Account::whereHas('parent.parent', function ($query) {
+                //   $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
+                //      $subQuery->where('name', 'الأصول المتداولة');
+                // });
+                // }) 
                 $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')
                     ->first();
 
@@ -905,7 +1010,6 @@ if ($user && $user->employee_id) {
         }
 
         return $salesAccount->id;
-
     }
 
     private function updateParentBalance($parentId, $amount)
@@ -915,7 +1019,7 @@ if ($user && $user->employee_id) {
             if ($vatAccount) {
                 $vatAccount->balance += $amount;
                 $vatAccount->save();
-    
+
                 // استدعاء الوظيفة نفسها لتحديث الحساب الأعلى منه
                 $this->updateParentBalance($vatAccount->parent_id, $amount);
             }
@@ -924,29 +1028,29 @@ if ($user && $user->employee_id) {
 
     private function updateParentBalanceMainTreasury($parentId, $amount)
     {
-          // تحديث رصيد الحسابات المرتبطة الخزينة الرئيسية
+        // تحديث رصيد الحسابات المرتبطة الخزينة الرئيسية
         if ($parentId) {
             $MainTreasury = Account::find($parentId);
             if ($MainTreasury) {
                 $MainTreasury->balance += $amount;
                 $MainTreasury->save();
-    
+
                 // استدعاء الوظيفة نفسها لتحديث الحساب الأعلى منه
                 $this->updateParentBalance($MainTreasury->parent_id, $amount);
             }
         }
     }
-    
 
-      private function updateParentBalanceSalesAccount($parentId, $amount)
+
+    private function updateParentBalanceSalesAccount($parentId, $amount)
     {
-          // تحديث رصيد الحسابات المرتبطة  المبيعات
+        // تحديث رصيد الحسابات المرتبطة  المبيعات
         if ($parentId) {
             $MainTreasury = Account::find($parentId);
             if ($MainTreasury) {
                 $MainTreasury->balance += $amount;
                 $MainTreasury->save();
-    
+
                 // استدعاء الوظيفة نفسها لتحديث الحساب الأعلى منه
                 $this->updateParentBalanceSalesAccount($MainTreasury->parent_id, $amount);
             }
@@ -957,8 +1061,8 @@ if ($user && $user->employee_id) {
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
-        $account_setting = AccountSetting::where('user_id',auth()->user()->id)->first();
-        $client   = Client::where('user_id',auth()->user()->id)->first();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        $client   = Client::where('user_id', auth()->user()->id)->first();
 
         $invoice_number = $this->generateInvoiceNumber();
 
@@ -969,7 +1073,7 @@ if ($user && $user->employee_id) {
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
 
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.show', compact('invoice_number','account_setting','client', 'clients', 'employees', 'invoice', 'barcodeImage'));
+        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage'));
     }
     public function edit($id)
     {

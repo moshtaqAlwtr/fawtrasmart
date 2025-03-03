@@ -67,7 +67,7 @@
                 <div class="card-title p-2">
                     <a href="{{ route('products.edit',$product->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i class="fa fa-edit"></i></a>
                     <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modal_DELETE{{ $product->id }}">حذف <i class="fa fa-trash"></i></a>
-                    @if($product->type == "products")
+                    @if($product->type == "products" || $product->type == "compiled")
                     <a href="{{ route('store_permits_management.manual_conversion') }}" class="btn btn-outline-success btn-sm">نقل <i class="fa fa-reply-all"></i></a>
                     <a href="{{ route('store_permits_management.create') }}" class="btn btn-outline-info btn-sm">اضف عمليه <i class="fa fa-plus"></i></a>
                     <a href="{{ route('store_permits_management.manual_disbursement') }}" class="btn btn-outline-warning btn-sm">عمليه صرف <i class="fa fa-minus"></i></a>
@@ -78,7 +78,7 @@
                         <li class="nav-item">
                             <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home" role="tab" aria-selected="false">معلومات</a>
                         </li>
-                        @if($product->type == "products")
+                        @if($product->type == "products" || $product->type == "compiled")
                         <li class="nav-item">
                             <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" aria-controls="profile" role="tab" aria-selected="false">حركة المخزون</a>
                         </li>
@@ -99,7 +99,7 @@
 
                                 <table class="table">
                                     <thead class="table-light">
-                                        <tr>@if($product->type == "products")
+                                        <tr>@if($product->type == "products" || $product->type == "compiled")
                                             <th class="text-center"><i class="feather icon-package text-info font-medium-5 mr-1"></i>اجمالي المخزون</th>
                                             @endif
                                             <th class="text-center"><i class="feather icon-shopping-cart text-warning font-medium-5 mr-1"></i>اجمالي القطع المباعه</th>
@@ -110,7 +110,7 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            @if($product->type == "products")
+                                            @if($product->type == "products" || $product->type == "compiled")
                                             <td class="text-center">
                                                 <h4 class="text-bold-700">{{ $total_quantity ? number_format($total_quantity) : 'غير متوفر' }} {{$firstTemplateUnit ?? ""}}</h4>
                                                 <br>
@@ -180,6 +180,26 @@
                                                         @endif
                                                     <small>
                                                 </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-header">
+                                    <strong>منتجات التجميعة :</strong>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <table class="table">
+                                            <tr>
+                                             @foreach ($CompiledProducts as $CompiledProduct)
+                                             <td>
+                                                <b>{{$CompiledProduct->Product->name ?? ""}}</b>  : {{$CompiledProduct->qyt ?? ""}}
+                                             </td>
+                                             @endforeach   
+                                             
+                                               
                                             </tr>
                                         </table>
                                     </div>

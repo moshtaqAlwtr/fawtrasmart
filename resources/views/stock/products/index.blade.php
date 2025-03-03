@@ -58,9 +58,9 @@
                                             <a class="dropdown-item" href="{{ route('products.create') }}">منتج جديد</a>
                                         @endif
                                          {{-- رابط منتج تجميعي --}}
-                                         @if (optional($role) == true)
-                                  <a class="dropdown-item" href="{{ route('products.compiled') }}">منتج تجميعي</a>
-                                     @endif
+                                         @unless ($role === false)
+                                         <a class="dropdown-item" href="{{ route('products.compiled') }}">منتج تجميعي</a>
+                                     @endunless
                                     </div>
                                 </div>
                             </div>
