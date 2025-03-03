@@ -339,44 +339,56 @@
                 <div class="card-body">
                     <div class="form-body">
                         <div class="row">
-                            <div class="col-12">
-                                <div id="product-fields">
-                                    <!-- العنصر الأول -->
-                                    <div class="row product-row">
-                                        <div class="col-5">
-                                            <div class="form-group mb-3">
-                                                <label for="product">المنتج</label>
-                                                <select class="form-control product-select" name="products[0][product_id]">
-                                    @foreach ($products  as $product)
-                                    <option value="{{$product->id}}">{{$product->name}}</option>
-                                    @endforeach
-                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-5">
-                                            <div class="form-group mb-3">
-                                                <label for="quantity">الكمية</label>
-                                                <input type="number" class="form-control quantity-input" name="products[0][quantity]" min="1" value="1">
-                                            </div>
-                                        </div>
-                                        <div class="col-2">
-                                            <div class="form-group mb-3">
-                                                <label>&nbsp;</label>
-                                                <button type="button" class="btn btn-danger remove-product" onclick="removeProductRow(this)">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <!-- المخزن ونوع التجميعة (ثابتان) -->
+                            <div class="col-6">
+                                <div class="form-group mb-3">
+                                    <label for="store">المخزن</label>
+                                    <select class="form-control" name="storehouse_id">
+                                        @foreach ($storehouses as $storehouse)
+                                        <option value="{{$storehouse->id}}">{{$storehouse->name ?? ""}}</option> 
+                                        @endforeach
+                                        
+                                        <!-- أضف خيارات المخزن هنا -->
+                                    </select>
                                 </div>
-                                <button type="button" id="add-product" class="btn btn-primary">إضافة منتج</button>
-                                {{-- <button type="submit" onclick="saveProducts()" class="btn btn-success">حفظ</button> --}}
+                            </div>
+                            <div class="col-6">
+                                <div class="form-group mb-3">
+                                    <label for="assembly-type">نوع التجميعة</label>
+                                    <select class="form-control" name="compile_type">
+                                        <option value="Instant">فوري</option>
+                                        <option value="Pre-made">معد مسبقا</option>
+                                        <!-- أضف خيارات نوع التجميعة هنا -->
+                                    </select>
+                                </div>
                             </div>
                         </div>
+        
+                        <!-- جدول المنتجات -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="products-table" style="display: none;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width: 50%;">المنتج</th>
+                                        <th style="width: 30%;">الكمية</th>
+                                        <th style="width: 20%;">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="product-fields">
+                                    <!-- الصفوف الديناميكية ستضاف هنا -->
+                                </tbody>
+                            </table>
+                        </div>
+        
+                        <!-- أزرار التحكم -->
+                        <button type="button" id="add-product" class="btn btn-primary mt-3">إضافة منتج</button>
+                        {{-- <button type="submit" class="btn btn-success mt-3">حفظ</button> --}}
                     </div>
                 </div>
             </div>
         </div>
+        
+        
 
         <div class="card">
             <div class="card-header">
@@ -547,51 +559,62 @@
                 width: '100%'
             });
 
-            let productRowCount = 1;
+            let productRowCount = 0;
 
-            // زر إضافة منتج جديد
-            $('#add-product').click(function() {
-                let newRow = `
-                    <div class="row product-row">
-                        <div class="col-5">
-                            <div class="form-group mb-3">
-                                <label for="product">المنتج</label>
-                                <select class="form-control product-select" name="products[${productRowCount}][product_id]">
-                                    @foreach ($products as $product)
-                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-5">
-                            <div class="form-group mb-3">
-                                <label for="quantity">الكمية</label>
-                                <input type="number" class="form-control quantity-input" name="products[${productRowCount}][quantity]" min="1" value="1">
-                            </div>
-                        </div>
-                        <div class="col-2">
-                            <div class="form-group mb-3">
-                                <label>&nbsp;</label>
-                                <button type="button" class="btn btn-danger remove-product" onclick="removeProductRow(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+// زر إضافة منتج جديد
+$('#add-product').click(function() {
+    let newRow = `
+        <tr class="product-row">
+            <td>
+                <select class="form-control product-select" name="products[${productRowCount}][product_id]">
+                    @foreach ($products as $product)
+                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <input type="number" class="form-control quantity-input" name="products[${productRowCount}][quantity]" min="1" value="1">
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger remove-product" onclick="removeProductRow(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `;
 
-                let newRowElement = $(newRow);
-                $('#product-fields').append(newRowElement);
+    // إضافة الصف داخل الجدول
+    $('#product-fields').append(newRow);
+    
+    // عرض الجدول إذا كان مخفيًا
+    $('#products-table').show();
 
-                // تهيئة Select2 للعنصر الجديد
-                newRowElement.find('.product-select').select2({
-                    placeholder: "ابحث عن المنتج...",
-                    allowClear: true,
-                    width: '100%'
-                });
+    // تهيئة Select2 للعنصر الجديد (إذا كنت تستخدم مكتبة Select2)
+    $('.product-select').last().select2({
+        placeholder: "ابحث عن المنتج...",
+        allowClear: true,
+        width: '100%'
+    });
 
-                productRowCount++;
-            });
+    productRowCount++;
+});
+
+// وظيفة لحذف صف المنتج
+function removeProductRow(button) {
+    $(button).closest('tr').remove();
+
+    // إخفاء الجدول إذا كان فارغًا
+    if ($('#product-fields').children().length === 0) {
+        $('#products-table').hide();
+    }
+}
+
+
+// وظيفة لحذف صف المنتج
+function removeProductRow(button) {
+    $(button).closest('.product-row').remove();
+}
+
 
             // حذف سطر المنتج
             window.removeProductRow = function(button) {

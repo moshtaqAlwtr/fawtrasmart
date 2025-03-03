@@ -186,7 +186,7 @@
                                             <small>#{{ $employee->id }}</small>
                                         </td>
                                         <td>
-                                            <p><strong>{{ optional($employee->job_role->role_name)->role_name ?? 'غير محدد' }}</strong></p>
+                                            <p><strong>{{$employee->job_role->role_name ?? "غير محدد"}}</strong></p>
                                             <small>@if ($employee->employee_type == 1) موظف @else مستخدم @endif</small>
                                         </td>
                                         <td>{{ optional($employee->job_title)->name ?? 'غير محدد' }}</td>
