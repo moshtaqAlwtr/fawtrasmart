@@ -75,5 +75,8 @@ public function journalEntries()
 {
     return $this->hasMany(JournalEntryDetail::class, 'account_id');
 }
-
+public function childrenRecursive()
+{
+    return $this->children()->with('childrenRecursive');
+}
 }

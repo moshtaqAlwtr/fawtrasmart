@@ -56,4 +56,7 @@ class Receipt extends Model
         $newNumber = $lastNumber + 1;
         return 'RCP' . str_pad($newNumber, 7, '0', STR_PAD_LEFT);
     }
+public function employee(){
+    return $this->belongsTo(Employee::class,'employee_id');
+}
 }

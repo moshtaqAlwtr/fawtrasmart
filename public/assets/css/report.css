@@ -202,3 +202,158 @@
         background-color: #2980b9;
         transform: translateY(-2px);
     }
+    .trial-balance-container {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .trial-balance-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .trial-balance-header h4 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+
+    .trial-balance-table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .trial-balance-table thead {
+        background: linear-gradient(45deg, #42a5f5, #1e88e5);
+        color: white;
+        font-weight: 600;
+    }
+
+    .trial-balance-table thead tr:first-child th {
+        background: rgba(255, 255, 255, 0.1);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .trial-balance-table tbody tr {
+        transition: background-color 0.3s ease;
+    }
+
+    .trial-balance-table tbody tr:hover {
+        background-color: rgba(66, 165, 245, 0.05);
+    }
+
+    .account-row td {
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    .account-row .btn-toggle-children {
+        background: none;
+        border: none;
+        color: #6a11cb;
+        transition: transform 0.3s ease;
+    }
+
+    .account-row .btn-toggle-children:hover {
+        transform: scale(1.2);
+    }
+
+    .btn-custom {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 20px;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-custom:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-control {
+        border-radius: 25px;
+        padding: 10px 15px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #6a11cb;
+        box-shadow: 0 0 0 0.2rem rgba(106, 17, 203, 0.25);
+    }
+
+    .dropdown-menu {
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .dropdown-item:hover {
+        background-color: rgba(106, 17, 203, 0.1);
+        color: #6a11cb;
+    }
+
+    @media (max-width: 768px) {
+        .trial-balance-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .btn-custom {
+            margin: 5px;
+        }
+    }
+    .btn-toggle-children {
+        transition: transform 0.2s ease;
+    }
+
+    .btn-toggle-children:hover {
+        transform: scale(1.1);
+    }
+
+    .collapse {
+        transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    }
+    .btn-toggle-children {
+        transition: all 0.3s ease;
+    }
+
+    .btn-toggle-children i {
+        display: inline-block;
+        transition: transform 0.3s ease;
+    }
+
+    .btn-toggle-children i.fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .export-buttons .btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }

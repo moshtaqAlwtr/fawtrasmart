@@ -77,7 +77,7 @@ class JournalEntry extends Model
     // العلاقة مع المدفوعات
     public function payments()
     {
-        return $this->hasMany(Payments::class);
+        return $this->hasMany(PaymentsProcess::class);
     }
 
     public function account()//+
