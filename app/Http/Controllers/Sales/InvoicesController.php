@@ -1061,6 +1061,7 @@ class InvoicesController extends Controller
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
+
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $client   = Client::where('user_id', auth()->user()->id)->first();
 

@@ -8,9 +8,25 @@
 @section('css')
 
 
-<link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
+
+    <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
+<style>
+.card-header button.active {
+    border: 2px solid #007bff; /* لون الحد */
+    font-weight: bold; /* نص غامق */
+}
+
+.card-header button {
+    transition: all 0.3s ease;
+}
+
+.card-header button:hover {
+    transform: translateY(-2px); /* تحريك الزر لأعلى */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* إضافة ظل */
+}
+</style>
 @endsection
-    @section('content')
+@section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -404,39 +420,29 @@
                 </div>
 
             </div>
-
-
             <div class="card">
-                <!-- الترويسة -->
                 <div class="card-header d-flex justify-content-between align-items-center p-3">
                     <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-outline-primary {{ request()->status == null ? 'active' : '' }}"
-                            onclick="filterInvoices('')">
+                        <button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('all')">
                             <i class="fas fa-list me-1"></i> الكل
                         </button>
-                        <button class="btn btn-sm btn-outline-warning {{ request()->status == 'late' ? 'active' : '' }}"
-                            onclick="filterInvoices('late')">
+                        <button class="btn btn-sm btn-outline-warning" onclick="filterInvoices('late')">
                             <i class="fas fa-clock me-1"></i> متأخر
                         </button>
-                        <button class="btn btn-sm btn-outline-info {{ request()->status == 'due' ? 'active' : '' }}"
-                            onclick="filterInvoices('due')">
+                        <button class="btn btn-sm btn-outline-info" onclick="filterInvoices('due')">
                             <i class="fas fa-calendar-day me-1"></i> مستحقة الدفع
                         </button>
-                        <button class="btn btn-sm btn-outline-danger {{ request()->status == 'unpaid' ? 'active' : '' }}"
-                            onclick="filterInvoices('unpaid')">
+                        <button class="btn btn-sm btn-outline-danger" onclick="filterInvoices('unpaid')">
                             <i class="fas fa-times-circle me-1"></i> غير مدفوع
                         </button>
-                        <button
-                            class="btn btn-sm btn-outline-secondary {{ request()->status == 'draft' ? 'active' : '' }}"
-                            onclick="filterInvoices('draft')">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="filterInvoices('draft')">
                             <i class="fas fa-file-alt me-1"></i> مسودة
                         </button>
-                        <button
-                            class="btn btn-sm btn-outline-success {{ request()->status == 'overpaid' ? 'active' : '' }}"
-                            onclick="filterInvoices('overpaid')">
+                        <button class="btn btn-sm btn-outline-success" onclick="filterInvoices('overpaid')">
                             <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
                         </button>
                     </div>
+                    <input type="text" id="searchInput" class="form-control w-25" placeholder="ابحث عن فاتورة..." oninput="searchInvoices()">
                 </div>
 
                 <!-- قائمة الفواتير -->
@@ -452,9 +458,12 @@
                                 <th style="width: 100px;">الإجراءات</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="invoiceTableBody">
                             @foreach ($invoices as $invoice)
-                                <tr class="align-middle invoice-row">
+                                <tr class="align-middle invoice-row"
+                                    onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
+                                    style="cursor: pointer;"
+                                    data-status="{{ $invoice->payment_status }}"> <!-- أضفنا سمة data-status -->
                                     <td class="text-center border-start">
                                         <span class="invoice-number">#{{ $invoice->id }}</span>
                                     </td>
@@ -468,7 +477,7 @@
                                                 <div class="tax-info mb-1">
                                                     <i class="fas fa-hashtag text-muted me-1"></i>
                                                     <span class="text-muted small">الرقم الضريبي:
-                                                    {{ $invoice->client->tax_number }}</span>
+                                                        {{ $invoice->client->tax_number }}</span>
                                                 </div>
                                             @endif
                                             @if ($invoice->client && $invoice->client->full_address)
@@ -486,13 +495,17 @@
                                         </div>
                                         <div class="creator-info">
                                             <i class="fas fa-user text-muted me-1"></i>
-                                            <span class="text-muted small">بواسطة: {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
+                                            <span class="text-muted small">بواسطة:
+                                                {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column gap-2">
                                             @php
-                                                $payments = \App\Models\PaymentsProcess::where('invoice_id', $invoice->id)
+                                                $payments = \App\Models\PaymentsProcess::where(
+                                                    'invoice_id',
+                                                    $invoice->id,
+                                                )
                                                     ->where('type', 'client payments')
                                                     ->orderBy('created_at', 'desc')
                                                     ->get();
@@ -528,19 +541,19 @@
                                         </div>
 
                                         @php
-                                            $statusClass = match($invoice->payment_status) {
+                                            $statusClass = match ($invoice->payment_status) {
                                                 1 => 'success',
                                                 2 => 'info',
                                                 3 => 'danger',
                                                 4 => 'secondary',
-                                                default => 'dark'
+                                                default => 'dark',
                                             };
-                                            $statusText = match($invoice->payment_status) {
+                                            $statusText = match ($invoice->payment_status) {
                                                 1 => 'مدفوعة بالكامل',
                                                 2 => 'مدفوعة جزئياً',
                                                 3 => 'غير مدفوعة',
                                                 4 => 'مستلمة',
-                                                default => 'غير معروفة'
+                                                default => 'غير معروفة',
                                             };
                                         @endphp
                                         <div class="text-center">
@@ -550,43 +563,43 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="dropdown">
-    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v" type="button"
-        id="dropdownMenuButton{{ $invoice->id }}" data-bs-toggle="dropdown"
-        data-bs-boundary="viewport" aria-haspopup="true" aria-expanded="false">
-    </button>
-    <div class="dropdown-menu dropdown-menu-end">
-        <!-- عناصر القائمة المنسدلة -->
-        <a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}">
-            <i class="fa fa-edit me-2 text-success"></i>تعديل
-        </a>
-        <a class="dropdown-item" href="{{ route('invoices.show', $invoice->id) }}">
-            <i class="fa fa-eye me-2 text-primary"></i>عرض
-        </a>
-        <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
-            <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-        </a>
-        <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
-            <i class="fa fa-print me-2 text-dark"></i>طباعة
-        </a>
-        <a class="dropdown-item" href="#">
-            <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
-        </a>
-        <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
-            <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
-        </a>
-        <a class="dropdown-item" href="#">
-            <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-        </a>
-        <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" class="d-inline">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="dropdown-item text-danger">
-                <i class="fa fa-trash me-2"></i>حذف
-            </button>
-        </form>
-    </div>
-</div>
+                                        <div class="dropdown" onclick="event.stopPropagation()">
+                                            <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v" type="button"
+                                                id="dropdownMenuButton{{ $invoice->id }}" data-bs-toggle="dropdown"
+                                                data-bs-boundary="viewport" aria-haspopup="true" aria-expanded="false">
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end">
+                                                <!-- عناصر القائمة المنسدلة -->
+                                                <a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}">
+                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('invoices.show', $invoice->id) }}">
+                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                    <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                    <i class="fa fa-print me-2 text-dark"></i>طباعة
+                                                </a>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
+                                                </a>
+                                                <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
+                                                    <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
+                                                </a>
+                                                <a class="dropdown-item" href="#">
+                                                    <i class="fa fa-copy me-2 text-secondary"></i>نسخ
+                                                </a>
+                                                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fa fa-trash me-2"></i>حذف
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -594,14 +607,12 @@
                     </table>
                 </div>
 
-
                 @if ($invoices->isEmpty())
                     <div class="alert alert-warning m-3" role="alert">
                         <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد فواتير</p>
                     </div>
                 @endif
             </div>
-
 
 
         </div>
@@ -616,19 +627,66 @@
 
     <script>
         function filterInvoices(status) {
-            const currentUrl = new URL(window.location.href);
-            if (status) {
-                currentUrl.searchParams.set('status', status);
-            } else {
-                currentUrl.searchParams.delete('status');
-            }
-            window.location.href = currentUrl.toString();
-        }
+    // إزالة الفئة النشطة من جميع الأزرار
+    document.querySelectorAll('.card-header button').forEach(button => {
+        button.classList.remove('active');
+    });
 
-        function filterInvoices(status) {
-            window.location.href = "{{ route('invoices.index') }}" + (status ? "?status=" + status : "");
-        }
+    // إضافة الفئة النشطة للزر المحدد
+    document.querySelector(`.card-header button[onclick="filterInvoices('${status}')"]`).classList.add('active');
 
+    // تنفيذ الفلترة
+    const rows = document.querySelectorAll('#invoiceTableBody tr');
+    let visibleRows = 0;
+
+    rows.forEach(row => {
+        const invoiceStatus = row.getAttribute('data-status');
+        if (status === 'all') {
+            row.style.display = '';
+            visibleRows++;
+        } else if (status === 'late' && invoiceStatus == 3) {
+            row.style.display = '';
+            visibleRows++;
+        } else if (status === 'due' && invoiceStatus == 2) {
+            row.style.display = '';
+            visibleRows++;
+        } else if (status === 'unpaid' && invoiceStatus == 3) {
+            row.style.display = '';
+            visibleRows++;
+        } else if (status === 'draft' && invoiceStatus == 4) {
+            row.style.display = '';
+            visibleRows++;
+        } else if (status === 'overpaid' && invoiceStatus ==0 ) {
+            row.style.display = '';
+            visibleRows++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // عرض رسالة إذا لم توجد فواتير
+    const noInvoicesMessage = document.getElementById('noInvoicesMessage');
+    if (visibleRows === 0) {
+        noInvoicesMessage.style.display = 'block';
+    } else {
+        noInvoicesMessage.style.display = 'none';
+    }
+}
+
+function searchInvoices() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#invoiceTableBody tr');
+
+    rows.forEach(row => {
+        const invoiceNumber = row.querySelector('.invoice-number').textContent.toLowerCase();
+        const clientName = row.querySelector('.client-name strong').textContent.toLowerCase();
+        if (invoiceNumber.includes(searchTerm) || clientName.includes(searchTerm)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
     </script>
-@endsection
 
+@endsection
