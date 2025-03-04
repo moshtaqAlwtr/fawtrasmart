@@ -145,7 +145,7 @@
                                 <div class="icon-box icon1 ml-2"><i class="fas fa-balance-scale"></i></div>
                                 الميزانية العمومية
                             </div>
-                            <a href="" class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.BalanceSheet') }}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
                             onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
