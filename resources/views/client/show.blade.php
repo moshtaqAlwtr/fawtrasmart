@@ -101,8 +101,44 @@
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class="fas fa-plus me-2"></i>
-                                        أضف رصيد مدفوعات
+                                        <i class="fas fa-wallet me-2"></i> <!-- أيقونة المحفظة -->
+                                        اضافة رصيد افتتاحي
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-truck me-2"></i> <!-- أيقونة الشاحنة -->
+                                        اضافة امر توريد
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-user me-2"></i> <!-- أيقونة المستخدم -->
+                                        الدخول كعميل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-ban me-2"></i> <!-- أيقونة المنع -->
+                                        موقوف
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-trash-alt me-2"></i> <!-- أيقونة الحذف -->
+                                        حذف عميل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-user-tie me-2"></i> <!-- أيقونة الموظف -->
+                                        تعيين الى موظف
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-copy me-2"></i> <!-- أيقونة النسخ -->
+                                        نسخ
                                     </a>
                                 </li>
                             </ul>
