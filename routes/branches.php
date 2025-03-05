@@ -23,6 +23,11 @@ Route::group(
             Route::get('/updateStatus/{id}', [BranchesController::class, 'updateStatus'])->name('branches.updateStatus'); // تحديث بيانات الفرع
             Route::delete('/delete/{id}', [BranchesController::class, 'destroy'])->name('branches.destroy');// حذف فرع
             Route::get('/settings', [BranchesController::class, 'settings'])->name('branches.settings');
+            Route::post('/settings', [BranchesController::class, 'settings_store'])->name('branches.settings_store');
+            Route::get('/branches/{branch}/settings', [BranchesController::class, 'getBranchPermissions'])->name('branches.loadSettings');
+            Route::get('/switch-branch/{branch}', [BranchesController::class, 'switchBranch'])->name('branch.switch');
+            Route::get('/settings/get-settings', [BranchesController::class, 'getSettings'])->name('settings.get');
+
 
         });
     }

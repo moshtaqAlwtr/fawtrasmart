@@ -27,12 +27,39 @@ class ProductsController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::orderBy('id', 'DESC')->paginate(5);
+        // جلب المستخدم الحالي
+        $user = auth()->user();
+    
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
+    
+            // التحقق من صلاحية "مشاركة المنتجات"
+            $shareProductsStatus = $branch->settings()->where('key', 'share_products')->first();
+    
+            // إذا كانت الصلاحية غير مفعلة، عرض المنتجات التي أضافها المستخدمون من نفس الفرع فقط
+            if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
+                $products = Product::whereHas('creator', function ($query) use ($branch) {
+                    $query->where('branch_id', $branch->id);
+                })->orderBy('id', 'DESC')->paginate(5);
+            } else {
+                // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع المنتجات
+                $products = Product::orderBy('id', 'DESC')->paginate(5);
+            }
+        } else {
+            // إذا لم يكن لدى المستخدم فرع، عرض جميع المنتجات
+            $products = Product::orderBy('id', 'DESC')->paginate(5);
+        }
+    
+        // إعدادات الحساب والإعدادات العامة
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $generalSettings = GeneralSettings::select()->first();
         $role = $generalSettings ? $generalSettings->enable_assembly_and_compound_units == 1 : false;
-        return view('stock.products.index', compact('products', 'account_setting','role'));
+    
+        return view('stock.products.index', compact('products', 'account_setting', 'role'));
     }
+    
+
 
     public function search(Request $request)
     {

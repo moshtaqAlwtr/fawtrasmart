@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone',
         'password',
         'role',
+        'branch_id',
         'employee_id',
     ];
 
@@ -52,11 +53,17 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->role === 'manager';
     }
-
+    public function currentBranch()
+    {
+        return Branch::find($this->branch_id);
+    }
+    
     public function isEmployee()
     {
         return $this->role === 'employee';
     }
-
-
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 }

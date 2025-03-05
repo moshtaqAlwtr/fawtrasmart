@@ -16,74 +16,92 @@ class SupplierManagementController extends Controller
     public function index(Request $request)
     {
         $users = User::all();
-
         $query = Supplier::query();
-
+    
+        // جلب المستخدم الحالي
+        $user = auth()->user();
+    
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
+    
+            // التحقق من صلاحية "مشاركة الموردين"
+            $shareSuppliersStatus = $branch->settings()->where('key', 'share_suppliers')->first();
+    
+            // إذا كانت الصلاحية موقوفة، عرض الموردين الذين أضافهم المستخدمون من نفس الفرع فقط
+            if ($shareSuppliersStatus && $shareSuppliersStatus->pivot->status == 0) {
+                $query->whereHas('creator', function ($q) use ($branch) {
+                    $q->where('branch_id', $branch->id);
+                });
+            }
+        }
+    
         // البحث بواسطة اسم المورد أو الرقم التعريفي
         if ($request->filled('employee_search')) {
-            $query->where('id', $request->employee_search)->orWhere('trade_name', 'LIKE', '%' . $request->employee_search . '%');
+            $query->where('id', $request->employee_search)
+                ->orWhere('trade_name', 'LIKE', '%' . $request->employee_search . '%');
         }
-
+    
         // البحث برقم المورد
         if ($request->filled('id')) {
             $query->where('id', $request->id);
         }
-
+    
         // البحث بالبريد الإلكتروني
         if ($request->filled('email')) {
             $query->where('email', 'LIKE', '%' . $request->email . '%');
         }
-
+    
         // البحث برقم الجوال
         if ($request->filled('end_date_from')) {
-            // mobile
             $query->where('mobile', 'LIKE', '%' . $request->end_date_from . '%');
         }
-
+    
         // البحث برقم الهاتف
         if ($request->filled('end_date_to')) {
-            // phone
             $query->where('phone', 'LIKE', '%' . $request->end_date_to . '%');
         }
-
+    
         // البحث بالرمز البريدي
         if ($request->filled('postal_code')) {
             $query->where('postal_code', 'LIKE', '%' . $request->postal_code . '%');
         }
-
+    
         // البحث بالعملة
         if ($request->filled('currency')) {
             $query->where('currency', $request->currency);
         }
-
+    
         // البحث بالحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
-
+    
         // البحث بالرقم الضريبي
         if ($request->filled('tax_number')) {
             $query->where('tax_number', 'LIKE', '%' . $request->tax_number . '%');
         }
-
+    
         // البحث بالسجل التجاري
         if ($request->filled('commercial_registration')) {
             $query->where('commercial_registration', 'LIKE', '%' . $request->commercial_registration . '%');
         }
-
+    
         // البحث بواسطة المستخدم الذي أضاف
         if ($request->filled('created_by')) {
             $query->where('created_by', $request->created_by);
         }
-
-        // إضافة الترتيب والتصفية
+    
+        // جلب الموردين مع الترتيب والتصفية
         $suppliers = $query->latest()->paginate(10);
-
+    
         // للحفاظ على parameters البحث في روابط الترقيم
         $suppliers->appends($request->all());
-
+    
         return view('purchases.supplier_management.index', compact('suppliers', 'users'));
     }
+    
+    
     public function create()
     {
         $lastSupplier = Supplier::orderBy('id', 'desc')->first();

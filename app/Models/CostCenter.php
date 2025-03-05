@@ -14,6 +14,7 @@ class CostCenter extends Model
         'code',
         'is_main',
         'parent_id',
+        'created_by',
     ];
 
 
@@ -22,7 +23,10 @@ class CostCenter extends Model
     {
         return $this->belongsTo(CostCenter::class, 'parent_id');
     }
-
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
     // العلاقة مع المراكز الفرعية
     public function children()
     {

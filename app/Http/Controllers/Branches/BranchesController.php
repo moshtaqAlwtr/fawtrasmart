@@ -1,8 +1,12 @@
 <?php
+
 namespace App\Http\Controllers\Branches;
 
 use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\BranchSetting;
+use App\Models\BranchSettingBranch;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Http\Request;
 
 class BranchesController extends Controller
@@ -23,6 +27,22 @@ class BranchesController extends Controller
         // عرض صفحة إضافة فرع
         return view('branches.create');
     }
+    public function switchBranch($branchId)
+    {
+        $user = auth()->user();
+
+        // التحقق مما إذا كان المستخدم ليس موظفًا ويمكنه تغيير الفرع
+        if ($user->role !== 'employee') {
+            // تحديث branch_id في جدول المستخدم
+            $user->update(['branch_id' => $branchId]);
+
+            // حفظ الفرع في الجلسة (لضمان بقاء المستخدم في الفرع المحدد)
+            session(['current_branch_id' => $branchId]);
+        }
+
+        return redirect()->back(); // إعادة التوجيه إلى الصفحة السابقة
+    }
+
 
     // تخزين بيانات الفرع
     public function store(Request $request)
@@ -117,20 +137,109 @@ class BranchesController extends Controller
     }
 
     // عرض صفحة الإعدادات (اختياري)
-    public function settings()
+    public function settings(Request $request)
     {
-        return view('branches.settings');
+        // الحصول على جميع الفروع
+        $branchs = Branch::all();
+    
+        // إذا كان هناك فرع مختار من الطلب، نستخدمه
+        // إذا لم يكن هناك فرع مختار، نستخدم أول فرع في قاعدة البيانات
+        $selectedBranchId = $request->input('branch_id', $branchs->first()->id ?? null);
+    
+        $settings = []; // تعيين مصفوفة فارغة للصلاحيات
+    
+        if ($selectedBranchId) {
+            // جلب الفرع المحدد مع الصلاحيات المرتبطة به وحالة التفعيل
+            $branch = Branch::with('settings')->find($selectedBranchId);
+    
+            if ($branch) {
+                // تحويل الصلاحيات إلى تنسيق مناسب للعرض مع حالتها
+                foreach ($branch->settings as $setting) {
+                    $settings[$setting->key] = $setting->pivot->status; // استخدام الـ pivot للحصول على حالة الصلاحية
+                }
+            }
+        }
+    
+        // تمرير البيانات إلى الـ view
+        return view('branches.settings', compact('branchs', 'settings', 'selectedBranchId'));
     }
-    public function updateStatus($id){
+    
+    
+    
+    
+
+    public function settings_store(Request $request)
+    {
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+        ]);
+    
+        // جلب ID الفرع
+        $branch_id = $request->branch_id;
+    
+        // الصلاحيات المتاحة
+        $permissions = [
+            'share_cost_center',
+            'share_customers',
+            'share_products',
+            'share_suppliers',
+            'account_tree'
+        ];
+    
+        foreach ($permissions as $permission) {
+            // التحقق من حالة الصلاحية: إذا كانت مفعلّة أو غير مفعلّة
+            $status = $request->has($permission) ? 1 : 0;
+    
+            // تحديث أو إضافة الصلاحية في الجدول الوسيط
+            BranchSettingBranch::updateOrCreate(
+                [
+                    'branch_id' => $branch_id,
+                    'branch_setting_id' => BranchSetting::where('key', $permission)->value('id')
+                ],
+                ['status' => $status]
+            );
+        }
+              return back();
+        // إرجاع رسالة نجاح
+        // return response()->json(['message' => 'تم تحديث الصلاحيات بنجاح']);
+    }
+    
+    public function getSettings(Request $request)
+    {
+        $selectedBranchId = $request->input('branch_id');
+        $settings = [];
+    
+        if ($selectedBranchId) {
+            // جلب الفرع المحدد مع الصلاحيات المرتبطة به
+            $branch = Branch::with('settings')->find($selectedBranchId);
+    
+            if ($branch) {
+                foreach ($branch->settings as $setting) {
+                    $settings[] = [
+                        'key' => $setting->key,
+                        'name' => $setting->name,
+                        'status' => $setting->pivot->status,
+                    ];
+                }
+            }
+        }
+    
+        return response()->json(['settings' => $settings]);
+    }
+    
+    
+
+
+    public function updateStatus($id)
+    {
         $brabch = Branch::findOrFail($id);
         $status = $brabch->status;
-        if($status == 0){
+        if ($status == 0) {
             $brabch->update(['status' => 1]);
-        }
-        else{
+        } else {
             $brabch->update(['status' => 0]);
         }
-        
+
         return redirect()->route('branches.index')->with('success', 'تم تحديث حالة الفرع بنجاح');
     }
 }

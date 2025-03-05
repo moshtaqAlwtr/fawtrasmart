@@ -121,6 +121,7 @@ class EmployeeController extends Controller
                 'phone' => $request->phone_number,
                 'role' => 'employee',
                 'employee_id' => $new_employee->id,
+                'branch_id'   => $request->branch_id,
                 'password' => Hash::make($request->phone_number),
             ]);
 
@@ -142,10 +143,11 @@ class EmployeeController extends Controller
         $jobTypes = TypesJobs::select('id','name')->get();
         $jobLevels = FunctionalLevels::select('id','name')->get();
         $jobTitles = JopTitle::select('id','name')->get();
+        $job_roles = JobRole::select('id','role_name','role_type')->get();
         $departments = Department::select('id','name')->get();
         $employees = Employee::select('id','first_name','middle_name')->get();
         $employee = Employee::findOrFail($id);
-        return view('hr.employee.edit',compact('employee','employees','departments','jobTitles','jobLevels','jobTypes','branches','shifts'));
+        return view('hr.employee.edit',compact('employee','employees','job_roles','departments','jobTitles','jobLevels','jobTypes','branches','shifts'));
     }
 
     public function show($id)
@@ -182,6 +184,7 @@ class EmployeeController extends Controller
                 'name' => $employee->full_name,
                 'email' => $request->email,
                 'phone' => $request->phone_number,
+                'branch_id'   => $request->branch_id,
                 'role' => 'employee',
             ]);
 
