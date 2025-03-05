@@ -169,24 +169,55 @@
                             <li class="dropdown-menu-footer"><a class="dropdown-item p-1 text-center" href="javascript:void(0)">View all notifications</a></li>
                         </ul>
                     </li>
-                    <li class="dropdown dropdown-user nav-item"><a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
-                            <div class="user-nav d-sm-flex d-none"><span class="user-name text-bold-600">{{ auth()->user()->name ?? "" }}</span><span class="user-status">متصل</span></div>
+                    <li class="dropdown dropdown-user nav-item">
+                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown" aria-expanded="false">
+                            <div class="user-nav d-sm-flex d-none">
+                                <span class="user-name text-bold-600">{{ auth()->user()->name ?? "" }}</span>
+                                <span class="user-status">
+                                    متصل 
+                                    @if(auth()->user()->branch_id)
+                                        - {{ auth()->user()->currentBranch()->name ?? 'بدون فرع' }}
+                                    @endif
+                                </span>
+                            </div>
                             <span>
                                 @php
                                     $firstLetter = mb_substr(auth()->user()->name, 0, 1, "UTF-8");
                                 @endphp
                                 <div class="profile-picture-header">{{ $firstLetter }}</div>
-                                {{-- <img class="round" src="../../../app-assets/images/portrait/small/avatar-s-11.jpg" alt="avatar" height="40" width="40"> --}}
                             </span>
+                            <i class="feather icon-chevron-down"></i> <!-- 🔽 رمز الدروب داون -->
                         </a>
-                        <div class="dropdown-menu dropdown-menu-right"><a class="dropdown-item" href="page-user-profile.html"><i class="feather icon-user"></i> Edit Profile</a><a class="dropdown-item" href="app-email.html"><i class="feather icon-mail"></i> My Inbox</a><a class="dropdown-item" href="app-todo.html"><i class="feather icon-check-square"></i> Task</a><a class="dropdown-item" href="app-chat.html"><i class="feather icon-message-square"></i> Chats</a>
+                    
+                        <div class="dropdown-menu dropdown-menu-right">
+                    
                             <div class="dropdown-divider"></div>
+                    
+                            <!-- 🔹 قائمة الفروع (إذا لم يكن الموظف) -->
+                            @if(auth()->user()->role !== 'employee')
+                                <span class="dropdown-item font-weight-bold">🔹 الفروع:</span>
+                                @foreach(App\Models\Branch::all() as $branch)
+                                    <a class="dropdown-item branch-item {{ auth()->user()->branch_id == $branch->id ? 'active' : '' }}" 
+                                       href="{{ route('branch.switch', $branch->id) }}">
+                                        <i class="feather icon-map-pin"></i> {{ $branch->name }}
+                                        @if(auth()->user()->branch_id == $branch->id)
+                                            <i class="feather icon-check text-success"></i> <!-- ✅ علامة عند تحديد الفرع -->
+                                        @endif
+                                    </a>
+                                @endforeach
+                            @endif
+                    
+                            <div class="dropdown-divider"></div>
+                    
+                            <!-- زر تسجيل الخروج -->
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf
-                                <button type="submit" class="dropdown-item"><i class="feather icon-power"></i>تسجيل خروج</button>
+                                <button type="submit" class="dropdown-item"><i class="feather icon-power"></i> تسجيل خروج</button>
                             </form>
                         </div>
                     </li>
+                    
+                    
                 </ul>
             </div>
         </div>

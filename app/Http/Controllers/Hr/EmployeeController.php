@@ -108,16 +108,18 @@ class EmployeeController extends Controller
 
         $new_employee = $employee->create($employee_data);
 
-        if ($request->has('phone_number')) {
-        }
-        $user = User::create([
-            'name' => $new_employee->full_name,
-            'email' => $request->email,
-            'phone' => $request->phone_number,
-            'role' => 'employee',
-            'employee_id' => $new_employee->id,
-            'password' => Hash::make($request->phone_number),
-        ]);
+            if($request->has('phone_number')){
+
+            }
+            $user = User::create([
+                'name' => $new_employee->full_name,
+                'email' => $request->email,
+                'phone' => $request->phone_number,
+                'role' => 'employee',
+                'employee_id' => $new_employee->id,
+                'branch_id'   => $request->branch_id,
+                'password' => Hash::make($request->phone_number),
+            ]);
 
         $role = JobRole::where('id', $request->Job_role_id)->first();
         $role_name = $role->role_name;
@@ -132,16 +134,16 @@ class EmployeeController extends Controller
 
     public function edit($id)
     {
-        $shifts = Shift::select('id', 'name')->get();
-        $branches = Branch::select('id', 'name')->get();
-        $jobTypes = TypesJobs::select('id', 'name')->get();
-        $jobLevels = FunctionalLevels::select('id', 'name')->get();
-        $jobTitles = JopTitle::select('id', 'name')->get();
-        $departments = Department::select('id', 'name')->get();
-        $employees = Employee::select('id', 'first_name', 'middle_name')->get();
+        $shifts = Shift::select('id','name')->get();
+        $branches = Branch::select('id','name')->get();
+        $jobTypes = TypesJobs::select('id','name')->get();
+        $jobLevels = FunctionalLevels::select('id','name')->get();
+        $jobTitles = JopTitle::select('id','name')->get();
+        $job_roles = JobRole::select('id','role_name','role_type')->get();
+        $departments = Department::select('id','name')->get();
+        $employees = Employee::select('id','first_name','middle_name')->get();
         $employee = Employee::findOrFail($id);
-        $job_roles = JobRole::select('id', 'role_name', 'role_type')->get();
-        return view('hr.employee.edit', compact('employee', 'job_roles', 'employees', 'departments', 'jobTitles', 'jobLevels', 'jobTypes', 'branches', 'shifts'));
+        return view('hr.employee.edit',compact('employee','employees','job_roles','departments','jobTitles','jobLevels','jobTypes','branches','shifts'));
     }
 
     public function show($id)
@@ -178,6 +180,7 @@ class EmployeeController extends Controller
                 'name' => $employee->full_name,
                 'email' => $request->email,
                 'phone' => $request->phone_number,
+                'branch_id'   => $request->branch_id,
                 'role' => 'employee',
             ]);
 

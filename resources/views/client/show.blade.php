@@ -5,18 +5,18 @@
 @stop
 
 @section('content')
-@if(session('toast_message'))
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        toastr.{{ session('toast_type', 'success') }}('{{ session('toast_message') }}', '', {
-            positionClass: 'toast-bottom-left',
-            closeButton: true,
-            progressBar: true,
-            timeOut: 5000
-        });
-    });
-</script>
-@endif
+    @if (session('toast_message'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                toastr.{{ session('toast_type', 'success') }}('{{ session('toast_message') }}', '', {
+                    positionClass: 'toast-bottom-left',
+                    closeButton: true,
+                    progressBar: true,
+                    timeOut: 5000
+                });
+            });
+        </script>
+    @endif
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -60,10 +60,12 @@
                         <a href="#" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
                             <i class="far fa-file-alt me-1"></i> كشف حساب
                         </a>
-                        <a href="#" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
+                        <a href="{{ route('CreditNotes.create') }}"
+                            class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
                             <i class="far fa-sticky-note me-1"></i> إنشاء إشعار دائن
                         </a>
-                        <a href="#" class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
+                        <a href="{{ route('questions.create') }}"
+                            class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
                             <i class="fas fa-file-invoice me-1"></i> إنشاء عرض سعر
                         </a>
                         <a href="{{ route('invoices.create') }}"
@@ -71,16 +73,18 @@
                             <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                         </a>
                         <a href="{{ route('Reservations.client', $client->id) }}"
-                        class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
-                        <i class="fas fa-file-invoice me-1"></i>الحجوزات
-                    </a>
+                            class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
+                            <i class="fas fa-file-invoice me-1"></i>الحجوزات
+                        </a>
                         <a href="#" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
                             <i class="far fa-comment-alt me-1"></i> أرسل SMS
                         </a>
-                        <a href="{{route('appointments.create')}}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
+                        <a href="{{ route('appointments.create') }}"
+                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
                             <i class="far fa-calendar-alt me-1"></i> ترتيب موعد
                         </a>
-                        <a href="#" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
+                        <a href="{{ route('appointment.notes.create') }}"
+                            class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
                             <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                         </a>
                         <a href="{{ route('clients.edit', $client->id) }}"
@@ -91,15 +95,50 @@
                     <div class="d-flex gap-2">
                         <div class="dropdown">
                             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
+                                data-bs-toggle="dropdown" aria-expanded="false">
                                 خيارات أخرى
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class="fas fa-plus me-2"></i>
-                                        أضف رصيد مدفوعات
+                                        <i class="fas fa-wallet me-2"></i> <!-- أيقونة المحفظة -->
+                                        اضافة رصيد افتتاحي
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-truck me-2"></i> <!-- أيقونة الشاحنة -->
+                                        اضافة امر توريد
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-user me-2"></i> <!-- أيقونة المستخدم -->
+                                        الدخول كعميل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-ban me-2"></i> <!-- أيقونة المنع -->
+                                        موقوف
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-trash-alt me-2"></i> <!-- أيقونة الحذف -->
+                                        حذف عميل
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-user-tie me-2"></i> <!-- أيقونة الموظف -->
+                                        تعيين الى موظف
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                        <i class="fas fa-copy me-2"></i> <!-- أيقونة النسخ -->
+                                        نسخ
                                     </a>
                                 </li>
                             </ul>
@@ -114,9 +153,10 @@
                             <span class="badge badge-pill badge-primary">{{ $client->count() }}</span> التفاصيل</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="appointments-tab" data-toggle="tab" href="#appointments" aria-controls="appointments"
-                            role="tab" aria-selected="false">
-                            المواعيد <span class="badge badge-pill badge-primary">{{ $client->appointments()->count() }}</span>
+                        <a class="nav-link" id="appointments-tab" data-toggle="tab" href="#appointments"
+                            aria-controls="appointments" role="tab" aria-selected="false">
+                            المواعيد <span
+                                class="badge badge-pill badge-primary">{{ $client->appointments()->count() }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -141,8 +181,8 @@
                             aria-controls="membership" role="tab" aria-selected="false">العضوية</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" aria-controls="timeline"
-                            role="tab" aria-selected="false">الجدول الزمني</a>
+                        <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline"
+                            aria-controls="timeline" role="tab" aria-selected="false">الجدول الزمني</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="service-tab" data-toggle="tab" href="#service" aria-controls="timeline"
@@ -152,8 +192,9 @@
                         <a class="nav-link" id="memberrtab" data-toggle="tab" href="#memberr" aria-controls="timeline"
                             role="tab" aria-selected="false">العضويات</a>
                     </li>
-                    
+
                 </ul>
+
                 <div class="tab-content">
                     <!-- تبويب التفاصيل -->
                     <div class="tab-pane active" id="details" aria-labelledby="details-tab" role="tabpanel">
@@ -221,14 +262,28 @@
                                 @endif
                             </div>
                         </div>
+
+
                     </div>
                     {{-- تبويبة المواعيد  --}}
                     <div class="tab-pane" id="appointments" aria-labelledby="appointments-tab" role="tabpanel">
                         @php
-                            $completedAppointments = $client->appointments->where('status', App\Models\Appointment::STATUS_COMPLETED);
-                            $ignoredAppointments = $client->appointments->where('status', App\Models\Appointment::STATUS_IGNORED);
-                            $pendingAppointments = $client->appointments->where('status', App\Models\Appointment::STATUS_PENDING);
-                            $rescheduledAppointments = $client->appointments->where('status', App\Models\Appointment::STATUS_RESCHEDULED);
+                            $completedAppointments = $client->appointments->where(
+                                'status',
+                                App\Models\Appointment::STATUS_COMPLETED,
+                            );
+                            $ignoredAppointments = $client->appointments->where(
+                                'status',
+                                App\Models\Appointment::STATUS_IGNORED,
+                            );
+                            $pendingAppointments = $client->appointments->where(
+                                'status',
+                                App\Models\Appointment::STATUS_PENDING,
+                            );
+                            $rescheduledAppointments = $client->appointments->where(
+                                'status',
+                                App\Models\Appointment::STATUS_RESCHEDULED,
+                            );
                         @endphp
 
                         <div class="card">
@@ -238,19 +293,23 @@
                                         الكل
                                         <span class="badge badge-light">{{ $client->appointments->count() }}</span>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-success filter-appointments" data-filter="{{ App\Models\Appointment::STATUS_COMPLETED }}">
+                                    <button class="btn btn-sm btn-outline-success filter-appointments"
+                                        data-filter="{{ App\Models\Appointment::STATUS_COMPLETED }}">
                                         تم
                                         <span class="badge badge-light">{{ $completedAppointments->count() }}</span>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-warning filter-appointments" data-filter="{{ App\Models\Appointment::STATUS_IGNORED }}">
+                                    <button class="btn btn-sm btn-outline-warning filter-appointments"
+                                        data-filter="{{ App\Models\Appointment::STATUS_IGNORED }}">
                                         تم صرف النظر عنه
                                         <span class="badge badge-light">{{ $ignoredAppointments->count() }}</span>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-danger filter-appointments" data-filter="{{ App\Models\Appointment::STATUS_PENDING }}">
+                                    <button class="btn btn-sm btn-outline-danger filter-appointments"
+                                        data-filter="{{ App\Models\Appointment::STATUS_PENDING }}">
                                         تم جدولته
                                         <span class="badge badge-light">{{ $pendingAppointments->count() }}</span>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-info filter-appointments" data-filter="{{ App\Models\Appointment::STATUS_RESCHEDULED }}">
+                                    <button class="btn btn-sm btn-outline-info filter-appointments"
+                                        data-filter="{{ App\Models\Appointment::STATUS_RESCHEDULED }}">
                                         تم جدولته مجددا
                                         <span class="badge badge-light">{{ $rescheduledAppointments->count() }}</span>
                                     </button>
@@ -270,60 +329,87 @@
                                                         <div class="col-md-4">
                                                             <strong>#{{ $appointment->id }}</strong>
                                                             <p class="mb-0">{{ $appointment->title }}</p>
-                                                            <small class="text-muted">{{ $appointment->description }}</small>
+                                                            <small
+                                                                class="text-muted">{{ $appointment->description }}</small>
                                                         </div>
                                                         <div class="col-md-3">
                                                             <p class="mb-0">
                                                                 <small>{{ $appointment->created_at->format('Y-m-d H:i') }}</small>
                                                             </p>
                                                             <small class="text-muted">
-                                                                بواسطة: {{ $appointment->employee->name ?? 'غير محدد' }}
+                                                                بواسطة:
+                                                                {{ $appointment->employee->name ?? 'غير محدد' }}
                                                             </small>
                                                         </div>
                                                         <div class="col-md-3 text-center">
-                                                            <span class="badge status-badge {{ $appointment->status_color }}">
+                                                            <span
+                                                                class="badge status-badge {{ $appointment->status_color }}">
                                                                 {{ $appointment->status_text }}
                                                             </span>
                                                         </div>
                                                         <div class="col-md-2 text-end">
                                                             <div class="btn-group">
                                                                 <div class="dropdown">
-                                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
-                                                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $appointment->id }}">
-                                                                        <form action="{{ route('appointments.update-status', $appointment->id) }}" method="POST" class="d-inline">
+                                                                    <button
+                                                                        class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                                        type="button"id="dropdownMenuButton303"
+                                                                        data-toggle="dropdown"
+                                                                        aria-haspopup="true"aria-expanded="false"></button>
+                                                                    <div class="dropdown-menu dropdown-menu-end"
+                                                                        aria-labelledby="dropdownMenuButton{{ $appointment->id }}">
+                                                                        <form
+                                                                            action="{{ route('appointments.update-status', $appointment->id) }}"
+                                                                            method="POST" class="d-inline">
                                                                             @csrf
                                                                             @method('PATCH')
-                                                                            <input type="hidden" name="status" value="1">
+                                                                            <input type="hidden" name="status"
+                                                                                value="1">
                                                                             <button type="submit" class="dropdown-item">
-                                                                                <i class="fa fa-clock me-2 text-warning"></i>تم جدولته
+                                                                                <i
+                                                                                    class="fa fa-clock me-2 text-warning"></i>تم
+                                                                                جدولته
                                                                             </button>
                                                                         </form>
 
-                                                                        <form action="{{ route('appointments.update-status', $appointment->id) }}" method="POST" class="d-inline">
+                                                                        <form
+                                                                            action="{{ route('appointments.update-status', $appointment->id) }}"
+                                                                            method="POST" class="d-inline">
                                                                             @csrf
                                                                             @method('PATCH')
-                                                                            <input type="hidden" name="status" value="2">
-                                                                            <input type="hidden" name="auto_delete" value="1">
+                                                                            <input type="hidden" name="status"
+                                                                                value="2">
+                                                                            <input type="hidden" name="auto_delete"
+                                                                                value="1">
                                                                             <button type="submit" class="dropdown-item">
-                                                                                <i class="fa fa-check me-2 text-success"></i>تم
+                                                                                <i
+                                                                                    class="fa fa-check me-2 text-success"></i>تم
                                                                             </button>
                                                                         </form>
 
                                                                         <!-- For ignored status -->
-                                                                        <form action="{{ route('appointments.update-status', $appointment->id) }}" method="POST" class="d-inline">
+                                                                        <form
+                                                                            action="{{ route('appointments.update-status', $appointment->id) }}"
+                                                                            method="POST" class="d-inline">
                                                                             @csrf
                                                                             @method('PATCH')
-                                                                            <input type="hidden" name="status" value="3">
+                                                                            <input type="hidden" name="status"
+                                                                                value="3">
                                                                             <button type="submit" class="dropdown-item">
-                                                                                <i class="fa fa-times me-2 text-danger"></i>صرف النظر عنه
+                                                                                <i
+                                                                                    class="fa fa-times me-2 text-danger"></i>صرف
+                                                                                النظر عنه
                                                                             </button>
                                                                         </form>
-                                                                        <form action="{{ route('appointments.update-status', $appointment->id) }}" method="POST" class="d-inline">
+                                                                        <form
+                                                                            action="{{ route('appointments.update-status', $appointment->id) }}"
+                                                                            method="POST" class="d-inline">
                                                                             @csrf
                                                                             @method('PATCH')
-                                                                            <input type="hidden" name="status" value="4">
+                                                                            <input type="hidden" name="status"
+                                                                                value="4">
                                                                             <button type="submit" class="dropdown-item">
-                                                                                <i class="fa fa-redo me-2 text-info"></i>تم جدولته مجددا
+                                                                                <i class="fa fa-redo me-2 text-info"></i>تم
+                                                                                جدولته مجددا
                                                                             </button>
                                                                         </form>
                                                                     </div>
@@ -346,40 +432,52 @@
                                                                 {{ $appointment->duration ?? 'غير محدد' }}
                                                             </small>
                                                         </div>
-                                                        @if($appointment->notes)
-                                                        <div class="col-12 mt-2">
-                                                            <small class="text-muted">
-                                                                <strong>ملاحظات:</strong>
-                                                                {{ $appointment->notes }}
-                                                            </small>
-                                                        </div>
+                                                        @if ($appointment->notes)
+                                                            <div class="col-12 mt-2">
+                                                                <small class="text-muted">
+                                                                    <strong>ملاحظات:</strong>
+                                                                    {{ $appointment->notes }}
+                                                                </small>
+                                                            </div>
                                                         @endif
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!-- Modal for Adding Notes -->
-                                            <div class="modal fade" id="noteModal{{ $appointment->id }}" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel{{ $appointment->id }}" aria-hidden="true">
+                                            <div class="modal fade" id="noteModal{{ $appointment->id }}" tabindex="-1"
+                                                role="dialog" aria-labelledby="noteModalLabel{{ $appointment->id }}"
+                                                aria-hidden="true">
                                                 <div class="modal-dialog" role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header">
-                                                            <h5 class="modal-title" id="noteModalLabel{{ $appointment->id }}">إضافة ملاحظات للموعد</h5>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <h5 class="modal-title"
+                                                                id="noteModalLabel{{ $appointment->id }}">إضافة
+                                                                ملاحظات
+                                                                للموعد</h5>
+                                                            <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
                                                         </div>
                                                         <form id="noteForm{{ $appointment->id }}" method="POST">
                                                             @csrf
                                                             <div class="modal-body">
-                                                                <input type="hidden" name="status" value="{{ App\Models\Appointment::STATUS_COMPLETED }}">
+                                                                <input type="hidden" name="status"
+                                                                    value="{{ App\Models\Appointment::STATUS_COMPLETED }}">
                                                                 <div class="form-group">
-                                                                    <label for="notes{{ $appointment->id }}">الملاحظات</label>
-                                                                    <textarea class="form-control" id="notes{{ $appointment->id }}" name="notes" rows="3" placeholder="أدخل ملاحظاتك هنا"></textarea>
+                                                                    <label
+                                                                        for="notes{{ $appointment->id }}">الملاحظات</label>
+                                                                    <textarea class="form-control" id="notes{{ $appointment->id }}" name="notes" rows="3"
+                                                                        placeholder="أدخل ملاحظاتك هنا"></textarea>
                                                                 </div>
                                                             </div>
                                                             <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">إلغاء</button>
-                                                                <button type="button" class="btn btn-primary" onclick="submitCompletedAppointment({{ $appointment->id }})">حفظ الملاحظات</button>
+                                                                <button type="button" class="btn btn-secondary"
+                                                                    data-dismiss="modal">إلغاء</button>
+                                                                <button type="button" class="btn btn-primary"
+                                                                    onclick="submitCompletedAppointment({{ $appointment->id }})">حفظ
+                                                                    الملاحظات</button>
                                                             </div>
                                                         </form>
                                                     </div>
@@ -395,116 +493,180 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- تبويب الفواتير -->
                     <div class="tab-pane" id="invoices" aria-labelledby="invoices-tab" role="tabpanel">
-
-                        @if (@isset($invoices) && !@empty($invoices) && count($invoices) > 0)
-                            @foreach ($invoices as $invoice)
-                                <div class="card">
-                                    <!-- الترويسة -->
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            <button class="btn btn-sm btn-outline-primary">الكل</button>
-                                            <button class="btn btn-sm btn-outline-success">متأخر</button>
-                                            <button class="btn btn-sm btn-outline-danger">مستحقة الدفع</button>
-                                            <button class="btn btn-sm btn-outline-danger">غير مدفوع</button>
-                                            <button class="btn btn-sm btn-outline-secondary">مسودة</button>
-                                            <button class="btn btn-sm btn-outline-success">مدفوع بزيادة</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- بداية الصف -->
-                                    <div class="card-body">
-                                        <div class="row border-bottom py-2 align-items-center">
-                                            <div class="col-md-4">
-                                                <p class="mb-"><strong>#{{ $invoice->invoice_id }}</strong>
-                                                    {{ $invoice->client->trade_name }}</p>
-                                                <small class="text-muted">#532 ملاحظات: الدمام - الزهرة</small>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <p class="mb-0"><small>{{ $invoice->created_at }}</small></p>
-                                                <small class="text-muted">
-                                                    بواسطة: {{ $invoice->employee_id }}</small>
-                                            </div>
-                                            <div class="col-md-3 text-center">
-                                                <strong class="text-danger">216.00 رس</strong>
-                                                <span class="badge bg-warning text-dark d-block mt-1">غير مدفوعة</span>
-                                            </div>
-                                            <div class="col-md-2 text-end">
-
-                                                <div class="btn-group">
-                                                    <div class="dropdown">
-                                                        <button type="button" class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
-                                                            type="button" id="dropdownMenuButton303"
-                                                            data-toggle="dropdown" aria-haspopup="true"
-                                                            aria-expanded="false">
-
-                                                        </button>
-                                                        <ul class="dropdown-menu dropdown-menu-end">
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-print me-2 text-dark"></i>طباعة
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-envelope me-2 text-warning"></i>إرسال
-                                                                    إلى
-                                                                    العميل
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-credit-card me-2 text-info"></i>إضافة
-                                                                    عملية
-                                                                    دفع
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="#">
-                                                                    <i class="fa fa-trash me-2"></i>حذف
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item" href="#">
-                                                                    <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                                                </a>
-                                                            </li>
-
-
+                        <div class="table-responsive">
+                            <table class="table table-hover custom-table">
+                                <thead>
+                                    <tr class="bg-gradient-light">
+                                        <th class="border-start">رقم الفاتورة</th>
+                                        <th>معلومات العميل</th>
+                                        <th>تاريخ الفاتورة</th>
+                                        <th>المصدر والعملية</th>
+                                        <th>المبلغ والحالة</th>
+                                        <th style="width: 100px;">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoiceTableBody">
+                                    @foreach ($invoices as $invoice)
+                                        <tr class="align-middle invoice-row"
+                                            onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
+                                            style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
+                                            <!-- أضفنا سمة data-status -->
+                                            <td class="text-center border-start">
+                                                <span class="invoice-number">#{{ $invoice->id }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="client-info">
+                                                    <div class="client-name mb-2">
+                                                        <i class="fas fa-user text-primary me-1"></i>
+                                                        <strong>{{ $invoice->client ? ($invoice->client->trade_name ?: $invoice->client->first_name . ' ' . $invoice->client->last_name) : 'عميل غير معروف' }}</strong>
+                                                    </div>
+                                                    @if ($invoice->client && $invoice->client->tax_number)
+                                                        <div class="tax-info mb-1">
+                                                            <i class="fas fa-hashtag text-muted me-1"></i>
+                                                            <span class="text-muted small">الرقم الضريبي:
+                                                                {{ $invoice->client->tax_number }}</span>
                                                         </div>
+                                                    @endif
+                                                    @if ($invoice->client && $invoice->client->full_address)
+                                                        <div class="address-info">
+                                                            <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                                                            <span
+                                                                class="text-muted small">{{ $invoice->client->full_address }}</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="date-info mb-2">
+                                                    <i class="fas fa-calendar text-info me-1"></i>
+                                                    {{ $invoice->created_at ? $invoice->created_at->format($account_setting->time_formula ?? 'H:i:s d/m/Y') : '' }}
+                                                </div>
+                                                <div class="creator-info">
+                                                    <i class="fas fa-user text-muted me-1"></i>
+                                                    <span class="text-muted small">بواسطة:
+                                                        {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column gap-2">
+                                                    @php
+                                                        $payments = \App\Models\PaymentsProcess::where(
+                                                            'invoice_id',
+                                                            $invoice->id,
+                                                        )
+                                                            ->where('type', 'client payments')
+                                                            ->orderBy('created_at', 'desc')
+                                                            ->get();
+                                                    @endphp
+
+                                                    @if ($payments->count() > 0)
+                                                        <span class="badge bg-success-subtle text-success">
+                                                            <i class="fas fa-check-circle me-1"></i>
+                                                            أضيفت عملية دفع
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-primary-subtle text-primary">
+                                                            <i class="fas fa-file-invoice me-1"></i>
+                                                            أنشئت فاتورة
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="amount-info text-center mb-2">
+                                                    <h6 class="amount mb-1">
+                                                        {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
+                                                        <small
+                                                            class="currency">{{ $account_setting->currency ?? 'SAR' }}</small>
+                                                    </h6>
+                                                    @if ($invoice->due_value > 0)
+                                                        <div class="due-amount">
+                                                            <small class="text-danger">
+                                                                المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
+                                                                {{ $account_setting->currency ?? 'SAR' }}
+                                                            </small>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                @php
+                                                    $statusClass = match ($invoice->payment_status) {
+                                                        1 => 'success',
+                                                        2 => 'info',
+                                                        3 => 'danger',
+                                                        4 => 'secondary',
+                                                        default => 'dark',
+                                                    };
+                                                    $statusText = match ($invoice->payment_status) {
+                                                        1 => 'مدفوعة بالكامل',
+                                                        2 => 'مدفوعة جزئياً',
+                                                        3 => 'غير مدفوعة',
+                                                        4 => 'مستلمة',
+                                                        default => 'غير معروفة',
+                                                    };
+                                                @endphp
+                                                <div class="text-center">
+                                                    <span
+                                                        class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} status-badge">
+                                                        {{ $statusText }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="dropdown" onclick="event.stopPropagation()">
+                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v"
+                                                        type="button" id="dropdownMenuButton{{ $invoice->id }}"
+                                                        data-bs-toggle="dropdown" data-bs-boundary="viewport"
+                                                        aria-haspopup="true" aria-expanded="false">
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <!-- عناصر القائمة المنسدلة -->
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('invoices.edit', $invoice->id) }}">
+                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                        </a>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('invoices.show', $invoice->id) }}">
+                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                        </a>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                            <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
+                                                        </a>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                            <i class="fa fa-print me-2 text-dark"></i>طباعة
+                                                        </a>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى
+                                                            العميل
+                                                        </a>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
+                                                            <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
+                                                        </a>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="fa fa-copy me-2 text-secondary"></i>نسخ
+                                                        </a>
+                                                        <form action="{{ route('invoices.destroy', $invoice->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="dropdown-item text-danger">
+                                                                <i class="fa fa-trash me-2"></i>حذف
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
 
-                                    <!-- تكرار الصف حسب الحاجة -->
-                                </div>
-                            @endforeach
-                        @else
-                            <div class="alert alert-danger" role="alert">
-                                <p class="mb-0">
-                                    لا توجد فواتير
-                                </p>
-                            </div>
-                        @endif
                     </div>
 
                     <!-- تبويب حركة الحساب -->
@@ -617,6 +779,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- تبويبة -->
 
                     <div class="tab-pane" id="balance-summary" aria-labelledby="balance-summary-tab" role="tabpanel">
                         <div class="d-flex justify-content-end gap-2 mb-3">
@@ -640,332 +803,14 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="tab-pane" id="membership" aria-labelledby="membership-tab" role="tabpanel">
-                        <div class="d-flex justify-content-end gap-2 mb-3">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addMembershipModal">
-                                <i class="fas fa-plus"></i>
-                                أضف عضوية جديدة
-                            </button>
-                            <button type="button" class="btn btn-secondary">
-                                <i class="fas fa-history"></i>
-                                سجل العضويات
-                            </button>
-                        </div>
-
-                        <!-- معلومات العضوية الحالية -->
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="card border-0 bg-light h-100">
-                                            <div class="card-body">
-                                                <h6 class="card-title mb-3">معلومات العضوية الأساسية</h6>
-                                                <p class="mb-2"><strong>رقم العضوية:</strong> {{ $client->code }}</p>
-                                                <p class="mb-2"><strong>تاريخ التسجيل:</strong> {{ $client->created_at->format('Y-m-d') }}</p>
-                                                <p class="mb-2"><strong>نوع العضوية:</strong>
-                                                    @if ($client->client_type == 1)
-                                                        <span class="badge bg-primary">فرد</span>
-                                                    @elseif($client->client_type == 2)
-                                                        <span class="badge bg-info">شركة</span>
-                                                    @else
-                                                        <span class="badge bg-secondary">غير محدد</span>
-                                                    @endif
-                                                </p>
-                                                <p class="mb-0"><strong>حالة العضوية:</strong>
-                                                    @if ($client->status)
-                                                        <span class="badge bg-success">نشط</span>
-                                                    @else
-                                                        <span class="badge bg-warning">غير نشط</span>
-                                                    @endif
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card border-0 bg-light h-100">
-                                            <div class="card-body">
-                                                <h6 class="card-title mb-3">معلومات الائتمان</h6>
-                                                <p class="mb-2"><strong>حد الائتمان:</strong>
-                                                    <span class="text-success">{{ number_format($client->credit_limit, 2) }} ر.س</span>
-                                                </p>
-                                                <p class="mb-2"><strong>فترة الائتمان:</strong>
-                                                    <span class="text-primary">{{ $client->credit_period }} يوم</span>
-                                                </p>
-                                                <div class="mt-3">
-                                                    <div class="progress" style="height: 8px;">
-                                                        <div class="progress-bar bg-success" role="progressbar" style="width: 65%"></div>
-                                                    </div>
-                                                    <small class="text-muted">نسبة استخدام حد الائتمان: 65%</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- قائمة العضويات -->
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">سجل العضويات</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>نوع العضوية</th>
-                                                <th>تاريخ البدء</th>
-                                                <th>تاريخ الانتهاء</th>
-                                                <th>المبلغ</th>
-                                                <th>الحالة</th>
-                                                <th>الإجراءات</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>العضوية الذهبية</td>
-                                                <td>2024-01-01</td>
-                                                <td>2024-12-31</td>
-                                                <td>1,500.00 ر.س</td>
-                                                <td><span class="badge bg-success">نشط</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-light" title="عرض التفاصيل">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-light" title="تجديد العضوية">
-                                                        <i class="fas fa-sync-alt"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- نموذج إضافة عضوية جديدة -->
-                        <div class="modal fade" id="addMembershipModal" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">إضافة عضوية جديدة</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="membershipForm">
-                                            <div class="mb-3">
-                                                <label class="form-label">نوع العضوية</label>
-                                                <select class="form-select">
-                                                    <option value="gold">العضوية الذهبية</option>
-                                                    <option value="silver">العضوية الفضية</option>
-                                                    <option value="bronze">العضوية البرونزية</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">تاريخ البدء</label>
-                                                <input type="date" class="form-control">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">مدة العضوية (بالأشهر)</label>
-                                                <input type="number" class="form-control" min="1">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">المبلغ</label>
-                                                <div class="input-group">
-                                                    <input type="number" class="form-control">
-                                                    <span class="input-group-text">ر.س</span>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">ملاحظات</label>
-                                                <textarea class="form-control" rows="3"></textarea>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                        <button type="button" class="btn btn-success">حفظ العضوية</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- تبويب الجدول الزمني -->
-                    <div class="tab-pane" id="timeline" aria-labelledby="timeline-tab" role="tabpanel">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="timeline">
-                                    @foreach ($client->transactions->sortByDesc('date')->take(10) as $transaction)
-                                        <div class="timeline-item">
-                                            <div class="timeline-point-wrapper">
-                                                <div class="timeline-point"></div>
-                                            </div>
-                                            <div class="timeline-event">
-                                                <div class="d-flex justify-content-between">
-                                                    <span class="timeline-event-time">{{ $transaction['date'] }}</span>
-                                                    {{-- <span class="badge badge-{{ $transaction['status_color'] }}">
-                                                        {{ $transaction['status_text'] }} --}}
-                                                    </span>
-                                                </div>
-                                                <h6 class="timeline-event-header">{{ $transaction['type'] }} -
-                                                    {{ $transaction['number'] }}</h6>
-                                                <p class="timeline-event-description">
-                                                    المبلغ: {{ $transaction['amount'] }} | الرصيد:
-                                                    {{ $transaction['balance'] }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-               <!--    -->
-               <div class="tab-pane" id="service" aria-labelledby="service-tab" role="tabpanel">
-                <div class="card">
-                    <div class="card-body">
-
-
-
-                        <div class="content-header row">
-                            <div class="content-header-left col-md-9 col-12 mb-2">
-                                <div class="row breadcrumbs-top">
-                                    <div class="col-12">
-                                        <h2 class="content-header-title float-left mb-0">حجوزات العميل : {{$Client->first_name ?? ""}} </h2>
-                                        <div class="breadcrumb-wrapper col-12">
-                                            <ol class="breadcrumb">
-                                                <li class="breadcrumb-item"><a href="">الرئيسيه</a>
-                                                </li>
-                                                <li class="breadcrumb-item active">عرض
-                                                </li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @include('layouts.alerts.error')
-                        @include('layouts.alerts.success')
-                        <div class="content-body">
-                    
-                          
-                            <div class="card">
-                       
-                    </div>
-                    
-                    
-                        <div class="card my-5">
-                            <div class="card-body">
-                            <!-- شريط الترتيب -->
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <ul class="nav nav-tabs" id="sortTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">الكل</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="today-tab" data-bs-toggle="tab" data-bs-target="#today" type="button" role="tab" aria-controls="today" aria-selected="false">اليوم</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="week-tab" data-bs-toggle="tab" data-bs-target="#week" type="button" role="tab" aria-controls="week" aria-selected="false">الأسبوع</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="month-tab" data-bs-toggle="tab" data-bs-target="#month" type="button" role="tab" aria-controls="month" aria-selected="false">الشهر</button>
-                                    </li>
-                                </ul>
-                    
-                                <!-- أزرار العرض -->
-                                <div class="btn-group" role="group" aria-label="View Toggle">
-                                    <button type="button" class="btn btn-light">
-                                        <i class="bi bi-grid-3x3-gap-fill"></i> <!-- رمز الشبكة -->
-                                    </button>
-                                    <button type="button" class="btn btn-primary">
-                                        <i class="bi bi-list-ul"></i> <!-- رمز القائمة -->
-                                    </button>
-                                </div>
-                            </div>
-                    
-                            <!-- بطاقة بيانات -->
-                            <div class="card">
-                                <div class="card-body">
-                                    @foreach ($bookings as $booking)
-                                    <div class="row">
-                                        <div class="col-auto">
-                                            <!-- صورة افتراضية -->
-                                            <div style="width: 50px; height: 50px; background-color: #f0f0f0; border-radius: 5px;"></div>
-                                        </div>
-                                        <div class="col">
-                                            <h6>بيانات العميل</h6>
-                                            <p class="mb-1">{{$booking->client->first_name ?? ""}}</p>
-                                            <p class="mb-1">الخدمة :{{$booking->product->name ?? ""}}</p>
-                                        </div>
-                                        <div class="col-auto text-end">
-                                            <p class="mb-1">الوقت من {{$booking->start_time ?? 0}} الى {{$booking->end_time ?? 0 }}</p>
-                                            <p class="text-muted small mb-0">16:45:00</p>
-                                            
-                                            @if($booking->status == "confirm")
-                                                <span class="badge bg-warning text-dark">مؤكد</span>
-                                            @elseif ($booking->status == "review")
-                                                <span class="badge bg-warning text-dark">تحت المراجعة</span>
-                                            @elseif ($booking->status == "bill")
-                                                <span class="badge bg-warning text-dark">حولت للفاتورة</span>
-                                            @elseif ($booking->status == "cancel")
-                                                <span class="badge bg-warning text-dark">تم الالغاء</span>  
-                                            @else
-                                                <span class="badge bg-warning text-dark">تم</span> 
-                                            @endif
-                                
-                                            <a href="{{ route('Reservations.show', $booking->id) }}" class="badge bg-danger text-dark">عرض</a> 
-                                            <a href="{{ route('Reservations.edit', $booking->id) }}" class="btn btn-sm btn-primary">
-                                                <i class="fa fa-edit"></i> تعديل
-                                            </a>
-                                        </div>
-                                    </div>
-                                   
-                                    <!-- Horizontal line after each customer's data -->
-                                    <hr>
-                                @endforeach
-                                
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                        <!-- Bootstrap JS -->
-                        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                        <!-- Bootstrap Icons -->
-                        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-                    
-                    
-
-
-                    </div>
                 </div>
-               </div>
-               <!-- تبويب  العضويات -->
+            @endsection
+            @section('scripts')
+                <meta name="csrf-token" content="{{ csrf_token() }}">
+                <script src="{{ asset('assets/js/applmintion.js') }}"></script>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-               
-
-                  <!--    -->
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-@endsection
-@section('scripts')
-<meta name="csrf-token" content="{{ csrf_token() }}">
-
-<script src="{{ asset('assets/js/applmintion.js') }}"></script>
-
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-@endsection
+            @endsection

@@ -157,9 +157,11 @@
                     <div class="form-group col-md-4">
                         <label for="gender">الفروع المسموح الدخول بها</label>
                         <select name="branch_id" class="form-control">
-                            <option selected disabled>-- اختر الفروع المسموح الدخول بها--</option>
-                            <option value="1" {{ old('branch_id',$employee->branch_id) == 1 ? 'selected' : '' }}>فرع مكه</option>
-                            <option value="2" {{ old('branch_id',$employee->branch_id) == 1 ? 'selected' : '' }}>فرع الرياض</option>
+                          @foreach ($branches as $branche)
+                          <option value="{{$branche->id}}">{{$branche->name ?? ""}}</option>
+                          @endforeach
+                           
+                          
                         </select>
                     </div>
                 </div>

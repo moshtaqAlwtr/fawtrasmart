@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Client;
+
 use App\Models\Client;
 use App\Models\Employee;
 use App\Http\Controllers\Controller;
@@ -10,6 +11,7 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\AppointmentNote;
 use App\Models\Booking;
+use App\Models\Branch;
 use App\Models\CategoriesClient;
 use App\Models\Installment;
 use App\Models\Memberships;
@@ -21,11 +23,39 @@ class ClientController extends Controller
 {
     public function index()
     {
-        $clients = Client::with('employee')->select()->orderBy('created_at', 'desc')->paginate(10);
+        // الحصول على المستخدم الحالي
+        $user = auth()->user();
+    
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
+    
+            // التحقق من صلاحية "مشاركة بيانات العملاء"
+            $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+    
+            // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
+            if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
+                $clients = Client::whereHas('employee', function ($query) use ($branch) {
+                    $query->where('branch_id', $branch->id);
+                })->with('employee')->orderBy('created_at', 'desc')->paginate(10);
+            } else {
+                // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع العملاء
+                $clients = Client::with('employee')->orderBy('created_at', 'desc')->paginate(10);
+            }
+        } else {
+            // إذا لم يكن لدى المستخدم فرع، عرض جميع العملاء
+            $clients = Client::with('employee')->orderBy('created_at', 'desc')->paginate(10);
+        }
+    
+        // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
         $users = User::all();
         $employees = Employee::all();
-        return view('client.index', compact('clients', 'users','employees'));
+    
+        return view('client.index', compact('clients', 'users', 'employees'));
     }
+    
+    
+
 
     public function create()
     {
@@ -35,73 +65,76 @@ class ClientController extends Controller
         $lastClient = Client::orderBy('code', 'desc')->first();
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
 
-        return view('client.create', compact('employees', 'newCode','categories'));
+        return view('client.create', compact('employees', 'newCode', 'categories'));
     }
 
     public function store(ClientRequest $request)
-{
-    $data_request = $request->except('_token');
+    {
 
-    // إنشاء العميل
-    $client = new Client();
+        $data_request = $request->except('_token');
 
-    // إضافة الكود تلقائيًا
-    $lastClient = Client::orderBy('code', 'desc')->first();
-    $client->code = $lastClient ? $lastClient->code + 1 : 1;
+        // إنشاء العميل
+        $client = new Client();
 
-    $client->fill($data_request);
+        // إضافة الكود تلقائيًا
+        $lastClient = Client::orderBy('code', 'desc')->first();
+        $client->code = $lastClient ? $lastClient->code + 1 : 1;
 
-    // معالجة الصورة
-    if ($request->hasFile('attachments')) {
-        $file = $request->file('attachments');
-        if ($file->isValid()) {
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('assets/uploads/'), $filename);
-            $client->attachments = $filename;
+        $client->fill($data_request);
+
+        // معالجة الصورة
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $client->attachments = $filename;
+            }
         }
-    }
 
-    // حفظ العميل
-    $client->save();
+        // حفظ العميل
+        $client->save();
 
-    // إنشاء حساب فرعي باستخدام trade_name
-    $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
-    if ($customers) {
-        $customerAccount = new Account();
-        $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
-        $customerAccount->client_id = $client->id; 
         
-        // تعيين كود الحساب الفرعي بناءً على كود الحسابات
-        $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-        $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
-        $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
 
-        $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
-        $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
-        $customerAccount->is_active = false;
-        $customerAccount->save();
-    }
+        // إنشاء حساب فرعي باستخدام trade_name
+        $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
+        if ($customers) {
+            $customerAccount = new Account();
+            $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
+            $customerAccount->client_id = $client->id;
 
-    // حفظ جهات الاتصال المرتبطة بالعميل
-    if ($request->has('contacts') && is_array($request->contacts)) {
-        foreach ($request->contacts as $contact) {
-            $client->contacts()->create($contact);
+            // تعيين كود الحساب الفرعي بناءً على كود الحسابات
+            $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
+            $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
+
+            $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
+            $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
+            $customerAccount->is_active = false;
+            $customerAccount->save();
         }
+
+        // حفظ جهات الاتصال المرتبطة بالعميل
+        if ($request->has('contacts') && is_array($request->contacts)) {
+            foreach ($request->contacts as $contact) {
+                $client->contacts()->create($contact);
+            }
+        }
+
+        return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
 
-    return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
-}
-
-// إضافة هذه الدالة في نفس وحدة التحكم
-private function generateNextCode(string $lastChildCode): string
-{
-    // استخراج الرقم الأخير من الكود
-    $lastNumber = intval(substr($lastChildCode, -1));
-    // زيادة الرقم الأخير بمقدار 1
-    $newNumber = $lastNumber + 1;
-    // إعادة بناء الكود مع الرقم الجديد
-    return substr($lastChildCode, 0, -1) . $newNumber;
-}
+    // إضافة هذه الدالة في نفس وحدة التحكم
+    private function generateNextCode(string $lastChildCode): string
+    {
+        // استخراج الرقم الأخير من الكود
+        $lastNumber = intval(substr($lastChildCode, -1));
+        // زيادة الرقم الأخير بمقدار 1
+        $newNumber = $lastNumber + 1;
+        // إعادة بناء الكود مع الرقم الجديد
+        return substr($lastChildCode, 0, -1) . $newNumber;
+    }
 
     public function update(ClientRequest $request, $id)
     {
@@ -207,12 +240,12 @@ private function generateNextCode(string $lastChildCode): string
             'employee',
         ])->findOrFail($id);
 
-        $bookings  = Booking::where('client_id',$id)->get();
+        $bookings  = Booking::where('client_id', $id)->get();
         $Client    = Client::find($id);
-        $packages	= Package::all();
+        $packages    = Package::all();
         $memberships = Memberships::all();
 
-        return view('client.show', compact('client','installment','bookings','Client','packages','memberships'));
+        return view('client.show', compact('client', 'installment', 'bookings', 'Client', 'packages', 'memberships'));
     }
 
     public function contact()

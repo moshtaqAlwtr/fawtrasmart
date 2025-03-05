@@ -28,7 +28,11 @@ class Supplier extends Model
     {
         return $this->hasMany(PurchaseInvoice::class, 'supplier_id');
     }
-
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+    
     // العلاقة مع المدفوعات
     public function payments()
     {

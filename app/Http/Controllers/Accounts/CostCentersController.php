@@ -10,10 +10,36 @@ use Illuminate\Http\Request;
 class CostCentersController extends Controller
 {
     public function index()
-    {
+{
+    // الحصول على المستخدم الحالي
+    $user = auth()->user();
+
+    // التحقق مما إذا كان للمستخدم فرع
+    if ($user->branch) {
+        $branch = $user->branch;
+
+        // التحقق من صلاحية "مشاركة مراكز التكلفة"
+        $shareCostCenterStatus = $branch->settings()->where('key', 'share_cost_center')->first();
+
+        // إذا كانت الصلاحية غير مفعلة، عرض مراكز التكلفة الخاصة بالفرع فقط
+        if ($shareCostCenterStatus && $shareCostCenterStatus->pivot->status == 0) {
+            $accounts = CostCenter::with('children')
+                ->whereHas('createdBy', function ($query) use ($branch) {
+                    $query->where('branch_id', $branch->id);
+                })
+                ->get();
+        } else {
+            // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع مراكز التكلفة
+            $accounts = CostCenter::with('children')->get();
+        }
+    } else {
+        // إذا لم يكن لدى المستخدم فرع، عرض جميع مراكز التكلفة
         $accounts = CostCenter::with('children')->get();
-        return view('Accounts.cost_centers.index', compact('accounts'));
     }
+
+    return view('Accounts.cost_centers.index', compact('accounts'));
+}
+
 
     public function store_account(Request $request)
     {
@@ -43,9 +69,10 @@ class CostCentersController extends Controller
 
             $costCenter->is_main = $request->has('is_main') ? 1 : 0;
 
-            $costCenter->code = $request->code;
-            $costCenter->parent_id = $request->parent_id;
-            $costCenter->name = $request->name;
+            $costCenter->code       = $request->code;
+            $costCenter->parent_id  = $request->parent_id;
+            $costCenter->name       = $request->name;
+            $costCenter->created_by = auth()->id();
             $costCenter->save();
 
             return response()->json([

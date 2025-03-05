@@ -480,7 +480,7 @@
                                                         class="form-control @error('employee_id') is-invalid @enderror">
                                                         <option value="">اختر الموظف</option>
                                                         @foreach ($employees as $employee)
-                                                            <option value="{{ $employee->employee_id }}">
+                                                            <option value="{{ $employee->id }}">
                                                                 {{ $employee->full_name }}
                                                             </option>
                                                         @endforeach

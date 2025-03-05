@@ -27,12 +27,39 @@ class ProductsController extends Controller
 {
     public function index(Request $request)
     {
-        $products = Product::orderBy('id', 'DESC')->paginate(5);
+        // جلب المستخدم الحالي
+        $user = auth()->user();
+    
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
+    
+            // التحقق من صلاحية "مشاركة المنتجات"
+            $shareProductsStatus = $branch->settings()->where('key', 'share_products')->first();
+    
+            // إذا كانت الصلاحية غير مفعلة، عرض المنتجات التي أضافها المستخدمون من نفس الفرع فقط
+            if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
+                $products = Product::whereHas('creator', function ($query) use ($branch) {
+                    $query->where('branch_id', $branch->id);
+                })->orderBy('id', 'DESC')->paginate(5);
+            } else {
+                // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع المنتجات
+                $products = Product::orderBy('id', 'DESC')->paginate(5);
+            }
+        } else {
+            // إذا لم يكن لدى المستخدم فرع، عرض جميع المنتجات
+            $products = Product::orderBy('id', 'DESC')->paginate(5);
+        }
+    
+        // إعدادات الحساب والإعدادات العامة
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $generalSettings = GeneralSettings::select()->first();
         $role = $generalSettings ? $generalSettings->enable_assembly_and_compound_units == 1 : false;
+    
         return view('stock.products.index', compact('products', 'account_setting', 'role'));
     }
+    
+
 
     public function search(Request $request)
     {
@@ -140,16 +167,14 @@ class ProductsController extends Controller
         $average_cost = $product->averageCost();
         $firstTemplateUnit = null;
         $firstTemplateUnit = optional(TemplateUnit::find($product->sub_unit_id))->base_unit_name;
-        $CompiledProducts = CompiledProducts::where('compile_id', $id)->get();
+        $CompiledProducts = CompiledProducts::where('compile_id',$id)->get();
 
         $stock_movements = WarehousePermitsProducts::where('product_id', $id)
-            ->with([
-                'warehousePermits' => function ($query) {
-                    $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
-                }
-            ])->get();
+            ->with(['warehousePermits' => function ($query) {
+                $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
+            }])->get();
 
-        return view('stock.products.show', compact('product', 'CompiledProducts', 'firstTemplateUnit', 'total_quantity', 'storeQuantities', 'total_sold', 'sold_last_28_days', 'sold_last_7_days', 'average_cost', 'stock_movements'));
+        return view('stock.products.show', compact('product','CompiledProducts', 'firstTemplateUnit', 'total_quantity', 'storeQuantities', 'total_sold', 'sold_last_28_days', 'sold_last_7_days', 'average_cost', 'stock_movements'));
     }
 
     public function store(ProductsRequest $request)
@@ -157,7 +182,7 @@ class ProductsController extends Controller
         // dd($request->all());
 
 
-        try {
+       try{
 
             DB::beginTransaction();
 
@@ -208,16 +233,17 @@ class ProductsController extends Controller
                 $product->images = $this->UploadImage('assets/uploads/product', $request->images);
             }
 
-            if ($request->has('available_online')) {
+            if($request->has('available_online')){
                 $product->available_online = 1;
             }
 
-            if ($request->has('featured_product')) {
+            if($request->has('featured_product')){
                 $product->featured_product = 1;
             }
 
-            if ($request->hasFile('images')) {
-                $product->images = $this->UploadImage('assets/uploads/product', $request->images);
+            if($request->hasFile('images'))
+            {
+                $product->images = $this->UploadImage('assets/uploads/product',$request->images);
             } # End If
 
 
@@ -242,14 +268,14 @@ class ProductsController extends Controller
         }
 
 
-        if ($product->type == "services") {
-            return redirect()->route('products.index')->with(['success' => 'تم اضافه الخدمة بنجاج !!']);
-        }
-    
-        return redirect()->route('products.index')->with(['success' => 'تم اضافه المنتج بنجاج !!']);
+            if($product->type == "services"){
+                return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
+            }
+            return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
 
 
-        }# End Stor
+
+    }# End Stor
 
 
     // اضافة الخدمة
@@ -557,54 +583,54 @@ class ProductsController extends Controller
             'warehouse_permits_id' => $wareHousePermits->id,
         ]);
         $product = Product::find($id);
-        if ($product->type == "compiled" && $product->compile_type !== "Instant") {
-            // ** الحصول على المنتجات التابعة للمنتج التجميعي **
-            $CompiledProducts = CompiledProducts::where('compile_id', $id)->get();
+        if($product->type == "compiled" && $product->compile_type !== "Instant"){
+ // ** الحصول على المنتجات التابعة للمنتج التجميعي **
+                    $CompiledProducts = CompiledProducts::where('compile_id', $id)->get();
 
-            foreach ($CompiledProducts as $compiledProduct) {
-                // ** حساب المخزون قبل وبعد التعديل للمنتج التابع **
-                $total_quantity = DB::table('product_details')->where('product_id', $compiledProduct->product_id)->sum('quantity');
-                $stock_before = $total_quantity;
-                $stock_after = $stock_before - ($compiledProduct->qyt * $request->quantity); // خصم الكمية المطلوبة
+                    foreach ($CompiledProducts as $compiledProduct) {
+                        // ** حساب المخزون قبل وبعد التعديل للمنتج التابع **
+                        $total_quantity = DB::table('product_details')->where('product_id', $compiledProduct->product_id)->sum('quantity');
+                        $stock_before = $total_quantity;
+                        $stock_after = $stock_before - ($compiledProduct->qyt * $request->quantity); // خصم الكمية المطلوبة
 
-                // ** تسجيل المبيعات في حركة المخزون للمنتج التابع **
-                $wareHousePermits = new WarehousePermits();
-                $wareHousePermits->permission_type = 2; // خصم من الفاتورة
-                $wareHousePermits->permission_date = $request->has('date') && $request->has('time')
-                    ? Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time)
-                    : Carbon::now();
-                $wareHousePermits->number = $product->id;
-                $wareHousePermits->grand_total = $request->quantity * $request->unit_price;
-                $wareHousePermits->store_houses_id = $request->store_house_id;
-                $wareHousePermits->created_by = auth()->user()->id;
-                $wareHousePermits->save();
+                        // ** تسجيل المبيعات في حركة المخزون للمنتج التابع **
+                        $wareHousePermits = new WarehousePermits();
+                        $wareHousePermits->permission_type = 2; // خصم من الفاتورة
+                        $wareHousePermits->permission_date =  $request->has('date') && $request->has('time')
+                        ? Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time)
+                        : Carbon::now();
+                        $wareHousePermits->number = $product->id;
+                        $wareHousePermits->grand_total = $request->quantity * $request->unit_price;
+                        $wareHousePermits->store_houses_id = $request->store_house_id;
+                        $wareHousePermits->created_by = auth()->user()->id;
+                        $wareHousePermits->save();
 
-                // ** تسجيل البيانات في WarehousePermitsProducts للمنتج التابع **
-                WarehousePermitsProducts::create([
-                    'quantity' => $compiledProduct->qyt * $request->quantity,
-                    'total' => $request->quantity * $request->unit_price,
-                    'unit_price' => $request->unit_price,
-                    'product_id' => $compiledProduct->product_id,
-                    'stock_before' => $stock_before, // المخزون قبل التحديث
-                    'stock_after' => $stock_after,   // المخزون بعد التحديث
-                    'warehouse_permits_id' => $wareHousePermits->id,
-                ]);
+                        // ** تسجيل البيانات في WarehousePermitsProducts للمنتج التابع **
+                        WarehousePermitsProducts::create([
+                            'quantity' => $compiledProduct->qyt * $request->quantity,
+                            'total' => $request->quantity * $request->unit_price,
+                            'unit_price' => $request->unit_price,
+                            'product_id' => $compiledProduct->product_id,
+                            'stock_before' => $stock_before, // المخزون قبل التحديث
+                            'stock_after' => $stock_after,   // المخزون بعد التحديث
+                            'warehouse_permits_id' => $wareHousePermits->id,
+                        ]);
 
-                // ** تحديث المخزون للمنتج التابع **
-                $compiledProductDetails = ProductDetails::where('store_house_id', $request->store_house_id)
-                    ->where('product_id', $compiledProduct->product_id)
-                    ->first();
+                        // ** تحديث المخزون للمنتج التابع **
+                        $compiledProductDetails = ProductDetails::where('store_house_id', $request->store_house_id)
+                            ->where('product_id', $compiledProduct->product_id)
+                            ->first();
 
-                if (!$compiledProductDetails) {
-                    $compiledProductDetails = ProductDetails::create([
-                        'store_house_id' => $request->store_house_id,
-                        'product_id' => $compiledProduct->product_id,
-                        'quantity' => 0,
-                    ]);
-                }
+                        if (!$compiledProductDetails) {
+                            $compiledProductDetails = ProductDetails::create([
+                                'store_house_id' => $request->store_house_id,
+                                'product_id' => $compiledProduct->product_id,
+                                'quantity' => 0,
+                            ]);
+                        }
 
-                $compiledProductDetails->decrement('quantity', $compiledProduct->qyt * $request->quantity);
-            }
+                        $compiledProductDetails->decrement('quantity', $compiledProduct->qyt * $request->quantity);
+                    }
         }
     }
 

@@ -9,12 +9,12 @@ use Carbon\Carbon;
 class Product extends Model
 {
     use HasFactory;
-    protected $table ='products';
+    protected $table = 'products';
 
-    protected $fillable = ['id', 'name', 'description', 'category_id', 'serial_number', 'brand', 'supplier_id', 'low_stock_thershold', 'barcode', 'sales_cost_account', 'sales_account', 'available_online', 'featured_product', 'track_inventory', 'inventory_type', 'low_stock_alert', 'Internal_notes', 'tags', 'images', 'status', 'purchase_price', 'sale_price', 'tax1', 'tax2', 'min_sale_price', 'discount', 'discount_type', 'profit_margin','type','created_by', 'created_at', 'updated_at'];
+    protected $fillable = ['id', 'name', 'description', 'category_id', 'serial_number', 'brand', 'supplier_id', 'low_stock_thershold', 'barcode', 'sales_cost_account', 'sales_account', 'available_online', 'featured_product', 'track_inventory', 'inventory_type', 'low_stock_alert', 'Internal_notes', 'tags', 'images', 'status', 'purchase_price', 'sale_price', 'tax1', 'tax2', 'min_sale_price', 'discount', 'discount_type', 'profit_margin', 'type', 'created_by', 'created_at', 'updated_at'];
     public function product_details()
     {
-        return $this->hasOne(ProductDetails::class,'product_id');
+        return $this->hasOne(ProductDetails::class, 'product_id');
     }
 
     public function totalQuantity()
@@ -74,6 +74,11 @@ class Product extends Model
     {
         return $this->warehousePermitsProducts()->avg('unit_price');
     }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
 
     public function invoices()
     {
@@ -86,5 +91,4 @@ class Product extends Model
             'invoice_id' // Foreign key on invoice_items table
         );
     }
-
 }
