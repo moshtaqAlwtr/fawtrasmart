@@ -660,7 +660,8 @@ class ProductsController extends Controller
         $img = Image::read($image->path());
 
         $img->cover(540, 689, 'top');
-        $img->resize(540, 689, function ($constraint) {
+        $img->resize(540, 689, 
+        function ($constraint) {
             $constraint->aspectRatio();
         })->save($destinationsPath . '/' . $imageName);
     }
