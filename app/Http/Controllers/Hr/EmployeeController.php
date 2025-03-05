@@ -24,46 +24,46 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TestMail;
 
-
 class EmployeeController extends Controller
 {
     public function index()
     {
         $clients = Client::all();
-        $employees = Employee::select()->orderBy('id','DESC')->get();
+        $employees = Employee::select()->orderBy('id', 'DESC')->get();
         return view('hr.employee.index', compact('clients', 'employees'));
     }
 
     public function send_email($id)
     {
         $employee = User::where('employee_id', $id)->first();
-    
+
         if (!$employee) {
             return response()->json(['message' => 'الموظف غير موجود'], 404);
         }
-    
+
         // توليد كلمة مرور جديدة عشوائية
         $newPassword = $this->generateRandomPassword();
-    
+
         // تحديث كلمة المرور في قاعدة البيانات بعد تشفيرها
         $employee->password = Hash::make($newPassword);
         $employee->save();
-    
+
         // إعداد بيانات البريد
         $details = [
             'name' => $employee->name,
             'email' => $employee->email,
-            'password' => $newPassword // إرسال كلمة المرور الجديدة مباشرة
+            'password' => $newPassword, // إرسال كلمة المرور الجديدة مباشرة
         ];
-    
+
         // إرسال البريد
         Mail::to($employee->email)->send(new TestMail($details));
-    
-        // return back()->with('message', 'تم إرسال البريد بنجاح!');
-        return redirect()->back()->with( ['success'=>'تم  ارسال البريد بنجاح .']);
 
+        // return back()->with('message', 'تم إرسال البريد بنجاح!');
+        return redirect()
+            ->back()
+            ->with(['success' => 'تم  ارسال البريد بنجاح .']);
     }
-    
+
     /**
      * دالة لتوليد كلمة مرور عشوائية
      */
@@ -71,46 +71,42 @@ class EmployeeController extends Controller
     {
         return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
-    
 
     public function create()
     {
-        $shifts = Shift::select('id','name')->get();
-        $branches = Branch::select('id','name')->get();
-        $job_types = TypesJobs::select('id','name')->get();
-        $job_levels = FunctionalLevels::select('id','name')->get();
-        $job_titles = JopTitle::select('id','name')->get();
-        $departments = Department::select('id','name')->get();
-        $job_roles = JobRole::select('id','role_name','role_type')->get();
-        $employees = Employee::select('id','first_name','middle_name')->get();
-        return view('hr.employee.create',compact('employees','job_roles','departments','job_titles','job_levels','job_types','branches','shifts'));
+        $shifts = Shift::select('id', 'name')->get();
+        $branches = Branch::select('id', 'name')->get();
+        $job_types = TypesJobs::select('id', 'name')->get();
+        $job_levels = FunctionalLevels::select('id', 'name')->get();
+        $job_titles = JopTitle::select('id', 'name')->get();
+        $departments = Department::select('id', 'name')->get();
+        $job_roles = JobRole::select('id', 'role_name', 'role_type')->get();
+        $employees = Employee::select('id', 'first_name', 'middle_name')->get();
+        return view('hr.employee.create', compact('employees', 'job_roles', 'departments', 'job_titles', 'job_levels', 'job_types', 'branches', 'shifts'));
     }
-
-    
 
     public function store(EmployeeRequest $request)
     {
-        
-            DB::beginTransaction();
-            $employee_data = $request->except('_token','allow_system_access','send_credentials');
+        DB::beginTransaction();
+        $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials');
 
-            $employee_data['created_by'] = auth()->user()->id;
+        $employee_data['created_by'] = auth()->user()->id;
 
-            $employee = new Employee();
+        $employee = new Employee();
 
-            if ($request->hasFile('employee_photo')) {
-                $employee->employee_photo = $this->UploadImage('assets/uploads/employee',$request->employee_photo);
-            }
+        if ($request->hasFile('employee_photo')) {
+            $employee->employee_photo = $this->UploadImage('assets/uploads/employee', $request->employee_photo);
+        }
 
-            if($request->has('allow_system_access')){
-                $employee->allow_system_access = 1;
-            }
+        if ($request->has('allow_system_access')) {
+            $employee->allow_system_access = 1;
+        }
 
-            if($request->has('send_credentials')){
-                $employee->send_credentials = 1;
-            }
+        if ($request->has('send_credentials')) {
+            $employee->send_credentials = 1;
+        }
 
-            $new_employee = $employee->create($employee_data);
+        $new_employee = $employee->create($employee_data);
 
             if($request->has('phone_number')){
 
@@ -125,15 +121,15 @@ class EmployeeController extends Controller
                 'password' => Hash::make($request->phone_number),
             ]);
 
-            $role = JobRole::where('id',$request->Job_role_id)->first();
-            $role_name = $role->role_name;
+        $role = JobRole::where('id', $request->Job_role_id)->first();
+        $role_name = $role->role_name;
 
-            $user->assignRole($role_name);
+        $user->assignRole($role_name);
 
-            DB::commit();
-            return redirect()->route('employee.show',$new_employee->id)->with( ['success'=>'تم اضافه الموظف بنجاج !!']);
-       
-
+        DB::commit();
+        return redirect()
+            ->route('employee.show', $new_employee->id)
+            ->with(['success' => 'تم اضافه الموظف بنجاج !!']);
     }
 
     public function edit($id)
@@ -155,32 +151,32 @@ class EmployeeController extends Controller
         $employee = Employee::findOrFail($id);
         $employee_email = $employee->email;
         $user = User::where('email', $employee_email)->first();
-        return view('hr.employee.show',compact('employee','user'));
+        return view('hr.employee.show', compact('employee', 'user'));
     }
 
-    public function update(EmployeeRequest $request,$id)
+    public function update(EmployeeRequest $request, $id)
     {
-        try{
+        try {
             DB::beginTransaction();
-            $employee_data = $request->except('_token','allow_system_access','send_credentials');
+            $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials');
 
             $employee = Employee::findOrFail($id);
 
             if ($request->hasFile('employee_photo')) {
-                $employee->employee_photo = $this->UploadImage('assets/uploads/employee',$request->employee_photo);
+                $employee->employee_photo = $this->UploadImage('assets/uploads/employee', $request->employee_photo);
             }
 
-            if($request->has('allow_system_access')){
+            if ($request->has('allow_system_access')) {
                 $employee->allow_system_access = 1;
             }
 
-            if($request->has('send_credentials')){
+            if ($request->has('send_credentials')) {
                 $employee->send_credentials = 1;
             }
 
             $employee->update($employee_data);
 
-            User::where('employee_id',$id)->update([
+            User::where('employee_id', $id)->update([
                 'name' => $employee->full_name,
                 'email' => $request->email,
                 'phone' => $request->phone_number,
@@ -189,36 +185,46 @@ class EmployeeController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('employee.show',$id)->with( ['success'=>'تم تحديث الموظف بنجاج !!']);
-        }catch(\Exception $exception){
+            return redirect()
+                ->route('employee.show', $id)
+                ->with(['success' => 'تم تحديث الموظف بنجاج !!']);
+        } catch (\Exception $exception) {
             DB::rollback();
-            return redirect()->route('employee.index')->with( ['error'=>$exception]);
+            return redirect()
+                ->route('employee.index')
+                ->with(['error' => $exception]);
         }
-
     }
 
     public function delete($id)
     {
         $employee = Employee::findOrFail($id);
         $employee->delete();
-        return redirect()->back()->with( ['error'=>'تم حذف الموظف بنجاج !!']);
+        return redirect()
+            ->back()
+            ->with(['error' => 'تم حذف الموظف بنجاج !!']);
     }
 
-    public function updatePassword(Request $request,$id)
+    public function updatePassword(Request $request, $id)
     {
-        $request->validate([
-            'password' => 'required|string|min:8|confirmed',
-        ], [
-            'password.required' => 'يرجى إدخال كلمة المرور الجديدة.',
-            'password.min' => 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل.',
-            'password.confirmed' => 'تأكيد كلمة المرور لا يتطابق.',
-        ]);
+        $request->validate(
+            [
+                'password' => 'required|string|min:8|confirmed',
+            ],
+            [
+                'password.required' => 'يرجى إدخال كلمة المرور الجديدة.',
+                'password.min' => 'كلمة المرور يجب أن تحتوي على 8 أحرف على الأقل.',
+                'password.confirmed' => 'تأكيد كلمة المرور لا يتطابق.',
+            ],
+        );
         $employee_email = Employee::findOrFail($id)->email;
         $user = User::where('email', $employee_email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
 
-        return redirect()->back()->with( ['success'=>'تم تغيير كلمة المرور بنجاح.']);
+        return redirect()
+            ->back()
+            ->with(['success' => 'تم تغيير كلمة المرور بنجاح.']);
     }
 
     public function login_to($id)
@@ -254,7 +260,6 @@ class EmployeeController extends Controller
         return view('hr.employee.add_new_role');
     }
 
-
     public function export_view()
     {
         return view('hr.employee.export');
@@ -262,29 +267,26 @@ class EmployeeController extends Controller
 
     public function export(Request $request)
     {
-
         $fields = $request->input('fields', []);
 
         if (empty($fields)) {
-            return redirect()->back()->with(['error' => 'يرجى تحديد الحقول للتصدير!']);
+            return redirect()
+                ->back()
+                ->with(['error' => 'يرجى تحديد الحقول للتصدير!']);
         }
 
         return Excel::download(new EmployeesExport($fields), 'departments.xlsx');
     }
 
-
-
-
-
     # Helper Function
-    function uploadImage($folder,$image)
+    function uploadImage($folder, $image)
     {
         $fileExtension = $image->getClientOriginalExtension();
-        $fileName = time().rand(1,99).'.'.$fileExtension;
-        $image->move($folder,$fileName);
+        $fileName = time() . rand(1, 99) . '.' . $fileExtension;
+        $image->move($folder, $fileName);
 
         return $fileName;
-    }//end of uploadImage
+    } //end of uploadImage
     public function search(Request $request)
     {
         $query = $request->input('query');
@@ -298,5 +300,3 @@ class EmployeeController extends Controller
         return response()->json($employees);
     }
 }
-
-

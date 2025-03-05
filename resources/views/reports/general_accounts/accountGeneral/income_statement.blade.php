@@ -13,6 +13,7 @@
                 margin-bottom: 1rem;
             }
         }
+
     </style>
 @endsection
 
@@ -32,81 +33,21 @@
             </div>
         </div>
     </div>
-<div class="card">
-<div class="card-body">
-    <div class="d-flex justify-content-between align-items-rtl flex-wrap">
-</div>
-
-</div>
-
     <div class="card">
         <div class="card-body">
-            <div class="filter-section">
-                <form action="{{ route('ClientReport.customerAccountStatement') }}" method="GET">
-                    <div class="row">
+            <div class="d-flex justify-content-between align-items-rtl flex-wrap">
+            </div>
+        </div>
 
-                        <div class="col-md-3">
-                            <label for="dateRangeDropdown" class="form-label me-2">الفترة:</label>
-                            <div class="d-flex align-items-center">
-                                <div class="dropdown me-2">
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                        id="dateRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                        اختر الفترة
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dateRangeDropdown">
-                                        <li><a class="dropdown-item" href="#"
-                                                onclick="setDateRange('الأسبوع الماضي')">الأسبوع الماضي</a></li>
-                                        <li><a class="dropdown-item" href="#"
-                                                onclick="setDateRange('الشهر الأخير')">الشهر الأخير</a></li>
-                                        <li><a class="dropdown-item" href="#"
-                                                onclick="setDateRange('من أول الشهر حتى اليوم')">من أول الشهر حتى اليوم</a>
-                                        </li>
-                                        <li><a class="dropdown-item" href="#"
-                                                onclick="setDateRange('السنة الماضية')">السنة الماضية</a></li>
-                                        <li><a class="dropdown-item" href="#"
-                                                onclick="setDateRange('من أول السنة حتى اليوم')">من أول السنة حتى اليوم</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <input type="text" class="form-control" id="selectedDateRange" name="dateRange"
-                                    placeholder="الفترة المحددة" readonly value="{{ request('dateRange') }}">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="branch" class="form-label">فرع الحسابات:</label>
-                            <select id="branch" name="branch" class="form-control">
-                                <option value="">كل الفروع</option>
-                                @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="branch" class="form-label">فرع القيود:</label>
-                            <select id="branch" name="branch" class="form-control">
-                                <option value="">كل الفروع</option>
-                                @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-                                @endforeach
-                            </select>
-                            <div class="col-md-3">
-                                <label for="account" class="form-label">عرض جميع الحسابات:</label>
-                                <select name="account" class="form-control" id="">
-                                    <option value="">عرض جميع الحسابات</option>
-                                    <option value="1"> عرض الحسابات التي عليها معاملات </option>
-                                    <option value="2"> اخفاء الحسابات الصفرية</option>
-                                </select>
-
-
-                            </div>
-
-
-
-                            <div class="col-md-3 col-sm-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="filter-section">
+                    <form action="{{ route('GeneralAccountReports.incomeStatement') }}" method="GET">
+                        <div class="row">
+                            <div class="col-md-4 col-sm-6">
                                 <div class="form-group">
                                     <label for="financial-year">السنة المالية:</label>
-                                    <select id="financial-year" name="financial_year[]" class="form-control select2"
-                                        multiple>
+                                    <select id="financial-year" name="financial_year[]" class="form-control select2" multiple>
                                         <option value="current">السنة المفتوحة</option>
                                         <option value="all">جميع السنوات</option>
                                         @for ($year = date('Y'); $year >= date('Y') - 10; $year--)
@@ -115,27 +56,26 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <label for="customer-type" class="form-label">تصنيف العميل:</label>
-                                <select id="customer-type" name="customer_type" class="form-control">
-                                    <option value="">الكل</option>
-                                    @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                    @endforeach
+                            <div class="col-md-4">
+                                <label for="account" class="form-label">عرض جميع الحسابات:</label>
+                                <select name="account" class="form-control" id="">
+                                    <option value="">عرض جميع الحسابات</option>
+                                    <option value="1"> عرض الحسابات التي عليها معاملات </option>
+                                    <option value="2"> اخفاء الحسابات الصفرية</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-3">
-                                <label for="customer" class="form-label">العميل:</label>
-                                <select id="customer" name="customer" class="form-control">
-                                    <option value="">الكل</option>
-                                    @foreach ($customers as $customer)
-                                        <option value="{{ $customer->id }}">{{ $customer->trade_name }}</option>
-                                    @endforeach
+                            <div class="col-md-4">
+                                <label for="branch" class="form-label">المستويات:</label>
+                                <select id="" name="branch" class="form-control">
+                                    <option value="">المستويات الافتراضية</option>
+                                    <option value="1">مستوى 1</option>
+                                    <option value="1">مستوى 2</option>
+                                    <option value="1">مستوى 3</option>
+                                    <option value="1">مستوى 4</option>
+                                    <option value="1">مستوى 5</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label for="cost-center" class="form-label">مركز التكلفة:</label>
                                 <select id="cost-center" name="cost_center" class="form-control">
                                     <option value="">اختر مركز التكلفة</option>
@@ -144,104 +84,135 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <div class="col-md-3">
-                                <label for="sales-manager" class="form-label">مسؤول مبيعات:</label>
-                                <select id="sales-manager" name="sales_manager" class="form-control">
-                                    <option value="">الكل</option>
-                                    @foreach ($salesManagers as $manager)
-                                        <option value="{{ $manager->id }}">{{ $manager->full_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
                         </div>
                         <div class="row mt-3">
                             <div class="col-md-12 text-center">
                                 <button type="submit" class="btn-custom">عرض التقرير</button>
-                                <a href="{{ route('ClientReport.customerAccountStatement') }}" class="btn-custom">إلغاء
-                                    الفلتر</a>
-                                <button type="button" class="btn-custom" onclick="exportTableToExcel()">تصدير إلى
-                                    Excel</button>
-                                <button type="button" class="btn-custom" onclick="exportTableToPDF()">تصدير إلى
-                                    PDF</button>
+                                <a href="{{ route('GeneralAccountReports.incomeStatement') }}" class="btn-custom">إلغاء الفلتر</a>
+                                <button type="button" class="btn-custom" onclick="exportTableToExcel()">تصدير إلى Excel</button>
+                                <button type="button" class="btn-custom" onclick="exportTableToPDF()">تصدير إلى PDF</button>
                             </div>
                         </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="customer-account-statement-table" class="table table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th rowspan="2">رقم الحساب</th>
-                            <th rowspan="2">رقم القيد</th>
-                            <th rowspan="2">رقم معرف التحويل</th>
-                            <th rowspan="2">التاريخ</th>
-                            <th rowspan="2">الموظف</th>
-                            <th colspan="2">العملية</th>
-                            <th colspan="2">الرصيد</th>
-                        </tr>
-
-                        <tr>
-                            <th>مدين</th>
-                            <th>دائن</th>
-                            <th>مدين</th>
-                            <th>دائن</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php
-                            $totalBalance = 0; // متغير لتخزين الرصيد التراكمي
-                            $totalDebit = 0; // مجموع المدين
-                            $totalCredit = 0; // مجموع الدائن
-                        @endphp
-                        @foreach ($journalEntries as $entry)
-                            <tr>
-                                <td colspan="11">{{ $entry->client ? $entry->client->trade_name : 'غير متوفر' }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="8">الرصيد قبل</td>
-                                <td>{{ number_format($totalBalance, 2) }}</td>
-                                <td></td>
-                            </tr>
-                            @foreach ($entry->details as $detail)
-                                @php
-                                    $totalBalance += $detail->debit - $detail->credit;
-                                    $totalDebit += $detail->debit; // إضافة المدين للمجموع
-                                    $totalCredit += $detail->credit; // إضافة الدائن للمجموع
-                                @endphp
+        <div class="container-fluid">
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-chart-pie mr-1"></i>
+                        التقرير المالي التفصيلي
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead class="thead-light">
                                 <tr>
-                                    <td>{{ $detail->account ? $detail->account->name : 'غير متوفر' }}</td>
-                                    <td>{{ $entry->reference_number }}</td>
-                                    <td>{{ $entry->id }}</td>
-                                    <td>{{ $entry->date->format('Y-m-d') }}</td>
-                                    <td>{{ $entry->employee ? $entry->employee->full_name : 'غير متوفر' }}</td>
-                                    <td>{{ number_format($detail->debit, 2) }}</td>
-                                    <td>{{ number_format($detail->credit, 2) }}</td>
-                                    <td>{{ number_format($totalBalance > 0 ? $totalBalance : 0, 2) }}</td>
-                                    <td>{{ number_format($totalBalance < 0 ? abs($totalBalance) : 0, 2) }}</td>
+                                    <th colspan="3" class="text-center bg-info text-white">
+                                        <h4 class="mb-0">الإيرادات</h4>
+                                    </th>
                                 </tr>
-                            @endforeach
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tfoot>
-                            <tr>
-                                <td colspan="5" style="text-align: right;"><strong>المجموع:</strong></td>
-                                <td>{{ number_format($totalDebit, 2) }}</td> <!-- مجموع المدين -->
-                                <td>{{ number_format($totalCredit, 2) }}</td> <!-- مجموع الدائن -->
-                                <td>{{ number_format($totalBalance > 0 ? $totalBalance : 0, 2) }}</td>
-                                <!-- الرصيد المدين -->
-                                <td>{{ number_format($totalBalance < 0 ? abs($totalBalance) : 0, 2) }}</td>
-                                <!-- الرصيد الدائن -->
-                            </tr>
-                        </tfoot>
-                    </tfoot>
-                </table>
+                                <tr>
+                                    <th>الدخل</th>
+                                    <th class="text-center">الكود</th>
+                                    <th class="text-right">المبلغ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if($revenues)
+                                    @foreach($revenues->childrenRecursive as $revenue)
+                                        <tr class="{{ $loop->even ? 'table-secondary' : '' }}">
+                                            <td>
+                                                <span class="pl-4">{{ $revenue->name }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-primary">{{ $revenue->code }}</span>
+                                            </td>
+                                            <td class="text-right font-weight-bold">
+                                                {{ number_format($revenue->balance, 2) }} ر.س
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-success">
+                                    <th colspan="2">
+                                        <span class="h5">إجمالي الإيراد</span>
+                                    </th>
+                                    <td class="text-right text-success h5 font-weight-bold">
+                                        {{ number_format($revenues->childrenRecursive->sum('balance'), 2) }} ر.س
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <table class="table table-bordered table-striped table-hover mt-4">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th colspan="3" class="text-center bg-danger text-white">
+                                        <h4 class="mb-0">المصروفات</h4>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th>المصروفات</th>
+                                    <th class="text-center">الكود</th>
+                                    <th class="text-right">المبلغ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if($expenses)
+                                    @foreach($expenses->childrenRecursive as $expense)
+                                        <tr class="{{ $loop->even ? 'table-secondary' : '' }}">
+                                            <td>
+                                                <span class="pl-4">{{ $expense->name }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-danger">{{ $expense->code }}</span>
+                                            </td>
+                                            <td class="text-right font-weight-bold">
+                                                {{ number_format($expense->balance, 2) }} ر.س
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-danger">
+                                    <th colspan="2">
+                                        <span class="h5">إجمالي المصروفات</span>
+                                    </th>
+                                    <td class="text-right text-danger h5 font-weight-bold">
+                                        {{ number_format($expenses->childrenRecursive->sum('balance'), 2) }} ر.س
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th colspan="3" class="text-center">
+                                        <h4 class="mb-0">صافي الدخل</h4>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <th colspan="2">
+                                        <span class="h4">صافي الدخل</span>
+                                    </th>
+                                    <td class="text-right text-primary h3 font-weight-bold">
+                                        {{ number_format($revenues->childrenRecursive->sum('balance') - $expenses->childrenRecursive->sum('balance'), 2) }} ر.س
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -274,9 +245,7 @@
         }
 
         function exportTableToPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
 
             html2canvas(document.getElementById('customer-account-statement-table')).then(canvas => {

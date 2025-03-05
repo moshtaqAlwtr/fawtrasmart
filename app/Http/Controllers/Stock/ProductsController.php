@@ -168,7 +168,7 @@ class ProductsController extends Controller
         $firstTemplateUnit = null;
         $firstTemplateUnit = optional(TemplateUnit::find($product->sub_unit_id))->base_unit_name;
         $CompiledProducts = CompiledProducts::where('compile_id',$id)->get();
-       
+
         $stock_movements = WarehousePermitsProducts::where('product_id', $id)
             ->with(['warehousePermits' => function ($query) {
                 $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
@@ -266,11 +266,16 @@ class ProductsController extends Controller
             DB::rollBack();
             return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
         }
-     
 
-    }
 
-        
+            if($product->type == "services"){
+                return redirect()->route('products.index')->with( ['success'=>'تم اضافه الخدمة بنجاج !!']);
+            }
+            return redirect()->route('products.index')->with( ['success'=>'تم اضافه المنتج بنجاج !!']);
+
+
+
+    }# End Stor
 
 
     // اضافة الخدمة
@@ -352,7 +357,7 @@ class ProductsController extends Controller
     }
     public function compiled_store(Request $request)
     {
-        // dd($request->all());
+
 
         try {
             DB::beginTransaction();
@@ -386,7 +391,7 @@ class ProductsController extends Controller
             $product->type = $request->type;
             $product->profit_margin = $request->profit_margin;
             $product->storehouse_id = $request->storehouse_id; // مخزن المنتجات الاوليه للمنتج التجميعي
-            $product->compile_type = $request->compile_type;  // نوع التجميعه معد مسبقا او فوري
+            $product->compile_type = "Instant";  // نوع التجميعه معد مسبقا او فوري
             $product->created_by = Auth::user()->id;
 
             if ($request->has('available_online')) {
@@ -405,25 +410,25 @@ class ProductsController extends Controller
 
             // تحقق من صحة البيانات
             $request->validate([
-            
+
                 'products' => 'required|array', // تأكد من وجود بيانات المنتجات
                 'products.*.product_id' => 'required|exists:products,id', // تأكد من وجود product_id في جدول products
                 'products.*.quantity' => 'required|numeric|min:1', // تأكد من أن الكمية رقم صحيح أكبر من 0
             ]);
 
-           
+
             foreach ($request->products as $productData) {
                 $compiledProduct = new CompiledProducts();
-                
+
                 // تعيين compile_id إلى المنتج التجميعي
                 $compiledProduct->compile_id = $product->id;  // هذا هو المنتج التجميعي ويجب أن يتكرر لجميع المنتجات المرتبطة به
-                
+
                 // تعيين product_id إلى المنتج الفرعي
                 $compiledProduct->product_id = $productData['product_id'];  // معرّف المنتج الفردي
-                
+
                 // تعيين الكمية
                 $compiledProduct->qyt = $productData['quantity'];  // الكمية الخاصة بالمنتج
-                
+
                 // حفظ البيانات في جدول CompiledProducts
                 $compiledProduct->save();
             }

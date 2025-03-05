@@ -16,10 +16,12 @@ use App\Models\JournalEntryDetail;
 use App\Models\PurchaseInvoice;
 use App\Models\Receipt;
 use App\Models\ReceiptCategory;
+use App\Models\SupplyOrder;
 use App\Models\Treasury;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class GeneralAccountsController extends Controller
@@ -98,10 +100,115 @@ class GeneralAccountsController extends Controller
     public function incomeStatement(Request $request)
     {
         $branches = Branch::all();
+        $costCenters = CostCenter::all();
 
-        return view('reports.general_accounts.accountGeneral.income_statement', compact('branches'));
+        // جلب الإيرادات والمصروفات مع الحسابات الفرعية
+        $revenuesQuery = Account::where('name', 'الإيرادات')->with('childrenRecursive');
+        $expensesQuery = Account::where('name', 'المصروفات')->with('childrenRecursive');
+
+        // تطبيق الفلترة
+        if ($request->has('financial_year')) {
+            $years = $request->input('financial_year');
+            if (in_array('current', $years)) {
+                $revenuesQuery->whereYear('created_at', date('Y'));
+                $expensesQuery->whereYear('created_at', date('Y'));
+            } elseif (in_array('all', $years)) {
+                // لا تطبيق فلترة على السنة
+            } else {
+                $revenuesQuery->whereIn(DB::raw('YEAR(created_at)'), $years);
+                $expensesQuery->whereIn(DB::raw('YEAR(created_at)'), $years);
+            }
+        }
+
+        if ($request->has('account')) {
+            $accountFilter = $request->input('account');
+            if ($accountFilter == '1') {
+                // عرض الحسابات التي عليها معاملات
+                $revenuesQuery->has('transactions');
+                $expensesQuery->has('transactions');
+            } elseif ($accountFilter == '2') {
+                // إخفاء الحسابات الصفرية
+                $revenuesQuery->where('balance', '<>', 0);
+                $expensesQuery->where('balance', '<>', 0);
+            }
+        }
+
+        if ($request->has('branch')) {
+            $branchFilter = $request->input('branch');
+            $revenuesQuery->where('branch_id', $branchFilter);
+            $expensesQuery->where('branch_id', $branchFilter);
+        }
+
+        if ($request->has('cost_center')) {
+            $costCenterFilter = $request->input('cost_center');
+            $revenuesQuery->where('cost_center_id', $costCenterFilter);
+            $expensesQuery->where('cost_center_id', $costCenterFilter);
+        }
+
+        $revenues = $revenuesQuery->first();
+        $expenses = $expensesQuery->first();
+
+        return view('reports.general_accounts.accountGeneral.income_statement', compact('branches', 'revenues', 'expenses', 'costCenters'));
     }
+    public function BalanceSheet(Request $request)
+    {
+        $branches = Branch::all();
+        $costCenters = CostCenter::all();
 
+        // جلب الأصول والخصوم مع جميع الحسابات الفرعية
+        $assetsQuery = Account::where('name', 'الأصول')->with('childrenRecursive');
+        $liabilitiesQuery = Account::where('name', 'الخصوم')->with('childrenRecursive');
+
+        // تطبيق الفلترة
+        if ($request->has('before_date')) {
+            $beforeDate = $request->input('before_date');
+            $assetsQuery->whereDate('created_at', '<=', $beforeDate);
+            $liabilitiesQuery->whereDate('created_at', '<=', $beforeDate);
+        }
+
+        if ($request->has('cost_center')) {
+            $costCenterId = $request->input('cost_center');
+            $assetsQuery->where('cost_center_id', $costCenterId);
+            $liabilitiesQuery->where('cost_center_id', $costCenterId);
+        }
+
+        if ($request->has('financial_year')) {
+            $years = $request->input('financial_year');
+            if (in_array('current', $years)) {
+                $assetsQuery->whereYear('created_at', date('Y'));
+                $liabilitiesQuery->whereYear('created_at', date('Y'));
+            } elseif (in_array('all', $years)) {
+                // لا تطبيق فلترة على السنة
+            } else {
+                $assetsQuery->whereIn(DB::raw('YEAR(created_at)'), $years);
+                $liabilitiesQuery->whereIn(DB::raw('YEAR(created_at)'), $years);
+            }
+        }
+
+        if ($request->has('account')) {
+            $accountFilter = $request->input('account');
+            if ($accountFilter == '1') {
+                // عرض الحسابات التي عليها معاملات
+                $assetsQuery->has('transactions');
+                $liabilitiesQuery->has('transactions');
+            } elseif ($accountFilter == '2') {
+                // إخفاء الحسابات الصفرية
+                $assetsQuery->where('balance', '<>', 0);
+                $liabilitiesQuery->where('balance', '<>', 0);
+            }
+        }
+
+        if ($request->has('branch')) {
+            $branchFilter = $request->input('branch');
+            $assetsQuery->where('branch_id', $branchFilter);
+            $liabilitiesQuery->where('branch_id', $branchFilter);
+        }
+
+        $assets = $assetsQuery->first();
+        $liabilities = $liabilitiesQuery->first();
+
+        return view('reports.general_accounts.accountGeneral.balance_sheet', compact('branches', 'assets', 'liabilities', 'costCenters'));
+    }
     // المصروفات
     public function splitExpensesByCategory(Request $request)
     {
@@ -1325,6 +1432,141 @@ private function getDateRange($dateRange)
 }
 
 public function CostCentersReport(Request $request){
-    return view('reports.general_accounts.daily_restrictions_reports.cost_centers_report');
+   // فلترة البيانات بناءً على المدخلات
+   $query = JournalEntry::query();
+
+   if ($request->filled('dateRange')) {
+       $query->where('date', $request->dateRange);
+   }
+
+   if ($request->filled('account')) {
+       $query->where('account_id', $request->account);
+   }
+
+   if ($request->filled('branch')) {
+       $query->where('branch_id', $request->branch);
+   }
+
+   if ($request->filled('cost_center')) {
+       $query->where('cost_center_id', $request->cost_center);
+   }
+
+   if ($request->filled('financial_year')) {
+       $query->whereIn('financial_year', $request->financial_year);
+   }
+   $journalEntries = $query->with(['details.account', 'costCenter'])->get();
+   // الحصول على البيانات المطلوبة للفلترة
+   $accounts = Account::all();
+   $costCenters = CostCenter::all();
+   $branches = Branch::all();
+   $users = User::all();
+
+   return view('reports.general_accounts.daily_restrictions_reports.cost_centers_report', compact('journalEntries', 'accounts', 'costCenters', 'branches', 'users'));
+
 }
+public function ReportJournal(Request $request)
+{
+    // فلترة البيانات بناءً على المدخلات
+    $query = JournalEntry::query();
+
+    // فلترة حسب المصدر (نوع القيد)
+    if ($request->filled('treasury')) {
+        $query->where('entity_type', $request->treasury);
+    }
+
+    // فلترة حسب الحساب الفرعي
+    if ($request->filled('account')) {
+        $query->whereHas('details', function($q) use ($request) {
+            $q->where('account_id', $request->account);
+        });
+    }
+
+    // فلترة حسب الفترة من
+    if ($request->filled('from_date')) {
+        $query->whereDate('date', '>=', $request->from_date);
+    }
+
+    // فلترة حسب الفترة إلى
+    if ($request->filled('to_date')) {
+        $query->whereDate('date', '<=', $request->to_date);
+    }
+
+    // فلترة حسب أمر التوريد
+    if ($request->filled('supply')) {
+        $query->where('supply_order_id', $request->supply);
+    }
+
+    // فلترة حسب الفرع
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->branch);
+    }
+
+    // جلب البيانات مع التفاصيل والحسابات المرتبطة
+    $journalEntries = $query->with(['details.account', 'branch'])->get();
+
+    // حساب الإجمالي لكل قيد
+    $journalEntries->each(function ($entry) {
+        $entry->total_debit = $entry->details->sum('debit');
+        $entry->total_credit = $entry->details->sum('credit');
+    });
+
+    // تحضير البيانات للعرض
+    $accounts = Account::all();
+    $branches = Branch::all();
+    $supplyOrders = SupplyOrder::all();
+
+    // إرجاع العرض مع البيانات
+    return view('reports.general_accounts.daily_restrictions_reports.report_journal',
+        compact('journalEntries', 'accounts', 'branches', 'supplyOrders')
+    );
+}
+public function ChartOfAccounts(Request $request)
+{
+    // فلترة البيانات بناءً على المدخلات
+    $query = Account::query();
+
+    // فلترة حسب مستوى الحساب
+    if ($request->filled('account_level')) {
+        if ($request->account_level == 'main') {
+            $query->whereNull('parent_id'); // حسابات رئيسية
+        } elseif ($request->account_level == 'sub') {
+            $query->whereNotNull('parent_id'); // حسابات فرعية
+        }
+    }
+
+    // فلترة حسب نوع الحساب (مدين/دائن)
+    if ($request->filled('account_type')) {
+        $query->where('type', $request->account_type);
+    }
+
+    // فلترة حسب نوع الحساب (عملاء/موردين)
+    if ($request->filled('account_category')) {
+        $query->where('category', $request->account_category);
+    }
+
+    // فلترة حسب الفرع
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->branch);
+    }
+
+    // ترتيب حسب الكود
+    if ($request->filled('order_by')) {
+        if ($request->order_by == 'asc') {
+            $query->orderBy('code', 'asc');
+        } elseif ($request->order_by == 'desc') {
+            $query->orderBy('code', 'desc');
+        }
+    }
+
+    // جلب البيانات
+    $accounts = $query->with(['branch', 'parent'])->get();
+
+    // تحضير البيانات للعرض
+    $branches = Branch::all();
+
+    return view('reports.general_accounts.daily_restrictions_reports.chart_of_account_report',
+        compact('accounts', 'branches')
+    );
+}
+
 }
