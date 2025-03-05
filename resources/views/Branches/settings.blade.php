@@ -50,6 +50,7 @@
         لا توجد فروع متاحة. يرجى إضافة فروع أولاً.
     </div>
 @else
+
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center flex-wrap">

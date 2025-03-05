@@ -71,7 +71,28 @@ class BranchesController extends Controller
         $branchData['code'] = $newCode;
 
         // إنشاء الفرع
-        Branch::create($branchData);
+       $branch = Branch::create($branchData);
+        $defaultPermissions = [
+            'share_cost_center' => 0,
+            'share_customers' => 0,
+            'share_products' => 0,
+            'share_suppliers' => 0,
+            'account_tree' => 0,
+        ];
+    
+        foreach ($defaultPermissions as $key => $status) {
+            // جلب الـ ID الخاص بالصلاحية
+            $branchSettingId = BranchSetting::where('key', $key)->value('id');
+    
+            if ($branchSettingId) {
+                // إضافة الصلاحية للفرع الجديد
+                BranchSettingBranch::create([
+                    'branch_id' => $branch->id,
+                    'branch_setting_id' => $branchSettingId,
+                    'status' => $status,
+                ]);
+            }
+        }
 
         // إعادة التوجيه مع رسالة نجاح
         return redirect()->route('branches.index')->with('success', 'تم إضافة الفرع بنجاح');
