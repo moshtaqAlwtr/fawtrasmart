@@ -158,6 +158,7 @@
                     </li>
 
                 </ul>
+
                 <div class="tab-content">
                     <!-- تبويب التفاصيل -->
                     <div class="tab-pane active" id="details" aria-labelledby="details-tab" role="tabpanel">
@@ -225,6 +226,8 @@
                                 @endif
                             </div>
                         </div>
+
+
                     </div>
                     {{-- تبويبة المواعيد  --}}
                     <div class="tab-pane" id="appointments" aria-labelledby="appointments-tab" role="tabpanel">
@@ -298,7 +301,8 @@
                                                                 <small>{{ $appointment->created_at->format('Y-m-d H:i') }}</small>
                                                             </p>
                                                             <small class="text-muted">
-                                                                بواسطة: {{ $appointment->employee->name ?? 'غير محدد' }}
+                                                                بواسطة:
+                                                                {{ $appointment->employee->name ?? 'غير محدد' }}
                                                             </small>
                                                         </div>
                                                         <div class="col-md-3 text-center">
@@ -412,7 +416,8 @@
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title"
-                                                                id="noteModalLabel{{ $appointment->id }}">إضافة ملاحظات
+                                                                id="noteModalLabel{{ $appointment->id }}">إضافة
+                                                                ملاحظات
                                                                 للموعد</h5>
                                                             <button type="button" class="close" data-dismiss="modal"
                                                                 aria-label="Close">
@@ -452,7 +457,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- تبويب الفواتير -->
                     <div class="tab-pane" id="invoices" aria-labelledby="invoices-tab" role="tabpanel">
                         <div class="table-responsive">
@@ -739,6 +743,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- تبويبة -->
 
                     <div class="tab-pane" id="balance-summary" aria-labelledby="balance-summary-tab" role="tabpanel">
                         <div class="d-flex justify-content-end gap-2 mb-3">
@@ -762,360 +767,14 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="tab-pane" id="membership" aria-labelledby="membership-tab" role="tabpanel">
-                        <div class="d-flex justify-content-end gap-2 mb-3">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                                data-bs-target="#addMembershipModal">
-                                <i class="fas fa-plus"></i>
-                                أضف عضوية جديدة
-                            </button>
-                            <button type="button" class="btn btn-secondary">
-                                <i class="fas fa-history"></i>
-                                سجل العضويات
-                            </button>
-                        </div>
-
-                        <!-- معلومات العضوية الحالية -->
-                        <div class="card mb-3">
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="card border-0 bg-light h-100">
-                                            <div class="card-body">
-                                                <h6 class="card-title mb-3">معلومات العضوية الأساسية</h6>
-                                                <p class="mb-2"><strong>رقم العضوية:</strong> {{ $client->code }}</p>
-                                                <p class="mb-2"><strong>تاريخ التسجيل:</strong>
-                                                    {{ $client->created_at->format('Y-m-d') }}</p>
-                                                <p class="mb-2"><strong>نوع العضوية:</strong>
-                                                    @if ($client->client_type == 1)
-                                                        <span class="badge bg-primary">فرد</span>
-                                                    @elseif($client->client_type == 2)
-                                                        <span class="badge bg-info">شركة</span>
-                                                    @else
-                                                        <span class="badge bg-secondary">غير محدد</span>
-                                                    @endif
-                                                </p>
-                                                <p class="mb-0"><strong>حالة العضوية:</strong>
-                                                    @if ($client->status)
-                                                        <span class="badge bg-success">نشط</span>
-                                                    @else
-                                                        <span class="badge bg-warning">غير نشط</span>
-                                                    @endif
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card border-0 bg-light h-100">
-                                            <div class="card-body">
-                                                <h6 class="card-title mb-3">معلومات الائتمان</h6>
-                                                <p class="mb-2"><strong>حد الائتمان:</strong>
-                                                    <span
-                                                        class="text-success">{{ number_format($client->credit_limit, 2) }}
-                                                        ر.س</span>
-                                                </p>
-                                                <p class="mb-2"><strong>فترة الائتمان:</strong>
-                                                    <span class="text-primary">{{ $client->credit_period }} يوم</span>
-                                                </p>
-                                                <div class="mt-3">
-                                                    <div class="progress" style="height: 8px;">
-                                                        <div class="progress-bar bg-success" role="progressbar"
-                                                            style="width: 65%"></div>
-                                                    </div>
-                                                    <small class="text-muted">نسبة استخدام حد الائتمان: 65%</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- قائمة العضويات -->
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0">سجل العضويات</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>نوع العضوية</th>
-                                                <th>تاريخ البدء</th>
-                                                <th>تاريخ الانتهاء</th>
-                                                <th>المبلغ</th>
-                                                <th>الحالة</th>
-                                                <th>الإجراءات</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>العضوية الذهبية</td>
-                                                <td>2024-01-01</td>
-                                                <td>2024-12-31</td>
-                                                <td>1,500.00 ر.س</td>
-                                                <td><span class="badge bg-success">نشط</span></td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-light" title="عرض التفاصيل">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-light" title="تجديد العضوية">
-                                                        <i class="fas fa-sync-alt"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- نموذج إضافة عضوية جديدة -->
-                        <div class="modal fade" id="addMembershipModal" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">إضافة عضوية جديدة</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form id="membershipForm">
-                                            <div class="mb-3">
-                                                <label class="form-label">نوع العضوية</label>
-                                                <select class="form-select">
-                                                    <option value="gold">العضوية الذهبية</option>
-                                                    <option value="silver">العضوية الفضية</option>
-                                                    <option value="bronze">العضوية البرونزية</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">تاريخ البدء</label>
-                                                <input type="date" class="form-control">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">مدة العضوية (بالأشهر)</label>
-                                                <input type="number" class="form-control" min="1">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">المبلغ</label>
-                                                <div class="input-group">
-                                                    <input type="number" class="form-control">
-                                                    <span class="input-group-text">ر.س</span>
-                                                </div>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">ملاحظات</label>
-                                                <textarea class="form-control" rows="3"></textarea>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">إلغاء</button>
-                                        <button type="button" class="btn btn-success">حفظ العضوية</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- تبويب الجدول الزمني -->
-                    <div class="tab-pane" id="timeline" aria-labelledby="timeline-tab" role="tabpanel">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="timeline">
-                                    @foreach ($client->transactions->sortByDesc('date')->take(10) as $transaction)
-                                        <div class="timeline-item">
-                                            <div class="timeline-point-wrapper">
-                                                <div class="timeline-point"></div>
-                                            </div>
-                                            <div class="timeline-event">
-                                                <div class="d-flex justify-content-between">
-                                                    <span class="timeline-event-time">{{ $transaction['date'] }}</span>
-                                                    {{-- <span class="badge badge-{{ $transaction['status_color'] }}">
-                                                        {{ $transaction['status_text'] }} --}}
-                                                    </span>
-                                                </div>
-                                                <h6 class="timeline-event-header">{{ $transaction['type'] }} -
-                                                    {{ $transaction['number'] }}</h6>
-                                                <p class="timeline-event-description">
-                                                    المبلغ: {{ $transaction['amount'] }} | الرصيد:
-                                                    {{ $transaction['balance'] }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--    -->
-                    <div class="tab-pane" id="service" aria-labelledby="service-tab" role="tabpanel">
-                        <div class="card">
-                            <div class="card-body">
-
-
-
-                                <div class="content-header row">
-                                    <div class="content-header-left col-md-9 col-12 mb-2">
-                                        <div class="row breadcrumbs-top">
-                                            <div class="col-12">
-                                                <h2 class="content-header-title float-left mb-0">حجوزات العميل :
-                                                    {{ $Client->first_name ?? '' }} </h2>
-                                                <div class="breadcrumb-wrapper col-12">
-                                                    <ol class="breadcrumb">
-                                                        <li class="breadcrumb-item"><a href="">الرئيسيه</a>
-                                                        </li>
-                                                        <li class="breadcrumb-item active">عرض
-                                                        </li>
-                                                    </ol>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                @include('layouts.alerts.error')
-                                @include('layouts.alerts.success')
-                                <div class="content-body">
-
-
-                                    <div class="card">
-
-                                    </div>
-
-
-                                    <div class="card my-5">
-                                        <div class="card-body">
-                                            <!-- شريط الترتيب -->
-                                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                                <ul class="nav nav-tabs" id="sortTabs" role="tablist">
-                                                    <li class="nav-item" role="presentation">
-                                                        <button class="nav-link active" id="all-tab"
-                                                            data-bs-toggle="tab" data-bs-target="#all" type="button"
-                                                            role="tab" aria-controls="all"
-                                                            aria-selected="true">الكل</button>
-                                                    </li>
-                                                    <li class="nav-item" role="presentation">
-                                                        <button class="nav-link" id="today-tab" data-bs-toggle="tab"
-                                                            data-bs-target="#today" type="button" role="tab"
-                                                            aria-controls="today" aria-selected="false">اليوم</button>
-                                                    </li>
-                                                    <li class="nav-item" role="presentation">
-                                                        <button class="nav-link" id="week-tab" data-bs-toggle="tab"
-                                                            data-bs-target="#week" type="button" role="tab"
-                                                            aria-controls="week" aria-selected="false">الأسبوع</button>
-                                                    </li>
-                                                    <li class="nav-item" role="presentation">
-                                                        <button class="nav-link" id="month-tab" data-bs-toggle="tab"
-                                                            data-bs-target="#month" type="button" role="tab"
-                                                            aria-controls="month" aria-selected="false">الشهر</button>
-                                                    </li>
-                                                </ul>
-
-                                                <!-- أزرار العرض -->
-                                                <div class="btn-group" role="group" aria-label="View Toggle">
-                                                    <button type="button" class="btn btn-light">
-                                                        <i class="bi bi-grid-3x3-gap-fill"></i> <!-- رمز الشبكة -->
-                                                    </button>
-                                                    <button type="button" class="btn btn-primary">
-                                                        <i class="bi bi-list-ul"></i> <!-- رمز القائمة -->
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <!-- بطاقة بيانات -->
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    @foreach ($bookings as $booking)
-                                                        <div class="row">
-                                                            <div class="col-auto">
-                                                                <!-- صورة افتراضية -->
-                                                                <div
-                                                                    style="width: 50px; height: 50px; background-color: #f0f0f0; border-radius: 5px;">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col">
-                                                                <h6>بيانات العميل</h6>
-                                                                <p class="mb-1">
-                                                                    {{ $booking->client->first_name ?? '' }}</p>
-                                                                <p class="mb-1">الخدمة
-                                                                    :{{ $booking->product->name ?? '' }}</p>
-                                                            </div>
-                                                            <div class="col-auto text-end">
-                                                                <p class="mb-1">الوقت من
-                                                                    {{ $booking->start_time ?? 0 }} الى
-                                                                    {{ $booking->end_time ?? 0 }}</p>
-                                                                <p class="text-muted small mb-0">16:45:00</p>
-
-                                                                @if ($booking->status == 'confirm')
-                                                                    <span class="badge bg-warning text-dark">مؤكد</span>
-                                                                @elseif ($booking->status == 'review')
-                                                                    <span class="badge bg-warning text-dark">تحت
-                                                                        المراجعة</span>
-                                                                @elseif ($booking->status == 'bill')
-                                                                    <span class="badge bg-warning text-dark">حولت
-                                                                        للفاتورة</span>
-                                                                @elseif ($booking->status == 'cancel')
-                                                                    <span class="badge bg-warning text-dark">تم
-                                                                        الالغاء</span>
-                                                                @else
-                                                                    <span class="badge bg-warning text-dark">تم</span>
-                                                                @endif
-
-                                                                <a href="{{ route('Reservations.show', $booking->id) }}"
-                                                                    class="badge bg-danger text-dark">عرض</a>
-                                                                <a href="{{ route('Reservations.edit', $booking->id) }}"
-                                                                    class="btn btn-sm btn-primary">
-                                                                    <i class="fa fa-edit"></i> تعديل
-                                                                </a>
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Horizontal line after each customer's data -->
-                                                        <hr>
-                                                    @endforeach
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Bootstrap JS -->
-                                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                                    <!-- Bootstrap Icons -->
-                                    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-                                        rel="stylesheet">
-
-
-
-
-                                </div>
-                            </div>
-                        </div>
-                        <!-- تبويب  العضويات -->
-
-
-
-                        <!--    -->
-
-                    </div>
                 </div>
-            </div>
+            @endsection
+            @section('scripts')
+                <meta name="csrf-token" content="{{ csrf_token() }}">
+                <script src="{{ asset('assets/js/applmintion.js') }}"></script>
+                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-        </div>
-
-    @endsection
-    @section('scripts')
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-
-        <script src="{{ asset('assets/js/applmintion.js') }}"></script>
-
-
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    @endsection
+            @endsection

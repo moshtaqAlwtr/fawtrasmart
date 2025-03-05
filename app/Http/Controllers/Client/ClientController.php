@@ -69,8 +69,8 @@ class ClientController extends Controller
     if ($customers) {
         $customerAccount = new Account();
         $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
-        $customerAccount->client_id = $client->id; 
-        
+        $customerAccount->client_id = $client->id;
+
         // تعيين كود الحساب الفرعي بناءً على كود الحسابات
         $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
         $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
@@ -196,7 +196,7 @@ private function generateNextCode(string $lastChildCode): string
     }
     public function show($id)
     {
-        $installment = Installment::with('invoice.client')->get();
+        // استخراج الفواتير الخاصة بالعميل
         $client = Client::with([
             'invoices' => function ($query) {
                 $query->orderBy('invoice_date', 'desc');
@@ -207,14 +207,16 @@ private function generateNextCode(string $lastChildCode): string
             'employee',
         ])->findOrFail($id);
 
-        $bookings  = Booking::where('client_id',$id)->get();
-        $Client    = Client::find($id);
-        $packages	= Package::all();
+        $installment = Installment::with('invoice.client')->get();
+        $bookings  = Booking::where('client_id', $id)->get();
+        $packages  = Package::all();
         $memberships = Memberships::all();
 
-        return view('client.show', compact('client','installment','bookings','Client','packages','memberships'));
-    }
+        // استخراج الفواتير من العميل
+        $invoices = $client->invoices;
 
+        return view('client.show', compact('client', 'installment', 'bookings', 'packages', 'memberships', 'invoices'));
+    }
     public function contact()
     {
         $clients = Client::all();
