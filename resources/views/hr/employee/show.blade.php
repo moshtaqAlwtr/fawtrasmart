@@ -77,11 +77,20 @@
                             <span class="font-small-2">{{ $formattedDate }}</span><br>
                             <span>#{{ $employee->id }}</span>
                         </div>
-                        <div class="ml-auto">
-                            <a href="mailto:{{ $employee->email }}"><i class="ficon feather icon-mail"></i> <small>ايميل : {{ $employee->email }}</small></a><br>
-                            <a href="{{ route('employee.login_to',$user->id) }}"><i class="ficon feather icon-user"></i> <small>تسجيل الدخول ك {{ $employee->full_name }}</small></a><br>
-                            <a href=""><i class="ficon feather icon-smartphone"></i> <small>إعداد تطبيق الحضور</small></a>
-                        </div>
+                       <div class="ml-auto">
+    <a href="mailto:{{ $employee->email }}" style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
+        <i class="ficon feather icon-mail"></i> <small>ايميل : {{ $employee->email }}</small>
+    </a>
+    
+    <a href="{{ route('employee.login_to',$user->id) }}" style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
+        <i class="ficon feather icon-user"></i> <small>تسجيل الدخول ك {{ $employee->full_name }}</small>
+    </a>
+    
+    <a href="" style="font-size: 18px; font-weight: bold; display: block;">
+        <i class="ficon feather icon-smartphone"></i> <small>إعداد تطبيق الحضور</small>
+    </a>
+</div>
+
                         
                     </div>
                 </div>
