@@ -44,6 +44,7 @@
                                 <th colspan="5" class="border border-info">الوارد</th>
                                 <th colspan="5" class="border border-info">المنصرف</th>
                                 <th rowspan="2" class="border border-info">إجمالي الحركة</th>
+                             
                             </tr>
                             <tr class="table-info">
                                 <th>فواتير الشراء</th>
@@ -67,19 +68,21 @@
                                     <td>{{ $product['incoming_transfer'] }}</td>
                                     <td>{{ $product['incoming_manual'] }}</td>
                                     <td>{{ $product['incoming_total'] }}</td>
-
-                                    <td>0</td>
+                        
+                                    <td>{{ $product['sold_quantity'] }}</td> <!-- عرض عدد فواتير البيع -->
+                        
                                     <td>0</td>
                                     <td>{{ $product['outgoing_transfer'] != 0 ? '-' . $product['outgoing_transfer'] : 0 }}</td>
                                     <td>{{ $product['outgoing_manual'] != 0 ? '-' . $product['outgoing_manual'] : 0 }}</td>
                                     <td>{{ $product['outgoing_total'] != 0 ? '-' . $product['outgoing_total'] : 0 }}</td>
-
+                        
                                     <td class="active">
-                                        <a href=""><u><strong>{{ $product['movement_total'] }}</strong></u></a>
+                                        <a href=""><u><strong>{{ $product['movement_total'] - $product['sold_quantity'] }} </strong></u></a>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
+                        
                     </table>
 
                 </div>
@@ -93,4 +96,4 @@
 
 @section('scripts')
 @endsection
-a
+

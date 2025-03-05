@@ -9,6 +9,7 @@ class InventoryManagementController extends Controller
 {
     public function index()
     {
+        
         return view('stock.inventory_management.index');
     }
 }

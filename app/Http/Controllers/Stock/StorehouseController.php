@@ -236,36 +236,37 @@ class StorehouseController extends Controller
     public function summary_inventory_operations($id)
     {
         $storehouse = StoreHouse::findOrFail($id);
-
+    
         // جلب جميع التصاريح الخاصة بالمستودع
         $warehousePermits = WarehousePermits::where('store_houses_id', $id)
             ->orWhere('from_store_houses_id', $id)
             ->orWhere('to_store_houses_id', $id)
             ->with('warehousePermitsProducts')
             ->get();
-
+    
         $productsData = [];
-
+    
         foreach ($warehousePermits as $permit) {
             foreach ($permit->warehousePermitsProducts as $product) {
                 $productId = $product->product_id;
-
+    
                 if (!isset($productsData[$productId])) {
                     $productsData[$productId] = [
                         'name' => Product::find($productId)->name,
                         'id' => $productId,
-                        'incoming_manual' => 0,    // الوارد يدوي
-                        'incoming_transfer' => 0,  // الوارد تحويل
-                        'outgoing_manual' => 0,    // المنصرف يدوي
-                        'outgoing_transfer' => 0,  // المنصرف تحويل
-                        'incoming_total' => 0,     // إجمالي الوارد
-                        'outgoing_total' => 0,     // إجمالي المنصرف
-                        'movement_total' => 0      // إجمالي الحركة
+                        'incoming_manual' => 0,
+                        'incoming_transfer' => 0,
+                        'outgoing_manual' => 0,
+                        'outgoing_transfer' => 0,
+                        'incoming_total' => 0,
+                        'outgoing_total' => 0,
+                        'movement_total' => 0,
+                        'sold_quantity' => 0, // إضافة حقل لعدد المنتجات المباعة
                     ];
                 }
-
+    
                 $quantity = $product->quantity;
-
+    
                 // حساب القيم بناءً على نوع الإذن
                 switch ($permit->permission_type) {
                     case 1: // إضافة (يدوي - وارد)
@@ -283,27 +284,30 @@ class StorehouseController extends Controller
                         }
                         break;
                 }
-
+    
                 // حساب الإجماليات
                 $productsData[$productId]['incoming_total'] =
                     $productsData[$productId]['incoming_manual'] +
                     $productsData[$productId]['incoming_transfer'];
-
+    
                 $productsData[$productId]['outgoing_total'] =
                     $productsData[$productId]['outgoing_manual'] +
                     $productsData[$productId]['outgoing_transfer'];
-
+    
                 $productsData[$productId]['movement_total'] =
                     $productsData[$productId]['incoming_total'] - $productsData[$productId]['outgoing_total'];
+    
+                // جلب عدد المنتجات المباعة من دالة totalSold
+                $productsData[$productId]['sold_quantity'] = Product::find($productId)->totalSold();
             }
         }
-
+    
         return view('stock.storehouse.summary_inventory_operations', [
             'products' => $productsData,
             'storehouse' => $storehouse,
         ]);
     }
-
+    
     public function inventory_value($id)
     {
         $products = ProductDetails::where('store_house_id', $id)

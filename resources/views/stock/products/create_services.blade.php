@@ -94,11 +94,8 @@
                                                 <div class="col-6">
                                                     <div class="form-group">
                                                         <label for="first-name-vertical">التصنيف</label>
-                                                        <select name="category_id" class="form-control">
+                                                        <select id="category-input" class="form-control" name="category_id">
                                                             <option value="">-- اختر التصنيف --</option>
-                                                            @foreach ($categories as $category)
-                                                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                                                            @endforeach
                                                         </select>
                                                         @error('category_id')
                                                         <span class="text-danger" id="basic-default-name-error" class="error">
@@ -357,5 +354,35 @@
         document.getElementById("featured_product").disabled = true;
     }
 </script>
-
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // تهيئة Select2 مع البحث عبر Ajax
+        $('#category-input').select2({
+            placeholder: "اختر التصنيف",
+            allowClear: true, // يتيح مسح الاختيار
+            minimumInputLength: 1, // يسمح بالبحث عند الكتابة
+            ajax: {
+                url: '/stock/products/getcategories', // المسار الذي يعيد التصنيفات من الخادم
+                dataType: 'json',
+                delay: 250, // تأخير البحث قليلاً لتحسين الأداء
+                data: function(params) {
+                    return {
+                        search: params.term, // إرسال نص البحث
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.results, // النتائج المرسلة من الخادم
+                    };
+                },
+                cache: true // تخزين النتائج في الكاش لتحسين الأداء
+            }
+        });
+    });
+    
+    
+    
+    </script>
 @endsection
