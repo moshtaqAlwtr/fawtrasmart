@@ -25,14 +25,14 @@ class ClientController extends Controller
     {
         // الحصول على المستخدم الحالي
         $user = auth()->user();
-    
+
         // التحقق مما إذا كان للمستخدم فرع أم لا
         if ($user->branch) {
             $branch = $user->branch;
-    
+
             // التحقق من صلاحية "مشاركة بيانات العملاء"
             $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
-    
+
             // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
             if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
                 $clients = Client::whereHas('employee', function ($query) use ($branch) {
@@ -46,15 +46,15 @@ class ClientController extends Controller
             // إذا لم يكن لدى المستخدم فرع، عرض جميع العملاء
             $clients = Client::with('employee')->orderBy('created_at', 'desc')->paginate(10);
         }
-    
+
         // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
         $users = User::all();
         $employees = Employee::all();
-    
+
         return view('client.index', compact('clients', 'users', 'employees'));
     }
-    
-    
+
+
 
 
     public function create()
@@ -95,7 +95,7 @@ class ClientController extends Controller
         // حفظ العميل
         $client->save();
 
-        
+
 
         // إنشاء حساب فرعي باستخدام trade_name
         $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
@@ -228,26 +228,28 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'تم حذف العميل وجميع البيانات المرتبطة به بنجاح');
     }
     public function show($id)
-    {
-        $installment = Installment::with('invoice.client')->get();
-        $client = Client::with([
-            'invoices' => function ($query) {
-                $query->orderBy('invoice_date', 'desc');
-            },
-            'appointments' => function ($query) {
-                $query->orderByAppointmentDate();
-            },
-            'employee',
-        ])->findOrFail($id);
+{
+    $installment = Installment::with('invoice.client')->get();
+    $client = Client::with([
+        'invoices' => function ($query) {
+            $query->orderBy('invoice_date', 'desc');
+        },
+        'appointments' => function ($query) {
+            $query->orderByAppointmentDate();
+        },
+        'employee',
+    ])->findOrFail($id);
 
-        $bookings  = Booking::where('client_id', $id)->get();
-        $Client    = Client::find($id);
-        $packages    = Package::all();
-        $memberships = Memberships::all();
+    $bookings  = Booking::where('client_id', $id)->get();
+    $Client    = Client::find($id);
+    $packages    = Package::all();
+    $memberships = Memberships::all();
 
-        return view('client.show', compact('client', 'installment', 'bookings', 'Client', 'packages', 'memberships'));
-    }
+    // Assuming the invoices are related to the client, you can access them like this:
+    $invoices = $client->invoices;
 
+    return view('client.show', compact('client', 'installment', 'bookings', 'Client', 'packages', 'memberships', 'invoices'));
+}
     public function contact()
     {
         $clients = Client::all();

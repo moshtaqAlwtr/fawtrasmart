@@ -39,18 +39,54 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
-                        <strong>{{ $client->trade_name }}</strong> | <small>#{{ $client->code }}</small>
-                        @if ($client->status)
-                            <span class="badge badge-pill badge-success">نشط</span>
-                        @else
-                            <span class="badge badge-pill badge-warning">غير نشط</span>
-                        @endif
+                        <strong>{{ $client->trade_name }}</strong>
+                        <small class="text-muted">#{{ $client->id }}</small>
+                        <span class="badge badge-success">
+                        @if ($client->status == "active")
+                            نشط
+
+                        @elseif ($client->status == "inactive")
+                            غير نشط
+
+                        @endif</span>
+                        <br>
+                        <small class="text-muted">
+                            حساب الأستاذ: <a href="#">أسواق إمداد القصيم للمواد الغذائية #125987</a>
+                        </small>
                     </div>
+                    <div class="d-flex align-items-center">
+                        <span class="text-primary mx-2">تعيين إلى:</span>
+                        <button class="btn btn-sm btn-outline-primary">محمد الإدريسي <span class="text-danger">&times;</span></button>
+                    </div>
+                </div>
 
 
+            </div>
+        </div>
+        <div class="card bg-light border-0">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <!-- القسم الأيمن (الاسم والموقع) -->
+                <div class="text-end">
+                    <strong class="text-dark">خالد</strong>
+                    <br>
+                    <span class="text-primary">
+                        <i class="fas fa-map-marker-alt"></i> القصيم، البكيرية
+                    </span>
+                </div>
+
+                <!-- القسم الأيسر (رقم الهاتف) -->
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <span class="mx-2 text-dark">0557749696</span>
+                    <button class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-mobile-alt"></i>
+                    </button>
                 </div>
             </div>
         </div>
+
 
         <div class="card">
 
