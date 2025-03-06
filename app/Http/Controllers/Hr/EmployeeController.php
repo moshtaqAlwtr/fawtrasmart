@@ -299,4 +299,16 @@ class EmployeeController extends Controller
 
         return response()->json($employees);
     }
+    public function updateStatus($id)
+    {
+        $employee = Employee::find($id);
+
+        if (!$employee) {
+            return redirect()->route('employee.show',$id)->with(['error' => ' نوع الرصيد غير موجود!']);
+        }
+
+        $employee->update(['status' => !$employee->status]);
+
+        return redirect()->route('employee.show',$id)->with(['success' => 'تم تحديث حالة الموضف  بنجاح!']);
+    }
 }

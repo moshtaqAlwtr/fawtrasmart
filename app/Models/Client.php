@@ -51,7 +51,7 @@ class Client extends Model
     // العلاقات
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'client_id', 'id')->orderBy('invoice_date', 'desc');
+        return $this->hasMany(Invoice::class, 'client_id');
     }
 
     public function receipts()
@@ -59,10 +59,7 @@ class Client extends Model
         return $this->hasMany(Receipt::class, 'client_id', 'id');
     }
 
-    public function payments()
-    {
-        return $this->hasMany(PaymentsProcess::class, 'client_id', 'id');
-    }
+
 
     public function cheques()
     {
@@ -199,4 +196,17 @@ class Client extends Model
     {
         return $this->hasMany(CategoriesClient::class, 'classification_id');
     }
+    public function employees()
+    {
+        return $this->belongsToMany(
+            Employee::class,      // النموذج المرتبط
+            'client_employee',    // اسم الجدول الوسيط
+            'client_id',          // المفتاح الأجنبي للنموذج الحالي
+            'employee_id'         // المفتاح الأجنبي للنموذج المرتبط
+        )->withTimestamps();      // إضافة طوابع زمنية
+    }
+    public function payments()
+{
+    return $this->hasManyThrough(PaymentsProcess::class, Invoice::class);
+}
 }

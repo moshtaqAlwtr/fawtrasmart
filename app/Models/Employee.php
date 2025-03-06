@@ -74,4 +74,13 @@ class Employee extends Model
     {
         return $this->hasMany(SupplyOrder::class, 'employee_id');
     }
+    public function clients()
+    {
+        return $this->belongsToMany(
+            Client::class,
+            'client_employee',
+            'employee_id',
+            'client_id'
+        )->withTimestamps();
+    }
 }

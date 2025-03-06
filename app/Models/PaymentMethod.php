@@ -10,4 +10,6 @@ class PaymentMethod extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'description', 'status', 'is_online','type'];
+
 }
+
