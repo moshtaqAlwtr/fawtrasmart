@@ -12,9 +12,10 @@ use Illuminate\Http\Request;
 class SalaryItemsController extends Controller
 {
     public function index(Request $request)
-    {
-        $query = SalaryItem::query();
+{
+    $query = SalaryItem::query();
 
+    if ($request->ajax()) {
         if ($request->filled('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
         }
@@ -27,9 +28,35 @@ class SalaryItemsController extends Controller
             $query->where('type', $request->type);
         }
 
-        $salaryItems = $query->paginate(10);
-        return view('salaries.salary_items.index', compact('salaryItems'));
+        // ✅ البحث عن الحسابات عند الكتابة
+        if ($request->filled('query')) {
+            $accounts = \App\Models\Account::where(function($query) use ($request) {
+                $query->where('name', 'LIKE', "%" . $request->query('query') . "%")
+                      ->orWhere('id', 'LIKE', "%" . $request->query('query') . "%")
+                      ->orWhere('code', 'LIKE', "%" . $request->query('query') . "%");
+            })->get();
+
+            $options = '';
+            foreach ($accounts as $account) {
+                $options .= "<a href='#' class='list-group-item list-group-item-action account-item'>{$account->name}</a>";
+            }
+
+            return response()->json(['options' => $options]);
+        }
+
+        // ✅ جلب بيانات SalaryItems
+        $salaryItems = $query->get();
+
+        return response()->json([
+            'html' => view('salaries.salary_items.partials.table', compact('salaryItems'))->render()
+        ]);
     }
+
+    // تحميل جميع البيانات عند فتح الصفحة لأول مرة
+    $salaryItems = $query->get();
+    return view('salaries.salary_items.index', compact('salaryItems'));
+}
+
 
     public function create()
     {

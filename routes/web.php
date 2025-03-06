@@ -230,6 +230,7 @@ Route::group(
                 Route::post('/update/{id}', [CommissionController::class, 'update'])->name('commission.update');
 
             });
+
     },
 );
 

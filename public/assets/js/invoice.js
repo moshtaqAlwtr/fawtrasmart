@@ -277,4 +277,118 @@ document.addEventListener('DOMContentLoaded', function() {
             paymentFields.style.display = this.checked ? 'block' : 'none';
         });
     }
+
 });
+document.querySelectorAll('.toggle-check').forEach((checkbox) => {
+    checkbox.addEventListener('change', function() {
+        const paymentFields = this.closest('.card-body').querySelector('.payment-fields');
+        if (this.checked) {
+            paymentFields.style.display = 'block'; // إظهار الحقول
+        } else {
+            paymentFields.style.display = 'none'; // إخفاء الحقول
+        }
+    });
+});
+
+$(document).ready(function() {
+    // فلترة العملاء
+    $('#searchClient').on('keyup', function() {
+        var query = $(this).val();
+
+        if (query.length > 0) {
+            $('#loadingIcon').removeClass('d-none'); // عرض أيقونة التحميل
+
+            $.ajax({
+                url: "{{ route('invoices.index') }}",
+                type: "GET",
+                data: {
+                    query: query,
+                    type: 'client' // نحدد نوع البحث
+                },
+                success: function(response) {
+                    $('#accountResults').html(response.options);
+                },
+                complete: function() {
+                    $('#loadingIcon').addClass(
+                        'd-none'); // إخفاء أيقونة التحميل بعد الانتهاء
+                }
+            });
+        } else {
+            $('#accountResults').html('');
+            $('#loadingIcon').addClass('d-none'); // إخفاء الأيقونة إذا لم يكن هناك نص
+        }
+    });
+
+    // فلترة الموظفين
+    $('#searchEmployee').on('keyup', function() {
+        var query = $(this).val();
+
+        if (query.length > 0) {
+            $('#loadingIconEmployee').removeClass('d-none'); // عرض أيقونة التحميل
+
+            $.ajax({
+                url: "{{ route('invoices.index') }}",
+                type: "GET",
+                data: {
+                    query: query,
+                    type: 'employee' // نحدد نوع البحث
+                },
+                success: function(response) {
+                    $('#employeeResults').html(response.options);
+                },
+                complete: function() {
+                    $('#loadingIconEmployee').addClass(
+                        'd-none'); // إخفاء أيقونة التحميل بعد الانتهاء
+                }
+            });
+        } else {
+            $('#employeeResults').html('');
+            $('#loadingIconEmployee').addClass('d-none'); // إخفاء الأيقونة إذا لم يكن هناك نص
+        }
+    });
+
+    // فلترة المنتجات
+    $('#searchProduct').on('keyup', function() {
+        var query = $(this).val();
+
+        if (query.length > 0) {
+            $('#loadingIconProduct').removeClass('d-none'); // عرض أيقونة التحميل
+
+            $.ajax({
+                url: "{{ route('invoices.index') }}",
+                type: "GET",
+                data: {
+                    query: query,
+                    type: 'product' // نحدد نوع البحث
+                },
+                success: function(response) {
+                    $('#productResults').html(response.options);
+                },
+                complete: function() {
+                    $('#loadingIconProduct').addClass(
+                        'd-none'); // إخفاء أيقونة التحميل بعد الانتهاء
+                }
+            });
+        } else {
+            $('#productResults').html('');
+            $('#loadingIconProduct').addClass('d-none'); // إخفاء الأيقونة إذا لم يكن هناك نص
+        }
+    });
+
+    // عند اختيار عنصر، يتم إدخاله في الحقل وإخفاء القائمة
+    $(document).on('click', '.account-item', function() {
+        $('#searchClient').val($(this).text());
+        $('#accountResults').html('');
+    });
+
+    $(document).on('click', '.employee-item', function() {
+        $('#searchEmployee').val($(this).text());
+        $('#employeeResults').html('');
+    });
+
+    $(document).on('click', '.product-item', function() {
+        $('#searchProduct').val($(this).text());
+        $('#productResults').html('');
+    });
+});
+

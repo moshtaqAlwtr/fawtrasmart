@@ -9,68 +9,68 @@
     <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
     <style>
         @media (max-width: 767.98px) {
-    #items-table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
+            #items-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
 
-    #items-table thead,
-    #items-table tbody,
-    #items-table tfoot,
-    #items-table tr,
-    #items-table td,
-    #items-table th {
-        display: block;
-    }
+            #items-table thead,
+            #items-table tbody,
+            #items-table tfoot,
+            #items-table tr,
+            #items-table td,
+            #items-table th {
+                display: block;
+            }
 
-    #items-table tr {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 1rem;
-        border: 1px solid #ddd;
-        padding: 10px;
-    }
+            #items-table tr {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                padding: 10px;
+            }
 
-    #items-table td,
-    #items-table th {
-        border: none;
-        padding: 0.5rem;
-    }
+            #items-table td,
+            #items-table th {
+                border: none;
+                padding: 0.5rem;
+            }
 
-    #items-table td {
-        text-align: right;
-    }
+            #items-table td {
+                text-align: right;
+            }
 
-    #items-table td::before {
-        content: attr(data-label);
-        float: left;
-        font-weight: bold;
-    }
+            #items-table td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+            }
 
-    #items-table .item-row {
-        display: flex;
-        flex-direction: column;
-    }
+            #items-table .item-row {
+                display: flex;
+                flex-direction: column;
+            }
 
-    #items-table .item-row td {
-        width: 100%;
-    }
+            #items-table .item-row td {
+                width: 100%;
+            }
 
-    #items-table .item-row td input,
-    #items-table .item-row td select {
-        width: 100%;
-    }
+            #items-table .item-row td input,
+            #items-table .item-row td select {
+                width: 100%;
+            }
 
-    #items-table tfoot tr {
-        display: flex;
-        flex-direction: column;
-    }
+            #items-table tfoot tr {
+                display: flex;
+                flex-direction: column;
+            }
 
-    #items-table tfoot td {
-        text-align: right;
-    }
-}
+            #items-table tfoot td {
+                text-align: right;
+            }
+        }
     </style>
 @endsection
 @section('content')
@@ -156,7 +156,7 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control" id="clientSelect" name="client_id"
+                                                <select class="form-control select2" id="clientSelect" name="client_id"
                                                     required>
                                                     <option value="">اختر العميل </option>
                                                     @foreach ($clients as $client)
@@ -204,7 +204,8 @@
                                                 <span>تاريخ الفاتورة :</span>
                                             </div>
                                             <div class="col-md-8">
-                                                <input class="form-control" type="date" name="invoice_date" value="{{ old('invoice_date', date('Y-m-d')) }}">
+                                                <input class="form-control" type="date" name="invoice_date"
+                                                    value="{{ old('invoice_date', date('Y-m-d')) }}">
                                             </div>
                                         </div>
                                     </div>
@@ -215,9 +216,10 @@
                                                 <span>مسئول المبيعات :</span>
                                             </div>
                                             <div class="col-md-9">
-                                                <select name="employee_id" class="form-control " id="">
+                                                <select name="employee_id" class="form-control select2 " id="">
                                                     @foreach ($employees as $employee)
-                                                        <option value="{{ $employee->id }}">{{ $employee->full_name}}</option>
+                                                        <option value="{{ $employee->id }}">{{ $employee->full_name }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -231,7 +233,8 @@
                                                 <span>تاريخ الاصدار :</span>
                                             </div>
                                             <div class="col-md-8">
-                                                <input class="form-control" type="date" name="issue_date" value="{{ old('issue_date', date('Y-m-d')) }}">
+                                                <input class="form-control" type="date" name="issue_date"
+                                                    value="{{ old('issue_date', date('Y-m-d')) }}">
                                             </div>
                                         </div>
                                     </div>
@@ -300,25 +303,31 @@
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">
-                                            <select name="items[0][product_id]" class="form-control product-select">
+                                            <select name="items[0][product_id]" class="form-control product-select select2">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}"
+                                                        data-price="{{ $item->price }}">{{ $item->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
                                         <td data-label="الوصف">
-                                            <input type="text" name="items[0][description]" class="form-control item-description">
+                                            <input type="text" name="items[0][description]"
+                                                class="form-control item-description">
                                         </td>
                                         <td data-label="الكمية">
-                                            <input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="1" required>
+                                            <input type="number" name="items[0][quantity]" class="form-control quantity"
+                                                value="1" min="1" required>
                                         </td>
                                         <td data-label="السعر">
-                                            <input type="number" name="items[0][unit_price]" class="form-control price" step="0.01" required>
+                                            <input type="number" name="items[0][unit_price]" class="form-control price"
+                                                step="0.01" required>
                                         </td>
                                         <td data-label="الخصم">
                                             <div class="input-group">
-                                                <input type="number" name="items[0][discount]" class="form-control discount-value" value="0" min="0" step="0.01">
+                                                <input type="number" name="items[0][discount]"
+                                                    class="form-control discount-value" value="0" min="0"
+                                                    step="0.01">
                                                 <select name="items[0][discount_type]" class="form-control discount-type">
                                                     <option value="amount">ريال</option>
                                                     <option value="percentage">نسبة %</option>
@@ -326,10 +335,12 @@
                                             </div>
                                         </td>
                                         <td data-label="الضريبة 1">
-                                            <input type="number" name="items[0][tax_1]" class="form-control tax" value="15" min="0" max="100" step="0.01">
+                                            <input type="number" name="items[0][tax_1]" class="form-control tax"
+                                                value="15" min="0" max="100" step="0.01">
                                         </td>
                                         <td data-label="الضريبة 2">
-                                            <input type="number" name="items[0][tax_2]" class="form-control tax" value="0" min="0" max="100" step="0.01">
+                                            <input type="number" name="items[0][tax_2]" class="form-control tax"
+                                                value="0" min="0" max="100" step="0.01">
                                         </td>
                                         <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
@@ -653,5 +664,7 @@
                 }
             });
         });
+
+
     </script>
 @endsection

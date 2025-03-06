@@ -84,7 +84,6 @@
                             </select>
                         </div>
 
-
                     </div>
                     <div class="form-body row">
 
@@ -104,10 +103,22 @@
                         </div>
                     </div>
 
-
-
-
-
+                    <div class="form-body row">
+                        <div class="form-group col-md-6 position-relative">
+                            <label for="feedback2">الحساب الافتراضي ؟</label>
+                            <div class="input-group">
+                                <input type="text" id="searchAccount" class="form-control" placeholder="ابحث عن الحساب">
+                                <div class="input-group-append">
+                                    <span id="loadingIcon" class="input-group-text d-none">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div id="accountResults"
+                                class="list-group w-100 mt-1 position-absolute bg-white border rounded shadow"
+                                style="max-height: 200px; overflow-y: auto; z-index: 1050;"></div>
+                        </div>
+                    </div>
                     <div class="form-body row">
                         <!-- المبلغ -->
                         <div class="col-md-6">
@@ -178,21 +189,8 @@
                         </div>
 
 
-
-
                     </div>
                     <div class="form-body row">
-
-
-                        <div class="form-group col-md-6">
-                            <label for="feedback2" class="">الحساب الافتراضي ؟ </label>
-                            <select name="chart_of_account_id" class="form-control">
-                                @foreach ($accounts as $account)
-                                    <option value="{{ $account->id }}">{{ $account->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
                         <div class="col-md-6">
                             <div class="input-group form-group">
                                 <div class="input-group-text w-100 text-left">
@@ -229,6 +227,8 @@
 @endsection
 
 @section('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script></script>
     <script>
         $(document).ready(function() {
             toggleFields(); // تشغيل الدالة عند تحميل الصفحة
@@ -249,6 +249,42 @@
                 formulaInput.disabled = false;
                 amountInput.value = ''; // تفريغ قيمة المبلغ
             }
+
+            $(document).ready(function() {
+                $('#searchAccount').on('keyup', function() {
+                    var query = $(this).val();
+
+                    if (query.length > 0) {
+                        $('#loadingIcon').removeClass('d-none'); // عرض أيقونة التحميل
+
+                        $.ajax({
+                            url: "{{ route('SalaryItems.index') }}",
+                            type: "GET",
+                            data: {
+                                query: query
+                            },
+                            success: function(response) {
+                                $('#accountResults').html(response.options);
+                            },
+                            complete: function() {
+                                $('#loadingIcon').addClass(
+                                'd-none'); // إخفاء أيقونة التحميل بعد الانتهاء
+                            }
+                        });
+                    } else {
+                        $('#accountResults').html('');
+                        $('#loadingIcon').addClass('d-none'); // إخفاء الأيقونة إذا لم يكن هناك نص
+                    }
+                });
+
+                // عند اختيار عنصر، يتم إدخاله في الحقل وإخفاء القائمة
+                $(document).on('click', '.account-item', function() {
+                    $('#searchAccount').val($(this).text());
+                    $('#accountResults').html('');
+                });
+            });
+
+
         }
     </script>
 @endsection
