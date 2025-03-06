@@ -10,7 +10,7 @@ class PaymentsProcess extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
 
-    protected $fillable = ['clients_id', 'purchases_id', 'invoice_id', 'employee_id', 'treasury_id','installments_id','type', 'payment_date', 'amount', 'payment_status', 'payment_method', 'reference_number', 'payment_data', 'notes', 'attachments'];
+    protected $fillable = ['clients_id', 'purchases_id', 'invoice_id', 'employee_id', 'treasury_id', 'installments_id', 'type', 'payment_date', 'amount', 'payment_status', 'payment_method', 'reference_number', 'payment_data', 'notes', 'attachments'];
 
     protected $casts = [
         'invoice_id' => 'integer',
@@ -28,7 +28,6 @@ class PaymentsProcess extends Model
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
-
 
     public function employee()
     {
@@ -58,5 +57,8 @@ class PaymentsProcess extends Model
     {
         return $this->belongsTo(Supplier::class, 'supplier_id');
     }
-
+    public function payment_type()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method');
+    }
 }

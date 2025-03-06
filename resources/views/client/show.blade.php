@@ -34,6 +34,37 @@
             </div>
         </div>
     </div>
+    @include('layouts.alerts.error')
+    @include('layouts.alerts.success')
+    <div class="modal fade" id="assignEmployeeModal" tabindex="-1" aria-labelledby="assignEmployeeModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignEmployeeModalLabel">تعيين موظفين للعميل</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('clients.assign-employees', $client->id) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="client_id" value="{{ $client->id }}">
+                        <select name="employee_id[]" multiple class="form-control select2">
+                            @foreach ($employees as $employee)
+                                <option value="{{ $employee->id }}" @if ($client->employees && $client->employees->contains('id', $employee->id)) selected @endif>
+                                    {{ $employee->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="btn btn-primary mt-2">تعيين الموظفين</button>
+                    </form>
+
+
+                    <!-- Current Assigned Employees -->
+
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="content-body">
         <div class="card">
             <div class="card-body">
@@ -42,35 +73,80 @@
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->id }}</small>
                         <span class="badge badge-success">
-                        @if ($client->status == "active")
-                            نشط
-
-                        @elseif ($client->status == "inactive")
-                            غير نشط
-
-                        @endif</span>
+                            @if ($client->status == 'active')
+                                نشط
+                            @elseif ($client->status == 'inactive')
+                                غير نشط
+                            @endif
+                        </span>
                         <br>
                         <small class="text-muted">
-                            حساب الأستاذ: <a href="#">أسواق إمداد القصيم للمواد الغذائية #125987</a>
+                            حساب الأستاذ:
+                            @if ($client->account)
+                                <a href="#">{{ $client->account->name }} #{{ $client->account->code }}</a>
+                            @else
+                                <span>No account associated</span>
+                            @endif
                         </small>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <span class="text-primary mx-2">تعيين إلى:</span>
-                        <button class="btn btn-sm btn-outline-primary">محمد الإدريسي <span class="text-danger">&times;</span></button>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="text-muted">
+                            <strong class="text-dark">{{ $invoices->first()->due_value }}</strong> <span
+                                class="text-muted">SAR</span>
+                            <span class="d-block text-danger">المطلوب دفعة</span>
+                        </div>
+                        @if ($invoices->isNotEmpty())
+                            <div class="text-muted">
+                                <strong class="text-dark">{{ $invoices->first()->due_value }}</strong> <span
+                                    class="text-muted">SAR</span>
+                                <span class="d-block text-warning">مفتوح</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="mt-4">
+                        <h6>الموظفون المعينون حالياً</h6>
+                        <div class="d-flex flex-wrap gap-2" id="assignedEmployeesList">
+                            @if ($client->employees && $client->employees->count() > 0)
+                                @foreach ($client->employees as $employee)
+                                    <span class="badge bg-primary d-flex align-items-center">
+                                        {{ $employee->full_name }}
+
+                                        <form action="{{ route('clients.remove-employee', $client->id) }}" method="POST"
+                                            class="ms-2">
+                                            @csrf
+                                            <input type="hidden" name="employee_id" value="{{ $employee->id }}">
+
+                                            <button type="submit" class="btn btn-sm btn-link text-white p-0">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </span>
+                                @endforeach
+                            @else
+                                <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون بهذا العميل') }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div>
+                        <select class="form-control form-control-range">
+                            <option selected>اختر الحالة</option>
+                            <option>مدفوع</option>
+                            <option>غير مدفوع</option>
+                        </select>
                     </div>
                 </div>
 
 
             </div>
         </div>
-        <div class="card bg-light border-0">
+        <div class="card border-0">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <!-- القسم الأيمن (الاسم والموقع) -->
                 <div class="text-end">
-                    <strong class="text-dark">خالد</strong>
+                    <strong class="text-dark">{{ $client->first_name }}</strong>
                     <br>
                     <span class="text-primary">
-                        <i class="fas fa-map-marker-alt"></i> القصيم، البكيرية
+                        <i class="fas fa-map-marker-alt"></i>{{ $client->full_address }}
                     </span>
                 </div>
 
@@ -79,7 +155,7 @@
                     <button class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-copy"></i>
                     </button>
-                    <span class="mx-2 text-dark">0557749696</span>
+                    <span class="mx-2 text-dark">{{ $client->phone }}</span>
                     <button class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-mobile-alt"></i>
                     </button>
@@ -142,7 +218,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <a class="dropdown-item d-flex align-items-center"
+                                        href="{{ route('SupplyOrders.create') }}">
                                         <i class="fas fa-truck me-2"></i> <!-- أيقونة الشاحنة -->
                                         اضافة امر توريد
                                     </a>
@@ -160,13 +237,14 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <a class="dropdown-item d-flex align-items-center" href="{{route('clients.destroy', $client->id)}}">
                                         <i class="fas fa-trash-alt me-2"></i> <!-- أيقونة الحذف -->
                                         حذف عميل
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <a class="dropdown-item d-flex align-items-center" href="#"
+                                        data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
                                         <i class="fas fa-user-tie me-2"></i> <!-- أيقونة الموظف -->
                                         تعيين الى موظف
                                     </a>
@@ -196,9 +274,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="invoices-tab" data-toggle="tab" href="#invoices" aria-controls="invoices"
-                            role="tab" aria-selected="false">
+                        <a class="nav-link" id="invoices-tab" data-toggle="tab" href="#invoices"
+                            aria-controls="invoices" role="tab" aria-selected="false">
                             الفواتير <span class="badge badge-pill badge-primary">{{ $client->invoices->count() }}</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="payments-tab" data-toggle="tab" href="#payments"
+                            aria-controls="invoices" role="tab" aria-selected="false">
+                            المدفوعات <span
+                                class="badge badge-pill badge-primary">{{ $client->payments->count() }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -704,19 +789,121 @@
                         </div>
 
                     </div>
+                    <div class="tab-pane" id="payments" aria-labelledby="payments-tab" role="tabpanel">
+                        <div class="card-body">
+                            @foreach ($payments as $payment)
+                                <div class="row border-bottom py-2 align-items-center">
+                                    <div class="col-md-4">
+                                        <p class="mb-0"><strong>#{{ $payment->id }}</strong></p>
+                                        <small class="text-muted">#{{ $payment->invoice->invoice_number ?? '' }} ملاحظات: {{ $payment->notes }}</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-0"><small>{{ $payment->payment_date }}</small></p>
+                                        <small class="text-muted">بواسطة: {{ $payment->employee->full_name ?? '' }}</small>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <h5 class="mb-1 font-weight-bold">
+                                            {{ number_format($payment->amount, 2) }} ر.س
+                                        </h5>
 
+                                        @php
+                                            $statusClass = '';
+                                            $statusText = '';
+                                            $statusIcon = '';
+
+                                            if ($payment->payment_status == 2) {
+                                                $statusClass = 'badge-warning';
+                                                $statusText = 'غير مكتمل';
+                                                $statusIcon = 'fa-clock';
+                                            } elseif ($payment->payment_status == 1) {
+                                                $statusClass = 'badge-success';
+                                                $statusText = 'مكتمل';
+                                                $statusIcon = 'fa-check-circle';
+                                            } elseif ($payment->payment_status == 4) {
+                                                $statusClass = 'badge-info';
+                                                $statusText = 'تحت المراجعة';
+                                                $statusIcon = 'fa-sync';
+                                            } elseif ($payment->payment_status == 5) {
+                                                $statusClass = 'badge-danger';
+                                                $statusText = 'فاشلة';
+                                                $statusIcon = 'fa-times-circle';
+                                            } elseif ($payment->payment_status == 3) {
+                                                $statusClass = 'badge-secondary';
+                                                $statusText = 'مسودة';
+                                                $statusIcon = 'fa-file-alt';
+                                            } else {
+                                                $statusClass = 'badge-light';
+                                                $statusText = 'غير معروف';
+                                                $statusIcon = 'fa-question-circle';
+                                            }
+                                        @endphp
+
+                                        <span class="badge {{ $statusClass }}">
+                                            <i class="fas {{ $statusIcon }} me-1"></i>
+                                            {{ $statusText }}
+                                        </span>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                    type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                    aria-haspopup="true" aria-expanded="false">
+                                                </button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('paymentsClient.show', $payment->id) }}">
+                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('paymentsClient.edit', $payment->id) }}">
+                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                        </a>
+                                                    </li>
+                                                    <form action="{{ route('paymentsClient.destroy', $payment->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+
+                                                        <button type="submit" class="dropdown-item"
+                                                            style="border: none; background: none;">
+                                                            <i class="fa fa-trash me-2 text-danger"></i> حذف
+                                                        </button>
+                                                    </form>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
+                                                            حراري
+                                                        </a>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                     <!-- تبويب حركة الحساب -->
                     <div class="tab-pane" id="account-movement" aria-labelledby="account-movement-tab" role="tabpanel">
                         <div class="mb-3">
                             <div class="row">
                                 <div class="col-md-7">
-                                    <a href="#" class="btn btn-sm btn-info text-white">
+                                    <a href="#" class="btn btn-sm btn-info text-white me-2">
                                         <i class="fas fa-file-export"></i> خيارات التصدير
                                     </a>
-                                    <a href="#" class="btn btn-sm btn-light">
+                                    <a href="#" class="btn btn-sm btn-light me-2">
                                         <i class="fas fa-print"></i> طباعة
                                     </a>
-                                    <a href="#" class="btn btn-sm btn-light">
+                                    <a href="#" class="btn btn-sm btn-light me-2">
                                         <i class="fas fa-cog"></i> تخصيص
                                     </a>
                                 </div>
@@ -730,9 +917,6 @@
                                     <div class="d-inline-block">
                                         <div class="input-group input-group-sm" style="width: 200px;">
                                             <input type="date" class="form-control" placeholder="الفترة من / إلى">
-
-
-                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -756,59 +940,54 @@
                                         <div class="mt-2">حركة الحساب حتى {{ date('d/m/Y') }}</div>
                                     </div>
                                 </div>
-
                                 <div class="table-responsive mt-4">
                                     <table class="table table-bordered mb-0">
                                         <thead>
                                             <tr class="bg-dark text-white">
-                                                <th class="text-end" style="width: 12%;">التاريخ</th>
-                                                <th class="text-end" style="width: 30%;">العملية</th>
+                                                <th class="text-end" style="width: 20%;">التاريخ</th>
+                                                <th class="text-end" style="width: 40%;">العملية</th>
                                                 <th class="text-start" style="width: 20%;">المبلغ</th>
-                                                <th class="text-start" style="width: 20%;">المبلغ المستحق</th>
+                                                <th class="text-start" style="width: 20%;">المبلغ المتبقي</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td colspan="3" class="text-end pe-3">رصيد بداية المدة</td>
-                                                <td class="text-start">
-                                                    {{ number_format($client->opening_balance ?? 0.0, 2) }} ر.س</td>
-                                            </tr>
-                                            @php
-                                                $balance = $client->opening_balance ?? 0;
-                                            @endphp
-                                            @foreach ($client->invoices as $invoice)
-                                                @php
-                                                    if ($invoice->type == 'invoice') {
-                                                        $balance += $invoice->total;
-                                                    } else {
-                                                        $balance -= $invoice->total;
-                                                    }
-                                                @endphp
+                                            @foreach ($invoices as $invoice)
+                                                <!-- عرض بيانات الفاتورة -->
                                                 <tr>
-                                                    <td class="text-end">{{ $invoice->invoice_date->format('d/m/Y') }}
+                                                    <td class="text-end">{{ $invoice->invoice_date }}</td>
+                                                    <td class="text-end">فاتورة{{ $invoice->code }}</td>
+                                                    <td class="text-start">{{ number_format($invoice->grand_total, 2) }}
                                                     </td>
-                                                    <td class="text-end">
-                                                        @if ($invoice->type == 'invoice')
-                                                            فاتورة #{{ $invoice->invoice_number }}
-                                                        @else
-                                                            فاتورة مرجعة #{{ $invoice->invoice_number }}
-                                                        @endif
+                                                    <td class="text-start">{{ number_format($invoice->due_value, 2) }}
                                                     </td>
-                                                    <td class="text-start">
-                                                        @if ($invoice->type == 'return')
-                                                            {{ number_format(-$invoice->total, 2) }}
-                                                        @else
-                                                            {{ number_format($invoice->total, 2) }}
-                                                        @endif
-                                                        <span class="text-muted">SAR</span> ر.س
-                                                    </td>
-                                                    <td class="text-start">{{ number_format($balance, 2) }} ر.س</td>
                                                 </tr>
+
+
+                                                <!-- عرض بيانات المدفوعات المرتبطة بالفاتورة -->
+                                                @foreach ($invoice->payments as $payment)
+                                                    <tr>
+                                                        <td class="text-end">{{ $payment->payment_date }}</td>
+                                                        <td class="text-end">عمليةدفع
+                                                            (@if ($payment->Payment_method == 1)
+                                                                كاش
+                                                            @elseif ($payment->Payment_method == 2)
+                                                                شيك
+                                                            @else
+                                                                بطاقة ا��تمان
+                                                            @endif)
+                                                        </td>
+                                                        <td class="text-start">
+                                                            @if ($invoice->advance_payment > 0)
+                                                                -{{ number_format($invoice->advance_payment, 2) }}
+                                                            @else
+                                                                {{ number_format($invoice->advance_payment, 2) }}
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-start">
+                                                            {{ number_format($invoice->due_value, 2) }}</td>
+                                                    </tr>
+                                                @endforeach
                                             @endforeach
-                                            <tr class="bg-dark text-white">
-                                                <td colspan="3" class="text-end pe-3">رصيد نهاية المدة</td>
-                                                <td class="text-start">{{ number_format($balance, 2) }} ر.س</td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -840,8 +1019,22 @@
                         </div>
                     </div>
                 </div>
+
+
             @endsection
             @section('scripts')
+
+                <script>
+                    $(document).ready(function() {
+                        // تأكيد حذف الموظف
+                        $('.btn-remove-employee').on('click', function(e) {
+                            if (!confirm('هل أنت متأكد من إزالة هذا الموظف؟')) {
+                                e.preventDefault();
+                            }
+                        });
+                    });
+                </script>
+
                 <meta name="csrf-token" content="{{ csrf_token() }}">
                 <script src="{{ asset('assets/js/applmintion.js') }}"></script>
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

@@ -81,17 +81,17 @@
     <a href="mailto:{{ $employee->email }}" style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
         <i class="ficon feather icon-mail"></i> <small>ايميل : {{ $employee->email }}</small>
     </a>
-    
+
     <a href="{{ route('employee.login_to',$user->id) }}" style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
         <i class="ficon feather icon-user"></i> <small>تسجيل الدخول ك {{ $employee->full_name }}</small>
     </a>
-    
+
     <a href="" style="font-size: 18px; font-weight: bold; display: block;">
         <i class="ficon feather icon-smartphone"></i> <small>إعداد تطبيق الحضور</small>
     </a>
 </div>
 
-                        
+
                     </div>
                 </div>
             </div>
@@ -101,7 +101,11 @@
                     <a href="{{ route('employee.edit',$employee->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i class="fa fa-edit"></i></a>
                     <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modal_DELETE{{ $employee->id }}">حذف <i class="fa fa-trash"></i></a>
                     <a href="" class="btn btn-outline-success btn-sm" data-toggle="modal" data-target="#ChangePassword">تغيير كلمه المرور <i class="fa fa-lock"></i></a>
-                    <a href="" class="btn btn-outline-info btn-sm">تعطيل <i class="fa fa-ban"></i></a>
+                    <a href="{{ route('employee.updateStatus', $employee->id) }}"
+                        class="btn btn-outline-{{ $employee->status == 1 ? 'danger' : 'success' }} btn-sm waves-effect waves-light">
+                         {{ $employee->status == 1 ? 'تعطيل' : 'تفعيل' }}
+                         <i class="fa {{ $employee->status == 1 ? 'fa-ban' : 'fa-check' }}"></i>
+                     </a>
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">

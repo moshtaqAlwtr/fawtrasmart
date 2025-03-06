@@ -28,7 +28,7 @@ Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
-    ],  
+    ],
     function () {
         Route::prefix('sales')
             ->middleware(['auth'])
@@ -164,6 +164,12 @@ Route::group(
                     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
                     Route::post('/delete-multiple', [ClientController::class, 'deleteMultiple'])->name('clients.deleteMultiple');
                     Route::get('/contacts', [ClientController::class, 'contacts'])->name('clients.contacts');
+                    Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])
+                    ->name('clients.assign-employees');
+                Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])
+                    ->name('clients.remove-employee');
+                Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])
+                    ->name('clients.get-assigned-employees');
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
                 });
                 Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
@@ -222,7 +228,7 @@ Route::group(
                 Route::get('/products/search', [CommissionController::class, 'searchProducts'])->name('products.search');
                 Route::get('/edit/{id}', [CommissionController::class, 'edit'])->name('commission.edit');
                 Route::post('/update/{id}', [CommissionController::class, 'update'])->name('commission.update');
-                
+
             });
     },
 );

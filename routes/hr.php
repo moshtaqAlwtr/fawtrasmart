@@ -35,6 +35,7 @@ Route::group(
                 Route::get('/create',[EmployeeController::class,'create'])->name('employee.create');
                 Route::get('/edit/{id}',[EmployeeController::class,'edit'])->name('employee.edit');
                 Route::get('/show/{id}',[EmployeeController::class,'show'])->name('employee.show');
+                Route::get('/updateStatus/{id}',[EmployeeController::class,'updateStatus'])->name('employee.updateStatus');
                 Route::post('/store',[EmployeeController::class,'store'])->name('employee.store');
                 Route::post('/update/{id}',[EmployeeController::class,'update'])->name('employee.update');
                 Route::post('/updatePassword/{id}',[EmployeeController::class,'updatePassword'])->name('employee.updatePassword');
@@ -42,8 +43,9 @@ Route::group(
                 Route::get('/login/to/{id}', [EmployeeController::class, 'login_to'])->name('employee.login_to');
                 Route::get('/export/view',[EmployeeController::class,'export_view'])->name('employee.export_view');
                 Route::post('/export',[EmployeeController::class,'export'])->name('employee.export');
+
                 Route::get('/send_email/{id}',[EmployeeController::class,'send_email'])->name('employee.send_email');
-                
+
             });
 
             # employee managing employee roles
