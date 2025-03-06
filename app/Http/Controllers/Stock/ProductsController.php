@@ -10,6 +10,8 @@ use App\Models\Category;
 use App\Models\CompiledProducts;
 use App\Models\GeneralSettings;
 use App\Models\Log;
+use App\Models\PriceList;
+use App\Models\PriceListItems;
 use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\StoreHouse;
@@ -115,7 +117,8 @@ class ProductsController extends Controller
         $role = $generalSettings ? $generalSettings->enable_multi_units_system == 1 : false;
 
         $categories = Category::select('id', 'name')->get();
-        return view('stock.products.create', compact('categories', 'role', 'serial_number', 'TemplateUnit', 'SubUnits'));
+        $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
+        return view('stock.products.create', compact('categories', 'price_lists', 'role', 'serial_number', 'TemplateUnit', 'SubUnits'));
     }
 
     public function getSubUnits(Request $request)
@@ -181,10 +184,10 @@ class ProductsController extends Controller
     public function categories(Request $request)
     {
         $search = $request->input('search');
-        
+
         // البحث في قاعدة البيانات
         $categories = Category::where('name', 'like', '%' . $search . '%')->get();
-    
+
         // تحضير النتائج لتتوافق مع Select2
         $results = [];
         foreach ($categories as $category) {
@@ -193,10 +196,10 @@ class ProductsController extends Controller
                 'text' => $category->name,
             ];
         }
-        
+
         return response()->json(['results' => $results]);
     }
-    
+
     public function store(ProductsRequest $request)
     {
         // dd($request->all());
@@ -272,6 +275,15 @@ class ProductsController extends Controller
                 'quantity' => 0,
                 'product_id' => $product->id,
             ]);
+
+            if ($request->has('price_list_id') && !empty($request->price_list_id)) {
+                // إذا تم اختيار price_list_id، قم بحفظ البيانات
+                PriceListItems::create([
+                    'product_id' => $product->id,
+                    'price_list_id' => $request->price_list_id,
+                    'sale_price' => $request->price_list,
+                ]);
+            }
 
             // تسجيل نشاط جديد
             Log::create([
@@ -390,8 +402,8 @@ class ProductsController extends Controller
     }
     public function compiled_store(Request $request)
     {
-          
-         
+
+
         try {
             DB::beginTransaction();
 
@@ -693,9 +705,12 @@ class ProductsController extends Controller
         $img = Image::read($image->path());
 
         $img->cover(540, 689, 'top');
-        $img->resize(540, 689, 
-        function ($constraint) {
-            $constraint->aspectRatio();
-        })->save($destinationsPath . '/' . $imageName);
+        $img->resize(
+            540,
+            689,
+            function ($constraint) {
+                $constraint->aspectRatio();
+            }
+        )->save($destinationsPath . '/' . $imageName);
     }
 }
