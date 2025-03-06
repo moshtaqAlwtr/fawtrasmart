@@ -307,6 +307,23 @@
                                                         <input type="text" id="first-name-vertical" class="form-control" name="profit_margin" value="{{ old('profit_margin') }}">
                                                     </div>
                                                 </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label for="price-list-select">قائمة الاسعار</label>
+                                                        <select class="form-control" id="price-list-select" name="price_list_id">
+                                                            <option value="">اختر قائمة اسعار</option>
+                                                            @foreach ($price_lists as $price_list)
+                                                                <option value="{{ $price_list->id }}" data-price="{{ $price_list->default_price }}">{{ $price_list->name ?? "" }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-3">
+                                                    <div class="form-group">
+                                                        <label for="default-price-input">السعر الافتراضي</label>
+                                                        <input type="text" id="default-price-input" class="form-control" name="price_list" disabled>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -527,5 +544,21 @@ $(document).ready(function() {
 
 
 
+</script>
+<script>
+    document.getElementById('price-list-select').addEventListener('change', function() {
+        var defaultPriceInput = document.getElementById('default-price-input');
+        var selectedOption = this.options[this.selectedIndex];
+
+        if (selectedOption.value) {
+            // إذا تم اختيار قائمة أسعار، قم بتفعيل الحقل وتعيين السعر
+            defaultPriceInput.disabled = false;
+            defaultPriceInput.value = selectedOption.getAttribute('data-price');
+        } else {
+            // إذا لم يتم الاختيار، قم بتعطيل الحقل ومسح القيمة
+            defaultPriceInput.disabled = true;
+            defaultPriceInput.value = '';
+        }
+    });
 </script>
 @endsection

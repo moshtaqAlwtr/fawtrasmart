@@ -18,6 +18,8 @@ use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\PaymentsProcess;
+use App\Models\PriceList;
+use App\Models\PriceListItems;
 use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\SalesCommission;
@@ -209,11 +211,31 @@ class InvoicesController extends Controller
         $users = User::all();
         $treasury = Treasury::all();
         $employees = Employee::all();
-
+       
+        $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
+        $price_sales = PriceListItems::all();
         $invoiceType = 'normal'; // نوع الفاتورة عادي
 
-        return view('sales.invoices.create', compact('clients', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
+        return view('sales.invoices.create', compact('clients','price_lists', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
     }
+    public function getPrice(Request $request)
+    {
+        $priceListId = $request->input('price_list_id');
+        $productId = $request->input('product_id');
+
+        // البحث عن السعر في قائمة الأسعار
+        $priceListItem = PriceListItems::where('price_list_id', $priceListId)
+            ->where('product_id', $productId)
+            ->first();
+
+        if ($priceListItem) {
+            // إذا وجد السعر في قائمة الأسعار
+            return response()->json(['price' => $priceListItem->sale_price]);
+        } else {
+            // إذا لم يوجد السعر في قائمة الأسعار
+            return response()->json(['price' => null]);
+        }
+}
 
     public function store(Request $request)
     {

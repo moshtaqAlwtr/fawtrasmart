@@ -174,6 +174,22 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-12">
+                                        <div class="form-group row">
+                                            <div class="col-md-2">
+                                                <span>قوائم الاسعار :</span>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <select class="form-control" id="price-list-select" name="price_list_id">
+                                                    <option value="">اختر قائمة اسعار</option>
+                                                    @foreach ($price_lists as $price_list)
+                                                        <option value="{{ $price_list->id }}">{{ $price_list->name ?? "" }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                    </div>
                                 </div>
 
                             </div>
@@ -303,7 +319,7 @@
                                             <select name="items[0][product_id]" class="form-control product-select">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}">{{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}" data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
@@ -345,9 +361,10 @@
                                 <tfoot>
                                     <tr>
                                         <td colspan="9" class="text-right">
-                                            <button type="button" id="add-row" class="btn btn-success">
+                                            {{-- <button type="button" id="add-row" class="btn btn-success">
                                                 <i class="fa fa-plus"></i> إضافة صف
-                                            </button>
+                                            </button> --}}
+                                            <button type="button" class="btn btn-primary add-row"> <i class="fa fa-plus"></i>إضافة منتج جديد</button>
                                         </td>
                                     </tr>
                                     <tr>
@@ -654,4 +671,60 @@
             });
         });
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // تهيئة الأحداث للصفوف الموجودة مسبقًا
+            initializeEvents();
+    
+            // إعادة تهيئة الأحداث عند إضافة صف جديد
+            $(document).on('click', '.add-row', function() {
+                var newRow = $('.item-row').first().clone(); // استنساخ الصف الأول
+                newRow.find('input, select').val(''); // مسح القيم في الصف الجديد
+                newRow.find('.row-total').text('0.00'); // إعادة تعيين المجموع
+                newRow.appendTo('tbody'); // إضافة الصف الجديد إلى الجدول
+                initializeEvents(); // إعادة تهيئة الأحداث للصف الجديد
+            });
+    
+            function initializeEvents() {
+                // عند تغيير اختيار المنتج أو قائمة الأسعار
+                $('.product-select, #price-list-select').off('change').on('change', function() {
+                    var priceListId = $('#price-list-select').val(); // قيمة قائمة الأسعار المختارة
+                    var productId = $(this).closest('tr').find('.product-select').val(); // قيمة المنتج المختار
+                    var priceInput = $(this).closest('tr').find('.price'); // حقل السعر
+    
+                    if (priceListId && productId) {
+                        // جلب السعر من قائمة الأسعار إذا كان المنتج موجودًا فيها
+                        $.ajax({
+                            url: '/sales/invoices/get-price', // رابط API لجلب السعر
+                            method: 'GET',
+                            data: {
+                                price_list_id: priceListId,
+                                product_id: productId
+                            },
+                            success: function(response) {
+                                if (response.price) {
+                                    // إذا وجد السعر في قائمة الأسعار
+                                    priceInput.val(response.price);
+                                } else {
+                                    // إذا لم يوجد السعر في قائمة الأسعار، استخدم سعر المنتج
+                                    var productPrice = $(this).closest('tr').find('.product-select option:selected').data('price');
+                                    priceInput.val(productPrice);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error fetching price:", error);
+                            }
+                        });
+                    } else {
+                        // إذا لم يتم اختيار قائمة الأسعار، استخدم سعر المنتج
+                        var productPrice = $(this).closest('tr').find('.product-select option:selected').data('price');
+                        priceInput.val(productPrice);
+                    }
+                });
+            }
+        });
+    </script>
+    
 @endsection

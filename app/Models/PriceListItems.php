@@ -9,6 +9,6 @@ class PriceListItems extends Model
 {
     use HasFactory;
     protected $table = 'price_list_items';
-    protected $fillable = ['id', 'product_id', 'price_list_id', 'created_at', 'updated_at'];
+    protected $fillable = ['id', 'product_id','sale_price', 'price_list_id', 'created_at', 'updated_at'];
 
 }
