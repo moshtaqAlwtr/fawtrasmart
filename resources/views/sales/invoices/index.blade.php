@@ -83,6 +83,14 @@
                                 <i class="fa fa-angle-left"></i>
                             </button>
                         </div>
+                        <form action="{{ route('invoices.import') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="form-group">
+                                <label for="file">تحميل ملف Excel أو CSV</label>
+                                <input type="file" name="file" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">استيراد الفواتير</button>
+                        </form>
 
                         <!-- الأزرار الإضافية -->
                         <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm d-flex align-items-center">

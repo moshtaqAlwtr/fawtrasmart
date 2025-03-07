@@ -40,6 +40,7 @@ Route::group(
                         Route::get('/index', [InvoicesController::class, 'index'])->name('invoices.index');
                         Route::get('/create', [InvoicesController::class, 'create'])->name('invoices.create');
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
+                        Route::post('/invoices/import', [InvoicesController::class, 'import'])->name('invoices.import');
                         Route::get('/edit/{id}', [InvoicesController::class, 'edit'])->name('invoices.edit');
                         Route::post('/store', [InvoicesController::class, 'store'])->name('invoices.store');
                         Route::delete('/delete/{id}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
@@ -156,6 +157,7 @@ Route::group(
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
+                    Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');

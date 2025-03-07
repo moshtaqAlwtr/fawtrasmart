@@ -173,7 +173,7 @@ class Client extends Model
             $client->invoices()->delete();
 
             // حذف السندات المرتبطة
-            $client->receipts()->delete();
+            // $client->receipts()->delete();
 
             // حذف المدفوعات المرتبطة
             $client->payments()->delete();

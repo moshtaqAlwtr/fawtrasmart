@@ -31,7 +31,6 @@ class InvoiceItem extends Model
         'tax_1',
         'tax_2',
         'total',
-        'package',
         'type',
     ];
 

@@ -326,7 +326,7 @@
                                                     <option value="{{ $item->id }}"
                                                         data-price="{{ $item->price }}">{{ $item->name }}</option>
 
-                                                    <option value="{{ $item->id }}" data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
+
                                                 @endforeach
                                             </select>
                                         </td>

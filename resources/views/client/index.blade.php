@@ -5,15 +5,11 @@
 @stop
 
 @section('content')
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong>{{ session('success') }}</strong>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+
+    @include('layouts.alerts.success')
+    @include('layouts.alerts.error')
+
+
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -59,6 +55,14 @@
                             </ul>
                         </div>
                     </div>
+                    <form action="{{ route('clients.import') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="form-group">
+                            <label for="file">تحميل ملف Excel</label>
+                            <input type="file" name="file" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">استيراد العملاء</button>
+                    </form>
 
                     <!-- القسم الأيسر -->
                     <div class="col-auto d-flex align-items-center flex-wrap gap-2">

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\InvoiceRequest;
+use App\Imports\InvoiceItemsImport;
+use App\Imports\InvoicesImport;
 use App\Models\Account;
 use App\Models\AccountSetting;
 use App\Models\Client;
@@ -37,6 +39,7 @@ use App\Services\Accounts\JournalEntryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InvoicesController extends Controller
 {
@@ -249,7 +252,7 @@ class InvoicesController extends Controller
         $users = User::all();
         $treasury = Treasury::all();
         $employees = Employee::all();
-       
+
         $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
         $price_sales = PriceListItems::all();
         $invoiceType = 'normal'; // نوع الفاتورة عادي
@@ -1229,5 +1232,24 @@ class InvoicesController extends Controller
 
         // Output file
         return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
+    }
+
+
+
+    public function import(Request $request)
+    {
+        set_time_limit(500); // زيادة وقت التنفيذ إلى 300 ثانية (5 دقائق)
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv,txt',
+        ]);
+
+        Excel::import(new InvoicesImport(), $request->file('file'));
+
+        // ��عادة تحويل الفواتير ��لى حسابات المبيعات والموردين
+        Excel::import(new InvoiceItemsImport(), $request->file('file'));
+
+
+        return redirect()->back()->with('success', 'تم استيراد الفواتير بنجاح!');
     }
 }

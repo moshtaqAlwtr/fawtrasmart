@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ClientRequest;
+use App\Imports\ClientsImport;
 use App\Models\Account;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClientController extends Controller
 {
@@ -39,14 +41,17 @@ class ClientController extends Controller
             if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
                 $clients = Client::whereHas('employee', function ($query) use ($branch) {
                     $query->where('branch_id', $branch->id);
-                })->with('employee')->orderBy('created_at', 'desc')->paginate(10);
+                })
+                    ->with('employee')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
             } else {
                 // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع العملاء
-                $clients = Client::with('employee')->orderBy('created_at', 'desc')->paginate(10);
+                $clients = Client::with('employee')->orderBy('created_at', 'desc')->get();
             }
         } else {
             // إذا لم يكن لدى المستخدم فرع، عرض جميع العملاء
-            $clients = Client::with('employee')->orderBy('created_at', 'desc')->paginate(10);
+            $clients = Client::with('employee')->orderBy('created_at', 'desc')->get();
         }
 
         // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
@@ -55,9 +60,6 @@ class ClientController extends Controller
 
         return view('client.index', compact('clients', 'users', 'employees'));
     }
-
-
-
 
     public function create()
     {
@@ -72,7 +74,6 @@ class ClientController extends Controller
 
     public function store(ClientRequest $request)
     {
-
         $data_request = $request->except('_token');
 
         // إنشاء العميل
@@ -96,8 +97,6 @@ class ClientController extends Controller
 
         // حفظ العميل
         $client->save();
-
-
 
         // إنشاء حساب فرعي باستخدام trade_name
         $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
@@ -205,13 +204,25 @@ class ClientController extends Controller
     {
         $client = Client::findOrFail($id);
 
-        // حذف السجلات المرتبطة أولاً
-        // $client->invoices()->delete();
-        // $client->receipts()->delete();
-        // $client->payments()->delete();
-        // $client->cheques()->delete();
-        // $client->creditNotifications()->delete();
-        // $client->journalEntries()->delete();
+        // التحقق من وجود فواتير مرتبطة بالعميل
+        if ($client->invoices()->exists()) {
+            return redirect()->back()->with('error', 'لا يمكن حذف العميل لأنه يحتوي على فواتير مرتبطة.');
+        }
+
+        // حذف المدفوعات المرتبطة
+        if ($client->payments()->exists()) {
+            $client->payments()->delete();
+        }
+
+        // حذف إشعارات الائتمان المرتبطة
+        if ($client->creditNotifications()->exists()) {
+            $client->creditNotifications()->delete();
+        }
+
+        // حذف مدخلات المجلة المرتبطة
+        if ($client->journalEntries()->exists()) {
+            $client->journalEntries()->delete();
+        }
 
         // حذف المرفقات إذا وجدت
         if ($client->attachments) {
@@ -230,40 +241,40 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'تم حذف العميل وجميع البيانات المرتبطة به بنجاح');
     }
     public function show($id)
-{
-    // تحميل البيانات المطلوبة
-    $installment = Installment::with('invoice.client')->get();
-    $employees = Employee::all();
-    $account = Account::all();
+    {
+        // تحميل البيانات المطلوبة
+        $installment = Installment::with('invoice.client')->get();
+        $employees = Employee::all();
+        $account = Account::all();
 
-    // تحميل العميل مع الفواتير والمدفوعات المرتبطة بها
-    $client = Client::with([
-        'invoices' => function ($query) {
-            $query->orderBy('invoice_date', 'desc');
-        },
-        'invoices.payments', // تحميل المدفوعات المرتبطة بكل فاتورة
-        'appointments' => function ($query) {
-            $query->orderBy('appointment_date', 'desc');
-        },
-        'employee',
-        'account',
-        'payments' => function ($query) {
-            $query->orderBy('payment_date', 'desc'); // تحميل جميع المدفوعات المرتبطة بالعميل
-        },
-    ])->findOrFail($id);
+        // تحميل العميل مع الفواتير والمدفوعات المرتبطة بها
+        $client = Client::with([
+            'invoices' => function ($query) {
+                $query->orderBy('invoice_date', 'desc');
+            },
+            'invoices.payments', // تحميل المدفوعات المرتبطة بكل فاتورة
+            'appointments' => function ($query) {
+                $query->orderBy('appointment_date', 'desc');
+            },
+            'employee',
+            'account',
+            'payments' => function ($query) {
+                $query->orderBy('payment_date', 'desc'); // تحميل جميع المدفوعات المرتبطة بالعميل
+            },
+        ])->findOrFail($id);
 
-    $bookings = Booking::where('client_id', $id)->get();
-    $packages = Package::all();
-    $memberships = Memberships::all();
+        $bookings = Booking::where('client_id', $id)->get();
+        $packages = Package::all();
+        $memberships = Memberships::all();
 
-    // تحميل الفواتير المرتبطة بالعميل
-    $invoices = $client->invoices;
+        // تحميل الفواتير المرتبطة بالعميل
+        $invoices = $client->invoices;
 
-    // تحميل جميع المدفوعات المرتبطة بالعميل
-    $payments = $client->payments;
+        // تحميل جميع المدفوعات المرتبطة بالعميل
+        $payments = $client->payments;
 
-    return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments'));
-}
+        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments'));
+    }
     public function contact()
     {
         $clients = Client::all();
@@ -335,37 +346,33 @@ class ClientController extends Controller
                         'phone' => $client->phone,
                         'email' => $client->email,
                         'status' => $client->status,
-                        'employee' => $client->employee ? [
-                            'name' => $client->employee->name,
-                            'department' => $client->employee->department,
-                            'role' => $client->employee->role,
-                        ] : null,
-                    ]
+                        'employee' => $client->employee
+                            ? [
+                                'name' => $client->employee->name,
+                                'department' => $client->employee->department,
+                                'role' => $client->employee->role,
+                            ]
+                            : null,
+                    ],
                 ]);
             }
 
             // For regular requests, return the view
-            return view('client.relestion_mang_client', compact(
-                'clients',
-                'client',
-                'employees',
-                'notes',
-                'appointments',
-                'previousClient',
-                'nextClient'
-            ));
+            return view('client.relestion_mang_client', compact('clients', 'client', 'employees', 'notes', 'appointments', 'previousClient', 'nextClient'));
         } catch (\Exception $e) {
             // If it's an AJAX request, return error response
             if (request()->ajax()) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'حدث خطأ أثناء تحميل بيانات العميل'
-                ], 422);
+                return response()->json(
+                    [
+                        'status' => 'error',
+                        'message' => 'حدث خطأ أثناء تحميل بيانات العميل',
+                    ],
+                    422,
+                );
             }
 
             // For regular requests, redirect with error
-            return redirect()->route('clients.mang_client')
-                ->with('error', 'حدث خطأ أثناء تحميل بيانات العميل');
+            return redirect()->route('clients.mang_client')->with('error', 'حدث خطأ أثناء تحميل بيانات العميل');
         }
     }
     public function assignEmployees(Request $request)
@@ -374,7 +381,7 @@ class ClientController extends Controller
         $request->validate([
             'client_id' => 'required|exists:clients,id',
             'employee_id' => 'required|array',
-            'employee_id.*' => 'exists:employees,id'
+            'employee_id.*' => 'exists:employees,id',
         ]);
 
         try {
@@ -408,45 +415,45 @@ class ClientController extends Controller
      * إزالة موظف محدد من عميل
      */
     public function removeEmployee(Request $request, $clientId)
-{
-    // التحقق من صحة البيانات
-    $validator = Validator::make($request->all(), [
-        'employee_id' => 'required|exists:employees,id'
-    ]);
-
-    if ($validator->fails()) {
-        return redirect()->back()
-            ->withErrors($validator)
-            ->with('error', 'خطأ في البيانات المدخلة');
-    }
-
-    try {
-        // البحث عن العميل
-        $client = Client::findOrFail($clientId);
-
-        // إزالة الموظف
-        $client->employees()->detach($request->employee_id);
-
-        // تسجيل عملية الإزالة
-        Log::info('تمت إزالة الموظف', [
-            'client_id' => $clientId,
-            'employee_id' => $request->employee_id
+    {
+        // التحقق من صحة البيانات
+        $validator = Validator::make($request->all(), [
+            'employee_id' => 'required|exists:employees,id',
         ]);
 
-        // إعادة التوجيه مع رسالة نجاح
-        return redirect()->back()->with('success', 'تم إزالة الموظف بنجاح');
-    } catch (\Exception $e) {
-        // تسجيل الخطأ
-        Log::error('خطأ في إزالة الموظف', [
-            'message' => $e->getMessage(),
-            'client_id' => $clientId,
-            'employee_id' => $request->employee_id
-        ]);
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->with('error', 'خطأ في البيانات المدخلة');
+        }
 
-        // إعادة التوجيه مع رسالة خطأ
-        return redirect()->back()->with('error', 'حدث خطأ أثناء إزالة الموظف: ' . $e->getMessage());
+        try {
+            // البحث عن العميل
+            $client = Client::findOrFail($clientId);
+
+            // إزالة الموظف
+            $client->employees()->detach($request->employee_id);
+
+            // تسجيل عملية الإزالة
+            Log::info('تمت إزالة الموظف', [
+                'client_id' => $clientId,
+                'employee_id' => $request->employee_id,
+            ]);
+
+            // إعادة التوجيه مع رسالة نجاح
+            return redirect()->back()->with('success', 'تم إزالة الموظف بنجاح');
+        } catch (\Exception $e) {
+            // تسجيل الخطأ
+            Log::error('خطأ في إزالة الموظف', [
+                'message' => $e->getMessage(),
+                'client_id' => $clientId,
+                'employee_id' => $request->employee_id,
+            ]);
+
+            // إعادة التوجيه مع رسالة خطأ
+            return redirect()
+                ->back()
+                ->with('error', 'حدث خطأ أثناء إزالة الموظف: ' . $e->getMessage());
+        }
     }
-}
 
     /**
      * جلب الموظفين المعينين لعميل
@@ -460,24 +467,38 @@ class ClientController extends Controller
             // إرجاع استجابة JSON
             return response()->json([
                 'success' => true,
-                'employees' => $client->employees->map(function($employee) {
+                'employees' => $client->employees->map(function ($employee) {
                     return [
                         'id' => $employee->id,
                         'name' => $employee->full_name,
                         'department' => $employee->department,
-                        'role' => $employee->role
+                        'role' => $employee->role,
                     ];
-                })
+                }),
             ]);
         } catch (\Exception $e) {
             // تسجيل الخطأ
             Log::error('خطأ في جلب الموظفين المعينين: ' . $e->getMessage());
 
             // إرجاع استجابة خطأ
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء جلب الموظفين'
-            ], 500);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'حدث خطأ أثناء جلب الموظفين',
+                ],
+                500,
+            );
         }
+    }
+    public function import(Request $request)
+    {
+        set_time_limit(500);
+        $request->validate([
+            'file' => 'required|mimes:csv,txt',
+        ]);
+
+        Excel::import(new ClientsImport(), $request->file('file'));
+
+        return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
 }
