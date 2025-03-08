@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Stock;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ProductsRequest;
+use App\Imports\ProductsImport;
 use App\Models\AccountSetting;
 use App\Models\Category;
 use App\Models\CompiledProducts;
@@ -25,6 +26,7 @@ use Intervention\Image\Laravel\Facades\Image;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductsController extends Controller
 {
@@ -713,4 +715,21 @@ class ProductsController extends Controller
             }
         )->save($destinationsPath . '/' . $imageName);
     }
+
+    public function import(Request $request)
+    {
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv,txt',
+        ]);
+
+        Excel::import(new ProductsImport(), $request->file('file'));
+
+
+
+
+
+        return redirect()->back()->with('success', 'تم استيراد المنتجات بنجاح!');
+    }
 }
+

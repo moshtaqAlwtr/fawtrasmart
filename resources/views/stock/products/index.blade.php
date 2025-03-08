@@ -34,11 +34,21 @@
                     <div class="card-title">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <div>بحث في المنتجات</div>
+                            <form action="{{ route('products.import') }}" method="POST" enctype="multipart/form-data">
+                                @csrf
+                                <div class="form-group">
+                                    <label for="file">تحميل ملف Excel أو CSV</label>
+                                    <input type="file" name="file" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">استيراد المنتجات</button>
+                            </form>
+
                             <div class="d-flex justify-content-start align-items-center gap-2">
                                 <button class="btn btn-outline-primary">
                                     <i class="fa fa-calendar-alt me-2"></i> مجموعة المنتجات
                                 </button>
-                
+
+
                                 <!-- زر الإضافة مع مسافة صغيرة -->
                                 <div class="btn-group px-1">
                                     <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
@@ -50,7 +60,7 @@
                                             <a class="dropdown-item" href="{{ route('products.create') }}">منتج جديد</a>
                                         @elseif(optional($account_setting)->business_type == 'services')
                                             <a class="dropdown-item" href="{{ route('products.create_services') }}">خدمة جديدة</a>
-                                            
+
                                         @elseif(optional($account_setting)->business_type == 'both')
                                             <a class="dropdown-item" href="{{ route('products.create') }}">منتج جديد</a>
                                             <a class="dropdown-item" href="{{ route('products.create_services') }}">خدمة جديدة</a>
@@ -67,8 +77,8 @@
                         </div>
                     </div>
                 </div>
-                
-                
+
+
 
                 <div class="card-body">
                     <form class="form" method="GET" action="{{ route('products.search') }}">
@@ -193,7 +203,7 @@
                                     @endif
                                 @else
                                     <span
-                                        class="badge 
+                                        class="badge
                                     {{ $product->status == 0 ? 'badge-primary' : ($product->status == 1 ? 'badge-danger' : 'badge-secondary') }}">
                                         {{ $product->status == 0 ? 'نشط' : ($product->status == 1 ? 'موقوف' : 'غير نشط') }}
                                     </span>

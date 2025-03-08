@@ -54,6 +54,7 @@ Route::group(
             Route::post('/update/{id}',[ProductsController::class,'update'])->name('products.update')->middleware('permission:products_edit_delete_all_products');
             Route::get('/delete/{id}',[ProductsController::class,'delete'])->name('products.delete')->middleware('permission:products_edit_delete_all_products');
             Route::get('/search', [ProductsController::class, 'search'])->name('products.search');
+            Route::post('/import', [ProductsController::class, 'import'])->name('products.import');
             Route::get('/getcategories', [ProductsController::class, 'categories'])->name('get-categories');
         });
 
