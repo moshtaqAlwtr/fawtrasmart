@@ -27,7 +27,7 @@ Route::get('/api/unit-types/{unitTypeId}/pricing', [RentalPriceRuleController::c
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch'],
     ], function () {
 
         Route::prefix('Rental_Management')->middleware(['auth'])->group(function () {

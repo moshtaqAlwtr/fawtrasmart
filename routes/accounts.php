@@ -53,7 +53,7 @@ Route::put('/cost_centers/{id}/update', [CostCentersController::class, 'update']
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch'],
     ],
     function () {
         Route::prefix('Accounts')

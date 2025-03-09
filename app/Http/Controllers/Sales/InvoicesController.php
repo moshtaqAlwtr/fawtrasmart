@@ -19,6 +19,8 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
+use App\Models\Notification;
+use App\Models\notifications;
 use App\Models\PaymentsProcess;
 use App\Models\PriceList;
 use App\Models\PriceListItems;
@@ -599,6 +601,38 @@ class InvoicesController extends Controller
                         'stock_after' => $stock_after,   // المخزون بعد التحديث
                         'warehouse_permits_id' => $wareHousePermits->id,
                     ]);
+
+                   
+                    if ($productDetails->quantity < $product['low_stock_alert']) {
+                        // إنشاء إشعار للكمية
+                        notifications::create([
+                            'type' => 'Products', // المستخدم الذي يقوم بالإجراء
+                            'title' => 'تنبيه الكمية',
+                            'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
+
+                        ]);
+                   
+              
+                }
+                    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) { 
+                        $expiryDate = Carbon::parse($product['expiry_date']); // تاريخ الانتهاء
+                        $daysBeforeExpiry = (int) $product['notify_before_days']; // الأيام المحددة من قبل المستخدم
+                    
+                        // التحقق مما إذا كان تاريخ الانتهاء في المستقبل
+                        if ($expiryDate->greaterThan(now())) {
+                           
+                            $remainingDays = floor($expiryDate->diffInDays(now())); // حساب الأيام المتبقية بدون كسور
+                            if ($remainingDays <= $daysBeforeExpiry) {
+                                // إنشاء إشعار لتاريخ الانتهاء
+                                notifications::create([
+                                    'type' => 'Products', // المستخدم الذي يقوم بالإجراء
+                                    'title' => 'تاريخ الانتهاء',
+                                    'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
+                                ]);
+                            }
+                        }
+                    }
+                    
                 }
 
                 if ($proudect->type == "compiled" && $proudect->compile_type == "Instant") {
@@ -1119,6 +1153,43 @@ class InvoicesController extends Controller
             }
         }
     }
+    public function getUnreadNotifications()
+{
+    return response()->json([
+        'notifications' => notifications::where('read', 0)->orderBy('created_at', 'desc')->get()
+    ]);
+
+
+}
+
+public function notifications()
+{
+   $notifications = notifications::where('read', 0)->orderBy('created_at', 'desc')->get();
+   return view('notifications.index', compact('notifications'));
+}
+public function markAsRead(Request $request)
+{
+    $notification = notifications::find($request->id);
+
+    if ($notification) {
+        $notification->update(['read' => 1]);
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'الإشعار غير موجود'], 404);
+}
+public function markAsReadid($id)
+{
+    
+     $notification = notifications::find($id);
+
+    
+        $notification->update(['read' => 1]);
+   
+
+    return back();
+}
+
     public function show($id)
     {
         $clients = Client::all();

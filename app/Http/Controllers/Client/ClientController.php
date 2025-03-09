@@ -126,6 +126,32 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
 
+    public function testcient()
+    {
+
+        $clients =  Client::all();
+
+        foreach($clients as $client){
+            $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
+            if ($customers) {
+                $customerAccount = new Account();
+                $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
+                $customerAccount->client_id = $client->id;
+    
+                // تعيين كود الحساب الفرعي بناءً على كود الحسابات
+                $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+                $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
+                $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
+    
+                $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
+                $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
+                $customerAccount->is_active = false;
+                $customerAccount->save();
+            }
+        }
+       
+       
+    }
     // إضافة هذه الدالة في نفس وحدة التحكم
     private function generateNextCode(string $lastChildCode): string
     {

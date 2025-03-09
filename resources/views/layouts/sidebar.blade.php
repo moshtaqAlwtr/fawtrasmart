@@ -748,8 +748,8 @@
                             </li>
                         @endcan
 
-
-                        <li><a href="#"><i class="feather icon-circle"></i><span class="menu-item"
+                        
+                        <li><a href="{{ route('products.traking') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.product_tracking') }}</span></a>
                         </li>
 

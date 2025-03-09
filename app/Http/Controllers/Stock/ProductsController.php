@@ -140,6 +140,14 @@ class ProductsController extends Controller
         return response()->json($subUnits);
     }
 
+    public function traking()
+    {
+        $Products = Product::where('track_inventory', '!=', null)->get();
+
+
+        return view('stock.products.track', compact('Products'));
+    }
+
 
     public function create_services()
     {
@@ -204,8 +212,8 @@ class ProductsController extends Controller
 
     public function store(ProductsRequest $request)
     {
-        // dd($request->all());
-
+       
+       
 
         try {
 
@@ -243,6 +251,8 @@ class ProductsController extends Controller
             $product->discount_type = $request->discount_type;
             $product->type = $request->type;
             $product->profit_margin = $request->profit_margin;
+            $product->expiry_date   = $request->expiry_date;
+            $product->notify_before_days = $request->notify_before_days;
             $product->created_by = Auth::user()->id;
 
 
@@ -404,7 +414,7 @@ class ProductsController extends Controller
     }
     public function compiled_store(Request $request)
     {
-
+        
 
         try {
             DB::beginTransaction();
@@ -480,11 +490,16 @@ class ProductsController extends Controller
                 $compiledProduct->save();
             }
 
+            $quantity = $request->quantity;
 
+            // إنشاء سجل جديد في `ProductDetails`
             ProductDetails::create([
-                'quantity' => 0,
+                'quantity' => $quantity,
                 'product_id' => $product->id,
             ]);
+            
+          
+            
 
             DB::commit();
 

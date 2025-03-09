@@ -55,8 +55,8 @@
     <div class="card-body d-flex justify-content-between align-items-center text-end">
         <!-- العمود الأول (التفاصيل) -->
         <div>
-            <div><strong>{{ $branch->name }}</strong></div>
-            <small class="text-muted">Main Branch</small>
+            <div><strong>{{ $branch->name }}{{ $branch->code ?? "" }}</strong></div>
+            <small class="text-muted"></small>
         </div>
 
         <!-- العمود الثاني (العلامة أو النص) -->
@@ -108,14 +108,14 @@
                         </form> -->
 
                         <!-- خيار الموقوف -->
-                        <form action="{{ route('branches.update', $branch->id) }}" method="POST" style="display: inline;">
+                        {{-- <form action="{{ route('branches.update', $branch->id) }}" method="POST" style="display: inline;">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="status" value="1"> <!-- تغيير الحالة إلى نشط -->
                             <button type="submit" class="dropdown-item">
                                 <i class="fa fa-check text-success me-2"></i> موقوف
                             </button>
-                        </form>
+                        </form> --}}
                     </div>
                 </div>
             </div>
