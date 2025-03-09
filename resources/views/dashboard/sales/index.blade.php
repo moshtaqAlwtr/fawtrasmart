@@ -1,4 +1,3 @@
-
 @extends('master')
 
 @section('title')
@@ -50,7 +49,7 @@
                                 </div>
                             </div>
                             <h2 class="text-bold-700 mt-1">92.6k</h2>
-                            <p class="mb-0">Subscribers Gained</p>
+                            <p class="mb-0">المشتركين</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-1"></div>
@@ -66,7 +65,7 @@
                                 </div>
                             </div>
                             <h2 class="text-bold-700 mt-1">97.5k</h2>
-                            <p class="mb-0">Revenue Generated</p>
+                            <p class="mb-0">الإيرادات</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-2"></div>
@@ -82,7 +81,7 @@
                                 </div>
                             </div>
                             <h2 class="text-bold-700 mt-1">36%</h2>
-                            <p class="mb-0">Quarterly Sales</p>
+                            <p class="mb-0">المبيعات الربعية</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-3"></div>
@@ -98,7 +97,7 @@
                                 </div>
                             </div>
                             <h2 class="text-bold-700 mt-1">97.5K</h2>
-                            <p class="mb-0">Orders Received</p>
+                            <p class="mb-0">الطلبات الواردة</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-4"></div>
@@ -110,21 +109,21 @@
                 <div class="col-lg-8 col-md-6 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
-                            <h4 class="card-title">Revenue</h4>
+                            <h4 class="card-title">الإيرادات</h4>
                             <p class="font-medium-5 mb-0"><i class="feather icon-settings text-muted cursor-pointer"></i></p>
                         </div>
                         <div class="card-content">
                             <div class="card-body pb-0">
                                 <div class="d-flex justify-content-start">
                                     <div class="mr-2">
-                                        <p class="mb-50 text-bold-600">This Month</p>
+                                        <p class="mb-50 text-bold-600">هذا الشهر</p>
                                         <h2 class="text-bold-400">
                                             <sup class="font-medium-1">$</sup>
                                             <span class="text-success">86,589</span>
                                         </h2>
                                     </div>
                                     <div>
-                                        <p class="mb-50 text-bold-600">Last Month</p>
+                                        <p class="mb-50 text-bold-600">الشهر الماضي</p>
                                         <h2 class="text-bold-400">
                                             <sup class="font-medium-1">$</sup>
                                             <span>73,683</span>
@@ -140,7 +139,7 @@
                 <div class="col-lg-4 col-md-6 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
-                            <h4 class="mb-0">Goal Overview</h4>
+                            <h4 class="mb-0">نظرة عامة على الأهداف</h4>
                             <p class="font-medium-5 mb-0"><i class="feather icon-help-circle text-muted cursor-pointer"></i></p>
                         </div>
                         <div class="card-content">
@@ -148,11 +147,11 @@
                                 <div id="goal-overview-chart" class="mt-75"></div>
                                 <div class="row text-center mx-0">
                                     <div class="col-6 border-top border-right d-flex align-items-between flex-column py-1">
-                                        <p class="mb-50">Completed</p>
+                                        <p class="mb-50">مكتمل</p>
                                         <p class="font-large-1 text-bold-700">786,617</p>
                                     </div>
                                     <div class="col-6 border-top d-flex align-items-between flex-column py-1">
-                                        <p class="mb-50">In Progress</p>
+                                        <p class="mb-50">قيد التقدم</p>
                                         <p class="font-large-1 text-bold-700">13,561</p>
                                     </div>
                                 </div>
@@ -165,13 +164,13 @@
                 <div class="col-md-4 col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Browser Statistics</h4>
+                            <h4 class="card-title">إحصائيات المتصفحات</h4>
                         </div>
                         <div class="card-content">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
-                                        <p class="mb-25">Google Chrome</p>
+                                        <p class="mb-25">جوجل كروم</p>
                                         <h4>73%</h4>
                                     </div>
                                     <div class="stastics-info text-right">
@@ -184,7 +183,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
-                                        <p class="mb-25">Opera</p>
+                                        <p class="mb-25">أوبرا</p>
                                         <h4>8%</h4>
                                     </div>
                                     <div class="stastics-info text-right">
@@ -197,7 +196,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
-                                        <p class="mb-25">Firefox</p>
+                                        <p class="mb-25">فايرفوكس</p>
                                         <h4>19%</h4>
                                     </div>
                                     <div class="stastics-info text-right">
@@ -210,7 +209,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
-                                        <p class="mb-25">Internet Explorer</p>
+                                        <p class="mb-25">إنترنت إكسبلورر</p>
                                         <h4>27%</h4>
                                     </div>
                                     <div class="stastics-info text-right">
@@ -228,7 +227,7 @@
                 <div class="col-md-8 col-12">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Client Retention</h4>
+                            <h4 class="card-title">الاحتفاظ بالعملاء</h4>
                         </div>
                         <div class="card-content">
                             <div class="card-body">
@@ -243,15 +242,15 @@
                 <div class="col-lg-4 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
-                            <h4>Sessions By Device</h4>
+                            <h4>الجلسات حسب الجهاز</h4>
                             <div class="dropdown chart-dropdown">
                                 <button class="btn btn-sm border-0 dropdown-toggle px-0" type="button" id="dropdownItem1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Last 7 Days
+                                    آخر 7 أيام
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                                    <a class="dropdown-item" href="#">Last 28 Days</a>
-                                    <a class="dropdown-item" href="#">Last Month</a>
-                                    <a class="dropdown-item" href="#">Last Year</a>
+                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                                    <a class="dropdown-item" href="#">العام الماضي</a>
                                 </div>
                             </div>
                         </div>
@@ -261,7 +260,7 @@
                                 <div class="chart-info d-flex justify-content-between mb-1">
                                     <div class="series-info d-flex align-items-center">
                                         <i class="feather icon-monitor font-medium-2 text-primary"></i>
-                                        <span class="text-bold-600 mx-50">Desktop</span>
+                                        <span class="text-bold-600 mx-50">كمبيوتر</span>
                                         <span> - 58.6%</span>
                                     </div>
                                     <div class="series-result">
@@ -272,7 +271,7 @@
                                 <div class="chart-info d-flex justify-content-between mb-1">
                                     <div class="series-info d-flex align-items-center">
                                         <i class="feather icon-tablet font-medium-2 text-warning"></i>
-                                        <span class="text-bold-600 mx-50">Mobile</span>
+                                        <span class="text-bold-600 mx-50">جوال</span>
                                         <span> - 34.9%</span>
                                     </div>
                                     <div class="series-result">
@@ -283,7 +282,7 @@
                                 <div class="chart-info d-flex justify-content-between mb-50">
                                     <div class="series-info d-flex align-items-center">
                                         <i class="feather icon-tablet font-medium-2 text-danger"></i>
-                                        <span class="text-bold-600 mx-50">Tablet</span>
+                                        <span class="text-bold-600 mx-50">تابلت</span>
                                         <span> - 6.5%</span>
                                     </div>
                                     <div class="series-result">
@@ -298,7 +297,7 @@
                 <div class="col-lg-4 col-12">
                     <div class="card chat-application">
                         <div class="card-header">
-                            <h4 class="card-title">Chat</h4>
+                            <h4 class="card-title">الدردشة</h4>
                         </div>
                         <div class="chat-app-window">
                             <div class="user-chats">
@@ -311,7 +310,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Cake sesame snaps cupcake gingerbread</p>
+                                                <p>كعكة السمسم</p>
                                             </div>
                                         </div>
                                     </div>
@@ -323,7 +322,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Apple pie pie jujubes chupa chups muffin</p>
+                                                <p>فطيرة التفاح</p>
                                             </div>
                                         </div>
                                     </div>
@@ -335,7 +334,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Chocolate cake</p>
+                                                <p>كعكة الشوكولاتة</p>
                                             </div>
                                         </div>
                                     </div>
@@ -347,7 +346,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Donut sweet pie oat cake dragée fruitcake</p>
+                                                <p>دونات</p>
                                             </div>
                                         </div>
                                     </div>
@@ -359,7 +358,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Liquorice chocolate bar jelly beans icing</p>
+                                                <p>حلوى عرق السوس</p>
                                             </div>
                                         </div>
                                     </div>
@@ -371,7 +370,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Powder toffee tootsie roll macaroon cupcake.</p>
+                                                <p>حلوى التوفي</p>
                                             </div>
                                         </div>
                                     </div>
@@ -383,7 +382,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Apple pie oat cake brownie cotton candy cupcake chocolate bar dessert.</p>
+                                                <p>فطيرة التفاح</p>
                                             </div>
                                         </div>
                                     </div>
@@ -395,7 +394,7 @@
                                         </div>
                                         <div class="chat-body">
                                             <div class="chat-content">
-                                                <p>Biscuit cake jujubes carrot cake topping sweet cake.</p>
+                                                <p>كعكة البسكويت</p>
                                             </div>
                                         </div>
                                     </div>
@@ -403,7 +402,7 @@
                             </div>
                             <div class="chat-footer">
                                 <div class="card-body d-flex justify-content-around pt-0">
-                                    <input type="text" class="form-control mr-50" placeholder="Type your Message">
+                                    <input type="text" class="form-control mr-50" placeholder="اكتب رسالتك">
                                     <button type="button" class="btn btn-icon btn-primary"><i class="feather icon-navigation"></i></button>
                                 </div>
                             </div>
@@ -413,15 +412,15 @@
                 <div class="col-lg-4 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between pb-0">
-                            <h4 class="card-title">Customers</h4>
+                            <h4 class="card-title">العملاء</h4>
                             <div class="dropdown chart-dropdown">
                                 <button class="btn btn-sm border-0 dropdown-toggle px-0" type="button" id="dropdownItem3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Last 7 Days
+                                    آخر 7 أيام
                                 </button>
                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem3">
-                                    <a class="dropdown-item" href="#">Last 28 Days</a>
-                                    <a class="dropdown-item" href="#">Last Month</a>
-                                    <a class="dropdown-item" href="#">Last Year</a>
+                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                                    <a class="dropdown-item" href="#">العام الماضي</a>
                                 </div>
                             </div>
                         </div>
@@ -433,7 +432,7 @@
                                 <li class="list-group-item d-flex justify-content-between ">
                                     <div class="series-info">
                                         <i class="fa fa-circle font-small-3 text-primary"></i>
-                                        <span class="text-bold-600">New</span>
+                                        <span class="text-bold-600">جديد</span>
                                     </div>
                                     <div class="product-result">
                                         <span>890</span>
@@ -442,7 +441,7 @@
                                 <li class="list-group-item d-flex justify-content-between ">
                                     <div class="series-info">
                                         <i class="fa fa-circle font-small-3 text-warning"></i>
-                                        <span class="text-bold-600">Returning</span>
+                                        <span class="text-bold-600">عائد</span>
                                     </div>
                                     <div class="product-result">
                                         <span>258</span>
@@ -451,7 +450,7 @@
                                 <li class="list-group-item d-flex justify-content-between ">
                                     <div class="series-info">
                                         <i class="fa fa-circle font-small-3 text-danger"></i>
-                                        <span class="text-bold-600">Referrals</span>
+                                        <span class="text-bold-600">مراجع</span>
                                     </div>
                                     <div class="product-result">
                                         <span>149</span>
@@ -470,7 +469,3 @@
 
 
 @section('scripts')
-
-
-
-@endsection
