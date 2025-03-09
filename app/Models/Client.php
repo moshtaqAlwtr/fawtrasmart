@@ -17,6 +17,10 @@ class Client extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+public function branch()
+{
+    return $this->belongsTo(Branch::class);
+}
 
     public function getFullAddressAttribute()
     {

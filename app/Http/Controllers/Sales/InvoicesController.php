@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\InvoiceRequest;
-use App\Imports\InvoiceItemsImport;
-use App\Imports\InvoicesImport;
 use App\Models\Account;
 use App\Models\AccountSetting;
 use App\Models\Client;
@@ -41,7 +39,6 @@ use App\Services\Accounts\JournalEntryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Facades\Excel;
 
 class InvoicesController extends Controller
 {
@@ -261,24 +258,6 @@ class InvoicesController extends Controller
 
         return view('sales.invoices.create', compact('clients','price_lists', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
     }
-    public function getPrice(Request $request)
-    {
-        $priceListId = $request->input('price_list_id');
-        $productId = $request->input('product_id');
-
-        // البحث عن السعر في قائمة الأسعار
-        $priceListItem = PriceListItems::where('price_list_id', $priceListId)
-            ->where('product_id', $productId)
-            ->first();
-
-        if ($priceListItem) {
-            // إذا وجد السعر في قائمة الأسعار
-            return response()->json(['price' => $priceListItem->sale_price]);
-        } else {
-            // إذا لم يوجد السعر في قائمة الأسعار
-            return response()->json(['price' => null]);
-        }
-}
 
     public function store(Request $request)
     {
@@ -1303,24 +1282,5 @@ public function markAsReadid($id)
 
         // Output file
         return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
-    }
-
-
-
-    public function import(Request $request)
-    {
-        set_time_limit(500); // زيادة وقت التنفيذ إلى 300 ثانية (5 دقائق)
-
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv,txt',
-        ]);
-
-        Excel::import(new InvoicesImport(), $request->file('file'));
-
-        // ��عادة تحويل الفواتير ��لى حسابات المبيعات والموردين
-        Excel::import(new InvoiceItemsImport(), $request->file('file'));
-
-
-        return redirect()->back()->with('success', 'تم استيراد الفواتير بنجاح!');
     }
 }

@@ -4,6 +4,7 @@
     المخزون
 @stop
 
+
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
@@ -47,7 +48,7 @@
     </div>
     <div class="content-body">
         <form id="products_form" class="form form-vertical" action="{{ route('products.compiled_store') }}" method="POST" enctype="multipart/form-data">
-            @csrf   
+            @csrf
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -77,7 +78,7 @@
                     </div>
                     <div class="card-content">
                         <div class="card-body">
-                          
+
                                 <div class="form-body">
                                     <div class="row">
                                         <div class="col-8">
@@ -207,7 +208,7 @@
                                         </div>
                                     </div>
                                 </div>
-                          
+
                         </div>
                     </div>
                 </div>
@@ -340,9 +341,9 @@
                                     <label for="store">المخزن</label>
                                     <select class="form-control" name="storehouse_id">
                                         @foreach ($storehouses as $storehouse)
-                                        <option value="{{$storehouse->id}}">{{$storehouse->name ?? ""}}</option> 
+                                        <option value="{{$storehouse->id}}">{{$storehouse->name ?? ""}}</option>
                                         @endforeach
-                                        
+
                                         <!-- أضف خيارات المخزن هنا -->
                                     </select>
                                 </div>
@@ -358,7 +359,7 @@
                                 </div>
                             </div>
                         </div>
-        
+
                         <!-- جدول المنتجات -->
                         <div class="table-responsive">
                             <table class="table table-bordered" id="products-table" style="display: none;">
@@ -374,7 +375,7 @@
                                 </tbody>
                             </table>
                         </div>
-        
+
                         <!-- أزرار التحكم -->
                         <button type="button" id="add-product" class="btn btn-primary mt-3">إضافة منتج</button>
                         {{-- <button type="submit" class="btn btn-success mt-3">حفظ</button> --}}
@@ -382,8 +383,8 @@
                 </div>
             </div>
         </div>
-        
-        
+
+
 
         <div class="card">
             <div class="card-header">
@@ -580,7 +581,7 @@ $('#add-product').click(function() {
 
     // إضافة الصف داخل الجدول
     $('#product-fields').append(newRow);
-    
+
     // عرض الجدول إذا كان مخفيًا
     $('#products-table').show();
 
@@ -619,8 +620,8 @@ function removeProductRow(button) {
     </script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
-    
+
+
     <script>
     $(document).ready(function() {
         // تهيئة Select2 مع البحث عبر Ajax
@@ -646,8 +647,8 @@ function removeProductRow(button) {
             }
         });
     });
-    
-    
-    
+
+
+
     </script>
   @endsection

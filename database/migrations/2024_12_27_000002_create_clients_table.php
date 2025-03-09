@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null');
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->onDelete('set null');
             $table->string('trade_name', 255);
             $table->string('first_name', 100)->nullable();
             $table->integer('user_id')->nullable();
             $table->string('last_name', 100)->nullable();
-            $table->string('phone', 20)->nullable();
-            $table->string('mobile', 20)->nullable();
+            $table->string('phone', 50)->nullable();
+            $table->string('mobile', 50)->nullable();
             $table->string('city', 100)->nullable();
             $table->string('region', 100)->nullable();
             $table->string('street1', 255)->nullable();
@@ -30,7 +31,7 @@ return new class extends Migration
             $table->string('commercial_registration', 100)->nullable();
             $table->integer('credit_limit')->nullable();
             $table->integer('credit_period')->nullable();
-            $table->tinyInteger('printing_method')->default(1)->comment('1=>printing 2=>email');
+            $table->tinyInteger('printing_method')->default(1)->comment('1=>printing 2=>email')->nullable();
             $table->decimal('opening_balance', 10, 2)->nullable();
             $table->date('opening_balance_date')->nullable();
             $table->integer('code')->nullable();

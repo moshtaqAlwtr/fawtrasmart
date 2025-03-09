@@ -1,7 +1,9 @@
 <?php
 namespace App\Imports;
 
+use App\Models\Branch;
 use App\Models\Client;
+use App\Models\Employee;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -9,6 +11,16 @@ class ClientsImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
+        $employeeId = $row['employee_id'] ?? null;
+        if ($employeeId && !Employee::where('id', $employeeId)->exists()) {
+            return null; // تجاوز السطر إذا لم يكن العميل موجودًا
+        }
+        $branchId = $row['branch_id'] ?? null;
+        if ($branchId && !Branch::where('id', $branchId)->exists()) {
+            return null; // تجاوز السطر إذا لم يكن العميل موجودًا
+        }
+
+
         return new Client([
             'trade_name' => $row['trade_name'] ?? null,
             'first_name' => $row['first_name'] ?? null,
@@ -34,7 +46,8 @@ class ClientsImport implements ToModel, WithHeadingRow
             'email' => $row['email'] ?? null,
             'client_type' => $row['client_type'] ?? null,
             'notes' => $row['notes'] ?? null,
-            'employee_id' => $row['employee_id'] ?? null,
+            'employee_id' => $employeeId,
+            'branch_id' => $branchId,
 'status' => $row['status'] ?? null,
         ]);
     }
