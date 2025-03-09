@@ -24,7 +24,7 @@
                     <div class="breadcrumb-wrapper">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">تقرير أرصدة العملاء</li>
+                            <li class="breadcrumb-item active">عرض </li>
                         </ol>
                     </div>
                 </div>
@@ -178,9 +178,9 @@
                             <button type="submit" class="btn btn-custom me-2">
                                 <i class="fas fa-search me-2"></i>عرض التقرير
                             </button>
-                            <button type="button" id="resetFilters" class="btn btn-secondary">
+                            <a href="{{ route('ClientReport.customerBalances') }}" class="btn btn-secondary">
                                 <i class="fas fa-undo me-2"></i>إعادة تعيين
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -206,6 +206,7 @@
                                     <th>إجمالي المرتجع</th>
                                     <th>صافي المبيعات</th>
                                     <th>إجمالي المدفوعات</th>
+                                    <th>المبلغ المستحق</th>
                                     <th>تسويات</th>
                                     <th>الرصيد</th>
                                 </tr>
@@ -218,6 +219,7 @@
                                     $totalReturns = 0;
                                     $totalNetSales = 0;
                                     $totalPayments = 0;
+                                    $totalDueValue = 0;
                                     $totalAdjustments = 0;
                                     $totalBalance = 0;
                                 @endphp
@@ -235,6 +237,7 @@
                                         <td>{{ number_format($client['total_returns'], 2) }}</td>
                                         <td>{{ number_format($client['net_sales'], 2) }}</td>
                                         <td>{{ number_format($client['total_payments'], 2) }}</td>
+                                        <td>{{ number_format($client['due_value'], 2) }}</td>
                                         <td>{{ number_format($client['adjustments'], 2) }}</td>
                                         <td>{{ number_format($client['balance'], 2) }}</td>
                                     </tr>
@@ -246,6 +249,7 @@
                                         $totalReturns += $client['total_returns'];
                                         $totalNetSales += $client['net_sales'];
                                         $totalPayments += $client['total_payments'];
+                                        $totalDueValue += $client['due_value'];
                                         $totalAdjustments += $client['adjustments'];
                                         $totalBalance += $client['balance'];
                                     @endphp
@@ -259,6 +263,7 @@
                                     <td>{{ number_format($totalReturns, 2) }}</td>
                                     <td>{{ number_format($totalNetSales, 2) }}</td>
                                     <td>{{ number_format($totalPayments, 2) }}</td>
+                                    <td>{{ number_format($totalDueValue, 2) }}</td>
                                     <td>{{ number_format($totalAdjustments, 2) }}</td>
                                     <td>{{ number_format($totalBalance, 2) }}</td>
                                 </tr>
@@ -271,9 +276,7 @@
     </div>
 
     <!-- Loading Overlay -->
-    <div class="loading-overlay">
-        <div class="spinner"></div>
-    </div>
+
 @endsection
 
 @section('scripts')

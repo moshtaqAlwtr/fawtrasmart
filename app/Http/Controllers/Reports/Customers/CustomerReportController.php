@@ -341,7 +341,12 @@ class CustomerReportController extends Controller
             $totalReturns = $client->invoices->where('type', 'returned')->sum('grand_total');
             $clientPayments = $client->payments->sum('amount');
             $netSales = $totalInvoices - $totalReturns;
-            $balance = $netSales - $clientPayments;
+
+            // حساب المبلغ المستحق (due_value)
+            $dueValue = $netSales - $clientPayments;
+
+            // حساب الرصيد بعد (الرصيد الافتتاحي + due_value)
+            $balance = ($client->opening_balance ?? 0) + $dueValue;
 
             // تحديث الإجماليات
             $totalSales += $netSales;
@@ -357,13 +362,14 @@ class CustomerReportController extends Controller
                     'branch' => $client->employee->branch->name ?? 'غير محدد',
                     'currency_status' => $client->currency,
                     'employee' => $client->employee->full_name ?? 'غير محدد',
-                    'balance_before' => $client->opening_balance ?? 0,
+                    'balance_before' => $client->opening_balance ?? 0, // الرصيد الافتتاحي
                     'total_sales' => $totalInvoices,
                     'total_returns' => $totalReturns,
                     'net_sales' => $netSales,
                     'total_payments' => $clientPayments,
+                    'due_value' => $dueValue, // المبلغ المستحق
                     'adjustments' => 0, // يمكن إضافة حساب التسويات لاحقاً
-                    'balance' => $balance,
+                    'balance' => $balance, // الرصيد بعد (الرصيد الافتتاحي + due_value)
                 ];
             }
         }
@@ -375,9 +381,7 @@ class CustomerReportController extends Controller
 
         return view('reports.customers.CustomerReport.customer_blances', compact('clientBalances', 'employees', 'branches', 'clients', 'totalSales', 'totalPayments', 'totalBalance'))->with('totalClients', count($clientBalances));
     }
-    // تمرير البيانات إلى العرض
 
-    // عرض مبيعات العملاء
 
     public function customerSales(Request $request)
     {
