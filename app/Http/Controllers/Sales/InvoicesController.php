@@ -585,14 +585,34 @@ class InvoicesController extends Controller
                     if ($productDetails->quantity < $product['low_stock_alert']) {
                         // إنشاء إشعار للكمية
                         notifications::create([
-                            'type' => 'Products', // المستخدم الذي يقوم بالإجراء
+                            'type' => 'Products',
                             'title' => 'تنبيه الكمية',
                             'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
-
                         ]);
-                   
-              
-                }
+                    
+                        // رابط API Telegram
+                         
+                      $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+                    
+                        // تنسيق الرسالة بـ Markdown
+                        $message = "🚨 *تنبيه جديد!* 🚨\n";
+                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                        $message .= "📌 *العنوان:* 🔔 `تنبيه الكمية`\n";
+                        $message .= "📦 *المنتج:* `" . $product['name'] . "`\n";
+                        $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
+                        $message .= "📅 *التاريخ:* `" . now()->format('Y-m-d H:i') . "`\n";
+                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                        
+                    
+                        // إرسال الرسالة إلى التلقرام
+                        $response = Http::post($telegramApiUrl, [
+                            'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
+                            'text' => $message,
+                            'parse_mode' => 'Markdown',
+                            'timeout' => 60,
+                        ]);
+                    }
+                    
                     if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) { 
                         $expiryDate = Carbon::parse($product['expiry_date']); // تاريخ الانتهاء
                         $daysBeforeExpiry = (int) $product['notify_before_days']; // الأيام المحددة من قبل المستخدم
@@ -757,7 +777,7 @@ class InvoicesController extends Controller
                 'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
                 'text' => $message,
                 'parse_mode' => 'Markdown',
-                'timeout' => 30,
+                'timeout' => 60,
             ]);
 
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
@@ -871,7 +891,8 @@ class InvoicesController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                // 'created_by_employee' => Auth::id(),
+                'created_by_employee' => Auth::id(),
+              
             ]);
 
             $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
@@ -1022,7 +1043,7 @@ class InvoicesController extends Controller
                     'currency' => 'SAR',
                     'client_id' => $invoice->client_id,
                     'invoice_id' => $invoice->id,
-                    // 'created_by_employee' => Auth::id(),
+                    'created_by_employee' => Auth::id(),
                 ]);
 
                 // 1. حساب الخزينة الرئيسية (مدين)

@@ -3308,6 +3308,36 @@ id="storeButton">
                                             </span>
                                             <span class="">عرض تقاريره الخاصة</span>
                                         </div>
+                                        {{-- // الفروع  --}}
+                                        <div class="vs-checkbox-con vs-checkbox-primary mb-1">
+                                            <input name="branches" {{ $role->branches == 1 ? 'checked' : '' }} type="checkbox" class="select-all-settings permission-main-checkbox setting-checkbox">
+                                            <span class="vs-checkbox">
+                                                <span class="vs-checkbox--check">
+                                                    <i class="vs-icon feather icon-check"></i>
+                                                </span>
+                                            </span>
+                                            <span class="">الفروع</span>
+                                        </div>
+                                        {{-- //القوالب  --}}
+                                        <div class="vs-checkbox-con vs-checkbox-primary mb-1">
+                                            <input name="templates" {{ $role->templates == 1 ? 'checked' : '' }} type="checkbox" class="select-all-settings permission-main-checkbox setting-checkbox">
+                                            <span class="vs-checkbox">
+                                                <span class="vs-checkbox--check">
+                                                    <i class="vs-icon feather icon-check"></i>
+                                                </span>
+                                            </span>
+                                            <span class="">القوالب</span>
+                                        </div>
+                                        {{-- //دورة العمل  --}}
+                                        <div class="vs-checkbox-con vs-checkbox-primary mb-1">
+                                            <input name="work_cycle" {{ $role->work_cycle == 1 ? 'checked' : '' }} type="checkbox" class="select-all-settings permission-main-checkbox setting-checkbox">
+                                            <span class="vs-checkbox">
+                                                <span class="vs-checkbox--check">
+                                                    <i class="vs-icon feather icon-check"></i>
+                                                </span>
+                                            </span>
+                                            <span class="">دورة العمل</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -9,7 +9,7 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Treasury;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 class TreasuryController extends Controller
 {
     public function index()
@@ -133,7 +133,7 @@ public function transfer(Request $request)
             'status' => 1,
             'currency' => 'SAR',
           
-            // 'created_by_employee' => Auth::id(),
+            'created_by_employee' => Auth::id(),
         ]);
 
         

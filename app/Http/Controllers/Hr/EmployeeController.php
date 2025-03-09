@@ -105,6 +105,13 @@ class EmployeeController extends Controller
         if ($request->has('send_credentials')) {
             $employee->send_credentials = 1;
         }
+        $request->validate([
+            'email' => ['required', 'email', 'unique:users,email'],
+        ], [
+            'email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
+            'email.email' => 'يجب أن يكون البريد الإلكتروني صالحًا.',
+            'email.required' => 'حقل البريد الإلكتروني مطلوب.',
+        ]);
 
         $new_employee = $employee->create($employee_data);
 

@@ -18,6 +18,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -303,7 +304,7 @@ class InvoicesPurchaseController extends Controller
             'currency' => 'SAR',
             'client_id' => $purchaseInvoice->supplier_id,
             'invoice_id' => $purchaseInvoice->id,
-            // 'created_by_employee' => Auth::id(),
+            'created_by_employee' => Auth::id(),
         ]);
 
         // # القيد الاول
@@ -356,7 +357,7 @@ class InvoicesPurchaseController extends Controller
             'currency' => 'SAR',
             'client_id' => $purchaseInvoice->supplier_id,
             'invoice_id' => $purchaseInvoice->id,
-            // 'created_by_employee' => Auth::id(),
+            'created_by_employee' => Auth::id(),
         ]);
 
         // # القيد الاول
