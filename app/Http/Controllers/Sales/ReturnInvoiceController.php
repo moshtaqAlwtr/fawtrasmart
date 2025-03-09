@@ -17,6 +17,8 @@ use App\Models\ProductDetails;
 use App\Models\StoreHouse;
 use App\Models\Treasury;
 use App\Models\User;
+use App\Models\WarehousePermits;
+use App\Models\WarehousePermitsProducts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -202,31 +204,117 @@ class ReturnInvoiceController extends Controller
     public function store(Request $request)
     {
         try {
-            // تحقق مما إذا كانت قيمة invoice_id موجودة
+            // التحقق من وجود invoice_id
             if (empty($request->invoice_id) || !is_numeric($request->invoice_id)) {
                 return redirect()->back()->withInput()->with('error', 'رقم الفاتورة غير صالح.');
             }
 
-            // تحقق مما إذا كانت الفاتورة الأصلية موجودة
+            // جلب الفاتورة الأصلية
             $invoice = Invoice::find($request->invoice_id);
 
             if (!$invoice) {
                 return redirect()->back()->withInput()->with('error', 'الفاتورة غير موجودة.');
             }
 
+            // بدء المعاملة
+            DB::beginTransaction();
+
             // تحديث نوع الفاتورة إلى "مرتجع"
-            $invoice->type = 'returned'; // أو 'مرتجع' حسب الحاجة
-            $invoice->save(); // حفظ التغييرات
+            $invoice->type = 'returned';
+            $invoice->save();
+
+            // جلب العناصر (items) الخاصة بالفاتورة
+            $invoiceItems = $invoice->items;
+
+            // التكرار على كل عنصر (item) وإضافة الكمية المرتجعة إلى المخزون
+            foreach ($invoiceItems as $item) {
+                // جلب المنتج من جدول المنتجات
+                $product = Product::find($item->product_id);
+
+                if (!$product) {
+                    throw new \Exception('المنتج غير موجود: ' . $item->product_id);
+                }
+
+                // جلب المستودع الذي تم البيع منه
+                $storeHouse = StoreHouse::find($item->store_house_id);
+
+                if (!$storeHouse) {
+                    throw new \Exception('المستودع غير موجود: ' . $item->store_house_id);
+                }
+
+                // إضافة الكمية المرتجعة إلى المخزون
+                $productDetails = ProductDetails::where('store_house_id', $item->store_house_id)
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if (!$productDetails) {
+                    throw new \Exception('تفاصيل المنتج غير موجودة في المستودع.');
+                }
+
+                // زيادة الكمية في المخزون
+                $productDetails->increment('quantity', $item->quantity);
+
+                // تسجيل حركة المخزون للإرجاع
+                $wareHousePermits = new WarehousePermits();
+                $wareHousePermits->permission_type = 11; // نوع الإذن للإرجاع
+                $wareHousePermits->permission_date = now();
+                $wareHousePermits->number = $invoice->id;
+                $wareHousePermits->grand_total = $invoice->grand_total;
+                $wareHousePermits->store_houses_id = $storeHouse->id;
+                $wareHousePermits->created_by = auth()->user()->id;
+                $wareHousePermits->save();
+
+                // تسجيل تفاصيل حركة المخزون
+                WarehousePermitsProducts::create([
+                    'quantity' => $item->quantity,
+                    'total' => $item->total,
+                    'unit_price' => $item->unit_price,
+                    'product_id' => $item->product_id,
+                    'stock_before' => $productDetails->quantity - $item->quantity, // الكمية قبل الإضافة
+                    'stock_after' => $productDetails->quantity, // الكمية بعد الإضافة
+                    'warehouse_permits_id' => $wareHousePermits->id,
+                ]);
+            }
+
+            // عكس القيود المحاسبية
+            $journalEntries = JournalEntry::where('invoice_id', $invoice->id)->get();
+
+            foreach ($journalEntries as $journalEntry) {
+                // عكس تفاصيل القيد المحاسبي
+                foreach ($journalEntry->details as $detail) {
+                    $detail->debit = $detail->credit; // تبديل المدين والدائن
+                    $detail->credit = $detail->debit;
+                    $detail->save();
+                }
+
+                // تحديث رصيد الحسابات
+                if ($detail->account) {
+                    if ($detail->is_debit) {
+                        $detail->account->balance -= $detail->debit; // خصم المبلغ من المدين
+                    } else {
+                        $detail->account->balance += $detail->credit; // إضافة المبلغ إلى الدائن
+                    }
+                    $detail->account->save();
+                }
+            }
+
+            // تحديث حالة الفاتورة
+            $invoice->payment_status = 4; // حالة الإرجاع
+            $invoice->save();
+
+            // إتمام المعاملة
+            DB::commit();
 
             return redirect()
                 ->route('ReturnIInvoices.show', $invoice->id)
-                ->with('success', 'تم تغيير نوع الفاتورة إلى مرتجع بنجاح.');
+                ->with('success', 'تم إرجاع الفاتورة بنجاح.');
         } catch (\Exception $e) {
-            Log::error('خطأ في تغيير نوع الفاتورة: ' . $e->getMessage());
+            DB::rollback();
+            Log::error('خطأ في إرجاع الفاتورة: ' . $e->getMessage());
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'عذراً، حدث خطأ أثناء تغيير نوع الفاتورة: ' . $e->getMessage());
+                ->with('error', 'عذراً، حدث خطأ أثناء إرجاع الفاتورة: ' . $e->getMessage());
         }
     }
     public function edit($id)
