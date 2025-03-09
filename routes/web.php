@@ -27,11 +27,11 @@ require __DIR__ . '/auth.php';
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch'],
     ],
     function () {
         Route::prefix('sales')
-            ->middleware(['auth'])
+            ->middleware(['auth','check.branch'])
             ->group(function () {
                 # invoices routes
                 Route::prefix('invoices')
@@ -46,6 +46,11 @@ Route::group(
                         Route::delete('/delete/{id}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
                         Route::get('/{id}/generatePdf', [InvoicesController::class, 'generatePdf'])->name('invoices.generatePdf');
                         Route::get('/get-price', [InvoicesController::class, 'getPrice'])->name('get-price');
+                        Route::get('/notifications/unread', [InvoicesController::class, 'getUnreadNotifications'])->name('notifications.unread');
+                        Route::post('/notifications/mark', [InvoicesController::class, 'markAsRead'])->name('notifications.markAsRead');
+                        Route::get('/notifications/mark/show/{id}', [InvoicesController::class, 'markAsReadid'])->name('notifications.markAsReadid');
+                        
+                        Route::get('/notifications', [InvoicesController::class, 'notifications'])->name('notifications.index');
                     });
 
                 Route::prefix('ReturnIInvoices')->group(function () {
@@ -156,11 +161,12 @@ Route::group(
                 # Client routes
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
+                    
+                    Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
-                    Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
-                    Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
+                    Route::post('/store', [ClientController::class, 'store'])->name('clients.store');                    Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
                     Route::get('/show/client/{id}', [ClientController::class, 'show'])->name('clients.show');
                     Route::put('/update/{id}', [ClientController::class, 'update'])->name('clients.update');
                     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');

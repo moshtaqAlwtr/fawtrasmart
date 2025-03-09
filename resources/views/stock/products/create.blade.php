@@ -363,28 +363,51 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="row">
+                                        <!-- نوع التتبع -->
                                         <div class="col-6">
                                             <div class="form-group">
-                                                <label for="first-name-vertical">نوع التتبع</label>
-                                                <select disabled class="form-control ProductTrackingInput" name="track_inventory">
-                                                    <option value="0">الرقم التسلسلي</option>
-                                                    <option value="1">رقم الشحنة</option>
+                                                <label for="tracking-select">نوع التتبع</label>
+                                                <select disabled id="tracking-select" class="form-control ProductTrackingInput" name="track_inventory">
+                                                    <option value="">اختر النوع</option>  
                                                     <option value="2">تاريخ الانتهاء</option>
-                                                    <option value="3">رقم الشحنة وتاريخ الانتهاء</option>
-                                                    <option value="4" selected="selected">الكمية فقط</option>
+                                                    <option value="4">الكمية فقط</option>
                                                 </select>
                                             </div>
                                         </div>
+                            
+                                        <!-- نبهني عند وصول الكمية إلى أقل من ! -->
                                         <div class="col-6">
                                             <div class="form-group">
-                                                <label for="email-id-vertical"> نبهني عند وصول الكمية إلى أقل من !</label>
-                                                <input disabled type="number" value="{{ old('low_stock_alert',0) }}" class="form-control ProductTrackingInput" name="low_stock_alert">
+                                                <label for="low_stock_alert">نبهني عند وصول الكمية إلى أقل من !</label>
+                                                <input disabled type="number" value="{{ old('low_stock_alert', 0) }}" class="form-control ProductTrackingInput" name="low_stock_alert">
                                             </div>
                                         </div>
+                            
+                                      
                                     </div>
                                 </div>
-
+                            
+                                <!-- Hidden fields that will appear only if "تاريخ الانتهاء" is selected -->
+                                <div class="col-6" id="expiry-date-field" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="expiry_date">تاريخ الانتهاء</label>
+                                        <input type="date" class="form-control" name="expiry_date">
+                                    </div>
+                                </div>
+                            
+                                <div class="col-6" id="notify-before-expiry-field" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="notify_before_days">نبهني قبل الانتهاء (بالأيام)</label>
+                                        <input type="number" class="form-control" name="notify_before_days">
+                                    </div>
+                                </div>
                             </div>
+                            
+                          
+                            
+                            
+                         
+                            
                         </div>
                 </div>
             </div>
@@ -558,6 +581,23 @@ $(document).ready(function() {
             // إذا لم يتم الاختيار، قم بتعطيل الحقل ومسح القيمة
             defaultPriceInput.disabled = true;
             defaultPriceInput.value = '';
+        }
+    });
+</script>
+<script>
+    // إضافة ميدل وير لحدث تغيير الاختيار في السيلكت
+    document.getElementById('tracking-select').addEventListener('change', function() {
+        const expiryDateField = document.getElementById('expiry-date-field');
+        const notifyBeforeExpiryField = document.getElementById('notify-before-expiry-field');
+        
+        if (this.value == '2') {
+            // إذا تم اختيار تاريخ الانتهاء، عرض الحقول
+            expiryDateField.style.display = 'block';
+            notifyBeforeExpiryField.style.display = 'block';
+        } else {
+            // إذا تم اختيار الكمية فقط، إخفاء الحقول
+            expiryDateField.style.display = 'none';
+            notifyBeforeExpiryField.style.display = 'none';
         }
     });
 </script>

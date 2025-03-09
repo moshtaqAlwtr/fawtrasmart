@@ -21,13 +21,7 @@
             </div>
         </div>
     </div>
-    @if (Session::has('success'))
-        <div class="alert alert-success text-xl-center" role="alert">
-            <p class="mb-0">
-                {{ Session::get('success') }}
-            </p>
-        </div>
-    @endif
+   
     <form action="{{ route('branches.settings_store') }}" method="POST" enctype="multipart/form-data">
         @csrf
     <div class="card">
@@ -45,6 +39,14 @@
             </div>
         </div>
     </div>
+    @if (Session::has('success'))
+    <div class="alert alert-success text-xl-center" role="alert">
+        <p class="mb-0">
+            {{ Session::get('success') }}
+        </p>
+    </div>
+@endif
+
     @if ($branchs->isEmpty())
     <div class="alert alert-warning">
         لا توجد فروع متاحة. يرجى إضافة فروع أولاً.

@@ -28,7 +28,7 @@ Route::group(
 
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => [ 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath',]
+        'middleware' => [ 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch']
     ], function(){
 
         Route::prefix('Manufacturing')->middleware(['auth'])->group(function () {

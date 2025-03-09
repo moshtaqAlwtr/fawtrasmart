@@ -33,7 +33,7 @@ Route::group(
 
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => [ 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath',]
+        'middleware' => [ 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch']
     ], function(){
 
     Route::prefix('stock')->middleware(['auth'])->group(function () {
@@ -41,6 +41,7 @@ Route::group(
         #questions routes
         Route::prefix('products')->group(function () {
             Route::get('/index',[ProductsController::class,'index'])->name('products.index')->middleware('permission:products_view_all_products');
+            Route::get('/traking/products',[ProductsController::class,'traking'])->name('products.traking');
             Route::get('/create',[ProductsController::class,'create'])->name('products.create')->middleware('permission:products_add_product');
             Route::get('/get-sub-units', [ProductsController::class, 'getSubUnits'])->name('products.getSubUnits');
             Route::get('/compiled', [ProductsController::class, 'compiled'])->name('products.compiled'); // عرض اضاقة منتج تجميعي

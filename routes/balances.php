@@ -10,7 +10,7 @@ require __DIR__ . '/auth.php';
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch']
     ],
     function () {
         Route::prefix('reports_Balances')->middleware(['auth'])->group(function () {
