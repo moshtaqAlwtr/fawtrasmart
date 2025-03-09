@@ -118,12 +118,12 @@
                                 <!-- 1. العميل -->
                                 <div class="form-group col-md-4">
                                     <label for="client_id">أي العميل</label>
-                                    <select name="client_id" class="form-control" id="client_id">
+                                    <select name="client_id" class="form-control select2" id="client_id">
                                         <option value="">أي العميل</option>
                                         @foreach ($clients as $client)
                                             <option value="{{ $client->id }}"
                                                 {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                                                {{ $client->first_name }} {{ $client->last_name }}
+ {{ $client->trade_name }}
                                             </option>
                                         @endforeach
                                     </select>

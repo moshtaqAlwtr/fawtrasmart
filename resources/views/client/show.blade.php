@@ -91,7 +91,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoices->first()->due_value }}</strong> <span
+                            <strong class="text-dark">{{ $invoices->first()->due_value??0 }}</strong> <span
                                 class="text-muted">SAR</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
@@ -632,10 +632,10 @@
                                     @foreach ($invoices as $invoice)
                                         <tr class="align-middle invoice-row"
                                             onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
-                                            style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
+                                            style="cursor: pointer;" data-status="{{ $invoice->payment_status ?? "-" }}">
                                             <!-- أضفنا سمة data-status -->
                                             <td class="text-center border-start">
-                                                <span class="invoice-number">#{{ $invoice->id }}</span>
+                                                <span class="invoice-number">#{{ $invoice->id ?? "-" }}</span>
                                             </td>
                                             <td>
                                                 <div class="client-info">
@@ -705,7 +705,7 @@
                                                     @if ($invoice->due_value > 0)
                                                         <div class="due-amount">
                                                             <small class="text-danger">
-                                                                المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
+                                                                المبلغ المستحق: {{ number_format($invoice->due_value?? '', 2) }}
                                                                 {{ $account_setting->currency ?? 'SAR' }}
                                                             </small>
                                                         </div>

@@ -146,7 +146,7 @@
                 <form class="form" id="searchForm" method="GET" action="{{ route('clients.index') }}">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <select name="client" class="form-control">
+                            <select name="client" class="form-control select2">
                                 <option value="">اختر العميل </option>
                                 @foreach ($clients as $client)
                                     <option value="{{ $client->id }}"

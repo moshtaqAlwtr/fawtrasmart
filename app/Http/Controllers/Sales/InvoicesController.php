@@ -56,48 +56,11 @@ class InvoicesController extends Controller
         $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])->orderBy('created_at', 'desc');
 
         // البحث حسب النوع (عميل، موظف، منتج)
-        if ($request->filled('query')) {
-            $type = $request->query('type');
-            $query = $request->query('query');
-
-            if ($type == 'client') {
-                $results = Client::where('trade_name', 'like', "%{$query}%")
-                    ->orWhere('id', 'like', "%{$query}%")
-                    ->orWhere('first_name', 'like', "%{$query}%")
-                    ->get()
-                    ->map(function ($client) {
-                        return [
-                            'id' => $client->id,
-                            'text' => $client->trade_name,
-                        ];
-                    });
-            } elseif ($type == 'employee') {
-                $results = Employee::where('full_name', 'like', "%{$query}%")
-                    ->orWhere('id', 'like', "%{$query}%")
-                    ->get()
-                    ->map(function ($employee) {
-                        return [
-                            'id' => $employee->id,
-                            'text' => $employee->full_name,
-                        ];
-                    });
-            } elseif ($type == 'product') {
-                $results = Product::where('name', 'like', "%{$query}%")
-                    ->orWhere('id', 'like', "%{$query}%")
-                    ->get()
-                    ->map(function ($product) {
-                        return [
-                            'id' => $product->id,
-                            'text' => $product->name,
-                            'price' => $product->price, // إضافة السعر إذا كنت بحاجة إليه
-                        ];
-                    });
-            } else {
-                $results = [];
-            }
-
-            return response()->json(['results' => $results]);
+        if ($request->has('client_id') && $request->client_id) {
+            $invoices->where('client_id', $request->client_id);
         }
+
+        // 1. البحث حسب التاريخ
 
         // 2. البحث حسب رقم الفاتورة
         if ($request->has('invoice_number') && $request->invoice_number) {
