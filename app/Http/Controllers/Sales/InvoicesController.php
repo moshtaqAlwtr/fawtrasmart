@@ -619,18 +619,40 @@ class InvoicesController extends Controller
                     
                         // التحقق مما إذا كان تاريخ الانتهاء في المستقبل
                         if ($expiryDate->greaterThan(now())) {
-                           
                             $remainingDays = floor($expiryDate->diffInDays(now())); // حساب الأيام المتبقية بدون كسور
+                    
                             if ($remainingDays <= $daysBeforeExpiry) {
                                 // إنشاء إشعار لتاريخ الانتهاء
                                 notifications::create([
-                                    'type' => 'Products', // المستخدم الذي يقوم بالإجراء
+                                    'type' => 'Products', 
                                     'title' => 'تاريخ الانتهاء',
                                     'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
                                 ]);
+                    
+                                // إرسال الإشعار إلى تيليغرام
+                                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+                    
+                                $chatId = '@Salesfatrasmart'; // تأكد من أن لديك صلاحية الإرسال للقناة
+                    
+                                // تصميم الرسالة
+                                $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
+                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                                $message .= "📌 *اسم المنتج:* " . $product['name'] . "\n";
+                                $message .= "📅 *تاريخ الانتهاء:* " . $expiryDate->format('Y-m-d') . "\n";
+                                $message .= "⏳ *المدة المتبقية:* " . $remainingDays . " يوم\n";
+                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                    
+                                // إرسال الرسالة إلى التلقرام
+                        $response = Http::post($telegramApiUrl, [
+                            'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
+                            'text' => $message,
+                            'parse_mode' => 'Markdown',
+                            'timeout' => 60,
+                        ]);
                             }
                         }
                     }
+                    
                     
                 }
 
