@@ -10,21 +10,25 @@
 
 
     <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
-<style>
-.card-header button.active {
-    border: 2px solid #007bff; /* لون الحد */
-    font-weight: bold; /* نص غامق */
-}
+    <style>
+        .card-header button.active {
+            border: 2px solid #007bff;
+            /* لون الحد */
+            font-weight: bold;
+            /* نص غامق */
+        }
 
-.card-header button {
-    transition: all 0.3s ease;
-}
+        .card-header button {
+            transition: all 0.3s ease;
+        }
 
-.card-header button:hover {
-    transform: translateY(-2px); /* تحريك الزر لأعلى */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* إضافة ظل */
-}
-</style>
+        .card-header button:hover {
+            transform: translateY(-2px);
+            /* تحريك الزر لأعلى */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* إضافة ظل */
+        }
+    </style>
 @endsection
 @section('content')
     <div class="content-header row">
@@ -118,12 +122,12 @@
                                 <!-- 1. العميل -->
                                 <div class="form-group col-md-4">
                                     <label for="client_id">أي العميل</label>
-                                    <select name="client_id" class="form-control" id="client_id">
+                                    <select name="client_id" class="form-control select2" id="client_id">
                                         <option value="">أي العميل</option>
                                         @foreach ($clients as $client)
                                             <option value="{{ $client->id }}"
                                                 {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                                                {{ $client->first_name }} {{ $client->last_name }}
+                                                {{ $client->trade_name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -450,7 +454,8 @@
                             <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
                         </button>
                     </div>
-                    <input type="text" id="searchInput" class="form-control w-25" placeholder="ابحث عن فاتورة..." oninput="searchInvoices()">
+                    <input type="text" id="searchInput" class="form-control w-25" placeholder="ابحث عن فاتورة..."
+                        oninput="searchInvoices()">
                 </div>
 
                 <!-- قائمة الفواتير -->
@@ -470,8 +475,8 @@
                             @foreach ($invoices as $invoice)
                                 <tr class="align-middle invoice-row"
                                     onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
-                                    style="cursor: pointer;"
-                                    data-status="{{ $invoice->payment_status }}"> <!-- أضفنا سمة data-status -->
+                                    style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
+                                    <!-- أضفنا سمة data-status -->
                                     <td class="text-center border-start">
                                         <span class="invoice-number">#{{ $invoice->id }}</span>
                                     </td>
@@ -491,7 +496,8 @@
                                             @if ($invoice->client && $invoice->client->full_address)
                                                 <div class="address-info">
                                                     <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                                    <span class="text-muted small">{{ $invoice->client->full_address }}</span>
+                                                    <span
+                                                        class="text-muted small">{{ $invoice->client->full_address }}</span>
                                                 </div>
                                             @endif
                                         </div>
@@ -510,24 +516,28 @@
                                     <td>
                                         <div class="d-flex flex-column gap-2">
                                             @php
-                                                $payments = \App\Models\PaymentsProcess::where(
-                                                    'invoice_id',
-                                                    $invoice->id,
-                                                )
+                                                $payments = \App\Models\PaymentsProcess::where('invoice_id', $invoice->id)
                                                     ->where('type', 'client payments')
                                                     ->orderBy('created_at', 'desc')
                                                     ->get();
                                             @endphp
 
+                                            @if ($invoice->type == 'returned')
+                                                <span class="badge bg-danger-subtle text-danger">
+                                                    <i class="fas fa-undo me-1"></i>
+                                                    مرتجع
+                                                </span>
+                                            @elseif ($invoice->type == 'normal' && $payments->count() == 0)
+                                                <span class="badge bg-primary-subtle text-primary">
+                                                    <i class="fas fa-file-invoice me-1"></i>
+                                                    أنشئت فاتورة
+                                                </span>
+                                            @endif
+
                                             @if ($payments->count() > 0)
                                                 <span class="badge bg-success-subtle text-success">
                                                     <i class="fas fa-check-circle me-1"></i>
                                                     أضيفت عملية دفع
-                                                </span>
-                                            @else
-                                                <span class="badge bg-primary-subtle text-primary">
-                                                    <i class="fas fa-file-invoice me-1"></i>
-                                                    أنشئت فاتورة
                                                 </span>
                                             @endif
                                         </div>
@@ -574,7 +584,8 @@
                                             };
                                         @endphp
                                         <div class="text-center">
-                                            <span class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} status-badge">
+                                            <span
+                                                class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} status-badge">
                                                 {{ $statusText }}
                                             </span>
                                         </div>
@@ -587,28 +598,34 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end">
                                                 <!-- عناصر القائمة المنسدلة -->
-                                                <a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.edit', $invoice->id) }}">
                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.show', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.show', $invoice->id) }}">
                                                     <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-print me-2 text-dark"></i>طباعة
                                                 </a>
                                                 <a class="dropdown-item" href="#">
                                                     <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
                                                     <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
                                                 </a>
                                                 <a class="dropdown-item" href="#">
                                                     <i class="fa fa-copy me-2 text-secondary"></i>نسخ
                                                 </a>
-                                                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('invoices.destroy', $invoice->id) }}"
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="dropdown-item text-danger">
@@ -644,66 +661,66 @@
 
     <script>
         function filterInvoices(status) {
-    // إزالة الفئة النشطة من جميع الأزرار
-    document.querySelectorAll('.card-header button').forEach(button => {
-        button.classList.remove('active');
-    });
+            // إزالة الفئة النشطة من جميع الأزرار
+            document.querySelectorAll('.card-header button').forEach(button => {
+                button.classList.remove('active');
+            });
 
-    // إضافة الفئة النشطة للزر المحدد
-    document.querySelector(`.card-header button[onclick="filterInvoices('${status}')"]`).classList.add('active');
+            // إضافة الفئة النشطة للزر المحدد
+            document.querySelector(`.card-header button[onclick="filterInvoices('${status}')"]`).classList.add('active');
 
-    // تنفيذ الفلترة
-    const rows = document.querySelectorAll('#invoiceTableBody tr');
-    let visibleRows = 0;
+            // تنفيذ الفلترة
+            const rows = document.querySelectorAll('#invoiceTableBody tr');
+            let visibleRows = 0;
 
-    rows.forEach(row => {
-        const invoiceStatus = row.getAttribute('data-status');
-        if (status === 'all') {
-            row.style.display = '';
-            visibleRows++;
-        } else if (status === 'late' && invoiceStatus == 3) {
-            row.style.display = '';
-            visibleRows++;
-        } else if (status === 'due' && invoiceStatus == 2) {
-            row.style.display = '';
-            visibleRows++;
-        } else if (status === 'unpaid' && invoiceStatus == 3) {
-            row.style.display = '';
-            visibleRows++;
-        } else if (status === 'draft' && invoiceStatus == 4) {
-            row.style.display = '';
-            visibleRows++;
-        } else if (status === 'overpaid' && invoiceStatus ==0 ) {
-            row.style.display = '';
-            visibleRows++;
-        } else {
-            row.style.display = 'none';
+            rows.forEach(row => {
+                const invoiceStatus = row.getAttribute('data-status');
+                if (status === 'all') {
+                    row.style.display = '';
+                    visibleRows++;
+                } else if (status === 'late' && invoiceStatus == 3) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else if (status === 'due' && invoiceStatus == 2) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else if (status === 'unpaid' && invoiceStatus == 3) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else if (status === 'draft' && invoiceStatus == 4) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else if (status === 'overpaid' && invoiceStatus == 0) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // عرض رسالة إذا لم توجد فواتير
+            const noInvoicesMessage = document.getElementById('noInvoicesMessage');
+            if (visibleRows === 0) {
+                noInvoicesMessage.style.display = 'block';
+            } else {
+                noInvoicesMessage.style.display = 'none';
+            }
         }
-    });
 
-    // عرض رسالة إذا لم توجد فواتير
-    const noInvoicesMessage = document.getElementById('noInvoicesMessage');
-    if (visibleRows === 0) {
-        noInvoicesMessage.style.display = 'block';
-    } else {
-        noInvoicesMessage.style.display = 'none';
-    }
-}
+        function searchInvoices() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#invoiceTableBody tr');
 
-function searchInvoices() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    const rows = document.querySelectorAll('#invoiceTableBody tr');
-
-    rows.forEach(row => {
-        const invoiceNumber = row.querySelector('.invoice-number').textContent.toLowerCase();
-        const clientName = row.querySelector('.client-name strong').textContent.toLowerCase();
-        if (invoiceNumber.includes(searchTerm) || clientName.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
+            rows.forEach(row => {
+                const invoiceNumber = row.querySelector('.invoice-number').textContent.toLowerCase();
+                const clientName = row.querySelector('.client-name strong').textContent.toLowerCase();
+                if (invoiceNumber.includes(searchTerm) || clientName.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
-    });
-}
     </script>
 
 @endsection

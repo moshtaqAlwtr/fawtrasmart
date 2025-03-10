@@ -30,7 +30,7 @@
                 <form class="form form-vertical" action="{{ route('inventory_settings.employee_default_warehouse_update',$default_warehouse->id) }}" method="POST">
                     @csrf
                     <div class="form-body">
-                        
+
                         <div class="row">
                             <div class="col-6">
                                 <div class="form-group">

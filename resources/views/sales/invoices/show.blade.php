@@ -36,7 +36,7 @@
                     </div>
                 </div>
                 <div>
-                    <span>المستلم: {{ $invoice->client->trade_name }}</span><br>
+                    <span>المستلم: {{ $invoice->client->trade_name??'' }}</span><br>
                     <a href="#">Journal #{{ $invoice->journal_id }}</a> |
                     <a href="#">تكلفة مبيعات #{{ $invoice->sales_cost_id }}</a> - {{ $invoice->source }}
                 </div>

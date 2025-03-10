@@ -25,41 +25,90 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ClientController extends Controller
 {
-    public function index()
-    {
-        // الحصول على المستخدم الحالي
-        $user = auth()->user();
+    public function index(Request $request)
+{
+    // الحصول على المستخدم الحالي
+    $user = auth()->user();
 
-        // التحقق مما إذا كان للمستخدم فرع أم لا
-        if ($user->branch) {
-            $branch = $user->branch;
+    // بدء بناء الاستعلام
+    $query = Client::query();
 
-            // التحقق من صلاحية "مشاركة بيانات العملاء"
-            $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+    // التحقق مما إذا كان للمستخدم فرع أم لا
+    if ($user->branch) {
+        $branch = $user->branch;
 
-            // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
-            if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
-                $clients = Client::whereHas('employee', function ($query) use ($branch) {
-                    $query->where('branch_id', $branch->id);
-                })
-                    ->with('employee')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
-            } else {
-                // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع العملاء
-                $clients = Client::with('employee')->orderBy('created_at', 'desc')->get();
-            }
-        } else {
-            // إذا لم يكن لدى المستخدم فرع، عرض جميع العملاء
-            $clients = Client::with('employee')->orderBy('created_at', 'desc')->get();
+        // التحقق من صلاحية "مشاركة بيانات العملاء"
+        $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+
+        // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
+        if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
+            $query->whereHas('employee', function ($query) use ($branch) {
+                $query->where('branch_id', $branch->id);
+            });
         }
-
-        // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
-        $users = User::all();
-        $employees = Employee::all();
-
-        return view('client.index', compact('clients', 'users', 'employees'));
     }
+
+    // تطبيق شروط البحث بناءً على الحقول المحددة
+    if ($request->has('client') && $request->client != '') {
+        $query->where('id', $request->client);
+    }
+
+    if ($request->has('name') && $request->name != '') {
+        $query->where('trade_name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->has('status') && $request->status != '') {
+        $query->where('status', $request->status);
+    }
+
+    if ($request->has('classifications') && $request->classifications != '') {
+        $query->where('category', $request->classifications);
+    }
+
+    if ($request->has('end_date_to') && $request->end_date_to != '') {
+        $query->whereDate('created_at', '<=', $request->end_date_to);
+    }
+
+    if ($request->has('address') && $request->address != '') {
+        $query->where('street1', 'like', '%' . $request->address . '%')
+              ->orWhere('street2', 'like', '%' . $request->address . '%');
+    }
+
+    if ($request->has('postal_code') && $request->postal_code != '') {
+        $query->where('postal_code', $request->postal_code);
+    }
+
+    if ($request->has('country') && $request->country != '') {
+        $query->where('country', $request->country);
+    }
+
+    if ($request->has('tage') && $request->tage != '') {
+        $query->where('tags', 'like', '%' . $request->tage . '%');
+    }
+
+    if ($request->has('user') && $request->user != '') {
+        $query->where('employee_id', $request->user);
+    }
+
+    if ($request->has('type') && $request->type != '') {
+        $query->where('client_type', $request->type);
+    }
+
+    if ($request->has('full_name') && $request->full_name != '') {
+        $query->whereHas('employee', function ($query) use ($request) {
+            $query->where('id', $request->full_name);
+        });
+    }
+
+    // تنفيذ الاستعلام والحصول على النتائج
+    $clients = $query->with('employee')->orderBy('created_at', 'desc')->get();
+
+    // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
+    $users = User::all();
+    $employees = Employee::all();
+
+    return view('client.index', compact('clients', 'users', 'employees'));
+}
 
     public function create()
     {
@@ -137,20 +186,20 @@ class ClientController extends Controller
                 $customerAccount = new Account();
                 $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
                 $customerAccount->client_id = $client->id;
-    
+
                 // تعيين كود الحساب الفرعي بناءً على كود الحسابات
                 $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
                 $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
                 $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
-    
+
                 $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
                 $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
                 $customerAccount->is_active = false;
                 $customerAccount->save();
             }
         }
-       
-       
+
+
     }
     // إضافة هذه الدالة في نفس وحدة التحكم
     private function generateNextCode(string $lastChildCode): string
