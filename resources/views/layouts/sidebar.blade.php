@@ -157,7 +157,24 @@
                 @endif
             @endif
 
-            {{-- نقاط البيع --}}
+
+            
+            <!-- نقاط  البيع -->
+            @if (
+                    auth()->user()->hasAnyPermission([
+                        'points_sale_edit_product_prices',
+                        'points_sale_add_discount',
+                        'points_sale_open_sessions_all',
+                        'points_sale_open_sessions_own',
+                        'points_sale_close_sessions_all',
+                        'points_sale_close_sessions_own',
+                        'points_sale_view_all_sessions',
+                        'points_sale_confirm_close_sessions_all',
+                        'points_sale_confirm_close_sessions_own',
+                        'points_sale_confirm_close_sessions_own',
+                    ])
+                )
+                 {{-- نقاط البيع --}}
             @if(isset($settings['pos']) && $settings['pos'] === 'active')
             <li class="nav-item">
                 <a href="#">
@@ -193,6 +210,8 @@
                 </ul>
             </li>
             @endif
+            @endif
+           
             {{-- المتجر الكتروني --}}
 
             @can('online_store_content_management')
@@ -215,6 +234,8 @@
 
             {{-- التصنيع --}}
             @can('online_store_content_management')
+             @if(isset($settings['manufacturing']) && $settings['manufacturing'] === 'active')
+            
                 <li class="nav-item {{ request()->is("$getLocal/Manufacturing/*") ? 'active open' : '' }}">
                     <a href="index.html">
                         <i class="feather icon-layers"></i>
@@ -254,6 +275,7 @@
                         </li>
                     </ul>
                 </li>
+                @endif
             @endcan
 
             <!-- إدارة الحجوزات -->
@@ -440,7 +462,15 @@
                 @endif
             @endif
 
-            <!-- دورات العمل -->
+          
+
+           @if (
+                    auth()->user()->hasAnyPermission([
+                        'work_cycle',
+                        
+                    ])
+                )
+                  <!-- دورات العمل -->
             @if(isset($settings['workflow']) && $settings['workflow'] === 'active')
             <li class="nav-item"><a href="">
                     <i class="feather icon-refresh-ccw"></i> <!-- أيقونة دورات العمل -->
@@ -452,6 +482,7 @@
                 </ul>
             </li>
            @endif
+            @endif
             <!-- العملاء -->
             @if (
                     auth()->user()->hasAnyPermission([
@@ -689,28 +720,36 @@
                 @endif
             @endcan
 
-            {{-- وكلاء التامين --}}
-            @if(isset($settings['insurance']) && $settings['insurance'] === 'active')
-            <li class=" nav-item"><a href="index.html">
-                    <i class="feather icon-users">
-                    </i><span class="menu-title" data-i18n="Dashboard">
-                        {{ trans('main_trans.Insurance_Agents') }}</span>
+            @if (
+                Auth::user()->hasAnyPermission([
+                    'management_of_insurance_agents',
+                  
+                ])
+            )
+           {{-- وكلاء التامين --}}
+           @if(isset($settings['insurance']) && $settings['insurance'] === 'active')
+           <li class=" nav-item"><a href="index.html">
+                   <i class="feather icon-users">
+                   </i><span class="menu-title" data-i18n="Dashboard">
+                       {{ trans('main_trans.Insurance_Agents') }}</span>
 
-                </a>
-                <ul class="menu-content">
-                    <li><a href="{{ route('Insurance_Agents.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="Analytics">{{ trans('main_trans.Insurance_Agents_Management') }}</span></a>
-                    </li>
+               </a>
+               <ul class="menu-content">
+                   <li><a href="{{ route('Insurance_Agents.index') }}"><i class="feather icon-circle"></i><span
+                               class="menu-item"
+                               data-i18n="Analytics">{{ trans('main_trans.Insurance_Agents_Management') }}</span></a>
+                   </li>
 
-                    <li><a href="{{ route('Insurance_Agents.create') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Add_Insurance_Company') }}</span></a>
-                    </li>
-                </ul>
+                   <li><a href="{{ route('Insurance_Agents.create') }}"><i class="feather icon-circle"></i><span
+                               class="menu-item"
+                               data-i18n="eCommerce">{{ trans('main_trans.Add_Insurance_Company') }}</span></a>
+                   </li>
+               </ul>
 
-            </li>
+           </li>
+       @endif
         @endif
+           
             {{-- ادارة المخازن --}}
             @if (
                     Auth::user()->hasAnyPermission([
@@ -1347,6 +1386,12 @@
 
             </li>
 
+
+            @if (
+                auth()->user()->hasAnyPermission([
+                    'branches',
+                ])
+            )
             {{-- الفروع --}}
 
             @if(isset($settings['branches']) && $settings['branches'] === 'active')
@@ -1375,43 +1420,54 @@
 
             </li>
       @endif
-            {{-- القوالب --}}
-            <li class=" nav-item"><a href="index.html">
-                    <i class="feather icon-dollar-sign">
-                    </i><span class="menu-title" data-i18n="Dashboard">
-                        {{ trans('main_trans.Templates') }}</span>
-
-                </a>
-                <ul class="menu-content">
-                    <li><a href="dashboard-analytics.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="Analytics">{{ trans('main_trans.Print_Templates') }}</span></a>
-                    </li>
-
-                    <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Ready_Invoice_Templates') }}</span></a>
-                    </li>
-                    <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Emails') }}</span></a>
-                    </li>
-                    @if(isset($settings['sms']) && $settings['sms'] === 'active')
-                    <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.SMS_Models') }}</span></a>
-                    </li>
-                    @endif
-                    <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Terms_and_Conditions') }}</span></a>
-                    </li>
-                    <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.File_Management_and_Documents') }}</span></a>
-                    </li>
-                    <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Auto_Send_Rules') }}</span></a>
-                    </li>
+        @endif
 
 
-                </ul>
+        @if (
+            auth()->user()->hasAnyPermission([
+                'templates',
+            ])
+        )
+          {{-- القوالب --}}
+          <li class=" nav-item"><a href="index.html">
+            <i class="feather icon-dollar-sign">
+            </i><span class="menu-title" data-i18n="Dashboard">
+                {{ trans('main_trans.Templates') }}</span>
 
+        </a>
+        <ul class="menu-content">
+            <li><a href="dashboard-analytics.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="Analytics">{{ trans('main_trans.Print_Templates') }}</span></a>
             </li>
+
+            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="eCommerce">{{ trans('main_trans.Ready_Invoice_Templates') }}</span></a>
+            </li>
+            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="eCommerce">{{ trans('main_trans.Emails') }}</span></a>
+            </li>
+            @if(isset($settings['sms']) && $settings['sms'] === 'active')
+            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="eCommerce">{{ trans('main_trans.SMS_Models') }}</span></a>
+            </li>
+            @endif
+            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="eCommerce">{{ trans('main_trans.Terms_and_Conditions') }}</span></a>
+            </li>
+            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="eCommerce">{{ trans('main_trans.File_Management_and_Documents') }}</span></a>
+            </li>
+            <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
+                        data-i18n="eCommerce">{{ trans('main_trans.Auto_Send_Rules') }}</span></a>
+            </li>
+
+
+        </ul>
+
+    </li> 
+    @endif
+          
+       
 
             {{-- الاعدادات --}}
             @can('settings_edit_general_settings')

@@ -20,9 +20,9 @@ use App\Models\StoreHouse;
 use App\Models\Subscriptions;
 use App\Models\Treasury;
 use Carbon\Carbon;
-use Illuminate\Container\Attributes\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MembershipsController extends Controller
 {
@@ -237,7 +237,7 @@ class MembershipsController extends Controller
                'currency' => 'SAR',
                'client_id' => $invoice->client_id,
                'invoice_id' => $invoice->id,
-               // 'created_by_employee' => Auth::id(),
+               'created_by_employee' => Auth::id(),
            ]);
 
            // إضافة تفاصيل القيد المحاسبي

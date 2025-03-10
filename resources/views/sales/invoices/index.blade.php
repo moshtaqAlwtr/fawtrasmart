@@ -543,20 +543,29 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="amount-info text-center mb-2">
-                                            <h6 class="amount mb-1">
-                                                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
-                                                <small class="currency">{{ $account_setting->currency ?? 'SAR' }}</small>
-                                            </h6>
-                                            @if ($invoice->due_value > 0)
-                                                <div class="due-amount">
-                                                    <small class="text-danger">
-                                                        المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
-                                                        {{ $account_setting->currency ?? 'SAR' }}
-                                                    </small>
-                                                </div>
-                                            @endif
-                                        </div>
+                                        @php
+    $currency = $account_setting->currency ?? 'SAR';
+    $currencySymbol = ($currency == 'SAR' || empty($currency)) 
+        ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+        : $currency;
+@endphp
+
+<div class="amount-info text-center mb-2">
+    <h6 class="amount mb-1">
+        {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
+        <small class="currency">{!! $currencySymbol !!}</small>
+    </h6>
+    
+    @if ($invoice->due_value > 0)
+        <div class="due-amount">
+            <small class="text-danger">
+                المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
+                {!! $currencySymbol !!}
+            </small>
+        </div>
+    @endif
+</div>
+
 
                                         @php
                                             $statusClass = match ($invoice->payment_status) {

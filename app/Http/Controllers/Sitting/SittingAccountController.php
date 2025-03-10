@@ -34,6 +34,12 @@ class SittingAccountController extends Controller
                 'attachments' => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // دعم صور JPG و PNG بحد أقصى 2MB
             ]);
     
+            $request->validate([
+                'trade_name' => ['required'],
+            ], [
+             
+                'trade_name.required' => 'الأسم التجاري مطلوب.',
+            ]);
             // البحث عن الإعدادات الخاصة بالمستخدم الحالي
             $AccountSetting = AccountSetting::where('user_id', auth()->id())->first();
     

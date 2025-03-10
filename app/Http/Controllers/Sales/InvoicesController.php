@@ -17,6 +17,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
+use App\Models\notifications;
 use App\Models\PaymentsProcess;
 use App\Models\PriceList;
 use App\Models\PriceListItems;
@@ -531,22 +532,96 @@ class InvoicesController extends Controller
                 $wareHousePermits->created_by = auth()->user()->id;
                 $wareHousePermits->save();
 
-                // ** تسجيل البيانات في WarehousePermitsProducts **
-                WarehousePermitsProducts::create([
-                    'quantity' => $item['quantity'],
-                    'total' => $item['total'],
-                    'unit_price' => $item['unit_price'],
-                    'product_id' => $item['product_id'],
-                    'stock_before' => $stock_before, // المخزون قبل التحديث
-                    'stock_after' => $stock_after, // المخزون بعد التحديث
-                    'warehouse_permits_id' => $wareHousePermits->id,
-                ]);
-            }
+                    // ** تسجيل البيانات في WarehousePermitsProducts **
+                    WarehousePermitsProducts::create([
+                        'quantity' => $item['quantity'],
+                        'total' => $item['total'],
+                        'unit_price' => $item['unit_price'],
+                        'product_id' => $item['product_id'],
+                        'stock_before' => $stock_before, // المخزون قبل التحديث
+                        'stock_after' => $stock_after,   // المخزون بعد التحديث
+                        'warehouse_permits_id' => $wareHousePermits->id,
+                    ]);
 
-            if ($proudect->type == 'compiled' && $proudect->compile_type == 'Instant') {
-                // ** حساب المخزون قبل وبعد التعديل للمنتج التجميعي **
-                $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
-                $stock_before = $total_quantity;
+
+                    if ($productDetails->quantity < $product['low_stock_alert']) {
+                        // إنشاء إشعار للكمية
+                        notifications::create([
+                            'type' => 'Products',
+                            'title' => 'تنبيه الكمية',
+                            'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
+                        ]);
+
+                        // رابط API Telegram
+
+                      $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+
+                        // تنسيق الرسالة بـ Markdown
+                        $message = "🚨 *تنبيه جديد!* 🚨\n";
+                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                        $message .= "📌 *العنوان:* 🔔 `تنبيه الكمية`\n";
+                        $message .= "📦 *المنتج:* `" . $product['name'] . "`\n";
+                        $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
+                        $message .= "📅 *التاريخ:* `" . now()->format('Y-m-d H:i') . "`\n";
+                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+
+
+                        // إرسال الرسالة إلى التلقرام
+                        $response = Http::post($telegramApiUrl, [
+                            'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
+                            'text' => $message,
+                            'parse_mode' => 'Markdown',
+                            'timeout' => 60,
+                        ]);
+                    }
+
+                    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) {
+                        $expiryDate = Carbon::parse($product['expiry_date']); // تاريخ الانتهاء
+                        $daysBeforeExpiry = (int) $product['notify_before_days']; // الأيام المحددة من قبل المستخدم
+
+                        // التحقق مما إذا كان تاريخ الانتهاء في المستقبل
+                        if ($expiryDate->greaterThan(now())) {
+                            $remainingDays = floor($expiryDate->diffInDays(now())); // حساب الأيام المتبقية بدون كسور
+
+                            if ($remainingDays <= $daysBeforeExpiry) {
+                                // إنشاء إشعار لتاريخ الانتهاء
+                                notifications::create([
+                                    'type' => 'Products',
+                                    'title' => 'تاريخ الانتهاء',
+                                    'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
+                                ]);
+
+                                // إرسال الإشعار إلى تيليغرام
+                                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+
+                                $chatId = '@Salesfatrasmart'; // تأكد من أن لديك صلاحية الإرسال للقناة
+
+                                // تصميم الرسالة
+                                $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
+                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                                $message .= "📌 *اسم المنتج:* " . $product['name'] . "\n";
+                                $message .= "📅 *تاريخ الانتهاء:* " . $expiryDate->format('Y-m-d') . "\n";
+                                $message .= "⏳ *المدة المتبقية:* " . $remainingDays . " يوم\n";
+                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+
+                                // إرسال الرسالة إلى التلقرام
+                        $response = Http::post($telegramApiUrl, [
+                            'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
+                            'text' => $message,
+                            'parse_mode' => 'Markdown',
+                            'timeout' => 60,
+                        ]);
+                            }
+                        }
+                    }
+
+
+                }
+
+                if ($proudect->type == "compiled" && $proudect->compile_type == "Instant") {
+                    // ** حساب المخزون قبل وبعد التعديل للمنتج التجميعي **
+                    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+                    $stock_before = $total_quantity;
 
                 // ** الحركة الأولى: إضافة الكمية إلى المخزن **
                 $wareHousePermits = new WarehousePermits();
@@ -657,6 +732,7 @@ class InvoicesController extends Controller
             $productsList .= "▫️ *{$productName}* - الكمية: {$item->quantity}, السعر: {$item->unit_price} \n";
         }
 
+
         // // رابط API التلقرام
         $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
 
@@ -683,6 +759,34 @@ class InvoicesController extends Controller
             'parse_mode' => 'Markdown',
             'timeout' => 30,
         ]);
+
+            // // // رابط API التلقرام
+            $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+
+            // تجهيز الرسالة
+            $message = "📜 *فاتورة جديدة* 📜\n";
+            $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            $message .= "🆔 *رقم الفاتورة:* `$code`\n";
+            $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
+            $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
+            $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
+            $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
+            $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
+            $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
+            $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            $message .= "📦 *المنتجات:* \n" . $productsList;
+            $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+            $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
+
+
+            // إرسال الرسالة إلى التلقرام
+            $response = Http::post($telegramApiUrl, [
+                'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
+                'text' => $message,
+                'parse_mode' => 'Markdown',
+                'timeout' => 60,
+            ]);
 
         // التحقق مما إذا كان للمستخدم قاعدة عمولة
         // التحقق مما إذا كان للمستخدم قاعدة عمولة
@@ -786,17 +890,18 @@ class InvoicesController extends Controller
             throw new \Exception('حساب المبيعات غير موجود');
         }
 
-        // إنشاء القيد المحاسبي للفاتورة
-        $journalEntry = JournalEntry::create([
-            'reference_number' => $invoice->code,
-            'date' => now(),
-            'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
-            'status' => 1,
-            'currency' => 'SAR',
-            'client_id' => $invoice->client_id,
-            'invoice_id' => $invoice->id,
-            // 'created_by_employee' => Auth::id(),
-        ]);
+            // إنشاء القيد المحاسبي للفاتورة
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $invoice->code,
+                'date' => now(),
+                'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $invoice->client_id,
+                'invoice_id' => $invoice->id,
+                'created_by_employee' => Auth::id(),
+
+            ]);
 
         $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
         // إضافة تفاصيل القيد المحاسبي
@@ -932,17 +1037,17 @@ class InvoicesController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            // إنشاء قيد محاسبي للدفعة
-            $paymentJournalEntry = JournalEntry::create([
-                'reference_number' => $payment->reference_number ?? $invoice->code,
-                'date' => now(),
-                'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
-                'status' => 1,
-                'currency' => 'SAR',
-                'client_id' => $invoice->client_id,
-                'invoice_id' => $invoice->id,
-                // 'created_by_employee' => Auth::id(),
-            ]);
+                // إنشاء قيد محاسبي للدفعة
+                $paymentJournalEntry = JournalEntry::create([
+                    'reference_number' => $payment->reference_number ?? $invoice->code,
+                    'date' => now(),
+                    'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
+                    'status' => 1,
+                    'currency' => 'SAR',
+                    'client_id' => $invoice->client_id,
+                    'invoice_id' => $invoice->id,
+                    'created_by_employee' => Auth::id(),
+                ]);
 
             // 1. حساب الخزينة الرئيسية (مدين)
             $treasuryDetail = JournalEntryDetail::create([

@@ -230,5 +230,8 @@ class JobRole extends Model
         'employee_staffview_own_leave_requests',
         'employee_view_his_salary_slip',
         'employee_orders_management',
+        'work_cycle',
+        'templates',
+        'branches',
     ];
 }
