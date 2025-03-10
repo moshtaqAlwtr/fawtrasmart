@@ -133,6 +133,7 @@
                             role="tab" aria-selected="false">
                             الملاحظات <span class="badge badge-pill badge-primary">{{ $notes->count() }}</span>
                         </a>
+</li>
                     <li class="nav-item">
                         <a class="nav-link" id="appointments-tab" data-toggle="tab" href="#appointments"
                             aria-controls="appointments" role="tab" aria-selected="false">

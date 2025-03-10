@@ -19,20 +19,22 @@
             border-radius: 50%;
             padding: 2px;
         }
-        .ficon {
-                font-size: 12px;
-            }
-            .ml-auto a {
-                color: #fff;
-                background-color: #4e5381;
-                border-color: #4e5381;
-                border-radius: 5px;
-                display: inline-block;
-                margin-bottom: 5px;
-                width: 100%;
-                padding: 4px;
 
-            }
+        .ficon {
+            font-size: 12px;
+        }
+
+        .ml-auto a {
+            color: #fff;
+            background-color: #4e5381;
+            border-color: #4e5381;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 5px;
+            width: 100%;
+            padding: 4px;
+
+        }
     </style>
 @endsection
 
@@ -64,7 +66,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-between align-items-center mb-1">
                         @php
-                            $firstLetter = mb_substr($employee->full_name, 0, 1, "UTF-8");
+                            $firstLetter = mb_substr($employee->full_name, 0, 1, 'UTF-8');
                             $timestamp = strtotime($employee->created_at);
                             $formattedDate = date("d M Y \\a\\t h:i A", $timestamp);
                         @endphp
@@ -73,23 +75,27 @@
                             <div class="profile-picture">{{ $firstLetter }}</div>
                         </div>
                         <div class="user-page-info">
-                            <p class="mb-0"><strong>{{ $employee->full_name }}</strong> <small>({{ $employee->employee_type == 1 ? 'موظف' : 'مستخدم' }})</small></p>
+                            <p class="mb-0"><strong>{{ $employee->full_name }}</strong>
+                                <small>({{ $employee->employee_type == 1 ? 'موظف' : 'مستخدم' }})</small></p>
                             <span class="font-small-2">{{ $formattedDate }}</span><br>
                             <span>#{{ $employee->id }}</span>
                         </div>
-                       <div class="ml-auto">
-    <a href="mailto:{{ $employee->email }}" style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
-        <i class="ficon feather icon-mail"></i> <small>ايميل : {{ $employee->email }}</small>
-    </a>
+                        <div class="ml-auto">
+                            <a href="mailto:{{ $employee->email }}"
+                                style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
+                                <i class="ficon feather icon-mail"></i> <small>ايميل : {{ $employee->email }}</small>
+                            </a>
 
-    <a href="{{ route('employee.login_to',$user->id) }}" style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
-        <i class="ficon feather icon-user"></i> <small>تسجيل الدخول ك {{ $employee->full_name }}</small>
-    </a>
+                            <a href="{{ route('employee.login_to', $user->id ?? $employee->id) }}"
+                                style="font-size: 18px; font-weight: bold; display: block; margin-bottom: 8px;">
+                                <i class="ficon feather icon-user"></i> <small>تسجيل الدخول ك
+                                    {{ $employee->full_name }}</small>
+                            </a>
 
-    <a href="" style="font-size: 18px; font-weight: bold; display: block;">
-        <i class="ficon feather icon-smartphone"></i> <small>إعداد تطبيق الحضور</small>
-    </a>
-</div>
+                            <a href="" style="font-size: 18px; font-weight: bold; display: block;">
+                                <i class="ficon feather icon-smartphone"></i> <small>إعداد تطبيق الحضور</small>
+                            </a>
+                        </div>
 
 
                     </div>
@@ -98,22 +104,27 @@
 
             <div class="card">
                 <div class="card-title p-1">
-                    <a href="{{ route('employee.edit',$employee->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i class="fa fa-edit"></i></a>
-                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modal_DELETE{{ $employee->id }}">حذف <i class="fa fa-trash"></i></a>
-                    <a href="" class="btn btn-outline-success btn-sm" data-toggle="modal" data-target="#ChangePassword">تغيير كلمه المرور <i class="fa fa-lock"></i></a>
+                    <a href="{{ route('employee.edit', $employee->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i
+                            class="fa fa-edit"></i></a>
+                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal"
+                        data-target="#modal_DELETE{{ $employee->id }}">حذف <i class="fa fa-trash"></i></a>
+                    <a href="" class="btn btn-outline-success btn-sm" data-toggle="modal"
+                        data-target="#ChangePassword">تغيير كلمه المرور <i class="fa fa-lock"></i></a>
                     <a href="{{ route('employee.updateStatus', $employee->id) }}"
                         class="btn btn-outline-{{ $employee->status == 1 ? 'danger' : 'success' }} btn-sm waves-effect waves-light">
-                         {{ $employee->status == 1 ? 'تعطيل' : 'تفعيل' }}
-                         <i class="fa {{ $employee->status == 1 ? 'fa-ban' : 'fa-check' }}"></i>
-                     </a>
+                        {{ $employee->status == 1 ? 'تعطيل' : 'تفعيل' }}
+                        <i class="fa {{ $employee->status == 1 ? 'fa-ban' : 'fa-check' }}"></i>
+                    </a>
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home" role="tab" aria-selected="false">التفاصيل</a>
+                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home"
+                                role="tab" aria-selected="false">التفاصيل</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activate" aria-controls="about" role="tab" aria-selected="true">سجل النشاطات</a>
+                            <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activate" aria-controls="about"
+                                role="tab" aria-selected="true">سجل النشاطات</a>
                         </li>
 
                     </ul>
@@ -135,12 +146,18 @@
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <p><small>البريد الالكتروني</small>: <strong>{{ $employee->email }}</strong></p>
-                                                        <p><small>الفروع المسموح الدخول به </small>: <strong>{{ $employee->branch_id }}</strong></p>
+                                                        <p><small>البريد الالكتروني</small>:
+                                                            <strong>{{ $employee->email }}</strong></p>
+                                                        <p><small>الفروع المسموح الدخول به </small>:
+                                                            <strong>{{ $employee->branch_id }}</strong></p>
                                                     </td>
                                                     <td>
-                                                        <p><small>الدور الوظيفي </small>: <strong>{{ $employee->job_role->role_name ?? "غير محدد" }}</strong></p>
-                                                        <p><small>لغة العرض </small>: <strong>{{ $employee->language == 1 ? 'العربية' : 'انجليزي' }}</strong></p>
+                                                        <p><small>الدور الوظيفي </small>:
+                                                            <strong>{{ $employee->job_role->role_name ?? 'غير محدد' }}</strong>
+                                                        </p>
+                                                        <p><small>لغة العرض </small>:
+                                                            <strong>{{ $employee->language == 1 ? 'العربية' : 'انجليزي' }}</strong>
+                                                        </p>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -180,19 +197,25 @@
                                                         ];
                                                     @endphp
                                                     <td>
-                                                        <p><small>البلد </small>: <strong>{{ $arabic_countries[$employee->country] ?? 'غير محدد' }}</strong></p>
-                                                        <p><small>تاريخ الميلاد </small>: <strong>{{ $employee->date_of_birth }}</strong></p>
+                                                        <p><small>البلد </small>:
+                                                            <strong>{{ $arabic_countries[$employee->country] ?? 'غير محدد' }}</strong>
+                                                        </p>
+                                                        <p><small>تاريخ الميلاد </small>:
+                                                            <strong>{{ $employee->date_of_birth }}</strong></p>
                                                     </td>
                                                     <td>
                                                         <p><small>حاله الموطنة </small>: <strong>
-                                                        @if ($employee->nationality_status == 1)
-                                                        مواطن
-                                                        @elseif ($employee->nationality_status == 2)
-                                                        مقيم
-                                                        @else
-                                                        زائر
-                                                        @endif </strong></p>
-                                                        <p><small>النوع </small>: <strong>{{ $employee->gender == 1 ? 'ذكر' : 'انثى' }}</strong></p>
+                                                                @if ($employee->nationality_status == 1)
+                                                                    مواطن
+                                                                @elseif ($employee->nationality_status == 2)
+                                                                    مقيم
+                                                                @else
+                                                                    زائر
+                                                                @endif
+                                                            </strong></p>
+                                                        <p><small>النوع </small>:
+                                                            <strong>{{ $employee->gender == 1 ? 'ذكر' : 'انثى' }}</strong>
+                                                        </p>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -206,12 +229,16 @@
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <p><small>العنوان </small>: <strong>{{ $employee->current_address_1 }}</strong></p>
-                                                        <p><small>المدينة </small>: <strong>{{ $employee->city }}</strong></p>
+                                                        <p><small>العنوان </small>:
+                                                            <strong>{{ $employee->current_address_1 }}</strong></p>
+                                                        <p><small>المدينة </small>: <strong>{{ $employee->city }}</strong>
+                                                        </p>
                                                     </td>
                                                     <td>
-                                                        <p><small>المنطقة </small>: <strong>{{ $employee->region }}</strong></p>
-                                                        <p><small>الرمز البريدي </small>: <strong>{{ $employee->postal_code }}</strong></p>
+                                                        <p><small>المنطقة </small>:
+                                                            <strong>{{ $employee->region }}</strong></p>
+                                                        <p><small>الرمز البريدي </small>:
+                                                            <strong>{{ $employee->postal_code }}</strong></p>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -225,7 +252,7 @@
                                             <tbody>
                                                 <tr>
                                                     @php
-                                                    $months = [
+                                                        $months = [
                                                             1 => 'يناير',
                                                             2 => 'فبراير',
                                                             3 => 'مارس',
@@ -242,11 +269,15 @@
 
                                                     @endphp
                                                     <td>
-                                                        <p><small>تاريخ الالتحاق </small>: <strong>{{ $employee->hire_date }}</strong></p>
-                                                        <p><small>التاريخ المالي </small>: <strong>{{ $employee->custom_financial_day.'-' }}{{ $months[$employee->custom_financial_month] ?? 'غير محدد' }}</strong></p>
+                                                        <p><small>تاريخ الالتحاق </small>:
+                                                            <strong>{{ $employee->hire_date }}</strong></p>
+                                                        <p><small>التاريخ المالي </small>:
+                                                            <strong>{{ $employee->custom_financial_day . '-' }}{{ $months[$employee->custom_financial_month] ?? 'غير محدد' }}</strong>
+                                                        </p>
                                                     </td>
                                                     <td>
-                                                        <p><small>فرع </small>: <strong>{{ $employee->branch_id }}</strong></p>
+                                                        <p><small>فرع </small>: <strong>{{ $employee->branch_id }}</strong>
+                                                        </p>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -267,11 +298,13 @@
         </div>
 
         <!-- Modal delete -->
-        <div class="modal fade text-left" id="modal_DELETE{{ $employee->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+        <div class="modal fade text-left" id="modal_DELETE{{ $employee->id }}" tabindex="-1" role="dialog"
+            aria-labelledby="myModalLabel1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable" role="document">
                 <div class="modal-content">
                     <div class="modal-header" style="background-color: #EA5455 !important;">
-                        <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $employee->full_name }}</h4>
+                        <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $employee->full_name }}
+                        </h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true" style="color: #DC3545">&times;</span>
                         </button>
@@ -282,8 +315,10 @@
                         </strong>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                        <a href="{{ route('employee.delete',$employee->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
+                        <button type="button" class="btn btn-light waves-effect waves-light"
+                            data-dismiss="modal">الغاء</button>
+                        <a href="{{ route('employee.delete', $employee->id) }}"
+                            class="btn btn-danger waves-effect waves-light">تأكيد</a>
                     </div>
                 </div>
             </div>
@@ -291,51 +326,57 @@
         <!--end delete-->
 
         <!-- Modal change passwoard -->
-        <div class="modal fade text-left" id="ChangePassword" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+        <div class="modal fade text-left" id="ChangePassword" tabindex="-1" role="dialog"
+            aria-labelledby="myModalLabel1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title" id="myModalLabel1">تغير  كلمة المرور</h4>
+                        <h4 class="modal-title" id="myModalLabel1">تغير كلمة المرور</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
-                        <form class="form" action="{{ route('employee.updatePassword',$employee->id) }}" method="POST">
+                        <form class="form" action="{{ route('employee.updatePassword', $employee->id) }}"
+                            method="POST">
                             @csrf
                             <div class="form-body">
                                 <div class="row">
                                     <div class="col-12">
                                         <div class="form-label-group">
-                                            <input type="password" class="form-control" placeholder="كلمة المرور الجديدة" name="password" value="{{ old('password') }}">
+                                            <input type="password" class="form-control" placeholder="كلمة المرور الجديدة"
+                                                name="password" value="{{ old('password') }}">
                                             <label for="password">كلمة المرور الجديدة</label>
                                             @error('password')
-                                            <span class="text-danger" class="error">
-                                                {{ $message }}
-                                            </span>
+                                                <span class="text-danger" class="error">
+                                                    {{ $message }}
+                                                </span>
                                             @enderror
                                         </div>
                                     </div>
 
                                     <div class="col-12">
                                         <div class="form-label-group">
-                                            <input type="password" class="form-control" placeholder="تأكيد كلمة المرور" name="password_confirmation" value="{{ old('password_confirmation') }}">
+                                            <input type="password" class="form-control" placeholder="تأكيد كلمة المرور"
+                                                name="password_confirmation" value="{{ old('password_confirmation') }}">
                                             <label for="password_confirmation">تأكيد كلمة المرور</label>
                                             @error('password_confirmation')
-                                            <span class="text-danger" class="error">
-                                                {{ $message }}
-                                            </span>
+                                                <span class="text-danger" class="error">
+                                                    {{ $message }}
+                                                </span>
                                             @enderror
                                         </div>
                                     </div>
                                 </div>
 
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-outline-primary btn-sm round mr-1 mb-1 waves-effect waves-light">حفظ</button>
-                            <button type="reset" class="btn btn-outline-warning btn-sm round mr-1 mb-1 waves-effect waves-light">تفريغ</button>
-                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit"
+                            class="btn btn-outline-primary btn-sm round mr-1 mb-1 waves-effect waves-light">حفظ</button>
+                        <button type="reset"
+                            class="btn btn-outline-warning btn-sm round mr-1 mb-1 waves-effect waves-light">تفريغ</button>
+                    </div>
                     </form>
                 </div>
             </div>
@@ -344,4 +385,4 @@
 
 
     </div><!-- content-body -->
-    @endsection
+@endsection

@@ -322,7 +322,7 @@ class ClientController extends Controller
         $employees = Employee::all();
         $account = Account::all();
 
-        // تحميل العميل مع الفواتير والمدفوعات المرتبطة بها
+        // تحميل العميل مع الفواتير والمدفوعات والملاحظات المرتبطة بها
         $client = Client::with([
             'invoices' => function ($query) {
                 $query->orderBy('invoice_date', 'desc');
@@ -336,11 +336,15 @@ class ClientController extends Controller
             'payments' => function ($query) {
                 $query->orderBy('payment_date', 'desc'); // تحميل جميع المدفوعات المرتبطة بالعميل
             },
+            'notes' => function ($query) {
+                $query->orderBy('created_at', 'desc'); // تحميل الملاحظات المرتبطة بالعميل
+            },
         ])->findOrFail($id);
 
         $bookings = Booking::where('client_id', $id)->get();
         $packages = Package::all();
         $memberships = Memberships::all();
+        $client = Client::with('notes')->findOrFail($id);
 
         // تحميل الفواتير المرتبطة بالعميل
         $invoices = $client->invoices;
@@ -348,7 +352,10 @@ class ClientController extends Controller
         // تحميل جميع المدفوعات المرتبطة بالعميل
         $payments = $client->payments;
 
-        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments'));
+        // تحميل الملاحظات المرتبطة بالعميل
+        $notes = $client->notes;
+
+        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'notes'));
     }
     public function contact()
     {

@@ -124,6 +124,10 @@ public function branch()
         return $this->deleted_at === null;
     }
 
+    public function notes()
+    {
+        return $this->hasMany(AppointmentNote::class, 'client_id'); // Ensure 'client_id' is the correct foreign key
+    }
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {
