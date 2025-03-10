@@ -27,12 +27,12 @@ class AppointmentNoteController extends Controller
     /**
      * عرض نموذج إنشاء ملاحظة جديدة
      */
-    public function create()
-    {
-        $clients = Client::all(); // استبدل Client بالنموذج الصحيح
-        $appointments = Appointment::all(); // استبدل Appointment بالنموذج الصحيح
-        return view('client.appointments.note.add_note', compact('clients', 'appointments'));
-    }
+    public function create($id)
+{
+    $clients = Client::all(); // استبدل Client بالنموذج الصحيح
+    $appointments = Appointment::all(); // استبدل Appointment بالنموذج الصحيح
+    return view('client.appointments.note.add_note', compact('clients', 'appointments', 'id'));
+}
     /**
      * حفظ ملاحظة جديدة
      */

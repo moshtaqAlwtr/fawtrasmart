@@ -18,6 +18,7 @@ class AppointmentNoteRequest extends FormRequest
             'client_id' => 'required|exists:clients,id',
             'appointment_id' => 'nullable|exists:appointments,id',
             'date' => 'nullable|date',
+            'action_type' => 'nullable|string',
             'time' => 'required|date_format:H:i',
             'notes' => 'nullable|string',
             // 'attachments' => 'mimes:jpeg,png,jpg,gif,svg', 'max:2048',

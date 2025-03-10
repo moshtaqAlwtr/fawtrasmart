@@ -171,9 +171,9 @@ class ReturnInvoiceController extends Controller
         $clients = Client::all();
         $users = User::all();
         $employees = Employee::all();
-        $invoice_number = $this->generateInvoiceNumber();
+        // $invoice_number = $this->generateInvoiceNumber();
 
-        return view('sales.retend_invoice.index', compact('return', 'clients', 'users', 'invoice_number', 'employees'));
+        return view('sales.retend_invoice.index', compact('return', 'clients', 'users',  'employees'));
     }
     public function create($id)
     {

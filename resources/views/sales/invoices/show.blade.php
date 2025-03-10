@@ -116,7 +116,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item d-inline-flex align-items-center" href="{{ route('appointment.notes.create')}}">
+                                        <a class="dropdown-item d-inline-flex align-items-center" href="{{ route('appointment.notes.create', ['id' => $invoice->id])}}">
                                             <i class="fas fa-paperclip me-2"></i> <!-- أيقونة إضافة ملاحظة أو مرفق -->
                                             إضافة ملاحظة أو مرفق
                                         </a>
