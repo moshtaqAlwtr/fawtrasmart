@@ -125,9 +125,9 @@ public function branch()
     }
 
     public function notes()
-    {
-        return $this->hasMany(AppointmentNote::class, 'client_id'); // Ensure 'client_id' is the correct foreign key
-    }
+{
+    return $this->hasMany(AppointmentNote::class);
+}
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {

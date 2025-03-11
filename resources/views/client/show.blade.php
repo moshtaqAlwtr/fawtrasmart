@@ -323,11 +323,13 @@
                             الفواتير <span class="badge badge-pill badge-primary">{{ $client->invoices->count() }}</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" aria-controls="notes" role="tab" aria-selected="false">
-                            الملاحظات <span class="badge badge-pill badge-primary">{{ optional($client->notes)->count() ?? 0 }}</span>
-                        </a>
-                    </li>
+                    @if ($client->notes && $client->notes->count() > 0)
+    <li class="nav-item">
+        <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" aria-controls="notes" role="tab" aria-selected="false">
+            الملاحظات <span class="badge badge-pill badge-primary">{{ $client->appointmentNotes->count() }}</span>
+        </a>
+    </li>
+@endif
                     <li class="nav-item">
                         <a class="nav-link" id="payments-tab" data-toggle="tab" href="#payments"
                             aria-controls="invoices" role="tab" aria-selected="false">
@@ -840,37 +842,36 @@
                     </div>
 
                     <!-- payments -->
+                    @if ($client->appointmentNotes && $client->appointmentNotes->count() > 0)
                     <div class="tab-pane" id="notes" aria-labelledby="notes-tab" role="tabpanel">
                         <div class="timeline">
-                            @if ($client->notes)
-                                @foreach ($client->notes as $note)
-                                    <div class="timeline-item">
-                                        <div class="timeline-content d-flex align-items-start">
-                                            <div class="status-badge bg-danger text-white p-2 rounded">متابعة</div>
-                                            <div class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <h6 class="mb-0"><i class="fas fa-user"></i>
-                                                        {{ $note->created_by }}</h6>
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-clock"></i>
-                                                        {{ $note->created_at->format('H:i d/m/Y') }} - <span
-                                                            class="text-primary">{{ $note->status }}</span>
-                                                    </small>
-                                                </div>
-                                                <hr>
-                                                <p class="mb-2">{{ $note->content }}</p>
-                                                <small class="text-muted">ID العميل: {{ $client->id }}</small>
+                            @foreach ($client->appointmentNotes as $note)
+                                <div class="timeline-item">
+                                    <div class="timeline-content d-flex align-items-start">
+                                        <div class="status-badge bg-danger text-white p-2 rounded">متابعة</div>
+                                        <div class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0"><i class="fas fa-user"></i>
+                                                    {{ $note->created_by }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock"></i>
+                                                    {{ $note->created_at->format('H:i d/m/Y') }} - <span
+                                                        class="text-primary">{{ $note->status }}</span>
+                                                </small>
                                             </div>
-                                            <div class="timeline-dot bg-danger"></div>
+                                            <hr>
+                                            <p class="mb-2">{{ $note->content }}</p>
+                                            <small class="text-muted">ID العميل: {{ $client->id }}</small>
                                         </div>
+                                        <div class="timeline-dot bg-danger"></div>
                                     </div>
-                                @endforeach
-                            @else
-                                <div class="alert alert-info">لا توجد ملاحظات متاحة.</div>
-                            @endif
+                                </div>
+                            @endforeach
                         </div>
                     </div>
-
+                @else
+                    <div class="alert alert-info">لا توجد ملاحظات متاحة.</div>
+                @endif
                     <!-- التبويبات الأخرى -->
                     <div class="tab-pane" id="payments" aria-labelledby="payments-tab" role="tabpanel">
                         <div class="card-body">

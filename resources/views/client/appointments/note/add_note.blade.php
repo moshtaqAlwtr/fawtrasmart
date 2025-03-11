@@ -100,9 +100,9 @@
 
                             <select class="form-control" name="client_id">
                                 <option value="">اختر الحالة</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->status }}</option>"></option>
-@endforeach
+                                @foreach ($status as $statu)
+                                    <option value="{{ $statu->id }}">{{ $statu->name }}</option>
+                                @endforeach
                             </select>
                         </div>
 

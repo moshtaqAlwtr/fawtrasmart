@@ -6,6 +6,7 @@ use App\Models\AppointmentNote;
 use App\Models\Client;
 use App\Models\Appointment;
 use App\Http\Requests\AppointmentNoteRequest;
+use App\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,8 +31,9 @@ class AppointmentNoteController extends Controller
     public function create($id)
 {
     $clients = Client::all(); // استبدل Client بالنموذج الصحيح
+$status=Status::all();
     $appointments = Appointment::all(); // استبدل Appointment بالنموذج الصحيح
-    return view('client.appointments.note.add_note', compact('clients', 'appointments', 'id'));
+    return view('client.appointments.note.add_note', compact('clients', 'appointments', 'id', 'status'));
 }
     /**
      * حفظ ملاحظة جديدة
