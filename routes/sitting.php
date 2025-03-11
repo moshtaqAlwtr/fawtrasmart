@@ -92,6 +92,7 @@ Route::group(
 
                     // تحديث إعدادات قسم معين
                     Route::post('/sequence-numbering', [SequenceNumberingController::class, 'store'])->name('SequenceNumbering.store');
+
                     Route::get('/get-current-number/{section}', [SequenceNumberingController::class, 'getCurrentNumber'])->name('SequenceNumbering.current.number');
 
 

@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
 use App\Models\Quote;
+use App\Models\SerialSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -146,7 +147,7 @@ class QuoteController extends Controller
             'client_id' => 'required|exists:clients,id',
             'quote_date' => 'required|date_format:Y-m-d',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id', // إضافة التحقق من المستودع
+            'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.discount' => 'nullable|numeric|min:0',
@@ -157,31 +158,35 @@ class QuoteController extends Controller
             'discount_type' => 'nullable|in:amount,percentage',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_type' => 'required|in:1,2,3', // 1=vat, 2=zero, 3=exempt
+            'tax_rate' => 'nullable|numeric|min:0', // نسبة الضريبة التي يدخلها المستخدم
             'notes' => 'nullable|string',
         ])->validate();
-
-        // تحويل tax_type إلى النص المناسب
-        $tax_type_map = [
-            '1' => 'vat',
-            '2' => 'zero',
-            '3' => 'exempt',
-        ];
 
         // بدء العملية داخل ترانزاكشن
         DB::beginTransaction();
 
         try {
-            // ** الخطوة الأولى: إنشاء كود للعرض **
-            $quotes_number = $request->input('quotes_number');
-            if (!$quotes_number) {
-                $lastOrder = Quote::orderBy('id', 'desc')->first();
-                $nextNumber = $lastOrder ? intval($lastOrder->quotes_number) + 1 : 1;
-                $quotes_number = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+            // ** الخطوة الأولى: إنشاء كود للعرض باستخدام الرقم التسلسلي الحالي **
+            $serialSetting = SerialSetting::where('section', 'quotation')->first(); // الحصول على الرقم التسلسلي الحالي
+            $currentNumber = $serialSetting ? $serialSetting->current_number : 1; // إذا لم يتم العثور على إعدادات، نستخدم 1 كقيمة افتراضية
+
+            // التحقق من أن الرقم فريد
+            while (Quote::where('id', $currentNumber)->exists()) {
+                $currentNumber++;
+            }
+
+            // تعيين الرقم التسلسلي
+            $quotes_number = $currentNumber;
+
+            // زيادة الرقم التسلسلي في جدول serial_settings
+            if ($serialSetting) {
+                $serialSetting->update(['current_number' => $currentNumber + 1]);
             } else {
-                $existingCode = Quote::where('quotes_number', $quotes_number)->exists();
-                if ($existingCode) {
-                    return redirect()->back()->withInput()->with('error', 'رقم العرض موجود مسبقاً، الرجاء استخدام رقم آخر');
-                }
+                // إذا لم يتم العثور على إعدادات، يتم إنشاء سجل جديد
+                SerialSetting::create([
+                    'section' => 'quotation',
+                    'current_number' => $currentNumber + 1,
+                ]);
             }
 
             // ** تجهيز المتغيرات الرئيسية لحساب العرض **
@@ -243,12 +248,12 @@ class QuoteController extends Controller
             // حساب المبلغ بعد الخصم
             $amount_after_discount = $total_amount - $final_total_discount;
 
-            // ** حساب الضرائب **
+            // ** حساب الضرائب بناءً على القيمة التي يدخلها المستخدم **
             $tax_total = 0;
-            $tax_type = $tax_type_map[$validated['tax_type']];
-            if ($tax_type === 'vat') {
-                // حساب الضريبة على المبلغ بعد الخصم
-                $tax_total = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+            $tax_type = $validated['tax_type'];
+            if ($tax_type == 1) { // إذا كانت الضريبة مفعلة
+                $tax_rate = $validated['tax_rate'] ?? 0; // نسبة الضريبة التي يدخلها المستخدم (افتراضيًا 0 إذا لم يتم تقديمها)
+                $tax_total = ($amount_after_discount * $tax_rate) / 100; // حساب الضريبة
             }
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
@@ -256,8 +261,9 @@ class QuoteController extends Controller
 
             // ** حساب ضريبة الشحن (إذا كانت الضريبة مفعلة) **
             $shipping_tax = 0;
-            if ($tax_type === 'vat') {
-                $shipping_tax = $shipping_cost * 0.15; // ضريبة الشحن 15%
+            if ($tax_type == 1) { // إذا كانت الضريبة مفعلة
+                $tax_rate = $validated['tax_rate'] ?? 0; // نسبة الضريبة التي يدخلها المستخدم (افتراضيًا 0 إذا لم يتم تقديمها)
+                $shipping_tax = ($shipping_cost * $tax_rate) / 100; // ضريبة الشحن بناءً على نسبة الضريبة
             }
 
             // ** إضافة ضريبة الشحن إلى tax_total **
@@ -266,8 +272,9 @@ class QuoteController extends Controller
             // ** الحساب النهائي للمجموع الكلي **
             $total_with_tax = $amount_after_discount + $tax_total + $shipping_cost;
 
-            // ** الخطوة الرابعة: إنشاء العرض في قاعدة البيانات **
+            // ** الخطوة الرابعة: إنشاء عرض السعر **
             $quote = Quote::create([
+                'id' => $quotes_number, // استخدام الرقم التسلسلي كـ id
                 'client_id' => $validated['client_id'],
                 'quotes_number' => $quotes_number,
                 'quote_date' => $validated['quote_date'],
@@ -277,7 +284,8 @@ class QuoteController extends Controller
                 'discount_type' => $discountType === 'percentage' ? 2 : 1,
                 'shipping_cost' => $shipping_cost,
                 'shipping_tax' => $shipping_tax,
-                'tax_type' => $validated['tax_type'], // نحفظ الرقم في قاعدة البيانات
+                'tax_type' => $tax_type, // نحفظ الرقم في قاعدة البيانات
+                'tax_rate' => $tax_type == 1 ? ($validated['tax_rate'] ?? 0) : null, // نحفظ نسبة الضريبة إذا كانت مفعلة
                 'subtotal' => $total_amount,
                 'total_discount' => $final_total_discount,
                 'tax_total' => $tax_total,
