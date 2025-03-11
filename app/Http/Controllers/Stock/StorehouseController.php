@@ -7,6 +7,7 @@ use App\Http\Requests\StorehouseRequest;
 use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\JobRole;
+use App\Models\Log;
 use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\StoreHouse;
@@ -95,6 +96,15 @@ class StorehouseController extends Controller
             }
 
             $storehouse->save();
+
+            // تسجيل اشعار نظام جديد
+          Log::create([
+            'type' => 'product_log',
+            'type_id' =>   $storehouse->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم  اضافة المستودع :  :  **' .  $storehouse->name . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
             return redirect()->route('storehouse.index')->with(key: ['success'=>'تم اضافه المستودع بنجاج !!']);
 
         }
@@ -123,7 +133,7 @@ class StorehouseController extends Controller
         try
         {
             $storehouse = StoreHouse::findOrFail($id);
-
+            $oldName = $storehouse->name;
             $storehouse->name = $request->name;
             $storehouse->shipping_address = $request->shipping_address;
             $storehouse->status = $request->status;
@@ -182,6 +192,19 @@ class StorehouseController extends Controller
             }
 
             $storehouse->update();
+
+               // تسجيل اشعار نظام جديد
+               Log::create([
+                'type' => 'product_log',
+                'type_id' => $storehouse->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => sprintf(
+                    'تم تعديل المستودع من **%s** إلى **%s**',
+                    $oldName, // الاسم القديم
+                    $storehouse->name // الاسم الجديد
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
             return redirect()->route('storehouse.index')->with(key: ['success'=>'تم تحديث بيانات المستودع بنجاج !!']);
 
         }
@@ -193,7 +216,13 @@ class StorehouseController extends Controller
     public function delete($id)
     {
         $storehouse = StoreHouse::findOrFail($id);
-
+        Log::create([
+            'type' => 'product_log',
+            'type_id' =>   $storehouse->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم  حذف المستودع :  :  **' .  $storehouse->name . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         // التحقق مما إذا كان المستودع يحتوي على أصناف
         if ($storehouse->productDetails()->count() > 0) {
             return back()->with('error', 'هذا المستودع لديه معاملات، يمكنك إلغاء تفعيله فقط لا حذفه');

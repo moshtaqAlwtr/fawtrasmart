@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Stock;
 use App\Http\Controllers\Controller;
+use App\Models\Log;
 use App\Models\PriceList;
 use App\Models\PriceListItems;
 use App\Models\Product;
@@ -41,9 +42,18 @@ class PriceListController extends Controller
             'name' => 'required|max:255',
         ]);
 
-        PriceList::create([
+       $price = PriceList::create([
             'name' => $request->name,
             'status' => $request->status
+        ]);
+
+          // تسجيل اشعار نظام جديد
+          Log::create([
+            'type' => 'product_log',
+            'type_id' =>  $price->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم  اضافة قائمة اسعار :  **' . $price->name . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
         ]);
         return redirect()->route('price_list.index')->with( ['success'=>'تم اضافه قائمه الاسعار بنجاج !!']);
     }
@@ -54,15 +64,43 @@ class PriceListController extends Controller
             'name' => 'required|max:255',
         ]);
 
-        PriceList::findOrFail($id)->update([
+        $price = PriceList::findOrFail($id);
+
+        // حفظ الاسم القديم قبل التحديث
+        $oldName = $price->name;
+        
+        // تحديث قائمة الأسعار
+        $price->update([
             'name' => $request->name,
             'status' => $request->status
+        ]);
+        
+        // تسجيل اشعار نظام جديد
+        Log::create([
+            'type' => 'product_log',
+            'type_id' => $price->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => sprintf(
+                'تم تعديل قائمة الأسعار من **%s** إلى **%s**',
+                $oldName, // الاسم القديم
+                $price->name // الاسم الجديد
+            ),
+            'created_by' => auth()->id(), // ID المستخدم الحالي
         ]);
         return redirect()->route('price_list.index')->with( ['success'=>'تم اضافه قائمه الاسعار بنجاج !!']);
     }
 
     public function delete($id)
     {
+        $price = PriceList::findOrFail($id);
+          // تسجيل اشعار نظام جديد
+          Log::create([
+            'type' => 'product_log',
+            'type_id' =>  $price->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم  حذف قائمة اسعار :  **' . $price->name . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         PriceList::findOrFail($id)->delete();
         return redirect()->route('price_list.index')->with( ['error'=>'تم حذف قائمه الاسعار بنجاج !!']);
     }

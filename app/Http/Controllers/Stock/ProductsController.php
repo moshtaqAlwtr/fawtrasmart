@@ -212,8 +212,8 @@ class ProductsController extends Controller
 
     public function store(ProductsRequest $request)
     {
-       
-       
+
+
 
         try {
 
@@ -306,6 +306,15 @@ class ProductsController extends Controller
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
 
+            // تسجيل اشعار نظام جديد
+            Log::create([
+                'type' => 'product_log',
+                'type_id' => $product->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة منتج جديد **' . $product->name . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
             DB::commit();
 
 
@@ -382,6 +391,15 @@ class ProductsController extends Controller
                 'old_value' =>  $oldName,
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
+
+            // تسجيل اشعار نظام جديد
+            Log::create([
+                'type' => 'product_log',
+                'type_id' => $product->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم تعديل المنتج من **' . $oldName . '** إلى **' . $product->name . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
             DB::commit();
             return redirect()->route('products.index')->with(['success' => 'تم تحديث المنتج بنجاج !!']);
         } # End Try
@@ -414,7 +432,7 @@ class ProductsController extends Controller
     }
     public function compiled_store(Request $request)
     {
-        
+
 
         try {
             DB::beginTransaction();
@@ -497,9 +515,9 @@ class ProductsController extends Controller
                 'quantity' => $quantity,
                 'product_id' => $product->id,
             ]);
-            
-          
-            
+
+
+
 
             DB::commit();
 
@@ -515,8 +533,19 @@ class ProductsController extends Controller
     }
     public function delete($id)
     {
+        $product = Product::findOrFail($id);
+
+        // تسجيل اشعار نظام جديد
+        Log::create([
+            'type' => 'product_log',
+            'type_id' => $product->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم حذف المنتج **' . $product->name . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         ProductDetails::where('product_id', $id)->delete();
         Product::findOrFail($id)->delete();
+
         return redirect()->route('products.index')->with(['error' => 'تم حذف المنتج بنجاح المنتج بنجاج !!']);
     }
 
@@ -637,14 +666,19 @@ class ProductsController extends Controller
         $wareHousePermits->save();
 
         // حفظ تفاصيل المنتج في إذن المخزن
-        WarehousePermitsProducts::create([
+        $warehousePermitProduct = WarehousePermitsProducts::create([
             'quantity' => $request->quantity,
             'total' => $request->quantity * $request->unit_price,
             'unit_price' => $request->unit_price,
             'product_id' => $id,
             'warehouse_permits_id' => $wareHousePermits->id,
+            'stock_before' => $product->quantity, // المخزون قبل التحديث
+            'stock_after' => ($type == 2)
+                ? $product->quantity - ($request->quantity * $conversionFactor)
+                : $product->quantity + ($request->quantity * $conversionFactor), // المخزون بعد التحديث
         ]);
-        $product = Product::find($id);
+
+        // إذا كان المنتج تجميعيًا
         if ($product->type == "compiled" && $product->compile_type !== "Instant") {
             // ** الحصول على المنتجات التابعة للمنتج التجميعي **
             $CompiledProducts = CompiledProducts::where('compile_id', $id)->get();
@@ -694,6 +728,53 @@ class ProductsController extends Controller
                 $compiledProductDetails->decrement('quantity', $compiledProduct->qyt * $request->quantity);
             }
         }
+
+        // تسجيل الإشعار في جدول logs
+        $product = Product::findOrFail($id);
+        $movement = $warehousePermitProduct; // استخدام البيانات المسجلة حديثًا
+        $average_cost = $product->averageCost();
+
+        $description = '';
+
+        if ($movement->warehousePermits->permission_type == 2) {
+            $description = sprintf(
+                'أنقص **%s** **%d** وحدة من مخزون **[#%s (%s)](%s)** يدويا (رقم العملية: **#%s**)، وسعر الوحدة: **%s ر.س**، وأصبح المخزون الباقي من المنتج: **%d** وأصبح المخزون **%s** رصيده **%d**, متوسط السعر: **%s ر.س**',
+                $movement->warehousePermits->user->name,
+                $movement->quantity,
+                $product->serial_number,
+                $product->name,
+                route('products.show', $id),
+                $movement->warehousePermits->number,
+                $movement->unit_price,
+                $movement->stock_after,
+                $movement->warehousePermits->storeHouse->name,
+                $movement->stock_after,
+                $average_cost
+            );
+        } else {
+            $description = sprintf(
+                'أضاف **%s** **%d** وحدة إلى مخزون **[#%s (%s)](%s)** يدويا (رقم العملية: **#%s**)، وسعر الوحدة: **%s ر.س**، وأصبح المخزون الباقي من المنتج: **%d** وأصبح المخزون **%s** رصيده **%d**, متوسط السعر: **%s ر.س**',
+                $movement->warehousePermits->user->name,
+                $movement->quantity,
+                $product->serial_number,
+                $product->name,
+                route('products.show', $id),
+                $movement->warehousePermits->number,
+                $movement->unit_price,
+                $product->quantity,
+                $movement->warehousePermits->storeHouse->name,
+                $product->quantity,
+                $average_cost
+            );
+        }
+
+        Log::create([
+            'type' => 'product_log',
+            'type_id' => $id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => $description, // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
     }
 
 
@@ -747,4 +828,3 @@ class ProductsController extends Controller
         return redirect()->back()->with('success', 'تم استيراد المنتجات بنجاح!');
     }
 }
-

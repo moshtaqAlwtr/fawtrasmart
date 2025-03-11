@@ -16,6 +16,7 @@ class Log extends Model
         'created_by',
         'type_log',
         'old_value',
+        'icon',
     ];
 
     public function user()

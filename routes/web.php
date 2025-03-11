@@ -15,6 +15,7 @@ use App\Http\Controllers\Sales\RevolvingInvoicesController;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Commission\CommissionController;
+use App\Http\Controllers\logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
 use App\Http\Controllers\Sales\PaymentClientController;
 use App\Http\Controllers\Sales\PaymentProcessController;
@@ -238,8 +239,16 @@ Route::group(
                 Route::post('/update/{id}', [CommissionController::class, 'update'])->name('commission.update');
 
             });
+            Route::prefix('logs')
+            ->middleware(['auth'])
+            ->group(function () {
+                Route::get('/index', [LogController::class, 'index'])->name('logs.index');
+                
+
+            });
 
     },
+    
 );
 
 

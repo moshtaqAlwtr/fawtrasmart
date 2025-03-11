@@ -25,4 +25,8 @@ class WarehousePermitsProducts extends Model
     {
         return $this->belongsTo(WarehousePermits::class, 'warehouse_permits_id');
     }
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id');
+    }
 }

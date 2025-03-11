@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\WarehousePermitsRequest;
+use App\Models\Log;
 use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\StoreHouse;
@@ -17,138 +18,190 @@ class StorePermitsManagementController extends Controller
     public function index()
     {
         $wareHousePermits = WarehousePermits::select()->orderBy('id', direction: 'DESC')->get();
-        return view('stock.store_permits_management.index',compact('wareHousePermits'));
+        return view('stock.store_permits_management.index', compact('wareHousePermits'));
     }
 
     public function create()
     {
-        $storeHouses = StoreHouse::where('status',0)->select('id','name')->get();
+        $storeHouses = StoreHouse::where('status', 0)->select('id', 'name')->get();
         $products = Product::select()->get();
 
         $record_count = DB::table('warehouse_permits')->count();
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
 
-        return view('stock.store_permits_management.create',compact('storeHouses','products','serial_number'));
+        return view('stock.store_permits_management.create', compact('storeHouses', 'products', 'serial_number'));
     }
     public function manual_disbursement()
     {
-        $storeHouses = StoreHouse::where('status',0)->select('id','name')->get();
+        $storeHouses = StoreHouse::where('status', 0)->select('id', 'name')->get();
         $products = Product::select()->get();
 
         $record_count = DB::table('warehouse_permits')->count();
 
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
 
-        return view('stock.store_permits_management.manual_disbursement',compact('storeHouses','products','serial_number'));
+        return view('stock.store_permits_management.manual_disbursement', compact('storeHouses', 'products', 'serial_number'));
     }
     public function manual_conversion()
     {
-        $storeHouses = StoreHouse::where('status',0)->select('id','name')->get();
+        $storeHouses = StoreHouse::where('status', 0)->select('id', 'name')->get();
         $products = Product::select()->get();
 
         $record_count = DB::table('warehouse_permits')->count();
 
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
 
-        return view('stock.store_permits_management.manual_conversion',compact('storeHouses','products','serial_number'));
+        return view('stock.store_permits_management.manual_conversion', compact('storeHouses', 'products', 'serial_number'));
     }
 
     public function store(WarehousePermitsRequest $request)
     {
         DB::beginTransaction();
-        try {
+        // try {
 
-            $wareHousePermits = new WarehousePermits();
+        $wareHousePermits = new WarehousePermits();
 
-            if($request->hasFile('attachments')){
-                $wareHousePermits->attachments = $this->UploadImage('assets/uploads/warehouse',$request->attachments);
-            }
-
-            if ($request->permission_type == 3) {
-                $wareHousePermits->store_houses_id = $request->from_store_houses_id;
-            } else {
-                $wareHousePermits->store_houses_id = $request->store_houses_id;
-            }
-
-            $wareHousePermits->permission_type = $request->permission_type;
-            $wareHousePermits->permission_date = $request->permission_date;
-            $wareHousePermits->sub_account = $request->sub_account;
-            $wareHousePermits->number = $request->number;
-            $wareHousePermits->details = $request->details;
-            $wareHousePermits->grand_total = $request->grand_total;
-            $wareHousePermits->from_store_houses_id = $request->from_store_houses_id;
-            $wareHousePermits->to_store_houses_id = $request->to_store_houses_id;
-            $wareHousePermits->created_by = auth()->user()->id;
-
-            $wareHousePermits->save();
-
-            $products = new WarehousePermitsProducts();
-
-            foreach ($request['quantity'] as $index => $quantity) {
-                $products->create([
-                    'quantity' => $quantity,
-                    'total' => $request['total'][$index],
-                    'unit_price' => $request['unit_price'][$index],
-                    'product_id' => $request['product_id'][$index],
-                    'stock_before' => $request['stock_before'][$index],
-                    'stock_after' => $request['stock_after'][$index],
-                    'warehouse_permits_id' => $wareHousePermits->id,
-                ]);
-
-                // التعامل مع المخزون بناءً على نوع الإذن
-                if ($request->permission_type == 1) {
-                    // 🟢 إذن إضافة للمخزن
-                    ProductDetails::updateOrCreate(
-                        ['store_house_id' => $request->store_houses_id, 'product_id' => $request['product_id'][$index] ],
-                        ['quantity' => DB::raw("quantity + $quantity")]
-                    );
-
-                } elseif ($request->permission_type == 2) {
-                    // 🔴 إذن صرف من المخزن
-                    $stock = ProductDetails::where('store_house_id', $request->store_houses_id)
-                        ->where('product_id', $request['product_id'][$index])
-                        ->first();
-
-                    if (!$stock || $stock->quantity < $quantity) {
-                        DB::rollBack();
-                        return back()->with('error', 'الكمية غير متوفرة في المخزن')->withInput();
-                    }
-
-                    $stock->decrement('quantity', $quantity);
-
-                }
-
-                elseif ($request->permission_type == 3) {
-                    // 🔄 إذن تحويل من مخزن إلى مخزن آخر
-                    $sourceStock = ProductDetails::where('store_house_id', $request->from_store_houses_id)
-                        ->where('product_id', $request['product_id'][$index])
-                        ->first();
-
-                    // التحقق من وجود الكمية المطلوبة في المخزن المصدر
-                    if (!$sourceStock || $sourceStock->quantity < $quantity) {
-                        DB::rollBack();
-                        return back()->with('error', 'الكمية غير متوفرة في المخزن المصدر')->withInput();
-                    }
-
-                    // خصم الكمية من المخزن المصدر
-                    $sourceStock->decrement('quantity', $quantity);
-
-                    // إضافة الكمية إلى المخزن الهدف
-                    ProductDetails::updateOrCreate(
-                        ['store_house_id' => $request->to_store_houses_id, 'product_id' => $request['product_id'][$index]],
-                        ['quantity' => DB::raw("quantity + $quantity")]
-                    );
-                }
-
-            } #End foreach
-
-            DB::commit();
-            return redirect()->route('store_permits_management.index')->with(['success'=>'تم انشاء اذن المخزن بنجاح']);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->route('store_permits_management.index')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
+        if ($request->hasFile('attachments')) {
+            $wareHousePermits->attachments = $this->UploadImage('assets/uploads/warehouse', $request->attachments);
         }
+
+        if ($request->permission_type == 3) {
+            $wareHousePermits->store_houses_id = $request->from_store_houses_id;
+        } else {
+            $wareHousePermits->store_houses_id = $request->store_houses_id;
+        }
+
+        $wareHousePermits->permission_type = $request->permission_type;
+        $wareHousePermits->permission_date = $request->permission_date;
+        $wareHousePermits->sub_account = $request->sub_account;
+        $wareHousePermits->number = $request->number;
+        $wareHousePermits->details = $request->details;
+        $wareHousePermits->grand_total = $request->grand_total;
+        $wareHousePermits->from_store_houses_id = $request->from_store_houses_id;
+        $wareHousePermits->to_store_houses_id = $request->to_store_houses_id;
+        $wareHousePermits->created_by = auth()->user()->id;
+
+        $wareHousePermits->save();
+
+        $products = new WarehousePermitsProducts();
+
+        foreach ($request['quantity'] as $index => $quantity) {
+            $warehousePermitProduct =   $products->create([
+                'quantity' => $quantity,
+                'total' => $request['total'][$index],
+                'unit_price' => $request['unit_price'][$index],
+                'product_id' => $request['product_id'][$index],
+                'stock_before' => $request['stock_before'][$index],
+                'stock_after' => $request['stock_after'][$index],
+                'warehouse_permits_id' => $wareHousePermits->id,
+            ]);
+
+            // التعامل مع المخزون بناءً على نوع الإذن
+            if ($request->permission_type == 1) {
+                // 🟢 إذن إضافة للمخزن
+                ProductDetails::updateOrCreate(
+                    ['store_house_id' => $request->store_houses_id, 'product_id' => $request['product_id'][$index]],
+                    ['quantity' => DB::raw("quantity + $quantity")]
+                );
+
+                // تحميل العلاقة product
+                $store = StoreHouse::find($request->store_houses_id);
+
+                $warehousePermitProduct->load('product');
+                Log::create([
+                    'type' => 'product_log',
+                    'type_id' => $warehousePermitProduct->product_id, // ID النشاط المرتبط
+                    'type_log' => 'log', // نوع النشاط
+                    'description' => sprintf(
+                        'تم إضافة كمية يدوي **%d** من المنتج **%s** إلى **%s**',
+                        $quantity, // الكمية المضافة
+                        $warehousePermitProduct->product->name, // اسم المنتج
+                        $store->name ?? "" // اسم المخزن
+                    ),
+                    'created_by' => auth()->id(), // ID المستخدم الحالي // ID المستخدم الحالي
+                ]);
+            } elseif ($request->permission_type == 2) {
+                // 🔴 إذن صرف من المخزن
+                $stock = ProductDetails::where('store_house_id', $request->store_houses_id)
+                    ->where('product_id', $request['product_id'][$index])
+                    ->first();
+
+                if (!$stock || $stock->quantity < $quantity) {
+                    DB::rollBack();
+                    return back()->with('error', 'الكمية غير متوفرة في المخزن')->withInput();
+                }
+
+                
+
+                $stock->decrement('quantity', $quantity);
+
+                  // تحميل العلاقة product
+                  $store = StoreHouse::find($request->store_houses_id);
+
+                  $warehousePermitProduct->load('product');
+                  Log::create([
+                      'type' => 'product_log',
+                      'type_id' => $warehousePermitProduct->product_id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => sprintf(
+                          'تم صرف يدوي كمية **%d** من المنتج **%s** إلى **%s**',
+                          $quantity, // الكمية المضافة
+                          $warehousePermitProduct->product->name, // اسم المنتج
+                          $store->name ?? "" // اسم المخزن
+                      ),
+                      'created_by' => auth()->id(), // ID المستخدم الحالي // ID المستخدم الحالي
+                  ]);
+            } elseif ($request->permission_type == 3) {
+                // 🔄 إذن تحويل من مخزن إلى مخزن آخر
+                $sourceStock = ProductDetails::where('store_house_id', $request->from_store_houses_id)
+                    ->where('product_id', $request['product_id'][$index])
+                    ->first();
+
+                // التحقق من وجود الكمية المطلوبة في المخزن المصدر
+                if (!$sourceStock || $sourceStock->quantity < $quantity) {
+                    DB::rollBack();
+                    return back()->with('error', 'الكمية غير متوفرة في المخزن المصدر')->withInput();
+                }
+
+                // خصم الكمية من المخزن المصدر
+                $sourceStock->decrement('quantity', $quantity);
+
+                // إضافة الكمية إلى المخزن الهدف
+                ProductDetails::updateOrCreate(
+                    ['store_house_id' => $request->to_store_houses_id, 'product_id' => $request['product_id'][$index]],
+                    ['quantity' => DB::raw("quantity + $quantity")]
+                );
+
+                // تحميل العلاقة product
+                $from_store = StoreHouse::find($request->from_store_houses_id);
+                $to_store = StoreHouse::find($request->to_store_houses_id);
+                $warehousePermitProduct->load('product');
+                Log::create([
+                    'type' => 'product_log',
+                    'type_id' => $warehousePermitProduct->product_id, // ID النشاط المرتبط
+                    'type_log' => 'log', // نوع النشاط
+                    'description' => sprintf(
+                        'تم تحويل يدوي كمية **%d** من المخزن **%s** إلى المخزن **%s** من المنتج **%s**',
+                        $quantity, // الكمية المحولة
+                        $from_store->name ?? "", // المخزن المصدر
+                        $to_store->name ?? "", // المخزن الهدف
+                        $warehousePermitProduct->product->name // اسم المنتج
+                    ),
+                    'created_by' => auth()->id(), // ID المستخدم الحالي // ID المستخدم الحالي
+                ]);
+            }
+        } #End foreach
+
+
+
+
+
+        DB::commit();
+        return redirect()->route('store_permits_management.index')->with(['success' => 'تم انشاء اذن المخزن بنجاح']);
+        // } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->route('store_permits_management.index')->with(['error' => 'حدث خطا ما برجاء المحاوله لاحقا']);
+        // }
     }
 
 
@@ -156,18 +209,18 @@ class StorePermitsManagementController extends Controller
     {
         $permit = WarehousePermits::findOrFail($id);
         $products = Product::select()->get();
-        $storeHouses = StoreHouse::where('status',0)->select('id','name')->get();
+        $storeHouses = StoreHouse::where('status', 0)->select('id', 'name')->get();
 
-        if($permit->permission_type == 1){
-            return view('stock.store_permits_management.edit',compact('permit','storeHouses','products'));
+        if ($permit->permission_type == 1) {
+            return view('stock.store_permits_management.edit', compact('permit', 'storeHouses', 'products'));
         }
 
-        if($permit->permission_type == 2){
-            return view('stock.store_permits_management.manual_disbursement_edit',compact('permit','storeHouses','products'));
+        if ($permit->permission_type == 2) {
+            return view('stock.store_permits_management.manual_disbursement_edit', compact('permit', 'storeHouses', 'products'));
         }
 
-        if($permit->permission_type == 3){
-            return view('stock.store_permits_management.manual_conversion_edit',compact('permit','storeHouses','products'));
+        if ($permit->permission_type == 3) {
+            return view('stock.store_permits_management.manual_conversion_edit', compact('permit', 'storeHouses', 'products'));
         }
     }
 
@@ -248,13 +301,12 @@ class StorePermitsManagementController extends Controller
 
 
     # Helper Function
-    function uploadImage($folder,$image)
+    function uploadImage($folder, $image)
     {
         $fileExtension = $image->getClientOriginalExtension();
-        $fileName = time().rand(1,99).'.'.$fileExtension;
-        $image->move($folder,$fileName);
+        $fileName = time() . rand(1, 99) . '.' . $fileExtension;
+        $image->move($folder, $fileName);
 
         return $fileName;
     }
-
 }

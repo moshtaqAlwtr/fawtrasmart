@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Purchases;
 
 use App\Exports\QuotationsExport;
 use App\Http\Controllers\Controller;
+use App\Models\Log as ModelsLog;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\PurchaseQuotation;
@@ -151,12 +152,25 @@ class QuotationsController extends Controller
 
                 // إضافة تفاصيل المنتجات
                 foreach ($validatedData['product_details'] as $detail) {
-                    ProductDetails::create([
+                    $productDetail =    ProductDetails::create([
                         'purchase_quotation_id' => $purchaseQuotation->id,
                         'product_id' => $detail['product_id'],
                         'quantity' => $detail['quantity'],
                         'type' => 1,
                         'type_of_operation' => 1,
+                    ]);
+                    $productDetail->load('product');
+                    ModelsLog::create([
+                        'type' => 'purchase_log',
+                        'type_id' => $purchaseQuotation->id, // ID النشاط المرتبط
+                        'type_log' => 'log', // نوع النشاط
+                        'description' => sprintf(
+                            '  تم اضافة عرض سعر رقم **%s** للمنتج **%s** كمية **%d**',
+                            $purchaseQuotation->code, // رقم طلب الشراء
+                            $productDetail->product->name, // اسم المنتج
+                            $detail['quantity'] // الكمية
+                        ),
+                        'created_by' => auth()->id(), // ID المستخدم الحالي
                     ]);
                 }
 
@@ -269,7 +283,14 @@ class QuotationsController extends Controller
     public function destroy($id)
     {
         $purchaseQuotation = PurchaseQuotation::findOrFail($id);
-        $purchaseQuotation->productDetails()->delete();
+        ModelsLog::create([
+            'type' => 'product_log',
+            'type_id' =>  $purchaseQuotation->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم حذف  عرض سعر رقم **' .  $purchaseQuotation->code . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
+        $purchaseQuotation->items()->delete();
         $purchaseQuotation->delete();
         return redirect()->route('Quotations.index')->with('success', 'تم حذف عرض السعر بنجاح!');
     }

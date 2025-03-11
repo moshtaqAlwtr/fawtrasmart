@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
+use App\Models\Log as ModelsLog;
 use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
@@ -155,183 +156,201 @@ class PurchaseOrdersRequestsController extends Controller
     public function store(Request $request)
     {
         // try {
-            // ** الخطوة الأولى: إنشاء كود للفاتورة **
-            $code = $request->code;
-            if (!$code) {
-                $lastOrder = PurchaseInvoice::orderBy('id', 'desc')->first();
-                $nextNumber = $lastOrder ? intval($lastOrder->code) + 1 : 1;
-                $code = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        // ** الخطوة الأولى: إنشاء كود للفاتورة **
+        $code = $request->code;
+        if (!$code) {
+            $lastOrder = PurchaseInvoice::orderBy('id', 'desc')->first();
+            $nextNumber = $lastOrder ? intval($lastOrder->code) + 1 : 1;
+            $code = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        } else {
+            $existingCode = PurchaseInvoice::where('code', $request->code)->exists();
+            if ($existingCode) {
+                return redirect()->back()->withInput()->with('error', 'رقم الفاتورة موجود مسبقاً، الرجاء استخدام رقم آخر');
+            }
+        }
+
+        DB::beginTransaction(); // بدء المعاملة
+
+        // ** تجهيز المتغيرات الرئيسية لحساب الفاتورة **
+        $total_amount = 0; // إجمالي المبلغ قبل الخصومات
+        $total_discount = 0; // إجمالي الخصومات على البنود
+        $items_data = []; // تجميع بيانات البنود
+
+        // ** الخطوة الثانية: معالجة البنود (items) **
+        if ($request->has('items') && count($request->items)) {
+            foreach ($request->items as $item) {
+                // جلب المنتج
+                $product = Product::find($item['product_id']);
+                if (!$product) {
+                    throw new \Exception('المنتج غير موجود: ' . $item['product_id']);
+                }
+
+                // حساب تفاصيل الكمية والأسعار
+                $quantity = floatval($item['quantity']);
+                $unit_price = floatval($item['unit_price']);
+                $item_total = $quantity * $unit_price;
+
+                // حساب الخصم للبند
+                $item_discount = 0; // قيمة الخصم المبدئية
+                if (isset($item['discount']) && $item['discount'] > 0) {
+                    if (isset($item['discount_type']) && $item['discount_type'] === 'percentage') {
+                        $item_discount = ($item_total * floatval($item['discount'])) / 100;
+                    } else {
+                        $item_discount = floatval($item['discount']);
+                    }
+                }
+
+                // تحديث الإجماليات
+                $total_amount += $item_total;
+                $total_discount += $item_discount;
+
+                // تجهيز بيانات البند
+                $items_data[] = [
+                    'purchase_invoice_id' => null, // سيتم تعيينه لاحقًا بعد إنشاء الفاتورة
+                    'product_id' => $item['product_id'],
+                    'item' => $product->name ?? 'المنتج ' . $item['product_id'],
+                    'description' => $item['description'] ?? null,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'discount' => $item_discount, // تخزين الخصم للبند
+                    'discount_type' => isset($item['discount_type']) && $item['discount_type'] === 'percentage' ? 2 : 1,
+                    'tax_1' => floatval($item['tax_1'] ?? 0),
+                    'tax_2' => floatval($item['tax_2'] ?? 0),
+                    'total' => $item_total - $item_discount,
+                ];
+            }
+        }
+
+        // ** الخطوة الثالثة: حساب الخصم الإضافي للفاتورة ككل **
+        $invoice_discount = 0;
+        if ($request->has('discount_amount') && $request->discount_amount > 0) {
+            if ($request->has('discount_type') && $request->discount_type === 'percentage') {
+                $invoice_discount = ($total_amount * floatval($request->discount_amount)) / 100;
             } else {
-                $existingCode = PurchaseInvoice::where('code', $request->code)->exists();
-                if ($existingCode) {
-                    return redirect()->back()->withInput()->with('error', 'رقم الفاتورة موجود مسبقاً، الرجاء استخدام رقم آخر');
-                }
+                $invoice_discount = floatval($request->discount_amount);
             }
+        }
 
-            DB::beginTransaction(); // بدء المعاملة
+        // الخصومات الإجمالية
+        $final_total_discount = $total_discount + $invoice_discount;
 
-            // ** تجهيز المتغيرات الرئيسية لحساب الفاتورة **
-            $total_amount = 0; // إجمالي المبلغ قبل الخصومات
-            $total_discount = 0; // إجمالي الخصومات على البنود
-            $items_data = []; // تجميع بيانات البنود
+        // حساب المبلغ بعد الخصم
+        $amount_after_discount = $total_amount - $final_total_discount;
 
-            // ** الخطوة الثانية: معالجة البنود (items) **
-            if ($request->has('items') && count($request->items)) {
-                foreach ($request->items as $item) {
-                    // جلب المنتج
-                    $product = Product::find($item['product_id']);
-                    if (!$product) {
-                        throw new \Exception('المنتج غير موجود: ' . $item['product_id']);
-                    }
+        // ** حساب الضرائب **
+        $total_tax = 0;
+        if ($request->tax_type == 1) {
+            $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+        }
 
-                    // حساب تفاصيل الكمية والأسعار
-                    $quantity = floatval($item['quantity']);
-                    $unit_price = floatval($item['unit_price']);
-                    $item_total = $quantity * $unit_price;
+        // ** إضافة تكلفة الشحن (إذا وجدت) **
+        $shipping_cost = floatval($request->shipping_cost ?? 0);
 
-                    // حساب الخصم للبند
-                    $item_discount = 0; // قيمة الخصم المبدئية
-                    if (isset($item['discount']) && $item['discount'] > 0) {
-                        if (isset($item['discount_type']) && $item['discount_type'] === 'percentage') {
-                            $item_discount = ($item_total * floatval($item['discount'])) / 100;
-                        } else {
-                            $item_discount = floatval($item['discount']);
-                        }
-                    }
+        // ** حساب ضريبة التوصيل (إذا كانت الضريبة مفعلة) **
+        $shipping_tax = 0;
+        if ($request->tax_type == 1) {
+            $shipping_tax = $shipping_cost * 0.15; // ضريبة التوصيل 15%
+        }
 
-                    // تحديث الإجماليات
-                    $total_amount += $item_total;
-                    $total_discount += $item_discount;
+        // ** الحساب النهائي للمجموع الكلي **
+        $total_with_tax = $amount_after_discount + $total_tax + $shipping_cost + $shipping_tax;
 
-                    // تجهيز بيانات البند
-                    $items_data[] = [
-                        'purchase_invoice_id' => null, // سيتم تعيينه لاحقًا بعد إنشاء الفاتورة
-                        'product_id' => $item['product_id'],
-                        'item' => $product->name ?? 'المنتج ' . $item['product_id'],
-                        'description' => $item['description'] ?? null,
-                        'quantity' => $quantity,
-                        'unit_price' => $unit_price,
-                        'discount' => $item_discount, // تخزين الخصم للبند
-                        'discount_type' => isset($item['discount_type']) && $item['discount_type'] === 'percentage' ? 2 : 1,
-                        'tax_1' => floatval($item['tax_1'] ?? 0),
-                        'tax_2' => floatval($item['tax_2'] ?? 0),
-                        'total' => $item_total - $item_discount,
-                    ];
-                }
-            }
+        // ** حساب المبلغ المتبقي بعد الدفعة المقدمة (إن وجدت) **
+        $advance_payment = floatval($request->advance_payment ?? 0);
+        $grand_total = $total_with_tax - $advance_payment;
 
-            // ** الخطوة الثالثة: حساب الخصم الإضافي للفاتورة ككل **
-            $invoice_discount = 0;
-            if ($request->has('discount_amount') && $request->discount_amount > 0) {
-                if ($request->has('discount_type') && $request->discount_type === 'percentage') {
-                    $invoice_discount = ($total_amount * floatval($request->discount_amount)) / 100;
-                } else {
-                    $invoice_discount = floatval($request->discount_amount);
-                }
-            }
-
-            // الخصومات الإجمالية
-            $final_total_discount = $total_discount + $invoice_discount;
-
-            // حساب المبلغ بعد الخصم
-            $amount_after_discount = $total_amount - $final_total_discount;
-
-            // ** حساب الضرائب **
-            $total_tax = 0;
-            if ($request->tax_type == 1) {
-                $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
-            }
-
-            // ** إضافة تكلفة الشحن (إذا وجدت) **
-            $shipping_cost = floatval($request->shipping_cost ?? 0);
-
-            // ** حساب ضريبة التوصيل (إذا كانت الضريبة مفعلة) **
-            $shipping_tax = 0;
-            if ($request->tax_type == 1) {
-                $shipping_tax = $shipping_cost * 0.15; // ضريبة التوصيل 15%
-            }
-
-            // ** الحساب النهائي للمجموع الكلي **
-            $total_with_tax = $amount_after_discount + $total_tax + $shipping_cost + $shipping_tax;
-
-            // ** حساب المبلغ المتبقي بعد الدفعة المقدمة (إن وجدت) **
-            $advance_payment = floatval($request->advance_payment ?? 0);
-            $grand_total = $total_with_tax - $advance_payment;
-
-            // ** حالة الفاتورة بناءً على المدفوعات والاستلام **
-            $status = 1; // الحالة الافتراضية (مدفوع بالكامل)
-            if ($advance_payment > 0) {
-                if ($advance_payment < $total_with_tax) {
-                    $status = 2; // مدفوع جزئيًا
-                } else {
-                    $status = 1; // مدفوع بالكامل
-                    $grand_total = 0;
-                }
-            } elseif ($request->has('is_paid') && $request->has('is_received')) {
-                $status = 4; // مدفوع ومستلم
+        // ** حالة الفاتورة بناءً على المدفوعات والاستلام **
+        $status = 1; // الحالة الافتراضية (مدفوع بالكامل)
+        if ($advance_payment > 0) {
+            if ($advance_payment < $total_with_tax) {
+                $status = 2; // مدفوع جزئيًا
+            } else {
+                $status = 1; // مدفوع بالكامل
                 $grand_total = 0;
-            } elseif ($request->has('is_paid')) {
-                $status = 5; // مدفوع (غير مستلم)
-                $grand_total = 0;
-            } elseif ($request->has('is_received')) {
-                $status = 3; // مستلم (غير مدفوع)
             }
+        } elseif ($request->has('is_paid') && $request->has('is_received')) {
+            $status = 4; // مدفوع ومستلم
+            $grand_total = 0;
+        } elseif ($request->has('is_paid')) {
+            $status = 5; // مدفوع (غير مستلم)
+            $grand_total = 0;
+        } elseif ($request->has('is_received')) {
+            $status = 3; // مستلم (غير مدفوع)
+        }
 
-            // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
-            $purchaseOrderRequest = PurchaseInvoice::create([
-                'supplier_id' => $request->supplier_id,
-                'code' => $code,
-                'type' => 1,
-                'date' => $request->date,
-                'terms' => $request->terms ?? 0,
-                'notes' => $request->notes,
-                'status' => $status,
-                'created_by' => Auth::id(),
-                'account_id' => $request->account_id,
-                'discount_amount' => $invoice_discount, // تخزين الخصم الإضافي للفاتورة
-                'discount_type' => $request->has('discount_type') ? ($request->discount_type === 'percentage' ? 2 : 1) : 1,
-                'advance_payment' => $advance_payment,
-                'payment_type' => $request->payment_type ?? 1,
-                'shipping_cost' => $shipping_cost,
-                'tax_type' => $request->tax_type ?? 1,
-                'payment_method' => $request->payment_method,
-                'reference_number' => $request->reference_number,
-                'received_date' => $request->received_date,
-                'is_paid' => $status == 2 || $status == 4,
-                'is_received' => $request->has('is_received'),
-                'subtotal' => $total_amount,
-                'total_discount' => $final_total_discount, // تخزين الخصم الإجمالي
-                'total_tax' => $total_tax + $shipping_tax, // إضافة ضريبة التوصيل إلى مجموع الضرائب
-                'grand_total' => $grand_total,
+        // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
+        $purchaseOrderRequest = PurchaseInvoice::create([
+            'supplier_id' => $request->supplier_id,
+            'code' => $code,
+            'type' => 1,
+            'date' => $request->date,
+            'terms' => $request->terms ?? 0,
+            'notes' => $request->notes,
+            'status' => $status,
+            'created_by' => Auth::id(),
+            'account_id' => $request->account_id,
+            'discount_amount' => $invoice_discount, // تخزين الخصم الإضافي للفاتورة
+            'discount_type' => $request->has('discount_type') ? ($request->discount_type === 'percentage' ? 2 : 1) : 1,
+            'advance_payment' => $advance_payment,
+            'payment_type' => $request->payment_type ?? 1,
+            'shipping_cost' => $shipping_cost,
+            'tax_type' => $request->tax_type ?? 1,
+            'payment_method' => $request->payment_method,
+            'reference_number' => $request->reference_number,
+            'received_date' => $request->received_date,
+            'is_paid' => $status == 2 || $status == 4,
+            'is_received' => $request->has('is_received'),
+            'subtotal' => $total_amount,
+            'total_discount' => $final_total_discount, // تخزين الخصم الإجمالي
+            'total_tax' => $total_tax + $shipping_tax, // إضافة ضريبة التوصيل إلى مجموع الضرائب
+            'grand_total' => $grand_total,
+        ]);
+
+        // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
+        foreach ($items_data as $item) {
+            $item['purchase_invoice_id'] = $purchaseOrderRequest->id; // تعيين purchase_invoice_id
+           $invoice_purhase = InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+
+           $invoice_purhase->load('product');
+           $purchaseOrderRequest->load('supplier');
+            // تسجيل اشعار نظام جديد لكل منتج
+            ModelsLog::create([
+                'type' => 'purchase_log',
+                'type_id' => $purchaseOrderRequest->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'icon'  => 'create',
+                'description' => sprintf(
+                    'تم انشاء فاتورة شراء رقم **%s** للمنتج **%s** كمية **%d**',
+                    $purchaseOrderRequest->code ?? "", // رقم طلب الشراء
+                    $invoice_purhase->product->name ?? "", // اسم المنتج
+                    $item['quantity'] ?? "", // الكمية
+                    $purchaseOrderRequest->supplier->trade_name ?? "",
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
+        }
 
-            // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
-            foreach ($items_data as $item) {
-                $item['purchase_invoice_id'] = $purchaseOrderRequest->id; // تعيين purchase_invoice_id
-                InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+        // ** معالجة المرفقات (attachments) إذا وجدت **
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $purchaseOrderRequest->attachments = $filename;
+                $purchaseOrderRequest->save();
             }
+        }
 
-            // ** معالجة المرفقات (attachments) إذا وجدت **
-            if ($request->hasFile('attachments')) {
-                $file = $request->file('attachments');
-                if ($file->isValid()) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->move(public_path('assets/uploads/'), $filename);
-                    $purchaseOrderRequest->attachments = $filename;
-                    $purchaseOrderRequest->save();
-                }
-            }
 
-       
-            DB::commit(); // تأكيد التغييرات
-            return redirect()->route('OrdersRequests.index')->with('success', 'تم إنشاء امر شراء  بنجاح');
+        DB::commit(); // تأكيد التغييرات
+        return redirect()->route('OrdersRequests.index')->with('success', 'تم إنشاء امر شراء  بنجاح');
         // } catch (\Exception $e) {
-            DB::rollback(); // تراجع عن التغييرات في حالة حدوث خطأ
-            Log::error('خطأ في إنشاء   امر شراء   ' . $e->getMessage()); // تسجيل الخطأ
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'عذراً، حدث خطأ أثناء حفظ امر شراء   : ' . $e->getMessage());
+        DB::rollback(); // تراجع عن التغييرات في حالة حدوث خطأ
+        Log::error('خطأ في إنشاء   امر شراء   ' . $e->getMessage()); // تسجيل الخطأ
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'عذراً، حدث خطأ أثناء حفظ امر شراء   : ' . $e->getMessage());
         // }
     }
     public function edit($id)
@@ -553,31 +572,31 @@ class PurchaseOrdersRequestsController extends Controller
         }
     }
     public function updateStatus(Request $request, $id)
-{
-    try {
-        // البحث عن أمر الشراء
-        $purchaseOrder = PurchaseInvoice::findOrFail($id);
+    {
+        try {
+            // البحث عن أمر الشراء
+            $purchaseOrder = PurchaseInvoice::findOrFail($id);
 
-        // تحديث النوع
-        $purchaseOrder->type = $request->type;
+            // تحديث النوع
+            $purchaseOrder->type = $request->type;
 
-        // إذا تم التحويل إلى فاتورة
-        if ($request->type == 2) {
-            // هنا يمكنك إضافة أي منطق إضافي عند التحويل إلى فاتورة
-            // مثل إنشاء فاتورة جديدة أو تحديث المخزون
-            $message = 'تم تحويل أمر الشراء إلى فاتورة بنجاح';
+            // إذا تم التحويل إلى فاتورة
+            if ($request->type == 2) {
+                // هنا يمكنك إضافة أي منطق إضافي عند التحويل إلى فاتورة
+                // مثل إنشاء فاتورة جديدة أو تحديث المخزون
+                $message = 'تم تحويل أمر الشراء إلى فاتورة بنجاح';
+            }
+            // إذا تم الإلغاء
+            else if ($request->type == 3) {
+                // هنا يمكنك إضافة أي منطق إضافي عند الإلغاء
+                $message = 'تم إلغاء أمر الشراء بنجاح';
+            }
+
+            $purchaseOrder->save();
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'حدث خطأ أثناء تحديث أمر الشراء');
         }
-        // إذا تم الإلغاء
-        else if ($request->type == 3) {
-            // هنا يمكنك إضافة أي منطق إضافي عند الإلغاء
-            $message = 'تم إلغاء أمر الشراء بنجاح';
-        }
-
-        $purchaseOrder->save();
-
-        return redirect()->back()->with('success', $message);
-    } catch (\Exception $e) {
-        return redirect()->back()->with('error', 'حدث خطأ أثناء تحديث أمر الشراء');
     }
-}
 }

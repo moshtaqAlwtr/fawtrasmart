@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Stock;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
+use App\Models\Log;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -35,6 +36,15 @@ class CategoryController extends Controller
         $category->discretion = $request->discretion;
 
         $category->save();
+
+          // تسجيل اشعار نظام جديد
+          $Log = Log::create([
+            'type' => 'product_log',
+            'type_id' => $category->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة تصنيف جديد **' . $request->name. '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         return redirect()->route('product_settings.category')->with( ['success'=>'تم اضافه التصنيف بنجاج !!']);
 
     }
@@ -43,7 +53,7 @@ class CategoryController extends Controller
     public function update(CategoryRequest $request ,$id)
     {
         $category = Category::findOrFail($id);
-
+        $oldName = $category->name;
         if($request->hasFile('attachments'))
         {
             $category->attachments = $this->UploadImage('assets/uploads/category',$request->attachments);
@@ -53,6 +63,15 @@ class CategoryController extends Controller
         $category->discretion = $request->discretion;
 
         $category->update();
+
+          // تسجيل اشعار نظام جديد
+          Log::create([
+            'type' => 'product_log',
+            'type_id' => $category->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم تعديل التصنيف من **' . $oldName . '** إلى **' . $request->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         return redirect()->route('product_settings.category')->with( ['success'=>'تم تحديث التصنيف بنجاج !!']);
 
     }
@@ -60,6 +79,14 @@ class CategoryController extends Controller
     public function delete($id)
     {
         $category = Category::findOrFail($id);
+          // تسجيل اشعار نظام جديد
+          Log::create([
+            'type' => 'product_log',
+            'type_id' =>  $category->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم حذف التصنيف **' .  $category->name . '**', // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         $category->delete();
         return redirect()->route('product_settings.category')->with( ['error'=>'تم حذف التصنيف بنجاج !!']);
     }
