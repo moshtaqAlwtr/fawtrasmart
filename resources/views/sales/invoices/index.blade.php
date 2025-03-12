@@ -31,22 +31,25 @@
     </style>
 @endsection
 @section('content')
-    <div class="content-header row">
-        <div class="content-header-left col-md-9 col-12 mb-2">
-            <div class="row breadcrumbs-top">
-                <div class="col-12">
-                    <h2 class="content-header-title float-start mb-0">الفواتير</h2>
-                    <div class="breadcrumb-wrapper">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">الفواتير</li>
-                        </ol>
-                    </div>
+<div class="content-header row">
+    <div class="content-header-left col-md-9 col-12 mb-2">
+        <div class="row breadcrumbs-top">
+            <div class="col-12">
+                <h2 class="content-header-title float-left mb-0">ادارة الفواتير </h2>
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{route('dashboard_sales.index')}}">الرئيسيه</a>
+                        </li>
+                        <li class="breadcrumb-item active">عرض
+                        </li>
+                    </ol>
+
                 </div>
+
             </div>
         </div>
     </div>
-
+</div>
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -64,50 +67,49 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <!-- مربع اختيار الكل -->
 
-
-                        <!-- المجموعة الأفقية: Combobox و Dropdown -->
-                        <div class="d-flex align-items-center">
-
-
-
-                        </div>
-
-                        <!-- الجزء الخاص بالتصفح -->
-                        <div class="d-flex align-items-center">
-                            <!-- زر الصفحة السابقة -->
-                            <button class="btn btn-outline-secondary btn-sm" aria-label="الصفحة السابقة">
-                                <i class="fa fa-angle-right"></i>
-                            </button>
-
-
-                            <!-- زر الصفحة التالية -->
-                            <button class="btn btn-outline-secondary btn-sm" aria-label="الصفحة التالية">
-                                <i class="fa fa-angle-left"></i>
-                            </button>
-                        </div>
-                        <form action="{{ route('invoices.import') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <div class="form-group">
-                                <label for="file">تحميل ملف Excel أو CSV</label>
-                                <input type="file" name="file" class="form-control" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">استيراد الفواتير</button>
-                        </form>
-
-                        <!-- الأزرار الإضافية -->
+                        <!-- زر فاتورة جديدة -->
                         <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm d-flex align-items-center">
                             <i class="fa fa-plus me-2"></i>فاتورة جديدة
                         </a>
 
+                        <!-- زر المواعيد -->
                         <a href="{{ route('appointments.index') }}"
                             class="btn btn-outline-primary btn-sm d-flex align-items-center">
                             <i class="fa fa-calendar-alt me-2"></i>المواعيد
                         </a>
+
+                        <!-- زر استيراد -->
+                        <button class="btn btn-outline-primary btn-sm d-flex align-items-center">
+                            <i class="fa fa-cloud-upload-alt me-2"></i>استيراد
+                        </button>
+
+                        <!-- جزء التنقل بين الصفحات -->
+                        <div class="d-flex align-items-center">
+                            <!-- عرض عدد العناصر المعروضة -->
+                            <span class="me-2">
+                                عرض {{ $invoices->firstItem() }} - {{ $invoices->lastItem() }} من {{ $invoices->total() }}
+                            </span>
+
+                            <!-- زر الصفحة السابقة -->
+                            <button class="btn btn-outline-secondary btn-sm me-2" aria-label="الصفحة السابقة"
+                                onclick="window.location.href='{{ $invoices->previousPageUrl() }}'" {{ $invoices->onFirstPage() ? 'disabled' : '' }}>
+                                <i class="fa fa-angle-right"></i>
+                            </button>
+
+                            <!-- زر الصفحة التالية -->
+                            <button class="btn btn-outline-secondary btn-sm" aria-label="الصفحة التالية"
+                                onclick="window.location.href='{{ $invoices->nextPageUrl() }}'" {{ !$invoices->hasMorePages() ? 'disabled' : '' }}>
+                                <i class="fa fa-angle-left"></i>
+                            </button>
+
+                            <!-- عرض عدد الصفحات -->
+                            <span class="ms-2">
+                                الصفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
+                            </span>
+                        </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="card">
@@ -138,7 +140,7 @@
                                     <label for="invoice_number">رقم الفاتورة</label>
                                     <input type="text" id="invoice_number" class="form-control"
                                         placeholder="رقم الفاتورة" name="invoice_number"
-                                        value="{{ request('invoice_number') }}">
+                                        value="{{ request('id') }}">
                                 </div>
 
                                 <!-- 3. حالة الفاتورة -->
@@ -146,19 +148,19 @@
                                     <label for="status">حالة الفاتورة</label>
                                     <select name="status" class="form-control" id="status">
                                         <option value="">الحالة</option>
-                                        <option value="1" {{ request('status') == 1 ? 'selected' : '' }}>غير مدفوعة
+                                        <option value="1" {{ request('Payment_status') == 1 ? 'selected' : '' }}> مدفوعة بالكامل
                                         </option>
-                                        <option value="2" {{ request('status') == 2 ? 'selected' : '' }}>مدفوعة جزئيًا
+                                        <option value="2" {{ request('Payment_status') == 2 ? 'selected' : '' }}>مدفوعة جزئيًا
                                         </option>
-                                        <option value="3" {{ request('status') == 3 ? 'selected' : '' }}>مدفوعة
+                                        <option value="3" {{ request('Payment_status') == 3 ? 'selected' : '' }}>غير مدفوعة
                                             بالكامل</option>
-                                        <option value="4" {{ request('status') == 4 ? 'selected' : '' }}>مرتجع
+                                        <option value="4" {{ request('Payment_status') == 4 ? 'selected' : '' }}>مرتجع
                                         </option>
-                                        <option value="5" {{ request('status') == 5 ? 'selected' : '' }}>مرتجع جزئي
+                                        <option value="5" {{ request('Payment_status') == 5 ? 'selected' : '' }}>مرتجع جزئي
                                         </option>
-                                        <option value="6" {{ request('status') == 6 ? 'selected' : '' }}>مدفوع بزيادة
+                                        <option value="6" {{ request('Payment_status') == 6 ? 'selected' : '' }}>مدفوع بزيادة
                                         </option>
-                                        <option value="7" {{ request('status') == 7 ? 'selected' : '' }}>مستحقة الدفع
+                                        <option value="7" {{ request('Payment_status') == 7 ? 'selected' : '' }}>مستحقة الدفع
                                         </option>
                                     </select>
                                 </div>
@@ -422,8 +424,8 @@
                                     data-target="#advancedSearchForm">
                                     <i class="bi bi-sliders"></i> بحث متقدم
                                 </a>
-                                <button type="reset"
-                                    class="btn btn-outline-warning waves-effect waves-light">إلغاء</button>
+                                <a href="{{ route('invoices.index') }}" type="reset"
+                                    class="btn btn-outline-warning waves-effect waves-light">إلغاء</a>
                             </div>
                         </form>
 
@@ -516,7 +518,10 @@
                                     <td>
                                         <div class="d-flex flex-column gap-2">
                                             @php
-                                                $payments = \App\Models\PaymentsProcess::where('invoice_id', $invoice->id)
+                                                $payments = \App\Models\PaymentsProcess::where(
+                                                    'invoice_id',
+                                                    $invoice->id,
+                                                )
                                                     ->where('type', 'client payments')
                                                     ->orderBy('created_at', 'desc')
                                                     ->get();
@@ -544,27 +549,30 @@
                                     </td>
                                     <td>
                                         @php
-    $currency = $account_setting->currency ?? 'SAR';
-    $currencySymbol = ($currency == 'SAR' || empty($currency)) 
-        ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
-        : $currency;
-@endphp
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol =
+                                                $currency == 'SAR' || empty($currency)
+                                                    ? '<img src="' .
+                                                        asset('assets/images/Saudi_Riyal.svg') .
+                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                    : $currency;
+                                        @endphp
 
-<div class="amount-info text-center mb-2">
-    <h6 class="amount mb-1">
-        {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
-        <small class="currency">{!! $currencySymbol !!}</small>
-    </h6>
-    
-    @if ($invoice->due_value > 0)
-        <div class="due-amount">
-            <small class="text-danger">
-                المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
-                {!! $currencySymbol !!}
-            </small>
-        </div>
-    @endif
-</div>
+                                        <div class="amount-info text-center mb-2">
+                                            <h6 class="amount mb-1">
+                                                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
+                                                <small class="currency">{!! $currencySymbol !!}</small>
+                                            </h6>
+
+                                            @if ($invoice->due_value > 0)
+                                                <div class="due-amount">
+                                                    <small class="text-danger">
+                                                        المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
+                                                        {!! $currencySymbol !!}
+                                                    </small>
+                                                </div>
+                                            @endif
+                                        </div>
 
 
                                         @php
@@ -641,13 +649,14 @@
                     </table>
                 </div>
 
+                <!-- إضافة التقسيم هنا -->
+
                 @if ($invoices->isEmpty())
                     <div class="alert alert-warning m-3" role="alert">
                         <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد فواتير</p>
                     </div>
                 @endif
             </div>
-
 
         </div>
     </div>

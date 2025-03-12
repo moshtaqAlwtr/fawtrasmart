@@ -100,8 +100,8 @@ class ClientController extends Controller
             });
         }
 
-        // تنفيذ الاستعلام والحصول على النتائج
-        $clients = $query->with('employee')->orderBy('created_at', 'desc')->get();
+        // تنفيذ الاستعلام مع التقسيم (Pagination)
+        $clients = $query->with('employee')->orderBy('created_at', 'desc')->paginate(25);
 
         // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
         $users = User::all();
@@ -109,7 +109,6 @@ class ClientController extends Controller
 
         return view('client.index', compact('clients', 'users', 'employees'));
     }
-
     public function create()
     {
         $employees = Employee::all();
