@@ -41,7 +41,8 @@
                         </a>
 
                         <!-- زر استيراد -->
-                        <form action="{{ route('clients.import') }}" method="POST" enctype="multipart/form-data" class="d-inline-flex align-items-center gap-2">
+                        <form action="{{ route('clients.import') }}" method="POST" enctype="multipart/form-data"
+                            class="d-inline-flex align-items-center gap-2">
                             @csrf
                             <div class="form-group mb-0">
                                 <label class="btn btn-outline-primary btn-sm rounded-pill px-3">
@@ -58,58 +59,79 @@
                         <!-- التنقل بين الصفحات -->
                         <nav aria-label="Page navigation">
                             <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="#" aria-label="First">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="#" aria-label="Previous">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
-                                </li>
+                                <!-- زر الانتقال إلى أول صفحة -->
                                 @if ($clients->onFirstPage())
-            <li class="page-item disabled">
-                <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                    <i class="fas fa-angle-left"></i>
-                </span>
-            </li>
-        @else
-            <li class="page-item">
-                <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}" aria-label="Previous">
-                    <i class="fas fa-angle-left"></i>
-                </a>
-            </li>
-        @endif
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}" aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
 
-        {{-- عرض رقم الصفحة الحالية --}}
-        <li class="page-item">
-            <span class="page-link border-0 bg-light rounded-pill px-3">
-                صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
-            </span>
-        </li>
-{{-- moshtaq wtr --}}
-        {{-- زر الانتقال للصفحة التالية --}}
-        @if ($clients->hasMorePages())
-            <li class="page-item">
-                <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}" aria-label="Next">
-                    <i class="fas fa-angle-right"></i>
-                </a>
-            </li>
-        @else
-            <li class="page-item disabled">
-                <span class="page-link border-0 rounded-pill" aria-label="Next">
-                    <i class="fas fa-angle-right"></i>
-                </span>
-            </li>
-        @endif
+                                <!-- زر الانتقال إلى الصفحة السابقة -->
+                                @if ($clients->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}" aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <!-- عرض رقم الصفحة الحالية -->
+                                <li class="page-item">
+                                    <span class="page-link border-0 bg-light rounded-pill px-3">
+                                        صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
+                                    </span>
+                                </li>
+
+                                <!-- زر الانتقال إلى الصفحة التالية -->
+                                @if ($clients->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}" aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </span>
+                                    </li>
+                                @endif
+
+                                <!-- زر الانتقال إلى آخر صفحة -->
+                                @if ($clients->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->url($clients->lastPage()) }}" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </span>
+                                    </li>
+                                @endif
                             </ul>
                         </nav>
 
                         <!-- زر الإعدادات -->
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-cog me-1"></i> إعدادات
                             </button>
                             <ul class="dropdown-menu shadow-sm">
@@ -120,7 +142,6 @@
                     </div>
                 </div>
             </div>
-
 
         </div>
 
@@ -323,33 +344,39 @@
                                                 <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
                                                     type="button"id="dropdownMenuButton303" data-toggle="dropdown"
                                                     aria-haspopup="true"aria-expanded="false"></button>
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('clients.show', $client->id) }}">
-                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-copy me-2 text-info"></i>نسخ
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $client->id }}">
-                                                                <i class="fa fa-trash-alt me-2"></i>حذف
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف حساب
-                                                            </a>
-                                                        </li>
-                                                    </div>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.show', $client->id) }}">
+                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.edit', $client->id) }}">
+                                                            <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.edit', $client->id) }}">
+                                                            <i class="fa fa-copy me-2 text-info"></i>نسخ
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item text-danger" href="#"
+                                                            data-toggle="modal"
+                                                            data-target="#modal_DELETE{{ $client->id }}">
+                                                            <i class="fa fa-trash-alt me-2"></i>حذف
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.edit', $client->id) }}">
+                                                            <i class="fa fa-file-invoice me-2 text-warning"></i>كشف حساب
+                                                        </a>
+                                                    </li>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
