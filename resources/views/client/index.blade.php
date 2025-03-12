@@ -88,7 +88,7 @@
                 صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
             </span>
         </li>
-
+{{-- moshtaq wtr --}}
         {{-- زر الانتقال للصفحة التالية --}}
         @if ($clients->hasMorePages())
             <li class="page-item">
