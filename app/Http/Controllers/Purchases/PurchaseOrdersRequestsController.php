@@ -154,7 +154,7 @@ class PurchaseOrdersRequestsController extends Controller
 
     public function store(Request $request)
     {
-        // try {
+        try {
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
             $code = $request->code;
             if (!$code) {
@@ -306,10 +306,14 @@ class PurchaseOrdersRequestsController extends Controller
             ]);
 
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
+            $invoiceItems = [];
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $purchaseOrderRequest->id; // تعيين purchase_invoice_id
-                InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+                $invoiceItems[] = $item;
             }
+
+            // إضافة البنود باستخدام insert لتحسين الأداء
+            InvoiceItem::insert($invoiceItems);
 
             // ** معالجة المرفقات (attachments) إذا وجدت **
             if ($request->hasFile('attachments')) {
@@ -322,17 +326,16 @@ class PurchaseOrdersRequestsController extends Controller
                 }
             }
 
-       
             DB::commit(); // تأكيد التغييرات
-            return redirect()->route('OrdersRequests.index')->with('success', 'تم إنشاء امر شراء  بنجاح');
-        // } catch (\Exception $e) {
+            return redirect()->route('OrdersRequests.index')->with('success', 'تم إنشاء امر شراء بنجاح');
+        } catch (\Exception $e) {
             DB::rollback(); // تراجع عن التغييرات في حالة حدوث خطأ
-            Log::error('خطأ في إنشاء   امر شراء   ' . $e->getMessage()); // تسجيل الخطأ
+            Log::error('خطأ في إنشاء امر شراء: ' . $e->getMessage()); // تسجيل الخطأ
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'عذراً، حدث خطأ أثناء حفظ امر شراء   : ' . $e->getMessage());
-        // }
+                ->with('error', 'عذراً، حدث خطأ أثناء حفظ امر شراء: ' . $e->getMessage());
+        }
     }
     public function edit($id)
     {

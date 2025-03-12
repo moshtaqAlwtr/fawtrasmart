@@ -90,89 +90,97 @@ class QuotationsController extends Controller
     }
 
     public function store(Request $request)
-    {
+{
+    try {
+        // التحقق من البيانات
+        $validatedData = $request->validate(
+            [
+                'order_date' => 'required|date',
+                'due_date' => 'nullable|date',
+                'supplier_id' => 'required|array|min:1',
+                'supplier_id.*' => 'exists:suppliers,id',
+                'notes' => 'nullable|string',
+                'attachments' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048',
+                'product_details' => 'required|array|min:1',
+                'product_details.*.product_id' => 'required|exists:products,id',
+                'product_details.*.quantity' => 'required|integer|min:1',
+            ],
+            [
+                'supplier_id.required' => 'يجب اختيار مورد واحد على الأقل',
+                'supplier_id.min' => 'يجب اختيار مورد واحد على الأقل',
+                'supplier_id.*.exists' => 'أحد الموردين المحددين غير موجود',
+                'product_details.required' => 'يجب إضافة منتج واحد على الأقل',
+                'product_details.*.product_id.required' => 'يجب اختيار المنتج',
+                'product_details.*.quantity.required' => 'يجب تحديد الكمية',
+            ],
+        );
+
+        DB::beginTransaction();
+
         try {
-            // التحقق من البيانات
-            $validatedData = $request->validate(
-                [
-                    'order_date' => 'required|date',
-                    'due_date' => 'nullable|date',
-                    'supplier_id' => 'required|array|min:1',
-                    'supplier_id.*' => 'exists:suppliers,id',
-                    'notes' => 'nullable|string',
-                    'attachments' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048',
-                    'product_details' => 'required|array|min:1',
-                    'product_details.*.product_id' => 'required|exists:products,id',
-                    'product_details.*.quantity' => 'required|integer|min:1',
-                ],
-                [
-                    'supplier_id.required' => 'يجب اختيار مورد واحد على الأقل',
-                    'supplier_id.min' => 'يجب اختيار مورد واحد على الأقل',
-                    'supplier_id.*.exists' => 'أحد الموردين المحددين غير موجود',
-                    'product_details.required' => 'يجب إضافة منتج واحد على الأقل',
-                    'product_details.*.product_id.required' => 'يجب اختيار المنتج',
-                    'product_details.*.quantity.required' => 'يجب تحديد الكمية',
-                ],
-            );
+            // إنشاء الكود تلقائياً
+            $lastQuotation = PurchaseQuotation::latest()->first();
+            $nextId = $lastQuotation ? $lastQuotation->id + 1 : 1;
+            $code = 'QUO-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
 
-            DB::beginTransaction();
+            // إنشاء عرض السعر
+            $purchaseQuotation = PurchaseQuotation::create([
+                'code' => $code,
+                'order_date' => $validatedData['order_date'],
+                'due_date' => $validatedData['due_date'] ?? null,
+                'notes' => $validatedData['notes'] ?? null,
+                'status' => 1,
+                'created_by' => Auth::id(),
+            ]);
 
-            try {
-                // إنشاء الكود تلقائياً
-                $lastQuotation = PurchaseQuotation::latest()->first();
-                $nextId = $lastQuotation ? $lastQuotation->id + 1 : 1;
-                $code = 'QUO-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-
-                // إنشاء عرض السعر
-                $purchaseQuotation = PurchaseQuotation::create([
-                    'code' => $code,
-                    'order_date' => $validatedData['order_date'],
-                    'due_date' => $validatedData['due_date'] ?? null,
-                    'notes' => $validatedData['notes'] ?? null,
-                    'status' => 1,
-                    'created_by' => Auth::id(),
-                ]);
-
-                // معالجة المرفقات
-                if ($request->hasFile('attachments')) {
-                    $path = $request->file('attachments')->store('purchase_quotations', 'public');
-                    $purchaseQuotation->attachments = $path;
-                    $purchaseQuotation->save();
-                }
-
-                // إنشاء علاقات الموردين
-                foreach ($validatedData['supplier_id'] as $supplierId) {
-                    PurchaseQuotationSupplier::create([
-                        'purchase_quotation_id' => $purchaseQuotation->id,
-                        'supplier_id' => $supplierId,
-                        'created_by' => Auth::id(),
-                    ]);
-                }
-
-                // إضافة تفاصيل المنتجات
-                foreach ($validatedData['product_details'] as $detail) {
-                    ProductDetails::create([
-                        'purchase_quotation_id' => $purchaseQuotation->id,
-                        'product_id' => $detail['product_id'],
-                        'quantity' => $detail['quantity'],
-                        'type' => 1,
-                        'type_of_operation' => 1,
-                    ]);
-                }
-
-                DB::commit();
-                return redirect()->route('Quotations.index')->with('success', 'تم إنشاء طلب عرض السعر بنجاح');
-            } catch (\Exception $e) {
-                DB::rollback();
-                throw $e;
+            // معالجة المرفقات
+            if ($request->hasFile('attachments')) {
+                $path = $request->file('attachments')->store('purchase_quotations', 'public');
+                $purchaseQuotation->attachments = $path;
+                $purchaseQuotation->save();
             }
+
+            // إنشاء علاقات الموردين
+            $suppliersData = [];
+            foreach ($validatedData['supplier_id'] as $supplierId) {
+                $suppliersData[] = [
+                    'purchase_quotation_id' => $purchaseQuotation->id,
+                    'supplier_id' => $supplierId,
+                    'created_by' => Auth::id(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            PurchaseQuotationSupplier::insert($suppliersData);
+
+            // إضافة تفاصيل المنتجات
+            $productDetailsData = [];
+            foreach ($validatedData['product_details'] as $detail) {
+                $productDetailsData[] = [
+                    'purchase_quotation_id' => $purchaseQuotation->id,
+                    'product_id' => $detail['product_id'],
+                    'quantity' => $detail['quantity'],
+                    'type' => 1,
+                    'type_of_operation' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            ProductDetails::insert($productDetailsData);
+
+            DB::commit();
+            return redirect()->route('Quotations.index')->with('success', 'تم إنشاء طلب عرض السعر بنجاح');
         } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'حدث خطأ غير متوقع: ' . $e->getMessage());
+            DB::rollback();
+            throw $e;
         }
+    } catch (\Exception $e) {
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'حدث خطأ غير متوقع: ' . $e->getMessage());
     }
+}
     public function update(Request $request, $id)
     {
         try {

@@ -288,10 +288,14 @@ class ReturnsInvoiceController extends Controller
             ]);
 
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
+            $invoiceItems = [];
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $purchaseInvoiceReturn->id; // تعيين purchase_invoice_id
-                InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+                $invoiceItems[] = $item;
             }
+
+            // إضافة البنود باستخدام insert لتحسين الأداء
+            InvoiceItem::insert($invoiceItems);
 
             // ** معالجة المرفقات (attachments) إذا وجدت **
             if ($request->hasFile('attachments')) {

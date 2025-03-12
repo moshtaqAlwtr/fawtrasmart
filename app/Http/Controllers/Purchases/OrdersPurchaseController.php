@@ -81,6 +81,7 @@ class OrdersPurchaseController extends Controller
     }
     public function store(Request $request)
     {
+        // التحقق من صحة البيانات
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'code' => 'required|string|unique:purchase_orders,code',
@@ -94,41 +95,63 @@ class OrdersPurchaseController extends Controller
             'product_details.*.quantity' => 'required|integer|min:1',
         ]);
 
-        $purchaseOrder = PurchaseOrder::create([
-            'title' => $validatedData['title'],
-            'code' => $validatedData['code'],
-            'order_date' => $validatedData['order_date'],
-            'due_date' => $validatedData['due_date'] ?? null,
-            'notes' => $validatedData['notes'] ?? null,
-            'created_by' => auth()->id(),
-        ]);
+        // بدء المعاملة
+        DB::beginTransaction();
 
-        if ($request->hasFile('attachments')) {
-            $file = $request->file('attachments');
-            if ($file->isValid()) {
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('assets/uploads/purchase_orders'), $filename);
-                $purchaseOrder->attachments = $filename;
-                $purchaseOrder->save();
-            }
-        }
-
-        // فحص البيانات المرسلة في product_details
-
-        foreach ($validatedData['product_details'] as $detail) {
-            if (empty($purchaseOrder->id)) {
-                // إضافة فحص في حال كانت قيمة purchase_order_id غير موجودة
-                dd('Invalid purchase_order_id');
-            }
-
-            ProductDetails::create([
-                'purchase_order_id' => $purchaseOrder->id,
-                'product_id' => $detail['product_id'],
-                'quantity' => $detail['quantity'],
+        try {
+            // إنشاء طلب الشراء
+            $purchaseOrder = PurchaseOrder::create([
+                'title' => $validatedData['title'],
+                'code' => $validatedData['code'],
+                'order_date' => $validatedData['order_date'],
+                'due_date' => $validatedData['due_date'] ?? null,
+                'notes' => $validatedData['notes'] ?? null,
+                'created_by' => auth()->id(),
             ]);
-        }
 
-        return redirect()->route('OrdersPurchases.index')->with('success', 'تم إنشاء طلب الشراء بنجاح!');
+            // حفظ المرفقات إذا وجدت
+            if ($request->hasFile('attachments')) {
+                $file = $request->file('attachments');
+                if ($file->isValid()) {
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('assets/uploads/purchase_orders'), $filename);
+                    $purchaseOrder->attachments = $filename;
+                    $purchaseOrder->save();
+                }
+            }
+
+            // حفظ تفاصيل المنتجات
+            $productDetails = [];
+            foreach ($validatedData['product_details'] as $detail) {
+                $productDetails[] = [
+                    'purchase_order_id' => $purchaseOrder->id,
+                    'product_id' => $detail['product_id'],
+                    'quantity' => $detail['quantity'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            // إضافة تفاصيل المنتجات باستخدام insert لتحسين الأداء
+            ProductDetails::insert($productDetails);
+
+            // تأكيد التغييرات
+            DB::commit();
+
+            return redirect()->route('OrdersPurchases.index')->with('success', 'تم إنشاء طلب الشراء بنجاح!');
+        } catch (\Exception $e) {
+            // التراجع عن التغييرات في حالة حدوث خطأ
+            DB::rollback();
+
+            // تسجيل الخطأ
+            Log::error('خطأ في إنشاء طلب الشراء: ' . $e->getMessage());
+
+            // إعادة توجيه المستخدم مع رسالة خطأ
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'عذراً، حدث خطأ أثناء إنشاء طلب الشراء: ' . $e->getMessage());
+        }
     }
     public function edit($id)
 {

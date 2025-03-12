@@ -161,7 +161,7 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="select-all"></th>
-                                <th>#</th>
+                                <th> رقم المعرف </th>
                                 <th>الاسم</th>
                                 <th>اسم العميل</th>
                                 <th>التاريخ القادم</th>
@@ -177,7 +177,7 @@
                                     <td><input type="checkbox" name="selected[]" value="{{ $preInvoice->id }}"></td>
                                     <td>{{ $preInvoice->id }}</td>
                                     <td>{{ $preInvoice->details_subscription }}</td>
-                                    <td>{{ optional($preInvoice->client)->name ?? 'عميل نقدي' }}</td>
+                                    <td>{{ optional($preInvoice->client)->trade_name ?? 'عميل نقدي' }}</td>
                                     <td>{{ $preInvoice->first_invoice_date ? date('Y-m-d', strtotime($preInvoice->first_invoice_date)) : 'انتهى' }}
                                     </td>
                                     <td>{{ $preInvoice->created_at ? date('Y-m-d', strtotime($preInvoice->created_at)) : '-' }}
