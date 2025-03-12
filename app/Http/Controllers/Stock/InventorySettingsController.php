@@ -58,7 +58,7 @@ class InventorySettingsController extends Controller
     public function employee_default_warehouse()
     {
         $warehouses = StoreHouse::select('id', 'name')->get();
-        $employees = Employee::select('id', 'first_name', 'middle_name')->get();
+        $employees = Employee::select('id', 'first_name', 'middle_name','nickname')->get();
         $default_warehouses = DefaultWarehouses::select()->orderBy('id', 'DESC')->get();
         return view('stock.products_settings.employee_default_warehouse', compact('employees', 'warehouses', 'default_warehouses'));
     }
