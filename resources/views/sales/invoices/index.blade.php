@@ -66,57 +66,99 @@
         <div class="container-fluid">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                                <!-- زر فاتورة جديدة -->
-                                <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm d-flex align-items-center rounded-pill px-3">
-                                    <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
-                                </a>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <!-- Checkbox لتحديد الكل -->
+                        <div class="form-check me-3">.
+                            <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
 
-                                <!-- زر المواعيد -->
-                                <a href="{{ route('appointments.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                                    <i class="fas fa-calendar-alt me-1"></i>المواعيد
-                                </a>
+                        </div>
 
-                                <!-- زر استيراد -->
-                                <button class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                                    <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
-                                </button>
+                        <!-- زر فاتورة جديدة -->
+                        <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm d-flex align-items-center rounded-pill px-3">
+                            <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
+                        </a>
 
-                                <!-- جزء التنقل بين الصفحات -->
-                                <div class="d-flex align-items-center">
-                                    <!-- زر الانتقال إلى أول صفحة -->
-                                    <button class="btn btn-outline-secondary btn-sm me-2 rounded-pill" aria-label="أول صفحة"
-                                        onclick="window.location.href='{{ $invoices->url(1) }}'" {{ $invoices->onFirstPage() ? 'disabled' : '' }}>
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </button>
+                        <!-- زر المواعيد -->
+                        <a href="{{ route('appointments.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                            <i class="fas fa-calendar-alt me-1"></i>المواعيد
+                        </a>
 
-                                    <!-- زر الصفحة السابقة -->
-                                    <button class="btn btn-outline-secondary btn-sm me-2 rounded-pill" aria-label="الصفحة السابقة"
-                                        onclick="window.location.href='{{ $invoices->previousPageUrl() }}'" {{ $invoices->onFirstPage() ? 'disabled' : '' }}>
-                                        <i class="fas fa-angle-right"></i>
-                                    </button>
+                        <!-- زر استيراد -->
+                        <button class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                            <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
+                        </button>
 
-                                    <!-- عرض رقم الصفحة الحالية -->
+                        <!-- جزء التنقل بين الصفحات -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm mb-0">
+                                <!-- زر الانتقال إلى أول صفحة -->
+                                @if ($invoices->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->url(1) }}" aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <!-- زر الانتقال إلى الصفحة السابقة -->
+                                @if ($invoices->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->previousPageUrl() }}" aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <!-- عرض رقم الصفحة الحالية -->
+                                <li class="page-item">
                                     <span class="page-link border-0 bg-light rounded-pill px-3">
                                         صفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
                                     </span>
+                                </li>
 
-                                    <!-- زر الصفحة التالية -->
-                                    <button class="btn btn-outline-secondary btn-sm ms-2 rounded-pill" aria-label="الصفحة التالية"
-                                        onclick="window.location.href='{{ $invoices->nextPageUrl() }}'" {{ !$invoices->hasMorePages() ? 'disabled' : '' }}>
-                                        <i class="fas fa-angle-left"></i>
-                                    </button>
+                                <!-- زر الانتقال إلى الصفحة التالية -->
+                                @if ($invoices->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->nextPageUrl() }}" aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </span>
+                                    </li>
+                                @endif
 
-                                    <!-- زر الانتقال إلى آخر صفحة -->
-                                    <button class="btn btn-outline-secondary btn-sm ms-2 rounded-pill" aria-label="آخر صفحة"
-                                        onclick="window.location.href='{{ $invoices->url($invoices->lastPage()) }}'" {{ !$invoices->hasMorePages() ? 'disabled' : '' }}>
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                                <!-- زر الانتقال إلى آخر صفحة -->
+                                @if ($invoices->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->url($invoices->lastPage()) }}" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </span>
+                                    </li>
+                                @endif
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
@@ -137,8 +179,10 @@
                                         <option value="">أي العميل</option>
                                         @foreach ($clients as $client)
                                             <option value="{{ $client->id }}"
+                                                data-client-number="{{ $client->id }}"
+                                                data-client-name="{{ $client->trade_name }}"
                                                 {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                                                {{ $client->trade_name }}
+                                                {{ $client->trade_name }} ({{ $client->id }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -149,9 +193,8 @@
                                     <label for="invoice_number">رقم الفاتورة</label>
                                     <input type="text" id="invoice_number" class="form-control"
                                         placeholder="رقم الفاتورة" name="invoice_number"
-                                        value="{{ request('id') }}">
+                                        value="{{ request('invoice_number') }}">
                                 </div>
-
                                 <!-- 3. حالة الفاتورة -->
                                 <div class="form-group col-md-4">
                                     <label for="status">حالة الفاتورة</label>
@@ -470,10 +513,14 @@
                 </div>
 
                 <!-- قائمة الفواتير -->
-                <div class="table-responsive">
+
                     <table class="table table-hover custom-table">
                         <thead>
                             <tr class="bg-gradient-light">
+                                <!-- إضافة Checkbox لتحديد الكل -->
+                                <th>
+
+                                </th>
                                 <th class="border-start">رقم الفاتورة</th>
                                 <th>معلومات العميل</th>
                                 <th>تاريخ الفاتورة</th>
@@ -487,7 +534,10 @@
                                 <tr class="align-middle invoice-row"
                                     onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
                                     style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
-                                    <!-- أضفنا سمة data-status -->
+                                    <!-- Checkbox لتحديد الفاتورة -->
+                                    <td onclick="event.stopPropagation()">
+                                        <input type="checkbox" class="invoice-checkbox" name="invoices[]" value="{{ $invoice->id }}">
+                                    </td>
                                     <td class="text-center border-start">
                                         <span class="invoice-number">#{{ $invoice->id }}</span>
                                     </td>
@@ -507,8 +557,7 @@
                                             @if ($invoice->client && $invoice->client->full_address)
                                                 <div class="address-info">
                                                     <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                                    <span
-                                                        class="text-muted small">{{ $invoice->client->full_address }}</span>
+                                                    <span class="text-muted small">{{ $invoice->client->full_address }}</span>
                                                 </div>
                                             @endif
                                         </div>
@@ -583,7 +632,6 @@
                                             @endif
                                         </div>
 
-
                                         @php
                                             $statusClass = match ($invoice->payment_status) {
                                                 1 => 'success',
@@ -601,8 +649,7 @@
                                             };
                                         @endphp
                                         <div class="text-center">
-                                            <span
-                                                class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} status-badge">
+                                            <span class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} status-badge">
                                                 {{ $statusText }}
                                             </span>
                                         </div>
@@ -615,20 +662,16 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end">
                                                 <!-- عناصر القائمة المنسدلة -->
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.edit', $invoice->id) }}">
+                                                <a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}">
                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                 </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.show', $invoice->id) }}">
+                                                <a class="dropdown-item" href="{{ route('invoices.show', $invoice->id) }}">
                                                     <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
                                                 </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-print me-2 text-dark"></i>طباعة
                                                 </a>
                                                 <a class="dropdown-item" href="#">
@@ -641,8 +684,8 @@
                                                 <a class="dropdown-item" href="#">
                                                     <i class="fa fa-copy me-2 text-secondary"></i>نسخ
                                                 </a>
-                                                <form action="{{ route('invoices.destroy', $invoice->id) }}"
-                                                    method="POST" class="d-inline">
+                                                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST"
+                                                    class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="dropdown-item text-danger">
@@ -665,7 +708,7 @@
                         <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد فواتير</p>
                     </div>
                 @endif
-            </div>
+
 
         </div>
     </div>
@@ -739,6 +782,15 @@
                 }
             });
         }
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.invoice-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+}
+
+
     </script>
 
 @endsection

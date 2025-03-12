@@ -63,7 +63,7 @@ class InvoicesController extends Controller
 
         // 2. البحث حسب رقم الفاتورة
         if ($request->has('invoice_number') && $request->invoice_number) {
-            $invoices->where('id', 'like', '%' . $request->invoice_number . '%');
+            $invoices->where('id', $request->invoice_number);
         }
 
         // 3. البحث حسب حالة الفاتورة
@@ -161,7 +161,7 @@ class InvoicesController extends Controller
 
         // 20. البحث حسب مسؤول المبيعات (المستخدمين)
         if ($request->has('sales_person_user') && $request->sales_person_user) {
-            $invoices->where('sales_person_id', $request->sales_person_user);
+            $invoices->where('created_by', $request->sales_person_user);
         }
 
         // 21. البحث حسب Post Shift

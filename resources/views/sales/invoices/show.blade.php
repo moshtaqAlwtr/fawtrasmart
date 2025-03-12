@@ -72,10 +72,18 @@
                             </a>
 
                             <!-- قسائم -->
-                            <a href="" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
-                                <i class="fas fa-ticket-alt me-1"></i> قسائم
-                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-warning d-inline-flex align-items-center dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-ticket-alt me-1"></i> قسائم
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
 
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-tag me-1"></i> ملصق الطرد</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-list me-1"></i> قائمة الإسلام</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-truck me-1"></i> ملصق الشحن</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-file-invoice me-1"></i> فاتورة حرارية</a></li>
+                                </ul>
+                            </div>
                             <!-- إضافة اتفاقية تقسيط -->
                             <a href="{{ route('installments.create', ['id' => $invoice->id]) }}"
                                 class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
@@ -115,12 +123,7 @@
                                             تعيين أمر شغل
                                         </a>
                                     </li>
-                                    <li>
-                                        <a class="dropdown-item d-inline-flex align-items-center" href="{{ route('appointment.notes.create', ['id' => $invoice->id])}}">
-                                            <i class="fas fa-paperclip me-2"></i> <!-- أيقونة إضافة ملاحظة أو مرفق -->
-                                            إضافة ملاحظة أو مرفق
-                                        </a>
-                                    </li>
+
                                     <li>
                                         <a class="dropdown-item d-inline-flex align-items-center" href="{{route('appointments.create')}}">
                                             <i class="fas fa-calendar-alt me-2"></i> <!-- أيقونة ترتيب موعد -->
