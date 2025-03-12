@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Salaries;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
-
+use App\Models\Log as ModelsLog;
 use App\Models\SalaryItem;
 use App\Models\SalaryTemplate;
 use Illuminate\Http\Request;
@@ -94,7 +94,13 @@ class SalaryItemsController extends Controller
         try {
             SalaryItem::create($validated);
 
-
+           ModelsLog::create([
+    'type' => 'salary_log',
+    // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+ 'description' => 'تم اضافة بند راتب  ',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             return redirect()->route('SalaryItems.index')->with('success', 'تم إضافة بند الراتب بنجاح');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'حدث خطأ أثناء إضافة بند الراتب')->withInput();

@@ -7,6 +7,7 @@ use App\Models\AccountSetting;
 use App\Models\Client;
 use App\Models\ColorSitting;
 use App\Models\User;
+use App\Models\Log as ModelsLog;
 use Illuminate\Container\Attributes\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -103,6 +104,15 @@ class SittingAccountController extends Controller
             $Client->commercial_registration = $request->commercial_registration;
     
             $Client->save();
+            
+                 ModelsLog::create([
+                'type' => 'setting',
+              
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم  التعديل على اعدادات الحساب ',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
     
             // إعادة التوجيه مع رسالة نجاح
             return redirect()->route('SittingAccount.index')->with('success', 'تم حفظ البيانات بنجاح!');
@@ -131,6 +141,15 @@ class SittingAccountController extends Controller
         $user = User::find(auth()->id());
         $user->email = $request->email;
         $user->save();
+        
+              ModelsLog::create([
+                'type' => 'setting',
+              
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم  التعديل على  البريد الالكتروني ',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
     
         return redirect()->route('SittingAccount.index')->with('success', 'تم تغيير البريد الإلكتروني بنجاح!');
         
@@ -158,6 +177,14 @@ class SittingAccountController extends Controller
         // تحديث كلمة المرور الجديدة
         $user->password = Hash::make($request->password); // تشفير كلمة المرور
         $user->save();
+        
+         ModelsLog::create([
+                'type' => 'setting',
+              
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم  التعديل على  كلمة السر  ',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
     
         return redirect()->route('SittingAccount.index')->with('success', 'تم تغيير كلمة السر بنجاح!');
     

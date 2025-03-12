@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Rental_Management;
 use App\Models\Unit;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Log as ModelsLog;
 use App\Models\UnitType; // موديل الوحدات
 use App\Models\PricingRule; // موديل قواعد التسعير
 
@@ -15,7 +16,7 @@ class UnitsController extends Controller
         $units = UnitType::all();
 
         // إرسال الوحدات إلى الـ View
-        return view('rental_management.units.index', compact('units'));
+        return view('Rental_Management.Units.index', compact('units'));
     }
 
     /**
@@ -24,7 +25,7 @@ class UnitsController extends Controller
     public function create()
     {
         $unitTypes = UnitType::all(); // جلب أنواع الوحدات
-        return view('rental_management.units.create', compact('unitTypes'));
+        return view('Rental_Management.Units.create', compact('unitTypes'));
     }
 
     
@@ -71,13 +72,21 @@ class UnitsController extends Controller
         ]);
 
         // إنشاء الوحدة في قاعدة البيانات
-        Unit::create([
+       $UNIT =  Unit::create([
             'name' => $request->name,
             'unit_type_id' => $request->unit_type_id,
             'priority' => $request->priority,
             'status' => $request->status,
             'description' => $request->description,
         ]);
+        
+                        ModelsLog::create([
+    'type' => 'unit',
+    'type_id' => $UNIT->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة  وحدة  **' . $request->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         // إعادة التوجيه مع رسالة نجاح
         return redirect()->route('rental_management.units.index')->with('success', 'تمت إضافة الوحدة بنجاح');

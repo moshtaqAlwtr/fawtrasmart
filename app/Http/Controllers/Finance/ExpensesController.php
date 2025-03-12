@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Finance;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ExpenseRequest;
 use App\Models\Expense;
+use App\Models\Log as ModelsLog;
 use App\Models\ExpensesCategory;
 use Illuminate\Http\Request;
 
@@ -42,6 +43,20 @@ class ExpensesController extends Controller
         $expense->tax2 = $request->tax2;
         $expense->tax1_amount = $request->tax1_amount;
         $expense->tax2_amount = $request->tax2_amount;
+
+                ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' =>  $expense->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => sprintf(
+                    'تم انشاء سند صرف رقم **%s** بقيمة **%d**',
+                    $request->id, // رقم طلب الشراء
+                  $expense->amount , // اسم المنتج
+              
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
 
         if($request->hasFile(key: 'attachments')){
             $expense->attachments = $this->UploadImage('assets/uploads/expenses',$request->attachments);
@@ -82,6 +97,18 @@ class ExpensesController extends Controller
         $expense->tax1_amount = $request->tax1_amount;
         $expense->tax2_amount = $request->tax2_amount;
 
+  ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' =>  $expense->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => sprintf(
+                    'تم تعديل سند صرف رقم **%s** بقيمة **%d**',
+                    $request->id, // رقم طلب الشراء
+                  $expense->amount , // اسم المنتج
+              
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
         if($request->hasFile(key: 'attachments')){
             $expense->attachments = $this->UploadImage('assets/uploads/expenses',$request->attachments);
         }
@@ -117,6 +144,15 @@ class ExpensesController extends Controller
     public function delete($id)
     {
         $expense = Expense::findOrFail($id);
+        ModelsLog::create([
+                        'type' => 'finance_log',
+                      'type_id' =>  $id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => 'تم  حذف سند صرف رقم  **' . $id . '**',
+                      'created_by' => auth()->id(), // ID المستخدم الحالي
+                  ]);
+
+
         $expense->delete();
         return redirect()->route('expenses.index')->with( ['error'=>'تم حذف سند صرف بنجاج !!']);
     }

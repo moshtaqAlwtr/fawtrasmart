@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Hr;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobRole;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
@@ -60,6 +61,14 @@ class ManagingEmployeeRolesController extends Controller
                 }
             }
 
+ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $role->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم إضافة دور وظيفي جديد **' . $request->role_name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
             DB::commit();
             return redirect()
                 ->route('managing_employee_roles.index')
@@ -89,6 +98,13 @@ class ManagingEmployeeRolesController extends Controller
         }
         $role->update();
 
+ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $role->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم إضافة تعديل وظيفي  **' . $request->role_name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         $role = Role::findByName($request->role_name);
         if (!$role) {
             return redirect()
@@ -110,6 +126,13 @@ class ManagingEmployeeRolesController extends Controller
     public function delete($id)
     {
         $role = JobRole::findOrFail($id);
+        ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $role->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم حذف دور  وظيفي  **' . $role->role_name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         $role->delete();
         return redirect()
             ->route('managing_employee_roles.index')

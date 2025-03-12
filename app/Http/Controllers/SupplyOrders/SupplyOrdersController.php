@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Status;
+use App\Models\Log as ModelsLog;
 use App\Models\SupplyOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -178,6 +179,14 @@ class SupplyOrdersController extends Controller
             Status::create($statusData);
         }
 
+
+                      ModelsLog::create([
+    'type' => 'unit',
+    'type_id' => $supplyOrder->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة   امر شغل  **' . $supplyOrder->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         return redirect()->route('SupplyOrders.index')->with('success', 'تم إنشاء أمر التوريد بنجاح');
     }
 

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -289,7 +290,29 @@ class CityNoticesController extends Controller
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $cityNotices->id; // تعيين purchase_invoice_id
-                InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+            $invoice_purhase =    InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
+                
+                   $invoice_purhase->load('product');
+
+$Supplier = Supplier::find($request->supplier_id);
+
+// تسجيل اشعار نظام جديد لكل منتج
+ModelsLog::create([
+    'type' => 'purchase_log',
+    'type_id' => $cityNotices->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'icon'  => 'create',
+    'description' => sprintf(
+        'تم انشاء  اشعار مدين رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s** لفاتورة رقم **%s**',
+        $cityNotices->code ?? "", // رقم مرتجع الشراء
+        $invoice_purhase->product->name ?? "", // اسم المنتج
+        $item['quantity'] ?? "", // الكمية
+        $item['unit_price'] ?? "",  // السعر
+        $Supplier->trade_name ?? "", // المورد
+        $request->reference_number ?? "" // رقم الفاتورة المرجعية
+    ),
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             }
 
             // ** معالجة المرفقات (attachments) إذا وجدت **
@@ -321,7 +344,7 @@ class CityNoticesController extends Controller
         $suppliers = Supplier::all();
         $items = Product::all();
         $users = User::all();
-        return view('purchases.city_notices.edit', compact('cityNotice', 'suppliers', 'items', 'users'));
+        return view('Purchases.city_notices.edit', compact('cityNotice', 'suppliers', 'items', 'users'));
     }
 
     public function update(Request $request, $id)
@@ -411,7 +434,7 @@ class CityNoticesController extends Controller
                     $total_tax += $tax1_amount + $tax2_amount;
 
                     // إنشاء عنصر الفاتورة
-                    $cityNotices->invoiceItems()->create([
+                $invoice_purhase =    $cityNotices->invoiceItems()->create([
                         'purchase_invoice_id' => $cityNotices->id,
                         'purchase_invoice_id_type' => 2,
                         'product_id' => $item['product_id'],
@@ -425,6 +448,27 @@ class CityNoticesController extends Controller
                         'tax_2' => $item['tax_2'] ?? 0,
                         'total' => $amount_after_discount + $tax1_amount + $tax2_amount,
                     ]);
+                           $invoice_purhase->load('product');
+
+$Supplier = Supplier::find($request->supplier_id);
+
+// تسجيل اشعار نظام جديد لكل منتج
+ModelsLog::create([
+    'type' => 'purchase_log',
+    'type_id' => $cityNotices->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'icon'  => 'create',
+    'description' => sprintf(
+        'تم  تعديل  اشعار مدين رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s** لفاتورة رقم **%s**',
+        $cityNotices->code ?? "", // رقم مرتجع الشراء
+        $invoice_purhase->product->name ?? "", // اسم المنتج
+        $item['quantity'] ?? "", // الكمية
+        $item['unit_price'] ?? "",  // السعر
+        $Supplier->trade_name ?? "", // المورد
+        $request->reference_number ?? "" // رقم الفاتورة المرجعية
+    ),
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
                 }
             }
 
@@ -497,7 +541,17 @@ class CityNoticesController extends Controller
             DB::beginTransaction();
 
             $cityNotice = PurchaseInvoice::with(['items'])->findOrFail($id);
-
+ ModelsLog::create([
+                'type' => 'purchase_log',
+                'type_id' => $cityNotice->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'icon'  => 'delete',
+                'description' => sprintf(
+                    'تم حذف فاتورة شراء رقم **%s**',
+                    $cityNotice->code ?? "" ,// رقم طلب الشراء
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
             // حذف المرفقات إذا وجدت
             if ($cityNotice->attachments) {
                 $filePath = public_path('assets/uploads/' . $cityNotice->attachments);

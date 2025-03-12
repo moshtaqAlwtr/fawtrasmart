@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\ExpensesCategory;
 use App\Models\ReceiptCategory;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 
 class FinanceSettingsController extends Controller
@@ -34,6 +35,14 @@ class FinanceSettingsController extends Controller
         $data->name = $request->name;
         $data->description = $request->description;
         $data->save();
+        
+         $Log = ModelsLog::create([
+            'type' => 'product_log',
+            'type_id' => $data->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة تصنيف  منصرفات **' . $request->name. '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         return redirect()->back()->with( ['success'=>'تم اضافه تصنيف منصرفات بنجاج !!']);
     }
 
@@ -44,7 +53,7 @@ class FinanceSettingsController extends Controller
         ]);
 
         $data = ExpensesCategory::findOrFail($id);
-
+ $oldName = $data->name;
         if($request->has('status')){
             $data->status = 1;
         }
@@ -52,14 +61,31 @@ class FinanceSettingsController extends Controller
             $data->status = 0;
         }
         $data->name = $request->name;
+       
         $data->description = $request->description;
         $data->update();
+        
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $data->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم تعديل  تصنيف المنصرفات من **' . $oldName . '** إلى **' . $request->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         return redirect()->back()->with( ['success'=>'تم تحديث تصنيف منصرفات بنجاج !!']);
     }
 
     public function expenses_category_delete($id)
     {
+        $category = ExpensesCategory::findOrFail($id);
+        $Log = ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $category->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم حذف تصنيف  منصرفات **' . $category->name. '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         ExpensesCategory::findOrFail($id)->delete();
         return redirect()->back()->with( ['error'=>'تم حذف تصنيف منصرفات بنجاج !!']);
     }
@@ -85,6 +111,13 @@ class FinanceSettingsController extends Controller
         $data->name = $request->name;
         $data->description = $request->description;
         $data->save();
+          $Log = ModelsLog::create([
+            'type' => 'product_log',
+            'type_id' => $data->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة تصنيف  ايرادات **' . $request->name. '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         return redirect()->back()->with( ['success'=>'تم اضافه تصنيف ايرادات بنجاج !!']);
     }
 
@@ -95,7 +128,7 @@ class FinanceSettingsController extends Controller
         ]);
 
         $data = ReceiptCategory::findOrFail($id);
-
+     $oldName =  $data->name;
         if($request->has('status')){
             $data->status = 1;
         }
@@ -105,12 +138,26 @@ class FinanceSettingsController extends Controller
         $data->name = $request->name;
         $data->description = $request->description;
         $data->update();
-
+  ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $data->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم تعديل  تصنيف ايرادات من **' . $oldName . '** إلى **' . $request->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         return redirect()->back()->with( ['success'=>'تم تحديث تصنيف ايرادات بنجاج !!']);
     }
 
     public function receipt_category_delete($id)
     {
+      $category =  ReceiptCategory::findOrFail($id);
+         $Log = ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $category->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم حذف تصنيف  ايرادات **' . $category->name. '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         ReceiptCategory::findOrFail($id)->delete();
         return redirect()->back()->with( ['error'=>'تم حذف تصنيف ايرادات بنجاج !!']);
     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\IndirectCostsRequest;
 use App\Models\Account;
 use App\Models\IndirectCost;
+use App\Models\Log as ModelsLog;
 use App\Models\IndirectCostItem;
 use App\Models\ManufacturOrders;
 use Illuminate\Http\Request;
@@ -16,13 +17,13 @@ class IndirectCostsController extends Controller
     public function index()
     {
         $indirectCosts = IndirectCost::with('indirectCostItems')->get();
-        return view('manufacturing.indirectCosts.index', compact('indirectCosts'));
+        return view('Manufacturing.IndirectCosts.index', compact('indirectCosts'));
     }
     public function create()
     {
         $accounts = Account::select('id', 'name')->get();
         $manufacturing_orders = ManufacturOrders::select('id', 'name')->get();
-        return view('manufacturing.indirectCosts.create', compact( 'accounts','manufacturing_orders'));
+        return view('Manufacturing.IndirectCosts.create', compact( 'accounts','manufacturing_orders'));
     }
 
     public function store(IndirectCostsRequest $request)
@@ -38,7 +39,7 @@ class IndirectCostsController extends Controller
             ]);
 
             foreach ($request->restriction_id as $index => $restriction_id) {
-                IndirectCostItem::create([
+            $IndirectCostItem =    IndirectCostItem::create([
                     'indirect_costs_id' => $indirectCost->id,
                     'restriction_id' => $restriction_id,
                     'restriction_total' => $request->restriction_total[$index],
@@ -47,6 +48,13 @@ class IndirectCostsController extends Controller
                 ]);
             }
 
+   ModelsLog::create([
+                'type' => 'bom',
+                'type_id' => $IndirectCostItem->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة تكاليف غير مباشرة في التصنيع',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
             DB::commit();
             return redirect()->route('manufacturing.indirectcosts.index')->with(['success' => 'تمت إضافة التكاليف غير المباشرة بنجاح.']);
         } catch (\Exception $e) {

@@ -12,6 +12,7 @@ use App\Models\ManufacturOrdersItem;
 use App\Models\Product;
 use App\Models\ProductionMaterials;
 use App\Models\ProductionPath;
+use App\Models\Log as ModelsLog;
 use App\Models\ProductionStage;
 use App\Models\WorkStations;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class OrdersController extends Controller
 {
     public function index(){
         $orders = ManufacturOrders::select()->get();
-        return view('manufacturing.orders.index', compact('orders'));
+        return view('Manufacturing.Orders.index', compact('orders'));
     }
     public function create(){
         $record_count = DB::table('manufactur_orders')->count();
@@ -35,7 +36,7 @@ class OrdersController extends Controller
         $stages = ProductionStage::select('id', 'stage_name')->get();
         $workstations = WorkStations::select('id', 'name')->get();
 
-        return view('manufacturing.orders.create', compact('serial_number', 'accounts', 'products', 'employees', 'clients', 'paths', 'production_materials', 'stages', 'workstations'));
+        return view('Manufacturing.Orders.create', compact('serial_number', 'accounts', 'products', 'employees', 'clients', 'paths', 'production_materials', 'stages', 'workstations'));
     }
 
     public function store(ManufacturOrderRequest $request)
@@ -92,6 +93,15 @@ class OrdersController extends Controller
                     ]);
                 }
             }
+            
+              // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'bom',
+                'type_id' => $order->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة  امر تصنيع **' . $order->name . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
 
             // تأكيد حفظ البيانات
             DB::commit();

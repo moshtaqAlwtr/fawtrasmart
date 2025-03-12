@@ -209,7 +209,7 @@
                             @foreach ($expenses as $expense)
                                 <tr>
                                     <td style="width: 80%">
-                                        <p><strong>{{ $expense->expenses_category->name }}</strong></p>
+                                        <p><strong>{{ $expense->expenses_category->name ?? "" }}</strong></p>
                                         <p><small>{{ $expense->date }} | {{ $expense->description }}</small></p>
                                         <img src="{{ asset('assets/uploads/expenses/'.$expense->attachments) }}" alt="img" width="100">
                                     </td>

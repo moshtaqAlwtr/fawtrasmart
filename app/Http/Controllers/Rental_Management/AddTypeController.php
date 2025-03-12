@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PricingRule;
 use Illuminate\Http\Request;
 use App\Models\Unit;
+use App\Models\Log as ModelsLog;
 use App\Models\UnitType;
 
 class AddTypeController extends Controller
@@ -16,7 +17,7 @@ class AddTypeController extends Controller
     public function index()
     {
         $unitstype = UnitType::all(); // استرداد البيانات من قاعدة البيانات
-        return view('rental_management.Settings.Add_Type.index', compact('unitstype')); // تمرير المتغير إلى العرض
+        return view('Rental_Management.Settings.Add_Type.index', compact('unitstype')); // تمرير المتغير إلى العرض
     }
 
     public function create()
@@ -25,14 +26,14 @@ class AddTypeController extends Controller
         $pricingRules = PricingRule::all();
 
         // إرسال البيانات إلى الـ view
-        return view('rental_management.Settings.Add_Type.create', compact('pricingRules'));
+        return view('Rental_Management.Settings.Add_Type.create', compact('pricingRules'));
     }
 
     public function show($id)
     {
         $unitType = UnitType::findOrFail($id); // جلب نوع الوحدة حسب الـ ID
         $units = Unit::where('unit_type_id', $id)->get(); // جلب الوحدات المرتبطة
-        return view('rental_management.Settings.Add_Type.show', compact('unitType', 'units'));
+        return view('Rental_Management.Settings.Add_Type.show', compact('unitType', 'units'));
     }
     
     /**
@@ -54,7 +55,7 @@ class AddTypeController extends Controller
         ]);
 
         // تخزين البيانات في قاعدة البيانات
-        UnitType::create([
+   $UnitType =     UnitType::create([
             'name' => $request->unitName,
             'status' => $request->status,
             'pricing_rule_id' => $request->pricingMethod,
@@ -64,9 +65,17 @@ class AddTypeController extends Controller
             'tax2' => $request->tax2,
             'description' => $request->description,
         ]);
+        
+        ModelsLog::create([
+    'type' => 'unit',
+    'type_id' => $UnitType->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة   نوع وحدة  **' . $UnitType->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         // إعادة التوجيه مع رسالة نجاح
-        return redirect()->route('rental_management.Settings.Add_Type.index')->with('success', 'تم إضافة الوحدة بنجاح');
+        return redirect()->route('Rental_Management.Settings.Add_Type.index')->with('success', 'تم إضافة الوحدة بنجاح');
     }
 
     /**

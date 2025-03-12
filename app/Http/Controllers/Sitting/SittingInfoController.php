@@ -7,6 +7,7 @@ use App\Models\AccountSetting;
 use App\Models\BusinessData;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Product;
@@ -97,6 +98,14 @@ class SittingInfoController extends Controller
                         $fileName .= '.csv';
                         break;
                 }
+                
+                  ModelsLog::create([
+                'type' => 'setting',
+              
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم تنزيل نسخة احتياطية',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
 
                 // إضافة الملف إلى الأرشيف
                 $zip->addFromString($fileName, $fileContent);

@@ -58,7 +58,7 @@ class InstallmentsController extends Controller
         }
 
         // Return a view with the installments data
-        return view('installments.index', compact('installments'));
+        return view('Installments.index', compact('installments'));
     }
 
     // Method to calculate the status of the installment
@@ -222,7 +222,7 @@ class InstallmentsController extends Controller
         }
 
         // Return a view with the installments data
-        return view('installments.installments_detites.agreement_installments', compact('installments'));
+        return view('Installments.installments_detites.agreement_installments', compact('installments'));
     }
 
     public function show($id)
@@ -253,6 +253,6 @@ class InstallmentsController extends Controller
         // ا��ترجا�� ��ميع الأقسا�� المرتبطة بالفاتورة
         $installments = Installment::where('invoice_id', $invoice->id)->get();
 
-        return view('installments.installments_detites.show', compact('installment', 'invoice', 'installments'));
+        return view('Installments.installments_detites.show', compact('installment', 'invoice', 'installments'));
     }
 }

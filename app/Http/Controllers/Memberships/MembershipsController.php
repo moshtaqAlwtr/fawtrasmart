@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
@@ -83,7 +84,13 @@ class MembershipsController extends Controller
     
         // إنشاء العضوية
       $Memberships =  Memberships::create($validatedData);
-
+    ModelsLog::create([
+                'type' => 'loyaltyRule',
+                'type_id' => $Memberships->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+             'description' => 'تم اضافة عضوية    جديدة',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
       
         //انشاء الفاتورة : 
             // ** الخطوة الأولى: إنشاء كود للفاتورة **

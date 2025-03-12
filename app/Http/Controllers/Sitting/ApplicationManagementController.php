@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Sitting;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationSetting;
 use Illuminate\Http\Request;
+use App\Models\Log as ModelsLog;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -64,7 +65,14 @@ public function update(Request $request)
         // إضافة باقي الخيارات هنا...
     ];
  
-
+   
+                  ModelsLog::create([
+                'type' => 'setting',
+              
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم  التغيير ف اعدادات التطبيقات ',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
     // تحديث القيم في قاعدة البيانات
     foreach ($settings as $key => $status) {
         ApplicationSetting::updateOrCreate(

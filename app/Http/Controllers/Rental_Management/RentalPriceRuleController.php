@@ -5,19 +5,19 @@ namespace App\Http\Controllers\Rental_Management;
 use App\Http\Controllers\Controller;
 use App\Models\PricingRule;
 use Illuminate\Http\Request;
-
+use App\Models\Log as ModelsLog;
 class RentalPriceRuleController extends Controller
 {
     public function index()
     {
         $pricingRules = PricingRule::all();
-        return view('rental_management.rental_price_rule.index', compact('pricingRules'));
+        return view('Rental_Management.rental_price_rule.index', compact('pricingRules'));
     }
 
 
     public function create()
     {
-        return view('rental_management.rental_price_rule.create');
+        return view('Rental_Management.rental_price_rule.create');
     }
 
     public function edit($id)
@@ -85,8 +85,16 @@ class RentalPriceRuleController extends Controller
         ]);
 
         // إنشاء قاعدة تسعير جديدة
-        PricingRule::create($validatedData);
+     $PRICE =   PricingRule::create($validatedData);
 
+        
+                        ModelsLog::create([
+    'type' => 'unit',
+    'type_id' => $PRICE->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة  قاعدة تسعير  **' . $PRICE->pricingName . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         // إعادة التوجيه بعد الحفظ
         return redirect()->route('rental_management.rental_price_rule.index')
             ->with('success', 'تم إضافة قاعدة التسعير بنجاح!');

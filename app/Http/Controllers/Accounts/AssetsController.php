@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\ChartOfAccount;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\AssetDepreciation;
 use App\Models\JournalEntry;
 use App\Models\JournalDetail;
@@ -28,7 +29,7 @@ class AssetsController extends Controller
     public function index()
     {
         $assets = AssetDepreciation::with(['employee', 'client', 'depreciation'])->latest()->paginate(10);
-        return view('accounts.asol.index', compact('assets'));
+        return view('Accounts.asol.index', compact('assets'));
     }
 
     /**
@@ -39,7 +40,7 @@ class AssetsController extends Controller
         $accounts = Account::where('type', '')->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('accounts.asol.create', compact('accounts', 'employees', 'clients'));
+        return view('Accounts.asol.create', compact('accounts', 'employees', 'clients'));
     }
 
     /**
@@ -89,6 +90,15 @@ class AssetsController extends Controller
             $asset->tax2 = $request->tax2;
             $asset->employee_id = $request->employee_id;
             $asset->client_id = $request->client_id;
+            
+             // تسجيل السجل
+    ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $asset->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم إضافة اصل جديد **' . $request->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
 
             // تحديد حالة الأصل (مهلك أم لا)
             if ($request->region_age && $request->region_age > 0) {
@@ -194,11 +204,18 @@ class AssetsController extends Controller
                 'attachments' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048'
             ]);
 
+
             DB::beginTransaction();
 
             // البحث عن الأصل
             $asset = AssetDepreciation::findOrFail($id);
-
+  ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $asset->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم تعديل اصل  **' . $request->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
             // معالجة المرفقات إذا وجدت
             if ($request->hasFile('attachments')) {
                 // حذف الصورة القديمة إذا وجدت
@@ -283,7 +300,13 @@ class AssetsController extends Controller
 
             // البحث عن الأصل
             $asset = AssetDepreciation::findOrFail($id);
-
+  ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $asset->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم حذف الاصل **' . $asset->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
             // حذف الصورة إذا كانت موجودة
             if ($asset->attachments) {
                 Storage::disk('public')->delete($asset->attachments);

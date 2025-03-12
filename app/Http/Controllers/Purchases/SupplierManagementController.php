@@ -7,6 +7,7 @@ use App\Http\Requests\SupplierRequest;
 use App\Models\Account;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -98,7 +99,7 @@ class SupplierManagementController extends Controller
         // للحفاظ على parameters البحث في روابط الترقيم
         $suppliers->appends($request->all());
     
-        return view('purchases.supplier_management.index', compact('suppliers', 'users'));
+        return view('Purchases.Supplier_Management.index', compact('suppliers', 'users'));
     }
     
     
@@ -107,7 +108,7 @@ class SupplierManagementController extends Controller
         $lastSupplier = Supplier::orderBy('id', 'desc')->first();
         $nextNumber = $lastSupplier ? $lastSupplier->id + 1 : 1;
 
-        return view('purchases.supplier_management.create', compact('nextNumber'));
+        return view('Purchases.Supplier_Management.create', compact('nextNumber'));
     }
 
     public function store(SupplierRequest $request)
@@ -149,6 +150,14 @@ class SupplierManagementController extends Controller
             // إضافة جهات الاتصال
             $this->addContacts($request, $supplier);
 
+ // تسجيل اشعار نظام جديد
+                ModelsLog::create([
+                        'type' => 'purchase_log',
+                      'type_id' =>  $supplier->id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => 'تم اضافة مورد جديد **' . $supplier->trade_name . '**',
+                      'created_by' => auth()->id(), // ID المستخدم الحالي
+                  ]);
             DB::commit();
 
             return redirect()->route('SupplierManagement.index')->with('success', 'تم إضافة المورد بنجاح');
@@ -173,14 +182,14 @@ class SupplierManagementController extends Controller
     public function show($id)
     {
         $supplier = Supplier::findOrFail($id);
-        return view('purchases.supplier_management.show', compact('supplier'));
+        return view('Purchases.Supplier_Management.show', compact('supplier'));
     }
     public function edit($id)
     {
         $supplier = Supplier::findOrFail($id);
 
         $nextNumber = Supplier::max('id');
-        return view('purchases.supplier_management.edit', compact('supplier', 'nextNumber'));
+        return view('Purchases.Supplier_Management.edit', compact('supplier', 'nextNumber'));
     }
     public function update(SupplierRequest $request, $id)
     {
@@ -216,6 +225,13 @@ class SupplierManagementController extends Controller
                 $supplier->contacts()->delete();
                 $this->addContacts($request, $supplier);
             }
+             ModelsLog::create([
+                        'type' => 'purchase_log',
+                      'type_id' =>  $supplier->id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => 'تم اضافة مورد جديد **' . $supplier->name . '**',
+                      'created_by' => auth()->id(), // ID المستخدم الحالي
+                  ]);
 
             DB::commit();
             return redirect()->route('SupplierManagement.index')->with('success', 'تم تحديث المورد بنجاح');
@@ -236,6 +252,13 @@ class SupplierManagementController extends Controller
     public function destroy($id)
     {
         $supplier = Supplier::findOrFail($id);
+           ModelsLog::create([
+                        'type' => 'purchase_log',
+                      'type_id' =>  $supplier->id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => 'تم حذف المورد  **' . $supplier->trade_name . '**',
+                      'created_by' => auth()->id(), // ID المستخدم الحالي
+                  ]);
         $supplier->delete();
         return redirect()->route('SupplierManagement.index')->with('success', 'تم حذف المورد بنجاح');
     }

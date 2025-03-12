@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cheques;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReceivedChequeRequest;
 use App\Models\ReceivedCheque;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 
 class ReceivedChequesController extends Controller
@@ -43,7 +44,7 @@ class ReceivedChequesController extends Controller
             $attachmentPath = $file->store('assets/uploads/cheques/attachments', 'public');
         }
 
-        ReceivedCheque::create([
+     $CHECK =   ReceivedCheque::create([
             'amount' => $request->amount,
             'cheque_number' => $request->cheque_number,
             'issue_date' => $request->issue_date,
@@ -56,6 +57,16 @@ class ReceivedChequesController extends Controller
             'payee_name' => $request->payee_name,
             'name' => $request->name
         ]);
+        
+  // التعديل
+    Log::create([
+                'type' => 'finance_log',
+                'type_id' => $product->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اصدار  شيك برقم **' .$request->cheque_number . '** بمبلغ **' . $request->amount . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
 
         return redirect()->route('received_cheques.index')->with(['success' => 'تم إضافة الشيك المستلم بنجاح']);
     }

@@ -7,6 +7,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Exports\DepartmentsExport;
+use App\Models\Log as ModelsLog;
 use Maatwebsite\Excel\Facades\Excel;
 
 class DepartmentController extends Controller
@@ -48,6 +49,14 @@ class DepartmentController extends Controller
                 'status' => $request->status,
                 'description' => $request->description,
             ]);
+            
+               ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $department->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   اضافة قسم وظيفي  **' . $department->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             if ($request->has('employee_id')) {
                 $department->employees()->sync($request->employee_id);
@@ -73,6 +82,7 @@ class DepartmentController extends Controller
     {
 
         $department = Department::find($id);
+        $oldName = $department->name;
         if (!$department) {
             return redirect()->route('departments.index')->with(['error' => 'القسم غير موجود']);
         }
@@ -99,6 +109,16 @@ class DepartmentController extends Controller
                 'status' => $request->status,
                 'description' => $request->description,
             ]);
+            
+            
+            
+              ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $department->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم تغيير القسم الوظيفي من **' . $oldName . '** إلى **' . $request->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             if ($request->has('employee_id')) {
                 $department->employees()->sync($request->employee_id);
@@ -110,6 +130,13 @@ class DepartmentController extends Controller
     public function delete($id)
     {
         $department = Department::find($id);
+           ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $department->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم حذف القسم الوظيفي **' . $department->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         if (!$department) {
             return redirect()->route('departments.index')->with(['error' => 'القسم غير موجود']);
@@ -129,6 +156,20 @@ class DepartmentController extends Controller
         }
 
         $department->update(['status' => !$department->status]);
+        
+        
+
+
+ $statusText = $department->status ? 'تم تعطيل القسم الوظيفي' : 'تم تفعيل  القسم الوظيفي';
+
+ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => $statusText . ' **' . $department->name . '**',  
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
 
         return redirect()->route('department.show',$id)->with(['success' => 'تم تحديث حالة القسم بنجاح!']);
     }

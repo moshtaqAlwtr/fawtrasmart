@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InsuranceAgent;
 use App\Models\InsuranceAgentCategory;
 use Illuminate\Http\Request;
-
+use App\Models\Log as ModelsLog;
 class InsuranceAgentsController extends Controller
 {
     public function index(Request $request)
@@ -69,6 +69,14 @@ class InsuranceAgentsController extends Controller
             }
         }
 
+ // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'insuranceAgent',
+                'type_id' => $insuranceAgent->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة  وكيل تأمين **' . $insuranceAgent->name. '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
         // إعادة توجيه مع رسالة نجاح
         return redirect()->route('InsuranceAgentsClass.create', ['insurance_agent_id' => $insuranceAgent->id])->with('success', 'تم إضافة وكيل التأمين بنجاح!');
     }

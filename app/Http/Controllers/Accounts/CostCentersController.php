@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Accounts;
 
 use App\Http\Controllers\Controller;
 use App\Models\CostCenter;
+use App\Models\Log as ModelsLog;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -74,6 +75,15 @@ class CostCentersController extends Controller
             $costCenter->name       = $request->name;
             $costCenter->created_by = auth()->id();
             $costCenter->save();
+            
+             // تسجيل السجل
+    ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $costCenter->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم إضافة مركز تكلفة جديد **' . $request->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
 
             return response()->json([
                 'success' => true,
@@ -203,6 +213,13 @@ class CostCentersController extends Controller
         try
         {
             $account = CostCenter::findOrFail($parentId);
+                     ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $account->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم حذف مركز التكلفة **' . $account->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
             $account->delete(); // الحذف
 
             return response()->json([
@@ -265,6 +282,14 @@ class CostCentersController extends Controller
             $costCenter->parent_id = $request->parent_id;
             $costCenter->name = $request->name;
             $costCenter->update();
+            
+             ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $costCenter->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم تعديل حساب التكلفة **' . $request->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
 
             return response()->json([
                 'success' => true,

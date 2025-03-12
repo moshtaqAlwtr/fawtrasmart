@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Sitting;
 use App\Http\Controllers\Controller;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
+use App\Models\Log as ModelsLog;
 
 class PaymentMethodsController extends Controller
 {
@@ -26,7 +27,14 @@ class PaymentMethodsController extends Controller
         $payments->type        = $request->type;
         $payments->save();
 
-      
+           // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'setting',
+                'type_id' => $payments->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة طريقة دفع  جديد **' . $payments->name . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
         
         return redirect()->route('PaymentMethods.index')->with('success', 'تم حفظ البيانات بنجاح!');
        

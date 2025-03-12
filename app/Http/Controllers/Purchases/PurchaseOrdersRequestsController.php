@@ -312,22 +312,25 @@ class PurchaseOrdersRequestsController extends Controller
            $invoice_purhase = InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
 
            $invoice_purhase->load('product');
-           $purchaseOrderRequest->load('supplier');
-            // تسجيل اشعار نظام جديد لكل منتج
-            ModelsLog::create([
-                'type' => 'purchase_log',
-                'type_id' => $purchaseOrderRequest->id, // ID النشاط المرتبط
-                'type_log' => 'log', // نوع النشاط
-                'icon'  => 'create',
-                'description' => sprintf(
-                    'تم انشاء فاتورة شراء رقم **%s** للمنتج **%s** كمية **%d**',
-                    $purchaseOrderRequest->code ?? "", // رقم طلب الشراء
-                    $invoice_purhase->product->name ?? "", // اسم المنتج
-                    $item['quantity'] ?? "", // الكمية
-                    $purchaseOrderRequest->supplier->trade_name ?? "",
-                ),
-                'created_by' => auth()->id(), // ID المستخدم الحالي
-            ]);
+
+           $Supplier = Supplier::find($request->supplier_id);
+           
+           // تسجيل اشعار نظام جديد لكل منتج
+           ModelsLog::create([
+               'type' => 'purchase_log',
+               'type_id' => $purchaseOrderRequest->id, // ID النشاط المرتبط
+               'type_log' => 'log', // نوع النشاط
+               'icon'  => 'create',
+               'description' => sprintf(
+                   'تم انشاء امر شراء رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s**',
+                   $purchaseOrderRequest->code ?? "", // رقم طلب الشراء
+                   $invoice_purhase->product->name ?? "", // اسم المنتج
+                   $item['quantity'] ?? "", // الكمية
+                   $item['unit_price'] ?? "",  // السعر
+                   $Supplier->trade_name ?? "" // المورد (يتم استخدام %s للنصوص)
+               ),
+               'created_by' => auth()->id(), // ID المستخدم الحالي
+           ]);
         }
 
         // ** معالجة المرفقات (attachments) إذا وجدت **
@@ -449,7 +452,7 @@ class PurchaseOrdersRequestsController extends Controller
                     $total_tax += $tax1_amount + $tax2_amount;
 
                     // إنشاء عنصر الفاتورة
-                    $purchaseOrdersRequests->invoiceItems()->create([
+                    $invoice_purhase =  $purchaseOrdersRequests->invoiceItems()->create([
                         'purchase_invoice_id' => $purchaseOrdersRequests->id,
                         'purchase_invoice_id_type' => 2,
                         'product_id' => $item['product_id'],
@@ -463,9 +466,27 @@ class PurchaseOrdersRequestsController extends Controller
                         'tax_2' => $item['tax_2'] ?? 0,
                         'total' => $amount_after_discount + $tax1_amount + $tax2_amount,
                     ]);
+                    $invoice_purhase->load('product');
+                   $suplier_id = $request->supplier_id ?? $purchaseOrdersRequests->supplier_id;
+                    $Supplier = Supplier::find($suplier_id);
+                        ModelsLog::create([
+                         'type' => 'purchase_log',
+                         'type_id' => $purchaseOrdersRequests->id, // ID النشاط المرتبط
+                         'type_log' => 'log', // نوع النشاط
+                         'icon'  => 'edit',
+                         'description' => sprintf(
+                             'تم تعديل امر شراء رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%d**',
+                             $purchaseOrdersRequests->code ?? "", // رقم طلب الشراء
+                             $invoice_purhase->product->name ?? "", // اسم المنتج
+                             $item['quantity'] ?? "", // الكمية
+                             $item['unit_price'] ?? "",  //السعر
+                             $Supplier->first_name  ?? "", // المورد
+                         ),
+                         'created_by' => auth()->id(), // ID المستخدم الحالي
+                     ]);
                 }
             }
-
+           
             // معالجة المرفقات
             if ($request->hasFile('attachments')) {
                 if ($purchaseOrdersRequests->attachments) {
@@ -519,7 +540,7 @@ class PurchaseOrdersRequestsController extends Controller
 
             DB::commit();
 
-            return redirect()->route('purchaseOrders.index')->with('success', 'تم تحديث امر شراء بنجاح');
+            return redirect()->route('OrdersRequests.index')->with('success', 'تم تحديث امر شراء بنجاح');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('خطأ في تحديث امر شراء   : ' . $e->getMessage());
@@ -534,6 +555,17 @@ class PurchaseOrdersRequestsController extends Controller
     {
         try {
             $purchaseOrdersRequests = PurchaseInvoice::findOrFail($id);
+            ModelsLog::create([
+                'type' => 'purchase_log',
+                'type_id' => $purchaseOrdersRequests->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'icon'  => 'delete',
+                'description' => sprintf(
+                    'تم حذف امر شراء رقم **%s**',
+                    $purchaseOrdersRequests->code ?? "" ,// رقم طلب الشراء
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
             $purchaseOrdersRequests->delete();
             return redirect()->route('OrdersRequests.index')->with('success', 'تم حذف أمر الشراء بنجاح');
         } catch (\Exception $e) {

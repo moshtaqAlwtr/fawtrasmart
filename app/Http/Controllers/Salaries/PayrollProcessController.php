@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\JopTitle;
 use App\Models\Payroll;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -112,6 +113,14 @@ class PayrollProcessController extends Controller
                 'jop_title_id' => $validated['jop_title_id'] !== 'all' ? $validated['jop_title_id'] : null,
                 'branch_id' => $validated['branch_id'] !== 'all' ? $validated['branch_id'] : null,
             ]);
+            
+                         ModelsLog::create([
+    'type' => 'salary_log',
+  
+    'type_log' => 'log', // نوع النشاط
+     'description' => 'تم  اضافة مسير رواتب',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             // إذا كان الاختيار حسب الموظفين المحددين
             if ($validated['selection'] == 1 && $request->has('employee_id')) {
@@ -154,6 +163,13 @@ class PayrollProcessController extends Controller
         try {
             $payroll = Payroll::findOrFail($id);
 
+                         ModelsLog::create([
+    'type' => 'salary_log',
+    'type_id' => $payroll->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+     'description' => 'تم  حذف مسير رواتب',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             // حذف العلاقات أولاً
             $payroll->employees()->detach();
 

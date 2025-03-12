@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Salaries;
 
 use App\Http\Controllers\Controller;
 use App\Models\SalaryItem;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use App\Models\SalaryTemplate;
 
@@ -139,6 +140,14 @@ class SalaryTemplatesController extends Controller
                     }
                 }
             }
+            
+                      ModelsLog::create([
+    'type' => 'salary_log',
+    // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+ 'description' => 'تم اضافة قالب راتب  ',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             return redirect()->route('SalaryTemplates.index')->with('success', 'تم إضافة قالب الراتب بنجاح');
         } catch (\Exception $e) {

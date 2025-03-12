@@ -10,6 +10,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\JopTitle;
 use App\Models\Shift;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +19,7 @@ class CustomShiftsController extends Controller
     public function index()
     {
         $custom_shifts = CustomShift::select()->orderBy('id', 'desc')->get();
-        return view('attendance.custom_shifts.index', compact('custom_shifts'));
+        return view('Attendance.custom_shifts.index', compact('custom_shifts'));
     }
     public function create()
     {
@@ -27,7 +28,7 @@ class CustomShiftsController extends Controller
         $departments = Department::select('id','name')->get();
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
-        return view('attendance.custom_shifts.create',compact('employees','branches','departments','job_titles','shifts'));
+        return view('Attendance.custom_shifts.create',compact('employees','branches','departments','job_titles','shifts'));
     }
 
     public function store(CustomShiftRequest $request)
@@ -58,6 +59,14 @@ class CustomShiftsController extends Controller
             }
 
             $custom_shift->employees()->attach($request['employee_id']);
+            
+                 ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $custom_shift->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   اضافة وردية متخصصة',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             DB::commit();
 
             return redirect()->route('custom_shifts.index')->with( ['success'=>'تم اضافه الحضور بنجاج !!']);
@@ -76,7 +85,7 @@ class CustomShiftsController extends Controller
         $departments = Department::select('id','name')->get();
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
-        return view('attendance.custom_shifts.edit',compact('custom_shift','employees','branches','departments','job_titles','shifts'));
+        return view('Attendance.custom_shifts.edit',compact('custom_shift','employees','branches','departments','job_titles','shifts'));
     }
 
     public function update(CustomShiftRequest $request,$id)
@@ -106,6 +115,13 @@ class CustomShiftsController extends Controller
                 ]);
             }
             $custom_shift->employees()->sync($request['employee_id']);
+                         ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $custom_shift->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   تعديل وريدة متخصصة',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             DB::commit();
             return redirect()->route('custom_shifts.index')->with(['success' => 'تم تعديل الحضور بنجاح !!']);
 
@@ -118,12 +134,20 @@ class CustomShiftsController extends Controller
     public function show($id)
     {
         $custom_shift = CustomShift::findOrFail($id);
+
         return view('attendance.custom_shifts.show',compact('custom_shift'));
     }
 
     public function delete($id)
     {
         $custom_shift = CustomShift::findOrFail($id);
+                                       ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $custom_shift->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   حذف وريدة متخصصة',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         $custom_shift->employees()->detach();
         $custom_shift->delete();
         return redirect()->route('custom_shifts.index')->with( ['error'=>'تم حذف الورديه بنجاج !!']);

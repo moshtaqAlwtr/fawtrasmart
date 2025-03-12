@@ -4,6 +4,7 @@ namespace App\Http\Controllers\LoyaltyPoints;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\Log as ModelsLog;
 use App\Models\LoyaltyRule; // Import the LoyaltyRule model
 use Illuminate\Http\Request;
 
@@ -44,12 +45,12 @@ class LoyaltyPointsController extends Controller
     // Execute the query and get the results
     $loyaltyRules = $query->get();
 
-    return view('loyalty_points.index', compact('loyaltyRules'));
+    return view('Loyalty_Points.index', compact('loyaltyRules'));
 }
     public function create()
     {
         $clients = Client::all();
-        return view('loyalty_points.create', compact('clients'));
+        return view('Loyalty_Points.create', compact('clients'));
     }
 
 
@@ -69,9 +70,19 @@ class LoyaltyPointsController extends Controller
             'client_ids' => 'required|array', // Ensure client_ids is an array
         ]);
 
+ 
         // Create a new loyalty rule
         $loyaltyRule = LoyaltyRule::create($request->all());
 
+ // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'loyaltyRule',
+                'type_id' => $loyaltyRule->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+             'description' => 'تم اضافة قاعدة عملاء  جديد',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+         
         // Attach the selected clients to the loyalty rule
         $loyaltyRule->clients()->attach($request->input('client_ids'));
 

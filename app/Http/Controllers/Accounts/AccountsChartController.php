@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Accounts;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use Illuminate\Http\Request;
+use App\Models\Log as ModelsLog;
 use App\Models\ChartOfAccount;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
@@ -24,7 +25,7 @@ class AccountsChartController extends Controller
             'income' => ChartOfAccount::where('type', 'income')->count(),
         ];
 
-        return view('accounts.statistics', compact('statistics'));
+        return view('Accounts.statistics', compact('statistics'));
     }
 
     public function indexWithSections()
@@ -165,7 +166,7 @@ class AccountsChartController extends Controller
         $accounts = Account::with(['children', 'journalEntries'])->get();
        
         // $journalEntries = JournalEntryDetail::where('account_id', $id)->get();
-        return view('accounts.accounts_chart.tree', compact('accounts'));
+        return view('Accounts.accounts_chart.tree', compact('accounts'));
     }
     public function getAccountWithBalance($accountId)
 {
@@ -217,61 +218,55 @@ private function calculateTotalBalance($account)
     }
     public function store_account(Request $request)
     {
-        $validated = $request->validateWithBag(
-            'storeAccount',
-            [
-                'code' => 'required|unique:accounts,code|max:10',
-                'type' => 'required',
-                'parent_id' => 'nullable|exists:accounts,id',
-                'name' => 'required|string|max:255',
-                'balance_type' => 'required|in:debit,credit',
-            ],
-            [
-                'code.required' => 'يجب إدخال الكود.',
-                'code.unique' => 'هذا الكود مستخدم من قبل.',
-                'type.required' => 'نوع الحساب مطلوب.',
-                'parent_id.exists' => 'الحساب الرئيسي غير موجود.',
-                'name.required' => 'اسم الحساب مطلوب.',
-                'balance_type.required' => 'نوع الرصيد (مدين أو دائن) مطلوب.',
-                'balance_type.in' => 'نوع الرصيد غير صالح.',
-            ],
-        );
+ $validated = $request->validateWithBag(
+    'storeAccount',
+    [
+        'code' => 'required|unique:accounts,code|max:10',
+        'type' => 'required',
+        'parent_id' => 'nullable|exists:accounts,id',
+        'name' => 'required|string|max:255',
+        'balance_type' => 'required|in:debit,credit',
+    ],
+    [
+        'code.required' => 'يجب إدخال الكود.',
+        'code.unique' => 'هذا الكود مستخدم من قبل.',
+        'type.required' => 'نوع الحساب مطلوب.',
+        'parent_id.exists' => 'الحساب الرئيسي غير موجود.',
+        'name.required' => 'اسم الحساب مطلوب.',
+        'balance_type.required' => 'نوع الرصيد (مدين أو دائن) مطلوب.',
+        'balance_type.in' => 'نوع الرصيد غير صالح.',
+    ],
+);
 
-        try {
-            $newCode = $request->code;
-            $existingCode = Account::where('code', '===', $newCode)->exists();
-            if ($existingCode) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'كود الحساب موجود مسبقًا.',
-                    'errors' => ['code' => 'كود الحساب موجود مسبقًا.'],
-                ]);
-            }
-            $account = new Account();
-            $account->code = $request->code;
-            $account->type = $request->type;
-            $account->parent_id = $request->parent_id;
-            $account->name = $request->name;
-            $account->balance_type = $request->balance_type;
-            $account->save();
+try {
+    $account = new Account();
+    $account->code = $request->code;
+    $account->type = $request->type;
+    $account->parent_id = $request->parent_id;
+    $account->name = $request->name;
+    $account->balance_type = $request->balance_type;
+    $account->save();
 
-            return response()->json(
-                [
-                    'success' => true,
-                    'message' => 'تم إضافة الحساب بنجاح',
-                    'data' => $account, // يمكنك إرجاع البيانات المحفوظة إذا أردت
-                ],
-                200,
-            );
-        } catch (\Exception $e) {
-            return response()->json(
-                [
-                    'success' => false,
-                    'message' => 'حدث خطأ أثناء إضافة الحساب. يرجى المحاولة لاحقًا.',
-                ],
-                500,
-            );
-        }
+    // تسجيل السجل
+    ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $account->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم إضافة حساب جديد **' . $request->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'تم إضافة الحساب بنجاح.',
+    ]);
+} catch (\Exception $e) {
+    return response()->json([
+        'success' => false,
+        'message' => 'حدث خطأ أثناء إضافة الحساب.',
+        'error' => $e->getMessage(),
+    ], 500);
+}
     }
 
     public function getTree()
@@ -438,6 +433,13 @@ private function calculateTotalBalance($account)
     {
         try {
             $account = Account::findOrFail($parentId);
+                 ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $account->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم حذف الحساب **' . $account->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
             $account->delete(); // الحذف
 
             return response()->json(
@@ -521,6 +523,13 @@ private function calculateTotalBalance($account)
             $account->balance = $request->balance;
             $account->update();
 
+ ModelsLog::create([
+        'type' => 'finance_log',
+        'type_id' => $account->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم تعديل الحساب **' . $request->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
             return response()->json(
                 [
                     'success' => true,

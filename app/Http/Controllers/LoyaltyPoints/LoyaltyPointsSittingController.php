@@ -11,7 +11,7 @@ class LoyaltyPointsSittingController extends Controller
 {
 public function create(){
 $balanceTypes = BalanceType::all();
-    return view('loyalty_points.sitting.create', compact('balanceTypes'));
+    return view('Loyalty_Points.sitting.create', compact('balanceTypes'));
 }
 public function store(Request $request)
 {

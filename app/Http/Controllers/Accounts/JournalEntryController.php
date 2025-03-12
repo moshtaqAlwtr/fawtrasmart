@@ -9,6 +9,7 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\CostCenter;
 use App\Models\JournalEntry;
+use App\Models\Log as ModelsLog;
 use App\Models\JournalEntryDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ class JournalEntryController extends Controller
         $entries = $query->get();
         $entryDetails = JournalEntryDetail::with('account')->get();
 
-        return view('accounts.journal.index', compact('entries', 'entryDetails'));
+        return view('Accounts.journal.index', compact('entries', 'entryDetails'));
     }
 
     public function create()
@@ -153,6 +154,14 @@ class JournalEntryController extends Controller
                 }
             }
 
+ModelsLog::create([
+                        'type' => 'finance_log',
+                      'type_id' =>  $journalEntry->id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => 'تم اضافة قيد جديد  **' . '**',
+                      'created_by' => auth()->id(), // ID المستخدم الحالي
+                  ]);
+
             DB::commit();
 
             return redirect()->route('journal.index')->with('success', 'تم إنشاء القيد المحاسبي بنجاح');
@@ -168,20 +177,20 @@ class JournalEntryController extends Controller
     {
         $entry = JournalEntry::with(['details.account'])->findOrFail($id);
         $entryDetails = JournalEntryDetail::with('account')->get();
-        return view('accounts.journal.show', compact('entry', 'entryDetails'));
+        return view('Accounts.journal.show', compact('entry', 'entryDetails'));
     }
 
 
     public function edit($id)
     {
         $entry = JournalEntry::findOrFail($id);
-
+$journal = JournalEntry::findOrFail($id);
         $accounts = Account::all();
         $clients = Client::all();
         $employees = Employee::all();
         $costCenters = CostCenter::all();
 
-        return view('accounts.journal.edit', compact('entry', 'accounts', 'clients', 'employees', 'costCenters'));
+        return view('Accounts.journal.edit', compact('entry','journal', 'accounts', 'clients', 'employees', 'costCenters'));
     }
 
     public function update(Request $request, JournalEntry $entry)
@@ -367,6 +376,6 @@ class JournalEntryController extends Controller
         $accounts = ChartOfAccount::all();
         $employees = Employee::all();
 
-        return view('accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
+        return view('Accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
     }
 }

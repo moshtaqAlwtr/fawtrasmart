@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Http\Requests\AppointmentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -108,6 +109,17 @@ class AppointmentController extends Controller
         }
 
         $appointment->save();
+           // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'client',
+                'type_id' => $appointment->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+             'description' => 'تم اضافة موعد جديد',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+         
+                
+                
 
         return redirect()->route('appointments.index')->with('success', 'تم إضافة الموعد بنجاح');
     }

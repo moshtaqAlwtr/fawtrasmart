@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Treasury;
@@ -43,6 +44,17 @@ class TreasuryController extends Controller
         $treasury->withdraw_permissions = $request->withdraw_permissions;
         $treasury->value_of_deposit_permissions = $request->value_of_deposit_permissions;
         $treasury->value_of_withdraw_permissions = $request->value_of_withdraw_permissions;
+        
+      ModelsLog::create([
+    'type' => 'finance_log',
+    'type_id' => $treasury->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة خزينة  **' . $request->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
+
+
 
         #permissions-----------------------------------
 
@@ -178,6 +190,7 @@ public function transfer(Request $request)
         $treasury = Account::findOrFail($id);
 
         $treasury->name = $request->name;
+        $oldName = $treasury->name; 
         $treasury->type = 0 ; # خزينه
         $treasury->status = $request->status;
         $treasury->description = $request->description;
@@ -185,6 +198,14 @@ public function transfer(Request $request)
         $treasury->withdraw_permissions = $request->withdraw_permissions;
         $treasury->value_of_deposit_permissions = $request->value_of_deposit_permissions;
         $treasury->value_of_withdraw_permissions = $request->value_of_withdraw_permissions;
+
+  ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' => $treasury->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم تعديل الخزينة من **' . $oldName . '** إلى **' . $treasury->name . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
 
         #permissions-----------------------------------
 

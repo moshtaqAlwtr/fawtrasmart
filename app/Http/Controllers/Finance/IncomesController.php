@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Receipt;
+use App\Models\Log as ModelsLog;
 use App\Models\ReceiptCategory;
 use Illuminate\Http\Request;
 
@@ -40,6 +41,18 @@ class IncomesController extends Controller
         $income->tax1_amount = $request->tax1_amount;
         $income->tax2_amount = $request->tax2_amount;
 
+  ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' =>  $income->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => sprintf(
+                    'تم انشاء سند قبض رقم **%s** بقيمة **%d**',
+                    $income->code, // رقم طلب الشراء
+                  $income->amount , // اسم المنتج
+              
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
         if($request->hasFile(key: 'attachments')){
             $income->attachments = $this->UploadImage('assets/uploads/incomes',$request->attachments);
         }
@@ -77,6 +90,18 @@ class IncomesController extends Controller
         $income->tax1_amount = $request->tax1_amount;
         $income->tax2_amount = $request->tax2_amount;
 
+ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' =>  $income->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => sprintf(
+                    'تم تعديل سند قبض رقم **%s** بقيمة **%d**',
+                    $income->code, // رقم طلب الشراء
+                  $income->amount , // اسم المنتج
+              
+                ),
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
         if($request->hasFile(key: 'attachments')){
             $income->attachments = $this->UploadImage('assets/uploads/incomes',$request->attachments);
         }
@@ -111,6 +136,13 @@ class IncomesController extends Controller
     public function delete($id)
     {
         $incomes = Receipt::findOrFail($id);
+             ModelsLog::create([
+                        'type' => 'finance_log',
+                      'type_id' =>  $id, // ID النشاط المرتبط
+                      'type_log' => 'log', // نوع النشاط
+                      'description' => 'تم  حذف سند قبض رقم  **' . $id . '**',
+                      'created_by' => auth()->id(), // ID المستخدم الحالي
+                  ]);
         $incomes->delete();
         return redirect()->route('incomes.index')->with( ['error'=>'تم حذف سند قبض بنجاج !!']);
     }

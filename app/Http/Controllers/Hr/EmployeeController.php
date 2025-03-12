@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Hr;
 use App\Exports\EmployeesExport;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EmployeeRequest;
 use App\Models\Branch;
@@ -57,6 +58,13 @@ class EmployeeController extends Controller
 
         // إرسال البريد
         Mail::to($employee->email)->send(new TestMail($details));
+        ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $employee->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         // return back()->with('message', 'تم إرسال البريد بنجاح!');
         return redirect()
@@ -132,6 +140,14 @@ class EmployeeController extends Controller
         $role_name = $role->role_name;
 
         $user->assignRole($role_name);
+ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $new_employee->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم إضافة موظف جديد **' . $new_employee->full_name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
 
         DB::commit();
         return redirect()
@@ -190,6 +206,15 @@ class EmployeeController extends Controller
                 'branch_id'   => $request->branch_id,
                 'role' => 'employee',
             ]);
+            
+            ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $employee->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم تعديل موظف  **' . $employee->full_name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
 
             DB::commit();
             return redirect()
@@ -206,6 +231,13 @@ class EmployeeController extends Controller
     public function delete($id)
     {
         $employee = Employee::findOrFail($id);
+                   ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $employee->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم حذف موظف  **' . $employee->full_name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         $employee->delete();
         return redirect()
             ->back()
@@ -228,6 +260,13 @@ class EmployeeController extends Controller
         $user = User::where('email', $employee_email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
+             ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم    تعديل كلمة السر ل  **'.$user->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()
             ->back()
@@ -315,6 +354,16 @@ class EmployeeController extends Controller
         }
 
         $employee->update(['status' => !$employee->status]);
+        
+     $statusText = $employee->status ? 'تم تفعيل الموظف' : 'تم تعطيل الموظف';
+
+ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => $statusText . ' **' . $employee->first_name . '**',  
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()->route('employee.show',$id)->with(['success' => 'تم تحديث حالة الموضف  بنجاح!']);
     }

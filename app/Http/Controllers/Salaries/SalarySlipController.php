@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\JopTitle;
 use App\Models\SalaryAdvance;
 use App\Models\SalaryItem;
@@ -194,6 +195,14 @@ class SalarySlipController extends Controller
                 'total_deductions' => $totalDeductions,
                 'net_salary' => $totalSalary - $totalDeductions,
             ]);
+            
+                                     ModelsLog::create([
+    'type' => 'salary_log',
+    'type_id' => $payroll->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+     'description' => 'تم  اضافة قسيمة رواتب',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             DB::commit();
 

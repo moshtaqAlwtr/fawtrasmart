@@ -16,6 +16,7 @@ use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
+use App\Models\Log as ModelsLog;
 use App\Models\JournalEntryDetail;
 use App\Models\notifications;
 use App\Models\PaymentsProcess;
@@ -223,7 +224,7 @@ class InvoicesController extends Controller
 
     public function store(Request $request)
     {
-        // try {
+        try {
         // $telegramApiUrl = env('TELEGRAM_BOT_TOKEN');
 
         // // تحقق من قيمة المتغير
@@ -492,7 +493,23 @@ class InvoicesController extends Controller
         // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
         foreach ($items_data as $item) {
             $item['invoice_id'] = $invoice->id;
-            InvoiceItem::create($item);
+           $item_invoice = InvoiceItem::create($item);
+           $client_name = Client::find($invoice->client_id);
+               ModelsLog::create([
+                    'type' => 'sales',
+                    'type_id' => $invoice->id, // ID النشاط المرتبط
+                    'type_log' => 'log', // نوع النشاط
+                    'icon'  => 'create',
+                    'description' => sprintf(
+                        'تم انشاء فاتورة مبيعات رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s**',
+                        $invoice->code ?? "", // رقم طلب الشراء
+                        $item_invoice->product->name ?? "", // اسم المنتج
+                        $item['quantity'] ?? "", // الكمية
+                        $item['unit_price'] ?? "",  // السعر
+                        $client_name->trade_name ?? "" // المورد (يتم استخدام %s للنصوص)
+                    ),
+                    'created_by' => auth()->id(), // ID المستخدم الحالي
+                ]);
 
             // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
             $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
@@ -862,7 +879,7 @@ class InvoicesController extends Controller
             throw new \Exception('حساب المبيعات غير موجود');
         }
 
-            // إنشاء القيد المحاسبي للفاتورة
+        //     // إنشاء القيد المحاسبي للفاتورة
             $journalEntry = JournalEntry::create([
                 'reference_number' => $invoice->code,
                 'date' => now(),
@@ -876,8 +893,8 @@ class InvoicesController extends Controller
             ]);
 
         $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
-        // إضافة تفاصيل القيد المحاسبي
-        // 1. حساب العميل (مدين)
+        // // إضافة تفاصيل القيد المحاسبي
+        // // 1. حساب العميل (مدين)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,
             'account_id' => $clientaccounts->id, // حساب العميل
@@ -887,7 +904,7 @@ class InvoicesController extends Controller
             'is_debit' => true,
         ]);
 
-        // 2. حساب المبيعات (دائن)
+        // // 2. حساب المبيعات (دائن)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,
             'account_id' => $salesAccount->id, // حساب المبيعات
@@ -897,7 +914,7 @@ class InvoicesController extends Controller
             'is_debit' => false,
         ]);
 
-        // 3. حساب القيمة المضافة المحصلة (دائن)
+        // // 3. حساب القيمة المضافة المحصلة (دائن)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,
             'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
@@ -908,10 +925,10 @@ class InvoicesController extends Controller
         ]);
 
         // ** تحديث رصيد حساب المبيعات (إيرادات) **
-        // if ($salesAccount) {
-        //     $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
-        //     $salesAccount->save();
-        // }
+         if ($salesAccount) {
+            $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
+            $salesAccount->save();
+        }
 
         // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
         if ($salesAccount) {
@@ -924,11 +941,11 @@ class InvoicesController extends Controller
         }
 
         // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
-        // $revenueAccount = Account::where('name', 'الإيرادات')->first();
-        // if ($revenueAccount) {
-        //     $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
-        //     $revenueAccount->save();
-        // }
+        $revenueAccount = Account::where('name', 'الإيرادات')->first();
+        if ($revenueAccount) {
+            $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
+            $revenueAccount->save();
+        }
 
         // $vatAccount->balance += $tax_total; // قيمة الضريبة
         // $vatAccount->save();
@@ -1063,14 +1080,14 @@ class InvoicesController extends Controller
             ->route('invoices.show', $invoice->id)
             ->with('success', sprintf('تم إنشاء فاتورة المبيعات بنجاح. رقم الفاتورة: %s', $invoice->code));
 
-        // catch (\Exception $e) {
-        //     DB::rollback();
-        //     Log::error('خطأ في إنشاء فاتورة المبيعات: ' . $e->getMessage());
-        //     return redirect()
-        //         ->back()
-        //         ->withInput()
-        //         ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
-        // }
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('خطأ في إنشاء فاتورة المبيعات: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
+        }
         //edit
     }
     private function getSalesAccount()

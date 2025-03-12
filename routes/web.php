@@ -15,7 +15,7 @@ use App\Http\Controllers\Sales\RevolvingInvoicesController;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Commission\CommissionController;
-use App\Http\Controllers\logs\LogController;
+use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
 use App\Http\Controllers\Sales\PaymentClientController;
 use App\Http\Controllers\Sales\PaymentProcessController;

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\OrganizationalStructure;
 use App\Http\Controllers\Controller;
 use App\Models\TypesJobs;
 use Illuminate\Http\Request;
+use App\Models\Log as ModelsLog;
 
 class ManagingJobTypesController extends Controller
 {
@@ -31,6 +32,16 @@ class ManagingJobTypesController extends Controller
         $types->description = $request->description;
         $types->status = $request->status;
         $types->save();
+        
+        
+                       ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $types->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   اضافة نوع وظيفي  **' . $types->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
 
         return redirect()->route('ManagingJobTypes.index')->with( ['success'=>'تم اضافه نوع وظيفه بنجاج !!']);
     }
@@ -56,9 +67,18 @@ class ManagingJobTypesController extends Controller
         
         $types = TypesJobs::find($id);
         $types->name = $request->name;
+        $oldName = $types->name;
         $types->description = $request->description;
         $types->status = $request->status;
         $types->update();
+        
+                 ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $types->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم تغيير النوع الوظيفي من **' . $oldName . '** إلى **' . $request->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()->route('ManagingJobTypes.index')->with( ['success'=>'تم تعديل نوع وظيفه بنجاج !!']);
     }
@@ -66,6 +86,13 @@ class ManagingJobTypesController extends Controller
     public function delete($id)
     {
         $type = TypesJobs::find($id);
+                                   ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   حذف النوع الوظيفي    **' . $type->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         $type->delete();
         return redirect()->route('ManagingJobTypes.index')->with( ['error'=>'تم حذف نوع وظيفه بنجاج !!']);
     }
@@ -79,6 +106,17 @@ class ManagingJobTypesController extends Controller
         }
 
         $type->update(['status' => !$type->status]);
+          
+         $statusText = $type->status ? 'تم تعطيل النوع الوظيفي' : 'تم تفعيل  النوع الوظيفي';
+
+ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => $statusText . ' **' . $type->name . '**',  
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
 
         return redirect()->route('ManagingJobTypes.show',$id)->with(['success' => 'تم تحديث حالة نوع وظيفة بنجاح!']);
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Attendance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\LeavePermissions;
 use Illuminate\Http\Request;
 
@@ -12,12 +13,12 @@ class LeavePermissionsController extends Controller
     public function index()
     {
         $leavePermissions = LeavePermissions::select()->orderBy('id','DESC')->get();
-        return view('attendance.leave-permissions.index',compact('leavePermissions'));
+        return view('Attendance.leave-permissions.index',compact('leavePermissions'));
     }
     public function create()
     {
         $employees = Employee::select('id',  'first_name','middle_name')->get();
-        return view('attendance.leave-permissions.create',compact('employees'));
+        return view('Attendance.leave-permissions.create',compact('employees'));
     }
 
     public function store(Request $request)
@@ -45,6 +46,14 @@ class LeavePermissionsController extends Controller
         }
 
         $leavePermissions->save();
+        
+          ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $leavePermissions->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم انشاء اذن اجازة',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()->route('leave_permissions.index')->with(['success'=>'تم انشاء اذن الاجازة بنجاح']);
     }
@@ -53,7 +62,7 @@ class LeavePermissionsController extends Controller
     {
         $leavePermission = LeavePermissions::findOrFail($id);
         $employees = Employee::select('id',  'first_name','middle_name')->get();
-        return view('attendance.leave-permissions.edit',compact('leavePermission','employees'));
+        return view('Attendance.leave-permissions.edit',compact('leavePermission','employees'));
     }
 
     public function update(Request $request,$id)
@@ -84,6 +93,14 @@ class LeavePermissionsController extends Controller
         }
 
         $leavePermission->update();
+        
+              ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $leavePermission->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم تعديل اذن اجازة',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()->route('leave_permissions.index')->with(['success'=>'تم تعديل اذن الاجازة بنجاح']);
     }
@@ -97,6 +114,14 @@ class LeavePermissionsController extends Controller
     public function delete($id)
     {
         $leavePermission = LeavePermissions::findOrFail($id);
+        
+                 ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $leavePermission->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم حذف اذن  اجازة',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         if ($leavePermission->attachments != null) {
             unlink('assets/uploads/leave_permissions/'.$leavePermission->attachments);
         }

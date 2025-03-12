@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Contract;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\Log as ModelsLog;
 use App\Models\FunctionalLevels;
 use App\Models\JopTitle;
 use App\Models\SalaryItem;
@@ -195,6 +196,14 @@ class ContractsController extends Controller
                 'currency' => $request->currency ?? 'SAR',
                 'attachments' => $request->attachments,
             ]);
+            
+              ModelsLog::create([
+    'type' => 'salary_log',
+    'type_id' => $contract->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+ 'description' => 'تم انشاء قصد  ',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             // حفظ البنود المختارة في المستحقات
             if (!empty($request->addition_type)) {
@@ -423,6 +432,14 @@ class ContractsController extends Controller
             }
 
             DB::commit();
+            
+                       ModelsLog::create([
+    'type' => 'salary_log',
+    'type_id' => $id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم  تعدي عقد مرتب رقم   **' .  $contract->code . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
             return redirect()->route('Contracts.index')->with('success', 'تم تحديث العقد بنجاح');
         } catch (\Exception $e) {

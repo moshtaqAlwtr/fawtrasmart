@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Attendance;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AttendanceDaysRequest;
 use App\Models\AttendanceDays;
+use App\Models\Log as ModelsLog;
 use App\Models\Branch;
 use App\Models\Department;
 use App\Models\Employee;
@@ -47,6 +48,14 @@ class AttendanceDaysController extends Controller
         $attendance->notes = $request->notes ?? null;
 
         $attendance->save();
+        
+                 ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $attendance->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة  حضور يومي',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()->route('attendanceDays.index')->with(['success'=>'تم انشاء ايام الحضور بنجاح']);
     }
@@ -78,6 +87,14 @@ class AttendanceDaysController extends Controller
         $attendance->notes = $request->notes ?? null;
 
         $attendance->update();
+        
+                       ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $attendance->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم تعديل  حضور يومي',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         return redirect()->route('attendanceDays.index')->with(['success'=>'تم تعديل ايام الحضور بنجاح']);
     }
@@ -91,6 +108,13 @@ class AttendanceDaysController extends Controller
     public function delete($id)
     {
         $attendance = AttendanceDays::findOrFail($id);
+                       ModelsLog::create([
+    'type' => 'atendes_log',
+    'type_id' => $attendance->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم حذف  حضور يومي',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         $attendance->delete();
         return redirect()->route('attendanceDays.index')->with(['error'=>'تم حذف ايام الحضور بنجاح']);
     }

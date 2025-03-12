@@ -9,6 +9,7 @@ use App\Http\Requests\ClientRequest;
 use App\Imports\ClientsImport;
 use App\Models\Account;
 use App\Models\Appointment;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use App\Models\AppointmentNote;
 use App\Models\Booking;
@@ -146,6 +147,15 @@ class ClientController extends Controller
 
         // حفظ العميل
         $client->save();
+        
+           // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'client',
+                'type_id' => $client->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة  عميل **' . $client->trade_name. '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
 
         // إنشاء حساب فرعي باستخدام trade_name
         $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي

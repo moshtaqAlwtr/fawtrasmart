@@ -19,7 +19,7 @@ class BOMController extends Controller
     public function index()
     {
         $materials = ProductionMaterials::select()->get();
-        return view('manufacturing.bom.index', compact('materials'));
+        return view('Manufacturing.BOM.index', compact('materials'));
     }
     public function create()
     {
@@ -30,7 +30,7 @@ class BOMController extends Controller
         $paths = ProductionPath::select('id','name')->get();
         $stages = ProductionStage::select('id','stage_name')->get();
         $workstations = WorkStations::select('id','name','total_cost')->get();
-        return view('manufacturing.bom.create', compact('products','accounts','paths','serial_number','stages','workstations'));
+        return view('Manufacturing.BOM.create', compact('products','accounts','paths','serial_number','stages','workstations'));
     }
 
     public function store(ProductionMaterialRequest $request)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Commission;
 
 use App\Http\Controllers\Controller;
 use App\Models\Commission;
+use App\Models\Log as ModelsLog;
 use App\Models\Commission_Products;
 use App\Models\CommissionUsers;
 use App\Models\Employee;
@@ -73,6 +74,14 @@ class CommissionController extends Controller
                     ]);
                 }
             }
+                 ModelsLog::create([
+    'type' => 'Commission',
+    'type_id' => $Commission->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة قاعدة عمولة  **' . $request->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
             
             return redirect()->route('CommissionRules.show', $Commission->id)->with('success', 'تمت الإضافة بنجاح');
 

@@ -7,6 +7,7 @@ use App\Http\Requests\WorkStationRequest;
 use App\Models\Account;
 use App\Models\Product;
 use App\Models\WorkStations;
+use App\Models\Log as ModelsLog;
 use App\Models\WorkStationsCost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,13 +17,13 @@ class WorkstationsController extends Controller
     public function index()
     {
         $workstations = WorkStations::select()->get();
-        return view('manufacturing.workstations.index',compact('workstations'));
+        return view('Manufacturing.Workstations.index',compact('workstations'));
     }
     public function create(){
         $record_count = DB::table('work_stations')->count();
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
         $accounts = Account::select('id','name')->get();
-        return view('manufacturing.workstations.create',compact('serial_number','accounts'));
+        return view('Manufacturing.Workstations.create',compact('serial_number','accounts'));
     }
 
     public function store(WorkStationRequest $request)
@@ -53,6 +54,15 @@ class WorkstationsController extends Controller
                     ]);
                 }
             }
+            
+            // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'bom',
+                'type_id' => $workStation->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة محطة عمل **' . $workStation->name . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
 
             DB::commit();
             return redirect()->route('manufacturing.workstations.index')->with(['success' => 'تم إضافة محطة العمل بنجاح.']);

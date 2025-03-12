@@ -16,12 +16,12 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        return view('manufacturing.settings.index');
+        return view('Manufacturing.Settings.index');
     }
     public function General()
     {
         $general_settings = ManufacturingGeneralSetting::first();
-        return view('manufacturing.settings.general', compact('general_settings'));
+        return view('Manufacturing.Settings.general', compact('general_settings'));
     }
 
     public function Manual()

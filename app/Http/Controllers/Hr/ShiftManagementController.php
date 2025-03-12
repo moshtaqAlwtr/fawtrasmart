@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Hr;
 
+use App\Models\Log as ModelsLog;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ShiftRequest;
 use App\Models\Shift;
@@ -28,6 +29,14 @@ class ShiftManagementController extends Controller
         $shift->name = $request->name;
         $shift->type = $request->type == 'advanced' ? 2 : 1;
         $shift->save();
+        
+   ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $shift->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم   اضافة وردية  **' . $shift->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
 
         $daysData = $request->input('days', []);
 
@@ -74,10 +83,20 @@ class ShiftManagementController extends Controller
     public function update(ShiftRequest $request, $id)
     {
         $shift = Shift::findOrFail($id);
+         $oldName = $shift->name;
         $shift->name = $request->name;
         $shift->type = $request->type == 'advanced' ? 2 : 1;
 
         $shift->update();
+        
+    ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $shift->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم تغيير الوردية من **' . $oldName . '** إلى **' . $request->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
 
         ShiftDay::where('shift_id', $shift->id)->delete();
 
@@ -119,6 +138,14 @@ class ShiftManagementController extends Controller
     public function delete($id)
     {
         $shift = Shift::findOrFail($id);
+     ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $shift->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم حذف وردية **' . $shift->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
         $shift->delete();
         return redirect()->back()->with( ['error'=>'تم حذف وردية بنجاج !!']);
     }

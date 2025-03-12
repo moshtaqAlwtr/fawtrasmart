@@ -1377,7 +1377,7 @@
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Units_Tracking_Report') }}</span></a></li>
 
-                    <li><a href=""><i class="feather icon-circle"></i><span
+                    <li><a href="{{ route('logs.index') }}"><i class="feather icon-circle"></i><span
                                 class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Account_Activity_Log') }}</span></a></li>
 

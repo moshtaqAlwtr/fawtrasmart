@@ -10,6 +10,7 @@ use App\Models\Department;
 use App\Models\Employee;
 use App\Models\JopTitle;
 use App\Models\Shift;
+use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -62,8 +63,19 @@ class AttendanceSheetsController extends Controller
                     'use_rules' => 1,
                 ]);
             }
+            
+
+
 
             $attendance->employees()->attach($request['employee_id']);
+            
+            ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $attendance->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة دفتر حضور',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             DB::commit();
 
             return redirect()->route('attendance_sheets.index')->with( ['success'=>'تم اضافه الحضور بنجاج !!']);
@@ -108,6 +120,14 @@ class AttendanceSheetsController extends Controller
                 ]);
             }
             $attendance->employees()->sync($request['employee_id']);
+            
+                       ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $attendance->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم اضافة تعديل دفتر حضور',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
             DB::commit();
             return redirect()->route('attendance_sheets.index')->with(['success' => 'تم تعديل الحضور بنجاح !!']);
         }catch (\Exception $exception){
@@ -119,6 +139,13 @@ class AttendanceSheetsController extends Controller
     public function delete($id)
     {
         $attendance = AttendanceSheets::findOrFail($id);
+                               ModelsLog::create([
+    'type' => 'struct_log',
+    'type_id' => $attendance->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم  حذف دفتر حضور',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
         if($attendance->status == 1){
             return redirect()->route('attendance_sheets.index')->with( ['error'=>'لا يمكن حذف دفتر الحضور الموافق عليه !!']);
         }

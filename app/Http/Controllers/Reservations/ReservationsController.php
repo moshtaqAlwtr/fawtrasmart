@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingSetting;
 use App\Models\Client;
+use App\Models\Log as ModelsLog;
 use App\Models\Employee;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -18,14 +19,14 @@ class ReservationsController extends Controller
     public function index()
     {
       $bookings  = Booking::all();
-      return view("reservations.index",compact('bookings'));
+      return view("Reservations.index",compact('bookings'));
     }
 
     public function client($id)
     {
         $bookings  = Booking::where('client_id',$id)->get();
         $Client    = Client::find($id);
-        return view("reservations.client",compact('bookings','Client'));
+        return view("Reservations.client",compact('bookings','Client'));
     }
 
     public function updateStatus(Request $request, $id)
@@ -34,6 +35,13 @@ class ReservationsController extends Controller
     $reservation->update([
         'status' => $request->status
     ]);
+     ModelsLog::create([
+                'type' => 'BOOKING',
+                'type_id' => $reservation->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم تغيير حالة حجز',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
     return back()->with('success', 'تم تحديث الحالة بنجاح');
 
     
@@ -48,14 +56,14 @@ class ReservationsController extends Controller
         $Employees  = Employee::all();
         $Clients     = Client::all();
        
-        return view("reservations.create",compact('Products','Employees','Clients'));
+        return view("Reservations.create",compact('Products','Employees','Clients'));
     }
     public function BookingSettings()
     {
        
         $BookingSetting = BookingSetting::find(1);
         
-        return view("reservations.Booking_Settings",compact('BookingSetting'));
+        return view("Reservations.Booking_Settings",compact('BookingSetting'));
     }
 
 
@@ -73,8 +81,14 @@ class ReservationsController extends Controller
             'end_time' => 'required',
             'client_id' => 'required',
         ]);
-         Booking::create($request->all());
-       
+       $BOOKING =  Booking::create($request->all());
+         ModelsLog::create([
+                'type' => 'BOOKING',
+                'type_id' => $BOOKING->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة حجز',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
          
         return redirect()->route('Reservations.index')->with('success', 'تم حجز الموعد بنجاح');
     }
@@ -113,7 +127,7 @@ class ReservationsController extends Controller
     public function show($id)
     {
         $booking  = Booking::find($id);
-        return view("reservations.show",compact('booking'));
+        return view("Reservations.show",compact('booking'));
        
     }
 
@@ -124,7 +138,7 @@ class ReservationsController extends Controller
         $Employees = Employee::all(); // قم بتعريف هذا بناءً على نموذجك
         $Clients = Client::all(); // قم بتعريف هذا بناءً على نموذجك
     
-        return view('reservations.edit', compact('booking', 'Products', 'Employees', 'Clients'));
+        return view('Reservations.edit', compact('booking', 'Products', 'Employees', 'Clients'));
     }
 
     /**
@@ -175,6 +189,8 @@ class ReservationsController extends Controller
       
          $booking = Booking::findOrFail($id);
          $booking->update($request->all());
+         
+           
          
          return redirect()->route('Reservations.index')->with('success', 'تم تحديث الحجز بنجاح');
      }
