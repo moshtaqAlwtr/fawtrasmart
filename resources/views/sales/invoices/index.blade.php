@@ -66,47 +66,56 @@
         <div class="container-fluid">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <!-- زر فاتورة جديدة -->
+                                <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm d-flex align-items-center rounded-pill px-3">
+                                    <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
+                                </a>
 
-                        <!-- زر فاتورة جديدة -->
-                        <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm d-flex align-items-center">
-                            <i class="fa fa-plus me-2"></i>فاتورة جديدة
-                        </a>
+                                <!-- زر المواعيد -->
+                                <a href="{{ route('appointments.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                                    <i class="fas fa-calendar-alt me-1"></i>المواعيد
+                                </a>
 
-                        <!-- زر المواعيد -->
-                        <a href="{{ route('appointments.index') }}"
-                            class="btn btn-outline-primary btn-sm d-flex align-items-center">
-                            <i class="fa fa-calendar-alt me-2"></i>المواعيد
-                        </a>
+                                <!-- زر استيراد -->
+                                <button class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                                    <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
+                                </button>
 
-                        <!-- زر استيراد -->
-                        <button class="btn btn-outline-primary btn-sm d-flex align-items-center">
-                            <i class="fa fa-cloud-upload-alt me-2"></i>استيراد
-                        </button>
+                                <!-- جزء التنقل بين الصفحات -->
+                                <div class="d-flex align-items-center">
+                                    <!-- زر الانتقال إلى أول صفحة -->
+                                    <button class="btn btn-outline-secondary btn-sm me-2 rounded-pill" aria-label="أول صفحة"
+                                        onclick="window.location.href='{{ $invoices->url(1) }}'" {{ $invoices->onFirstPage() ? 'disabled' : '' }}>
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </button>
 
-                        <!-- جزء التنقل بين الصفحات -->
-                        <div class="d-flex align-items-center">
-                            <!-- عرض عدد العناصر المعروضة -->
-                            <span class="me-2">
-                                عرض {{ $invoices->firstItem() }} - {{ $invoices->lastItem() }} من {{ $invoices->total() }}
-                            </span>
+                                    <!-- زر الصفحة السابقة -->
+                                    <button class="btn btn-outline-secondary btn-sm me-2 rounded-pill" aria-label="الصفحة السابقة"
+                                        onclick="window.location.href='{{ $invoices->previousPageUrl() }}'" {{ $invoices->onFirstPage() ? 'disabled' : '' }}>
+                                        <i class="fas fa-angle-right"></i>
+                                    </button>
 
-                            <!-- زر الصفحة السابقة -->
-                            <button class="btn btn-outline-secondary btn-sm me-2" aria-label="الصفحة السابقة"
-                                onclick="window.location.href='{{ $invoices->previousPageUrl() }}'" {{ $invoices->onFirstPage() ? 'disabled' : '' }}>
-                                <i class="fa fa-angle-right"></i>
-                            </button>
+                                    <!-- عرض رقم الصفحة الحالية -->
+                                    <span class="page-link border-0 bg-light rounded-pill px-3">
+                                        صفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
+                                    </span>
 
-                            <!-- زر الصفحة التالية -->
-                            <button class="btn btn-outline-secondary btn-sm" aria-label="الصفحة التالية"
-                                onclick="window.location.href='{{ $invoices->nextPageUrl() }}'" {{ !$invoices->hasMorePages() ? 'disabled' : '' }}>
-                                <i class="fa fa-angle-left"></i>
-                            </button>
+                                    <!-- زر الصفحة التالية -->
+                                    <button class="btn btn-outline-secondary btn-sm ms-2 rounded-pill" aria-label="الصفحة التالية"
+                                        onclick="window.location.href='{{ $invoices->nextPageUrl() }}'" {{ !$invoices->hasMorePages() ? 'disabled' : '' }}>
+                                        <i class="fas fa-angle-left"></i>
+                                    </button>
 
-                            <!-- عرض عدد الصفحات -->
-                            <span class="ms-2">
-                                الصفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
-                            </span>
+                                    <!-- زر الانتقال إلى آخر صفحة -->
+                                    <button class="btn btn-outline-secondary btn-sm ms-2 rounded-pill" aria-label="آخر صفحة"
+                                        onclick="window.location.href='{{ $invoices->url($invoices->lastPage()) }}'" {{ !$invoices->hasMorePages() ? 'disabled' : '' }}>
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

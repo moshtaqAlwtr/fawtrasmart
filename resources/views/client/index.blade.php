@@ -132,7 +132,7 @@
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" type="button"
                                 data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-cog me-1"></i> إعدادات
+                                <i class="fas fa-cog me-1"></i>
                             </button>
                             <ul class="dropdown-menu shadow-sm">
                                 <li><a class="dropdown-item py-2" href="#">إعدادات 1</a></li>

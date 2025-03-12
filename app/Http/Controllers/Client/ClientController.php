@@ -351,7 +351,6 @@ class ClientController extends Controller
         ])->findOrFail($id);
 
         // تحقق من بيانات العميل مع العلاقات
-        dd($client->relations);
 
         $bookings = Booking::where('client_id', $id)->get();
         $packages = Package::all();
@@ -367,7 +366,7 @@ class ClientController extends Controller
         $appointmentNotes = $client->appointmentNotes;
 
         // تحقق من الملاحظات
-        dd($appointmentNotes);
+
 
         return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
