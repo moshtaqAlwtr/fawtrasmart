@@ -670,109 +670,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade show active" id="payments" aria-labelledby="payments-tab" role="tabpanel">
-                        <div class="card-body">
-                            @foreach ($payments as $payment)
-                                <div class="row border-bottom py-2 align-items-center">
-                                    <div class="col-md-4">
-                                        <p class="mb-0"><strong>#{{ $payment->id }}</strong></p>
-                                        <small class="text-muted">#{{ $payment->invoice->invoice_number ?? '' }} ملاحظات: {{ $payment->notes }}</small>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <p class="mb-0"><small>{{ $payment->payment_date }}</small></p>
-                                        <small class="text-muted">بواسطة: {{ $payment->employee->full_name ?? '' }}</small>
-                                    </div>
-                                    <div class="col-md-3 text-center">
-                                        <h5 class="mb-1 font-weight-bold">
-                                            {{ number_format($payment->amount, 2) }} ر.س
-                                        </h5>
-
-                                        @php
-                                            $statusClass = '';
-                                            $statusText = '';
-                                            $statusIcon = '';
-
-                                            if ($payment->payment_status == 2) {
-                                                $statusClass = 'badge-warning';
-                                                $statusText = 'غير مكتمل';
-                                                $statusIcon = 'fa-clock';
-                                            } elseif ($payment->payment_status == 1) {
-                                                $statusClass = 'badge-success';
-                                                $statusText = 'مكتمل';
-                                                $statusIcon = 'fa-check-circle';
-                                            } elseif ($payment->payment_status == 4) {
-                                                $statusClass = 'badge-info';
-                                                $statusText = 'تحت المراجعة';
-                                                $statusIcon = 'fa-sync';
-                                            } elseif ($payment->payment_status == 5) {
-                                                $statusClass = 'badge-danger';
-                                                $statusText = 'فاشلة';
-                                                $statusIcon = 'fa-times-circle';
-                                            } elseif ($payment->payment_status == 3) {
-                                                $statusClass = 'badge-secondary';
-                                                $statusText = 'مسودة';
-                                                $statusIcon = 'fa-file-alt';
-                                            } else {
-                                                $statusClass = 'badge-light';
-                                                $statusText = 'غير معروف';
-                                                $statusIcon = 'fa-question-circle';
-                                            }
-                                        @endphp
-
-                                        <span class="badge {{ $statusClass }}">
-                                            <i class="fas {{ $statusIcon }} me-1"></i>
-                                            {{ $statusText }}
-                                        </span>
-                                    </div>
-                                    <div class="col-md-2 text-end">
-                                        <div class="btn-group">
-                                            <div class="dropdown">
-                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
-                                                    type="button" id="dropdownMenuButton303" data-toggle="dropdown"
-                                                    aria-haspopup="true" aria-expanded="false">
-                                                </button>
-                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                    <li>
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('paymentsClient.show', $payment->id) }}">
-                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('paymentsClient.edit', $payment->id) }}">
-                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                        </a>
-                                                    </li>
-                                                    <form action="{{ route('paymentsClient.destroy', $payment->id) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
-
-                                                        <button type="submit" class="dropdown-item"
-                                                            style="border: none; background: none;">
-                                                            <i class="fa fa-trash me-2 text-danger"></i> حذف
-                                                        </button>
-                                                    </form>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#">
-                                                            <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#">
-                                                            <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
-                                                            حراري
-                                                        </a>
-                                                    </li>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
+                  
                     <!-- تبويب الفواتير -->
                     <div class="tab-pane" id="invoices" aria-labelledby="invoices-tab" role="tabpanel">
                         <div class="table-responsive">
@@ -949,7 +847,7 @@
                         </div>
 
                     </div>
-                    
+                   
                     <!-- payments -->
                     @if ($client->appointmentNotes && $client->appointmentNotes->count() > 0)
                     <div class="tab-pane" id="notes" aria-labelledby="notes-tab" role="tabpanel">
@@ -979,11 +877,113 @@
                         </div>
                     </div>
                 @else
-                    <div class="alert alert-info"></div>
+                 
                 @endif
                     <!-- التبويبات الأخرى -->
                  
+                    <div class="tab-pane fade show active" id="payments" aria-labelledby="payments-tab" role="tabpanel">
+                        <div class="card-body">
+                            @foreach ($payments as $payment)
+                                <div class="row border-bottom py-2 align-items-center">
+                                    <div class="col-md-4">
+                                        <p class="mb-0"><strong>#{{ $payment->id }}</strong></p>
+                                        <small class="text-muted">#{{ $payment->invoice->invoice_number ?? '' }} ملاحظات: {{ $payment->notes }}</small>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <p class="mb-0"><small>{{ $payment->payment_date }}</small></p>
+                                        <small class="text-muted">بواسطة: {{ $payment->employee->full_name ?? '' }}</small>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <h5 class="mb-1 font-weight-bold">
+                                            {{ number_format($payment->amount, 2) }} ر.س
+                                        </h5>
 
+                                        @php
+                                            $statusClass = '';
+                                            $statusText = '';
+                                            $statusIcon = '';
+
+                                            if ($payment->payment_status == 2) {
+                                                $statusClass = 'badge-warning';
+                                                $statusText = 'غير مكتمل';
+                                                $statusIcon = 'fa-clock';
+                                            } elseif ($payment->payment_status == 1) {
+                                                $statusClass = 'badge-success';
+                                                $statusText = 'مكتمل';
+                                                $statusIcon = 'fa-check-circle';
+                                            } elseif ($payment->payment_status == 4) {
+                                                $statusClass = 'badge-info';
+                                                $statusText = 'تحت المراجعة';
+                                                $statusIcon = 'fa-sync';
+                                            } elseif ($payment->payment_status == 5) {
+                                                $statusClass = 'badge-danger';
+                                                $statusText = 'فاشلة';
+                                                $statusIcon = 'fa-times-circle';
+                                            } elseif ($payment->payment_status == 3) {
+                                                $statusClass = 'badge-secondary';
+                                                $statusText = 'مسودة';
+                                                $statusIcon = 'fa-file-alt';
+                                            } else {
+                                                $statusClass = 'badge-light';
+                                                $statusText = 'غير معروف';
+                                                $statusIcon = 'fa-question-circle';
+                                            }
+                                        @endphp
+
+                                        <span class="badge {{ $statusClass }}">
+                                            <i class="fas {{ $statusIcon }} me-1"></i>
+                                            {{ $statusText }}
+                                        </span>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                    type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                    aria-haspopup="true" aria-expanded="false">
+                                                </button>
+                                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('paymentsClient.show', $payment->id) }}">
+                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('paymentsClient.edit', $payment->id) }}">
+                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                        </a>
+                                                    </li>
+                                                    <form action="{{ route('paymentsClient.destroy', $payment->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+
+                                                        <button type="submit" class="dropdown-item"
+                                                            style="border: none; background: none;">
+                                                            <i class="fa fa-trash me-2 text-danger"></i> حذف
+                                                        </button>
+                                                    </form>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#">
+                                                            <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
+                                                            حراري
+                                                        </a>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                     <!-- تبويب حركة الحساب -->
                     <div class="tab-pane" id="account-movement" aria-labelledby="account-movement-tab" role="tabpanel">
                         <div class="mb-3">
@@ -1043,18 +1043,25 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @php
+                                                $total_amount = 0; // المجموع الكلي للمبلغ
+                                                $total_due = 0;    // المجموع الكلي للمبلغ المتبقي
+                                            @endphp
+                        
                                             @foreach ($invoices as $invoice)
                                                 <!-- عرض بيانات الفاتورة -->
                                                 <tr>
                                                     <td class="text-end">{{ $invoice->invoice_date }}</td>
                                                     <td class="text-end">فاتورة{{ $invoice->code }}</td>
-                                                    <td class="text-start">{{ number_format($invoice->grand_total, 2) }}
-                                                    </td>
-                                                    <td class="text-start">{{ number_format($invoice->due_value, 2) }}
-                                                    </td>
+                                                    <td class="text-start">{{ number_format($invoice->grand_total, 2) }}</td>
+                                                    <td class="text-start">{{ number_format($invoice->due_value, 2) }}</td>
                                                 </tr>
-
-
+                        
+                                                @php
+                                                    $total_amount += $invoice->grand_total; // زيادة المجموع الكلي للمبلغ
+                                                    $total_due += $invoice->due_value;     // زيادة المجموع الكلي للمبلغ المتبقي
+                                                @endphp
+                        
                                                 <!-- عرض بيانات المدفوعات المرتبطة بالفاتورة -->
                                                 @foreach ($invoice->payments as $payment)
                                                     <tr>
@@ -1081,6 +1088,14 @@
                                                 @endforeach
                                             @endforeach
                                         </tbody>
+                                        <!-- عرض المجموع الكلي -->
+                                        <tfoot>
+                                            <tr class="bg-light">
+                                                <th class="text-end" colspan="2">المجموع الكلي</th>
+                                                <th class="text-start">{{ number_format($total_amount, 2) }}</th>
+                                                <th class="text-start">{{ number_format($total_due, 2) }}</th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
