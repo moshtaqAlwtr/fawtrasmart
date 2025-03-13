@@ -870,7 +870,7 @@
                         </div>
                     </div>
                 @else
-                    <div class="alert alert-info">لا توجد ملاحظات متاحة.</div>
+                    <div class="alert alert-info"></div>
                 @endif
                     <!-- التبويبات الأخرى -->
                     <div class="tab-pane" id="payments" aria-labelledby="payments-tab" role="tabpanel">
@@ -1103,6 +1103,96 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="tab-pane" id="membership" aria-labelledby="membership-tab" role="tabpanel">
+
+                        <div class="card">
+                            <div class="card-body">
+            
+                                <table class="table" style="font-size: 1.1rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>المعرف</th>
+                                            <th>بيانات العميل</th>
+            
+                                            <th>الباقة الحالية </th>
+                                            <th>تاريخ الانتهاء</th>
+            
+                                            <th>الحالة</th>
+                                            <th>ترتيب بواسطة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($memberships as $membership)
+                                            
+                                        
+                                        <tr>
+                                            <td>#1</td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="avatar avatar-sm bg-danger">
+                                                        <span class="avatar-content">أ</span>
+                                                    </div>
+                                                    <div>
+                                                        {{$membership->client->first_name ?? ""}}
+                                                        <br>
+                                                        <small class="text-muted"></small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td><br><small class="text-muted">{{$membership->packege->commission_name ?? ""}}</small></td>
+            
+                                            <td><small class="text-muted">{{$membership->end_date ?? ""}}</small></td>
+            
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="rounded-circle bg-info" style="width: 8px; height: 8px;"></div>
+                                                    <span class="text-muted">
+                                                      @if($membership->status == "active")
+                                                      نشط
+                                                      @else
+                                                      غير نشط 
+                                                      @endif
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <div class="dropdown">
+                                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                            type="button"id="dropdownMenuButton303" data-toggle="dropdown"
+                                                            aria-haspopup="true"aria-expanded="false"></button>
+                                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('Memberships.show', $membership->id) }}">
+                                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('Memberships.edit', $membership->id) }}">
+                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                </a>
+                                                            </li>
+            
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="{{ route('Memberships.delete', $membership->id) }}">
+                                                                    <i class="fa fa-trash me-2"></i>حذف
+                                                                </a>
+                                                            </li>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
 
 

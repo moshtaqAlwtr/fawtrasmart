@@ -364,7 +364,7 @@ class ClientController extends Controller
 
         $bookings = Booking::where('client_id', $id)->get();
         $packages = Package::all();
-        $memberships = Memberships::all();
+        $memberships = Memberships::where('client_id', $id)->get();
 
         // تحميل الفواتير المرتبطة بالعميل
         $invoices = $client->invoices;
@@ -387,10 +387,35 @@ class ClientController extends Controller
         return view('client.contacts.contact_mang', compact('clients'));
     }
 
-    public function contacts()
+    public function contacts(Request $request)
     {
-        $clients = Client::with('employee')->select('id', 'trade_name', 'first_name', 'last_name', 'phone', 'city', 'region', 'street1', 'street2', 'code', 'employee_id')->orderBy('created_at', 'desc')->paginate(10);
-
+        $query = Client::with('employee')
+            ->select('id', 'trade_name', 'first_name', 'last_name', 'phone', 'city', 'region', 'street1', 'street2', 'code', 'employee_id')
+            ->orderBy('created_at', 'desc');
+    
+        // البحث الأساسي (بالاسم أو الكود)
+        if ($request->has('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('trade_name', 'like', '%' . $search . '%')
+                  ->orWhere('code', 'like', '%' . $search . '%')
+                  ->orWhere('first_name', 'like', '%' . $search . '%')
+                  ->orWhere('last_name', 'like', '%' . $search . '%');
+            });
+        }
+    
+        // البحث المتقدم (بالبريد الإلكتروني أو رقم الهاتف أو رقم الجوال)
+        if ($request->has('advanced_search')) {
+            $advancedSearch = $request->input('advanced_search');
+            $query->where(function ($q) use ($advancedSearch) {
+                $q->where('email', 'like', '%' . $advancedSearch . '%')
+                  ->orWhere('phone', 'like', '%' . $advancedSearch . '%')
+                  ->orWhere('mobile', 'like', '%' . $advancedSearch . '%');
+            });
+        }
+    
+        $clients = $query->paginate(25);
+    
         return view('client.contacts.contact_mang', compact('clients'));
     }
 

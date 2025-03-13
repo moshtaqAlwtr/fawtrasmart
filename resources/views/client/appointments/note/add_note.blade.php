@@ -21,6 +21,7 @@
                 </div>
             @endif
             <div class="card">
+             
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
@@ -57,9 +58,11 @@
                         <div class="form-group col-md-4">
                             <label for="time" class="form-label">اختار الاجراء </label>
                             <select class="form-control" id="action_type" name="action_type" required>
-                                <option value="">اختر نوع الإجراء</option>
+                                <option value="1">اختر نوع الإجراء</option>
                                 <option value="action_type" class="text-primary">+ تعديل قائمة الإجراءات</option>
                             </select>
+                            <input type="hidden" name="client_id" value="{{$id}}" >
+                         
 
                         </div>
 

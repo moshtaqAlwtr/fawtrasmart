@@ -325,7 +325,7 @@ class MembershipsController extends Controller
     {
         
         $MembershipsSetthing = MembershipsSetthing::find(1);
-        return   $membership = Memberships::find($id);
+           $membership = Memberships::find($id);
         
          $client     = Client::find($membership->client_id);
         return view('memberships.mang_memberships.show',compact('membership','client','MembershipsSetthing'));
