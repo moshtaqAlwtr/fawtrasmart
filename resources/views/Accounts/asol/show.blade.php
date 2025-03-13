@@ -107,7 +107,7 @@
                                         </a>
 
                                         <!-- إضافة ملاحظة/مرفق -->
-                                        <a href="{{ route('appointment.notes.create') }}"
+                                        <a href="{{ route('appointment.notes.create', ['id' => $asset->id]) }}"
                                             class="btn btn-sm d-inline-flex align-items-center"
                                             style="border: 2px solid #ffc107; color: #ffc107;">
                                             <i class="fas fa-paperclip me-1"></i> اضافة ملاحظة/مرفق

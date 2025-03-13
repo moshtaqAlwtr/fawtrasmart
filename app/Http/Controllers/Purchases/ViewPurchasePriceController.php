@@ -112,6 +112,7 @@ class ViewPurchasePriceController extends Controller
                 $nextNumber = $lastQuotation ? intval($lastQuotation->code) + 1 : 1; // اجلب الرقم الأخير وزد واحدًا
                 $request->merge(['code' => str_pad($nextNumber, 5, '0', STR_PAD_LEFT)]); // أضف الأصفار إلى اليسار
             }
+
             // التحقق من البيانات
             $rules = [
                 'supplier_id' => 'required|exists:suppliers,id',
@@ -156,6 +157,7 @@ class ViewPurchasePriceController extends Controller
 
             // معالجة عناصر الفاتورة في جدول invoice_items
             if ($request->has('items')) {
+                $invoiceItems = [];
                 foreach ($request->items as $item) {
                     $product = Product::find($item['product_id']);
                     $item_total = $item['quantity'] * $item['unit_price'];
@@ -164,7 +166,7 @@ class ViewPurchasePriceController extends Controller
                     $total_amount += $item_total;
                     $total_discount += $item_discount;
 
-                    InvoiceItem::create([
+                    $invoiceItems[] = [
                         'quotes_purchase_order_id' => $quotation->id,
                         'product_id' => $item['product_id'],
                         'item' => $product->name ?? 'المنتج ' . $item['product_id'],
@@ -174,8 +176,13 @@ class ViewPurchasePriceController extends Controller
                         'tax_1' => $item['tax_1'] ?? 0,
                         'tax_2' => $item['tax_2'] ?? 0,
                         'total' => $item_total - $item_discount,
-                    ]);
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
                 }
+
+                // إضافة البنود باستخدام insert لتحسين الأداء
+                InvoiceItem::insert($invoiceItems);
             }
 
             // تحديث المجموع النهائي والخصم

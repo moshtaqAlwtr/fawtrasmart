@@ -63,7 +63,7 @@
                                 <i class="fas fa-edit me-1"></i> تعديل
                             </a>
                         @endif
-                        <a href="{{ route('appointment.notes.create') }}"
+                        <a href="{{ route('appointment.notes.create', ['id' => $client->id]) }}"
                             class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
                             <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                         </a>
@@ -133,6 +133,7 @@
                             role="tab" aria-selected="false">
                             الملاحظات <span class="badge badge-pill badge-primary">{{ $notes->count() }}</span>
                         </a>
+</li>
                     <li class="nav-item">
                         <a class="nav-link" id="appointments-tab" data-toggle="tab" href="#appointments"
                             aria-controls="appointments" role="tab" aria-selected="false">

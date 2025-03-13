@@ -124,6 +124,10 @@ public function branch()
         return $this->deleted_at === null;
     }
 
+    public function notes()
+{
+    return $this->hasMany(AppointmentNote::class);
+}
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {

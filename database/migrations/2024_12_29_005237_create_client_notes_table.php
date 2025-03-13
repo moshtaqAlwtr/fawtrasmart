@@ -18,6 +18,7 @@ return new class extends Migration
 
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->foreignId('appointment_id')->constrained('appointments')->onDelete('cascade');
+            $table->string('action_type')->nullable();
 
             $table->boolean('share_with_client')->default(false);
             $table->date('date');

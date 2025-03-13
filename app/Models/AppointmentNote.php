@@ -16,6 +16,7 @@ class AppointmentNote extends Model
         'date',
         'time',
         'action_type',
+        'action_type',
         'notes',
         'attachments',
 

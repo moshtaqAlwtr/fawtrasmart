@@ -181,9 +181,20 @@ ModelsLog::create([
     {
         try {
             DB::beginTransaction();
+
             $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials');
 
             $employee = Employee::findOrFail($id);
+
+            // التحقق من البريد الإلكتروني فقط إذا كان مختلفًا عن البريد الإلكتروني الحالي
+            if ($request->email !== $employee->email) {
+                $existingEmployee = Employee::where('email', $request->email)->where('id', '!=', $id)->first();
+                if ($existingEmployee) {
+                    return redirect()
+                        ->route('employee.edit', $id)
+                        ->with(['error' => 'البريد الإلكتروني مستخدم بالفعل.']);
+                }
+            }
 
             if ($request->hasFile('employee_photo')) {
                 $employee->employee_photo = $this->UploadImage('assets/uploads/employee', $request->employee_photo);
@@ -198,6 +209,7 @@ ModelsLog::create([
             }
 
             $employee->update($employee_data);
+
 
             User::where('employee_id', $id)->update([
                 'name' => $employee->full_name,
@@ -215,16 +227,32 @@ ModelsLog::create([
     'created_by' => auth()->id(), // ID المستخدم الحالي
 ]);
 
+            // توليد كلمة مرور افتراضية
+            $password = bcrypt('default_password'); // يمكنك تغيير "default_password" إلى أي قيمة تريدها
+
+            // تحديث أو إنشاء مستخدم
+            User::updateOrCreate(
+                ['employee_id' => $id], // الشروط للبحث
+                [
+                    'name' => $employee->full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone_number,
+                    'branch_id' => $request->branch_id,
+                    'role' => 'employee',
+                    'password' => $password, // إضافة كلمة المرور
+                ]
+            );
+
 
             DB::commit();
             return redirect()
                 ->route('employee.show', $id)
-                ->with(['success' => 'تم تحديث الموظف بنجاج !!']);
+                ->with(['success' => 'تم تحديث الموظف بنجاح !!']);
         } catch (\Exception $exception) {
             DB::rollback();
             return redirect()
                 ->route('employee.index')
-                ->with(['error' => $exception]);
+                ->with(['error' => $exception->getMessage()]);
         }
     }
 
@@ -275,7 +303,7 @@ ModelsLog::create([
 
     public function login_to($id)
     {
-        if (!Auth::user()->role === 'manager') {
+        if (!Auth::user()->role === 'employee') {
             abort(403, 'غير مسموح لك.');
         }
 

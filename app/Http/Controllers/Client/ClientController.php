@@ -18,6 +18,7 @@ use App\Models\CategoriesClient;
 use App\Models\Installment;
 use App\Models\Memberships;
 use App\Models\Package;
+use App\Models\SerialSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,90 +28,88 @@ use Maatwebsite\Excel\Facades\Excel;
 class ClientController extends Controller
 {
     public function index(Request $request)
-{
-    // الحصول على المستخدم الحالي
-    $user = auth()->user();
+    {
+        // الحصول على المستخدم الحالي
+        $user = auth()->user();
 
-    // بدء بناء الاستعلام
-    $query = Client::query();
+        // بدء بناء الاستعلام
+        $query = Client::query();
 
-    // التحقق مما إذا كان للمستخدم فرع أم لا
-    if ($user->branch) {
-        $branch = $user->branch;
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
 
-        // التحقق من صلاحية "مشاركة بيانات العملاء"
-        $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+            // التحقق من صلاحية "مشاركة بيانات العملاء"
+            $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
 
-        // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
-        if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
-            $query->whereHas('employee', function ($query) use ($branch) {
-                $query->where('branch_id', $branch->id);
+            // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
+            if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
+                $query->whereHas('employee', function ($query) use ($branch) {
+                    $query->where('branch_id', $branch->id);
+                });
+            }
+        }
+
+        // تطبيق شروط البحث بناءً على الحقول المحددة
+        if ($request->has('client') && $request->client != '') {
+            $query->where('id', $request->client);
+        }
+
+        if ($request->has('name') && $request->name != '') {
+            $query->where('trade_name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('classifications') && $request->classifications != '') {
+            $query->where('category', $request->classifications);
+        }
+
+        if ($request->has('end_date_to') && $request->end_date_to != '') {
+            $query->whereDate('created_at', '<=', $request->end_date_to);
+        }
+
+        if ($request->has('address') && $request->address != '') {
+            $query->where('street1', 'like', '%' . $request->address . '%')->orWhere('street2', 'like', '%' . $request->address . '%');
+        }
+
+        if ($request->has('postal_code') && $request->postal_code != '') {
+            $query->where('postal_code', $request->postal_code);
+        }
+
+        if ($request->has('country') && $request->country != '') {
+            $query->where('country', $request->country);
+        }
+
+        if ($request->has('tage') && $request->tage != '') {
+            $query->where('tags', 'like', '%' . $request->tage . '%');
+        }
+
+        if ($request->has('user') && $request->user != '') {
+            $query->where('employee_id', $request->user);
+        }
+
+        if ($request->has('type') && $request->type != '') {
+            $query->where('client_type', $request->type);
+        }
+
+        if ($request->has('full_name') && $request->full_name != '') {
+            $query->whereHas('employee', function ($query) use ($request) {
+                $query->where('id', $request->full_name);
             });
         }
+
+        // تنفيذ الاستعلام مع التقسيم (Pagination)
+        $clients = $query->with('employee')->orderBy('created_at', 'desc')->paginate(25);
+
+        // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
+        $users = User::all();
+        $employees = Employee::all();
+
+        return view('client.index', compact('clients', 'users', 'employees'));
     }
-
-    // تطبيق شروط البحث بناءً على الحقول المحددة
-    if ($request->has('client') && $request->client != '') {
-        $query->where('id', $request->client);
-    }
-
-    if ($request->has('name') && $request->name != '') {
-        $query->where('trade_name', 'like', '%' . $request->name . '%');
-    }
-
-    if ($request->has('status') && $request->status != '') {
-        $query->where('status', $request->status);
-    }
-
-    if ($request->has('classifications') && $request->classifications != '') {
-        $query->where('category', $request->classifications);
-    }
-
-    if ($request->has('end_date_to') && $request->end_date_to != '') {
-        $query->whereDate('created_at', '<=', $request->end_date_to);
-    }
-
-    if ($request->has('address') && $request->address != '') {
-        $query->where('street1', 'like', '%' . $request->address . '%')
-              ->orWhere('street2', 'like', '%' . $request->address . '%');
-    }
-
-    if ($request->has('postal_code') && $request->postal_code != '') {
-        $query->where('postal_code', $request->postal_code);
-    }
-
-    if ($request->has('country') && $request->country != '') {
-        $query->where('country', $request->country);
-    }
-
-    if ($request->has('tage') && $request->tage != '') {
-        $query->where('tags', 'like', '%' . $request->tage . '%');
-    }
-
-    if ($request->has('user') && $request->user != '') {
-        $query->where('employee_id', $request->user);
-    }
-
-    if ($request->has('type') && $request->type != '') {
-        $query->where('client_type', $request->type);
-    }
-
-    if ($request->has('full_name') && $request->full_name != '') {
-        $query->whereHas('employee', function ($query) use ($request) {
-            $query->where('id', $request->full_name);
-        });
-    }
-
-    // تنفيذ الاستعلام والحصول على النتائج
-    $clients = $query->with('employee')->orderBy('created_at', 'desc')->get();
-
-    // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
-    $users = User::all();
-    $employees = Employee::all();
-
-    return view('client.index', compact('clients', 'users', 'employees'));
-}
-
     public function create()
     {
         $employees = Employee::all();
@@ -129,10 +128,19 @@ class ClientController extends Controller
         // إنشاء العميل
         $client = new Client();
 
-        // إضافة الكود تلقائيًا
-        $lastClient = Client::orderBy('code', 'desc')->first();
-        $client->code = $lastClient ? $lastClient->code + 1 : 1;
+        // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
+        $serialSetting = SerialSetting::where('section', 'customer')->first();
 
+        // إذا لم يتم العثور على إعدادات، نستخدم 1 كقيمة افتراضية
+        $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
+
+        // تعيين id للعميل الجديد باستخدام الرقم الحالي
+        $client->id = $currentNumber;
+
+        // تعيين الكود للعميل الجديد (إذا كان الكود مطلوبًا أيضًا)
+        $client->code = $currentNumber;
+
+        // تعبئة البيانات الأخرى
         $client->fill($data_request);
 
         // معالجة الصورة
@@ -156,6 +164,11 @@ class ClientController extends Controller
                 'description' => 'تم اضافة  عميل **' . $client->trade_name. '**',
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
+
+        // زيادة الرقم الحالي بمقدار 1
+        if ($serialSetting) {
+            $serialSetting->update(['current_number' => $currentNumber + 1]);
+        }
 
         // إنشاء حساب فرعي باستخدام trade_name
         $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
@@ -184,13 +197,11 @@ class ClientController extends Controller
 
         return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
-
     public function testcient()
     {
+        $clients = Client::all();
 
-        $clients =  Client::all();
-
-        foreach($clients as $client){
+        foreach ($clients as $client) {
             $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
             if ($customers) {
                 $customerAccount = new Account();
@@ -208,8 +219,6 @@ class ClientController extends Controller
                 $customerAccount->save();
             }
         }
-
-
     }
     // إضافة هذه الدالة في نفس وحدة التحكم
     private function generateNextCode(string $lastChildCode): string
@@ -332,7 +341,7 @@ class ClientController extends Controller
         $employees = Employee::all();
         $account = Account::all();
 
-        // تحميل العميل مع الفواتير والمدفوعات المرتبطة بها
+        // تحميل العميل مع الفواتير والمدفوعات والملاحظات المرتبطة بها
         $client = Client::with([
             'invoices' => function ($query) {
                 $query->orderBy('invoice_date', 'desc');
@@ -346,7 +355,12 @@ class ClientController extends Controller
             'payments' => function ($query) {
                 $query->orderBy('payment_date', 'desc'); // تحميل جميع المدفوعات المرتبطة بالعميل
             },
+            'appointmentNotes' => function ($query) { // تحميل الملاحظات المرتبطة بالعميل
+                $query->orderBy('created_at', 'desc');
+            },
         ])->findOrFail($id);
+
+        // تحقق من بيانات العميل مع العلاقات
 
         $bookings = Booking::where('client_id', $id)->get();
         $packages = Package::all();
@@ -358,7 +372,13 @@ class ClientController extends Controller
         // تحميل جميع المدفوعات المرتبطة بالعميل
         $payments = $client->payments;
 
-        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments'));
+        // تحميل الملاحظات المرتبطة بالعميل
+        $appointmentNotes = $client->appointmentNotes;
+
+        // تحقق من الملاحظات
+
+
+        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
     public function contact()
     {

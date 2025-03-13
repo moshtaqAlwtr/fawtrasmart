@@ -19,38 +19,38 @@
                 <form action="{{ route('appointments.store') }}" method="POST" id="appointment-form">
                     @csrf
                     @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
-
-                        <div>
-                            <a href="{{ route('appointments.index') }}" class="btn btn-outline-danger">
-                                <i class="fa fa-ban"></i>الغاء
-                            </a>
-                            <button type="submit" class="btn btn-outline-primary">
-                                <i class="fa fa-save"></i>حفظ
-                            </button>
+                    @endif
+                    @if (session('error'))
+                        <div class="alert alert-danger">
+                            {{ session('error') }}
                         </div>
+                    @endif
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <div>
+                                    <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                                </div>
 
+                                <div>
+                                    <a href="{{ route('appointments.index') }}" class="btn btn-outline-danger">
+                                        <i class="fa fa-ban"></i>الغاء
+                                    </a>
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="fa fa-save"></i>حفظ
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
                     <div class="card">
                         <div class="card-body">
 
@@ -60,7 +60,7 @@
                                         <label for="client_id">العميل</label>
                                         <select class="form-control" id="client_id" name="client_id" required>
                                             <option value="">اختر العميل</option>
-                                            @foreach($clients as $client)
+                                            @foreach ($clients as $client)
                                                 <option value="{{ $client->id }}">{{ $client->trade_name }}</option>
                                             @endforeach
                                         </select>
@@ -71,7 +71,8 @@
                                     <div class="form-group">
                                         <label for="date">Date</label>
                                         <input type="date" class="form-control datepicker" id="date" name="date"
-                                            value="{{ old('date') ? \Carbon\Carbon::parse(old('date'))->format('Y-m-d') : date('Y-m-d') }}" required>
+                                            value="{{ old('date') ? \Carbon\Carbon::parse(old('date'))->format('Y-m-d') : date('Y-m-d') }}"
+                                            required>
                                     </div>
                                 </div>
 
@@ -109,12 +110,14 @@
                             </div>
 
                             <!-- Modal -->
-                            <div class="modal fade" id="proceduresModal" tabindex="-1" aria-labelledby="proceduresModalLabel" aria-hidden="true">
+                            <div class="modal fade" id="proceduresModal" tabindex="-1"
+                                aria-labelledby="proceduresModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="proceduresModalLabel">تعديل قائمة الإجراءات</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
                                             <div id="procedures-list">
@@ -122,7 +125,8 @@
                                             </div>
                                             <div class="mt-3">
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control" id="newProcedureName" placeholder="اسم الإجراء الجديد">
+                                                    <input type="text" class="form-control" id="newProcedureName"
+                                                        placeholder="اسم الإجراء الجديد">
                                                     <button class="btn btn-primary" type="button" id="addProcedureBtn">
                                                         <i class="fas fa-plus"></i> إضافة
                                                     </button>
@@ -130,7 +134,8 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">إلغاء</button>
                                             <button type="button" class="btn btn-success" id="saveProcedures">حفظ</button>
                                         </div>
                                     </div>
@@ -149,16 +154,16 @@
                     </div>
 
 
-                        <div class="card">
-                            <div class="card mb-2">
-                                <div class="card-body py-2">
-                                    <div class="custom-control custom-checkbox">
-                                        <input type="checkbox" class="custom-control-input" id="share_with_client"
-                                            name="share_with_client">
-                                        <label class="custom-control-label" for="share_with_client">مشاركة مع
-                                            العميل</label>
-                                    </div>
+                    <div class="card">
+                        <div class="card mb-2">
+                            <div class="card-body py-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="share_with_client"
+                                        name="share_with_client">
+                                    <label class="custom-control-label" for="share_with_client">مشاركة مع
+                                        العميل</label>
                                 </div>
+                            </div>
 
                         </div>
                     </div>
@@ -166,13 +171,13 @@
 
 
 
-                </div>
+                    </div>
                     <div class="card">
                         <div class="card mb-2">
                             <div class="card-body py-2">
                                 <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input" id="recurring"
-                                        name="recurring" onchange="toggleRecurringFields(this)">
+                                    <input type="checkbox" class="custom-control-input" id="recurring" name="recurring"
+                                        onchange="toggleRecurringFields(this)">
                                     <label class="custom-control-label" for="recurring">متكرر</label>
                                 </div>
 
@@ -182,22 +187,28 @@
                                             <div class="form-group">
                                                 <label for="recurrence_type">التكرار</label>
                                                 <select class="form-control" id="recurrence_type" name="recurrence_type">
-                                                    <option value="1" {{ old('recurrence_type') == 1 ? 'selected' : '' }}>
+                                                    <option value="1"
+                                                        {{ old('recurrence_type') == 1 ? 'selected' : '' }}>
                                                         أسبوعي
                                                     </option>
-                                                    <option value="2" {{ old('recurrence_type') == 2 ? 'selected' : '' }}>
+                                                    <option value="2"
+                                                        {{ old('recurrence_type') == 2 ? 'selected' : '' }}>
                                                         كل أسبوعين
                                                     </option>
-                                                    <option value="3" {{ old('recurrence_type') == 3 ? 'selected' : '' }}>
+                                                    <option value="3"
+                                                        {{ old('recurrence_type') == 3 ? 'selected' : '' }}>
                                                         شهري
                                                     </option>
-                                                    <option value="4" {{ old('recurrence_type') == 4 ? 'selected' : '' }}>
+                                                    <option value="4"
+                                                        {{ old('recurrence_type') == 4 ? 'selected' : '' }}>
                                                         كل شهرين
                                                     </option>
-                                                    <option value="5" {{ old('recurrence_type') == 5 ? 'selected' : '' }}>
+                                                    <option value="5"
+                                                        {{ old('recurrence_type') == 5 ? 'selected' : '' }}>
                                                         سنوي
                                                     </option>
-                                                    <option value="6" {{ old('recurrence_type') == 6 ? 'selected' : '' }}>
+                                                    <option value="6"
+                                                        {{ old('recurrence_type') == 6 ? 'selected' : '' }}>
                                                         كل سنتين
                                                     </option>
                                                 </select>
@@ -206,7 +217,9 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="recurrence_date">تاريخ نهاية التكرار</label>
-                                                <input type="date" class="form-control" id="recurrence_date" name="recurrence_date" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                                                <input type="date" class="form-control" id="recurrence_date"
+                                                    name="recurrence_date"
+                                                    min="{{ date('Y-m-d', strtotime('+1 day')) }}">
                                             </div>
                                         </div>
                                     </div>
@@ -217,7 +230,8 @@
                     <div class="card mb-3">
                         <div class="card-body">
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" id="assign_employee" name="assign_employee" onchange="toggleStaffFields(this)">
+                                <input class="form-check-input" type="checkbox" id="assign_employee"
+                                    name="assign_employee" onchange="toggleStaffFields(this)">
                                 <label class="form-check-label" for="assign_employee">
                                     تعيين موظف
                                 </label>
@@ -228,176 +242,177 @@
                                     <label for="employee_id">اختر الموظف</label>
                                     <select class="form-control" id="employee_id" name="employee_id">
                                         <option value="">اختر الموظف</option>
-                                        @foreach($employees as $employee)
-                                            <option value="{{ $employee->employee_id }}">{{ $employee->first_name }}</option>
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->employee_id }}">{{ $employee->first_name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-
             </div>
 
-            </form>
+
         </div>
+
+        </form>
+    </div>
     </div>
     </div>
 @endsection
 
 @section('scripts')
-@parent
-<script>
-$(document).ready(function() {
-    // تحميل الإجراءات من localStorage أو استخدام القائمة الافتراضية
-    let procedures = JSON.parse(localStorage.getItem('procedures')) || [
-        'متابعة',
-        'تدقيق',
-        'مراجعة',
-        'اجتماع',
-        'زيارة',
-        'ملاحظة'
-    ];
+    @parent
+    <script>
+        $(document).ready(function() {
+            // تحميل الإجراءات من localStorage أو استخدام القائمة الافتراضية
+            let procedures = JSON.parse(localStorage.getItem('procedures')) || [
+                'متابعة',
+                'تدقيق',
+                'مراجعة',
+                'اجتماع',
+                'زيارة',
+                'ملاحظة'
+            ];
 
-    // تحديث localStorage
-    function saveProcedures() {
-        localStorage.setItem('procedures', JSON.stringify(procedures));
-    }
+            // تحديث localStorage
+            function saveProcedures() {
+                localStorage.setItem('procedures', JSON.stringify(procedures));
+            }
 
-    // تحديث القائمة المنسدلة عند تحميل الصفحة
-    updateSelectOptions();
-
-    // إضافة إجراء جديد
-    $('#addProcedureBtn').on('click', function() {
-        const name = $('#newProcedureName').val().trim();
-        if (name && procedures.length < 6) {
-            procedures.push(name);
-            updateProceduresList();
+            // تحديث القائمة المنسدلة عند تحميل الصفحة
             updateSelectOptions();
-            saveProcedures();
-            $('#newProcedureName').val('');
-        } else if (procedures.length >= 6) {
-            alert('لا يمكن إضافة أكثر من 6 إجراءات');
-        }
-    });
 
-    // تحديث قائمة الإجراءات في المودال
-    function updateProceduresList() {
-        let listHtml = '';
-        procedures.forEach((proc, index) => {
-            listHtml += `
+            // إضافة إجراء جديد
+            $('#addProcedureBtn').on('click', function() {
+                const name = $('#newProcedureName').val().trim();
+                if (name && procedures.length < 6) {
+                    procedures.push(name);
+                    updateProceduresList();
+                    updateSelectOptions();
+                    saveProcedures();
+                    $('#newProcedureName').val('');
+                } else if (procedures.length >= 6) {
+                    alert('لا يمكن إضافة أكثر من 6 إجراءات');
+                }
+            });
+
+            // تحديث قائمة الإجراءات في المودال
+            function updateProceduresList() {
+                let listHtml = '';
+                procedures.forEach((proc, index) => {
+                    listHtml += `
                 <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
                     <span>${proc}</span>
                     <button class="btn btn-sm btn-outline-danger delete-procedure" data-index="${index}">
                         <i class="fas fa-trash"></i> حذف
                     </button>
                 </div>`;
-        });
-        $('#procedures-list').html(listHtml);
-    }
+                });
+                $('#procedures-list').html(listHtml);
+            }
 
-    // عند فتح المودال
-    $('#proceduresModal').on('show.bs.modal', function() {
-        updateProceduresList();
-    });
-
-    // حذف إجراء
-    $(document).on('click', '.delete-procedure', function() {
-        const index = $(this).data('index');
-        procedures.splice(index, 1);
-        updateProceduresList();
-        updateSelectOptions();
-        saveProcedures();
-    });
-
-    // تحديث خيارات القائمة المنسدلة
-    function updateSelectOptions() {
-        let selectHtml = '<option value="">اختر نوع الإجراء</option>';
-        procedures.forEach(proc => {
-            selectHtml += `<option value="${proc}">${proc}</option>`;
-        });
-        selectHtml += '<option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>';
-        $('#action_type').html(selectHtml);
-    }
-
-    // حفظ التغييرات
-    $('#saveProcedures').on('click', function() {
-        $('#proceduresModal').modal('hide');
-    });
-
-    // السماح بالإضافة عند الضغط على Enter
-    $('#newProcedureName').on('keypress', function(e) {
-        if (e.which === 13) {
-            e.preventDefault();
-            $('#addProcedureBtn').click();
-        }
-    });
-
-    // عند اختيار "تعديل قائمة الإجراءات" من القائمة المنسدلة
-    $('#action_type').on('change', function() {
-        if ($(this).val() === 'add_new') {
-            $('#proceduresModal').modal('show');
-            $(this).val(''); // إعادة تحديد القيمة إلى فارغة
-        }
-    });
-
-    // التعامل مع خيار التكرار
-    $('#is_recurring').change(function() {
-        if ($(this).is(':checked')) {
-            $('#recurring_options').slideDown();
-        } else {
-            $('#recurring_options').slideUp();
-        }
-    });
-
-    // التعامل مع خيار تعيين موظف
-    $('#assign_employee').change(function() {
-        if ($(this).is(':checked')) {
-            $('#employee_options').slideDown();
-        } else {
-            $('#employee_options').slideUp();
-        }
-    });
-
-    // تحميل قائمة الموظفين
-    function loadEmployees() {
-        $.get('/employees/list', function(data) {
-            let options = '<option value="">اختر الموظف</option>';
-            data.forEach(function(employee) {
-                options += `<option value="${employee.id}">${employee.name}</option>`;
+            // عند فتح المودال
+            $('#proceduresModal').on('show.bs.modal', function() {
+                updateProceduresList();
             });
-            $('#employee_id').html(options);
+
+            // حذف إجراء
+            $(document).on('click', '.delete-procedure', function() {
+                const index = $(this).data('index');
+                procedures.splice(index, 1);
+                updateProceduresList();
+                updateSelectOptions();
+                saveProcedures();
+            });
+
+            // تحديث خيارات القائمة المنسدلة
+            function updateSelectOptions() {
+                let selectHtml = '<option value="">اختر نوع الإجراء</option>';
+                procedures.forEach(proc => {
+                    selectHtml += `<option value="${proc}">${proc}</option>`;
+                });
+                selectHtml += '<option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>';
+                $('#action_type').html(selectHtml);
+            }
+
+            // حفظ التغييرات
+            $('#saveProcedures').on('click', function() {
+                $('#proceduresModal').modal('hide');
+            });
+
+            // السماح بالإضافة عند الضغط على Enter
+            $('#newProcedureName').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#addProcedureBtn').click();
+                }
+            });
+
+            // عند اختيار "تعديل قائمة الإجراءات" من القائمة المنسدلة
+            $('#action_type').on('change', function() {
+                if ($(this).val() === 'add_new') {
+                    $('#proceduresModal').modal('show');
+                    $(this).val(''); // إعادة تحديد القيمة إلى فارغة
+                }
+            });
+
+            // التعامل مع خيار التكرار
+            $('#is_recurring').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#recurring_options').slideDown();
+                } else {
+                    $('#recurring_options').slideUp();
+                }
+            });
+
+            // التعامل مع خيار تعيين موظف
+            $('#assign_employee').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#employee_options').slideDown();
+                } else {
+                    $('#employee_options').slideUp();
+                }
+            });
+
+            // تحميل قائمة الموظفين
+            function loadEmployees() {
+                $.get('/employees/list', function(data) {
+                    let options = '<option value="">اختر الموظف</option>';
+                    data.forEach(function(employee) {
+                        options += `<option value="${employee.id}">${employee.name}</option>`;
+                    });
+                    $('#employee_id').html(options);
+                });
+            }
+
+            // تحميل الموظفين عند تفعيل خيار تعيين موظف
+            $('#assign_employee').change(function() {
+                if ($(this).is(':checked')) {
+                    loadEmployees();
+                }
+            });
         });
-    }
 
-    // تحميل الموظفين عند تفعيل خيار تعيين موظف
-    $('#assign_employee').change(function() {
-        if ($(this).is(':checked')) {
-            loadEmployees();
+        // دالة إظهار/إخفاء حقول التكرار
+        function toggleRecurringFields(checkbox) {
+            const recurringFields = document.getElementById('recurring-fields');
+            if (checkbox.checked) {
+                recurringFields.style.display = 'block';
+            } else {
+                recurringFields.style.display = 'none';
+            }
         }
-    });
-});
 
-// دالة إظهار/إخفاء حقول التكرار
-function toggleRecurringFields(checkbox) {
-    const recurringFields = document.getElementById('recurring-fields');
-    if (checkbox.checked) {
-        recurringFields.style.display = 'block';
-    } else {
-        recurringFields.style.display = 'none';
-    }
-}
-
-// دالة إظهار/إخفاء حقول الموظفين
-function toggleStaffFields(checkbox) {
-    const staffFields = document.getElementById('staff-fields');
-    if (checkbox.checked) {
-        staffFields.style.display = 'block';
-    } else {
-        staffFields.style.display = 'none';
-    }
-}
-</script>
+        // دالة إظهار/إخفاء حقول الموظفين
+        function toggleStaffFields(checkbox) {
+            const staffFields = document.getElementById('staff-fields');
+            if (checkbox.checked) {
+                staffFields.style.display = 'block';
+            } else {
+                staffFields.style.display = 'none';
+            }
+        }
+    </script>
 @endsection

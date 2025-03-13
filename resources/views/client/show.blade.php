@@ -3,7 +3,46 @@
 @section('title')
     العملاء
 @stop
+@section('css')
 
+    <style>
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .timeline-date {
+            position: absolute;
+            left: -30px;
+            top: 0;
+        }
+
+        .timeline-content {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .note-box {
+            width: 100%;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
+@endsection
 @section('content')
     @if (session('toast_message'))
         <script>
@@ -91,7 +130,7 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoices->first()->due_value??0 }}</strong> <span
+                            <strong class="text-dark">{{ $invoices->first()->due_value ?? 0 }}</strong> <span
                                 class="text-muted">SAR</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
@@ -195,10 +234,13 @@
                             class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
                             <i class="far fa-calendar-alt me-1"></i> ترتيب موعد
                         </a>
-                        <a href="{{ route('appointment.notes.create') }}"
-                            class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
-                            <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
+
+                        <a href="{{ route('appointment.notes.create', $client->id) }}"
+                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
+                            <i class="far fa-calendar-alt me-1"></i> اضافة ملاحضة/مرفق
                         </a>
+
+
                         <a href="{{ route('clients.edit', $client->id) }}"
                             class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
                             <i class="fas fa-edit me-1"></i> تعديل
@@ -237,7 +279,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{route('clients.destroy', $client->id)}}">
+                                    <a class="dropdown-item d-flex align-items-center"
+                                        href="{{ route('clients.destroy', $client->id) }}">
                                         <i class="fas fa-trash-alt me-2"></i> <!-- أيقونة الحذف -->
                                         حذف عميل
                                     </a>
@@ -273,17 +316,24 @@
                                 class="badge badge-pill badge-primary">{{ $client->appointments()->count() }}</span>
                         </a>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" id="invoices-tab" data-toggle="tab" href="#invoices"
                             aria-controls="invoices" role="tab" aria-selected="false">
                             الفواتير <span class="badge badge-pill badge-primary">{{ $client->invoices->count() }}</span>
                         </a>
                     </li>
+                    @if ($client->notes && $client->notes->count() > 0)
+    <li class="nav-item">
+        <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" aria-controls="notes" role="tab" aria-selected="false">
+            الملاحظات <span class="badge badge-pill badge-primary">{{ $client->appointmentNotes->count() }}</span>
+        </a>
+    </li>
+@endif
                     <li class="nav-item">
                         <a class="nav-link" id="payments-tab" data-toggle="tab" href="#payments"
                             aria-controls="invoices" role="tab" aria-selected="false">
-                            المدفوعات <span
-                                class="badge badge-pill badge-primary">{{ $client->payments->count() }}</span>
+                            المدفوعات <span class="badge badge-pill badge-primary">{{ $client->payments->count() }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -632,10 +682,10 @@
                                     @foreach ($invoices as $invoice)
                                         <tr class="align-middle invoice-row"
                                             onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
-                                            style="cursor: pointer;" data-status="{{ $invoice->payment_status ?? "-" }}">
+                                            style="cursor: pointer;" data-status="{{ $invoice->payment_status ?? '-' }}">
                                             <!-- أضفنا سمة data-status -->
                                             <td class="text-center border-start">
-                                                <span class="invoice-number">#{{ $invoice->id ?? "-" }}</span>
+                                                <span class="invoice-number">#{{ $invoice->id ?? '-' }}</span>
                                             </td>
                                             <td>
                                                 <div class="client-info">
@@ -705,7 +755,8 @@
                                                     @if ($invoice->due_value > 0)
                                                         <div class="due-amount">
                                                             <small class="text-danger">
-                                                                المبلغ المستحق: {{ number_format($invoice->due_value?? '', 2) }}
+                                                                المبلغ المستحق:
+                                                                {{ number_format($invoice->due_value ?? '', 2) }}
                                                                 {{ $account_setting->currency ?? 'SAR' }}
                                                             </small>
                                                         </div>
@@ -789,6 +840,39 @@
                         </div>
 
                     </div>
+
+                    <!-- payments -->
+                    @if ($client->appointmentNotes && $client->appointmentNotes->count() > 0)
+                    <div class="tab-pane" id="notes" aria-labelledby="notes-tab" role="tabpanel">
+                        <div class="timeline">
+                            @foreach ($client->appointmentNotes as $note)
+                                <div class="timeline-item">
+                                    <div class="timeline-content d-flex align-items-start">
+                                        <div class="status-badge bg-danger text-white p-2 rounded">متابعة</div>
+                                        <div class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0"><i class="fas fa-user"></i>
+                                                    {{ $note->created_by }}</h6>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock"></i>
+                                                    {{ $note->created_at->format('H:i d/m/Y') }} - <span
+                                                        class="text-primary">{{ $note->status }}</span>
+                                                </small>
+                                            </div>
+                                            <hr>
+                                            <p class="mb-2">{{ $note->content }}</p>
+                                            <small class="text-muted">ID العميل: {{ $client->id }}</small>
+                                        </div>
+                                        <div class="timeline-dot bg-danger"></div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-info">لا توجد ملاحظات متاحة.</div>
+                @endif
+                    <!-- التبويبات الأخرى -->
                     <div class="tab-pane" id="payments" aria-labelledby="payments-tab" role="tabpanel">
                         <div class="card-body">
                             @foreach ($payments as $payment)
@@ -892,6 +976,7 @@
                             @endforeach
                         </div>
                     </div>
+
                     <!-- تبويب حركة الحساب -->
                     <div class="tab-pane" id="account-movement" aria-labelledby="account-movement-tab" role="tabpanel">
                         <div class="mb-3">

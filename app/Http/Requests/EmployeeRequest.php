@@ -45,7 +45,7 @@ class EmployeeRequest extends FormRequest
             // معلومات تواصل
             'mobile_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:8|max:15',
             'phone_number' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:8|max:15',
-            'personal_email' => 'nullable|email|unique:employees,personal_email',
+            // 'personal_email' => 'nullable|email|unique:employees,personal_email',
 
             // العنوان الحالي
             'current_address_1' => 'nullable|string|max:255',
@@ -84,8 +84,8 @@ class EmployeeRequest extends FormRequest
             'custom_financial_day.between' => 'اليوم المالي يجب أن يكون بين 1 و 31.',
             'employee_photo.image' => 'يجب أن يكون الملف صورة من نوع JPEG أو PNG أو JPG.',
             'employee_photo.max' => 'حجم الصورة يجب ألا يتجاوز 2 ميجابايت.',
-            'personal_email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
-            'personal_email.email' => 'يجب أن يكون البريد الإلكتروني صالحًا.',
+            // 'personal_email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
+            // 'personal_email.email' => 'يجب أن يكون البريد الإلكتروني صالحًا.',
         ];
     }
 }

@@ -57,21 +57,19 @@ class InvoicesController extends Controller
         // بدء بناء الاستعلام
         $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])->orderBy('created_at', 'desc');
 
-        // البحث حسب النوع (عميل، موظف، منتج)
+        // 1. البحث حسب العميل
         if ($request->has('client_id') && $request->client_id) {
             $invoices->where('client_id', $request->client_id);
         }
 
-        // 1. البحث حسب التاريخ
-
         // 2. البحث حسب رقم الفاتورة
         if ($request->has('invoice_number') && $request->invoice_number) {
-            $invoices->where('id', 'like', '%' . $request->invoice_number . '%');
+            $invoices->where('id', $request->invoice_number);
         }
 
         // 3. البحث حسب حالة الفاتورة
-        if ($request->has('payment_status') && $request->payment_status) {
-            $invoices->where('payment_status', $request->payment_status);
+        if ($request->has('status') && $request->status) {
+            $invoices->where('payment_status', $request->status);
         }
 
         // 4. البحث حسب البند
@@ -101,72 +99,7 @@ class InvoicesController extends Controller
             $invoices->where('payment_status', $request->payment_status);
         }
 
-        // 9. البحث حسب التاريخ (من)
-        if ($request->has('from_date') && $request->from_date) {
-            $invoices->whereDate('created_at', '>=', $request->from_date);
-        }
-
-        // 10. البحث حسب التاريخ (إلى)
-        if ($request->has('to_date') && $request->to_date) {
-            $invoices->whereDate('created_at', '<=', $request->to_date);
-        }
-
-        // 11. البحث حسب تاريخ الاستحقاق (من)
-        if ($request->has('due_date_from') && $request->due_date_from) {
-            $invoices->whereDate('due_date', '>=', $request->due_date_from);
-        }
-
-        // 12. البحث حسب تاريخ الاستحقاق (إلى)
-        if ($request->has('due_date_to') && $request->due_date_to) {
-            $invoices->whereDate('due_date', '<=', $request->due_date_to);
-        }
-
-        // 13. البحث حسب المصدر
-        if ($request->has('source') && $request->source) {
-            $invoices->where('source', $request->source);
-        }
-
-        // 14. البحث حسب الحقل المخصص
-        if ($request->has('custom_field') && $request->custom_field) {
-            $invoices->where('custom_field', 'like', '%' . $request->custom_field . '%');
-        }
-
-        // 15. البحث حسب تاريخ الإنشاء (من)
-        if ($request->has('created_at_from') && $request->created_at_from) {
-            $invoices->whereDate('created_at', '>=', $request->created_at_from);
-        }
-
-        // 16. البحث حسب تاريخ الإنشاء (إلى)
-        if ($request->has('created_at_to') && $request->created_at_to) {
-            $invoices->whereDate('created_at', '<=', $request->created_at_to);
-        }
-
-        // 17. البحث حسب حالة التسليم
-        if ($request->has('delivery_status') && $request->delivery_status) {
-            $invoices->where('delivery_status', $request->delivery_status);
-        }
-
-        // 18. البحث حسب "أضيفت بواسطة"
-        if ($request->has('added_by') && $request->added_by) {
-            $invoices->where('created_by', $request->added_by);
-        }
-
-        // 19. البحث حسب مسؤول المبيعات
-        if ($request->has('sales_person') && $request->sales_person) {
-            $invoices->where('sales_person_id', $request->sales_person);
-        }
-
-        // 20. البحث حسب خيارات الشحن
-        if ($request->has('shipping_option') && $request->shipping_option) {
-            $invoices->where('shipping_option', $request->shipping_option);
-        }
-
-        // 21. البحث حسب مصدر الطلب
-        if ($request->has('order_source') && $request->order_source) {
-            $invoices->where('order_source', $request->order_source);
-        }
-
-        // 22. البحث حسب التخصيص (شهريًا، أسبوعيًا، يوميًا)
+        // 9. البحث حسب التخصيص (شهريًا، أسبوعيًا، يوميًا)
         if ($request->has('custom_period') && $request->custom_period) {
             if ($request->custom_period == 'monthly') {
                 $invoices->whereMonth('created_at', now()->month);
@@ -177,23 +110,78 @@ class InvoicesController extends Controller
             }
         }
 
-        // 23. البحث حسب حالة التسليم
+        // 10. البحث حسب التاريخ (من)
+        if ($request->has('from_date') && $request->from_date) {
+            $invoices->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        // 11. البحث حسب التاريخ (إلى)
+        if ($request->has('to_date') && $request->to_date) {
+            $invoices->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        // 12. البحث حسب تاريخ الاستحقاق (من)
+        if ($request->has('due_date_from') && $request->due_date_from) {
+            $invoices->whereDate('due_date', '>=', $request->due_date_from);
+        }
+
+        // 13. البحث حسب تاريخ الاستحقاق (إلى)
+        if ($request->has('due_date_to') && $request->due_date_to) {
+            $invoices->whereDate('due_date', '<=', $request->due_date_to);
+        }
+
+        // 14. البحث حسب المصدر
+        if ($request->has('source') && $request->source) {
+            $invoices->where('source', $request->source);
+        }
+
+        // 15. البحث حسب الحقل المخصص
+        if ($request->has('custom_field') && $request->custom_field) {
+            $invoices->where('custom_field', 'like', '%' . $request->custom_field . '%');
+        }
+
+        // 16. البحث حسب تاريخ الإنشاء (من)
+        if ($request->has('created_at_from') && $request->created_at_from) {
+            $invoices->whereDate('created_at', '>=', $request->created_at_from);
+        }
+
+        // 17. البحث حسب تاريخ الإنشاء (إلى)
+        if ($request->has('created_at_to') && $request->created_at_to) {
+            $invoices->whereDate('created_at', '<=', $request->created_at_to);
+        }
+
+        // 18. البحث حسب حالة التسليم
         if ($request->has('delivery_status') && $request->delivery_status) {
             $invoices->where('delivery_status', $request->delivery_status);
         }
 
-        // 24. البحث حسب "أضيفت بواسطة" (الموظفين)
+        // 19. البحث حسب "أضيفت بواسطة" (الموظفين)
         if ($request->has('added_by_employee') && $request->added_by_employee) {
             $invoices->where('created_by', $request->added_by_employee);
         }
 
-        // 25. البحث حسب مسؤول المبيعات (المستخدمين)
+        // 20. البحث حسب مسؤول المبيعات (المستخدمين)
         if ($request->has('sales_person_user') && $request->sales_person_user) {
-            $invoices->where('sales_person_id', $request->sales_person_user);
+            $invoices->where('created_by', $request->sales_person_user);
         }
 
-        // جلب النتائج
-        $invoices = $invoices->get();
+        // 21. البحث حسب Post Shift
+        if ($request->has('post_shift') && $request->post_shift) {
+            $invoices->where('post_shift', 'like', '%' . $request->post_shift . '%');
+        }
+
+        // 22. البحث حسب خيارات الشحن
+        if ($request->has('shipping_option') && $request->shipping_option) {
+            $invoices->where('shipping_option', $request->shipping_option);
+        }
+
+        // 23. البحث حسب مصدر الطلب
+        if ($request->has('order_source') && $request->order_source) {
+            $invoices->where('order_source', $request->order_source);
+        }
+
+        // جلب النتائج مع التقسيم (Pagination)
+        $invoices = $invoices->paginate(25);
 
         // البيانات الأخرى المطلوبة للواجهة
         $clients = Client::all();
@@ -560,7 +548,7 @@ class InvoicesController extends Controller
                         'warehouse_permits_id' => $wareHousePermits->id,
                     ]);
 
-                   
+
                     if ($productDetails->quantity < $product['low_stock_alert']) {
                         // إنشاء إشعار للكمية
                         notifications::create([
@@ -568,11 +556,11 @@ class InvoicesController extends Controller
                             'title' => 'تنبيه الكمية',
                             'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
                         ]);
-                    
+
                         // رابط API Telegram
-                         
+
                       $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
-                    
+
                         // تنسيق الرسالة بـ Markdown
                         $message = "🚨 *تنبيه جديد!* 🚨\n";
                         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
@@ -581,8 +569,8 @@ class InvoicesController extends Controller
                         $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
                         $message .= "📅 *التاريخ:* `" . now()->format('Y-m-d H:i') . "`\n";
                         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-                        
-                    
+
+
                         // إرسال الرسالة إلى التلقرام
                         $response = Http::post($telegramApiUrl, [
                             'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
@@ -591,28 +579,28 @@ class InvoicesController extends Controller
                             'timeout' => 60,
                         ]);
                     }
-                    
-                    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) { 
+
+                    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) {
                         $expiryDate = Carbon::parse($product['expiry_date']); // تاريخ الانتهاء
                         $daysBeforeExpiry = (int) $product['notify_before_days']; // الأيام المحددة من قبل المستخدم
-                    
+
                         // التحقق مما إذا كان تاريخ الانتهاء في المستقبل
                         if ($expiryDate->greaterThan(now())) {
                             $remainingDays = floor($expiryDate->diffInDays(now())); // حساب الأيام المتبقية بدون كسور
-                    
+
                             if ($remainingDays <= $daysBeforeExpiry) {
                                 // إنشاء إشعار لتاريخ الانتهاء
                                 notifications::create([
-                                    'type' => 'Products', 
+                                    'type' => 'Products',
                                     'title' => 'تاريخ الانتهاء',
                                     'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
                                 ]);
-                    
+
                                 // إرسال الإشعار إلى تيليغرام
                                 $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
-                    
+
                                 $chatId = '@Salesfatrasmart'; // تأكد من أن لديك صلاحية الإرسال للقناة
-                    
+
                                 // تصميم الرسالة
                                 $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
                                 $message .= "━━━━━━━━━━━━━━━━━━━━\n";
@@ -620,7 +608,7 @@ class InvoicesController extends Controller
                                 $message .= "📅 *تاريخ الانتهاء:* " . $expiryDate->format('Y-m-d') . "\n";
                                 $message .= "⏳ *المدة المتبقية:* " . $remainingDays . " يوم\n";
                                 $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-                    
+
                                 // إرسال الرسالة إلى التلقرام
                         $response = Http::post($telegramApiUrl, [
                             'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
@@ -631,8 +619,8 @@ class InvoicesController extends Controller
                             }
                         }
                     }
-                    
-                    
+
+
                 }
 
                 if ($proudect->type == "compiled" && $proudect->compile_type == "Instant") {
@@ -748,6 +736,34 @@ class InvoicesController extends Controller
             $productName = $product ? $product->name : 'منتج غير معروف';
             $productsList .= "▫️ *{$productName}* - الكمية: {$item->quantity}, السعر: {$item->unit_price} \n";
         }
+
+
+        // // رابط API التلقرام
+        $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+
+        // تجهيز الرسالة
+        $message = "📜 *فاتورة جديدة* 📜\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= "🆔 *رقم الفاتورة:* `$code`\n";
+        $message .= "👤 *مسؤول البيع:* " . ($employee_name->first_name ?? 'لا يوجد') . "\n";
+        $message .= "🏢 *العميل:* " . ($client_name->trade_name ?? 'لا يوجد') . "\n";
+        $message .= "✍🏻 *أنشئت بواسطة:* " . ($user_name->name ?? 'لا يوجد') . "\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= "💰 *المجموع:* `" . number_format($invoice->grand_total, 2) . "` ريال\n";
+        $message .= "🧾 *الضريبة:* `" . number_format($invoice->tax_total, 2) . "` ريال\n";
+        $message .= "📌 *الإجمالي:* `" . number_format(($invoice->tax_total + $invoice->grand_total), 2) . "` ريال\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= "📦 *المنتجات:* \n" . $productsList;
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= "📅 *التاريخ:* `" . date('Y-m-d H:i') . "`\n";
+
+        // إرسال الرسالة إلى التلقرام
+        $response = Http::post($telegramApiUrl, [
+            'chat_id' => '@Salesfatrasmart',  // تأكد من أن لديك صلاحية الإرسال للقناة
+            'text' => $message,
+            'parse_mode' => 'Markdown',
+            'timeout' => 30,
+        ]);
 
             // // // رابط API التلقرام
             $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
@@ -889,7 +905,7 @@ class InvoicesController extends Controller
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
                 'created_by_employee' => Auth::id(),
-              
+
             ]);
 
         $clientaccounts = Account::where('client_id', $invoice->client_id)->first();

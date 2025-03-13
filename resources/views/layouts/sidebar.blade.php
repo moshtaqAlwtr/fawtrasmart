@@ -158,7 +158,7 @@
             @endif
 
 
-            
+
             <!-- نقاط  البيع -->
             @if (
                     auth()->user()->hasAnyPermission([
@@ -211,7 +211,7 @@
             </li>
             @endif
             @endif
-           
+
             {{-- المتجر الكتروني --}}
 
             @can('online_store_content_management')
@@ -235,7 +235,7 @@
             {{-- التصنيع --}}
             @can('online_store_content_management')
              @if(isset($settings['manufacturing']) && $settings['manufacturing'] === 'active')
-            
+
                 <li class="nav-item {{ request()->is("$getLocal/Manufacturing/*") ? 'active open' : '' }}">
                     <a href="index.html">
                         <i class="feather icon-layers"></i>
@@ -462,12 +462,12 @@
                 @endif
             @endif
 
-          
+
 
            @if (
                     auth()->user()->hasAnyPermission([
                         'work_cycle',
-                        
+
                     ])
                 )
                   <!-- دورات العمل -->
@@ -723,7 +723,7 @@
             @if (
                 Auth::user()->hasAnyPermission([
                     'management_of_insurance_agents',
-                  
+
                 ])
             )
            {{-- وكلاء التامين --}}
@@ -749,7 +749,7 @@
            </li>
        @endif
         @endif
-           
+
             {{-- ادارة المخازن --}}
             @if (
                     Auth::user()->hasAnyPermission([
@@ -787,7 +787,7 @@
                             </li>
                         @endcan
 
-                        
+
                         <li><a href="{{ route('products.traking') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.product_tracking') }}</span></a>
                         </li>
@@ -1464,10 +1464,10 @@
 
         </ul>
 
-    </li> 
+    </li>
     @endif
-          
-       
+
+
 
             {{-- الاعدادات --}}
             @can('settings_edit_general_settings')
@@ -1497,7 +1497,7 @@
                         <li><a href="{{ route('Sms.index') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.SMS_Settings') }}</span></a></li>
 
-                        <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                        <li><a href="{{ route('SequenceNumbering.index', 'section') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce">{{ trans('main_trans.Sequential_Numbering_Settings') }}</span></a>
                         </li>
                         <li><a href="{{ route('TaxSitting.index') }}"><i class="feather icon-circle"></i><span class="menu-item"

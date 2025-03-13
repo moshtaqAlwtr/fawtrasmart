@@ -220,8 +220,9 @@ class CityNoticesController extends Controller
 
             // ** حساب الضرائب **
             $total_tax = 0;
-            if ($request->tax_type == 1) {
-                $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+            $tax_rate = floatval($request->tax_rate ?? 0); // الحصول على نسبة الضريبة من المستخدم
+            if ($request->tax_type == 1 && $tax_rate > 0) {
+                $total_tax = ($amount_after_discount * $tax_rate) / 100; // حساب الضريبة باستخدام النسبة المدخلة
             }
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
@@ -229,8 +230,8 @@ class CityNoticesController extends Controller
 
             // ** حساب ضريبة التوصيل (إذا كانت الضريبة مفعلة) **
             $shipping_tax = 0;
-            if ($request->tax_type == 1) {
-                $shipping_tax = $shipping_cost * 0.15; // ضريبة التوصيل 15%
+            if ($request->tax_type == 1 && $tax_rate > 0) {
+                $shipping_tax = ($shipping_cost * $tax_rate) / 100; // حساب ضريبة التوصيل باستخدام النسبة المدخلة
             }
 
             // ** الحساب النهائي للمجموع الكلي **
@@ -276,6 +277,7 @@ class CityNoticesController extends Controller
                 'payment_type' => $request->payment_type ?? 1,
                 'shipping_cost' => $shipping_cost,
                 'tax_type' => $request->tax_type ?? 1,
+                'tax_rate' => $tax_rate, // حفظ نسبة الضريبة
                 'payment_method' => $request->payment_method,
                 'reference_number' => $request->reference_number,
                 'received_date' => $request->received_date,
@@ -327,14 +329,14 @@ ModelsLog::create([
             }
 
             DB::commit(); // تأكيد التغييرات
-            return redirect()->route('CityNotices.index')->with('success', 'تم إنشاء اشعار مدين  بنجاح');
+            return redirect()->route('CityNotices.index')->with('success', 'تم إنشاء اشعار مدين بنجاح');
         } catch (\Exception $e) {
             DB::rollback(); // تراجع عن التغييرات في حالة حدوث خطأ
-            Log::error('خطأ في إنشاء  اشعار مدين ' . $e->getMessage()); // تسجيل الخطأ
+            Log::error('خطأ في إنشاء اشعار مدين: ' . $e->getMessage()); // تسجيل الخطأ
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'عذراً، حدث خطأ أثناء حفظ اشعار مدين : ' . $e->getMessage());
+                ->with('error', 'عذراً، حدث خطأ أثناء حفظ اشعار مدين: ' . $e->getMessage());
         }
     }
 

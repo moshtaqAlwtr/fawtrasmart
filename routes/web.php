@@ -50,7 +50,6 @@ Route::group(
                         Route::get('/notifications/unread', [InvoicesController::class, 'getUnreadNotifications'])->name('notifications.unread');
                         Route::post('/notifications/mark', [InvoicesController::class, 'markAsRead'])->name('notifications.markAsRead');
                         Route::get('/notifications/mark/show/{id}', [InvoicesController::class, 'markAsReadid'])->name('notifications.markAsReadid');
-                        
                         Route::get('/notifications', [InvoicesController::class, 'notifications'])->name('notifications.index');
                     });
 
@@ -120,7 +119,7 @@ Route::group(
                 // مسارات الملاحظات
                 Route::prefix('appointment-notes')->group(function () {
                     Route::get('/', [AppointmentNoteController::class, 'index'])->name('appointment.notes.index');
-                    Route::get('/create', [AppointmentNoteController::class, 'create'])->name('appointment.notes.create');
+                    Route::get('/create/{id}', [AppointmentNoteController::class, 'create'])->name('appointment.notes.create');
                     Route::post('/', [AppointmentNoteController::class, 'store'])->name('appointment.notes.store');
                     Route::get('/{note}', [AppointmentNoteController::class, 'show'])->name('appointment.notes.show');
                     Route::get('/{note}', [AppointmentNoteController::class, 'edit'])->name('appointment.notes.edit');
@@ -162,7 +161,7 @@ Route::group(
                 # Client routes
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
-                    
+
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');

@@ -120,6 +120,7 @@ class PeriodicInvoicesController extends Controller
             'discount_type' => 'nullable|in:amount,percentage',
             'discount_amount' => 'nullable|numeric|min:0',
             'tax_type' => 'required|in:1,2,3', // 1=vat, 2=zero, 3=exempt
+            'tax_rate' => 'nullable|numeric|min:0', // إضافة حقل tax_rate
             'notes' => 'nullable|string',
         ])->validate();
 
@@ -209,9 +210,11 @@ class PeriodicInvoicesController extends Controller
             // ** حساب الضرائب **
             $total_tax = 0;
             $tax_type = $tax_type_map[$validated['tax_type']];
-            if ($tax_type === 'vat') {
-                // حساب الضريبة على المبلغ بعد الخصم
-                $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+            $tax_rate = floatval($validated['tax_rate'] ?? 0); // الحصول على نسبة الضريبة من المستخدم
+
+            if ($tax_type === 'vat' && $tax_rate > 0) {
+                // حساب الضريبة على المبلغ بعد الخصم باستخدام النسبة التي أدخلها المستخدم
+                $total_tax = ($amount_after_discount * $tax_rate) / 100;
             }
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
@@ -219,11 +222,11 @@ class PeriodicInvoicesController extends Controller
 
             // ** حساب ضريبة الشحن (إذا كانت الضريبة مفعلة) **
             $shipping_tax = 0;
-            if ($tax_type === 'vat') {
-                $shipping_tax = $shipping_cost * 0.15; // ضريبة الشحن 15%
+            if ($tax_type === 'vat' && $tax_rate > 0) {
+                $shipping_tax = ($shipping_cost * $tax_rate) / 100; // ضريبة الشحن باستخدام النسبة التي أدخلها المستخدم
             }
 
-            // ** إضافة ضريبة الشحن إلى 	total_tax **
+            // ** إضافة ضريبة الشحن إلى total_tax **
             $total_tax += $shipping_tax;
 
             // ** الحساب النهائي للمجموع الكلي **
@@ -251,16 +254,20 @@ class PeriodicInvoicesController extends Controller
                 'shipping_cost' => $shipping_cost,
                 'shipping_tax' => $shipping_tax,
                 'tax_type' => $validated['tax_type'],
+                'tax_rate' => $tax_rate, // حفظ نسبة الضريبة
                 'subtotal' => $total_amount,
                 'total' => $amount_after_discount,
                 'total_discount' => $final_total_discount,
-                'total_tax' => $total_tax,
                 'total_tax' => $total_tax,
                 'grand_total' => $total_with_tax,
                 'status' => 1, // حالة الفاتورة (1: Draft)
             ]);
 
-
+            // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
+            foreach ($items_data as $item) {
+                $item['periodic_invoice_id'] = $periodicInvoice->id;
+                InvoiceItem::create($item);
+            }
 
             DB::commit();
             return redirect()->route('periodic_invoices.index')->with('success', 'تم إنشاء فاتورة دورية بنجاح');
