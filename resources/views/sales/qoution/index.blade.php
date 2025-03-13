@@ -182,9 +182,8 @@
                             <label for="statusSelect">الحالة</label>
                             <select name="status" class="form-control" id="statusSelect">
                                 <option value="">الحالة</option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
-                                <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>موافق عليه</option>
-                                <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>مرفوض</option>
+                                <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مفتوح</option>
+                                <option value="2" {{ request('status') == '2' ? 'selected' : '' }}> مغلق</option>
                             </select>
                         </div>
                     </div>
@@ -217,15 +216,7 @@
                             </div>
 
                             <!-- 7. الحالة -->
-                            <div class="col-md-4">
-                                <label for="statusSelect">الحالة</label>
-                                <select name="status" class="form-control" id="statusSelect">
-                                    <option value="">الحالة</option>
-                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
-                                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>موافق عليه</option>
-                                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>مرفوض</option>
-                                </select>
-                            </div>
+
                         </div>
 
                         <div class="row g-3 mt-2">
@@ -295,7 +286,7 @@
                                     <option value="">أضيفت بواسطة</option>
                                     @foreach ($employees as $employee)
                                         <option value="{{ $employee->id }}" {{ request('created_by') == $employee->id ? 'selected' : '' }}>
-                                            {{ $employee->first_name }}
+                                            {{ $employee->full_name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -314,16 +305,6 @@
                                 </select>
                             </div>
 
-                            <!-- 17. الحالة -->
-                            <div class="col-md-4">
-                                <label for="statusSelect2">الحالة</label>
-                                <select name="status_2" class="form-control" id="statusSelect2">
-                                    <option value="">الحالة</option>
-                                    <option value="pending" {{ request('status_2') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
-                                    <option value="approved" {{ request('status_2') == 'approved' ? 'selected' : '' }}>موافق عليه</option>
-                                    <option value="rejected" {{ request('status_2') == 'rejected' ? 'selected' : '' }}>مرفوض</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
 
