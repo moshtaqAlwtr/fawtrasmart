@@ -21,13 +21,75 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentProcessController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // استعلام أساسي لجميع البيانات
+        $query = PaymentsProcess::with(['invoice', 'employee', 'client', 'purchase', 'treasury']);
+
+        // البحث الأساسي
+        if ($request->has('invoice_number') && $request->invoice_number != '') {
+            $query->whereHas('invoice', function($q) use ($request) {
+                $q->where('code', 'like', '%' . $request->invoice_number . '%');
+            });
+        }
+
+        if ($request->has('payment_number') && $request->payment_number != '') {
+            $query->where('payment_number', 'like', '%' . $request->payment_number . '%');
+        }
+
+        if ($request->has('customer') && $request->customer != '') {
+            $query->where('employee_id', $request->customer);
+        }
+
+        // البحث المتقدم
+        if ($request->has('payment_status') && $request->payment_status != '') {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        if ($request->has('from_date') && $request->from_date != '') {
+            $query->where('payment_date', '>=', $request->from_date);
+        }
+
+        if ($request->has('to_date') && $request->to_date != '') {
+            $query->where('payment_date', '<=', $request->to_date);
+        }
+
+        if ($request->has('identifier') && $request->identifier != '') {
+            $query->where('reference_number', 'like', '%' . $request->identifier . '%');
+        }
+
+        if ($request->has('transfer_id') && $request->transfer_id != '') {
+            $query->where('reference_number', 'like', '%' . $request->transfer_id . '%');
+        }
+
+        if ($request->has('total_greater_than') && $request->total_greater_than != '') {
+            $query->where('amount', '>', $request->total_greater_than);
+        }
+
+        if ($request->has('total_less_than') && $request->total_less_than != '') {
+            $query->where('amount', '<', $request->total_less_than);
+        }
+
+        if ($request->has('custom_field') && $request->custom_field != '') {
+            $query->where('notes', 'like', '%' . $request->custom_field . '%');
+        }
+
+        if ($request->has('invoice_origin') && $request->invoice_origin != '') {
+            $query->whereHas('invoice', function($q) use ($request) {
+                $q->where('origin', $request->invoice_origin);
+            });
+        }
+
+        if ($request->has('collected_by') && $request->collected_by != '') {
+            $query->where('employee_id', $request->collected_by);
+        }
+
+        // تنفيذ الاستعلام مع Pagination لعرض 25 عنصر في الصفحة
+        $payments = $query->paginate(25);
         $employees = Employee::all();
-        $payments = PaymentsProcess::with(['invoice', 'employee'])->get();
+
         return view('sales.payment.index', compact('payments', 'employees'));
     }
-
     public function indexPurchase(Request $request)
     {
         $employees = Employee::all();
@@ -118,7 +180,7 @@ class PaymentProcessController extends Controller
             $query->where('created_by', $request->created_by);
         }
 
-        $payments = $query->get();
+        $payments = $query->paginate(25);
 
 
         return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));

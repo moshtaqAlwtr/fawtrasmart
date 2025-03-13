@@ -33,7 +33,7 @@ class QuoteController extends Controller
             $query->where('quotes_number', 'LIKE', '%' . $request->id . '%');
         }
 
-        // البحث حسب الحالة (يتكرر في عدة أماكن في النموذج)
+        // البحث حسب الحالة
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -92,7 +92,8 @@ class QuoteController extends Controller
         // البحث في البنود
         if ($request->filled('item_search')) {
             $query->whereHas('items', function ($q) use ($request) {
-                $q->where('item', 'LIKE', '%' . $request->item_search . '%')->orWhere('description', 'LIKE', '%' . $request->item_search . '%');
+                $q->where('item', 'LIKE', '%' . $request->item_search . '%')
+                  ->orWhere('description', 'LIKE', '%' . $request->item_search . '%');
             });
         }
 
@@ -112,7 +113,7 @@ class QuoteController extends Controller
         }
 
         // ترتيب النتائج حسب تاريخ الإنشاء تنازلياً
-        $quotes = $query->orderBy('created_at', 'desc')->get();
+        $quotes = $query->orderBy('created_at', 'desc')->paginate(10); // استبدل get() بـ paginate()
 
         // جلب البيانات الأخرى المطلوبة للصفحة
         $quotes_number = $this->generateInvoiceNumber();
@@ -121,9 +122,9 @@ class QuoteController extends Controller
         $employees = Employee::all();
 
         // إرجاع البيانات مع المتغيرات المطلوبة للعرض
-        return view('sales.qoution.index', compact('quotes', 'quotes_number', 'clients', 'users', 'employees'))->with('search_params', $request->all()); // إرجاع معاملات البحث للحفاظ على حالة النموذج
+        return view('sales.qoution.index', compact('quotes', 'quotes_number', 'clients', 'users', 'employees'))
+            ->with('search_params', $request->all()); // إرجاع معاملات البحث للحفاظ على حالة النموذج
     }
-
     private function generateInvoiceNumber()
     {
         $lastQuote = Quote::latest()->first();

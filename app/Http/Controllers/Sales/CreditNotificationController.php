@@ -23,17 +23,15 @@ class CreditNotificationController extends Controller
     {
         $query = CreditNotification::with(['client', 'createdBy']);
 
-        // البحث حسب العميل
+        // Apply filters based on request parameters
         if ($request->filled('client_id')) {
             $query->where('client_id', $request->client_id);
         }
 
-        // البحث حسب رقم الإشعار
         if ($request->filled('invoice_number')) {
             $query->where('credit_number', 'LIKE', '%' . $request->invoice_number . '%');
         }
 
-        // البحث في البنود
         if ($request->filled('item_search')) {
             $query->whereHas('items', function ($q) use ($request) {
                 $q->where('item', 'LIKE', '%' . $request->item_search . '%')
@@ -41,12 +39,10 @@ class CreditNotificationController extends Controller
             });
         }
 
-        // البحث حسب العملة
         if ($request->filled('currency')) {
             $query->where('currency', $request->currency);
         }
 
-        // البحث حسب المبلغ
         if ($request->filled('total_from')) {
             $query->where('total', '>=', $request->total_from);
         }
@@ -54,7 +50,6 @@ class CreditNotificationController extends Controller
             $query->where('total', '<=', $request->total_to);
         }
 
-        // البحث حسب تاريخ الإنشاء
         if ($request->filled('date_type_1')) {
             switch($request->date_type_1) {
                 case 'monthly':
@@ -73,7 +68,6 @@ class CreditNotificationController extends Controller
             }
         }
 
-        // البحث حسب تاريخ الاستحقاق
         if ($request->filled('date_type_2')) {
             switch($request->date_type_2) {
                 case 'monthly':
@@ -92,40 +86,34 @@ class CreditNotificationController extends Controller
             }
         }
 
-        // البحث حسب المصدر
         if ($request->filled('source')) {
             $query->where('source', $request->source);
         }
 
-        // البحث في الحقل المخصص
         if ($request->filled('custom_field')) {
             $query->where('custom_field', 'LIKE', '%' . $request->custom_field . '%');
         }
 
-        // البحث حسب من أضاف
         if ($request->filled('created_by')) {
             $query->where('created_by', $request->created_by);
         }
 
-        // البحث حسب خيارات الشحن
         if ($request->filled('shipping_option')) {
             $query->where('shipping_option', $request->shipping_option);
         }
 
-        // البحث حسب post shift
         if ($request->filled('post_shift')) {
             $query->where('post_shift', 'LIKE', '%' . $request->post_shift . '%');
         }
 
-        // البحث حسب مصدر الطلب
         if ($request->filled('order_source')) {
             $query->where('order_source', $request->order_source);
         }
 
-        // ترتيب النتائج حسب تاريخ الإنشاء تنازلياً
-        $credits = $query->orderBy('created_at', 'desc')->get();
+        // Paginate the results instead of using get()
+        $credits = $query->orderBy('created_at', 'desc')->paginate(10); // Adjust the number of items per page as needed
 
-        // جلب البيانات الأخرى المطلوبة للصفحة
+        // Fetch other required data for the page
         $Credits_number = $this->generateInvoiceNumber();
         $clients = Client::all();
         $users = User::all();
@@ -135,10 +123,8 @@ class CreditNotificationController extends Controller
             'users',
             'Credits_number',
             'clients'
-        ))->with('search_params', $request->all()); // إرجاع معاملات البحث للحفاظ على حالة النموذج
+        ))->with('search_params', $request->all()); // Return search parameters to maintain form state
     }
-
-
 
 
     private function generateInvoiceNumber()
