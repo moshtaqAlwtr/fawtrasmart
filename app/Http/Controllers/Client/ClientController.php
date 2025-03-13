@@ -16,8 +16,10 @@ use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\CategoriesClient;
 use App\Models\Installment;
+use App\Models\Invoice;
 use App\Models\Memberships;
 use App\Models\Package;
+use App\Models\PaymentsProcess;
 use App\Models\SerialSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -370,8 +372,8 @@ class ClientController extends Controller
         $invoices = $client->invoices;
 
         // تحميل جميع المدفوعات المرتبطة بالعميل
-        $payments = $client->payments;
-
+         $payments = $client->payments;
+     
         // تحميل الملاحظات المرتبطة بالعميل
         $appointmentNotes = $client->appointmentNotes;
 
