@@ -59,11 +59,11 @@
         border-radius: 6px;
     }
 
-    .bg-success-subtle { background-color: #d1e7dd; }
-    .bg-danger-subtle { background-color: #f8d7da; }
+    /* .bg-success-subtle { background-color: #16fa93; } */
+    /* .bg-danger-subtle { background-color: #f8ecd7; }
     .bg-info-subtle { background-color: #cff4fc; }
     .bg-primary-subtle { background-color: #cfe2ff; }
-    .bg-secondary-subtle { background-color: #e2e3e5; }
+    .bg-secondary-subtle { background-color: #e2e3e5; } */
 
     .date-info {
         font-size: 0.9rem;

@@ -541,19 +541,19 @@
                                             @endphp
 
                                             @if ($invoice->type == 'returned')
-                                                <span class="badge bg-danger-subtle text-danger">
+                                                <span class="badge bg-danger text-white">
                                                     <i class="fas fa-undo me-1"></i>
                                                     مرتجع
                                                 </span>
                                             @elseif ($invoice->type == 'normal' && $payments->count() == 0)
-                                                <span class="badge bg-primary-subtle text-primary">
+                                                <span class="badge bg-dark text-white">
                                                     <i class="fas fa-file-invoice me-1"></i>
                                                     أنشئت فاتورة
                                                 </span>
                                             @endif
 
                                             @if ($payments->count() > 0)
-                                                <span class="badge bg-success-subtle text-success">
+                                                <span class="badge bg-success text-white">
                                                     <i class="fas fa-check-circle me-1"></i>
                                                     أضيفت عملية دفع
                                                 </span>
@@ -589,11 +589,11 @@
 
                                         @php
                                             $statusClass = match ($invoice->payment_status) {
-                                                1 => 'success',
-                                                2 => 'info',
-                                                3 => 'danger',
-                                                4 => 'secondary',
-                                                default => 'dark',
+                                                1 => 'success', // مدفوعة بالكامل
+                                                2 => 'info',    // مدفوعة جزئياً
+                                                3 => 'danger',  // غير مدفوعة
+                                                4 => 'secondary', // مستلمة
+                                                default => 'dark', // غير معروفة
                                             };
                                             $statusText = match ($invoice->payment_status) {
                                                 1 => 'مدفوعة بالكامل',
@@ -604,7 +604,7 @@
                                             };
                                         @endphp
                                         <div class="text-center">
-                                            <span class="badge bg-{{ $statusClass }}-subtle text-{{ $statusClass }} status-badge">
+                                            <span class="badge bg-{{ $statusClass }} text-white status-badge">
                                                 {{ $statusText }}
                                             </span>
                                         </div>
