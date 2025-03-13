@@ -463,15 +463,14 @@
                             <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
                         </button>
                     </div>
-                    <input type="text" id="searchInput" class="form-control w-25" placeholder="ابحث عن فاتورة..."
-                        oninput="searchInvoices()">
+
                 </div>
 
                 <!-- قائمة الفواتير -->
 
                     <table class="table table-hover custom-table">
                         <thead>
-                            <tr class="bg-gradient-light">
+                            <tr class="bg-gradient-light text-center">
                                 <!-- إضافة Checkbox لتحديد الكل -->
                                 <th>
 
@@ -529,7 +528,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex flex-column gap-2 " style="margin-bottom: 60px">
                                             @php
                                                 $payments = \App\Models\PaymentsProcess::where(
                                                     'invoice_id',
@@ -545,8 +544,8 @@
                                                     <i class="fas fa-undo me-1"></i>
                                                     مرتجع
                                                 </span>
-                                            @elseif ($invoice->type == 'normal' && $payments->count() == 0)
-                                                <span class="badge bg-dark text-white">
+                                                @elseif ($invoice->type == 'normal' && $payments->count() == 0)
+                                                <span class="badge bg-secondary text-white">
                                                     <i class="fas fa-file-invoice me-1"></i>
                                                     أنشئت فاتورة
                                                 </span>
@@ -561,31 +560,6 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol =
-                                                $currency == 'SAR' || empty($currency)
-                                                    ? '<img src="' .
-                                                        asset('assets/images/Saudi_Riyal.svg') .
-                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
-                                                    : $currency;
-                                        @endphp
-
-                                        <div class="amount-info text-center mb-2">
-                                            <h6 class="amount mb-1">
-                                                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
-                                                <small class="currency">{!! $currencySymbol !!}</small>
-                                            </h6>
-
-                                            @if ($invoice->due_value > 0)
-                                                <div class="due-amount">
-                                                    <small class="text-danger">
-                                                        المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
-                                                        {!! $currencySymbol !!}
-                                                    </small>
-                                                </div>
-                                            @endif
-                                        </div>
 
                                         @php
                                             $statusClass = match ($invoice->payment_status) {
@@ -608,6 +582,32 @@
                                                 {{ $statusText }}
                                             </span>
                                         </div>
+                                        @php
+                                        $currency = $account_setting->currency ?? 'SAR';
+                                        $currencySymbol =
+                                            $currency == 'SAR' || empty($currency)
+                                                ? '<img src="' .
+                                                    asset('assets/images/Saudi_Riyal.svg') .
+                                                    '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                : $currency;
+                                    @endphp
+
+                                    <div class="amount-info text-center mb-2">
+                                        <h6 class="amount mb-1">
+                                            {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
+                                            <small class="currency">{!! $currencySymbol !!}</small>
+                                        </h6>
+
+                                        @if ($invoice->due_value > 0)
+                                            <div class="due-amount">
+                                                <small class="text-danger">
+                                                    المبلغ المستحق: {{ number_format($invoice->due_value, 2) }}
+                                                    {!! $currencySymbol !!}
+                                                </small>
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     </td>
                                     <td>
                                         <div class="dropdown" onclick="event.stopPropagation()">
