@@ -24,10 +24,10 @@
     </div>
     <div class="card">
         <div class="card-title p-2">
-         
+
             <a href="{{ route('treasury.transferin') }}" class="btn btn-outline-success btn-sm">تحويل <i class="fa fa-reply-all"></i></a>
-       
-           
+
+
         </div>
     <div class="content-body">
 
@@ -123,7 +123,7 @@
                                                     @if($treasury->deposit_permissions !== 0)
                                                         @if ($treasury->deposit_permissions == 1)
                                                         <!---employee_id--->
-                                                        {{ App\Models\Employee::find($treasury->value_of_deposit_permissions)->full_name }}
+                                                        {{ App\Models\Employee::find($treasury->value_of_deposit_permissions)->full_name?? " " }}
                                                         @elseif ($treasury->deposit_permissions == 2)
                                                         <!---functional_role_id--->
                                                             {{ $treasury->value_of_deposit_permissions }}
@@ -137,7 +137,7 @@
                                                     @if($treasury->withdraw_permissions !== 0)
                                                         @if ($treasury->withdraw_permissions == 1)
                                                         <!---employee_id--->
-                                                        {{ App\Models\Employee::find($treasury->value_of_deposit_permissions)->full_name }}
+                                                        {{ App\Models\Employee::find($treasury->value_of_deposit_permissions)->full_name ??"" }}
                                                         @elseif ($treasury->withdraw_permissions == 2)
                                                         <!---functional_role_id--->
                                                             {{ $treasury->value_of_withdraw_permissions }}

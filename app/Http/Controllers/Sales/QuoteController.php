@@ -554,4 +554,7 @@ class QuoteController extends Controller
                 ->with('error', 'حدث خطأ أثناء التحويل: ' . $e->getMessage());
         }
     }
+    public  function   logsaction(Request $request){
+        return view('test');
+    }
 }

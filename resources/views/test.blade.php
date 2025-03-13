@@ -7,10 +7,12 @@
 @stop
 
 @section('css')
-<link rel="stylesheet" href="ass{{asset('assets/css/style.css')}}">
+<link rel="stylesheet" href="{{asset('assets/css/style.css')}}">
 
 @endsection
 
+
+@section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -108,7 +110,6 @@
     </div>
 </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@endsection
+@section('scripts')
+@endsection

@@ -89,6 +89,7 @@ Route::group(
                     Route::get('/create', [QuoteController::class, 'create'])->name('questions.create');
                     Route::get('/show/{id}', [QuoteController::class, 'show'])->name('questions.show');
                     Route::get('/edit/{id}', [QuoteController::class, 'edit'])->name('questions.edit');
+                    Route::get('/logsaction', [QuoteController::class, 'logsaction'])->name('questions.logsaction');
                     Route::post('/store', [QuoteController::class, 'store'])->name('questions.store');
                     Route::put('/update/{id}', [QuoteController::class, 'update'])->name('questions.update');
                     Route::post('/convertToInvoice/{id}', [QuoteController::class, 'convertToInvoice'])->name('questions.convertToInvoice');
@@ -242,12 +243,13 @@ Route::group(
             ->middleware(['auth'])
             ->group(function () {
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
-                
+
+
 
             });
 
     },
-    
+
 );
 
 

@@ -61,7 +61,7 @@
                                 <select class="form-control" name="employee_id">
                                     <option selected value="">-- اختر الموظف --</option>
                                     @foreach($employees as $employee)
-                                        <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                        <option value="{{ $employee->id }}">{{ $employee->full_name??'' }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -104,7 +104,7 @@
                         <tbody>
                             @foreach ($treasury_employees as $info)
                                 <tr>
-                                    <td>{{ $info->employee->full_name }}</td>
+                                    <td>{{ $info->employee->full_name ?? 'غير محدد' }}</td>
                                     <td>{{ $info->treasury->name }}</td>
                                     <td>
                                         <div class="btn-group">

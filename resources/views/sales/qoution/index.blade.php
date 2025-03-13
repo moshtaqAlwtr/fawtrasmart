@@ -56,9 +56,9 @@
                     </a>
 
                     <!-- زر استيراد -->
-                    <button class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                    <a href="{{ route('questions.logsaction') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
                         <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
-                    </button>
+                    </a>
 
                     <!-- جزء التنقل بين الصفحات -->
                     <nav aria-label="Page navigation">
