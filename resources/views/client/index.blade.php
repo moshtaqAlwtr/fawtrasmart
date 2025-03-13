@@ -436,36 +436,5 @@
 @endsection
 
 @section('scripts')
-    <script>
-        function toggleSearchText(button) {
-            const buttonText = button.querySelector('.button-text');
-            const advancedFields = document.querySelectorAll('.advanced-field');
-
-            if (buttonText.textContent.trim() === 'متقدم') {
-                buttonText.textContent = 'بحث بسيط';
-                advancedFields.forEach(field => field.style.display = 'block');
-            } else {
-                buttonText.textContent = 'متقدم';
-                advancedFields.forEach(field => field.style.display = 'none');
-            }
-        }
-
-        function toggleSearchFields(button) {
-            const searchForm = document.getElementById('searchForm');
-            const buttonText = button.querySelector('.hide-button-text');
-            const icon = button.querySelector('i');
-
-            if (buttonText.textContent === 'اخفاء') {
-                searchForm.style.display = 'none';
-                buttonText.textContent = 'اظهار';
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-eye');
-            } else {
-                searchForm.style.display = 'block';
-                buttonText.textContent = 'اخفاء';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-times');
-            }
-        }
-    </script>
+<script src="{{ asset('assets/js/search.js') }}"></script>
 @endsection
