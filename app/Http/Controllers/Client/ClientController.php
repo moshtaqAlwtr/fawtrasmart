@@ -371,6 +371,8 @@ class ClientController extends Controller
 
         // تحميل الفواتير المرتبطة بالعميل
         $invoices = $client->invoices;
+        $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
+
 
         // تحميل جميع المدفوعات المرتبطة بالعميل
          $payments = $client->payments;
@@ -381,8 +383,19 @@ class ClientController extends Controller
         // تحقق من الملاحظات
 
 
-        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+        return view('client.show', compact('client','invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
+
+   
+    public function updateStatus(Request $request, $id)
+{
+    $client = Client::findOrFail($id);
+    $client->notes = $request->notes; // تحديث الملاحظات بالحالة الجديدة
+    $client->save();
+
+    return response()->json(['success' => true]);
+}
+
     public function contact()
     {
         $clients = Client::all();
@@ -488,6 +501,14 @@ class ClientController extends Controller
     }
 
     return response()->json(['client' => null]);
+}
+public function updateOpeningBalance(Request $request, $id)
+{
+    $client = Client::findOrFail($id);
+    $client->opening_balance = $request->opening_balance;
+    $client->save();
+
+    return response()->json(['success' => true]);
 }
 
 public function getPreviousClient(Request $request)

@@ -166,6 +166,8 @@ Route::group(
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
+                    Route::post('/clients/{id}/update-status', [ClientController::class, 'updateStatus']);
+
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
@@ -179,9 +181,11 @@ Route::group(
                     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
                     Route::post('/delete-multiple', [ClientController::class, 'deleteMultiple'])->name('clients.deleteMultiple');
                     Route::get('/contacts', [ClientController::class, 'contacts'])->name('clients.contacts');
-                    Route::get('/clients_management/clients/first', [ClientController::class, 'getFirstClient'])->name('clients.first');
-                    Route::get('/clients_management/clients/next', [ClientController::class, 'getNextClient'])->name('clients.next');
-                    Route::get('/clients_management/clients/previous', [ClientController::class, 'getPreviousClient'])->name('clients.previous');
+                    Route::get('/first', [ClientController::class, 'getFirstClient'])->name('clients.first');
+                    Route::get('/next', [ClientController::class, 'getNextClient'])->name('clients.next');
+                    Route::get('/previous', [ClientController::class, 'getPreviousClient'])->name('clients.previous');
+                    Route::post('/{id}/update-opening-balance', [ClientController::class, 'updateOpeningBalance']);
+
                     Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])
                         ->name('clients.assign-employees');
                     Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])
