@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\Quote;
 use App\Models\SerialSetting;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -55,40 +56,44 @@ class QuoteController extends Controller
         if ($request->filled('date_type_1')) {
             switch ($request->date_type_1) {
                 case 'monthly':
-                    $query->whereMonth('quote_date', now()->month);
+                    $query->whereMonth('quote_date', now()->month)
+                          ->whereYear('quote_date', now()->year);
                     break;
                 case 'weekly':
-                    $query->whereBetween('quote_date', [now()->startOfWeek(), now()->endOfWeek()]);
+                    $query->whereBetween('quote_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                     break;
                 case 'daily':
-                    $query->whereDate('quote_date', now());
+                    $query->whereDate('quote_date', Carbon::today());
                     break;
                 default:
                     if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
-                        $query->whereBetween('quote_date', [$request->from_date_1, $request->to_date_1]);
+                        $from_date = Carbon::parse($request->from_date_1)->startOfDay();
+                        $to_date = Carbon::parse($request->to_date_1)->endOfDay();
+                        $query->whereBetween('quote_date', [$from_date, $to_date]);
                     }
             }
         }
 
-        // البحث حسب تاريخ الإنشاء
         if ($request->filled('date_type_2')) {
             switch ($request->date_type_2) {
                 case 'monthly':
-                    $query->whereMonth('created_at', now()->month);
+                    $query->whereMonth('created_at', now()->month)
+                          ->whereYear('created_at', now()->year);
                     break;
                 case 'weekly':
-                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                    $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                     break;
                 case 'daily':
-                    $query->whereDate('created_at', now());
+                    $query->whereDate('created_at', Carbon::today());
                     break;
                 default:
                     if ($request->filled('from_date_2') && $request->filled('to_date_2')) {
-                        $query->whereBetween('created_at', [$request->from_date_2, $request->to_date_2]);
+                        $from_date = Carbon::parse($request->from_date_2)->startOfDay();
+                        $to_date = Carbon::parse($request->to_date_2)->endOfDay();
+                        $query->whereBetween('created_at', [$from_date, $to_date]);
                     }
             }
         }
-
         // البحث في البنود
         if ($request->filled('item_search')) {
             $query->whereHas('items', function ($q) use ($request) {
