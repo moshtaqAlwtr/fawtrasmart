@@ -17,6 +17,12 @@ class Client extends Model
     {
         return $this->hasMany(Appointment::class);
     }
+
+    // في ملف Client.php
+public function latestStatus()
+{
+    return $this->hasOne(ClientRelation::class, 'client_id')->latest();
+}
 public function branch()
 {
     return $this->belongsTo(Branch::class);
