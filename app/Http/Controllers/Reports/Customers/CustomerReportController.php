@@ -238,7 +238,7 @@ class CustomerReportController extends Controller
             'categories' => $categories,
             'monthlyInvoiceData' => $monthlyInvoiceCounts, // Pass the monthly invoice counts to the view
         ]);
-    }  // عرض دليل العملاء
+    } // عرض دليل العملاء
     public function customerGuide(Request $request)
     {
         $query = Client::query();
@@ -630,6 +630,30 @@ class CustomerReportController extends Controller
 
     // عرض الواجهة مع البيانات
     return view('reports.customers.CustomerReport.customer_installment', compact('installments', 'clients', 'employees', 'branches', 'categories'));
+}
+public function getInvoicesByMonth($month)
+{
+    $monthNumber = array_search($month, [
+        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ]) + 1;
+
+    // Fetch invoices and group by employee
+    $invoices = Invoice::whereMonth('invoice_date', $monthNumber)
+        ->with('employee') // Assuming you have a relationship set up
+        ->get()
+        ->groupBy('employee_id'); // Group by employee ID
+
+    // Prepare data for response
+    $responseData = [];
+    foreach ($invoices as $employeeId => $employeeInvoices) {
+        $responseData[] = [
+            'employee_name' => $employeeInvoices->first()->employee->full_name, // Adjust as necessary
+            'invoice_count' => $employeeInvoices->count(),
+        ];
+    }
+
+    return response()->json($responseData);
 }
     // تأكد من استيراد نموذج Sale
 }
