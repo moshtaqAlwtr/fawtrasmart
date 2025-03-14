@@ -69,12 +69,16 @@
                         <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab">التفاصيل</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activate" role="tab">سجل النشاطات</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#transactions" role="tab">معاملات النظام</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="transfers-tab" data-toggle="tab" href="#transfers" role="tab">التحويلات</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activate" role="tab">سجل النشاطات</a>
+                    </li>
                 </ul>
+                
 
                 <div class="tab-content">
                     <!-- 🔹 تبويب التفاصيل -->
@@ -107,11 +111,68 @@
                             </div>
                         </div>
                     </div>
-
+                    <div class="tab-pane" id="transfers" role="tabpanel">
+                        <div class="card">
+                            <div class="card-header">
+                              
+                                <form>
+                                    <!-- 🔹 حقلان التاريخ في سطر واحد -->
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="date" class="form-control" placeholder="تاريخ (من)">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="date" class="form-control" placeholder="تاريخ (إلى)">
+                                        </div>
+                                    </div>
+                    
+                                    <!-- 🔹 الأزرار في سطر جديد -->
+                                    <div class="row mt-2">
+                                        <div class="col-md-12 text-center">
+                                            <button class="btn btn-primary">بحث</button>
+                                            <button class="btn btn-secondary">إعادة تعيين</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                    
+                            <!-- 🔹 الجدول في سطر منفصل -->
+                            <div class="card-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>تاريخ التحويل</th>
+                                            <th>من خزينة</th>
+                                            <th>إلى خزينة</th>
+                                            <th>المبلغ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{-- @foreach($transfers as $transfer) --}}
+                                        <tr>
+                                            <td>03:50 24/02/2025 #12</td>
+                                            <td><span class="badge badge-secondary">خزينة القصيم</span></td>
+                                            <td><span class="badge badge-primary">بنك الإنماء</span></td>
+                                            <td><strong>﷼ 2,000</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>00:38 18/02/2025 #5</td>
+                                            <td><span class="badge badge-primary">بنك الإنماء</span></td>
+                                            <td><span class="badge badge-secondary">خزينة القصيم</span></td>
+                                            <td><strong>﷼ 1,264</strong></td>
+                                        </tr>
+                                        {{-- @endforeach --}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- 🔹 تبويب سجل النشاطات -->
                     <div class="tab-pane fade" id="activate" role="tabpanel">
                         <p>سجل النشاطات هنا...</p>
                     </div>
+                 
 
                     <!-- 🔹 تبويب معاملات النظام -->
                     <div class="tab-pane fade" id="transactions" role="tabpanel">
@@ -169,6 +230,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                  
                                     <div class="card-footer text-center">
                                         <button type="submit" class="btn btn-primary">بحث</button>
                                         <button type="reset" class="btn btn-secondary">إعادة تعيين</button>
