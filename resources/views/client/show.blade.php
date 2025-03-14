@@ -133,13 +133,13 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoices->first()->due_value ?? 0 }}</strong> <span
+                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
                                 class="text-muted">SAR</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
                         @if ($invoices->isNotEmpty())
                             <div class="text-muted">
-                                <strong class="text-dark">{{ $invoices->first()->due_value }}</strong> <span
+                                <strong class="text-dark">{{ $invoice_due ?? 0}}</strong> <span
                                     class="text-muted">SAR</span>
                                 <span class="d-block text-warning">مفتوح</span>
                             </div>
@@ -170,11 +170,14 @@
                         </div>
                     </div>
                     <div>
-                        <select class="form-control form-control-range">
-                            <option selected>اختر الحالة</option>
-                            <option>مدفوع</option>
-                            <option>غير مدفوع</option>
+                        <select class="form-control form-control-range" id="clientStatus" onchange="updateClientStatus(this)">
+                            <option disabled>اختر الحالة</option>
+                            <option class="btn btn-warning" value="مديون" {{ $client->notes == 'مديون' ? 'selected' : '' }}>مديون</option>
+                            <option class="btn btn-danger" value="دائن" {{ $client->notes == 'دائن' ? 'selected' : '' }}>دائن</option>
+                            <option class="btn btn-primary" value="مميز" {{ $client->notes == 'مميز' ? 'selected' : '' }}>مميز</option>
                         </select>
+                        
+                        
                     </div>
                 </div>
 
@@ -258,11 +261,12 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
                                         <i class="fas fa-wallet me-2"></i> <!-- أيقونة المحفظة -->
                                         اضافة رصيد افتتاحي
                                     </a>
                                 </li>
+                                
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center"
                                         href="{{ route('SupplyOrders.create') }}">
@@ -327,13 +331,13 @@
                             الفواتير <span class="badge badge-pill badge-primary">{{ $client->invoices->count() }}</span>
                         </a>
                     </li>
-                    @if ($client->notes && $client->notes->count() > 0)
+                   
     <li class="nav-item">
         <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" aria-controls="notes" role="tab" aria-selected="false">
-            الملاحظات <span class="badge badge-pill badge-primary">{{ $client->appointmentNotes->count() }}</span>
+            الملاحظات <span class="badge badge-pill badge-primary"></span>
         </a>
     </li>
-@endif
+
                     <li class="nav-item">
                         <a class="nav-link" id="payments-tab" data-toggle="tab" href="#payments"
                             aria-controls="invoices" role="tab" aria-selected="false">
@@ -1217,6 +1221,30 @@
                     
                 </div>
 
+<!-- Modal إضافة الرصيد الافتتاحي -->
+<div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="openingBalanceModalLabel">إضافة رصيد افتتاحي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="openingBalanceForm">
+                    <div class="mb-3">
+                        <label for="openingBalance" class="form-label">الرصيد الافتتاحي</label>
+                        <input type="number" class="form-control" id="openingBalance" name="opening_balance" value="{{ $client->opening_balance ?? 0 }}" step="0.01">
+                    </div>
+                    <input type="hidden" id="clientId" value="{{ $client->id }}">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-primary" onclick="saveOpeningBalance()">حفظ</button>
+            </div>
+        </div>
+    </div>
+</div>
 
             @endsection
             @section('scripts')
@@ -1231,6 +1259,56 @@
                         });
                     });
                 </script>
+<script>
+    function updateClientStatus(selectElement) {
+        var status = selectElement.value;  // الحصول على القيمة المحددة
+        var clientId = "{{ $client->id }}"; // تأكد من أن لديك معرف العميل في الصفحة
+
+        fetch(`/clients/clients_management/clients/${clientId}/update-status`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ notes: status })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("تم تحديث الحالة بنجاح!");
+            } else {
+                alert("حدث خطأ أثناء تحديث الحالة.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+</script>
+<script>
+    function saveOpeningBalance() {
+        let clientId = document.getElementById('clientId').value;
+        let openingBalance = document.getElementById('openingBalance').value;
+
+        fetch(`/clients/clients_management/${clientId}/update-opening-balance`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ opening_balance: openingBalance })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('تم تحديث الرصيد الافتتاحي بنجاح!');
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء التحديث، يرجى المحاولة مجدداً.');
+            }
+        })
+        .catch(error => console.error('❌ خطأ:', error));
+    }
+</script>
+
 
                 <meta name="csrf-token" content="{{ csrf_token() }}">
                 <script src="{{ asset('assets/js/applmintion.js') }}"></script>

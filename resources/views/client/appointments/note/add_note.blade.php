@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container mt-4">
-        <form action="{{ route('appointment.notes.store') }}" method="POST" enctype="multipart/form-data">
+        <form id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -47,19 +47,22 @@
                 <div class="card-body">
                     <!-- Date and Time -->
                     <div class="row mb-3">
-                        <div class="col-md-2">
+                        {{-- <div class="col-md-2">
                             <label for="date" class="form-label">التاريخ</label>
                             <input type="date" class="form-control" name="date" value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-2">
                             <label for="time" class="form-label">الوقت</label>
                             <input type="time" class="form-control" name="time" value="{{ date('H:i') }}">
-                        </div>
-                        <div class="form-group col-md-4">
+                        </div> --}}
+                        <div class="form-group col-md-6">
                             <label for="time" class="form-label">اختار الاجراء </label>
-                            <select class="form-control" id="action_type" name="action_type" required>
-                                <option value="1">اختر نوع الإجراء</option>
-                                <option value="action_type" class="text-primary">+ تعديل قائمة الإجراءات</option>
+                            <select class="form-control" id="action_type" name="process" required>
+                                <option value="">اختر الإجراء</option>
+                                <option value="متابعة هاتفية">متابعة هاتفية</option>
+                                <option value="تحصيل">تحصيل</option>
+                                <option value="توصيل">توصيل</option>
+                                <option value="حجز">حجز</option>
                             </select>
                             <input type="hidden" name="client_id" value="{{$id}}" >
                          
@@ -98,14 +101,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-6">
                             <label for="time" class="form-label">اختر الحالة</label>
 
-                            <select class="form-control" name="client_id">
+                            <select class="form-control" name="status">
                                 <option value="">اختر الحالة</option>
-                                @foreach ($status as $statu)
-                                    <option value="{{ $statu->id }}">{{ $statu->name }}</option>
-                                @endforeach
+                                <option class="btn btn-warning" value="مديون">مديون</option>
+                                <option class="btn btn-danger" value="دائن">دائن</option>
+                                <option class="btn btn-primary" value="مميز">مميز</option>
                             </select>
                         </div>
 
@@ -114,18 +117,18 @@
                     <!-- Notes -->
                     <div class="mb-3">
                         <label for="notes" class="form-label">ملاحظة</label>
-                        <textarea class="form-control" name="notes" rows="4"></textarea>
+                        <textarea class="form-control" name="description" rows="4"></textarea>
                     </div>
 
                     <!-- Attachments -->
-                    <div class="mt-4">
+                    {{-- <div class="mt-4">
                         <h5 class="mb-3">المرفقات</h5>
                         <div class="upload-area p-4 border rounded bg-light text-center">
                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                             <p class="mb-1">أفلت الملف هنا أو <label class="text-primary">اختر من جهازك</label></p>
                             <input type="file" name="attachments" class="form-control mt-3" multiple>
                         </div>
-                    </div>
+                    </div> --}}
 
                     <!-- Options -->
                     <div class="form-check mt-3">
@@ -207,14 +210,14 @@
             });
 
             // تحديث خيارات القائمة المنسدلة
-            function updateSelectOptions() {
-                let selectHtml = '<option value="">اختر نوع الإجراء</option>';
-                procedures.forEach(proc => {
-                    selectHtml += `<option value="${proc}">${proc}</option>`;
-                });
-                selectHtml += '<option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>';
-                $('#action_type').html(selectHtml);
-            }
+            // function updateSelectOptions() {
+            //     let selectHtml = '<option value="">اختر نوع الإجراء</option>';
+            //     procedures.forEach(proc => {
+            //         selectHtml += `<option value="${proc}">${proc}</option>`;
+            //     });
+            //     selectHtml += '<option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>';
+            //     $('#action_type').html(selectHtml);
+            // }
 
             // حفظ التغييرات
             $('#saveProcedures').on('click', function() {

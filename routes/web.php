@@ -11,7 +11,7 @@ use App\Http\Controllers\Sales\InvoicesController;
 use App\Http\Controllers\Sales\PeriodicInvoicesController;
 use App\Http\Controllers\Sales\QuoteController;
 use App\Http\Controllers\Sales\RevolvingInvoicesController;
-
+use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Commission\CommissionController;
@@ -22,17 +22,18 @@ use App\Http\Controllers\Sales\PaymentProcessController;
 use App\Http\Controllers\Sales\ReturnInvoiceController;
 use App\Http\Controllers\Sales\ShippingOptionsController;
 use App\Http\Controllers\Sales\SittingInvoiceController;
+use App\Models\Client;
 
 require __DIR__ . '/auth.php';
 
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath','check.branch'],
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'check.branch'],
     ],
     function () {
         Route::prefix('sales')
-            ->middleware(['auth','check.branch'])
+            ->middleware(['auth', 'check.branch'])
             ->group(function () {
                 # invoices routes
                 Route::prefix('invoices')
@@ -164,22 +165,52 @@ Route::group(
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
+                    Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
+                    Route::post('/clients/{id}/update-status', [ClientController::class, 'updateStatus']);
+
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
-                    Route::post('/store', [ClientController::class, 'store'])->name('clients.store');                    Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
+                    Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
+                    Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
+                    Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
+                    Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
+                    Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
                     Route::get('/show/client/{id}', [ClientController::class, 'show'])->name('clients.show');
                     Route::put('/update/{id}', [ClientController::class, 'update'])->name('clients.update');
                     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
                     Route::post('/delete-multiple', [ClientController::class, 'deleteMultiple'])->name('clients.deleteMultiple');
                     Route::get('/contacts', [ClientController::class, 'contacts'])->name('clients.contacts');
+                    Route::get('/first', [ClientController::class, 'getFirstClient'])->name('clients.first');
+                    Route::get('/next', [ClientController::class, 'getNextClient'])->name('clients.next');
+                    Route::get('/previous', [ClientController::class, 'getPreviousClient'])->name('clients.previous');
+                    Route::post('/{id}/update-opening-balance', [ClientController::class, 'updateOpeningBalance']);
+
                     Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])
-                    ->name('clients.assign-employees');
-                Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])
-                    ->name('clients.remove-employee');
-                Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])
-                    ->name('clients.get-assigned-employees');
+                        ->name('clients.assign-employees');
+                    Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])
+                        ->name('clients.remove-employee');
+                    Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])
+                        ->name('clients.get-assigned-employees');
+                        Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
+                    Route::get('/clients/search', function (Request $request) {
+
+                        $query = $request->query('query');
+
+                        $clients = Client::with('latestStatus')->where('trade_name', 'LIKE', "%{$query}%")
+                            ->orWhere('first_name', 'LIKE', "%{$query}%")
+                            ->orWhere('last_name', 'LIKE', "%{$query}%")
+                            ->orWhere('phone', 'LIKE', "%{$query}%")
+                            ->orWhere('mobile', 'LIKE', "%{$query}%")
+                            ->orWhere('city', 'LIKE', "%{$query}%")
+                            ->orWhere('region', 'LIKE', "%{$query}%")
+                            ->orWhere('email', 'LIKE', "%{$query}%")
+                            ->limit(10)
+                            ->get();
+
+                        return response()->json($clients);
+                    });
                 });
                 Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                 Route::get('/mang_client/{id}', [ClientController::class, 'mang_client_details'])->name('clients.mang_client_details');
@@ -192,7 +223,8 @@ Route::group(
                     Route::delete('/destroy/{id}', [PaymentProcessController::class, 'destroy'])->name('paymentsClient.destroy');
 
                     Route::put('/update/{id}', [PaymentProcessController::class, 'update'])->name('paymentsClient.update');
-                    Route::get('payments/invoice-details/{invoice_id}', [PaymentProcessController::class, 'getInvoiceDetails'])->name('paymentsClient.invoice-details');               });
+                    Route::get('payments/invoice-details/{invoice_id}', [PaymentProcessController::class, 'getInvoiceDetails'])->name('paymentsClient.invoice-details');
+                });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingInvoiceController::class, 'index'])->name('SittingInvoice.index');
                 });
@@ -227,8 +259,8 @@ Route::group(
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
 
-//العمولة
-          Route::prefix('commission')
+        //العمولة
+        Route::prefix('commission')
             ->middleware(['auth'])
             ->group(function () {
                 Route::get('/index', [CommissionController::class, 'index'])->name('commission.index');
@@ -237,19 +269,13 @@ Route::group(
                 Route::get('/products/search', [CommissionController::class, 'searchProducts'])->name('products.search');
                 Route::get('/edit/{id}', [CommissionController::class, 'edit'])->name('commission.edit');
                 Route::post('/update/{id}', [CommissionController::class, 'update'])->name('commission.update');
-
             });
-            Route::prefix('logs')
+        Route::prefix('logs')
             ->middleware(['auth'])
             ->group(function () {
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
-
-
-
             });
-
     },
 
+
 );
-
-
