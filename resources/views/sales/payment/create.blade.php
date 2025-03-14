@@ -75,10 +75,10 @@
                         <select name="payment_type" class="form-control" id="payment_method" required>
                             <option value="">اختر نوع الدفع</option>
                             @foreach ($payments as $payment)
-                            <option value="{{$payment->id}}">{{$payment->name}}</option> 
+                            <option value="{{$payment->id}}">{{$payment->name}}</option>
                             @endforeach
-                          
-                           
+
+
                         </select>
                     </div>
                     <div class="col-md-6">

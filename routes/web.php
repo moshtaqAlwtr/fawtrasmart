@@ -90,6 +90,7 @@ Route::group(
                     Route::get('/create', [QuoteController::class, 'create'])->name('questions.create');
                     Route::get('/show/{id}', [QuoteController::class, 'show'])->name('questions.show');
                     Route::get('/edit/{id}', [QuoteController::class, 'edit'])->name('questions.edit');
+                    Route::get('/logsaction', [QuoteController::class, 'logsaction'])->name('questions.logsaction');
                     Route::post('/store', [QuoteController::class, 'store'])->name('questions.store');
                     Route::put('/update/{id}', [QuoteController::class, 'update'])->name('questions.update');
                     Route::post('/convertToInvoice/{id}', [QuoteController::class, 'convertToInvoice'])->name('questions.convertToInvoice');
@@ -164,6 +165,7 @@ Route::group(
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
+                    Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
@@ -270,5 +272,6 @@ Route::group(
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
     },
+
 
 );

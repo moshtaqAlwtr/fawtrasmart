@@ -30,12 +30,12 @@ class QuoteController extends Controller
 
         // البحث حسب رقم عرض السعر
         if ($request->filled('id')) {
-            $query->where('quotes_number', 'LIKE', '%' . $request->id . '%');
+            $query->where('id', 'LIKE', '%' . $request->id . '%');
         }
 
         // البحث حسب الحالة
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status', intval($request->status)); // تحويل القيمة إلى integer
         }
 
         // البحث حسب العملة
@@ -104,7 +104,7 @@ class QuoteController extends Controller
 
         // البحث حسب مسؤول المبيعات
         if ($request->filled('sales_representative')) {
-            $query->where('sales_representative_id', $request->sales_representative);
+            $query->where('created_by', $request->sales_representative);
         }
 
         // البحث حسب حالة الدفع
@@ -553,5 +553,8 @@ class QuoteController extends Controller
                 ->back()
                 ->with('error', 'حدث خطأ أثناء التحويل: ' . $e->getMessage());
         }
+    }
+    public  function   logsaction(Request $request){
+        return view('test');
     }
 }
