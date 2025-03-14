@@ -15,6 +15,7 @@ use App\Models\AppointmentNote;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\CategoriesClient;
+use App\Models\ClientRelation;
 use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\Memberships;
@@ -370,6 +371,8 @@ class ClientController extends Controller
 
         // تحميل الفواتير المرتبطة بالعميل
         $invoices = $client->invoices;
+        $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
+
 
         // تحميل جميع المدفوعات المرتبطة بالعميل
          $payments = $client->payments;
@@ -380,8 +383,19 @@ class ClientController extends Controller
         // تحقق من الملاحظات
 
 
-        return view('client.show', compact('client', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+        return view('client.show', compact('client','invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
+
+   
+    public function updateStatus(Request $request, $id)
+{
+    $client = Client::findOrFail($id);
+    $client->notes = $request->notes; // تحديث الملاحظات بالحالة الجديدة
+    $client->save();
+
+    return response()->json(['success' => true]);
+}
+
     public function contact()
     {
         $clients = Client::all();
@@ -433,9 +447,9 @@ class ClientController extends Controller
 
         return view('client.contacts.show_contant', compact('client', 'notes'));
     }
-    public function mang_client()
+    public function mang_client(Request $request)
     {
-        $clients = Client::orderBy('created_at', 'desc')->get();
+        $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
         $notes = AppointmentNote::with(['user'])
             ->latest()
             ->get();
@@ -444,8 +458,180 @@ class ClientController extends Controller
 
         // Get the first client by default
         $client = $clients->first();
+       
+        $categories = CategoriesClient::all();
+        $ClientRelations =  ClientRelation::where('client_id', $request->client_id)->get();
 
-        return view('client.relestion_mang_client', compact('clients', 'employees', 'notes', 'appointments', 'client'));
+        do {
+            $lastClient = Client::orderBy('code', 'desc')->first();
+            $newCode = $lastClient ? $lastClient->code + 1 : 1;
+        } while (Client::where('code', $newCode)->exists());
+        
+
+        return view('client.relestion_mang_client', compact('clients','ClientRelations','categories','lastClient','newCode', 'employees', 'notes', 'appointments', 'client'));
+    }
+    public function getAllClients()
+{
+    $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
+    return response()->json($clients);
+}
+    public function getClientNotes($client_id)
+    {
+        try {
+            $ClientRelations = ClientRelation::where('client_id', $client_id)->get();
+    
+            // التحقق من وجود ملاحظات
+            if ($ClientRelations->isEmpty()) {
+                return response()->json(['message' => 'لا توجد ملاحظات لهذا العميل.'], 200);
+            }
+    
+            return response()->json($ClientRelations, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'حدث خطأ أثناء جلب البيانات', 'details' => $e->getMessage()], 500);
+        }
+    }
+    public function getNextClient(Request $request)
+{
+    $currentClientId = $request->query('currentClientId');
+    $nextClient = Client::where('id', '>', $currentClientId)->orderBy('id', 'asc')->first();
+
+    if ($nextClient) {
+        $nextClient->load('notes'); // تحميل الملاحظات المرتبطة
+        return response()->json(['client' => $nextClient]);
+    }
+
+    return response()->json(['client' => null]);
+}
+public function updateOpeningBalance(Request $request, $id)
+{
+    $client = Client::findOrFail($id);
+    $client->opening_balance = $request->opening_balance;
+    $client->save();
+
+    return response()->json(['success' => true]);
+}
+
+public function getPreviousClient(Request $request)
+{
+    $currentClientId = $request->query('currentClientId');
+    $previousClient = Client::where('id', '<', $currentClientId)->orderBy('id', 'desc')->first();
+
+    if ($previousClient) {
+        $previousClient->load('notes'); // تحميل الملاحظات المرتبطة
+        return response()->json(['client' => $previousClient]);
+    }
+
+    return response()->json(['client' => null]);
+}
+public function getFirstClient()
+{
+    $firstClient = Client::orderBy('id', 'asc')->first();
+    if ($firstClient) {
+        $firstClient->load('notes');
+        return response()->json(['client' => $firstClient]);
+    }
+    return response()->json(['client' => null]);
+}
+    
+    public function mang_client_store(ClientRequest $request)
+    {
+        $data_request = $request->except('_token');
+
+        // إنشاء العميل
+        $client = new Client();
+
+        // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
+        $serialSetting = SerialSetting::where('section', 'customer')->first();
+
+        // إذا لم يتم العثور على إعدادات، نستخدم 1 كقيمة افتراضية
+        $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
+
+        // تعيين id للعميل الجديد باستخدام الرقم الحالي
+        // $client->id = $currentNumber;
+
+        // تعيين الكود للعميل الجديد (إذا كان الكود مطلوبًا أيضًا)
+        $client->code = $currentNumber;
+
+        // تعبئة البيانات الأخرى
+        $client->fill($data_request);
+
+        // معالجة الصورة
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $client->attachments = $filename;
+            }
+        }
+
+        // حفظ العميل
+        $client->save();
+        
+           // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'client',
+                'type_id' => $client->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة  عميل **' . $client->trade_name. '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
+        // زيادة الرقم الحالي بمقدار 1
+        if ($serialSetting) {
+            $serialSetting->update(['current_number' => $currentNumber + 1]);
+        }
+
+        // إنشاء حساب فرعي باستخدام trade_name
+        $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
+        if ($customers) {
+            $customerAccount = new Account();
+            $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
+            $customerAccount->client_id = $client->id;
+
+            // تعيين كود الحساب الفرعي بناءً على كود الحسابات
+            $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
+            $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
+
+            $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
+            $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
+            $customerAccount->is_active = false;
+            $customerAccount->save();
+        }
+
+        // حفظ جهات الاتصال المرتبطة بالعميل
+        if ($request->has('contacts') && is_array($request->contacts)) {
+            foreach ($request->contacts as $contact) {
+                $client->contacts()->create($contact);
+            }
+        }
+
+        return redirect()->route('clients.mang_client')->with('success', '✨ تم إضافة العميل بنجاح!');
+    }
+
+    public function addnotes(Request $request)
+    {
+      
+        
+         $ClientRelation = new ClientRelation();
+         $ClientRelation->status        = $request->status;
+         $ClientRelation->client_id        = $request->client_id;
+         $ClientRelation->process       = $request->process;
+         $ClientRelation->description   = $request->description;
+
+         $ClientRelation->save();
+         // تسجيل اشعار نظام جديد
+            ModelsLog::create([
+                'type' => 'notes',
+                // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة  ملاحظة **' . $request->description. '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
+
+            return redirect()->route('clients.mang_client')->with('success', '✨ تم إضافة العميل بنجاح!');
+
     }
 
     public function mang_client_details($id)

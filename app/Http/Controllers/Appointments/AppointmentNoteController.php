@@ -6,6 +6,9 @@ use App\Models\AppointmentNote;
 use App\Models\Client;
 use App\Models\Appointment;
 use App\Http\Requests\AppointmentNoteRequest;
+use App\Models\CategoriesClient;
+use App\Models\ClientRelation;
+use App\Models\Employee;
 use App\Models\Statuses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -30,10 +33,25 @@ class AppointmentNoteController extends Controller
      */
     public function create($id)
 {
-    $clients = Client::all(); // استبدل Client بالنموذج الصحيح
-$status=Statuses::all();
-    $appointments = Appointment::all(); // استبدل Appointment بالنموذج الصحيح
-    return view('client.appointments.note.add_note', compact('clients', 'appointments', 'id', 'status'));
+    $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
+    $notes = AppointmentNote::with(['user'])
+        ->latest()
+        ->get();
+    $appointments = Appointment::all();
+    $employees = Employee::all();
+
+    // Get the first client by default
+    $client = $clients->first();
+   
+    $categories = CategoriesClient::all();
+   
+
+    do {
+        $lastClient = Client::orderBy('code', 'desc')->first();
+        $newCode = $lastClient ? $lastClient->code + 1 : 1;
+    } while (Client::where('code', $newCode)->exists());
+    
+    return view('client.appointments.note.add_note', compact('clients', 'appointments', 'id'));
 }
     /**
      * حفظ ملاحظة جديدة

@@ -36,6 +36,7 @@ Route::group(
             Route::get('/customerPayments', [CustomerReportController::class, 'customerPayments'])->name('ClientReport.customerPayments');
             Route::get('/customerAppointments', [CustomerReportController::class, 'customerAppointments'])->name('ClientReport.customerAppointments');
             Route::get('/customerInstallments', [CustomerReportController::class, 'customerInstallments'])->name('ClientReport.customerInstallments');
+            Route::get('/invoices/month/{month}', [CustomerReportController::class, 'getInvoicesByMonth']);
             Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
         });
         Route::prefix('ReportsPurchases')->group(function () {
