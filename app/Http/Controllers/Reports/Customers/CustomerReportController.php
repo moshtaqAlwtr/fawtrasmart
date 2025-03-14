@@ -90,7 +90,7 @@ class CustomerReportController extends Controller
                 'client_code' => $invoice->client ? $invoice->client->code : 'غير محدد',
                 'account_number' => $invoice->client && $invoice->client->account ? $invoice->client->account->code : 'غير محدد',
                 'client_name' => $invoice->client ? $invoice->client->trade_name : 'غير محدد',
-                'branch' => $invoice->branch ? $invoice->branch->name : 'غير محدد',
+                'branch' => $invoice->employee ? $invoice->employee->branch->name : 'غير محدد',
                 'today' => $todayAmount, // إذا كانت الفاتورة اليوم
                 'days1to30' => $days1to30, // الفواتير بين 1 و 30 يوم
                 'days31to60' => $days31to60, // الفواتير بين 31 و 60 يوم
@@ -100,22 +100,6 @@ class CustomerReportController extends Controller
                 'total_due' => $remainingAmount, // إجمالي المبلغ المتبقي
             ];
         });
-
-        // حساب الإجماليات
-        $totals = [
-            'client_name' => 'الإجمالي',
-            'today' => $reportData->sum('today'),
-            'days1to30' => $reportData->sum('days1to30'),
-            'days31to60' => $reportData->sum('days31to60'),
-            'days61to90' => $reportData->sum('days61to90'),
-            'days91to120' => $reportData->sum('days91to120'),
-            'daysOver120' => $reportData->sum('daysOver120'),
-            'total_due' => $reportData->sum('total_due'),
-        ];
-
-        // إضافة صف الإجمالي إلى البيانات
-        $reportData->push($totals);
-
         // Fetch additional data for filters
         $branches = Branch::all(); // Assuming you have a Branch model
         $customers = Client::all(); // Assuming you have a Client model
@@ -180,7 +164,9 @@ class CustomerReportController extends Controller
         $invoices = $query->get();
 
         // إعداد البيانات للتقرير
-        $reportData = $invoices->map(function ($invoice) {
+        $invoiceCounts = []; // مصفوفة لحفظ عدد الفواتير لكل موظف
+        $monthlyInvoiceCounts = array_fill(0, 12, 0); // مصفوفة لحفظ عدد الفواتير لكل شهر
+        $reportData = $invoices->map(function ($invoice) use (&$invoiceCounts, &$monthlyInvoiceCounts) {
             $remainingAmount = $invoice->calculateRemainingAmount(); // المبلغ المتبقي
             $invoiceDate = $invoice->invoice_date; // تاريخ الفاتورة
             $today = now()->startOfDay(); // تاريخ اليوم بدون وقت
@@ -211,6 +197,17 @@ class CustomerReportController extends Controller
                 $daysOver120 = $remainingAmount;
             }
 
+            // زيادة عدد الفواتير للموظف
+            $salesManagerId = $invoice->sales_manager_id;
+            if (!isset($invoiceCounts[$salesManagerId])) {
+                $invoiceCounts[$salesManagerId] = 0;
+            }
+            $invoiceCounts[$salesManagerId]++;
+
+            // حساب عدد الفواتير لكل شهر
+            $monthIndex = $invoiceDate->format('n') - 1; // 0-indexed month
+            $monthlyInvoiceCounts[$monthIndex]++;
+
             return [
                 'client_code' => $invoice->client ? $invoice->client->code : 'غير محدد',
                 'account_number' => $invoice->client && $invoice->client->account ? $invoice->client->account->code : 'غير محدد',
@@ -223,26 +220,9 @@ class CustomerReportController extends Controller
                 'days91to120' => $days91to120, // الفواتير بين 91 و 120 يوم
                 'daysOver120' => $daysOver120, // الفواتير التي تجاوزت 120 يوم
                 'total_due' => $remainingAmount, // إجمالي المبلغ المتبقي
+                'invoice_count' => $invoiceCounts[$salesManagerId], // إضافة عدد الفواتير
             ];
         });
-
-        // حساب الإجماليات
-        $totals = [
-            'client_code' => 'الإجمالي',
-            'account_number' => '',
-            'client_name' => '',
-            'branch' => '',
-            'today' => $reportData->sum('today'),
-            'days1to30' => $reportData->sum('days1to30'),
-            'days31to60' => $reportData->sum('days31to60'),
-            'days61to90' => $reportData->sum('days61to90'),
-            'days91to120' => $reportData->sum('days91to120'),
-            'daysOver120' => $reportData->sum('daysOver120'),
-            'total_due' => $reportData->sum('total_due'),
-        ];
-
-        // إضافة صف الإجمالي إلى البيانات
-        $reportData->push($totals);
 
         // Fetch additional data for filters
         $branches = Branch::all();
@@ -256,9 +236,9 @@ class CustomerReportController extends Controller
             'customers' => $customers,
             'salesManagers' => $salesManagers,
             'categories' => $categories,
+            'monthlyInvoiceData' => $monthlyInvoiceCounts, // Pass the monthly invoice counts to the view
         ]);
-    }
-    // عرض دليل العملاء
+    }  // عرض دليل العملاء
     public function customerGuide(Request $request)
     {
         $query = Client::query();

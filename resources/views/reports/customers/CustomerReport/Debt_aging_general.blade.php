@@ -1,12 +1,9 @@
 @extends('master')
-
 @section('title')
     تقريراعمار الديون الاستاذ العام
 @stop
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-
     <style>
         .card {
             border: none;
@@ -81,7 +78,6 @@
         }
     </style>
 @endsection
-
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -119,17 +115,17 @@
                             <label for="days" class="form-label">الفترة (أيام):</label>
                             <input type="number" id="days" name="days" class="form-control" value="30">
                         </div>
-
                         <div class="col-md-3">
-                            <label for="financial-year" class="form-label">السنة المالية:</label>
-                            <select id="financial-year" name="financial_year[]" class="form-control" multiple>
-                                <option value="">اختر السنة المالية</option>
-                                <option value="current">السنة المفتوحة</option>
-                                <option value="all">جميع السنوات</option>
-                                @for ($year = date('Y'); $year >= date('Y') - 10; $year--)
-                                    <option value="{{ $year }}">{{ $year }}</option>
-                                @endfor
-                            </select>
+                            <div class="form-group">
+                                <label for="financial-year">السنة المالية:</label>
+                                <select id="financial-year" name="financial_year[]" class="form-control select2" multiple>
+                                    <option value="current">السنة المفتوحة</option>
+                                    <option value="all">جميع السنوات</option>
+                                    @for ($year = date('Y'); $year >= date('Y') - 10; $year--)
+                                        <option value="{{ $year }}">{{ $year }}</option>
+                                    @endfor
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Customer Type Filter -->
@@ -142,7 +138,6 @@
                                 @endforeach
                             </select>
                         </div>
-
                         <!-- Customer Filter -->
                         <div class="col-md-3">
                             <label for="customer" class="form-label">العميل:</label>
@@ -176,7 +171,6 @@
             </div>
         </div>
     </div>
-
     <!-- Export & Print Buttons -->
     <div class="card">
         <div class="card-body">
@@ -195,7 +189,6 @@
             </div>
         </div>
     </div>
-
     <!-- Chart Section -->
     <div class="card">
         <div class="card-body">
@@ -205,7 +198,6 @@
             </div>
         </div>
     </div>
-
     <!-- Table Section -->
     <div class="table-container">
         <h5 class="text-center mb-4">أعمار الديون (حساب الأستاذ) - تجميع حسب العميل</h5>
@@ -259,25 +251,23 @@
             </tfoot>
         </table>
     </div>
-
 @endsection
-
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
-    <script>
-        // Chart Initialization
-        const ctx = document.getElementById('chart').getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, 'rgba(0, 191, 255, 1)');
-        gradient.addColorStop(1, 'rgba(72, 61, 139, 0.5)');
+<script>
+    const ctx = document.getElementById('chart').getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(0, 191, 255, 1)'); // لون بداية التدرج
+    gradient.addColorStop(1, 'rgba(72, 61, 139, 0.5)'); // لون نهاية التدرج
 
-        const myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['اليوم', '1 - 30 يوم', '31 - 60 يوم', '61 - 90 يوم', '91 - 120 يوم', '+120 يوم'],
-                datasets: [{
-                    label: 'إجمالي الديون',
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['اليوم', '1 - 30 يوم', '31 - 60 يوم', '61 - 90 يوم', '91 - 120 يوم', '+120 يوم'],
+            datasets: [
+                {
+                    label: 'إجمالي الديون (SAR)',
                     data: [
                         {{ $reportData->sum('today') }},
                         {{ $reportData->sum('days1to30') }},
@@ -285,42 +275,112 @@
                         {{ $reportData->sum('days61to90') }},
                         {{ $reportData->sum('days91to120') }},
                         {{ $reportData->sum('daysOver120') }}
-
-
                     ],
                     backgroundColor: gradient,
                     borderColor: '#4a00e0',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+                    borderWidth: 1,
+                    hoverBackgroundColor: 'rgba(0, 191, 255, 0.8)', // لون عند التمرير
+                    hoverBorderColor: '#4a00e0',
+                },
+                {
+                    label: 'عدد الفواتير لكل موظف',
+                    data: [
+                        @foreach ($reportData as $data)
+                            {{ $data['invoice_count'] }},
+                        @endforeach
+                    ],
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    borderColor: '#ff6384',
+                    borderWidth: 1,
+                    hoverBackgroundColor: 'rgba(255, 99, 132, 0.8)', // لون عند التمرير
+                    hoverBorderColor: '#ff6384',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'تقرير أعمار الديون (حساب الأستاذ)',
+                    font: {
+                        size: 18,
+                        weight: 'bold'
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    titleFont: {
+                        size: 16,
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        size: 14
+                    },
+                    footerFont: {
+                        size: 12
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 14
+                        }
                     }
                 }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'فترات الأعمار',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                },
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            if (value >= 1000) {
+                                return (value / 1000) + 'K'; // تقسيم على الألف وإضافة K
+                            }
+                            return value;
+                        },
+                        font: {
+                            size: 14
+                        }
+                    },
+                    grid: {
+                        display: true,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'المبلغ (SAR)',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    },
+                    beginAtZero: true
+                }
+            },
+            animation: {
+                duration: 1000, // مدة الرسوم المتحركة
+                easing: 'easeInOutQuad' // نوع الرسوم المتحركة
             }
-        });
-
-        // Filter Data Function
-        function filterData() {
-            const branch = document.getElementById('branch').value;
-            const customerType = document.getElementById('customer-type').value;
-            const customer = document.getElementById('customer').value;
-            const salesManager = document.getElementById('sales-manager').value;
-
-            // Perform filtering logic here (e.g., AJAX request to fetch filtered data)
-            // Update the table and chart based on the filtered data
         }
-
-        // Export to Excel Function
-        function exportToExcel() {
-    const table = document.getElementById('reportTable');
-    const ws = XLSX.utils.table_to_sheet(table);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Report");
-    XLSX.writeFile(wb, "debt_report.xlsx");
-}
-    </script>
+    });
+</script>
 @endsection
