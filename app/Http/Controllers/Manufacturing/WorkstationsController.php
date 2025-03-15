@@ -17,7 +17,7 @@ class WorkstationsController extends Controller
     public function index()
     {
         $workstations = WorkStations::select()->get();
-        return view('Manufacturing.Workstations.index',compact('workstations'));
+        return view('manufacturing.workstations.index',compact('workstations'));
     }
     public function create(){
         $record_count = DB::table('work_stations')->count();

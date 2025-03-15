@@ -16,7 +16,7 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        return view('Manufacturing.Settings.index');
+        return view('manufacturing.settings.index');
     }
     public function General()
     {
