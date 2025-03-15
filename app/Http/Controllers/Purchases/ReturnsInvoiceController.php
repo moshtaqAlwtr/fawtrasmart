@@ -126,7 +126,7 @@ class ReturnsInvoiceController extends Controller
         $suppliers = Supplier::all();
         $users = User::all();
 
-        return view('Purchases.Returns.index', compact('invoices', 'suppliers', 'users'));
+        return view('purchases.returns.index', compact('invoices', 'suppliers', 'users'));
     }
     public function create()
     {

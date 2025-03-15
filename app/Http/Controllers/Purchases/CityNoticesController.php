@@ -123,7 +123,7 @@ class CityNoticesController extends Controller
         $suppliers = Supplier::all();
         $users = User::all();
 
-        return view('Purchases.city_notices.index', compact('cityNotices', 'suppliers', 'users'));
+        return view('purchases.city_notices.index', compact('cityNotices', 'suppliers', 'users'));
     }
     public function create()
     {
@@ -131,7 +131,7 @@ class CityNoticesController extends Controller
         $items = Product::all();
         $users = User::all();
 
-        return view('Purchases.city_notices.create', compact('suppliers', 'items', 'users'));
+        return view('purchases.city_notices.create', compact('suppliers', 'items', 'users'));
     }
 
     public function store(Request $request)

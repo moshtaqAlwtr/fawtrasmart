@@ -183,7 +183,7 @@ class PaymentProcessController extends Controller
         $payments = $query->paginate(25);
 
 
-        return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
+        return view('purchases.supplier_payments.index', compact('payments', 'employees'));
     }
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
 {

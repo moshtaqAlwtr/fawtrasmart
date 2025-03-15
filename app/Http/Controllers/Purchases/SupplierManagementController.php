@@ -108,7 +108,7 @@ class SupplierManagementController extends Controller
         $lastSupplier = Supplier::orderBy('id', 'desc')->first();
         $nextNumber = $lastSupplier ? $lastSupplier->id + 1 : 1;
 
-        return view('Purchases.Supplier_Management.create', compact('nextNumber'));
+        return view('purchases.supplier_management.create', compact('nextNumber'));
     }
 
     public function store(SupplierRequest $request)
