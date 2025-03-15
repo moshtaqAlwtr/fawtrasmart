@@ -315,6 +315,7 @@ class InvoicesController extends Controller
                     $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
                 }
 
+
                 // إرجاع store_id
                 // return $storeId;
 
@@ -498,6 +499,26 @@ class InvoicesController extends Controller
                     ),
                     'created_by' => auth()->id(), // ID المستخدم الحالي
                 ]);
+                $user = Auth::user();
+                if ($user && $user->employee_id) {
+                    // البحث عن الخزينة المرتبطة بالموظف
+                    $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+                    if ($treasuryEmployee) {
+                        $treasury = Treasury::find($treasuryEmployee->treasury_id);
+                        if ($treasury) {
+                            // تحديث رصيد الخزينة
+                            $treasury->balance += $total_with_tax;
+                            $treasury->save();
+
+                            // تحديث رصيد الحساب المرتبط بالخزينة
+                            $account = Account::where('treasury_id', $treasury->id)->first();
+                            if ($account) {
+                                $account->balance += $total_with_tax;
+                                $account->save();
+                            }
+                        }
+                    }
+                }
 
             // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
             $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
