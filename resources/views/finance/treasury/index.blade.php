@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-خزائن وحسابات بنكية
+    خزائن وحسابات بنكية
 @stop
 
 @section('content')
@@ -60,7 +60,8 @@
                         <div class="form-body row">
                             <div class="form-group col-md-3">
                                 <label for="">البحث بكلمة مفتاحية</label>
-                                <input type="text" class="form-control" placeholder="ادخل الإسم او الكود" name="keywords">
+                                <input type="text" class="form-control" placeholder="ادخل الإسم او الكود"
+                                    name="keywords">
                             </div>
 
                             <div class="form-group col-md-3">
@@ -94,7 +95,8 @@
 
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-                            <a href="{{ route('treasury.index') }}" class="btn btn-outline-danger waves-effect waves-light">الغاء الفلترة</a>
+                            <a href="{{ route('treasury.index') }}"
+                                class="btn btn-outline-danger waves-effect waves-light">الغاء الفلترة</a>
                         </div>
                     </form>
 
@@ -121,48 +123,87 @@
                                 @foreach ($treasuries as $treasury)
                                     <tr>
                                         <td>
-                                            <p><strong>@if($treasury->type_accont == 0) <i class="fa fa-archive"></i> @else <i class="fa fa-bank"></i> @endif {{ $treasury->name }}</strong></p>
-                                            <small>@if($treasury->type_accont == 0) خزينة @else حساب بنكي @endif</small>
+                                            <p><strong>
+                                                    @if ($treasury->type_accont == 0)
+                                                        <i class="fa fa-archive"></i>
+                                                    @else
+                                                        <i class="fa fa-bank"></i>
+                                                    @endif {{ $treasury->name }}
+                                                </strong></p>
+                                            <small>
+                                                @if ($treasury->type_accont == 0)
+                                                    خزينة
+                                                @else
+                                                    حساب بنكي
+                                                @endif
+                                            </small>
                                         </td>
                                         <td>{{ $treasury->description }}</td>
-                                        <td>{{  $treasury->balance }}</td>
+                                        <td>{{ $treasury->balance }}</td>
                                         <td>
-                                            @if ($treasury->status == 0)
-                                                <span class="badge badge-pill badge badge-success">نشط</span>
+                                            @if ($treasury->is_active == 0)
+                                                <div class="badge badge-pill badge-success">نشط</div>
                                             @else
-                                                <span class="badge badge-pill badge badge-danger">غير نشط</span>
+                                                <div class="badge badge-pill badge-danger">غير نشط</div>
                                             @endif
+                                        </td>
                                         </td>
                                         <td>
                                             <div class="btn-group">
                                                 <div class="dropdown">
-                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
+                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                        type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false"></button>
                                                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                         <li>
-                                                            <a class="dropdown-item" href="{{ route('treasury.show',$treasury->id) }}">
-                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('treasury.show', $treasury->id) }}">
+                                                                <i class="fa fa-eye me-2 text-primary"></i> عرض
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            @if($treasury->type == 0)
-                                                                <a class="dropdown-item" href="{{ route('treasury.edit',$treasury->id) }}">
-                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                            @if ($treasury->type_accont == 1)
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('treasury.edit_account', $treasury->id) }}">
+                                                                    <i class="fa fa-edit me-2 text-success"></i> تعديل
                                                                 </a>
                                                             @else
-                                                                <a class="dropdown-item" href="{{ route('treasury.edit_account_bank',$treasury->id) }}">
-                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('treasury.edit', $treasury->id) }}">
+                                                                    <i class="fa fa-edit me-2 text-success"></i> تعديل
                                                                 </a>
                                                             @endif
                                                         </li>
-
                                                         <li>
-                                                            {{-- <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $product->id }}">
-                                                                <i class="fa fa-trash me-2"></i>حذف
-                                                            </a> --}}
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('treasury.updateStatus', $treasury->id) }}">
+                                                                @if ($treasury->is_active == 0)
+                                                                    <i class="fa fa-ban me-2 text-danger"></i> تعطيل
+                                                                @else
+                                                                    <i class="fa fa-check me-2 text-success"></i> تفعيل
+                                                                @endif
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="{{ route('treasury.transferCreate', $treasury->id) }}">
+                                                                <i class="fa fa-exchange-alt me-2 text-info"></i> تحويل
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item" href="">
+                                                                <i class="fa fa-star me-2 text-secondary"></i> اجعله رئيسي
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item text-danger" href="#"
+                                                                data-toggle="modal" data-target="">
+                                                                <i class="fa fa-trash me-2"></i> حذف
+                                                            </a>
                                                         </li>
                                                     </div>
                                                 </div>
                                             </div>
+
                                         </td>
                                     </tr>
                                 @endforeach

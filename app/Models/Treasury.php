@@ -10,7 +10,7 @@ class Treasury extends Model
     use HasFactory;
 
     protected $fillable = [
-        'id', 'name', 'type', 'status', 'description', 'bank_name', 'account_number', 'currency',
+        'id', 'name', 'type', 'status', 'description', 'bank_name', 'account_number', 'currency','is_main',
         'deposit_permissions', 'withdraw_permissions', 'value_of_deposit_permissions',
         'value_of_withdraw_permissions', 'created_at', 'updated_at'
     ];

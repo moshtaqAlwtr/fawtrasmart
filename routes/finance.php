@@ -62,9 +62,12 @@ Route::group(
             Route::prefix('treasury')->group(function () {
                 Route::get('/index',[TreasuryController::class,'index'])->name('treasury.index');
                 Route::post('/transfer', [TreasuryController::class, 'transfer'])->name('treasury.transfer');
-                Route::get('/transferin', [TreasuryController::class, 'transferin'])->name('treasury.transferin');
-                
+                Route::post('/transferTreasury', [TreasuryController::class, 'transferTreasury'])->name('treasury.transferTreasury');
+                Route::get('/transferCreate', [TreasuryController::class, 'transferCreate'])->name('treasury.transferCreate');
+
                 Route::get('/create',[TreasuryController::class,'create'])->name('treasury.create');
+                Route::get('/updateStatus/{id}',[TreasuryController::class,'updateStatus'])->name('treasury.updateStatus');
+
                 Route::get('/create/account_bank',[TreasuryController::class,'create_account_bank'])->name('treasury.create_account_bank');
                 Route::post('/store',[TreasuryController::class,'store'])->name('treasury.store');
                 Route::post('/store/account_bank',[TreasuryController::class,'store_account_bank'])->name('treasury.store_account_bank');
