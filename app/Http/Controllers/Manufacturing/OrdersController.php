@@ -22,7 +22,7 @@ class OrdersController extends Controller
 {
     public function index(){
         $orders = ManufacturOrders::select()->get();
-        return view('Manufacturing.Orders.index', compact('orders'));
+        return view('manufacturing.orders.index', compact('orders'));
     }
     public function create(){
         $record_count = DB::table('manufactur_orders')->count();
