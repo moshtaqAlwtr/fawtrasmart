@@ -56,7 +56,7 @@ class ReservationsController extends Controller
         $Employees  = Employee::all();
         $Clients     = Client::all();
        
-        return view("Reservations.create",compact('Products','Employees','Clients'));
+        return view("reservations.create",compact('Products','Employees','Clients'));
     }
     public function BookingSettings()
     {

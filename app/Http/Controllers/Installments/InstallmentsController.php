@@ -58,7 +58,7 @@ class InstallmentsController extends Controller
         }
 
         // Return a view with the installments data
-        return view('Installments.index', compact('installments'));
+        return view('installments.index', compact('installments'));
     }
 
     // Method to calculate the status of the installment
@@ -222,7 +222,7 @@ class InstallmentsController extends Controller
         }
 
         // Return a view with the installments data
-        return view('Installments.installments_detites.agreement_installments', compact('installments'));
+        return view('installments.installments_detites.agreement_installments', compact('installments'));
     }
 
     public function show($id)

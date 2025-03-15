@@ -17,7 +17,7 @@ class AddTypeController extends Controller
     public function index()
     {
         $unitstype = UnitType::all(); // استرداد البيانات من قاعدة البيانات
-        return view('Rental_Management.Settings.Add_Type.index', compact('unitstype')); // تمرير المتغير إلى العرض
+        return view('rental_management.settings.add_type.index', compact('unitstype')); // تمرير المتغير إلى العرض
     }
 
     public function create()
@@ -26,7 +26,7 @@ class AddTypeController extends Controller
         $pricingRules = PricingRule::all();
 
         // إرسال البيانات إلى الـ view
-        return view('Rental_Management.Settings.Add_Type.create', compact('pricingRules'));
+        return view('rental_management.settings.add_type.create', compact('pricingRules'));
     }
 
     public function show($id)
