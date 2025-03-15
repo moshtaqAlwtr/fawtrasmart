@@ -166,7 +166,7 @@ class AccountsChartController extends Controller
         $accounts = Account::with(['children', 'journalEntries'])->get();
        
         // $journalEntries = JournalEntryDetail::where('account_id', $id)->get();
-        return view('Accounts.accounts_chart.tree', compact('accounts'));
+        return view('accounts.accounts_chart.tree', compact('accounts'));
     }
     public function getAccountWithBalance($accountId)
 {

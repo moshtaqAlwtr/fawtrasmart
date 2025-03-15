@@ -45,7 +45,7 @@ class JournalEntryController extends Controller
         $entries = $query->get();
         $entryDetails = JournalEntryDetail::with('account')->get();
 
-        return view('Accounts.journal.index', compact('entries', 'entryDetails'));
+        return view('accounts.journal.index', compact('entries', 'entryDetails'));
     }
 
     public function create()
