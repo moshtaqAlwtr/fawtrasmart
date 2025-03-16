@@ -289,6 +289,11 @@
                                                             <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
                                                         </a>
                                                     </li>
+                                                    <a class="dropdown-item" href="{{ route('clients.send_info', $client->id) }}">
+                                                        <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات الدخول
+                                                    </a>
+                                                    
+                                                    
                                                     <li>
                                                         <a class="dropdown-item"
                                                             href="{{ route('clients.edit', $client->id) }}">

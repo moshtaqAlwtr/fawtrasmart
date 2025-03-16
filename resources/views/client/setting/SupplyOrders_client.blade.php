@@ -1,4 +1,4 @@
-@extends('master')
+@extends('client')
 
 @section('title')
     ادراة اوامر التوريد

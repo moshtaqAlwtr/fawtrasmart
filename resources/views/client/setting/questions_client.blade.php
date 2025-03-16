@@ -1,4 +1,4 @@
-@extends('master')
+@extends('client')
 
 @section('title')
     ادارة عروض السعر

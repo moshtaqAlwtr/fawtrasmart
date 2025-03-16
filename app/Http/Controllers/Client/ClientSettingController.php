@@ -13,6 +13,7 @@ use App\Models\Employee;
 use App\Models\GeneralClientSetting;
 use App\Models\Invoice;
 use App\Models\Quote;
+use App\Models\Statuses;
 use App\Models\SupplyOrder;
 use App\Models\User;
 
@@ -36,6 +37,36 @@ class ClientSettingController extends Controller
     {
         return view('client.setting.index');
     }
+
+    public function status()
+{
+    $statuses = Statuses::all();
+    return view('client.setting.status', compact('statuses'));
+}
+public function storeStatus(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255|unique:statuses,name',
+    ]);
+
+    Statuses::create([
+        'name' => $request->name
+    ]);
+
+    return redirect()->back()->with('success', 'تمت إضافة الحالة بنجاح.');
+}
+public function deleteStatus($id)
+{
+    $status = Statuses::find($id);
+
+    if (!$status) {
+        return redirect()->back()->with('error', 'الحالة غير موجودة.');
+    }
+
+    $status->delete();
+    return redirect()->back()->with('success', 'تم حذف الحالة بنجاح.');
+}
+
 
     /**
      * حفظ الإعدادات الجديدة
@@ -206,6 +237,75 @@ public function questions_client(Request $request)
     // إرجاع البيانات مع المتغيرات المطلوبة للعرض
     return view('client.setting.questions_client', compact('quotes', 'quotes_number', 'clients', 'users', 'employees'))
         ->with('search_params', $request->all()); // إرجاع معاملات البحث للحفاظ على حالة النموذج
+}
+
+
+public function profile()
+{
+       $user = User::find(auth()->user()->id);
+        $client = Client::findOrFail($user->client_id);
+        $employees = Employee::all();
+
+    return view('client.setting.profile', compact('client','employees'));
+   
+     
+}
+public function Client_store(Request $request)
+{
+    // استدعاء التحقق من البيانات باستخدام ClientRequest
+    $data_request = $request->except('_token');
+
+    // العثور على العميل باستخدام الـ ID
+    $user = User::find(auth()->user()->id);
+    $client = Client::findOrFail($user->client_id);
+
+    // حفظ نسخة من البيانات القديمة لتحديد التعديلات
+
+    // معالجة الصورة إذا تم تحميلها
+    if ($request->hasFile('attachments')) {
+        $file = $request->file('attachments');
+        if ($file->isValid()) {
+            // حذف الملف القديم إذا وجد
+            if ($client->attachments) {
+                $oldFile = public_path('uploads/clients/') . $client->attachments;
+                if (file_exists($oldFile)) {
+                    unlink($oldFile);
+                }
+            }
+
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/clients'), $filename);
+            $data_request['attachments'] = $filename;
+        }
+    }
+
+    // تحديث بيانات العميل
+    $client->update($data_request);
+
+    // تحديد الحقول التي تم تعديلها
+
+    // معالجة جهات الاتصال
+    if ($request->has('contacts') && is_array($request->contacts)) {
+        $existingContactIds = $client->contacts->pluck('id')->toArray();
+
+        foreach ($request->contacts as $contactData) {
+            if (isset($contactData['id']) && in_array($contactData['id'], $existingContactIds)) {
+                // تحديث جهة الاتصال الموجودة
+                $contact = $client->contacts()->find($contactData['id']);
+                $contact->update($contactData);
+            } else {
+                // إضافة جهة اتصال جديدة
+                $newContact = $client->contacts()->create($contactData);
+            }
+        }
+
+        // حذف جهات الاتصال غير المدرجة في الطلب
+        $newContactIds = array_column($request->contacts, 'id');
+        $contactsToDelete = array_diff($existingContactIds, $newContactIds);
+        $client->contacts()->whereIn('id', $contactsToDelete)->delete();
+    }
+
+    return redirect()->route('clients.personal')->with('success', '✨ تم تحديث العميل بنجاح!');
 }
     /**
      * تحديث الإعدادات

@@ -143,12 +143,17 @@
                                 @endif
                             </div>
                             <div class="status-badge px-2 py-1 rounded 
-                            @if($client->latestStatus->status == 'مديون') bg-warning
-                            @elseif($client->latestStatus->status == 'دائن') bg-danger
-                            @elseif($client->latestStatus->status == 'مميز') bg-primary
-                            @else bg-secondary
-                            @endif text-white">
-                            {{ $client->latestStatus->status }}
+                          @if(optional($client->latestStatus)->status == 'مديون') 
+    bg-warning
+@elseif(optional($client->latestStatus)->status == 'دائن') 
+    bg-danger
+@elseif(optional($client->latestStatus)->status == 'مميز') 
+    bg-primary
+@else 
+    bg-secondary
+@endif text-white">
+{{ optional($client->latestStatus)->status ?? 'غير محدد' }}
+
                         </div>
                         </div>
                     </div>

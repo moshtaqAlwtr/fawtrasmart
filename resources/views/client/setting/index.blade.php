@@ -60,7 +60,7 @@
                     <div class="card hover-card">
                         <div class="card-content">
                             <div class="card-body setting">
-                                <a href="{{ route('template_unit.index') }}">
+                                <a href="{{ route('clients.status') }}">
                                     <img class="p-3" src="{{ asset('app-assets/images/icons8-pager-100.png') }}" alt="img placeholder">
                                     <h5><strong>حالات متابعة العميل</strong></h5>
                                 </a>

@@ -48,6 +48,7 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'check.branch' => \App\Http\Middleware\CheckBranchStatus::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'client.access' => \App\Http\Middleware\ClientAccessMiddleware::class,
         // ...
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,

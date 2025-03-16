@@ -246,13 +246,15 @@ class ClientController extends Controller
 
         return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
-    public function send_email()
+    public function send_email($id)
     {
-        $employee = User::where('client_id', 1608)->first();
+        
+          $employee = User::where('client_id', $id)->first();
 
-        if (!$employee) {
-            return response()->json(['message' => 'الموظف غير موجود'], 404);
+          if (!$employee || empty($employee->email)) {
+            return redirect()->back()->with('error', 'العميل لا يمتلك بريدًا إلكترونيًا للدخول.');
         }
+        
 
         // توليد كلمة مرور جديدة عشوائية
         $newPassword = $this->generateRandomPassword();

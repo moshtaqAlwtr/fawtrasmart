@@ -21,31 +21,14 @@
 
         <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
             {{-- الرئيسيه --}}
-            <li class=" nav-item {{ request()->is("$getLocal/dashboard/*") ? 'active open' : '' }}">
-                <a href="index.html"><i class="feather icon-home"></i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Dashboards') }}</span><span class="badge badge badge-warning badge-pill float-right mr-2">2</span></a>
-                <ul class="menu-content">
-                    <li><a href="{{ route('dashboard_sales.index') }}"><i
-                                class="feather icon-circle {{ request()->is("$getLocal/dashboard/sales/index") ? 'active' : '' }}"></i><span
-                                class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.sales') }}</span></a>
-                    </li>
-                    <li><a href="dashboard-analytics.html"><i class="feather icon-circle"></i><span class="menu-item"
-                                data-i18n="Analytics">{{ trans('main_trans.Human_Resources') }}</span></a>
-                    </li>
-                </ul>
-            </li>
+           
 
             {{-- المبيعات --}}
           
           
 
 
-                <li class="nav-item {{ request()->is("$getLocal/sales/*") ? 'active open' : '' }}">
-                    <a href="index.html"><i class="feather icon-align-justify">
-                        </i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.sales') }}</span>
-                    </a>
-                   
-
-                </li>
+             
               
          
                 
@@ -63,13 +46,13 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('clients.appointments_client') }}">
+                            <a href="{{ route('clients.questions_client') }}">
                                 <i class="feather icon-circle"></i>
                                 <span class="menu-item" data-i18n="POS Reports">اوامر الشغل</span>
                             </a>
                         </li>
-                        <li>
-                            <a href="{{ route('pos.settings.index') }}">
+                        <li>  
+                            <a href="{{ route('clients.appointments_client') }}">
                                 <i class="feather icon-circle"></i>
                                 <span class="menu-item"
                                     data-i18n="POS Settings">المواعيد</span>

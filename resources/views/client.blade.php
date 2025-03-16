@@ -77,7 +77,7 @@
 <body class="vertical-layout vertical-menu-modern 2-columns  navbar-floating footer-static   menu-collapsed" data-open="click" data-menu="vertical-menu-modern" data-col="2-columns">
 
     <!-- BEGIN: Header-->
-        @include('layouts.header')
+        @include('layouts.header_client')
     <!-- END: Header-->
 
 

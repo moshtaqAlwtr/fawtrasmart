@@ -33,6 +33,16 @@ Route::group(
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'check.branch'],
     ],
     function () {
+        Route::middleware(['auth', 'client.access'])->group(function () {
+            Route::get('/personal', [ClientSettingController::class, 'personal'])->name('clients.personal');
+            Route::get('/invoice/client', [ClientSettingController::class, 'invoice_client'])->name('clients.invoice_client'); // الفواتير
+            Route::get('/appointments/client', [ClientSettingController::class, 'appointments_client'])->name('clients.appointments_client'); // المواعيد
+            Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client'); // أوامر الشغل
+            Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الأسعار
+            Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
+            Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
+            
+        });
         Route::prefix('sales')
             ->middleware(['auth', 'check.branch'])
             ->group(function () {
@@ -169,22 +179,18 @@ Route::group(
                     Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
                     Route::post('/clients/{id}/update-status', [ClientController::class, 'updateStatus']);
 
-                    Route::get('send_info', [ClientController::class, 'send_email']);
+                    Route::get('/send_info/{id}', [ClientController::class, 'send_email'])->name('clients.send_info');
                     // اعدادات العميل
                     Route::get('/setting', [ClientSettingController::class, 'setting'])->name('clients.setting');
                     Route::get('/general/settings', [ClientSettingController::class, 'general'])->name('clients.general');
                     Route::post('/general/settings', [ClientSettingController::class, 'store'])->name('clients.store_general');
+                    Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
+                    Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
+Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
                     // صلاحيات العميل 
                     Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
                     Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
-                    Route::get('/personal', [ClientSettingController::class, 'personal'])->name('clients.personal');
-                    Route::get('/invoice/client', [ClientSettingController::class, 'invoice_client'])->name('clients.invoice_client'); // الفواتير
-                    Route::get('/appointments/client', [ClientSettingController::class, 'appointments_client'])->name('clients.appointments_client'); // المواعيد
-                    Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client'); // اوامر الشغل
-                    Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الاسعار
-
-
-
+                   
 
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
@@ -277,7 +283,8 @@ Route::group(
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
 
-        //العمولة
+        
+            
         Route::prefix('commission')
             ->middleware(['auth'])
             ->group(function () {
