@@ -70,6 +70,7 @@
             #items-table tfoot td {
                 text-align: right;
             }
+          
         }
     </style>
 @endsection
@@ -354,13 +355,25 @@
                                             </div>
                                         </td>
                                         <td data-label="الضريبة 1">
-                                            <input type="number" name="items[0][tax_1]" class="form-control tax"
-                                                value="15" min="0" max="100" step="0.01">
+                                            <select class="tax-select" data-target="tax_1">
+                                                <option value="15">القيمة المضافة</option>
+                                                <option value="0">صفرية </option>
+                                                <option value="10">قيمة مضافة  </option>
+                                                <option value="custom">إعدادات الضرائب</option>
+                                            </select>
+                                        
                                         </td>
+                                        
                                         <td data-label="الضريبة 2">
-                                            <input type="number" name="items[0][tax_2]" class="form-control tax"
-                                                value="0" min="0" max="100" step="0.01">
+                                            <select class="tax-select" data-target="tax_2">
+                                                <option value="15">القيمة المضافة</option>
+                                                <option value="0">صفرية </option>
+                                                <option value="10">قيمة مضافة  </option>
+                                                <option value="custom">إعدادات الضرائب</option>
+                                            </select>
+                                         
                                         </td>
+                                        
                                         <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
@@ -374,11 +387,11 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colspan="9" class="text-right">
+                                        <td colspan="9" class="text-left">
                                             {{-- <button type="button" id="add-row" class="btn btn-success">
                                                 <i class="fa fa-plus"></i> إضافة صف
                                             </button> --}}
-                                            <button type="button" class="btn btn-primary add-row"> <i class="fa fa-plus"></i>إضافة منتج جديد</button>
+                                            <button type="button" class="btn btn-primary add-row"> <i class="fa fa-prmary"></i>إضافة </button>
                                         </td>
                                     </tr>
                                     @php
