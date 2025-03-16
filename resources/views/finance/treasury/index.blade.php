@@ -163,7 +163,7 @@
                                                         <li>
                                                             @if ($treasury->type_accont == 1)
                                                                 <a class="dropdown-item"
-                                                                    href="{{ route('treasury.edit_account', $treasury->id) }}">
+                                                                    href="">
                                                                     <i class="fa fa-edit me-2 text-success"></i> تعديل
                                                                 </a>
                                                             @else

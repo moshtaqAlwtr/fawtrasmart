@@ -499,26 +499,7 @@ class InvoicesController extends Controller
                     ),
                     'created_by' => auth()->id(), // ID المستخدم الحالي
                 ]);
-                $user = Auth::user();
-                if ($user && $user->employee_id) {
-                    // البحث عن الخزينة المرتبطة بالموظف
-                    $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-                    if ($treasuryEmployee) {
-                        $treasury = Treasury::find($treasuryEmployee->treasury_id);
-                        if ($treasury) {
-                            // تحديث رصيد الخزينة
-                            $treasury->balance += $total_with_tax;
-                            $treasury->save();
 
-                            // تحديث رصيد الحساب المرتبط بالخزينة
-                            $account = Account::where('treasury_id', $treasury->id)->first();
-                            if ($account) {
-                                $account->balance += $total_with_tax;
-                                $account->save();
-                            }
-                        }
-                    }
-                }
 
             // ** تحديث المخزون بناءً على store_house_id المحدد في البند **
             $productDetails = ProductDetails::where('store_house_id', $item['store_house_id'])->where('product_id', $item['product_id'])->first();
@@ -1012,42 +993,34 @@ class InvoicesController extends Controller
 
         // تحديث رصيد حساب الخزينة الرئيسية
 
-        if ($MainTreasury) {
-            $amount = $total_with_tax;
-            $MainTreasury->balance += $amount;
-            $MainTreasury->save();
 
-            // تحديث جميع الحسابات الرئيسية المتصلة به
-            $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
-        }
 
         // ** الخطوة السابعة: إنشاء سجل الدفع إذا كان هناك دفعة مقدمة أو دفع كامل **
         if ($advance_payment > 0 || $is_paid) {
             $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
 
-            // البحث عن حساب الخزينة الرئيسية
-            //  $mainTreasuryAccount = Account::whereHas('parent.parent', function ($query) {
-            //   $query->where('name', 'الأصول')->whereHas('children', function ($subQuery) {
-            //      $subQuery->where('name', 'الأصول المتداولة');
-            // });
-            // })
-            $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')->first();
+            // تحديد الخزينة المستهدفة بناءً على الموظف
+            $MainTreasury = null;
 
-            // التأكد من وجود حساب الخزينة الرئيسية
-            if (!$mainTreasuryAccount) {
-                throw new \Exception('لم يتم العثور على حساب الخزينة الرئيسية');
+            if ($user && $user->employee_id) {
+                // البحث عن الخزينة المرتبطة بالموظف
+                $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+                if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                    // إذا كان الموظف لديه خزينة مرتبطة
+                    $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+                } else {
+                    // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                    $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+                }
+            } else {
+                // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
             }
 
-            // البحث عن حساب العميل الفرعي
-            $clientAccount = Account::where('name', $invoice->client->trade_name)
-                ->whereHas('parent', function ($query) {
-                    $query->where('name', 'العملاء');
-                })
-                ->first();
-
-            // التأكد من وجود حساب العميل
-            if (!$clientAccount) {
-                throw new \Exception('لم يتم العثور على حساب العميل');
+            // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
+            if (!$MainTreasury) {
+                throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
             }
 
             // إنشاء سجل الدفع
@@ -1063,43 +1036,46 @@ class InvoicesController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-                // إنشاء قيد محاسبي للدفعة
-                $paymentJournalEntry = JournalEntry::create([
-                    'reference_number' => $payment->reference_number ?? $invoice->code,
-                    'date' => now(),
-                    'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
-                    'status' => 1,
-                    'currency' => 'SAR',
-                    'client_id' => $invoice->client_id,
-                    'invoice_id' => $invoice->id,
-                    'created_by_employee' => Auth::id(),
-                ]);
+            // تحديث رصيد الخزينة
+            if ($MainTreasury) {
+                $MainTreasury->balance += $payment_amount;
+                $MainTreasury->save();
+            }
 
-            // 1. حساب الخزينة الرئيسية (مدين)
-            $treasuryDetail = JournalEntryDetail::create([
+            // إنشاء قيد محاسبي للدفعة
+            $paymentJournalEntry = JournalEntry::create([
+                'reference_number' => $payment->reference_number ?? $invoice->code,
+                'date' => now(),
+                'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $invoice->client_id,
+                'invoice_id' => $invoice->id,
+                'created_by_employee' => Auth::id(),
+            ]);
+
+            // 1. حساب الخزينة المستهدفة (مدين)
+            JournalEntryDetail::create([
                 'journal_entry_id' => $paymentJournalEntry->id,
-                'account_id' => $mainTreasuryAccount->id,
+                'account_id' => $MainTreasury->id,
                 'description' => 'استلام دفعة نقدية',
                 'debit' => $payment_amount,
                 'credit' => 0,
                 'is_debit' => true,
-                // 'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
-                'client_account_id' => $clientAccount->id, // تخزين معرف حساب العميل
+                'client_account_id' => $clientaccounts->id,
             ]);
 
             // 2. حساب العميل (دائن)
-            $clientDetail = JournalEntryDetail::create([
+            JournalEntryDetail::create([
                 'journal_entry_id' => $paymentJournalEntry->id,
                 'account_id' => $clientaccounts->id,
                 'description' => 'دفعة من العميل',
                 'debit' => 0,
                 'credit' => $payment_amount,
                 'is_debit' => false,
-                // 'treasury_account_id' => $mainTreasuryAccount->id, // تخزين معرف حساب الخزينة
-                'client_account_id' => $clientAccount->id, // تخزين معرف حساب العميل
+                'client_account_id' => $clientaccounts->id,
             ]);
         }
-
         DB::commit();
 
         // إعداد رسالة النجاح
