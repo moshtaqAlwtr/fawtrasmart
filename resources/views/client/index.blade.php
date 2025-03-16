@@ -57,76 +57,7 @@
                     <!-- القسم الأيسر -->
                     <div class="col-auto d-flex align-items-center flex-wrap gap-2">
                         <!-- التنقل بين الصفحات -->
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- زر الانتقال إلى أول صفحة -->
-                                @if ($clients->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى الصفحة السابقة -->
-                                @if ($clients->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- عرض رقم الصفحة الحالية -->
-                                <li class="page-item">
-                                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                                        صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
-                                    </span>
-                                </li>
-
-                                <!-- زر الانتقال إلى الصفحة التالية -->
-                                @if ($clients->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى آخر صفحة -->
-                                @if ($clients->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->url($clients->lastPage()) }}" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </nav>
+                 
 
                         <!-- زر الإعدادات -->
                         <div class="dropdown">
@@ -293,7 +224,7 @@
             <div class="card">
                 <div class="card-body">
 
-                    <table class="table">
+                    <table class="table" id="fawtra">
 
                         <thead>
                             <tr>
@@ -304,8 +235,9 @@
                                 <th style="width: 10%">الإجراءات</th>
                             </tr>
                         </thead>
+                        <tbody>
                         @foreach ($clients as $client)
-                            <tbody>
+                           
 
                                 <tr>
                                     <td>
@@ -414,9 +346,9 @@
                                     </div>
 
                                 </tr>
-
+                                @endforeach
                             </tbody>
-                        @endforeach
+                        
                     </table>
                 @else
                     <div class="alert alert-danger text-xl-center" role="alert">

@@ -16,6 +16,7 @@ use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\CategoriesClient;
 use App\Models\ClientRelation;
+use App\Models\GeneralClientSetting;
 use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\Memberships;
@@ -24,9 +25,14 @@ use App\Models\PaymentsProcess;
 use App\Models\SerialSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
+use App\Mail\SendPasswordEmail;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
 
 class ClientController extends Controller
 {
@@ -105,7 +111,7 @@ class ClientController extends Controller
         }
 
         // تنفيذ الاستعلام مع التقسيم (Pagination)
-        $clients = $query->with('employee')->orderBy('created_at', 'desc')->paginate(25);
+        $clients = $query->with('employee')->orderBy('created_at', 'desc')->get();
 
         // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
         $users = User::all();
@@ -113,19 +119,44 @@ class ClientController extends Controller
 
         return view('client.index', compact('clients', 'users', 'employees'));
     }
+
+
     public function create()
     {
         $employees = Employee::all();
         $categories = CategoriesClient::all();
 
         $lastClient = Client::orderBy('code', 'desc')->first();
+       
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
+        $GeneralClientSettings = GeneralClientSetting::all();
+        // إذا كان الجدول فارغًا، قم بإنشاء قيم افتراضية (مفعلة بالكامل)
+    if ($GeneralClientSettings->isEmpty()) {
+        $defaultSettings = [
+            ['key' => 'image', 'name' => 'صورة', 'is_active' => true],
+            ['key' => 'type', 'name' => 'النوع', 'is_active' => true],
+            ['key' => 'birth_date', 'name' => 'تاريخ الميلاد', 'is_active' => true],
+            ['key' => 'location', 'name' => 'الموقع على الخريطة', 'is_active' => true],
+            ['key' => 'opening_balance', 'name' => 'الرصيد الافتتاحي', 'is_active' => true],
+            ['key' => 'credit_limit', 'name' => 'الحد الائتماني', 'is_active' => true],
+            ['key' => 'credit_duration', 'name' => 'المدة الائتمانية', 'is_active' => true],
+            ['key' => 'national_id', 'name' => 'رقم الهوية الوطنية', 'is_active' => true],
+            ['key' => 'addresses', 'name' => 'عناوين متعددة', 'is_active' => true],
+            ['key' => 'link', 'name' => 'الرابط', 'is_active' => true],
+        ];
 
-        return view('client.create', compact('employees', 'newCode', 'categories'));
+        // تحويل المصفوفة إلى مجموعة (Collection)
+        $GeneralClientSettings = collect($defaultSettings)->map(function ($item) {
+            return (object) $item; // تحويل المصفوفة إلى كائن
+        });
     }
-
+        return view('client.create', compact('employees', 'newCode', 'categories','GeneralClientSettings'));
+    }
+  
+  
     public function store(ClientRequest $request)
     {
+       
         $data_request = $request->except('_token');
 
         // إنشاء العميل
@@ -138,7 +169,7 @@ class ClientController extends Controller
         $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
 
         // تعيين id للعميل الجديد باستخدام الرقم الحالي
-        $client->id = $currentNumber;
+       
 
         // تعيين الكود للعميل الجديد (إذا كان الكود مطلوبًا أيضًا)
         $client->code = $currentNumber;
@@ -158,6 +189,21 @@ class ClientController extends Controller
 
         // حفظ العميل
         $client->save();
+     
+        $password = Str::random(10);
+        $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
+        if($request->email != null){
+            $user = User::create([
+                'name' => $full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role' => 'client',
+                'client_id'   => $client->id,
+                'password' => Hash::make($password),
+            ]);
+        }
+      
+
         
            // تسجيل اشعار نظام جديد
             ModelsLog::create([
@@ -199,6 +245,47 @@ class ClientController extends Controller
         }
 
         return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
+    }
+    public function send_email()
+    {
+        $employee = User::where('client_id', 1608)->first();
+
+        if (!$employee) {
+            return response()->json(['message' => 'الموظف غير موجود'], 404);
+        }
+
+        // توليد كلمة مرور جديدة عشوائية
+        $newPassword = $this->generateRandomPassword();
+
+        // تحديث كلمة المرور في قاعدة البيانات بعد تشفيرها
+        $employee->password = Hash::make($newPassword);
+        $employee->save();
+
+        // إعداد بيانات البريد
+        $details = [
+            'name' => $employee->name,
+            'email' => $employee->email,
+            'password' => $newPassword, // إرسال كلمة المرور الجديدة مباشرة
+        ];
+
+        // إرسال البريد
+        Mail::to($employee->email)->send(new TestMail($details));
+        ModelsLog::create([
+    'type' => 'hr_log',
+    'type_id' => $employee->id, // ID النشاط المرتبط
+    'type_log' => 'log', // نوع النشاط
+    'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
+    'created_by' => auth()->id(), // ID المستخدم الحالي
+]);
+
+        // return back()->with('message', 'تم إرسال البريد بنجاح!');
+        return redirect()
+            ->back()
+            ->with(['success' => 'تم  ارسال البريد بنجاح .']);
+    }
+    private function generateRandomPassword($length = 10)
+    {
+        return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
     public function testcient()
     {

@@ -531,9 +531,9 @@
                                     data-i18n="eCommerce">{{ trans('main_trans.Customer_relationship_management') }}</span>
                             </a>
                         </li>
-
+                       
                         @can('clients_edit_client_settings')
-                            <li><a href="#"><i class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="{{ route('clients.setting') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="eCommerce">{{ trans('main_trans.Client_settings') }}</span>
                                 </a>
                             </li>

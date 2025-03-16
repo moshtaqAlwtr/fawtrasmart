@@ -241,6 +241,9 @@
                                         </div>
 
                                         <!-- الحد الائتماني والمدة الائتمانية -->
+                                        @foreach ($GeneralClientSettings as $GeneralClientSetting)
+                                        @if($GeneralClientSetting->is_active)
+                                        @if($GeneralClientSetting->key == "credit_limit")
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_limit">الحد الائتماني</label>
@@ -253,6 +256,13 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        @endif
+                                        @endif
+                                        @endforeach
+
+                                        @foreach ($GeneralClientSettings as $GeneralClientSetting)
+                                        @if($GeneralClientSetting->is_active)
+                                        @if($GeneralClientSetting->key == "credit_duration")
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المدة الائتمانية</label>
@@ -265,8 +275,13 @@
                                                 </div>
                                             </div>
                                         </div>
-
+                                        @endif
+                                        @endif
+                                        @endforeach
                                         <!-- زر إظهار الخريطة -->
+                                        @foreach ($GeneralClientSettings as $GeneralClientSetting)
+                                        @if($GeneralClientSetting->is_active)
+                                        @if($GeneralClientSetting->key == "location")
                                         <div class="col-12 mb-3">
                                             <button type="button" class="btn btn-outline-primary mb-2"
                                                 onclick="toggleMap()">
@@ -276,7 +291,9 @@
                                                 <div id="map" style="height: 400px; width: 100%;"></div>
                                             </div>
                                         </div>
-
+                                         @endif
+                                         @endif
+                                         @endforeach
                                         <div class="card">
                                             <div class="card-header">
                                                 <h4 class="card-title">قائمة الاتصال</h4>
@@ -349,6 +366,9 @@
                                         </div>
 
                                         <!-- الرصيد الافتتاحي -->
+                                        @foreach ($GeneralClientSettings as $GeneralClientSetting)
+                                        @if($GeneralClientSetting->is_active)
+                                        @if($GeneralClientSetting->key == "opening_balance")
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
                                                 <label for="opening_balance">الرصيد الافتتاحي</label>
@@ -361,7 +381,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
+                                          @endif
+                                           @endif
+                                           @endforeach
                                         <!-- تاريخ الرصيد الاستحقاق -->
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
@@ -434,6 +456,9 @@
                                         </div>
 
                                         <!-- المرفقات -->
+                                        @foreach ($GeneralClientSettings as $GeneralClientSetting)
+                                        @if($GeneralClientSetting->is_active)
+                                        @if($GeneralClientSetting->key == "image")
                                         <div class="col-md-12 mb-3">
                                             <div class="form-group">
                                                 <label for="attachments">المرفقات</label>
@@ -492,7 +517,9 @@
                                             </div>
 
                                         </div>
-
+                                         @endif
+                                         @endif
+                                         @endforeach
                                         <!-- لغة العرض -->
 
                                     </div>

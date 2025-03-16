@@ -79,4 +79,8 @@ public function childrenRecursive()
 {
     return $this->children()->with('childrenRecursive');
 }
+public function treasury()
+{
+    return $this->hasOne(Treasury::class, 'account_id');
+}
 }

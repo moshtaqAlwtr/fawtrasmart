@@ -14,7 +14,7 @@ class CreateTreasuriesTable extends Migration
             $table->tinyInteger('type')->comment('(0 خزينه) , (حساب بنكي 1)'); //  اسم الخزينة او الحساب
             $table->tinyInteger('status')->default(0)->comment('(0 نشط) , (غير نشط 1)'); //  اسم الخزينة او الحساب
             $table->text('description')->nullable(); // وصف
-
+            $table->tinyInteger('is_main')->default(0)->comment('(0 غير رئيسية) , (رئيسية 1)');
             $table->string('bank_name')->nullable();
             $table->bigInteger('account_number')->nullable();
             $table->tinyInteger('currency')->nullable(); #العملة

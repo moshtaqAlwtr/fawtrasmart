@@ -212,104 +212,82 @@
         <div class="card">
 
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                 
-                    <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <div class="d-flex flex-wrap gap-2">
                         <a href="#" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
                             <i class="far fa-file-alt me-1"></i> كشف حساب
                         </a>
-                        <a href="{{ route('CreditNotes.create') }}"
-                            class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
+                        <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
                             <i class="far fa-sticky-note me-1"></i> إنشاء إشعار دائن
                         </a>
-                        <a href="{{ route('questions.create') }}"
-                            class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
+                        <a href="{{ route('questions.create') }}" class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
                             <i class="fas fa-file-invoice me-1"></i> إنشاء عرض سعر
                         </a>
-                        <a href="{{ route('invoices.create') }}"
-                            class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
+                        <a href="{{ route('invoices.create') }}" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
                             <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                         </a>
-                        <a href="{{ route('Reservations.client', $client->id) }}"
-                            class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
-                            <i class="fas fa-file-invoice me-1"></i>الحجوزات
+                        <a href="{{ route('Reservations.client', $client->id) }}" class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
+                            <i class="fas fa-file-invoice me-1"></i> الحجوزات
                         </a>
                         <a href="#" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
                             <i class="far fa-comment-alt me-1"></i> أرسل SMS
                         </a>
-                        <a href="{{ route('appointments.create') }}"
-                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
+                        <a href="{{ route('appointments.create') }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
                             <i class="far fa-calendar-alt me-1"></i> ترتيب موعد
                         </a>
-
-                        <a href="{{ route('appointment.notes.create', $client->id) }}"
-                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
-                            <i class="far fa-calendar-alt me-1"></i> اضافة ملاحضة/مرفق
+                        <a href="{{ route('appointment.notes.create', $client->id) }}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center">
+                            <i class="far fa-calendar-alt me-1"></i> إضافة ملاحظة/مرفق
                         </a>
-
-
-                        <a href="{{ route('clients.edit', $client->id) }}"
-                            class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
+                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
                             <i class="fas fa-edit me-1"></i> تعديل
                         </a>
                     </div>
-                    <div class="d-flex gap-2">
-                        <div class="dropdown">
-                            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                خيارات أخرى
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
-                                        <i class="fas fa-wallet me-2"></i> <!-- أيقونة المحفظة -->
-                                        اضافة رصيد افتتاحي
-                                    </a>
-                                </li>
-                                
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center"
-                                        href="{{ route('SupplyOrders.create') }}">
-                                        <i class="fas fa-truck me-2"></i> <!-- أيقونة الشاحنة -->
-                                        اضافة امر توريد
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class="fas fa-user me-2"></i> <!-- أيقونة المستخدم -->
-                                        الدخول كعميل
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class="fas fa-ban me-2"></i> <!-- أيقونة المنع -->
-                                        موقوف
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center"
-                                        href="{{ route('clients.destroy', $client->id) }}">
-                                        <i class="fas fa-trash-alt me-2"></i> <!-- أيقونة الحذف -->
-                                        حذف عميل
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#"
-                                        data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
-                                        <i class="fas fa-user-tie me-2"></i> <!-- أيقونة الموظف -->
-                                        تعيين الى موظف
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#">
-                                        <i class="fas fa-copy me-2"></i> <!-- أيقونة النسخ -->
-                                        نسخ
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                
+                    <!-- زر الخيارات الإضافية -->
+                    <div class="dropdown mt-2 mt-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            خيارات أخرى
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
+                                    <i class="fas fa-wallet me-2"></i> إضافة رصيد افتتاحي
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{{ route('SupplyOrders.create') }}">
+                                    <i class="fas fa-truck me-2"></i> إضافة أمر توريد
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-user me-2"></i> الدخول كعميل
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-ban me-2"></i> موقوف
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center text-danger" href="{{ route('clients.destroy', $client->id) }}">
+                                    <i class="fas fa-trash-alt me-2"></i> حذف عميل
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
+                                    <i class="fas fa-user-tie me-2"></i> تعيين إلى موظف
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#">
+                                    <i class="fas fa-copy me-2"></i> نسخ
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
+                
 
                 <ul class="nav nav-tabs" role="tablist">
                     <li class="nav-item">
@@ -367,12 +345,12 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="service-tab" data-toggle="tab" href="#service" aria-controls="timeline"
-                            role="tab" aria-selected="false">الخدمات</a>
+                            role="tab" aria-selected="false">الحجوزات / الخدمات</a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link" id="memberrtab" data-toggle="tab" href="#memberr" aria-controls="timeline"
                             role="tab" aria-selected="false">العضويات</a>
-                    </li>
+                    </li> --}}
 
                 </ul>
 
@@ -1219,6 +1197,51 @@
                         </div>
                     </div>
                     
+                    <div class="tab-pane" id="service" aria-labelledby="service-tab" role="tabpanel">
+
+                        <div class="card">
+                            <div class="card-body">
+                                @foreach ($bookings as $booking)
+                                <div class="row">
+                                    <div class="col-auto">
+                                        <!-- صورة افتراضية -->
+                                        <div style="width: 50px; height: 50px; background-color: #f0f0f0; border-radius: 5px;"></div>
+                                    </div>
+                                    <div class="col">
+                                        <h6>بيانات العميل</h6>
+                                        <p class="mb-1">{{$booking->client->first_name ?? ""}}</p>
+                                        <p class="mb-1">الخدمة :{{$booking->product->name ?? ""}}</p>
+                                    </div>
+                                    <div class="col-auto text-end">
+                                        <p class="mb-1">الوقت من {{$booking->start_time ?? 0}} الى {{$booking->end_time ?? 0 }}</p>
+                                        <p class="text-muted small mb-0">16:45:00</p>
+                                        
+                                        @if($booking->status == "confirm")
+                                            <span class="badge bg-warning text-dark">مؤكد</span>
+                                        @elseif ($booking->status == "review")
+                                            <span class="badge bg-warning text-dark">تحت المراجعة</span>
+                                        @elseif ($booking->status == "bill")
+                                            <span class="badge bg-warning text-dark">حولت للفاتورة</span>
+                                        @elseif ($booking->status == "cancel")
+                                            <span class="badge bg-warning text-dark">تم الالغاء</span>  
+                                        @else
+                                            <span class="badge bg-warning text-dark">تم</span> 
+                                        @endif
+                            
+                                        <a href="{{ route('Reservations.show', $booking->id) }}" class="badge bg-danger text-dark">عرض</a> 
+                                        <a href="{{ route('Reservations.edit', $booking->id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fa fa-edit"></i> تعديل
+                                        </a>
+                                    </div>
+                                </div>
+                               
+                                <!-- Horizontal line after each customer's data -->
+                                <hr>
+                            @endforeach
+                            
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
 <!-- Modal إضافة الرصيد الافتتاحي -->

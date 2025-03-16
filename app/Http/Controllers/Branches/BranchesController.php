@@ -46,7 +46,6 @@ class BranchesController extends Controller
         return redirect()->back(); // إعادة التوجيه إلى الصفحة السابقة
     }
 
-
     // تخزين بيانات الفرع
     public function store(Request $request)
     {
@@ -96,15 +95,15 @@ class BranchesController extends Controller
                 ]);
             }
         }
-        
-          // تسجيل اشعار نظام جديد
-            ModelsLog::create([
-                'type' => 'branch',
-                'type_id' => $branch->id, // ID النشاط المرتبط
-                'type_log' => 'log', // نوع النشاط
-                'description' => 'تم اضافة فرع جديد **' . $branch->name . '**',
-                'created_by' => auth()->id(), // ID المستخدم الحالي
-            ]);
+
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'branch',
+            'type_id' => $branch->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة فرع جديد **' . $branch->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         // إعادة التوجيه مع رسالة نجاح
         return redirect()->route('branches.index')->with('success', 'تم إضافة الفرع بنجاح');
@@ -154,15 +153,15 @@ class BranchesController extends Controller
         $oldName = $branch->name;
         // تحديث البيانات
         $branch->update($request->all());
-        
-          // تسجيل اشعار نظام جديد
-            ModelsLog::create([
-                'type' => 'branch',
-                'type_id' => $branch->id, // ID النشاط المرتبط
-                'type_log' => 'log', // نوع النشاط
-                'description' => 'تم تعديل الفرع من **' . $oldName . '** إلى **' . $branch->name . '**',
-                'created_by' => auth()->id(), // ID المستخدم الحالي
-            ]);
+
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'branch',
+            'type_id' => $branch->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم تعديل الفرع من **' . $oldName . '** إلى **' . $branch->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         // إعادة التوجيه مع رسالة نجاح
         return redirect()->route('branches.index')->with('success', 'تم تحديث بيانات الفرع بنجاح');
@@ -206,10 +205,6 @@ class BranchesController extends Controller
         return view('Branches.settings', compact('branchs', 'settings', 'selectedBranchId'));
     }
 
-
-
-
-
     public function settings_store(Request $request)
     {
         $request->validate([
@@ -220,13 +215,7 @@ class BranchesController extends Controller
         $branch_id = $request->branch_id;
 
         // الصلاحيات المتاحة
-        $permissions = [
-            'share_cost_center',
-            'share_customers',
-            'share_products',
-            'share_suppliers',
-            'account_tree'
-        ];
+        $permissions = ['share_cost_center', 'share_customers', 'share_products', 'share_suppliers', 'account_tree'];
 
         foreach ($permissions as $permission) {
             // التحقق من حالة الصلاحية: إذا كانت مفعلّة أو غير مفعلّة
@@ -236,14 +225,14 @@ class BranchesController extends Controller
             BranchSettingBranch::updateOrCreate(
                 [
                     'branch_id' => $branch_id,
-                    'branch_setting_id' => BranchSetting::where('key', $permission)->value('id')
+                    'branch_setting_id' => BranchSetting::where('key', $permission)->value('id'),
                 ],
-                ['status' => $status]
+                ['status' => $status],
             );
         }
-        
-          $branch = Branch::find($branch_id);
-         ModelsLog::create([
+
+        $branch = Branch::find($branch_id);
+        ModelsLog::create([
             'type' => 'branch',
             'type_id' => $branch_id, // ID النشاط المرتبط
             'type_log' => 'log', // نوع النشاط
@@ -278,38 +267,29 @@ class BranchesController extends Controller
         return response()->json(['settings' => $settings]);
     }
 
-
-
-
     public function updateStatus($id)
     {
-
-
         $userBranchId = auth()->user()->branch_id; // جلب معرف الفرع الخاص بالمستخدم
-        
-        
+
         $branch = Branch::findOrFail($id);
-
-
 
         // منع المستخدم من إيقاف الفرع الذي ينتمي إليه
         if ($userBranchId == $branch->id) {
-          
-              return redirect()->route('branches.index')->with('error', 'لا يمكنك إيقاف الفرع الأساسى, عليك إختيار فرع أساسى أخر حتى يمكنك إيقاف الفرع.');
+            return redirect()->route('branches.index')->with('error', 'لا يمكنك إيقاف الفرع الأساسى, عليك إختيار فرع أساسى أخر حتى يمكنك إيقاف الفرع.');
         }
 
         // تبديل الحالة فقط إذا كان الفرع مختلفًا عن فرع المستخدم
         $branch->update(['status' => $branch->status == 0 ? 1 : 0]);
-// تحديد النص بناءً على حالة الفرع
-$statusText = $branch->status == 1 ? 'تم تعطيل الفرع' : 'تم تنشيط الفرع';
+        // تحديد النص بناءً على حالة الفرع
+        $statusText = $branch->status == 1 ? 'تم تعطيل الفرع' : 'تم تنشيط الفرع';
 
-ModelsLog::create([
-    'type' => 'branch',
-    'type_id' => $branch->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => $statusText . ' **' . $branch->name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+        ModelsLog::create([
+            'type' => 'branch',
+            'type_id' => $branch->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => $statusText . ' **' . $branch->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         return redirect()->route('branches.index')->with('success', 'تم تحديث حالة الفرع بنجاح');
     }
 }
