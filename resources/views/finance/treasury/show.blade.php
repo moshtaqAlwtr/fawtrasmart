@@ -23,10 +23,33 @@
 
     <div class="card">
         <div class="card-title p-2">
+            <a href="{{ route('treasury.edit', $treasury->id) }}" class="btn btn-outline-primary btn-sm">
+                تعديل <i class="fa fa-edit"></i>
+            </a>
+            <a href="{{ route('treasury.updateStatus', $treasury->id) }}" class="btn btn-outline-secondary btn-sm">
+                @if ($treasury->is_active == 0)
+                    <i class="fa fa-ban me-2 text-danger"></i> تعطيل
+                @else
+                    <i class="fa fa-check me-2 text-success"></i> تفعيل
+                @endif
+            </a>
             <a href="{{ route('treasury.transferCreate') }}" class="btn btn-outline-success btn-sm">
                 تحويل <i class="fa fa-reply-all"></i>
             </a>
+            <a href="{{ route('treasury.updateType', $treasury->id) }}" class="btn btn-outline-info btn-sm">
+                @if ($treasury->type == 'main')
+                    <i class="fa fa-star me-2 text-secondary"></i> اجعله
+                    فرعي
+                @else
+                    <i class="fa fa-star me-2 text-secondary"></i> اجعله
+                    رئيسي
+                @endif
+            </a>
+            <a href="{{ route('treasury.destroy', $treasury->id) }}" class="btn btn-outline-danger btn-sm">
+                حذف <i class="fa fa-trash"></i>
+            </a>
         </div>
+
 
         <div class="content-body">
             <div class="card">
@@ -83,7 +106,6 @@
                         </li>
                     </ul>
 
-
                     <div class="tab-content">
                         <!-- 🔹 تبويب التفاصيل -->
                         <div class="tab-pane fade show active" id="home" role="tabpanel">
@@ -95,8 +117,7 @@
                                             <td><small>الاسم</small> : <strong>{{ $treasury->name }}</strong></td>
                                             @if ($treasury->type_accont == 1)
                                                 <td><small>اسم الحساب البنكي</small> :
-                                                    <strong>{{ $treasury->name }}</strong>
-                                                </td>
+                                                    <strong>{{ $treasury->name }}</strong></td>
                                             @endif
                                         </tr>
                                         <tr>
@@ -129,13 +150,9 @@
 
                         <div class="tab-pane fade" id="transactions" role="tabpanel">
                             <div class="card">
-
-
                                 <div class="card-header d-flex justify-content-between align-items-center p-2">
                                     <div class="d-flex gap-2">
-                                        <span class="hide-button-text">
-                                            بحث وتصفية
-                                        </span>
+                                        <span class="hide-button-text">بحث وتصفية</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-2">
                                         <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
@@ -158,9 +175,9 @@
                                                     name="from_date_1" value="{{ request('from_date_1') }}">
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="from_date_1">التاريخ الي</label>
-                                                <input type="date" class="form-control" placeholder="من"
-                                                    name="from_date_1" value="{{ request('from_date_1') }}">
+                                                <label for="to_date">التاريخ إلى</label>
+                                                <input type="date" class="form-control" placeholder="إلى"
+                                                    name="to_date" value="{{ request('to_date') }}">
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="date_type_2">الحالة</label>
@@ -168,17 +185,14 @@
                                                     <option value="">الحالة</option>
                                                 </select>
                                             </div>
-
-
                                         </div>
 
                                         <!-- البحث المتقدم -->
                                         <div class="collapse {{ request()->hasAny(['currency', 'total_from', 'total_to', 'date_type_1', 'date_type_2', 'item_search', 'created_by', 'sales_representative']) ? 'show' : '' }}"
                                             id="advancedSearchForm">
                                             <div class="row g-3 mt-2">
-                                                <!-- 4. العملة -->
                                                 <div class="col-md-4">
-                                                    <label for="currencySelect">البحث بواسطة فرع </label>
+                                                    <label for="currencySelect">البحث بواسطة فرع</label>
                                                     <select name="currency" class="form-control" id="currencySelect">
                                                         <option value="">اختر الفرع</option>
                                                         @foreach ($branches as $branch)
@@ -189,42 +203,32 @@
                                                         @endforeach
                                                     </select>
                                                 </div>
-
-                                                <!-- 5. الإجمالي أكبر من -->
                                                 <div class="col-md-4">
                                                     <label for="total_from">المبلغ من</label>
                                                     <input type="number" class="form-control"
                                                         placeholder="الإجمالي أكبر من" name="total_from" step="0.01"
                                                         value="{{ request('total_from') }}">
                                                 </div>
-
-                                                <!-- 6. الإجمالي أصغر من -->
                                                 <div class="col-md-4">
-                                                    <label for="total_to">المبلغ الي</label>
+                                                    <label for="total_to">المبلغ إلى</label>
                                                     <input type="number" class="form-control"
                                                         placeholder="الإجمالي أصغر من" name="total_to" step="0.01"
                                                         value="{{ request('total_to') }}">
                                                 </div>
-                                                <div class="col-md-2">
+                                                <div class="col-md-4">
                                                     <label for="date_type_1">البحث بواسطة النوع</label>
                                                     <select name="date_type_1" class="form-control">
                                                         <option value="">اختر النوع</option>
                                                         <option value="">فاتورة</option>
-                                                        <option value="">قيد يدوي </option>
+                                                        <option value="">قيد يدوي</option>
                                                         <option value="">فاتورة شراء</option>
                                                         <option value="">اذن مخزني</option>
                                                         <option value="">عمليات مخزون</option>
-                                                        <option value="">مدفوعات الفواتير </option>
-                                                        <option value="">سندات القبض </option>
-                                                        <option value="">مدفوعات المشتريات </option>
-                                                        <option value="">فاتورة شراء</option>
-                                                        <option value="">post Shift</option>
-
+                                                        <option value="">مدفوعات الفواتير</option>
+                                                        <option value="">سندات القبض</option>
+                                                        <option value="">مدفوعات المشتريات</option>
                                                     </select>
                                                 </div>
-
-
-                                                <!-- 7. الحالة -->
                                             </div>
                                         </div>
 
@@ -235,6 +239,9 @@
                                         </div>
                                     </form>
                                 </div>
+
+                                <!-- عرض جميع العمليات في جدول واحد -->
+                                <h3>جميع العمليات</h3>
                                 <table class="table">
                                     <thead>
                                         <tr>
@@ -246,56 +253,154 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($operations as $operation)
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex flex-column">
-                                                    <span class="text-muted font-weight-bold">(#{{ $operation['invoice']->id ?? 'N/A' }}) {{ $operation['date'] }}</span>
-                                                    <span class="text-dark">
-                                                        @if ($operation['type'] === 'transaction')
-                                                            مدفوعات العميل <span class="text-primary">#{{ $operation['client']->id ?? 'N/A' }}</span>، فاتورة <span class="text-primary">#{{ $operation['invoice']->id ?? 'N/A' }}</span>
-                                                        @else
-                                                            {{ $operation['operation'] }}
-                                                        @endif
-                                                    </span>
-                                                    <div class="d-flex align-items-center mt-1">
-                                                        <span class="badge bg-success text-white p-1">م</span>
-                                                        <span class="mx-1">{{ $operation['client']->name ?? 'N/A' }}</span>
-                                                        <i class="fa fa-building text-secondary mx-1"></i> <span>{{ $operation['branch']->name ?? 'N/A' }}</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td>{{ $operation['deposit'] > 0 ? number_format($operation['deposit'], 2) : '-' }}</td>
-                                            <td>{{ $operation['withdraw'] > 0 ? number_format($operation['withdraw'], 2) : '-' }}</td>
-                                            <td>{{ number_format($operation['balance_after'], 2) }}</td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    <div class="dropdown">
-                                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm" type="button" id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                            <li>
-                                                                <a class="dropdown-item" href="">
-                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE_">
-                                                                    <i class="fa fa-trash me-2"></i>حذف
-                                                                </a>
-                                                            </li>
+                                        @foreach ($operationsPaginator as $operation)
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <span
+                                                            class="text-muted font-weight-bold">(#{{ $operation['invoice']->id ?? 'N/A' }})
+                                                            {{ $operation['date'] }}</span>
+                                                        <span class="text-dark">
+                                                            @if ($operation['type'] === 'transaction')
+                                                                مدفوعات العميل <span
+                                                                    class="text-primary">#{{ $operation['client']->id ?? 'N/A' }}</span>،
+                                                                فاتورة <span
+                                                                    class="text-primary">#{{ $operation['invoice']->id ?? 'N/A' }}</span>
+                                                            @elseif ($operation['type'] === 'transfer')
+                                                                {{ $operation['operation'] }}
+                                                            @elseif ($operation['type'] === 'expense')
+                                                                سند صرف: {{ $operation['operation'] }}
+                                                            @elseif ($operation['type'] === 'revenue')
+                                                                سند قبض: {{ $operation['operation'] }}
+                                                            @endif
+                                                        </span>
+                                                        <div class="d-flex align-items-center mt-1">
+                                                            <span class="badge bg-success text-white p-1">م</span>
+                                                            <span
+                                                                class="mx-1">{{ $operation['client']->name ?? 'N/A' }}</span>
+                                                            <i class="fa fa-building text-secondary mx-1"></i>
+                                                            <span>{{ $operation['branch']->name ?? 'N/A' }}</span>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                                </td>
+                                                <td>{{ $operation['deposit'] > 0 ? number_format($operation['deposit'], 2) : '-' }}
+                                                </td>
+                                                <td>{{ $operation['withdraw'] > 0 ? number_format($operation['withdraw'], 2) : '-' }}
+                                                </td>
+                                                <td>{{ number_format($operation['balance_after'], 2) }}</td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <div class="dropdown">
+                                                            <button
+                                                                class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                                type="button" id="dropdownMenuButton303"
+                                                                data-toggle="dropdown" aria-haspopup="true"
+                                                                aria-expanded="false"></button>
+                                                            <div class="dropdown-menu"
+                                                                aria-labelledby="dropdownMenuButton303">
+                                                                <li>
+                                                                    <a class="dropdown-item" href="">
+                                                                        <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item text-danger" href="#"
+                                                                        data-toggle="modal" data-target="#modal_DELETE_">
+                                                                        <i class="fa fa-trash me-2"></i>حذف
+                                                                    </a>
+                                                                </li>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>الرصيد قبل العمليات:</strong></td>
+                                            <td colspan="2">{{ number_format($initialBalance, 2) }}</td>
+                                        </tr>
+                                    </tfoot>
                                 </table>
+
+                                <!-- تعدد الصفحات -->
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        @if ($operationsPaginator->onFirstPage())
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="First">
+                                                    <i class="fas fa-angle-double-right"></i>
+                                                </span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->url(1) }}" aria-label="First">
+                                                    <i class="fas fa-angle-double-right"></i>
+                                                </a>
+                                            </li>
+                                        @endif
+
+                                        @if ($operationsPaginator->onFirstPage())
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                                    <i class="fas fa-angle-right"></i>
+                                                </span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->previousPageUrl() }}"
+                                                    aria-label="Previous">
+                                                    <i class="fas fa-angle-right"></i>
+                                                </a>
+                                            </li>
+                                        @endif
+
+                                        <li class="page-item">
+                                            <span class="page-link border-0 bg-light rounded-pill px-3">
+                                                صفحة {{ $operationsPaginator->currentPage() }} من
+                                                {{ $operationsPaginator->lastPage() }}
+                                            </span>
+                                        </li>
+
+                                        @if ($operationsPaginator->hasMorePages())
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->nextPageUrl() }}" aria-label="Next">
+                                                    <i class="fas fa-angle-left"></i>
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                                    <i class="fas fa-angle-left"></i>
+                                                </span>
+                                            </li>
+                                        @endif
+
+                                        @if ($operationsPaginator->hasMorePages())
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->url($operationsPaginator->lastPage()) }}"
+                                                    aria-label="Last">
+                                                    <i class="fas fa-angle-double-left"></i>
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                                    <i class="fas fa-angle-double-left"></i>
+                                                </span>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </nav>
                             </div>
                         </div>
 
-
-                        <div class="tab-pane" id="transfers" role="tabpanel">
+                        <div class="tab-pane fade" id="transfers" role="tabpanel">
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center p-2">
                                     <div class="d-flex gap-2">
@@ -313,18 +418,10 @@
                                     <form class="form" id="searchForm" method="GET"
                                         action="{{ route('invoices.index') }}">
                                         <div class="row g-3">
-                                            <!-- 1. التاريخ (من) -->
                                             <div class="col-md-4">
-                                                <label for="from_date">form date</label>
+                                                <label for="from_date">التاريخ من</label>
                                                 <input type="date" id="from_date" class="form-control"
                                                     name="from_date" value="{{ request('from_date') }}">
-                                            </div>
-
-                                            <!-- 2. التاريخ (إلى) -->
-                                            <div class="col-md-4">
-                                                <label for="to_date">التاريخ من</label>
-                                                <input type="date" id="to_date" class="form-control" name="to_date"
-                                                    value="{{ request('to_date') }}">
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="to_date">التاريخ إلى</label>
@@ -333,7 +430,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- الأزرار -->
                                         <div class="form-actions mt-2">
                                             <button type="submit" class="btn btn-primary">بحث</button>
                                             <a href="" type="reset" class="btn btn-outline-warning">إلغاء</a>
@@ -348,66 +444,74 @@
                                     <tr>
                                         <th>رقم القيد</th>
                                         <th>التاريخ</th>
-                                        <th>من خزينة الى خزينة </th>
-
+                                        <th class="text-center">من خزينة إلى خزينة</th>
                                         <th>المبلغ</th>
                                         <th style="width: 10%">الإجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($transfers as $transfer)
-                                    <tr>
-                                        <td>{{ $transfer->reference_number }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($transfer->date)->format('d/m/Y') }}</td>
-                                        <td>
-                                            @if ($transfer->details->count() > 0)
-                                                <div class="account-flow d-flex justify-content-center align-items-center">
-                                                    @foreach ($transfer->details->reverse() as $detail)
-                                                        @if ($detail->account && $detail->account->name)
-                                                            <a href="{{ route('accounts_chart.index', $detail->account->id) }}" class="btn btn-outline-primary mx-2">
-                                                                {{ $detail->account->name }}
-                                                            </a>
-                                                            @if (!$loop->last)
-                                                                <i class="fas fa-long-arrow-alt-right text-muted mx-2"></i>
+                                        <tr>
+                                            <td>{{ $transfer->reference_number }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($transfer->date)->format('d/m/Y') }}</td>
+                                            <td>
+                                                @if ($transfer->details->count() > 0)
+                                                    <div
+                                                        class="account-flow d-flex justify-content-center align-items-center">
+                                                        @foreach ($transfer->details->reverse() as $detail)
+                                                            @if ($detail->account && $detail->account->name)
+                                                                <a href="{{ route('accounts_chart.index', $detail->account->id) }}"
+                                                                    class="btn btn-outline-primary mx-2">
+                                                                    {{ $detail->account->name }}
+                                                                </a>
+                                                                @if (!$loop->last)
+                                                                    <i
+                                                                        class="fas fa-long-arrow-alt-right text-muted mx-2"></i>
+                                                                @endif
                                                             @endif
-                                                        @endif
-                                                    @endforeach
-                                                </div>
-                                            @else
-                                                <span class="text-muted">لا توجد تفاصيل</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ number_format($transfer->details->sum('debit'), 2) }}</td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <div class="dropdown">
-                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm" type="button" id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></button>
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('treasury.transferEdit', $transfer->id) }}">
-                                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE_{{ $transfer->id }}">
-                                                                <i class="fa fa-trash me-2"></i>حذف
-                                                            </a>
-                                                        </li>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted">لا توجد تفاصيل</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ number_format($transfer->details->sum('debit'), 2) }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <div class="dropdown">
+                                                        <button
+                                                            class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                            type="button" id="dropdownMenuButton303"
+                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false"></button>
+                                                        <div class="dropdown-menu"
+                                                            aria-labelledby="dropdownMenuButton303">
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('treasury.transferEdit', $transfer->id) }}">
+                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modal_DELETE_{{ $transfer->id }}">
+                                                                    <i class="fa fa-trash me-2"></i>حذف
+                                                                </a>
+                                                            </li>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
-                        <!-- 🔹 تبويب سجل النشاطات -->
 
                         <div class="tab-pane fade" id="activate" role="tabpanel">
                             <p>سجل النشاطات هنا...</p>
                         </div>
-
                     </div> <!-- tab-content -->
                 </div> <!-- card-body -->
             </div> <!-- card -->
