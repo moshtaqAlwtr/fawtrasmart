@@ -22,7 +22,24 @@
             </div>
         </div>
     </div>
+    @include('layouts.alerts.error')
+    @include('layouts.alerts.success')
 
+
+    @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
     <div class="content-body">
 
         <div class="card">
@@ -87,7 +104,7 @@
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="code-number">رقم الكود</label>
-                            <input type="text" class="form-control" id="code-number" name="code">
+                            <input type="text" class="form-control" id="code-number" name="code" value="{{ $nextCode }}" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
@@ -115,9 +132,12 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
-                            <select id="warehouse" class="form-control" name="store_id">
-                                <option selected disabled value="1">رئيسي</option>
-                                <option value="2">فرعي</option>
+                            <select id="warehouse" class="form-control" name="treasury_id">
+                                <option selected disabled value="1">اختر الخزينة</option>
+                                @foreach ($treas as $trea  )
+                                    <option value="{{$trea->id }}">{{ $trea->name }}</option>
+
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -125,7 +145,13 @@
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="min-limit">الحساب الفرعي </label>
-                            <input type="text" class="form-control" id="min-limit" name="sup_account">
+                           <select class="form-control select2" name="account_id" id="">
+                               <option selected disabled>اختر حساب</option>
+                               @foreach ($accounts as $account  )
+                                   <option value="{{$account->id }}">{{ $account->name }}</option>
+
+                               @endforeach
+                           </select>
                         </div>
 
                         <div class="form-group col-md-4">

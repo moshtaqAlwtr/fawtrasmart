@@ -241,15 +241,25 @@
                                                 </select>
                                             </div>
                                         </td>
-                                        <td>
-                                            <input type="number" name="items[0][tax_1]" class="form-control tax"
-                                                value="15" min="0" max="100" step="0.01">
+                                        <td data-label="الضريبة 1">
+                                            <select class="tax-select" data-target="tax_1">
+                                                <option value="15">القيمة المضافة</option>
+                                                <option value="0">صفرية </option>
+                                                <option value="10">قيمة مضافة  </option>
+                                                <option value="custom">إعدادات الضرائب</option>
+                                            </select>
+                                        
                                         </td>
-                                        <td>
-                                            <input type="number" name="items[0][tax_2]" class="form-control tax"
-                                                value="0" min="0" max="100" step="0.01">
+                                        
+                                        <td data-label="الضريبة 2">
+                                            <select class="tax-select" data-target="tax_2">
+                                                <option value="15">القيمة المضافة</option>
+                                                <option value="0">صفرية </option>
+                                                <option value="10">قيمة مضافة  </option>
+                                                <option value="custom">إعدادات الضرائب</option>
+                                            </select>
+                                         
                                         </td>
-                                        <td>
                                             <span class="row-total">0.00</span>
                                         </td>
                                         <td>
