@@ -17,7 +17,9 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ApplicationSettingsSeeder::class,
             PaymentMethodSeeder::class,
-            AccountSeeder::class
+            AccountSeeder::class,
+
+            $this->call(ClientsTableSeeder::class);
         ]);
     }
 }

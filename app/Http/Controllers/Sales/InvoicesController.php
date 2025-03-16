@@ -181,7 +181,7 @@ class InvoicesController extends Controller
         }
 
         // جلب النتائج مع التقسيم (Pagination)
-        $invoices = $invoices->paginate(25);
+        $invoices = $invoices->get();
 
         // البيانات الأخرى المطلوبة للواجهة
         $clients = Client::all();

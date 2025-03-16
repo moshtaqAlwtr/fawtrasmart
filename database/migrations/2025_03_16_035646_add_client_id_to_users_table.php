@@ -9,20 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('treasury_employees', function (Blueprint $table) {
-            $table->id();
-            $table->integer('treasury_id');
-            $table->integer('employee_id');
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->unsignedBigInteger('client_id')->nullable();
         });
     }
+
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('treasury_employees');
+        Schema::table('users', function (Blueprint $table) {
+            //
+        });
     }
 };

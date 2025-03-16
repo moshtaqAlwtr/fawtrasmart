@@ -35,128 +35,47 @@
             </li>
 
             {{-- المبيعات --}}
-            @if (auth()->user()->hasAnyPermission([
-                    'sales_add_invoices',
-                    'sales_add_own_invoices',
-                    'sales_edit_delete_all_invoices',
-                    'sales_edit_delete_own_invoices',
-                    'sales_view_own_invoices',
-                    'sales_view_all_invoices',
-                    'sales_create_tax_report',
-                    'sales_change_seller',
-                    'sales_invoice_all_products',
-                    'sales_view_invoice_profit',
-                    'sales_add_credit_notice_all',
-                    'sales_add_credit_notice_own',
-                    'sales_edit_invoice_date',
-                    'sales_add_payments_all',
-                    'sales_add_payments_own',
-                    'sales_edit_payment_options',
-                    'sales_edit_delete_all_payments',
-                    'sales_edit_delete_own_payments',
-                    'sales_add_quote_all',
-                    'sales_add_quote_own',
-                    'sales_view_all_quotes',
-                    'sales_view_own_quotes',
-                    'sales_edit_delete_all_quotes',
-                    'sales_edit_delete_own_quotes',
-                    'sales_view_all_sales_orders',
-                    'sales_view_own_sales_orders',
-                    'sales_add_sales_order_all',
-                    'sales_add_sales_order_own',
-                    'sales_edit_delete_all_sales_orders',
-                    'sales_edit_delete_own_sales_orders',
-                    'sales_edit_delete_all_credit_notices',
-                    'sales_edit_delete_own_credit_notices',
-                    'sales_view_all_credit_notices',
-                    'sales_view_own_credit_notices',
-                    ])
-                )
-              @php
-              // جلب جميع الإعدادات من جدول application_settings
-              $settings = \App\Models\ApplicationSetting::pluck('status', 'key')->toArray();
-            @endphp
+          
+          
 
-@if(isset($settings['sales']) && $settings['sales'] === 'active')
+
                 <li class="nav-item {{ request()->is("$getLocal/sales/*") ? 'active open' : '' }}">
                     <a href="index.html"><i class="feather icon-align-justify">
                         </i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.sales') }}</span>
                     </a>
-                    <ul class="menu-content">
-                        @can('sales_view_all_invoices')
-                            <li><a href="{{ route('invoices.index') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/index") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="Analytics">{{ trans('main_trans.invoice_management') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_add_invoices')
-                            <li><a href="{{ route('invoices.create') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/create") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.creaat_invoice') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_view_all_quotes')
-                            <li><a href="{{ route('questions.index') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/questions/index") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="Analytics">{{ trans('main_trans.Quotation_Management') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_add_quote_all')
-                            <li><a href="{{ route('questions.create') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/questions/create") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Create_quote') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_view_all_credit_notices')
-                            <li><a href="{{ route('CreditNotes.index') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/CreditNotes/*") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="Analytics">{{ trans('main_trans.Credit_notes') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_view_all_invoices')
-                            <li><a href="{{ route('ReturnIInvoices.index') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/invoices_returned") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Returned_invoices') }}</span></a>
-                            </li>
-
-
-                            <li><a href="{{ route('periodic_invoices.index') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/periodic-invoices/*") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="Analytics">{{ trans('main_trans.Periodic_invoices') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_add_payments_all')
-                            <li><a href="{{ route('paymentsClient.index') }}"><i
-                                        class="feather icon-circle {{ request()->is("$getLocal/sales/paymentsClient/*") ? 'active' : '' }}"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Customer_payments') }}</span></a>
-                            </li>
-                        @endcan
-
-                        @can('sales_edit_payment_options')
-                            <li><a href="{{route('SittingInvoice.index')}}"><i class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Sales_Settings') }}</span></a>
-                            </li>
-                        @endcan
-                    </ul>
+                   
 
                 </li>
-                @endif
-            @endif
-
+              
+         
+                
+                    <ul class="menu-content">
+                        <li>
+                            <a href="{{ route('clients.invoice_client') }}">
+                                <i class="feather icon-circle"></i>
+                                <span class="menu-item" data-i18n="Start Sale">الفواتير</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('clients.questions_client') }}">
+                                <i class="feather icon-circle"></i>
+                                <span class="menu-item" data-i18n="Sessions">عروض الاسعار</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('clients.appointments_client') }}">
+                                <i class="feather icon-circle"></i>
+                                <span class="menu-item" data-i18n="POS Reports">اوامر الشغل</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('pos.settings.index') }}">
+                                <i class="feather icon-circle"></i>
+                                <span class="menu-item"
+                                    data-i18n="POS Settings">المواعيد</span>
+                            </a>
+                        </li>
+                
 
 
             <!-- نقاط  البيع -->
@@ -1310,81 +1229,7 @@
             @endif
             @endif
 
-            {{-- التقارير --}}
-            <li class=" nav-item"><a href="index.html">
-                    <i class="feather icon-file-text">
-                    </i><span class="menu-title" data-i18n="Dashboard">
-                        {{ trans('main_trans.Reports') }}</span>
-
-                </a>
-                <ul class="menu-content">
-                    <li><a href="{{ route('salesReports.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item" data-i18n="Analytics">
-                                {{ trans('main_trans.Sales_Report') }}</span></a>
-                    </li>
-
-                    <li><a href="{{ route('ReportsPurchases.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Purchases_Report') }}</span></a>
-                    </li>
-                    <li><a href="{{ route('GeneralAccountReports.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.General_Accounts_Report') }}</span></a>
-                    </li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Cheques_Report') }}</span></a></li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.SMS_Report') }}</span></a>
-                    </li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Points_and_Balances_Report') }}</span></a>
-                    </li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Employees_Report') }}</span></a></li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Attendance_Report') }}</span></a></li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Achievements_Report') }}</span></a></li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Work_Cycle_Report') }}</span></a></li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Supply_Orders_Report') }}</span></a></li>
-
-                    <li><a href="{{ route('ClientReport.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Customers_Report') }}</span></a></li>
-
-                    <li><a href="{{ route('StorHouseReport.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Stock_Report') }}</span></a></li>
-
-                    <li><a href=""><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Units_Tracking_Report') }}</span></a></li>
-
-                    <li><a href="{{ route('logs.index') }}"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">{{ trans('main_trans.Account_Activity_Log') }}</span></a></li>
-
-
-                </ul>
-
-            </li>
+         
 
 
             @if (

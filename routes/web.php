@@ -14,6 +14,7 @@ use App\Http\Controllers\Sales\RevolvingInvoicesController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
+use App\Http\Controllers\Client\ClientSettingController;
 use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
@@ -167,6 +168,23 @@ Route::group(
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
                     Route::post('/clients/{id}/update-status', [ClientController::class, 'updateStatus']);
+
+                    Route::get('send_info', [ClientController::class, 'send_email']);
+                    // اعدادات العميل
+                    Route::get('/setting', [ClientSettingController::class, 'setting'])->name('clients.setting');
+                    Route::get('/general/settings', [ClientSettingController::class, 'general'])->name('clients.general');
+                    Route::post('/general/settings', [ClientSettingController::class, 'store'])->name('clients.store_general');
+                    // صلاحيات العميل 
+                    Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
+                    Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
+                    Route::get('/personal', [ClientSettingController::class, 'personal'])->name('clients.personal');
+                    Route::get('/invoice/client', [ClientSettingController::class, 'invoice_client'])->name('clients.invoice_client'); // الفواتير
+                    Route::get('/appointments/client', [ClientSettingController::class, 'appointments_client'])->name('clients.appointments_client'); // المواعيد
+                    Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client'); // اوامر الشغل
+                    Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الاسعار
+
+
+
 
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');

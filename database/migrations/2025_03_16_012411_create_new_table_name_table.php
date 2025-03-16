@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('clients', function (Blueprint $table) {
-            $table->text('notes')->nullable(); // إضافة الحقل بعد email
+        Schema::create('type_client', function (Blueprint $table) {
+            $table->id();
+            $table->string('type'); // عمود type
+            $table->integer('is_active')->default(1); 
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('clients', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('new_table_name');
     }
 };

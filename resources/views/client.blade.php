@@ -82,7 +82,7 @@
 
 
     <!-- BEGIN: Main Menu-->
-        @include('layouts.sidebar')
+        @include('layouts.sidebar_client')
     <!-- END: Main Menu-->
 
     <!-- BEGIN: Content-->

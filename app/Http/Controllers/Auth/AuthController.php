@@ -20,12 +20,19 @@ class AuthController extends Controller
 
         if (auth()->attempt(['email' => $request->input('email'), 'password' => $request->input('password')])) {
             if (auth()->user()->role === 'manager'){
+              
                 // Log::info('Redirecting to manager dashboard.');
                 return redirect()->intended(route('dashboard_sales.index'));
             }
             elseif (auth()->user()->role === 'employee'){
+           
                 // Log::info('Redirecting to employee dashboard.');
                 return redirect()->intended(route('dashboard_sales.index'));
+            }
+            elseif (auth()->user()->role === 'client'){
+                // Log::info('Redirecting to employee dashboard.');
+               
+                return redirect()->intended(route('clients.personal'));
             }
             auth()->logout();
             return back()->withErrors(['email' => 'الدور غير صالح.']);
