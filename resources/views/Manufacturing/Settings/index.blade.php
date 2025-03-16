@@ -32,7 +32,7 @@
     <div class="row g-4">
         <!-- البوكس الأول -->
         <div class="col-md-4">
-            <a href="{{ route('Manufacturing.settings.General') }}" class="text-decoration-none">
+            <a href="{{ route('manufacturing.settings.general') }}" class="text-decoration-none">
             <div class="card text-center p-4 shadow-sm">
                 <div class="card-body">
                     <i class="bi bi-gear text-primary" style="font-size: 5rem;"></i>

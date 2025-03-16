@@ -71,7 +71,7 @@ class ViewPurchasePriceController extends Controller
         // الحصول على النتائج مع التقسيم إلى صفحات
         $purchaseQuotation = $query->get();
 
-        return view('Purchases.view_purchase_price.index', compact('suppliers', 'purchaseQuotation'));
+        return view('purchases.view_purchase_price.index', compact('suppliers', 'purchaseQuotation'));
     }
 
     public function show($id)

@@ -183,7 +183,7 @@ class PaymentProcessController extends Controller
         $payments = $query->paginate(25);
 
 
-        return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
+        return view('purchases.supplier_payments.index', compact('payments', 'employees'));
     }
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
 {
@@ -208,152 +208,179 @@ class PaymentProcessController extends Controller
 }
 
 public function store(ClientPaymentRequest $request)
-    {
-        try {
-            DB::beginTransaction();
+{
+    try {
+        DB::beginTransaction();
 
-            // استرجاع البيانات المصادق عليها
-            $data = $request->validated();
+        // استرجاع البيانات المصادق عليها
+        $data = $request->validated();
 
-            // التحقق من وجود الفاتورة وجلب تفاصيلها
-            $invoice = Invoice::findOrFail($data['invoice_id']);
+        // التحقق من وجود الفاتورة وجلب تفاصيلها
+        $invoice = Invoice::findOrFail($data['invoice_id']);
 
-            // حساب إجمالي المدفوعات السابقة
-            $totalPreviousPayments = PaymentsProcess::where('invoice_id', $invoice->id)
-                ->where('type', 'client payments')
-                ->where('payment_status', '!=', 5) // استثناء المدفوعات الفاشلة
-                ->sum('amount');
+        // حساب إجمالي المدفوعات السابقة
+        $totalPreviousPayments = PaymentsProcess::where('invoice_id', $invoice->id)
+            ->where('type', 'client payments')
+            ->where('payment_status', '!=', 5) // استثناء المدفوعات الفاشلة
+            ->sum('amount');
 
-            // حساب المبلغ المتبقي للدفع
-            $remainingAmount = $invoice->grand_total - $totalPreviousPayments;
+        // حساب المبلغ المتبقي للدفع
+        $remainingAmount = $invoice->grand_total - $totalPreviousPayments;
 
-            // التحقق من أن مبلغ الدفع لا يتجاوز المبلغ المتبقي
-            if ($data['amount'] > $remainingAmount) {
-                return back()
-                    ->with('error', 'مبلغ الدفع يتجاوز المبلغ المتبقي للفاتورة. المبلغ المتبقي هو: ' . number_format($remainingAmount, 2))
-                    ->withInput();
-            }
-
-            // تعيين حالة الدفع الافتراضية كمسودة
-            $payment_status = 3; // مسودة
-
-            // تحديد حالة الدفع بناءً على المبلغ المدفوع والمبلغ المتبقي
-            $newTotalPayments = $totalPreviousPayments + $data['amount'];
-
-            if ($newTotalPayments >= $invoice->grand_total) {
-                $payment_status = 1; // مكتمل
-                $invoice->is_paid = true;
-                $invoice->due_value = 0;
-            } else {
-                $payment_status = 2; // غير مكتمل
-                $invoice->is_paid = false;
-                $invoice->due_value = $invoice->grand_total - $newTotalPayments;
-            }
-
-            // إذا تم تحديد حالة دفع معينة في الطلب
-            if ($request->has('payment_status')) {
-                switch ($request->payment_status) {
-                    case 4: // تحت المراجعة
-                        $payment_status = 4;
-                        $invoice->is_paid = false;
-                        break;
-                    case 5: // فاشلة
-                        $payment_status = 5;
-                        $invoice->is_paid = false;
-                        // إعادة حساب المبلغ المتبقي بدون احتساب هذه الدفعة
-                        $invoice->due_value = $invoice->grand_total - $totalPreviousPayments;
-                        break;
-                }
-            }
-
-            // إضافة البيانات الإضافية للدفعة
-            $data['type'] = 'client payments';
-            $data['created_by'] = Auth::id();
-            $data['payment_status'] = $payment_status;
-
-            // معالجة المرفقات
-            if ($request->hasFile('attachments')) {
-                $file = $request->file('attachments');
-                if ($file->isValid()) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->move(public_path('assets/uploads/'), $filename);
-                    $data['attachments'] = $filename;
-                }
-            }
-
-            // إنشاء سجل الدفع
-            $payment = PaymentsProcess::create($data);
-
-            $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')
-            ->first();
-            $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
-            // تحديث المبلغ المدفوع في الفاتورة
-            $invoice->advance_payment = $newTotalPayments;
-            $invoice->payment_status = $payment_status;
-            $invoice->save();
-
-            // إنشاء قيد محاسبي للدفعة
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $payment->reference_number ?? $invoice->code,
-                'date' => $data['payment_date'] ?? now(),
-                'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
-                'status' => 1,
-                'currency' => 'SAR',
-                'client_id' => $invoice->client_id,
-                'invoice_id' => $invoice->id,
-                 'created_by_employee' => Auth::id(),
-            ]);
-
-            // إضافة تفاصيل القيد المحاسبي للدفعة
-            // 1. حساب الصندوق/البنك (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $mainTreasuryAccount->id,
-                'description' => 'استلام دفعة نقدية',
-                'debit' => $data['amount'],
-                'credit' => 0,
-                'is_debit' => true,
-            ]);
-
-            // 2. حساب العميل (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $clientaccounts->id,
-                'description' => 'دفعة من العميل',
-                'debit' => 0,
-                'credit' => $data['amount'],
-                'is_debit' => false,
-            ]);
-
-            DB::commit();
-
-            // إعداد رسالة النجاح مع حالة الدفع
-            $paymentStatusText = match($payment_status) {
-                1 => 'مكتمل',
-                2 => 'غير مكتمل',
-                3 => 'مسودة',
-                4 => 'تحت المراجعة',
-                5 => 'فاشلة',
-                default => 'غير معروف'
-            };
-
-            $successMessage = sprintf(
-                'تم تسجيل عملية الدفع بنجاح. المبلغ المدفوع: %s، المبلغ المتبقي: %s - حالة الدفع: %s',
-                number_format($data['amount'], 2),
-                number_format($invoice->due_value, 2),
-                $paymentStatusText
-            );
-
-            return redirect()->route('paymentsClient.index')->with('success', $successMessage);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('خطأ في تسجيل عملية الدفع: ' . $e->getMessage());
+        // التحقق من أن مبلغ الدفع لا يتجاوز المبلغ المتبقي
+        if ($data['amount'] > $remainingAmount) {
             return back()
-                ->with('error', 'حدث خطأ أثناء تسجيل عملية الدفع: ' . $e->getMessage())
+                ->with('error', 'مبلغ الدفع يتجاوز المبلغ المتبقي للفاتورة. المبلغ المتبقي هو: ' . number_format($remainingAmount, 2))
                 ->withInput();
         }
+
+        // تعيين حالة الدفع الافتراضية كمسودة
+        $payment_status = 3; // مسودة
+
+        // تحديد حالة الدفع بناءً على المبلغ المدفوع والمبلغ المتبقي
+        $newTotalPayments = $totalPreviousPayments + $data['amount'];
+
+        if ($newTotalPayments >= $invoice->grand_total) {
+            $payment_status = 1; // مكتمل
+            $invoice->is_paid = true;
+            $invoice->due_value = 0;
+        } else {
+            $payment_status = 2; // غير مكتمل
+            $invoice->is_paid = false;
+            $invoice->due_value = $invoice->grand_total - $newTotalPayments;
+        }
+
+        // إذا تم تحديد حالة دفع معينة في الطلب
+        if ($request->has('payment_status')) {
+            switch ($request->payment_status) {
+                case 4: // تحت المراجعة
+                    $payment_status = 4;
+                    $invoice->is_paid = false;
+                    break;
+                case 5: // فاشلة
+                    $payment_status = 5;
+                    $invoice->is_paid = false;
+                    // إعادة حساب المبلغ المتبقي بدون احتساب هذه الدفعة
+                    $invoice->due_value = $invoice->grand_total - $totalPreviousPayments;
+                    break;
+            }
+        }
+
+        // إضافة البيانات الإضافية للدفعة
+        $data['type'] = 'client payments';
+        $data['created_by'] = Auth::id();
+        $data['payment_status'] = $payment_status;
+
+        // معالجة المرفقات
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $data['attachments'] = $filename;
+            }
+        }
+
+        // تحديد الخزينة المستهدفة بناءً على الموظف
+        $mainTreasuryAccount = null;
+        $user = Auth::user();
+
+        if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($treasuryEmployee && $treasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $mainTreasuryAccount = Account::where('id', $treasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
+        if (!$mainTreasuryAccount) {
+            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+        }
+
+        // إنشاء سجل الدفع
+        $payment = PaymentsProcess::create($data);
+
+        // تحديث رصيد الخزينة
+        $mainTreasuryAccount->balance += $data['amount'];
+        $mainTreasuryAccount->save();
+
+        // تحديث المبلغ المدفوع في الفاتورة
+        $invoice->advance_payment = $newTotalPayments;
+        $invoice->payment_status = $payment_status;
+        $invoice->save();
+
+        // إنشاء قيد محاسبي للدفعة
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $payment->reference_number ?? $invoice->code,
+            'date' => $data['payment_date'] ?? now(),
+            'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $invoice->client_id,
+            'invoice_id' => $invoice->id,
+            'created_by_employee' => Auth::id(),
+        ]);
+
+        // إضافة تفاصيل القيد المحاسبي للدفعة
+        // 1. حساب الصندوق/البنك (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $mainTreasuryAccount->id,
+            'description' => 'استلام دفعة نقدية',
+            'debit' => $data['amount'],
+            'credit' => 0,
+            'is_debit' => true,
+        ]);
+
+        // 2. حساب العميل (دائن)
+        $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $clientaccounts->id,
+            'description' => 'دفعة من العميل',
+            'debit' => 0,
+            'credit' => $data['amount'],
+            'is_debit' => false,
+        ]);
+
+        DB::commit();
+
+        // إعداد رسالة النجاح مع حالة الدفع
+        $paymentStatusText = match($payment_status) {
+            1 => 'مكتمل',
+            2 => 'غير مكتمل',
+            3 => 'مسودة',
+            4 => 'تحت المراجعة',
+            5 => 'فاشلة',
+            default => 'غير معروف'
+        };
+
+        $successMessage = sprintf(
+            'تم تسجيل عملية الدفع بنجاح. المبلغ المدفوع: %s، المبلغ المتبقي: %s - حالة الدفع: %s',
+            number_format($data['amount'], 2),
+            number_format($invoice->due_value, 2),
+            $paymentStatusText
+        );
+
+        return redirect()->route('paymentsClient.index')->with('success', $successMessage);
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في تسجيل عملية الدفع: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء تسجيل عملية الدفع: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     // دالة مساعدة لإنشاء القيد المحاسبي للدفعة
     private function createPaymentJournalEntry($invoice, $amount)

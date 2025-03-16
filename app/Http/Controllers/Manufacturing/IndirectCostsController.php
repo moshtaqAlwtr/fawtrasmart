@@ -17,7 +17,7 @@ class IndirectCostsController extends Controller
     public function index()
     {
         $indirectCosts = IndirectCost::with('indirectCostItems')->get();
-        return view('Manufacturing.IndirectCosts.index', compact('indirectCosts'));
+        return view('manufacturing.indirectCosts.index', compact('indirectCosts'));
     }
     public function create()
     {

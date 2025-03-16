@@ -65,7 +65,7 @@ class QuotationsController extends Controller
         $purchaseQuotation = $query->latest()->paginate(10);
         $suppliers = Supplier::all();
 
-        return view('purchases.Quotations.index', compact('suppliers', 'purchaseQuotation'));
+        return view('purchases.quotations.index', compact('suppliers', 'purchaseQuotation'));
     }
     public function show($id)
     {
@@ -87,7 +87,7 @@ class QuotationsController extends Controller
     {
         $products = Product::all();
         $suppliers = Supplier::all();
-        return view('purchases.Quotations.create', compact('suppliers', 'products'));
+        return view('purchases.quotations.create', compact('suppliers', 'products'));
     }
 
     public function store(Request $request)

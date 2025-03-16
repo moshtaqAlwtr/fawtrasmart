@@ -382,5 +382,13 @@
             }
         }
     });
+    function updateCircularChart(data) {
+    const employeeNames = data.map(item => item.employee_name);
+    const invoiceCounts = data.map(item => item.invoice_count);
+
+    circularChart.data.labels = employeeNames; // Set employee names as labels
+    circularChart.data.datasets[0].data = invoiceCounts; // Set invoice counts as data
+    circularChart.update(); // Update the chart
+}
 </script>
 @endsection

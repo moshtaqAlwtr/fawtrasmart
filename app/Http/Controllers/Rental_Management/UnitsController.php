@@ -16,7 +16,7 @@ class UnitsController extends Controller
         $units = UnitType::all();
 
         // إرسال الوحدات إلى الـ View
-        return view('Rental_Management.Units.index', compact('units'));
+        return view('rental_management.units.index', compact('units'));
     }
 
     /**
@@ -25,7 +25,7 @@ class UnitsController extends Controller
     public function create()
     {
         $unitTypes = UnitType::all(); // جلب أنواع الوحدات
-        return view('Rental_Management.Units.create', compact('unitTypes'));
+        return view('rental_management.units.create', compact('unitTypes'));
     }
 
     
