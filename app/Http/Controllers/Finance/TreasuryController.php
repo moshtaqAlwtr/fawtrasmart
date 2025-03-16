@@ -127,7 +127,7 @@ class TreasuryController extends Controller
         return view('finance.treasury.transferCreate', compact('treasuries'));
     }
 
-    public function transfer(Request $request)
+    public function transferTreasuryStore(Request $request)
     {
         $request->validate([
             'from_treasury_id' => 'required|exists:accounts,id',
@@ -184,6 +184,89 @@ class TreasuryController extends Controller
 
         return redirect()->route('treasury.index')->with('success', 'تم التحويل بنجاح!');
     }
+
+    public function transferEdit($id)
+{
+    // جلب التحويل المطلوب
+    $transfer = JournalEntry::findOrFail($id);
+
+    // جلب الخزائن
+    $treasuries = Account::whereIn('parent_id', [13, 15])
+                        ->orderBy('id', 'DESC')
+                        ->get();
+
+    return view('finance.treasury.transferEdit', compact('transfer', 'treasuries'));
+}
+
+    public function transferTreasuryUpdate(Request $request, $id)
+{
+    $request->validate([
+        'from_treasury_id' => 'required|exists:accounts,id',
+        'to_treasury_id' => 'required|exists:accounts,id|different:from_treasury_id',
+        'amount' => 'required|numeric|min:0.01',
+    ]);
+
+    // جلب التحويل المطلوب
+    $journalEntry = JournalEntry::findOrFail($id);
+
+    // جلب الخزينة المصدر والهدف
+    $fromTreasury = Account::find($request->from_treasury_id);
+    $toTreasury = Account::find($request->to_treasury_id);
+
+    // تحقق من توفر الرصيد في الخزينة المصدر
+    if ($fromTreasury->balance < $request->amount) {
+        return back()->withErrors(['error' => 'الرصيد غير كافٍ في الخزينة المختارة.']);
+    }
+
+    // التراجع عن التحويل السابق
+    foreach ($journalEntry->details as $detail) {
+        if ($detail->is_debit) {
+            // التراجع عن الإضافة إلى الخزينة المستقبلة
+            $toTreasury->updateBalance($detail->debit, 'subtract');
+        } else {
+            // التراجع عن الخصم من الخزينة المرسلة
+            $fromTreasury->updateBalance($detail->credit, 'add');
+        }
+    }
+
+    // تحديث القيد المحاسبي
+    $journalEntry->update([
+        'reference_number' => $fromTreasury->id,
+        'date' => now(),
+        'description' => 'تحويل المالية',
+        'status' => 1,
+        'currency' => 'SAR',
+        'created_by_employee' => Auth::id(),
+    ]);
+
+    // تحديث تفاصيل القيد المحاسبي
+    foreach ($journalEntry->details as $detail) {
+        if ($detail->is_debit) {
+            // تحديث الخزينة المستقبلة
+            $detail->update([
+                'account_id' => $toTreasury->id,
+                'description' => 'تحويل المالية إلى ' . $toTreasury->code,
+                'debit' => $request->amount,
+                'credit' => 0,
+            ]);
+        } else {
+            // تحديث الخزينة المرسلة
+            $detail->update([
+                'account_id' => $fromTreasury->id,
+                'description' => 'تحويل المالية من ' . $fromTreasury->code,
+                'debit' => 0,
+                'credit' => $request->amount,
+            ]);
+        }
+    }
+
+    // تطبيق التحويل الجديد
+    $fromTreasury->updateBalance($request->amount, 'subtract');
+    $toTreasury->updateBalance($request->amount, 'add');
+
+    return redirect()->route('treasury.index')->with('success', 'تم تحديث التحويل بنجاح!');
+}
+
 
     public function edit($id)
     {
@@ -372,67 +455,47 @@ class TreasuryController extends Controller
         return view('finance.treasury.show', compact('treasury', 'transfers'));
     }
     public function updateStatus($id)
-    {
-        $treasuries = Account::whereIn('parent_id', [13, 15])
-            ->orderBy('id', 'DESC')
-            ->paginate(10);
-
-        if (!$treasuries) {
-            return redirect()->back()->with(['error' => 'قوانين النقاط غير موجود!']);
-        }
-
-        $treasuries->update(['is_active' => !$treasuries->is_active]);
-
-        return redirect()->back()->with(['success' => 'تم تحديث حالة قوانين النقاط بنجاح!']);
-    }
-
-    public function transferTreasury(Request $request)
 {
-    try {
-        // التحقق من صحة البيانات
-        $request->validate([
-            'from_treasury_id' => 'required|exists:treasuries,id',
-            'to_treasury_id' => 'required|exists:treasuries,id',
-            'amount' => 'required|numeric|min:0',
-            'transfer_date' => 'required|date',
-            'notes' => 'nullable|string',
-        ]);
+    // البحث عن العنصر باستخدام الـ ID
+    $treasury = Account::find($id);
 
-        // الحصول على الخزينة المصدر والخزينة الهدف
-        $fromTreasury = Treasury::findOrFail($request->from_treasury_id);
-        $toTreasury = Treasury::findOrFail($request->to_treasury_id);
-
-        // التحقق من أن الرصيد المتاح في الخزينة المصدر كافٍ
-        if ($fromTreasury->balance < $request->amount) {
-            return redirect()->back()->with('error', 'الرصيد غير كافٍ في الخزينة المصدر.');
-        }
-
-        // تنفيذ عملية التحويل
-        DB::transaction(function () use ($fromTreasury, $toTreasury, $request) {
-            // خصم المبلغ من الخزينة المصدر
-            $fromTreasury->balance -= $request->amount;
-            $fromTreasury->save();
-
-            // إضافة المبلغ إلى الخزينة الهدف
-            $toTreasury->balance += $request->amount;
-            $toTreasury->save();
-
-            // تسجيل عملية التحويل في السجلات
-            Transfer::create([
-                'from_treasury_id' => $fromTreasury->id,
-                'to_treasury_id' => $toTreasury->id,
-                'amount' => $request->amount,
-                'transfer_date' => $request->transfer_date,
-                'notes' => $request->notes,
-                'created_by' => auth()->id(),
-            ]);
-        });
-
-        // إعادة التوجيه مع رسالة نجاح
-        return redirect()->route('treasury.index')->with('success', 'تم تحويل المبلغ بنجاح!');
-    } catch (\Exception $e) {
-        // إرجاع الخطأ مع رسالة تفصيلية
-        return redirect()->back()->with('error', 'حدث خطأ: ' . $e->getMessage());
+    // إذا لم يتم العثور على العنصر
+    if (!$treasury) {
+        return redirect()->back()->with(['error' => 'الخزينة غير موجود!']);
     }
+
+    // تحديث حالة العنصر
+    $treasury->update(['is_active' => !$treasury->is_active]);
+
+    // إعادة التوجيه مع رسالة نجاح
+    return redirect()->back()->with(['success' => 'تم تحديث حالة  الخزينة بنجاح!']);
+}
+public function updateType($id)
+{
+    // البحث عن العنصر باستخدام الـ ID
+    $treasury = Account::find($id);
+
+    // إذا لم يتم العثور على العنصر
+    if (!$treasury) {
+        return redirect()->back()->with(['error' => 'الخزينة غير موجود!']);
+    }
+
+    // طباعة القيم للتحقق
+
+
+    // تبديل النوع بين 'main' و 'sub'
+    $newType = ($treasury->type == 'main') ? 'sub' : 'main';
+
+    // تحديث نوع الخزينة
+    $treasury->update(['type' => $newType]);
+
+    // إعادة التوجيه مع رسالة نجاح
+    return redirect()->back()->with(['success' => 'تم تحديث نوع الخزينة بنجاح!']);
+}
+public function destroy($id)
+{
+    $treasury = Account::findOrFail($id);
+    $treasury->delete();
+    return redirect()->route('treasury.index')->with(key: ['success' => 'تم حذف الخزينة بنجاج !!']);
 }
 }

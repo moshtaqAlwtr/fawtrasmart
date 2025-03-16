@@ -24,7 +24,7 @@
     @include('layouts.alerts.error')
     @include('layouts.alerts.success')
 
-    <form action="{{ route('treasury.transfer') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ route('treasury.transferTreasuryStore') }}" method="post" enctype="multipart/form-data">
         @csrf
 
         <div class="card">

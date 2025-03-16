@@ -319,7 +319,7 @@
                                                         <div class="dropdown-menu"
                                                             aria-labelledby="dropdownMenuButton303">
                                                             <li>
-                                                                <a class="dropdown-item" href="">
+                                                                <a class="dropdown-item" href="{{ route('treasury.transferEdit', $transfer->id) }}">
                                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                                 </a>
                                                             </li>

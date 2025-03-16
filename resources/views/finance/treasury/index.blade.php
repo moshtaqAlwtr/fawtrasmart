@@ -147,7 +147,6 @@
                                                 <div class="badge badge-pill badge-danger">غير نشط</div>
                                             @endif
                                         </td>
-                                        </td>
                                         <td>
                                             <div class="btn-group">
                                                 <div class="dropdown">
@@ -185,28 +184,71 @@
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item" href="{{ route('treasury.transferCreate', $treasury->id) }}">
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('treasury.transferCreate', $treasury->id) }}">
                                                                 <i class="fa fa-exchange-alt me-2 text-info"></i> تحويل
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item" href="">
-                                                                <i class="fa fa-star me-2 text-secondary"></i> اجعله رئيسي
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('treasury.updateType', $treasury->id) }}">
+                                                                @if ($treasury->type == 'main')
+                                                                    <i class="fa fa-star me-2 text-secondary"></i> اجعله
+                                                                    فرعي
+                                                                @else
+                                                                    <i class="fa fa-star me-2 text-secondary"></i> اجعله
+                                                                    رئيسي
+                                                                @endif
                                                             </a>
                                                         </li>
                                                         <li>
                                                             <a class="dropdown-item text-danger" href="#"
-                                                                data-toggle="modal" data-target="">
+                                                                data-toggle="modal"
+                                                                data-target="#modal_DELETE_{{ $treasury->id }}">
                                                                 <i class="fa fa-trash me-2"></i> حذف
                                                             </a>
                                                         </li>
                                                     </div>
                                                 </div>
                                             </div>
-
                                         </td>
                                     </tr>
+
+                                    <!-- Modal delete -->
+                                    <div class="modal fade text-left" id="modal_DELETE_{{ $treasury->id }}"
+                                        tabindex="-1" role="dialog" aria-labelledby="myModalLabel1"
+                                        aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-scrollable" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header" style="background-color: #EA5455 !important;">
+                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف
+                                                    </h4>
+                                                    <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                        <span aria-hidden="true" style="color: #DC3545">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <strong>هل انت متاكد من انك تريد حذف الخزينة
+                                                        "{{ $treasury->name }}"؟</strong>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light waves-effect waves-light"
+                                                        data-dismiss="modal">الغاء</button>
+                                                    <form action="{{ route('treasury.destroy', $treasury->id) }}"
+                                                        method="POST" style="display: inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="btn btn-danger waves-effect waves-light">تأكيد</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end delete-->
                                 @endforeach
+
                             </tbody>
                         </table>
                         {{ $treasuries->links('pagination::bootstrap-5') }}

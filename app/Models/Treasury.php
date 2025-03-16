@@ -17,7 +17,11 @@ class Treasury extends Model
 
     public function payments()
     {
-        return $this->hasMany(ClientPayment::class, 'treasury_id'); // المفتاح الأساسي يجب أن يكون 'id'
+        return $this->hasMany(PaymentsProcess::class, 'treasury_id'); // المفتاح الأساسي يجب أن يكون 'id'
     }
+    public function account()
+{
+    return $this->belongsTo(Account::class, 'account_id');
+}
 
 }
