@@ -479,22 +479,154 @@ class TreasuryController extends Controller
     {
         // جلب بيانات الخزينة
         $treasury = Account::findOrFail($id);
-        $branches = Branch::select()->get();
-
-        // جلب التحويلات المرتبطة بالخزينة الحالية (منها أو إليها)
-        $transfers = JournalEntry::whereHas('details', function ($query) use ($id) {
-            $query->where('account_id', $id); // التحويلات التي تحتوي على الحساب الحالي
-        })
-            ->with([
-                'details' => function ($query) {
-                    $query->with('account'); // جلب الحسابات المرتبطة بالتحويل
-                },
-            ])
-            ->where('description', 'تحويل المالية') // تصفية التحويلات فقط
+        $branches = Branch::all();
+    
+        // جلب العمليات المالية المرتبطة بالخزينة
+        $transactions = JournalEntryDetail::where('account_id', $id)
+            ->with(['journalEntry' => function ($query) {
+                $query->with('invoice', 'client'); // جلب الفاتورة والعميل إذا وجدا
+            }])
+            ->orderBy('created_at', 'asc')
             ->get();
-
-        return view('finance.treasury.show', compact('treasury', 'transfers', 'branches'));
+    
+        // جلب التحويلات المالية
+        $transfers = JournalEntry::whereHas('details', function ($query) use ($id) {
+            $query->where('account_id', $id);
+        })
+        ->with(['details.account'])
+        ->where('description', 'تحويل المالية')
+        ->orderBy('created_at', 'asc')
+        ->get();
+    
+        // جلب سندات الصرف (المصروفات)
+        $expenses = Expense::where('treasury_id', $id)
+            ->with(['expenses_category', 'vendor', 'employee', 'branch', 'client'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+    
+        // جلب سندات القبض (الإيرادات)
+        $revenues = Revenue::where('treasury_id', $id)
+            ->with(['account', 'paymentVoucher', 'treasury', 'bankAccount', 'journalEntry'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+    
+        // حساب الرصيد الأولي
+        $currentBalance = $treasury->balance;
+    
+        // مصفوفة العمليات المالية
+        $allOperations = [];
+    
+        // معالجة المدفوعات (JournalEntryDetail)
+        foreach ($transactions as $transaction) {
+            $amount = $transaction->debit > 0 ? $transaction->debit : $transaction->credit;
+            $type = $transaction->debit > 0 ? 'إيداع' : 'سحب';
+    
+            // تحديث الرصيد
+            if ($type === 'إيداع') {
+                $currentBalance += $amount;
+            } else {
+                $currentBalance -= $amount;
+            }
+    
+            $allOperations[] = [
+                'operation' => 'مدفوعات العميل',
+                'deposit' => $type === 'إيداع' ? $amount : 0,
+                'withdraw' => $type === 'سحب' ? $amount : 0,
+                'balance_after' => $currentBalance,
+                'date' => $transaction->journalEntry->date,
+                'invoice' => $transaction->journalEntry->invoice,
+                'client' => $transaction->journalEntry->client,
+                'type' => 'transaction',
+            ];
+        }
+    
+        // معالجة التحويلات المالية
+        foreach ($transfers as $transfer) {
+            $amount = $transfer->details->sum('debit');
+            $fromAccount = $transfer->details->firstWhere('is_debit', true)->account;
+            $toAccount = $transfer->details->firstWhere('is_debit', false)->account;
+    
+            if ($fromAccount->id == $id) {
+                $currentBalance -= $amount;
+                $operationText = 'تحويل مالي إلى ' . $toAccount->name;
+            } else {
+                $currentBalance += $amount;
+                $operationText = 'تحويل مالي من ' . $fromAccount->name;
+            }
+    
+            $allOperations[] = [
+                'operation' => $operationText,
+                'deposit' => $fromAccount->id != $id ? $amount : 0,
+                'withdraw' => $fromAccount->id == $id ? $amount : 0,
+                'balance_after' => $currentBalance,
+                'date' => $transfer->date,
+                'invoice' => null,
+                'client' => null,
+                'type' => 'transfer',
+            ];
+        }
+    
+        // معالجة سندات الصرف
+        foreach ($expenses as $expense) {
+            $currentBalance -= $expense->amount;
+    
+            $allOperations[] = [
+                'operation' => 'سند صرف: ' . $expense->description,
+                'deposit' => 0,
+                'withdraw' => $expense->amount,
+                'balance_after' => $currentBalance,
+                'date' => $expense->date,
+                'invoice' => null,
+                'client' => $expense->client,
+                'type' => 'expense',
+            ];
+        }
+    
+        // معالجة سندات القبض
+        foreach ($revenues as $revenue) {
+            $currentBalance += $revenue->amount;
+    
+            $allOperations[] = [
+                'operation' => 'سند قبض: ' . $revenue->description,
+                'deposit' => $revenue->amount,
+                'withdraw' => 0,
+                'balance_after' => $currentBalance,
+                'date' => $revenue->date,
+                'invoice' => null,
+                'client' => null,
+                'type' => 'revenue',
+            ];
+        }
+    
+        // ترتيب العمليات حسب التاريخ
+        usort($allOperations, function ($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
+    
+        // تقسيم العمليات إلى صفحات
+        $perPage = 15;
+        $currentPage = request()->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        $paginatedOperations = array_slice($allOperations, $offset, $perPage);
+    
+        $operationsPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $paginatedOperations,
+            count($allOperations),
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+    
+        return view('finance.treasury.show', compact(
+            'treasury',
+            'operationsPaginator',
+            'branches'
+        ));
     }
+    
     public function updateStatus($id)
     {
         // البحث عن العنصر باستخدام الـ ID
