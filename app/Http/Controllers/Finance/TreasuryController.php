@@ -559,8 +559,10 @@ class TreasuryController extends Controller
             $amount = $transaction->debit > 0 ? $transaction->debit : $transaction->credit;
             $type = $transaction->debit > 0 ? 'إيداع' : 'سحب';
 
+            // تحديث الرصيد
             $currentBalance = $this->updateBalance($currentBalance, $amount, $type);
 
+            // إضافة العملية إلى المصفوفة
             $allOperations[] = [
                 'operation' => 'مدفوعات العميل',
                 'deposit' => $type === 'إيداع' ? $amount : 0,
@@ -636,7 +638,12 @@ class TreasuryController extends Controller
 
     private function updateBalance($currentBalance, $amount, $type)
     {
-        return $type === 'إيداع' ? $currentBalance + $amount : $currentBalance - $amount;
+        if ($type === 'إيداع') {
+            return $currentBalance + $amount;
+        } elseif ($type === 'سحب') {
+            return $currentBalance - $amount;
+        }
+        return $currentBalance; // إذا لم يكن النوع معروفًا
     }
 
     private function paginateOperations($allOperations)
@@ -657,7 +664,7 @@ class TreasuryController extends Controller
             ]
         );
     }
-
+    
     public function updateStatus($id)
     {
         // البحث عن العنصر باستخدام الـ ID
