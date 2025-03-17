@@ -551,17 +551,21 @@ class TreasuryController extends Controller
 
     private function processOperations($transactions, $transfers, $expenses, $revenues, $treasury)
     {
-        $currentBalance = $treasury->balance;
+        $currentBalance = $treasury->balance; // الرصيد الأولي للخزينة
         $allOperations = [];
-
+    
         // معالجة المدفوعات
         foreach ($transactions as $transaction) {
             $amount = $transaction->debit > 0 ? $transaction->debit : $transaction->credit;
             $type = $transaction->debit > 0 ? 'إيداع' : 'سحب';
-
+    
             // تحديث الرصيد
-            $currentBalance = $this->updateBalance($currentBalance, $amount, $type);
-
+            if ($type === 'إيداع') {
+                $currentBalance += $amount;
+            } elseif ($type === 'سحب') {
+                $currentBalance -= $amount;
+            }
+    
             // إضافة العملية إلى المصفوفة
             $allOperations[] = [
                 'operation' => 'مدفوعات العميل',
@@ -574,13 +578,13 @@ class TreasuryController extends Controller
                 'type' => 'transaction',
             ];
         }
-
+    
         // معالجة التحويلات
         foreach ($transfers as $transfer) {
             $amount = $transfer->details->sum('debit');
             $fromAccount = $transfer->details->firstWhere('is_debit', true)->account;
             $toAccount = $transfer->details->firstWhere('is_debit', false)->account;
-
+    
             if ($fromAccount->id == $treasury->id) {
                 $currentBalance -= $amount;
                 $operationText = 'تحويل مالي إلى ' . $toAccount->name;
@@ -588,7 +592,7 @@ class TreasuryController extends Controller
                 $currentBalance += $amount;
                 $operationText = 'تحويل مالي من ' . $fromAccount->name;
             }
-
+    
             $allOperations[] = [
                 'operation' => $operationText,
                 'deposit' => $fromAccount->id != $treasury->id ? $amount : 0,
@@ -600,11 +604,11 @@ class TreasuryController extends Controller
                 'type' => 'transfer',
             ];
         }
-
+    
         // معالجة سندات الصرف
         foreach ($expenses as $expense) {
             $currentBalance -= $expense->amount;
-
+    
             $allOperations[] = [
                 'operation' => 'سند صرف: ' . $expense->description,
                 'deposit' => 0,
@@ -616,11 +620,11 @@ class TreasuryController extends Controller
                 'type' => 'expense',
             ];
         }
-
+    
         // معالجة سندات القبض
         foreach ($revenues as $revenue) {
             $currentBalance += $revenue->amount;
-
+    
             $allOperations[] = [
                 'operation' => 'سند قبض: ' . $revenue->description,
                 'deposit' => $revenue->amount,
@@ -632,19 +636,18 @@ class TreasuryController extends Controller
                 'type' => 'revenue',
             ];
         }
-
+    
         return $allOperations;
     }
-
-    private function updateBalance($currentBalance, $amount, $type)
-    {
-        if ($type === 'إيداع') {
-            return $currentBalance + $amount;
-        } elseif ($type === 'سحب') {
-            return $currentBalance - $amount;
-        }
-        return $currentBalance; // إذا لم يكن النوع معروفًا
-    }
+    // private function updateBalance($currentBalance, $amount, $type)
+    // {
+    //     if ($type === 'إيداع') {
+    //         return $currentBalance + $amount;
+    //     } elseif ($type === 'سحب') {
+    //         return $currentBalance - $amount;
+    //     }
+    //     return $currentBalance; // إذا لم يكن النوع معروفًا
+    // }
 
     private function paginateOperations($allOperations)
     {
