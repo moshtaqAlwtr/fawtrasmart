@@ -399,7 +399,7 @@
                                         <th style="width: 10%">الإجراءات</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                {{-- <tbody>
                                     @foreach ($transfers as $transfer)
                                         <tr>
                                             <td>{{ $transfer->reference_number }}</td>
@@ -486,7 +486,7 @@
                                             <!--end delete-->
                                         </tr>
                                     @endforeach
-                                </tbody>
+                                </tbody> --}}
                             </table>
                         </div>
                         <!-- 🔹 تبويب سجل النشاطات -->
