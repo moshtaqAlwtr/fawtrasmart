@@ -105,8 +105,12 @@
 
                         </div>
 
-                        <div class="tab-pane" id="profile" aria-labelledby="profile-tab" role="tabpanel">
-                            <p>مطبوعات مطبوعات مطبوعات مطبوعات</p>
+                        <div class="tab-pane" id="profile" aria-labelledby="profile-tab" role="tabpanel " style="background: rgba(0, 0, 0, 0.05);">
+
+                                    <!-- عرض سند PDF -->
+                                    @include('finance.expenses.pdf')
+
+
                         </div>
                         <div class="tab-pane" id="about" aria-labelledby="about-tab" role="tabpanel">
                             <p>time table</p>

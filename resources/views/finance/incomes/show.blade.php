@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-الايرادات
+    الايرادات
 @stop
 
 @section('content')
@@ -27,11 +27,12 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
-                        <strong>مصروف</strong> | <small>{{ $income->code }} #</small> | <span class="badge badge-pill badge badge-success">اصدر</span>
+                        <strong>مصروف</strong> | <small>{{ $income->code }} #</small> | <span
+                            class="badge badge-pill badge badge-success">اصدر</span>
                     </div>
 
                     <div>
-                        <a href="{{ route('incomes.edit',$income->id) }}" class="btn btn-outline-primary">
+                        <a href="{{ route('incomes.edit', $income->id) }}" class="btn btn-outline-primary">
                             <i class="fa fa-edit"></i>تعديل
                         </a>
                     </div>
@@ -46,21 +47,26 @@
         <div class="container" style="max-width: 1200px">
             <div class="card">
                 <div class="card-title p-2">
-                    <a href="{{ route('incomes.edit',$income->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i class="fa fa-edit"></i></a>
-                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modal_DELETE{{ $income->id }}">حذف <i class="fa fa-trash"></i></a>
+                    <a href="{{ route('incomes.edit', $income->id) }}" class="btn btn-outline-primary btn-sm">تعديل <i
+                            class="fa fa-edit"></i></a>
+                    <a href="#" class="btn btn-outline-danger btn-sm" data-toggle="modal"
+                        data-target="#modal_DELETE{{ $income->id }}">حذف <i class="fa fa-trash"></i></a>
                     <a href="" class="btn btn-outline-success btn-sm">نقل <i class="fa fa-reply-all"></i></a>
                     <a href="" class="btn btn-outline-info btn-sm">اضف عمليه <i class="fa fa-plus"></i></a>
                 </div>
                 <div class="card-body">
                     <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home" role="tab" aria-selected="false">التفاصيل</a>
+                            <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" aria-controls="home"
+                                role="tab" aria-selected="false">التفاصيل</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" aria-controls="profile" role="tab" aria-selected="false">مطبوعات</a>
+                            <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" aria-controls="profile"
+                                role="tab" aria-selected="false">مطبوعات</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activate" aria-controls="about" role="tab" aria-selected="true">سجل النشاطات</a>
+                            <a class="nav-link" id="activate-tab" data-toggle="tab" href="#activate" aria-controls="about"
+                                role="tab" aria-selected="true">سجل النشاطات</a>
                         </li>
 
                     </ul>
@@ -78,9 +84,11 @@
                                             <tr>
                                                 <td style="width: 50%">
                                                     @if ($income->attachments)
-                                                        <img src="{{ asset('assets/uploads/incomes/'.$income->attachments) }}" alt="img" width="150">
+                                                        <img src="{{ asset('assets/uploads/incomes/' . $income->attachments) }}"
+                                                            alt="img" width="150">
                                                     @else
-                                                        <img src="{{ asset('assets/uploads/no_image.jpg') }}" alt="img" width="150">
+                                                        <img src="{{ asset('assets/uploads/no_image.jpg') }}" alt="img"
+                                                            width="150">
                                                     @endif
                                                     <br><br>
                                                     <strong>الوصف </strong>: {{ $income->description }}
@@ -105,8 +113,13 @@
 
                         </div>
 
-                        <div class="tab-pane" id="profile" aria-labelledby="profile-tab" role="tabpanel">
-                            <p>مطبوعات مطبوعات مطبوعات مطبوعات</p>
+                        <div class="tab-pane" id="profile" aria-labelledby="profile-tab" role="tabpanel "
+                            style="background: rgba(0, 0, 0, 0.05);">
+
+                            <!-- عرض سند PDF -->
+                            @include('finance.incomes.pdf')
+
+
                         </div>
                         <div class="tab-pane" id="about" aria-labelledby="about-tab" role="tabpanel">
                             <p>time table</p>
@@ -121,7 +134,8 @@
 
 
         <!-- Modal delete -->
-        <div class="modal fade text-left" id="modal_DELETE{{ $income->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+        <div class="modal fade text-left" id="modal_DELETE{{ $income->id }}" tabindex="-1" role="dialog"
+            aria-labelledby="myModalLabel1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable" role="document">
                 <div class="modal-content">
                     <div class="modal-header" style="background-color: #EA5455 !important;">
@@ -136,8 +150,10 @@
                         </strong>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                        <a href="{{ route('incomes.delete',$income->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
+                        <button type="button" class="btn btn-light waves-effect waves-light"
+                            data-dismiss="modal">الغاء</button>
+                        <a href="{{ route('incomes.delete', $income->id) }}"
+                            class="btn btn-danger waves-effect waves-light">تأكيد</a>
                     </div>
                 </div>
             </div>

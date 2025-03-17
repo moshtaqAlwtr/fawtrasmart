@@ -13,7 +13,7 @@ use App\Models\JournalEntryDetail;
 use App\Models\Supplier;
 use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
-
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -372,4 +372,14 @@ public function update(Request $request, $id)
 
         return $fileName;
     } //end of uploadImage
+    public function print($id)
+    {
+        $expense = Expense::findOrFail($id);
+
+        // إنشاء PDF
+        $pdf = Pdf::loadView('finance.expenses.pdf', compact('expense'));
+
+        // عرض PDF في المتصفح
+        return $pdf->stream('expense' . $expense->id . '.pdf');
+    }
 }
