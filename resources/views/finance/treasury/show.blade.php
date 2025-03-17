@@ -240,101 +240,31 @@
                                 <table class="table">
                                     <thead>
                                         <tr>
-                                            <th>العملية </th>
-                                            <th>الايداع</th>
-                                            <th>السحب </th>
-
-                                            <th>الرصيد بعد </th>
-                                            <th style="width: 10%">الإجراءات</th>
+                                            <th>العملية</th>
+                                            <th>الإيداع</th>
+                                            <th>السحب</th>
+                                            <th>الرصيد بعد العملية</th>
+                                            <th>التاريخ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex flex-column">
-                                                    <span class="text-muted font-weight-bold">(#51314) 16/03/2025</span>
-                                                    <span class="text-dark">مدفوعات العميل <span
-                                                            class="text-primary">#023352</span>، عميل نقدي، فاتورة <span
-                                                            class="text-primary">#09840</span></span>
-                                                    <div class="d-flex align-items-center mt-1">
-                                                        <span class="badge bg-success text-white p-1">م</span>
-                                                        <span class="mx-1">محمد المنصوب مدير</span>
-                                                        <i class="fa fa-building text-secondary mx-1"></i> <span>Main
-                                                            Branch</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td></td>
-                                            <td>
-                                            </td>
-                                            <td></td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    <div class="dropdown">
-                                                        <button
-                                                            class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                            type="button" id="dropdownMenuButton303"
-                                                            data-toggle="dropdown" aria-haspopup="true"
-                                                            aria-expanded="false"></button>
-                                                        <div class="dropdown-menu"
-                                                            aria-labelledby="dropdownMenuButton303">
-                                                            <li>
-                                                                <a class="dropdown-item" href="">
-                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="#"
-                                                                    data-toggle="modal" data-target="#modal_DELETE_">
-                                                                    <i class="fa fa-trash me-2"></i>حذف
-                                                                </a>
-                                                            </li>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            <!-- Modal delete -->
-                                            <div class="modal fade text-left" id="modal_DELETE_" tabindex="-1"
-                                                role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-scrollable" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header"
-                                                            style="background-color: #EA5455 !important;">
-                                                            <h4 class="modal-title" id="myModalLabel1"
-                                                                style="color: #FFFFFF">حذف </h4>
-                                                            <button type="button" class="close" data-dismiss="modal"
-                                                                aria-label="Close">
-                                                                <span aria-hidden="true"
-                                                                    style="color: #DC3545">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <strong>هل انت متاكد من انك تريد الحذف ؟</strong>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button"
-                                                                class="btn btn-light waves-effect waves-light"
-                                                                data-dismiss="modal">الغاء</button>
-                                                            <a href=""
-                                                                class="btn btn-danger waves-effect waves-light">تأكيد</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!--end delete-->
-                                        </tr>
-
+                                        @foreach ($operationsPaginator as $operation)
+                                            <tr>
+                                                <td>{{ $operation['operation'] }}</td>
+                                                <td>{{ number_format($operation['deposit'], 2) }}</td>
+                                                <td>{{ number_format($operation['withdraw'], 2) }}</td>
+                                                <td>{{ number_format($operation['balance_after'], 2) }}</td>
+                                                <td>{{ $operation['date'] }}</td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th> الرصيد قبل </th>
-
-                                        </tr>
-                                    </tfoot>
                                 </table>
-
+                
+                                <!-- Pagination -->
+                                <div class="d-flex justify-content-center mt-3">
+                                    {{ $operationsPaginator->links() }}
+                                </div>
+                            
 
                             </div>
                         </div>
