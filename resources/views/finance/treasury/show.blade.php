@@ -283,10 +283,9 @@
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>{{ $operation['deposit'] > 0 ? number_format($operation['deposit'], 2) : '-' }}
-                                                </td>
-                                                <td>{{ $operation['withdraw'] > 0 ? number_format($operation['withdraw'], 2) : '-' }}
-                                                </td>
+                                                <td>{{ number_format($operation['deposit'], 2) }}</td>
+                                                <td>{{ number_format($operation['withdraw'], 2) }}</td>
+                                                
                                                 <td>{{ number_format($operation['balance_after'], 2) }}</td>
                                                 <td>
                                                     <div class="btn-group">
