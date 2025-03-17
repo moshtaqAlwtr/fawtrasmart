@@ -55,6 +55,10 @@ class JournalEntry extends Model
     {
         return $this->belongsTo(Invoice::class);
     }
+    public function payment()
+{
+    return $this->hasOne(PaymentsProcess::class);
+}
 
     // العلاقة مع مركز التكلفة
     public function costCenter()

@@ -44,6 +44,7 @@ Route::group(
                     Route::get('/edit/{id}', [ExpensesController::class, 'edit'])->name('expenses.edit');
                     Route::post('/update/{id}', [ExpensesController::class, 'update'])->name('expenses.update');
                     Route::get('/delete/{id}', [ExpensesController::class, 'delete'])->name('expenses.delete');
+                    Route::get('/print/{id}', [ExpensesController::class, 'print'])->name('expenses.print');
                 });
 
                 #incomes routes

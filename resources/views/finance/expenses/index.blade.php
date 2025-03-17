@@ -6,13 +6,23 @@
 
 @section('css')
 <style>
-    .ex-card{
-        background:#7367F0;
-        color: #fff
-    }
-    .ex-card h2{
-        color: #fff
-    }
+ .ex-card {
+    background: linear-gradient(135deg, #4a90e2, #13d7fe); /* Gradient background */
+    border-radius: 10px; /* Rounded corners */
+    color: white; /* Default text color */
+}
+
+.card-title {
+    font-weight: bold; /* Bold title */
+}
+
+.text-muted {
+    color: rgba(255, 255, 255, 0.7); /* Muted white for labels */
+}
+
+.text-white {
+    font-size: 1.5rem; /* Larger font size for totals */
+}
 </style>
 @endsection
 
@@ -41,6 +51,76 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
                     </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- زر الانتقال إلى أول صفحة -->
+                            @if ($expenses->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->url(1) }}" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            @endif
+
+                            <!-- زر الانتقال إلى الصفحة السابقة -->
+                            @if ($expenses->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->previousPageUrl() }}" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                            @endif
+
+                            <!-- عرض رقم الصفحة الحالية -->
+                            <li class="page-item">
+                                <span class="page-link border-0 bg-light rounded-pill px-3">
+                                    صفحة {{ $expenses->currentPage() }} من {{ $expenses->lastPage() }}
+                                </span>
+                            </li>
+
+                            <!-- زر الانتقال إلى الصفحة التالية -->
+                            @if ($expenses->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->nextPageUrl() }}" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+
+                            <!-- زر الانتقال إلى آخر صفحة -->
+                            @if ($expenses->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->url($expenses->lastPage()) }}" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
 
                     <div>
                         <a href="#" class="btn btn-outline-dark">
@@ -50,156 +130,182 @@
                             <i class="fa fa-plus"></i>سند صرف
                         </a>
                     </div>
+
                 </div>
             </div>
         </div>
 
         @include('layouts.alerts.error')
         @include('layouts.alerts.success')
-
-        <div class="card ex-card">
+        <div class="card ex-card shadow-sm border-light">
             <div class="card-body">
+                <h5 class="card-title text-center">إجمالي المصروفات</h5>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
 
-                    <div>
-                        <p>آخر 7 أيام</p>
-                        <h2>ر.س 0.00</h2>
+                    <div class="text-center">
+                        <p class="text-muted">آخر 7 أيام</p>
+                        <h2 class="text-white">ر.س {{ $totalLast7Days }}</h2>
                     </div>
 
-                    <div>
-                        <p>آخر 30 يوم</p>
-                        <h2>ر.س 0.00</h2>
+                    <div class="text-center">
+                        <p class="text-muted">آخر 30 يوم</p>
+                        <h2 class="text-white">ر.س {{ $totalLast30Days }}</h2>
                     </div>
 
-                    <div>
-                        <p>آخر 365 يوم</p>
-                        <h2>ر.س 0.00</h2>
+                    <div class="text-center">
+                        <p class="text-muted">آخر 365 يوم</p>
+                        <h2 class="text-white">ر.س {{ $totalLast365Days }}</h2>
                     </div>
 
                 </div>
             </div>
         </div>
-
         <div class="card">
-            <div class="card-content">
-                <div class="card-body">
-                    <div class="card-title">
+            <!-- Header Section -->
+            <div class="card-header d-flex justify-content-between align-items-center p-2">
+                <!-- Title -->
+                <div class="d-flex gap-2">
+                    <span class="hide-button-text">
+                        بحث وتصفية
+                    </span>
+                </div>
 
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <div>بحث</div>
+                <!-- Buttons -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Hide Button -->
+                    <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
+                        <i class="fa fa-times"></i>
+                        <span class="hide-button-text">اخفاء</span>
+                    </button>
+
+                    <!-- Advanced Search Button -->
+                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
+                        data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
+                        <i class="fa fa-filter"></i>
+                        <span class="button-text">متقدم</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body Section -->
+            <div class="card-body">
+                <!-- Search Form -->
+                <form class="form" id="searchForm" method="GET" action="{{ route('expenses.index') }}">
+                    <div class="row g-3">
+                        <!-- 1. Keyword Search -->
+                        <div class="col-md-4">
+                            <label for="keywords">البحث بكلمة مفتاحية</label>
+                            <input type="text" id="keywords" class="form-control" placeholder="ادخل الإسم او الكود" name="keywords" value="{{ request('keywords') }}">
+                        </div>
+
+                        <!-- 2. From Date -->
+                        <div class="col-md-2">
+                            <label for="from_date">من تاريخ</label>
+                            <input type="date" id="from_date" class="form-control" name="from_date" value="{{ request('from_date') }}">
+                        </div>
+
+                        <!-- 3. To Date -->
+                        <div class="col-md-2">
+                            <label for="to_date">إلى تاريخ</label>
+                            <input type="date" id="to_date" class="form-control" name="to_date" value="{{ request('to_date') }}">
+                        </div>
+
+                        <!-- 4. Category -->
+                        <div class="col-md-4">
+                            <label for="category">التصنيف</label>
+                            <select name="category" class="form-control" id="category">
+                                <option value="">جميع التصنيفات</option>
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- 5. Status -->
+                        <div class="col-md-4">
+                            <label for="status">الحالة</label>
+                            <select name="status" class="form-control" id="status">
+                                <option value="">الحالة</option>
+                                <option value="1" {{ request('status') == 1 ? 'selected' : '' }}>نشط</option>
+                                <option value="2" {{ request('status') == 2 ? 'selected' : '' }}>متوقف</option>
+                                <option value="3" {{ request('status') == 3 ? 'selected' : '' }}>غير نشط</option>
+                            </select>
                         </div>
                     </div>
-                </div>
 
-                <div class="card-body">
-                    <form class="form" method="GET" action="{{ route('products.search') }}">
-                        <div class="form-body row">
-                            <div class="form-group col-md-4">
-                                <label for="">البحث بكلمة مفتاحية</label>
-                                <input type="text" class="form-control" placeholder="ادخل الإسم او الكود"name="keywords">
+                    <!-- Advanced Search Section -->
+                    <div class="collapse" id="advancedSearchForm">
+                        <div class="row g-3 mt-2">
+                            <!-- 6. Description -->
+                            <div class="col-md-4">
+                                <label for="description">الوصف</label>
+                                <input type="text" id="description" class="form-control" placeholder="الوصف" name="description" value="{{ request('description') }}">
                             </div>
 
-                            <div class="form-group col-2">
-                                <label for="">من تاريخ</label>
-                                <input type="date" class="form-control" name="from_date">
-                            </div>
-
-                            <div class="form-group col-2">
-                                <label for="">الي تاريخ</label>
-                                <input type="date" class="form-control"  name="to_date">
-                            </div>
-
-                            <div class="form-group col-md-4">
-                                <label for="">التصنيف</label>
-                                <select name="category" class="form-control" id="">
-                                    <option value=""> جميع التصنيفات</option>
-                                    <option value="1">منتج</option>
+                            <!-- 7. Vendor -->
+                            <div class="col-md-4">
+                                <label for="vendor">البائع</label>
+                                <select name="vendor" class="form-control" id="vendor">
+                                    <option value="">أي بائع</option>
+                                    <option value="1" {{ request('vendor') == 1 ? 'selected' : '' }}>بائع 1</option>
+                                    <option value="2" {{ request('vendor') == 2 ? 'selected' : '' }}>بائع 2</option>
                                 </select>
                             </div>
 
-                            <div class="form-group col-md-4">
-                                <select class="form-control" name="status">
-                                    <option value="">الحالة</option>
-                                    <option value="1">نشط</option>
-                                    <option value="2">متوقف</option>
-                                    <option value="3">غير نشط</option>
+                            <!-- 8. Amount From -->
+                            <div class="col-md-2">
+                                <label for="amount_from">أكبر مبلغ</label>
+                                <input type="text" id="amount_from" class="form-control" placeholder="أكبر مبلغ" name="amount_from" value="{{ request('amount_from') }}">
+                            </div>
+
+                            <!-- 9. Amount To -->
+                            <div class="col-md-2">
+                                <label for="amount_to">أقل مبلغ</label>
+                                <input type="text" id="amount_to" class="form-control" placeholder="أقل مبلغ" name="amount_to" value="{{ request('amount_to') }}">
+                            </div>
+
+                            <!-- 10. Created At From -->
+                            <div class="col-md-2">
+                                <label for="created_at_from">من تاريخ الإنشاء</label>
+                                <input type="date" id="created_at_from" class="form-control" name="created_at_from" value="{{ request('created_at_from') }}">
+                            </div>
+
+                            <!-- 11. Created At To -->
+                            <div class="col-md-2">
+                                <label for="created_at_to">إلى تاريخ الإنشاء</label>
+                                <input type="date" id="created_at_to" class="form-control" name="created_at_to" value="{{ request('created_at_to') }}">
+                            </div>
+
+                            <!-- 12. Sub Account -->
+                            <div class="col-md-4">
+                                <label for="sub_account">الحساب الفرعي</label>
+                                <select name="sub_account" class="form-control" id="sub_account">
+                                    <option value="">أي حساب</option>
+                                    <option value="1" {{ request('sub_account') == 1 ? 'selected' : '' }}>حساب 1</option>
+                                    <option value="2" {{ request('sub_account') == 2 ? 'selected' : '' }}>حساب 2</option>
                                 </select>
                             </div>
 
-                        </div>
-                        <!-- Hidden Div -->
-                        <div class="collapse" id="advancedSearchForm">
-                            <div class="form-body row">
-
-                                <div class="form-group col-md-4">
-                                    <label for="">الوصف</label>
-                                    <input type="text" class="form-control" name="keywords">
-                                </div>
-
-                                <div class="form-group col-md-4">
-                                    <label for="">البائع</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">اي بائع</option>
-                                        <option value="1">بائع 1</option>
-                                        <option value="2">بائع 2</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group col-md-2">
-                                    <label for="">اكبر مبلغ</label>
-                                    <input type="text" class="form-control" name="keywords">
-                                </div>
-
-                                <div class="form-group col-md-2">
-                                    <label for="">اقل مبلغ</label>
-                                    <input type="text" class="form-control" name="keywords">
-                                </div>
-
-                                <div class="form-group col-2">
-                                    <label for="">من (تاريخ الانشاء)</label>
-                                    <input type="date" class="form-control" name="from_date">
-                                </div>
-
-                                <div class="form-group col-2">
-                                    <label for="">الى (تاريخ الانشاء)</label>
-                                    <input type="date" class="form-control"  name="to_date">
-                                </div>
-
-                                <div class="form-group col-md-4">
-                                    <label for="">الحساب الفرعي</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">اي حساب</option>
-                                        <option value="1">حساب 1</option>
-                                        <option value="2">حساب 2</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group col-md-4">
-                                    <label for="">اضيفت بواسطه</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">اي موظف</option>
-                                        <option value="1">اي موظف</option>
-                                    </select>
-                                </div>
+                            <!-- 13. Added By -->
+                            <div class="col-md-4">
+                                <label for="added_by">أضيفت بواسطة</label>
+                                <select name="added_by" class="form-control" id="added_by">
+                                    <option value="">أي موظف</option>
+                                    <option value="1" {{ request('added_by') == 1 ? 'selected' : '' }}>موظف 1</option>
+                                    <option value="2" {{ request('added_by') == 2 ? 'selected' : '' }}>موظف 2</option>
+                                </select>
                             </div>
-
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
+                    </div>
 
-                            <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
-                                data-target="#advancedSearchForm">
-                                <i class="bi bi-sliders"></i> بحث متقدم
-                            </a>
-                            <a href="{{ route('expenses.index') }}" class="btn btn-outline-danger waves-effect waves-light">الغاء الفلترة</a>
-                        </div>
-                    </form>
-
-                </div>
-
+                    <!-- Form Actions -->
+                    <div class="form-actions mt-2">
+                        <button type="submit" class="btn btn-primary">بحث</button>
+                        <a href="{{ route('expenses.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
+                    </div>
+                </form>
             </div>
         </div>
-
         <div class="card">
             <div class="card-header">النتائج</div>
             <div class="card-body">
@@ -284,3 +390,6 @@
 
     </div><!-- content-body -->
     @endsection
+@section('scripts')
+<script src="{{ asset('assets/js/search.js') }}"></script>
+@endsection

@@ -20,10 +20,10 @@ return new class extends Migration
             $table->date('date'); // التاريخ
             $table->integer('unit_id')->nullable(); // الوحدة
             $table->integer('expenses_category_id')->nullable(); // التصنيف
-            $table->integer('vendor_id')->nullable(); // المورد
+            $table->unsignedBigInteger('supplier_id')->nullable();
             $table->string('seller')->nullable(); // البائع
-            $table->integer('store_id')->nullable(); // الخزينة
-            $table->string('sup_account')->nullable(); // الحساب الفرعي
+            $table->unsignedBigInteger('treasury_id')->nullable(); // الخزينة
+            $table->unsignedBigInteger('account_id')->nullable(); // الحساب الفرعي
             $table->tinyInteger('is_recurring')->default(0); // متكرر
             $table->string('recurring_frequency')->nullable(); // التكرار (مثلاً Weekly, Monthly)
             $table->date('end_date')->nullable(); // تاريخ الانتهاء

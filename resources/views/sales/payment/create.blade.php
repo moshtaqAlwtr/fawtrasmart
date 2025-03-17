@@ -62,7 +62,7 @@
                     <div class="col-md-6">
                         <label for="name" class="form-label">المبلغ <span style="color: red">*</span></label>
                         <input type="number" id="name" name="amount" class="form-control" placeholder="المبلغ"
-                            step="0.01" value="{{ $amount }}" required>
+                            step="0.01" value="{{ $amount ?? '' }}" required>
                     </div>
                     <div class="col-md-6">
                         <label for="date" class="form-label">تاريخ الدفع <span style="color: red">*</span></label>

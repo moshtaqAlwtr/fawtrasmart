@@ -26,20 +26,6 @@
     @include('layouts.alerts.success')
 
 
-    @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-@if (session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
     <div class="content-body">
 
         <div class="card">
@@ -191,7 +177,7 @@
                                 <div class="row">
                                     <div class="form-group col-md-2">
                                         <label for="checkbox">مكرر</label>
-                                        <input type="checkbox" id="checkbox" name="is_recurring">
+                                        <input type="checkbox" id="checkbox" name="is_recurring" value="1">
                                     </div>
                                 </div>
                                 <!-- حقل التكرار و تاريخ الإنتهاء يظهر عند تحديد الـ checkbox -->
