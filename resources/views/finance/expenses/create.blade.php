@@ -46,6 +46,7 @@
                         </button>
                     </div>
 
+
                 </div>
             </div>
         </div>
@@ -93,11 +94,11 @@
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="code-number">رقم الكود</label>
-                            <input type="text" class="form-control" id="code-number" name="code">
+                            <input type="text" class="form-control" id="code-number" name="code" value="{{ $code }}" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
-                            <input type="date" class="form-control" id="date" name="date">
+                            <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="form-group col-md-4">
                             <label for="unit">الوحدة</label>
@@ -131,7 +132,7 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
-                            <select id="warehouse" class="form-control" name="store_id">
+                            <select id="warehouse" class="form-control" name="treasury_id">
                                 <option selected disabled value="1">اختر الخزينة </option>
                                 @foreach ($treasury as $trea)
                                     <option value="{{ $trea->id }}">{{ $trea->name }}</option>
@@ -142,20 +143,22 @@
 
                     <div class="row">
                         <div class="form-group col-md-4">
-                            <label for="min-limit">   الحساب  </label>
-                            <select id="min-limit" class="form-control" name="account_id"></select>
-                                <option selected disabled>اختر الحساب</option>
+                            <label for="min-limit"> الحساب </label>
+                            <select id="" class="form-control select2" name="account_id">
+                                <option>اختر الحساب</option>
+
                                 @foreach ($accounts as $account)
                                     <option value="{{ $account->id }}">{{ $account->name }}</option>
                                 @endforeach
                             </select>
-                                                    </div>
+                        </div>
                         <div class="form-group col-md-4">
                             <label for="items">المورد</label>
                             <select id="items" class="form-control">
                                 <option selected disabled>اختر مورد</option>
-                                <option value="1">مورد 1</option>
-                                <option value="2">مورد 2</option>
+                                @foreach ($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->trade_name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="form-group col-md-4">
@@ -218,7 +221,7 @@
                                 <div class="row" id="end-date-container" style="display: none;">
                                     <div class="form-group col-md-4">
                                         <label for="end-date">تاريخ الإنتهاء</label>
-                                        <input type="date" class="form-control" id="end-date" name="end_date">
+                                        <input type="date" class="form-control" id="end-date" value="{{date('Y-m-d')}}" name="end_date">
                                     </div>
                                 </div>
 

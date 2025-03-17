@@ -61,4 +61,8 @@ class PaymentsProcess extends Model
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method');
     }
+    public function journalEntry()
+{
+    return $this->belongsTo(JournalEntry::class);
+}
 }

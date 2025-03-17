@@ -79,127 +79,160 @@
                 </div>
             </div>
         </div>
-
         <div class="card">
-            <div class="card-content">
-                <div class="card-body">
-                    <div class="card-title">
-
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <div>بحث</div>
-                        </div>
-                    </div>
+            <!-- Header Section -->
+            <div class="card-header d-flex justify-content-between align-items-center p-2">
+                <!-- Title -->
+                <div class="d-flex gap-2">
+                    <span class="hide-button-text">
+                        بحث وتصفية
+                    </span>
                 </div>
 
+                <!-- Buttons -->
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Hide Button -->
+                    <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
+                        <i class="fa fa-times"></i>
+                        <span class="hide-button-text">اخفاء</span>
+                    </button>
+
+                    <!-- Advanced Search Button -->
+                    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
+                        data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
+                        <i class="fa fa-filter"></i>
+                        <span class="button-text">متقدم</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Body Section -->
+            <div class="card">
                 <div class="card-body">
-                    <form class="form" method="GET" action="{{ route('products.search') }}">
-                        <div class="form-body row">
-                            <div class="form-group col-md-4">
-                                <label for="">البحث بكلمة مفتاحية</label>
-                                <input type="text" class="form-control" placeholder="ادخل الإسم او الكود"name="keywords">
+                    <!-- Search Form -->
+                    <form class="form" id="searchForm" method="GET" action="{{ route('incomes.index') }}">
+                        <div class="row g-3">
+                            <!-- 1. Keyword Search -->
+                            <div class="col-md-4">
+                                <label for="keywords">البحث بكلمة مفتاحية</label>
+                                <input type="text" id="keywords" class="form-control" placeholder="ادخل الإسم او الكود" name="keywords" value="{{ request('keywords') }}">
                             </div>
 
-                            <div class="form-group col-2">
-                                <label for="">من تاريخ</label>
-                                <input type="date" class="form-control" name="from_date">
+                            <!-- 2. From Date -->
+                            <div class="col-md-2">
+                                <label for="from_date">من تاريخ</label>
+                                <input type="date" id="from_date" class="form-control" name="from_date" value="{{ request('from_date') }}">
                             </div>
 
-                            <div class="form-group col-2">
-                                <label for="">الي تاريخ</label>
-                                <input type="date" class="form-control"  name="to_date">
+                            <!-- 3. To Date -->
+                            <div class="col-md-2">
+                                <label for="to_date">إلى تاريخ</label>
+                                <input type="date" id="to_date" class="form-control" name="to_date" value="{{ request('to_date') }}">
                             </div>
 
-                            <div class="form-group col-md-4">
-                                <label for="">التصنيف</label>
-                                <select name="category" class="form-control" id="">
-                                    <option value=""> جميع التصنيفات</option>
-                                    <option value="1">منتج</option>
+                            <!-- 4. Category -->
+                            <div class="col-md-4">
+                                <label for="category">التصنيف</label>
+                                <select name="category" class="form-control" id="category">
+                                    <option value="">جميع التصنيفات</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
 
-                            <div class="form-group col-md-4">
-                                <select class="form-control" name="status">
+                            <!-- 5. Status -->
+                            <div class="col-md-4">
+                                <label for="status">الحالة</label>
+                                <select name="status" class="form-control" id="status">
                                     <option value="">الحالة</option>
-                                    <option value="1">نشط</option>
-                                    <option value="2">متوقف</option>
-                                    <option value="3">غير نشط</option>
+                                    <option value="1" {{ request('status') == 1 ? 'selected' : '' }}>نشط</option>
+                                    <option value="2" {{ request('status') == 2 ? 'selected' : '' }}>متوقف</option>
+                                    <option value="3" {{ request('status') == 3 ? 'selected' : '' }}>غير نشط</option>
                                 </select>
                             </div>
-
                         </div>
-                        <!-- Hidden Div -->
+
+                        <!-- Advanced Search Section -->
                         <div class="collapse" id="advancedSearchForm">
-                            <div class="form-body row">
-
-                                <div class="form-group col-md-4">
-                                    <label for="">الوصف</label>
-                                    <input type="text" class="form-control" name="keywords">
+                            <div class="row g-3 mt-2">
+                                <!-- 6. Description -->
+                                <div class="col-md-4">
+                                    <label for="description">الوصف</label>
+                                    <input type="text" id="description" class="form-control" placeholder="الوصف" name="description" value="{{ request('description') }}">
                                 </div>
 
-                                <div class="form-group col-md-4">
-                                    <label for="">البائع</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">اي بائع</option>
-                                        <option value="1">بائع 1</option>
-                                        <option value="2">بائع 2</option>
+                                <!-- 7. Vendor -->
+                                <div class="col-md-4">
+                                    <label for="vendor">البائع</label>
+                                    <select name="vendor" class="form-control" id="vendor">
+                                        <option value="">أي بائع</option>
+                                        @foreach ($vendors as $vendor)
+                                            <option value="{{ $vendor->id }}" {{ request('vendor') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
-                                <div class="form-group col-md-2">
-                                    <label for="">اكبر مبلغ</label>
-                                    <input type="text" class="form-control" name="keywords">
+                                <!-- 8. Amount From -->
+                                <div class="col-md-2">
+                                    <label for="amount_from">أكبر مبلغ</label>
+                                    <input type="text" id="amount_from" class="form-control" placeholder="أكبر مبلغ" name="amount_from" value="{{ request('amount_from') }}">
                                 </div>
 
-                                <div class="form-group col-md-2">
-                                    <label for="">اقل مبلغ</label>
-                                    <input type="text" class="form-control" name="keywords">
+                                <!-- 9. Amount To -->
+                                <div class="col-md-2">
+                                    <label for="amount_to">أقل مبلغ</label>
+                                    <input type="text" id="amount_to" class="form-control" placeholder="أقل مبلغ" name="amount_to" value="{{ request('amount_to') }}">
                                 </div>
 
-                                <div class="form-group col-2">
-                                    <label for="">من (تاريخ الانشاء)</label>
-                                    <input type="date" class="form-control" name="from_date">
+                                <!-- 10. Created At From -->
+                                <div class="col-md-2">
+                                    <label for="created_at_from">من تاريخ الإنشاء</label>
+                                    <input type="date" id="created_at_from" class="form-control" name="created_at_from" value="{{ request('created_at_from') }}">
                                 </div>
 
-                                <div class="form-group col-2">
-                                    <label for="">الى (تاريخ الانشاء)</label>
-                                    <input type="date" class="form-control"  name="to_date">
+                                <!-- 11. Created At To -->
+                                <div class="col-md-2">
+                                    <label for="created_at_to">إلى تاريخ الإنشاء</label>
+                                    <input type="date" id="created_at_to" class="form-control" name="created_at_to" value="{{ request('created_at_to') }}">
                                 </div>
 
-                                <div class="form-group col-md-4">
-                                    <label for="">الحساب الفرعي</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">اي حساب</option>
-                                        <option value="1">حساب 1</option>
-                                        <option value="2">حساب 2</option>
+                                <!-- 12. Sub Account -->
+                                <div class="col-md-4">
+                                    <label for="sub_account">الحساب الفرعي</label>
+                                    <select name="sub_account" class="form-control" id="sub_account">
+                                        <option value="">أي حساب</option>
+                                        @foreach ($Accounts as $account)
+                                            <option value="{{ $account->id }}" {{ request('account_id') == $subAccount->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
 
-                                <div class="form-group col-md-4">
-                                    <label for="">اضيفت بواسطه</label>
-                                    <select class="form-control" name="status">
-                                        <option value="">اي موظف</option>
-                                        <option value="1">اي موظف</option>
+                                <!-- 13. Added By -->
+                                <div class="col-md-4">
+                                    <label for="added_by">أضيفت بواسطة</label>
+                                    <select name="added_by" class="form-control" id="added_by">
+                                        <option value="">أي موظف</option>
+                                        @foreach ($employees as $employee)
+                                            <option value="{{ $employee->id }}" {{ request('added_by') == $employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
-
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
 
-                            <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
-                                data-target="#advancedSearchForm">
-                                <i class="bi bi-sliders"></i> بحث متقدم
-                            </a>
-                            <a href="{{ route('incomes.index') }}" class="btn btn-outline-danger waves-effect waves-light">الغاء الفلترة</a>
+                        <!-- Form Actions -->
+                        <div class="form-actions mt-2">
+                            <button type="submit" class="btn btn-primary">بحث</button>
+                            <a href="{{ route('incomes.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
+                            <button type="button" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#advancedSearchForm">
+                                بحث متقدم
+                            </button>
                         </div>
                     </form>
-
                 </div>
-
             </div>
         </div>
-
         <div class="card">
             <div class="card-header">النتائج</div>
             <div class="card-body">
@@ -285,3 +318,7 @@
 
     </div><!-- content-body -->
     @endsection
+@section('scripts')
+<script src="{{ asset('assets/js/search.js') }}"></script>
+
+@endsection

@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Client;
+use App\Models\Employee;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Receipt;
 use App\Models\Log as ModelsLog;
 use App\Models\ReceiptCategory;
+use App\Models\Supplier;
 use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
 use Illuminate\Http\Request;
@@ -18,10 +21,59 @@ use Illuminate\Support\Facades\Log;
 
 class IncomesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $incomes = Receipt::orderBy('id', 'DESC')->paginate(5);
-        return view('finance.incomes.index', compact('incomes'));
+        // جلب البيانات مع تطبيق شروط البحث
+        $incomes = Receipt::orderBy('id', 'DESC')
+            ->when($request->keywords, function ($query, $keywords) {
+                return $query->where('code', 'like', '%' . $keywords . '%')
+                             ->orWhere('description', 'like', '%' . $keywords . '%');
+            })
+            ->when($request->from_date, function ($query, $from_date) {
+                return $query->where('date', '>=', $from_date);
+            })
+            ->when($request->to_date, function ($query, $to_date) {
+                return $query->where('date', '<=', $to_date);
+            })
+            ->when($request->category, function ($query, $category) {
+                return $query->where('receipt_category_id', $category);
+            })
+            ->when($request->status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->when($request->description, function ($query, $description) {
+                return $query->where('description', 'like', '%' . $description . '%');
+            })
+            ->when($request->vendor, function ($query, $vendor) {
+                return $query->where('supplier_id', $vendor);
+            })
+            ->when($request->amount_from, function ($query, $amount_from) {
+                return $query->where('amount', '>=', $amount_from);
+            })
+            ->when($request->amount_to, function ($query, $amount_to) {
+                return $query->where('amount', '<=', $amount_to);
+            })
+            ->when($request->created_at_from, function ($query, $created_at_from) {
+                return $query->where('created_at', '>=', $created_at_from);
+            })
+            ->when($request->created_at_to, function ($query, $created_at_to) {
+                return $query->where('created_at', '<=', $created_at_to);
+            })
+            ->when($request->sub_account, function ($query, $sub_account) {
+                return $query->where('account_id', $sub_account);
+            })
+            ->when($request->added_by, function ($query, $added_by) {
+                return $query->where('added_by', $added_by);
+            })
+            ->paginate(10);
+
+        // جلب البيانات المرتبطة (مثل التصنيفات والبائعين)
+        $categories = ReceiptCategory::all(); // جلب جميع التصنيفات
+        $suppliers = Supplier::all(); // جلب جميع البائعين
+        $subAccounts = Account::all(); // جلب جميع الحسابات الفرعية
+        $employees = Employee::all(); // جلب جميع الموظفين
+
+        return view('finance.incomes.index', compact('incomes', 'categories', 'vendors', 'subAccounts', 'employees'));
     }
 
     public function create()
@@ -44,33 +96,28 @@ public function store(Request $request)
         // إنشاء سند القبض
         $income = new Receipt();
 
-        $income->code = $request->code;
-        $income->amount = $request->amount;
-        $income->description = $request->description;
-        $income->date = $request->date;
-        $income->incomes_category_id = $request->incomes_category_id;
-        $income->seller = $request->seller;
-        $income->store_id = $request->store_id;
-        $income->sup_account = $request->sup_account;
-        $income->recurring_frequency = $request->recurring_frequency;
-        $income->end_date = $request->end_date;
-        $income->tax1 = $request->tax1;
-        $income->tax2 = $request->tax2;
-        $income->tax1_amount = $request->tax1_amount;
-        $income->tax2_amount = $request->tax2_amount;
+        // تعبئة الحقول الأساسية
+        $income->code = $request->input('code');
+        $income->amount = $request->input('amount');
+        $income->description = $request->input('description');
+        $income->date = $request->input('date');
+        $income->incomes_category_id = $request->input('incomes_category_id');
+        $income->seller = $request->input('seller');
+        // $income->client_id = $request->input('client_id');
+        $income->account_id = $request->input('account_id');
+        $income->treasury_id = $request->input('treasury_id');
+        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+        $income->recurring_frequency = $request->input('recurring_frequency');
+        $income->end_date = $request->input('end_date');
+        $income->tax1 = $request->input('tax1');
+        $income->tax2 = $request->input('tax2');
+        $income->tax1_amount = $request->input('tax1_amount');
+        $income->tax2_amount = $request->input('tax2_amount');
+        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
         // معالجة المرفقات
         if ($request->hasFile('attachments')) {
-            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->attachments);
-        }
-
-        // التحقق من الحقول الاختيارية
-        if ($request->has('is_recurring')) {
-            $income->is_recurring = 1;
-        }
-
-        if ($request->has('cost_centers_enabled')) {
-            $income->cost_centers_enabled = 1;
+            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
         }
 
         // حفظ سند القبض
@@ -125,8 +172,8 @@ public function store(Request $request)
             'description' => 'سند قبض رقم ' . $income->code,
             'status' => 1,
             'currency' => 'SAR',
-            'client_id' => $income->seller, // يمكن تعديل هذا الحقل حسب الحاجة
-            'created_by_employee' => Auth::id(),
+            'client_id' => $income->client_id, // استخدام client_id بدلاً من seller
+            // 'created_by_employee' => Auth::id(),
         ]);
 
         // إضافة تفاصيل القيد المحاسبي لسند القبض
@@ -143,7 +190,7 @@ public function store(Request $request)
         // 2. حساب الإيرادات (دائن)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,
-            'account_id' => $income->sup_account, // حساب الإيرادات المرتبط بسند القبض
+            'account_id' => $income->account_id, // استخدام account_id بدلاً من sup_account
             'description' => 'إيرادات من سند قبض',
             'debit' => 0,
             'credit' => $income->amount,
@@ -153,7 +200,6 @@ public function store(Request $request)
         DB::commit();
 
         return redirect()->route('incomes.index')->with('success', 'تم إضافة سند قبض بنجاح!');
-
     } catch (\Exception $e) {
         DB::rollback();
         Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
@@ -161,27 +207,6 @@ public function store(Request $request)
             ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
             ->withInput();
     }
-}
-
-/**
- * تحديد الخزينة المستهدفة بناءً على الموظف.
- */
-private function getMainTreasury()
-{
-    $user = Auth::user();
-
-    if ($user && $user->employee_id) {
-        // البحث عن الخزينة المرتبطة بالموظف
-        $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-
-        if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-            // إذا كان الموظف لديه خزينة مرتبطة
-            return Treasury::where('id', $TreasuryEmployee->treasury_id)->first();
-        }
-    }
-
-    // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
-    return Treasury::where('name', 'الخزينة الرئيسية')->first();
 }
 
 public function update(Request $request, $id)
@@ -194,40 +219,30 @@ public function update(Request $request, $id)
 
         // حفظ القيم القديمة للمقارنة
         $oldAmount = $income->amount;
-        $oldSupAccount = $income->sup_account;
+        $oldAccountId = $income->account_id;
 
         // تحديث بيانات سند القبض
-        $income->code = $request->code;
-        $income->amount = $request->amount;
-        $income->description = $request->description;
-        $income->date = $request->date;
-        $income->incomes_category_id = $request->incomes_category_id;
-        $income->seller = $request->seller;
-        $income->store_id = $request->store_id;
-        $income->sup_account = $request->sup_account;
-        $income->recurring_frequency = $request->recurring_frequency;
-        $income->end_date = $request->end_date;
-        $income->tax1 = $request->tax1;
-        $income->tax2 = $request->tax2;
-        $income->tax1_amount = $request->tax1_amount;
-        $income->tax2_amount = $request->tax2_amount;
+        $income->code = $request->input('code');
+        $income->amount = $request->input('amount');
+        $income->description = $request->input('description');
+        $income->date = $request->input('date');
+        $income->incomes_category_id = $request->input('incomes_category_id');
+        $income->seller = $request->input('seller');
+        $income->client_id = $request->input('client_id');
+        $income->account_id = $request->input('account_id');
+        $income->treasury_id = $request->input('treasury_id');
+        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+        $income->recurring_frequency = $request->input('recurring_frequency');
+        $income->end_date = $request->input('end_date');
+        $income->tax1 = $request->input('tax1');
+        $income->tax2 = $request->input('tax2');
+        $income->tax1_amount = $request->input('tax1_amount');
+        $income->tax2_amount = $request->input('tax2_amount');
+        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
         // معالجة المرفقات
         if ($request->hasFile('attachments')) {
-            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->attachments);
-        }
-
-        // التحقق من الحقول الاختيارية
-        if ($request->has('is_recurring')) {
-            $income->is_recurring = 1;
-        } else {
-            $income->is_recurring = 0;
-        }
-
-        if ($request->has('cost_centers_enabled')) {
-            $income->cost_centers_enabled = 1;
-        } else {
-            $income->cost_centers_enabled = 0;
+            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
         }
 
         // حفظ التحديثات
@@ -293,12 +308,12 @@ public function update(Request $request, $id)
 
             // 2. تحديث حساب الإيرادات (دائن)
             $incomeDetail = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
-                ->where('account_id', $oldSupAccount)
+                ->where('account_id', $oldAccountId)
                 ->first();
 
             if ($incomeDetail) {
                 $incomeDetail->credit += $amountDifference;
-                $incomeDetail->account_id = $income->sup_account; // تحديث حساب الإيرادات إذا تغير
+                $incomeDetail->account_id = $income->account_id; // تحديث حساب الإيرادات إذا تغير
                 $incomeDetail->save();
             }
         }
@@ -308,7 +323,6 @@ public function update(Request $request, $id)
         return redirect()
             ->route('incomes.show', $id)
             ->with('success', 'تم تحديث سند قبض بنجاح!');
-
     } catch (\Exception $e) {
         DB::rollback();
         Log::error('خطأ في تحديث سند قبض: ' . $e->getMessage());
@@ -317,7 +331,6 @@ public function update(Request $request, $id)
             ->withInput();
     }
 }
-
     public function show($id)
     {
         $income = Receipt::findOrFail($id);

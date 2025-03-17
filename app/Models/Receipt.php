@@ -8,7 +8,7 @@ class Receipt extends Model
 {
     protected $fillable = [
         'id', 'code', 'amount', 'description', 'date', 'incomes_category_id',
-        'seller', 'store_id', 'sup_account', 'is_recurring', 'recurring_frequency', 'end_date',
+        'seller', 'client_id', 'account_id', 'is_recurring', 'recurring_frequency', 'end_date',
         'tax1', 'tax2', 'tax1_amount', 'tax2_amount', 'attachments', 'cost_centers_enabled','treasury_id', 'created_at', 'updated_at'
     ];
 
@@ -27,7 +27,7 @@ class Receipt extends Model
     // العلاقة مع الحساب
     public function account()
     {
-        return $this->belongsTo(ChartOfAccount::class, 'account_id');
+        return $this->belongsTo(Account::class, 'account_id');
     }
 
     // العلاقة مع العميل
@@ -59,4 +59,5 @@ class Receipt extends Model
 public function employee(){
     return $this->belongsTo(Employee::class,'employee_id');
 }
+
 }
