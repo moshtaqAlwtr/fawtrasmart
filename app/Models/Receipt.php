@@ -21,7 +21,7 @@ class Receipt extends Model
     // العلاقة مع الخزينة
     public function treasury()
     {
-        return $this->belongsTo(Treasury::class);
+        return $this->belongsTo(Treasury::class, 'treasury_id');
     }
 
     // العلاقة مع الحساب

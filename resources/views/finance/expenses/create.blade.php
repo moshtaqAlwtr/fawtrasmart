@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-سند صرف
+    سند صرف
 @stop
 
 @section('content')
@@ -22,6 +22,10 @@
             </div>
         </div>
     </div>
+    @include('layouts.alerts.error')
+    @include('layouts.alerts.success')
+
+
 
     <div class="content-body">
 
@@ -48,16 +52,18 @@
 
         <div class="card">
             <div class="card-body">
-                <form id="expenses_form" action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
+                <form id="expenses_form" action="{{ route('expenses.store') }}" method="POST"
+                    enctype="multipart/form-data">
                     @csrf
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="amount">المبلغ <span style="color: red">*</span></label>
-                            <input type="text" class="form-control form-control-lg py-3" id="amount" placeholder="ر.س 0.00" name="amount">
+                            <input type="text" class="form-control form-control-lg py-3" id="amount"
+                                placeholder="ر.س 0.00" name="amount">
                             @error('amount')
-                            <span class="text-danger" id="basic-default-name-error" class="error">
-                                {{ $message }}
-                            </span>
+                                <span class="text-danger" id="basic-default-name-error" class="error">
+                                    {{ $message }}
+                                </span>
                             @enderror
                         </div>
 
@@ -108,8 +114,10 @@
                             <label for="category">التصنيف</label>
                             <select id="category" class="form-control" name="expenses_category_id">
                                 <option selected value="">-- اضافه تصنيف --</option>
-                                @foreach($expenses_categories as $expenses_category)
-                                    <option value="{{ $expenses_category->id }}" {{ old('expenses_category_id') == $expenses_category->id ? 'selected' : '' }}>{{ $expenses_category->name }}</option>
+                                @foreach ($expenses_categories as $expenses_category)
+                                    <option value="{{ $expenses_category->id }}"
+                                        {{ old('expenses_category_id') == $expenses_category->id ? 'selected' : '' }}>
+                                        {{ $expenses_category->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -124,17 +132,24 @@
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
                             <select id="warehouse" class="form-control" name="store_id">
-                                <option selected disabled value="1">رئيسي</option>
-                                <option value="2">فرعي</option>
+                                <option selected disabled value="1">اختر الخزينة </option>
+                                @foreach ($treasury as $trea)
+                                    <option value="{{ $trea->id }}">{{ $trea->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="form-group col-md-4">
-                            <label for="min-limit">الحساب الفرعي </label>
-                            <input type="text" class="form-control" id="min-limit" name="sup_account">
-                        </div>
+                            <label for="min-limit">   الحساب  </label>
+                            <select id="min-limit" class="form-control" name="account_id"></select>
+                                <option selected disabled>اختر الحساب</option>
+                                @foreach ($accounts as $account)
+                                    <option value="{{ $account->id }}">{{ $account->name }}</option>
+                                @endforeach
+                            </select>
+                                                    </div>
                         <div class="form-group col-md-4">
                             <label for="items">المورد</label>
                             <select id="items" class="form-control">
@@ -145,7 +160,8 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="tax">الضرائب</label>
-                            <button type="button" class="btn btn-info btn-block" onclick="toggleTaxFields()">إضافة ضرائب</button>
+                            <button type="button" class="btn btn-info btn-block" onclick="toggleTaxFields()">إضافة
+                                ضرائب</button>
                         </div>
                     </div>
 
@@ -215,21 +231,21 @@
         </div>
 
     </div>
-<!-- JavaScript للتحكم في إظهار وإخفاء الخيارات -->
-<script>
-    document.getElementById('checkbox').addEventListener('change', function() {
-        var duplicateOptionsContainer = document.getElementById('duplicate-options-container');
-        var endDateContainer = document.getElementById('end-date-container');
-        if (this.checked) {
-            duplicateOptionsContainer.style.display = 'block';  // إظهار خيارات التكرار
-            endDateContainer.style.display = 'block';           // إظهار حقل تاريخ الإنتهاء
-        } else {
-            duplicateOptionsContainer.style.display = 'none';  // إخفاء خيارات التكرار
-            endDateContainer.style.display = 'none';           // إخفاء حقل تاريخ الإنتهاء
-        }
-    });
-</script>
-<script>
+    <!-- JavaScript للتحكم في إظهار وإخفاء الخيارات -->
+    <script>
+        document.getElementById('checkbox').addEventListener('change', function() {
+            var duplicateOptionsContainer = document.getElementById('duplicate-options-container');
+            var endDateContainer = document.getElementById('end-date-container');
+            if (this.checked) {
+                duplicateOptionsContainer.style.display = 'block'; // إظهار خيارات التكرار
+                endDateContainer.style.display = 'block'; // إظهار حقل تاريخ الإنتهاء
+            } else {
+                duplicateOptionsContainer.style.display = 'none'; // إخفاء خيارات التكرار
+                endDateContainer.style.display = 'none'; // إخفاء حقل تاريخ الإنتهاء
+            }
+        });
+    </script>
+    <script>
         function toggleTaxFields() {
             $("#tax-fields").slideToggle();
         }
@@ -238,4 +254,4 @@
             $("#tax-fields").slideUp();
         }
     </script>
-    @endsection
+@endsection

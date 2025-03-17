@@ -14,6 +14,7 @@ use App\Models\PaymentMethod;
 use App\Models\PaymentsProcess;
 use App\Models\PurchaseInvoice;
 use App\Models\Treasury;
+use App\Models\TreasuryEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -186,27 +187,26 @@ class PaymentProcessController extends Controller
         return view('purchases.supplier_payments.index', compact('payments', 'employees'));
     }
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
-{
-    if ($type === 'installment') {
-        // إذا كانت العملية لقسط، احصل على تفاصيل القسط
-        $installment = Installment::with('invoice')->findOrFail($id);
-        $amount = $installment->amount; // مبلغ القسط
-        $invoiceId = $installment->invoice->id; // معرف الفاتورة
-    } else {
-        // إذا كانت العملية لفاتورة، احصل على تفاصيل الفاتورة
-        $invoice = Invoice::findOrFail($id);
-        $amount = $invoice->grand_total; // قيمة الفاتورة
-        $invoiceId = $invoice->id; // معرف الفاتورة
+    {
+        if ($type === 'installment') {
+            // إذا كانت العملية لقسط، احصل على تفاصيل القسط
+            $installment = Installment::with('invoice')->findOrFail($id);
+            $amount = $installment->amount; // مبلغ القسط
+            $invoiceId = $installment->invoice->id; // معرف الفاتورة
+        } else {
+            // إذا كانت العملية لفاتورة، احصل على تفاصيل الفاتورة
+            $invoice = Invoice::findOrFail($id);
+            $amount = $invoice->grand_total; // قيمة الفاتورة
+            $invoiceId = $invoice->id; // معرف الفاتورة
+        }
+
+        // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
+        $treasury = Treasury::all();
+        $employees = Employee::all();
+        $payments = PaymentMethod::where('type','normal')->where('status','active')->get();
+
+        return view('sales.payment.create', compact('invoiceId', 'payments', 'amount', 'treasury', 'employees', 'type'));
     }
-
-    // احصل على البيانات الأخرى اللازمة مثل الخزائن والموظفين
-    $treasury = Treasury::all();
-    $employees = Employee::all();
-    $payments = PaymentMethod::where('type','normal')->where('status','active')->get();
-
-    return view('sales.payment.create', compact('invoiceId','payments', 'amount', 'treasury', 'employees', 'type'));
-}
-
 public function store(ClientPaymentRequest $request)
 {
     try {

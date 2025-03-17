@@ -14,6 +14,7 @@ use App\Models\TreasuryEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class IncomesController extends Controller
 {
@@ -58,37 +59,12 @@ public function store(Request $request)
         $income->tax1_amount = $request->tax1_amount;
         $income->tax2_amount = $request->tax2_amount;
 
-        // تحديد الخزينة المستهدفة بناءً على الموظف
-        $MainTreasury = null;
-        $user = Auth::user();
-
-        if ($user && $user->employee_id) {
-            // البحث عن الخزينة المرتبطة بالموظف
-            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-
-            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                // إذا كان الموظف لديه خزينة مرتبطة
-                $MainTreasury = Treasury::where('id', $TreasuryEmployee->treasury_id)->first();
-            } else {
-                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
-                $MainTreasury = Treasury::where('name', 'الخزينة الرئيسية')->first();
-            }
-        } else {
-            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
-            $MainTreasury = Treasury::where('name', 'الخزينة الرئيسية')->first();
-        }
-
-        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
-
-
-        // تعيين الخزينة المستهدفة لسند القبض
-        $income->treasury_id = $MainTreasury->id;
-
         // معالجة المرفقات
-        if ($request->hasFile(key: 'attachments')) {
+        if ($request->hasFile('attachments')) {
             $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->attachments);
         }
 
+        // التحقق من الحقول الاختيارية
         if ($request->has('is_recurring')) {
             $income->is_recurring = 1;
         }
@@ -100,77 +76,127 @@ public function store(Request $request)
         // حفظ سند القبض
         $income->save();
 
+        // تسجيل النشاط في السجل
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf(
+                'تم انشاء سند قبض رقم **%s** بقيمة **%d**',
+                $income->code,
+                $income->amount
+            ),
+            'created_by' => auth()->id(),
+        ]);
+
+        // تحديد الخزينة المستهدفة بناءً على الموظف
+        $MainTreasury = null;
+        $user = Auth::user();
+
+        if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
+        if (!$MainTreasury) {
+            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+        }
+
         // تحديث رصيد الخزينة
-        $MainTreasury->balance += $income->amount; // إضافة المبلغ إلى الخزينة
+        $MainTreasury->balance += $income->amount;
         $MainTreasury->save();
 
-        // إنشاء قيد محاسبي
+        // إنشاء قيد محاسبي لسند القبض
         $journalEntry = JournalEntry::create([
             'reference_number' => $income->code,
             'date' => $income->date,
             'description' => 'سند قبض رقم ' . $income->code,
-            'status' => 1, // حالة القيد (مثلاً: 1 يعني نشط)
+            'status' => 1,
             'currency' => 'SAR',
+            'client_id' => $income->seller, // يمكن تعديل هذا الحقل حسب الحاجة
             'created_by_employee' => Auth::id(),
         ]);
 
-        // إضافة تفاصيل القيد المحاسبي
-        // 1. حساب الخزينة (مدين)
+        // إضافة تفاصيل القيد المحاسبي لسند القبض
+        // 1. حساب الخزينة المستهدفة (مدين)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,
-            'account_id' => $MainTreasury->account_id, // حساب الخزينة
-            'description' => 'استلام مبلغ من العميل',
+            'account_id' => $MainTreasury->id,
+            'description' => 'استلام مبلغ من سند قبض',
             'debit' => $income->amount,
             'credit' => 0,
             'is_debit' => true,
         ]);
 
-        // 2. حساب العميل (دائن)
+        // 2. حساب الإيرادات (دائن)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,
-            'account_id' => $income->sup_account, // حساب العميل
-            'description' => 'دفعة من العميل',
+            'account_id' => $income->sup_account, // حساب الإيرادات المرتبط بسند القبض
+            'description' => 'إيرادات من سند قبض',
             'debit' => 0,
             'credit' => $income->amount,
             'is_debit' => false,
         ]);
 
-        // تسجيل النشاط في السجل
-        ModelsLog::create([
-            'type' => 'finance_log',
-            'type_id' => $income->id, // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
-            'description' => sprintf(
-                'تم انشاء سند قبض رقم **%s** بقيمة **%d**',
-                $income->code, // رقم سند القبض
-                $income->amount, // المبلغ
-            ),
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
-
         DB::commit();
 
-        // التحقق من أن البيانات تم حفظها
-        if ($income->exists && $journalEntry->exists) {
-            return redirect()
-                ->route('incomes.index')
-                ->with(['success' => 'تم إضافة سند قبض بنجاح وإضافة المبلغ إلى الخزينة.']);
-        } else {
-            throw new \Exception('حدث خطأ أثناء حفظ البيانات.');
-        }
+        return redirect()->route('incomes.index')->with('success', 'تم إضافة سند قبض بنجاح!');
 
     } catch (\Exception $e) {
-        DB::rollBack();
+        DB::rollback();
+        Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
         return back()
-            ->withErrors(['error' => 'حدث خطأ: ' . $e->getMessage()])
+            ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
             ->withInput();
     }
 }
 
-    public function update(Request $request, $id)
-    {
+/**
+ * تحديد الخزينة المستهدفة بناءً على الموظف.
+ */
+private function getMainTreasury()
+{
+    $user = Auth::user();
+
+    if ($user && $user->employee_id) {
+        // البحث عن الخزينة المرتبطة بالموظف
+        $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+        if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+            // إذا كان الموظف لديه خزينة مرتبطة
+            return Treasury::where('id', $TreasuryEmployee->treasury_id)->first();
+        }
+    }
+
+    // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+    return Treasury::where('name', 'الخزينة الرئيسية')->first();
+}
+
+public function update(Request $request, $id)
+{
+    try {
+        DB::beginTransaction();
+
+        // البحث عن سند القبض المطلوب
         $income = Receipt::findOrFail($id);
 
+        // حفظ القيم القديمة للمقارنة
+        $oldAmount = $income->amount;
+        $oldSupAccount = $income->sup_account;
+
+        // تحديث بيانات سند القبض
         $income->code = $request->code;
         $income->amount = $request->amount;
         $income->description = $request->description;
@@ -186,35 +212,111 @@ public function store(Request $request)
         $income->tax1_amount = $request->tax1_amount;
         $income->tax2_amount = $request->tax2_amount;
 
-        ModelsLog::create([
-            'type' => 'finance_log',
-            'type_id' => $income->id, // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
-            'description' => sprintf(
-                'تم تعديل سند قبض رقم **%s** بقيمة **%d**',
-                $income->code, // رقم طلب الشراء
-                $income->amount, // اسم المنتج
-            ),
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
-        if ($request->hasFile(key: 'attachments')) {
+        // معالجة المرفقات
+        if ($request->hasFile('attachments')) {
             $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->attachments);
         }
 
+        // التحقق من الحقول الاختيارية
         if ($request->has('is_recurring')) {
             $income->is_recurring = 1;
+        } else {
+            $income->is_recurring = 0;
         }
 
         if ($request->has('cost_centers_enabled')) {
             $income->cost_centers_enabled = 1;
+        } else {
+            $income->cost_centers_enabled = 0;
         }
 
+        // حفظ التحديثات
         $income->update();
+
+        // تسجيل النشاط في السجل
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf(
+                'تم تعديل سند قبض رقم **%s** بقيمة **%d**',
+                $income->code,
+                $income->amount
+            ),
+            'created_by' => auth()->id(),
+        ]);
+
+        // تحديد الخزينة المستهدفة بناءً على الموظف
+        $MainTreasury = null;
+        $user = Auth::user();
+
+        if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
+        if (!$MainTreasury) {
+            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+        }
+
+        // تحديث رصيد الخزينة بناءً على الفرق بين المبلغ القديم والجديد
+        $amountDifference = $income->amount - $oldAmount;
+        $MainTreasury->balance += $amountDifference;
+        $MainTreasury->save();
+
+        // البحث عن القيد المحاسبي المرتبط بسند القبض
+        $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
+
+        if ($journalEntry) {
+            // تحديث تفاصيل القيد المحاسبي
+            // 1. تحديث حساب الخزينة المستهدفة (مدين)
+            $treasuryDetail = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
+                ->where('account_id', $MainTreasury->id)
+                ->first();
+
+            if ($treasuryDetail) {
+                $treasuryDetail->debit += $amountDifference;
+                $treasuryDetail->save();
+            }
+
+            // 2. تحديث حساب الإيرادات (دائن)
+            $incomeDetail = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
+                ->where('account_id', $oldSupAccount)
+                ->first();
+
+            if ($incomeDetail) {
+                $incomeDetail->credit += $amountDifference;
+                $incomeDetail->account_id = $income->sup_account; // تحديث حساب الإيرادات إذا تغير
+                $incomeDetail->save();
+            }
+        }
+
+        DB::commit();
 
         return redirect()
             ->route('incomes.show', $id)
-            ->with(['success' => 'تم تحديث سند قبض بنجاج !!']);
+            ->with('success', 'تم تحديث سند قبض بنجاح!');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في تحديث سند قبض: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء تحديث سند القبض: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     public function show($id)
     {

@@ -191,7 +191,7 @@
                                 <div class="row">
                                     <div class="form-group col-md-2">
                                         <label for="checkbox">مكرر</label>
-                                        <input type="checkbox" id="checkbox" name="is_recurring">
+                                        <input type="checkbox" id="checkbox" name="is_recurring" value="1">
                                     </div>
                                 </div>
                                 <!-- حقل التكرار و تاريخ الإنتهاء يظهر عند تحديد الـ checkbox -->
