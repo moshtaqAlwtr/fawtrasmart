@@ -259,12 +259,12 @@
                                         @endforeach
                                     </tbody>
                                 </table>
-                
+
                                 <!-- Pagination -->
                                 <div class="d-flex justify-content-center mt-3">
                                     {{ $operationsPaginator->links() }}
                                 </div>
-                            
+
 
                             </div>
                         </div>
