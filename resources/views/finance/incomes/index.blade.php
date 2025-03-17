@@ -1,19 +1,35 @@
 @extends('master')
 
 @section('title')
-ايرادات
+    ايرادات
 @stop
 
 @section('css')
-<style>
-    .ex-card{
-        background:#7367F0;
-        color: #fff
-    }
-    .ex-card h2{
-        color: #fff
-    }
-</style>
+    <style>
+        .ex-card {
+            background: linear-gradient(135deg, #4a90e2, #13d7fe);
+            /* Gradient background */
+            border-radius: 10px;
+            /* Rounded corners */
+            color: white;
+            /* Default text color */
+        }
+
+        .card-title {
+            font-weight: bold;
+            /* Bold title */
+        }
+
+        .text-muted {
+            color: rgba(255, 255, 255, 0.7);
+            /* Muted white for labels */
+        }
+
+        .text-white {
+            font-size: 1.5rem;
+            /* Larger font size for totals */
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -41,7 +57,76 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
                     </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- زر الانتقال إلى أول صفحة -->
+                            @if ($incomes->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $incomes->url(1) }}" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            @endif
 
+                            <!-- زر الانتقال إلى الصفحة السابقة -->
+                            @if ($incomes->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </span>
+                                </li>
+                            @else
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $incomes->previousPageUrl() }}" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                            @endif
+
+                            <!-- عرض رقم الصفحة الحالية -->
+                            <li class="page-item">
+                                <span class="page-link border-0 bg-light rounded-pill px-3">
+                                    صفحة {{ $incomes->currentPage() }} من {{ $incomes->lastPage() }}
+                                </span>
+                            </li>
+
+                            <!-- زر الانتقال إلى الصفحة التالية -->
+                            @if ($incomes->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $incomes->nextPageUrl() }}" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+
+                            <!-- زر الانتقال إلى آخر صفحة -->
+                            @if ($incomes->hasMorePages())
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $incomes->url($incomes->lastPage()) }}" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
                     <div>
                         <a href="#" class="btn btn-outline-dark">
                             <i class="fas fa-upload"></i>استيراد
@@ -57,23 +142,24 @@
         @include('layouts.alerts.error')
         @include('layouts.alerts.success')
 
-        <div class="card ex-card">
+        <div class="card ex-card shadow-sm border-light">
             <div class="card-body">
+                <h5 class="card-title text-center">إجمالي الايرادات</h5>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
 
-                    <div>
-                        <p>آخر 7 أيام</p>
-                        <h2>ر.س 0.00</h2>
+                    <div class="text-center">
+                        <p class="text-muted">آخر 7 أيام</p>
+                        <h2 class="text-white">ر.س {{ $totalLast7Days }}</h2>
                     </div>
 
-                    <div>
-                        <p>آخر 30 يوم</p>
-                        <h2>ر.س 0.00</h2>
+                    <div class="text-center">
+                        <p class="text-muted">آخر 30 يوم</p>
+                        <h2 class="text-white">ر.س {{ $totalLast30Days }}</h2>
                     </div>
 
-                    <div>
-                        <p>آخر 365 يوم</p>
-                        <h2>ر.س 0.00</h2>
+                    <div class="text-center">
+                        <p class="text-muted">آخر 365 يوم</p>
+                        <h2 class="text-white">ر.س {{ $totalLast365Days }}</h2>
                     </div>
 
                 </div>
@@ -115,19 +201,22 @@
                             <!-- 1. Keyword Search -->
                             <div class="col-md-4">
                                 <label for="keywords">البحث بكلمة مفتاحية</label>
-                                <input type="text" id="keywords" class="form-control" placeholder="ادخل الإسم او الكود" name="keywords" value="{{ request('keywords') }}">
+                                <input type="text" id="keywords" class="form-control" placeholder="ادخل الإسم او الكود"
+                                    name="keywords" value="{{ request('keywords') }}">
                             </div>
 
                             <!-- 2. From Date -->
                             <div class="col-md-2">
                                 <label for="from_date">من تاريخ</label>
-                                <input type="date" id="from_date" class="form-control" name="from_date" value="{{ request('from_date') }}">
+                                <input type="date" id="from_date" class="form-control" name="from_date"
+                                    value="{{ request('from_date') }}">
                             </div>
 
                             <!-- 3. To Date -->
                             <div class="col-md-2">
                                 <label for="to_date">إلى تاريخ</label>
-                                <input type="date" id="to_date" class="form-control" name="to_date" value="{{ request('to_date') }}">
+                                <input type="date" id="to_date" class="form-control" name="to_date"
+                                    value="{{ request('to_date') }}">
                             </div>
 
                             <!-- 4. Category -->
@@ -136,7 +225,9 @@
                                 <select name="category" class="form-control" id="category">
                                     <option value="">جميع التصنيفات</option>
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                        <option value="{{ $category->id }}"
+                                            {{ request('category') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -159,7 +250,8 @@
                                 <!-- 6. Description -->
                                 <div class="col-md-4">
                                     <label for="description">الوصف</label>
-                                    <input type="text" id="description" class="form-control" placeholder="الوصف" name="description" value="{{ request('description') }}">
+                                    <input type="text" id="description" class="form-control" placeholder="الوصف"
+                                        name="description" value="{{ request('description') }}">
                                 </div>
 
                                 <!-- 7. Vendor -->
@@ -167,34 +259,36 @@
                                     <label for="vendor">البائع</label>
                                     <select name="vendor" class="form-control" id="vendor">
                                         <option value="">أي بائع</option>
-                                        @foreach ($vendors as $vendor)
-                                            <option value="{{ $vendor->id }}" {{ request('vendor') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}</option>
-                                        @endforeach
+
                                     </select>
                                 </div>
 
                                 <!-- 8. Amount From -->
                                 <div class="col-md-2">
                                     <label for="amount_from">أكبر مبلغ</label>
-                                    <input type="text" id="amount_from" class="form-control" placeholder="أكبر مبلغ" name="amount_from" value="{{ request('amount_from') }}">
+                                    <input type="text" id="amount_from" class="form-control" placeholder="أكبر مبلغ"
+                                        name="amount_from" value="{{ request('amount_from') }}">
                                 </div>
 
                                 <!-- 9. Amount To -->
                                 <div class="col-md-2">
                                     <label for="amount_to">أقل مبلغ</label>
-                                    <input type="text" id="amount_to" class="form-control" placeholder="أقل مبلغ" name="amount_to" value="{{ request('amount_to') }}">
+                                    <input type="text" id="amount_to" class="form-control" placeholder="أقل مبلغ"
+                                        name="amount_to" value="{{ request('amount_to') }}">
                                 </div>
 
                                 <!-- 10. Created At From -->
                                 <div class="col-md-2">
                                     <label for="created_at_from">من تاريخ الإنشاء</label>
-                                    <input type="date" id="created_at_from" class="form-control" name="created_at_from" value="{{ request('created_at_from') }}">
+                                    <input type="date" id="created_at_from" class="form-control"
+                                        name="created_at_from" value="{{ request('created_at_from') }}">
                                 </div>
 
                                 <!-- 11. Created At To -->
                                 <div class="col-md-2">
                                     <label for="created_at_to">إلى تاريخ الإنشاء</label>
-                                    <input type="date" id="created_at_to" class="form-control" name="created_at_to" value="{{ request('created_at_to') }}">
+                                    <input type="date" id="created_at_to" class="form-control" name="created_at_to"
+                                        value="{{ request('created_at_to') }}">
                                 </div>
 
                                 <!-- 12. Sub Account -->
@@ -203,7 +297,9 @@
                                     <select name="sub_account" class="form-control" id="sub_account">
                                         <option value="">أي حساب</option>
                                         @foreach ($Accounts as $account)
-                                            <option value="{{ $account->id }}" {{ request('account_id') == $subAccount->id ? 'selected' : '' }}>{{ $account->name }}</option>
+                                            <option value="{{ $account->id }}"
+                                                {{ request('account_id') == $account->id ? 'selected' : '' }}>
+                                                {{ $account->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -214,7 +310,9 @@
                                     <select name="added_by" class="form-control" id="added_by">
                                         <option value="">أي موظف</option>
                                         @foreach ($employees as $employee)
-                                            <option value="{{ $employee->id }}" {{ request('added_by') == $employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
+                                            <option value="{{ $employee->id }}"
+                                                {{ request('added_by') == $employee->id ? 'selected' : '' }}>
+                                                {{ $employee->full_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -224,10 +322,9 @@
                         <!-- Form Actions -->
                         <div class="form-actions mt-2">
                             <button type="submit" class="btn btn-primary">بحث</button>
-                            <a href="{{ route('incomes.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
-                            <button type="button" class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#advancedSearchForm">
-                                بحث متقدم
-                            </button>
+                            <a href="{{ route('incomes.index') }}" type="reset"
+                                class="btn btn-outline-warning">إلغاء</a>
+
                         </div>
                     </form>
                 </div>
@@ -244,7 +341,8 @@
                                     <td style="width: 80%">
                                         <p><strong>{{ $income->seller }}</strong></p>
                                         <p><small>{{ $income->date }} | {{ $income->description }}</small></p>
-                                        <img src="{{ asset('assets/uploads/incomes/'.$income->attachments) }}" alt="img" width="100"><br>
+                                        <img src="{{ asset('assets/uploads/incomes/' . $income->attachments) }}"
+                                            alt="img" width="100"><br>
                                         <i class="fa fa-user"></i> <small>اضيفت بواسطة :</small> <strong>ابو فالح</strong>
                                     </td>
                                     <td>
@@ -254,21 +352,27 @@
                                     <td>
                                         <div class="btn-group">
                                             <div class="dropdown">
-                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                    type="button"id="dropdownMenuButton303" data-toggle="dropdown"
+                                                    aria-haspopup="true"aria-expanded="false"></button>
                                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                     <li>
-                                                        <a class="dropdown-item" href="{{ route('incomes.show',$income->id) }}">
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('incomes.show', $income->id) }}">
                                                             <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="{{ route('incomes.edit',$income->id) }}">
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('incomes.edit', $income->id) }}">
                                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                         </a>
                                                     </li>
 
                                                     <li>
-                                                        <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $income->id }}">
+                                                        <a class="dropdown-item text-danger" href="#"
+                                                            data-toggle="modal"
+                                                            data-target="#modal_DELETE{{ $income->id }}">
                                                             <i class="fa fa-trash me-2"></i>حذف
                                                         </a>
                                                     </li>
@@ -278,12 +382,16 @@
                                     </td>
 
                                     <!-- Modal delete -->
-                                    <div class="modal fade text-left" id="modal_DELETE{{ $income->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                                    <div class="modal fade text-left" id="modal_DELETE{{ $income->id }}"
+                                        tabindex="-1" role="dialog" aria-labelledby="myModalLabel1"
+                                        aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header" style="background-color: #EA5455 !important;">
-                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف سند صرف</h4>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف
+                                                        سند صرف</h4>
+                                                    <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
                                                         <span aria-hidden="true" style="color: #DC3545">&times;</span>
                                                     </button>
                                                 </div>
@@ -293,8 +401,10 @@
                                                     </strong>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                                                    <a href="{{ route('incomes.delete',$income->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
+                                                    <button type="button" class="btn btn-light waves-effect waves-light"
+                                                        data-dismiss="modal">الغاء</button>
+                                                    <a href="{{ route('incomes.delete', $income->id) }}"
+                                                        class="btn btn-danger waves-effect waves-light">تأكيد</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -317,8 +427,8 @@
         </div>
 
     </div><!-- content-body -->
-    @endsection
+@endsection
 @section('scripts')
-<script src="{{ asset('assets/js/search.js') }}"></script>
+    <script src="{{ asset('assets/js/search.js') }}"></script>
 
 @endsection

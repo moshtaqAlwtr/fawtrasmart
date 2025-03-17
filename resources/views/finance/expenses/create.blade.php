@@ -94,11 +94,13 @@
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="code-number">رقم الكود</label>
-                            <input type="text" class="form-control" id="code-number" name="code" value="{{ $code }}" readonly>
+                            <input type="text" class="form-control" id="code-number" name="code"
+                                value="{{ $code }}" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
-                            <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control" id="date" name="date"
+                                value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="form-group col-md-4">
                             <label for="unit">الوحدة</label>
@@ -124,11 +126,7 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="seller">البائع</label>
-                            <select id="seller" class="form-control" name="vendor_id">
-                                <option selected disabled>اختر بائع</option>
-                                <option value="1">بائع 1</option>
-                                <option value="2">بائع 2</option>
-                            </select>
+                            <input type="text" class="form-control" id="seller" name="seller">
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
@@ -221,7 +219,8 @@
                                 <div class="row" id="end-date-container" style="display: none;">
                                     <div class="form-group col-md-4">
                                         <label for="end-date">تاريخ الإنتهاء</label>
-                                        <input type="date" class="form-control" id="end-date" value="{{date('Y-m-d')}}" name="end_date">
+                                        <input type="date" class="form-control" id="end-date"
+                                            value="{{ date('Y-m-d') }}" name="end_date">
                                     </div>
                                 </div>
 
