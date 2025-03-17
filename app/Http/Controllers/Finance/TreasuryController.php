@@ -657,7 +657,7 @@ class TreasuryController extends Controller
             ]
         );
     }
-    
+
     public function updateStatus($id)
     {
         // البحث عن العنصر باستخدام الـ ID
