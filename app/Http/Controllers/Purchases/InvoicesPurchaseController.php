@@ -318,47 +318,47 @@ class InvoicesPurchaseController extends Controller
             $payment = PaymentsProcess::create($paymentData);
 
              //القيود 
-        //      DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
-        //   // إنشاء القيد المحاسبي للفاتورة
-        //   $journalEntry = JournalEntry::create([
-        //     'reference_number' => $purchaseInvoice->code,
-        //     'date' => now(),
-        //     'description' => 'فاتورة شراء رقم ' . $purchaseInvoice->code,
-        //     'status' => 1,
-        //     'currency' => 'SAR',
-        //     'client_id' => $purchaseInvoice->supplier_id,
-        //     'invoice_id' => $purchaseInvoice->id,
-        //     'created_by_employee' => Auth::id(),
-        // ]);
+             DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
+          // إنشاء القيد المحاسبي للفاتورة
+          $journalEntry = JournalEntry::create([
+            'reference_number' => $purchaseInvoice->code,
+            'date' => now(),
+            'description' => 'فاتورة شراء رقم ' . $purchaseInvoice->code,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $purchaseInvoice->supplier_id,
+            // 'invoice_id' => $purchaseInvoice->id,
+            'created_by_employee' => Auth::id(),
+        ]);
 
         // # القيد الاول
-        // $supplieraccounts = Account::where('supplier_id', $purchaseInvoice->supplier_id)->first();
-        // // إضافة تفاصيل القيد المحاسبي
-        // // 1. حساب المورد (دائن)
-        // JournalEntryDetail::create([
-        //     'journal_entry_id' => $journalEntry->id,
-        //     'account_id' => $supplieraccounts->id, // حساب العميل
-        //     'description' => 'فاتورة شراء # ' . $purchaseInvoice->code,
-        //     'debit' => 0, 
-        //     'credit' => $total_with_tax,// المبلغ الكلي للفاتورة دائن)
-        //     'is_debit' => false,
-        // ]);
+        $supplieraccounts = Account::where('supplier_id', $purchaseInvoice->supplier_id)->first();
+        // إضافة تفاصيل القيد المحاسبي
+        // 1. حساب المورد (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $supplieraccounts->id, // حساب العميل
+            'description' => 'فاتورة شراء # ' . $purchaseInvoice->code,
+            'debit' => 0, 
+            'credit' => $total_with_tax,// المبلغ الكلي للفاتورة دائن)
+            'is_debit' => false,
+        ]);
 
        
-        // $mainstore = Account::where('name','المخزون الرئيسي')->first();
-        // // 2. حساب المخزون (مدين)
-        // JournalEntryDetail::create([
-        //     'journal_entry_id' => $journalEntry->id,
-        //     'account_id' => $mainstore->id, // حساب المخزون الرئيسي
-        //     'description' => ' فاتورة شراء # ' . $purchaseInvoice->code,
-        //     'debit' => $total_with_tax, //مدين
-        //     'credit' => 0, 
-        //     'is_debit' => true,
-        // ]);
+        $mainstore = Account::where('name','المخزون')->first();
+        // 2. حساب المخزون (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $mainstore->id, // حساب المخزون الرئيسي
+            'description' => ' فاتورة شراء # ' . $purchaseInvoice->code,
+            'debit' => $total_with_tax, //مدين
+            'credit' => 0, 
+            'is_debit' => true,
+        ]);
 
          
 
-        // $tax_total =   $total_tax + $shipping_tax;
+        $tax_total =   $total_tax + $shipping_tax;
 
         // $taxaccounts = Account::where('name','القيمة المضافة المدفوعة')->first();
         // // 3. حساب القيمة المضافة المدفوعه (مدين)
@@ -372,64 +372,65 @@ class InvoicesPurchaseController extends Controller
         // ]);
 
         // # القيد الثاني
-        // إنشاء القيد المحاسبي للفاتورة
-        // $journalEntry = JournalEntry::create([
-        //     'reference_number' => $purchaseInvoice->code,
-        //     'date' => now(),
-        //     'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
-        //     'status' => 1,
-        //     'currency' => 'SAR',
-        //     'client_id' => $purchaseInvoice->supplier_id,
-        //     'invoice_id' => $purchaseInvoice->id,
-        //     'created_by_employee' => Auth::id(),
-        // ]);
+      
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $purchaseInvoice->code,
+            'date' => now(),
+            'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $purchaseInvoice->supplier_id,
+            // 'invoice_id' => $purchaseInvoice->id,
+            'created_by_employee' => Auth::id(),
+        ]);
 
         // // # القيد الاول
-        // $supplieraccounts = Account::where('supplier_id', $purchaseInvoice->supplier_id)->first();
-        // // إضافة تفاصيل القيد المحاسبي
-        // // 1. حساب المورد (دائن)
-        // JournalEntryDetail::create([
-        //     'journal_entry_id' => $journalEntry->id,
-        //     'account_id' => $supplieraccounts->id, // حساب المورد
-        //     'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
-        //     'debit' => $total_with_tax, //مدين
-        //     'credit' => 0,
-        //     'is_debit' => true,
-        // ]);
+        $supplieraccounts = Account::where('supplier_id', $purchaseInvoice->supplier_id)->first();
+        // إضافة تفاصيل القيد المحاسبي
+        // 1. حساب المورد (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $supplieraccounts->id, // حساب المورد
+            'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
+            'debit' => $total_with_tax, //مدين
+            'credit' => 0,
+            'is_debit' => true,
+        ]);
 
        
-        // $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-        // // 2. حساب الخزينة (مدين)
-        // JournalEntryDetail::create([
-        //     'journal_entry_id' => $journalEntry->id,
-        //     'account_id' => $MainTreasury->id, // حساب المبيعات
-        //    'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
-        //     'debit' => 0, //مدين
-        //     'credit' => $total_with_tax, 
-        //     'is_debit' => false,
-        // ]);
+        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        // 2. حساب الخزينة (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $MainTreasury->id, // حساب المبيعات
+           'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
+            'debit' => 0, //مدين
+            'credit' => $total_with_tax, 
+            'is_debit' => false,
+        ]);
 
         // // الخزينة الرئيسية
-        // if ($MainTreasury) {
-        //     $amount = $total_with_tax; 
-        //     $MainTreasury->balance += $amount;
+        if ($MainTreasury) {
+            $amount = $total_with_tax; 
+            $MainTreasury->balance += $amount;
            
-        //     $MainTreasury->save();
+            $MainTreasury->save();
         
-        //     // تحديث جميع الحسابات الرئيسية المتصلة به
-        // //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
-        //  }
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+            // 
+            
+         }
          
            // حساب المورد 
-        // if ($supplieraccounts) {
-        //     $amount = $total_with_tax; 
-        //     $supplieraccounts->balance += $amount;
+        if ($supplieraccounts) {
+            $amount = $total_with_tax; 
+            $supplieraccounts->balance += $amount;
          
-        //     $supplieraccounts->save();
+            $supplieraccounts->save();
          
-        //     // تحديث جميع الحسابات الرئيسية المتصلة به
-        // //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
-        //  }   
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+            // $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+         }   
 
             // القيمة المضافه المدفوعة  
         // if ($taxaccounts) {
@@ -438,18 +439,18 @@ class InvoicesPurchaseController extends Controller
         //     $taxaccounts->save();
         
         //     // تحديث جميع الحسابات الرئيسية المتصلة به
-        // //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+        //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
         //  } 
 
          // المخزون الرئيسي
-        //  if ($mainstore) {
-        //     $amount = $total_with_tax; 
-        //     $mainstore->balance += $amount;
-        //     $mainstore->save();
+         if ($mainstore) {
+            $amount = $total_with_tax; 
+            $mainstore->balance += $amount;
+            $mainstore->save();
         
-        //     // تحديث جميع الحسابات الرئيسية المتصلة به
-        // //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
-        //  }
+            // تحديث جميع الحسابات الرئيسية المتصلة به
+        //    $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
+         }
 
             DB::commit(); // تأكيد التغييرات
             return redirect()->route('invoicePurchases.index')->with('success', 'تم إنشاء فاتورة المشتريات وعملية الدفع بنجاح');

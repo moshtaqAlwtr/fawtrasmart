@@ -92,7 +92,8 @@ class ExpensesController extends Controller
 
     public function store(Request $request)
 {
-    try {
+    // try {
+    // dd($request->supplier_id);
         DB::beginTransaction();
 
         // إنشاء سند الصرف
@@ -191,7 +192,7 @@ class ExpensesController extends Controller
             'is_debit' => false,
         ]);
 
-        $Supplier = Supplier::find();
+        $Supplier = Supplier::find($expense->supplier_id);
         $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
         // 2. حساب المصروفات (مدين)
         JournalEntryDetail::create([
@@ -206,13 +207,13 @@ class ExpensesController extends Controller
         DB::commit();
 
         return redirect()->route('expenses.index')->with('success', 'تم إضافة سند صرف بنجاح!');
-    } catch (\Exception $e) {
+    // } catch (\Exception $e) {
         DB::rollback();
         Log::error('خطأ في إضافة سند صرف: ' . $e->getMessage());
         return back()
             ->with('error', 'حدث خطأ أثناء إضافة سند الصرف: ' . $e->getMessage())
             ->withInput();
-    }
+    // }
 }
 public function update(Request $request, $id)
 {

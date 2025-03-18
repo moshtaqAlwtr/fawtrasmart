@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Purchases;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\InvoiceItem;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
 use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
@@ -291,31 +293,78 @@ class ReturnsInvoiceController extends Controller
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $purchaseInvoiceReturn->id; // تعيين purchase_invoice_id
-              $invoice_purhase =  InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
-                
-               $invoice_purhase->load('product');
+                $invoice_purhase =  InvoiceItem::create($item); // تخزين البند مع purchase_invoice_id
 
-$Supplier = Supplier::find($request->supplier_id);
+                $invoice_purhase->load('product');
 
-// تسجيل اشعار نظام جديد لكل منتج
-ModelsLog::create([
-    'type' => 'purchase_log',
-    'type_id' => $purchaseInvoiceReturn->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'icon'  => 'create',
-    'description' => sprintf(
-        'تم انشاء مرتجع شراء رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s** لفاتورة رقم **%s**',
-        $purchaseInvoiceReturn->code ?? "", // رقم مرتجع الشراء
-        $invoice_purhase->product->name ?? "", // اسم المنتج
-        $item['quantity'] ?? "", // الكمية
-        $item['unit_price'] ?? "",  // السعر
-        $Supplier->trade_name ?? "", // المورد
-        $request->reference_number ?? "" // رقم الفاتورة المرجعية
-    ),
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+                $Supplier = Supplier::find($request->supplier_id);
+
+                // تسجيل اشعار نظام جديد لكل منتج
+                ModelsLog::create([
+                    'type' => 'purchase_log',
+                    'type_id' => $purchaseInvoiceReturn->id, // ID النشاط المرتبط
+                    'type_log' => 'log', // نوع النشاط
+                    'icon'  => 'create',
+                    'description' => sprintf(
+                        'تم انشاء مرتجع شراء رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s** لفاتورة رقم **%s**',
+                        $purchaseInvoiceReturn->code ?? "", // رقم مرتجع الشراء
+                        $invoice_purhase->product->name ?? "", // اسم المنتج
+                        $item['quantity'] ?? "", // الكمية
+                        $item['unit_price'] ?? "",  // السعر
+                        $Supplier->trade_name ?? "", // المورد
+                        $request->reference_number ?? "" // رقم الفاتورة المرجعية
+                    ),
+                    'created_by' => auth()->id(), // ID المستخدم الحالي
+                ]);
             }
+            
+            $supplieraccounts = Account::where('supplier_id', $purchaseInvoiceReturn->supplier_id)->first();
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $purchaseInvoiceReturn->id,
+                'date' => now(),
+                'description' => 'مرتجع مشتريات رقم' . $purchaseInvoiceReturn->id,
+                'status' => 1,
+                'currency' => 'SAR',
+               
+                //  'invoice_id' => $purchaseInvoiceReturn->id,
+                'created_by_employee' => Auth::id(),
+            ]);
 
+
+                  // // 2. حساب المورد (مدين)
+                  JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $supplieraccounts->id, // حساب المبيعات
+                    'description' => 'مرتجع مشتريات',
+                    'debit' => $purchaseInvoiceReturn->grand_total, // المبلغ بعد الخصم (مدين)
+                    'credit' => 0, 
+                    'is_debit' => false,
+                ]);
+    
+                $mainstore = Account::where('name','المخزون')->first();
+                   // // 2. حساب المخزون (دائن)
+                   JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $mainstore->id, // حساب المبيعات
+                    'description' => 'مرتجع مشتريات',
+                    'debit' => 0,
+                    'credit' => $purchaseInvoiceReturn->grand_total, // المبلغ بعد الخصم (دائن)
+                    'is_debit' => false,
+                ]);
+
+                 if ($mainstore) {
+                $amount = $purchaseInvoiceReturn->grand_total; 
+                $mainstore->balance -= $amount;
+         
+                        $mainstore->save();
+                 }
+
+                 if ($supplieraccounts) {
+                    $amount = $supplieraccounts->grand_total; 
+                    $mainstore->balance += $amount;
+             
+                            $supplieraccounts->save();
+                     }
             // ** معالجة المرفقات (attachments) إذا وجدت **
             if ($request->hasFile('attachments')) {
                 $file = $request->file('attachments');
@@ -433,7 +482,7 @@ ModelsLog::create([
                     $total_tax += $tax1_amount + $tax2_amount;
 
                     // إنشاء عنصر الفاتورة
-            $invoice_purhase =        $purchaseInvoiceReturn->invoiceItems()->create([
+                    $invoice_purhase =        $purchaseInvoiceReturn->invoiceItems()->create([
                         'purchase_invoice_id' => $purchaseInvoiceReturn->id,
                         'purchase_invoice_id_type' => 2,
                         'product_id' => $item['product_id'],
@@ -448,27 +497,27 @@ ModelsLog::create([
                         'total' => $amount_after_discount + $tax1_amount + $tax2_amount,
                     ]);
                 }
-                    $invoice_purhase->load('product');
+                $invoice_purhase->load('product');
 
-$Supplier = Supplier::find($request->supplier_id);
+                $Supplier = Supplier::find($request->supplier_id);
 
-// تسجيل اشعار نظام جديد لكل منتج
-ModelsLog::create([
-    'type' => 'purchase_log',
-    'type_id' => $purchaseInvoiceReturn->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'icon'  => 'create',
-    'description' => sprintf(
-        'تم تعديل مرتجع شراء رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s** لفاتورة رقم **%s**',
-        $purchaseInvoiceReturn->code ?? "", // رقم مرتجع الشراء
-        $invoice_purhase->product->name ?? "", // اسم المنتج
-        $item['quantity'] ?? "", // الكمية
-        $item['unit_price'] ?? "",  // السعر
-        $Supplier->trade_name ?? "", // المورد
-        $request->reference_number ?? "" // رقم الفاتورة المرجعية
-    ),
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+                // تسجيل اشعار نظام جديد لكل منتج
+                ModelsLog::create([
+                    'type' => 'purchase_log',
+                    'type_id' => $purchaseInvoiceReturn->id, // ID النشاط المرتبط
+                    'type_log' => 'log', // نوع النشاط
+                    'icon'  => 'create',
+                    'description' => sprintf(
+                        'تم تعديل مرتجع شراء رقم **%s** للمنتج **%s** كمية **%s** بسعر **%s** للمورد **%s** لفاتورة رقم **%s**',
+                        $purchaseInvoiceReturn->code ?? "", // رقم مرتجع الشراء
+                        $invoice_purhase->product->name ?? "", // اسم المنتج
+                        $item['quantity'] ?? "", // الكمية
+                        $item['unit_price'] ?? "",  // السعر
+                        $Supplier->trade_name ?? "", // المورد
+                        $request->reference_number ?? "" // رقم الفاتورة المرجعية
+                    ),
+                    'created_by' => auth()->id(), // ID المستخدم الحالي
+                ]);
             }
 
             // معالجة المرفقات
@@ -538,14 +587,14 @@ ModelsLog::create([
     {
         try {
             $purchaseOrder = PurchaseInvoice::findOrFail($id);
-                ModelsLog::create([
+            ModelsLog::create([
                 'type' => 'purchase_log',
                 'type_id' => $purchaseOrder->id, // ID النشاط المرتبط
                 'type_log' => 'log', // نوع النشاط
                 'icon'  => 'delete',
                 'description' => sprintf(
                     'تم حذف مرتجع شراء رقم **%s**',
-                    $purchaseOrder->code ?? "" ,// رقم طلب الشراء
+                    $purchaseOrder->code ?? "", // رقم طلب الشراء
                 ),
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);

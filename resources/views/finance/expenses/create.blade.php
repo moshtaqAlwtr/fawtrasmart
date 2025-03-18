@@ -152,7 +152,7 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="items">المورد</label>
-                            <select id="items" class="form-control">
+                            <select id="items" class="form-control" name="supplier_id">
                                 <option selected disabled>اختر مورد</option>
                                 @foreach ($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}">{{ $supplier->trade_name }}</option>

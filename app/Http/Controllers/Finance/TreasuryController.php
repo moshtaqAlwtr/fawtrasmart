@@ -563,7 +563,7 @@ class TreasuryController extends Controller
             $currentBalance = $this->updateBalance($currentBalance, $amount, $type);
 
 
-            $currentBalance = $this->updateBalance($currentBalance, $amount, $type);
+            
 
             $allOperations[] = [
                 'operation' => 'مدفوعات العميل',
