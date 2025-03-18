@@ -120,8 +120,8 @@
                             <label for="warehouse">خزينة</label>
                             <select id="warehouse" class="form-control" name="treasury_id">
                                 <option selected disabled value="1">اختر الخزينة</option>
-                                @foreach ($treas as $trea  )
-                                    <option value="{{$trea->id }}">{{ $trea->name }}</option>
+                                @foreach ($account_storage as $account  )
+                                    <option value="{{$account->id }}">{{ $account->name }}</option>
 
                                 @endforeach
                             </select>

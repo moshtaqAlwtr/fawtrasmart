@@ -86,21 +86,23 @@ class IncomesController extends Controller
     $incomes_categories = ReceiptCategory::select('id', 'name')->get();
     $treas = Treasury::select('id', 'name')->get();
     $accounts = Account::all();
+    $account_storage = Account::where('parent_id', 13)->get();
 
     // حساب الرقم التلقائي
     $lastCode = Receipt::max('code'); // نفترض أن الحقل في الجدول يسمى 'code'
     $nextCode = $lastCode ? $lastCode + 1 : 1; // إذا لم يكن هناك أي سجلات، نبدأ من 1
 
-    return view('finance.incomes.create', compact('incomes_categories', 'treas', 'accounts', 'nextCode'));
+    return view('finance.incomes.create', compact('incomes_categories','account_storage', 'treas', 'accounts', 'nextCode'));
 }
 public function store(Request $request)
 {
-    try {
+    // try {
         DB::beginTransaction();
 
         // إنشاء سند القبض
         $income = new Receipt();
-
+ 
+        // dd($request->input('account_id'));
         // تعبئة الحقول الأساسية
         $income->code = $request->input('code');
         $income->amount = $request->input('amount');
@@ -205,13 +207,13 @@ public function store(Request $request)
         DB::commit();
 
         return redirect()->route('incomes.index')->with('success', 'تم إضافة سند قبض بنجاح!');
-    } catch (\Exception $e) {
+    // } catch (\Exception $e) {
         DB::rollback();
         Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
         return back()
             ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
             ->withInput();
-    }
+    // }
 }
 
 public function update(Request $request, $id)
