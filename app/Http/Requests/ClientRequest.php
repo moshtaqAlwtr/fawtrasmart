@@ -45,7 +45,7 @@ class ClientRequest extends FormRequest
             'opening_balance' => 'nullable|numeric',
             'opening_balance_date' => 'nullable|date',
             'email' => 'nullable|email|max:255',
-            'category' => 'nullable|string|max:255',
+            'classification_id' => 'nullable|exists:categories_clients,id',
             'client_type' => 'nullable|integer|in:1,2',
             'notes' => 'nullable|string',
             'attachments' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
