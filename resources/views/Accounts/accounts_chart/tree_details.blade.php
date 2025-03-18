@@ -25,7 +25,6 @@
 
 
                                 <td>    {{$entry->description ?? ""}}  قيد رقم #{{$entry->journal_entry_id}}   </td>
-
                                 
                                 <td>    {{$entry->debit ?? ""}} </td>
                                 <td>    {{$entry->credit ?? ""}} </td>

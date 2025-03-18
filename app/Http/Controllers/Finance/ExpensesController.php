@@ -191,6 +191,8 @@ class ExpensesController extends Controller
             'is_debit' => false,
         ]);
 
+        $Supplier = Supplier::find();
+        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
         // 2. حساب المصروفات (مدين)
         JournalEntryDetail::create([
             'journal_entry_id' => $journalEntry->id,

@@ -331,7 +331,8 @@ class ReturnInvoiceController extends Controller
                     'invoice_id' => $invoice->id,
                     'created_by_employee' => Auth::id(),
                 ]);
-
+                
+       
                  // // 2. حساب العميل (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
@@ -402,7 +403,7 @@ class ReturnInvoiceController extends Controller
                 'credit' => 0, 
                 'is_debit' => true,
             ]);
-
+           
              // // 2. حساب  تكلفة المبيعات (دائن)
              JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
