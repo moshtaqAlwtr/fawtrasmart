@@ -636,7 +636,7 @@ class TreasuryController extends Controller
 
     private function updateBalance($currentBalance, $amount, $type)
     {
-        return $type === 'إيداع' ? $currentBalance =+ $amount : $currentBalance =- $amount;
+        return $type === 'إيداع' ? $currentBalance + $amount : $currentBalance - $amount;
     }
 
     private function paginateOperations($allOperations)
