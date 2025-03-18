@@ -298,7 +298,7 @@
                     </div>
                     <div class="col-md-2 text-end">
                         <div class="btn-group">
-                    <div class="dropdown">
+                    {{-- <div class="dropdown">
                         <button class="btn bg-gradient-info fa fa-ellipsis-v" type="button" id="dropdownMenuButton{{ $info->id }}" data-bs-toggle="dropdown" aria-expanded="false"></button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $info->id }}">
                             <li>
@@ -358,7 +358,7 @@
                                 </form>
                             </li>
                         </ul>
-                    </div>
+                    </div> --}}
                         </div>
                     </div>
                 </div>

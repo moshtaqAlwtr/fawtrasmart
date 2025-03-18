@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\StoreCreditNotificationRequest;
+use App\Models\Account;
 use App\Models\Client;
 use App\Models\CreditNotification;
 use App\Models\Employee;
 use App\Models\InvoiceItem;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -35,7 +38,7 @@ class CreditNotificationController extends Controller
         if ($request->filled('item_search')) {
             $query->whereHas('items', function ($q) use ($request) {
                 $q->where('item', 'LIKE', '%' . $request->item_search . '%')
-                  ->orWhere('description', 'LIKE', '%' . $request->item_search . '%');
+                    ->orWhere('description', 'LIKE', '%' . $request->item_search . '%');
             });
         }
 
@@ -51,7 +54,7 @@ class CreditNotificationController extends Controller
         }
 
         if ($request->filled('date_type_1')) {
-            switch($request->date_type_1) {
+            switch ($request->date_type_1) {
                 case 'monthly':
                     $query->whereMonth('created_at', now()->month);
                     break;
@@ -69,7 +72,7 @@ class CreditNotificationController extends Controller
         }
 
         if ($request->filled('date_type_2')) {
-            switch($request->date_type_2) {
+            switch ($request->date_type_2) {
                 case 'monthly':
                     $query->whereMonth('due_date', now()->month);
                     break;
@@ -161,174 +164,280 @@ class CreditNotificationController extends Controller
     }
 
     public function store(Request $request)
-{
-    // التحقق من صحة البيانات باستخدام helper function
-    $validated = validator($request->all(), [
-        'client_id' => 'required|exists:clients,id',
-        'credit_date' => 'required|date_format:Y-m-d',
-        'release_date' => 'required|date_format:Y-m-d',
-        'items' => 'required|array|min:1',
-        'items.*.product_id' => 'required|exists:products,id', // إضافة التحقق من المستودع
-        'items.*.quantity' => 'required|numeric|min:1',
-        'items.*.unit_price' => 'required|numeric|min:0',
-        'items.*.discount' => 'nullable|numeric|min:0',
-        'items.*.discount_type' => 'nullable|in:amount,percentage',
-        'items.*.tax_1' => 'nullable|numeric|min:0',
-        'items.*.tax_2' => 'nullable|numeric|min:0',
-        'shipping_cost' => 'nullable|numeric|min:0',
-        'discount_type' => 'nullable|in:amount,percentage',
-        'discount_amount' => 'nullable|numeric|min:0',
-        'tax_type' => 'required|in:1,2,3', // 1=vat, 2=zero, 3=exempt
-        'tax_rate' => 'nullable|numeric|min:0', // إضافة حقل tax_rate
-        'notes' => 'nullable|string',
-    ])->validate();
+    {
+        // التحقق من صحة البيانات باستخدام helper function
+        $validated = validator($request->all(), [
+            'client_id' => 'required|exists:clients,id',
+            'credit_date' => 'required|date_format:Y-m-d',
+            'release_date' => 'required|date_format:Y-m-d',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id', // إضافة التحقق من المستودع
+            'items.*.quantity' => 'required|numeric|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:amount,percentage',
+            'items.*.tax_1' => 'nullable|numeric|min:0',
+            'items.*.tax_2' => 'nullable|numeric|min:0',
+            'shipping_cost' => 'nullable|numeric|min:0',
+            'discount_type' => 'nullable|in:amount,percentage',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'tax_type' => 'required|in:1,2,3', // 1=vat, 2=zero, 3=exempt
+            'tax_rate' => 'nullable|numeric|min:0', // إضافة حقل tax_rate
+            'notes' => 'nullable|string',
+        ])->validate();
 
-    // تحويل tax_type إلى النص المناسب
-    $tax_type_map = [
-        '1' => 'vat',
-        '2' => 'zero',
-        '3' => 'exempt',
-    ];
+        // تحويل tax_type إلى النص المناسب
+        $tax_type_map = [
+            '1' => 'vat',
+            '2' => 'zero',
+            '3' => 'exempt',
+        ];
 
-    // بدء العملية داخل ترانزاكشن
-    DB::beginTransaction();
+        // بدء العملية داخل ترانزاكشن
+        DB::beginTransaction();
 
-    try {
-        // ** الخطوة الأولى: إنشاء كود للعرض **
-        $credit_number = $request->input('credit_number');
-        if (!$credit_number) {
-            $lastOrder = CreditNotification::orderBy('id', 'desc')->first();
-            $nextNumber = $lastOrder ? intval($lastOrder->credit_number) + 1 : 1;
-            $credit_number = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
-        } else {
-            $existingCode = CreditNotification::where('credit_number', $credit_number)->exists();
-            if ($existingCode) {
-                return redirect()->back()->withInput()->with('error', 'رقم العرض موجود مسبقاً، الرجاء استخدام رقم آخر');
-            }
-        }
-
-        // ** تجهيز المتغيرات الرئيسية لحساب العرض **
-        $total_amount = 0; // إجمالي المبلغ قبل الخصومات
-        $total_discount = 0; // إجمالي الخصومات على البنود
-        $items_data = []; // تجميع بيانات البنود
-
-        // ** الخطوة الثانية: معالجة البنود (items) **
-        foreach ($validated['items'] as $item) {
-            // جلب المنتج
-            $product = Product::findOrFail($item['product_id']);
-
-            // حساب تفاصيل الكمية والأسعار
-            $quantity = floatval($item['quantity']);
-            $unit_price = floatval($item['unit_price']);
-            $item_total = $quantity * $unit_price;
-
-            // حساب الخصم للبند
-            $item_discount = 0; // قيمة الخصم المبدئية
-            if (isset($item['discount']) && $item['discount'] > 0) {
-                $discountType = $item['discount_type'] ?? 'amount';
-                if ($discountType === 'percentage') {
-                    $item_discount = ($item_total * floatval($item['discount'])) / 100;
-                } else {
-                    $item_discount = floatval($item['discount']);
+        // try {
+            // ** الخطوة الأولى: إنشاء كود للعرض **
+            $credit_number = $request->input('credit_number');
+            if (!$credit_number) {
+                $lastOrder = CreditNotification::orderBy('id', 'desc')->first();
+                $nextNumber = $lastOrder ? intval($lastOrder->credit_number) + 1 : 1;
+                $credit_number = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+            } else {
+                $existingCode = CreditNotification::where('credit_number', $credit_number)->exists();
+                if ($existingCode) {
+                    return redirect()->back()->withInput()->with('error', 'رقم العرض موجود مسبقاً، الرجاء استخدام رقم آخر');
                 }
             }
 
-            // تحديث الإجماليات
-            $total_amount += $item_total;
-            $total_discount += $item_discount;
+            // ** تجهيز المتغيرات الرئيسية لحساب العرض **
+            $total_amount = 0; // إجمالي المبلغ قبل الخصومات
+            $total_discount = 0; // إجمالي الخصومات على البنود
+            $items_data = []; // تجميع بيانات البنود
 
-            // تجهيز بيانات البند
-            $items_data[] = [
-                'credit_note_id' => null, // سيتم تعيينه لاحقًا بعد إنشاء العرض
-                'product_id' => $item['product_id'],
-                'item' => $product->name,
-                'description' => $item['description'] ?? null,
-                'quantity' => $quantity,
-                'unit_price' => $unit_price,
-                'discount' => $item_discount,
-                'discount_type' => isset($item['discount_type']) && $item['discount_type'] === 'percentage' ? 2 : 1,
-                'tax_1' => floatval($item['tax_1'] ?? 0),
-                'tax_2' => floatval($item['tax_2'] ?? 0),
-                'total' => $item_total - $item_discount,
-            ];
-        }
+            // ** الخطوة الثانية: معالجة البنود (items) **
+            foreach ($validated['items'] as $item) {
+                // جلب المنتج
+                $product = Product::findOrFail($item['product_id']);
 
-        // ** الخطوة الثالثة: حساب الخصم الإضافي للعرض ككل **
-        $quote_discount = floatval($validated['discount_amount'] ?? 0);
-        $discountType = $validated['discount_type'] ?? 'amount';
-        if ($discountType === 'percentage') {
-            $quote_discount = ($total_amount * $quote_discount) / 100;
-        }
+                // حساب تفاصيل الكمية والأسعار
+                $quantity = floatval($item['quantity']);
+                $unit_price = floatval($item['unit_price']);
+                $item_total = $quantity * $unit_price;
 
-        // الخصومات الإجمالية
-        $final_total_discount = $total_discount + $quote_discount;
+                // حساب الخصم للبند
+                $item_discount = 0; // قيمة الخصم المبدئية
+                if (isset($item['discount']) && $item['discount'] > 0) {
+                    $discountType = $item['discount_type'] ?? 'amount';
+                    if ($discountType === 'percentage') {
+                        $item_discount = ($item_total * floatval($item['discount'])) / 100;
+                    } else {
+                        $item_discount = floatval($item['discount']);
+                    }
+                }
 
-        // حساب المبلغ بعد الخصم
-        $amount_after_discount = $total_amount - $final_total_discount;
+                // تحديث الإجماليات
+                $total_amount += $item_total;
+                $total_discount += $item_discount;
 
-        // ** حساب الضرائب **
-        $tax_total = 0;
-        $tax_type = $tax_type_map[$validated['tax_type']];
-        $tax_rate = floatval($validated['tax_rate'] ?? 0); // الحصول على نسبة الضريبة من المستخدم
+                // تجهيز بيانات البند
+                $items_data[] = [
+                    'credit_note_id' => null, // سيتم تعيينه لاحقًا بعد إنشاء العرض
+                    'product_id' => $item['product_id'],
+                    'item' => $product->name,
+                    'description' => $item['description'] ?? null,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price,
+                    'discount' => $item_discount,
+                    'discount_type' => isset($item['discount_type']) && $item['discount_type'] === 'percentage' ? 2 : 1,
+                    'tax_1' => floatval($item['tax_1'] ?? 0),
+                    'tax_2' => floatval($item['tax_2'] ?? 0),
+                    'total' => $item_total - $item_discount,
+                ];
+            }
 
-        if ($tax_type === 'vat' && $tax_rate > 0) {
-            // حساب الضريبة على المبلغ بعد الخصم باستخدام النسبة التي أدخلها المستخدم
-            $tax_total = ($amount_after_discount * $tax_rate) / 100;
-        }
+            // ** الخطوة الثالثة: حساب الخصم الإضافي للعرض ككل **
+            $quote_discount = floatval($validated['discount_amount'] ?? 0);
+            $discountType = $validated['discount_type'] ?? 'amount';
+            if ($discountType === 'percentage') {
+                $quote_discount = ($total_amount * $quote_discount) / 100;
+            }
 
-        // ** إضافة تكلفة الشحن (إذا وجدت) **
-        $shipping_cost = floatval($validated['shipping_cost'] ?? 0);
+            // الخصومات الإجمالية
+            $final_total_discount = $total_discount + $quote_discount;
 
-        // ** حساب ضريبة الشحن (إذا كانت الضريبة مفعلة) **
-        $shipping_tax = 0;
-        if ($tax_type === 'vat' && $tax_rate > 0) {
-            $shipping_tax = ($shipping_cost * $tax_rate) / 100; // ضريبة الشحن باستخدام النسبة التي أدخلها المستخدم
-        }
+            // حساب المبلغ بعد الخصم
+            $amount_after_discount = $total_amount - $final_total_discount;
 
-        // ** إضافة ضريبة الشحن إلى tax_total **
-        $tax_total += $shipping_tax;
+            // ** حساب الضرائب **
+            $tax_total = 0;
+            $tax_type = $tax_type_map[$validated['tax_type']];
+            $tax_rate = floatval($validated['tax_rate'] ?? 0); // الحصول على نسبة الضريبة من المستخدم
 
-        // ** الحساب النهائي للمجموع الكلي **
-        $total_with_tax = $amount_after_discount + $tax_total + $shipping_cost;
+            if ($tax_type === 'vat' && $tax_rate > 0) {
+                // حساب الضريبة على المبلغ بعد الخصم باستخدام النسبة التي أدخلها المستخدم
+                $tax_total = ($amount_after_discount * $tax_rate) / 100;
+            }
 
-        // ** الخطوة الرابعة: إنشاء العرض في قاعدة البيانات **
-        $creditNot = CreditNotification::create([
-            'client_id' => $validated['client_id'],
-            'credit_number' => $credit_number,
-            'release_date' => $validated['release_date'],
-            'credit_date' => $validated['credit_date'],
-            'notes' => $validated['notes'] ?? null,
-            'created_by' => Auth::id(),
-            'discount_amount' => $quote_discount,
-            'discount_type' => $discountType === 'percentage' ? 2 : 1,
-            'shipping_cost' => $shipping_cost,
-            'shipping_tax' => $shipping_tax,
-            'tax_type' => $validated['tax_type'], // نحفظ الرقم في قاعدة البيانات
-            'tax_rate' => $tax_rate, // حفظ نسبة الضريبة
-            'subtotal' => $total_amount,
-            'total_discount' => $final_total_discount,
-            'tax_total' => $tax_total,
-            'grand_total' => $total_with_tax,
-            'status' => 1, // حالة العرض (1: Draft)
-        ]);
+            // ** إضافة تكلفة الشحن (إذا وجدت) **
+            $shipping_cost = floatval($validated['shipping_cost'] ?? 0);
 
-        // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للعرض **
-        foreach ($items_data as $item) {
-            $item['credit_note_id'] = $creditNot->id;
-            InvoiceItem::create($item);
-        }
+            // ** حساب ضريبة الشحن (إذا كانت الضريبة مفعلة) **
+            $shipping_tax = 0;
+            if ($tax_type === 'vat' && $tax_rate > 0) {
+                $shipping_tax = ($shipping_cost * $tax_rate) / 100; // ضريبة الشحن باستخدام النسبة التي أدخلها المستخدم
+            }
 
-        DB::commit();
-        return redirect()->route('CreditNotes.index')->with('success', 'تم إنشاء اشعار دائن  بنجاح');
-    } catch (\Exception $e) {
-        DB::rollback();
-        Log::error('حدث خطأ في دالة store: ' . $e->getMessage());
-        return redirect()
-            ->back()
-            ->withInput()
-            ->with('error', 'عذراً، حدث خطأ أثناء حفظ  اشعار دائن: ' . $e->getMessage());
+            // ** إضافة ضريبة الشحن إلى tax_total **
+            $tax_total += $shipping_tax;
+
+            // ** الحساب النهائي للمجموع الكلي **
+            $total_with_tax = $amount_after_discount + $tax_total + $shipping_cost;
+
+            // ** الخطوة الرابعة: إنشاء العرض في قاعدة البيانات **
+            $creditNot = CreditNotification::create([
+                'client_id' => $validated['client_id'],
+                'credit_number' => $credit_number,
+                'release_date' => $validated['release_date'],
+                'credit_date' => $validated['credit_date'],
+                'notes' => $validated['notes'] ?? null,
+                'created_by' => Auth::id(),
+                'discount_amount' => $quote_discount,
+                'discount_type' => $discountType === 'percentage' ? 2 : 1,
+                'shipping_cost' => $shipping_cost,
+                'shipping_tax' => $shipping_tax,
+                'tax_type' => $validated['tax_type'], // نحفظ الرقم في قاعدة البيانات
+                'tax_rate' => $tax_rate, // حفظ نسبة الضريبة
+                'subtotal' => $total_amount,
+                'total_discount' => $final_total_discount,
+                'tax_total' => $tax_total,
+                'grand_total' => $total_with_tax,
+                'status' => 1, // حالة العرض (1: Draft)
+            ]);
+
+            // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للعرض **
+            foreach ($items_data as $item) {
+                $item['credit_note_id'] = $creditNot->id;
+                InvoiceItem::create($item);
+            }
+
+            // تسجيل القيود
+            $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
+            if (!$vatAccount) {
+                throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
+            }
+            $storeAccount = Account::where('name', 'المخزون')->first();
+            if (!$storeAccount) {
+                throw new \Exception('حساب المخزون غير موجود');
+            }
+            $costAccount = Account::where('id', 50)->first();
+            if (!$costAccount) {
+                throw new \Exception('حساب تكلفة المبيعات غير موجود');
+            }
+            $retursalesnAccount = Account::where('id', 45)->first();
+            if (!$retursalesnAccount) {
+                throw new \Exception('حساب  مردودات المبيعات غير موجود');
+            }
+            $mainAccount = Account::where('name', 'الخزينة الرئيسية')->first();
+            if (!$mainAccount) {
+                throw new \Exception('حساب  الخزينة الرئيسية غير موجود');
+            }
+
+            $clientaccounts = Account::where('client_id', $creditNot->client_id)->first();
+            // القيد الاول
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $creditNot->id,
+                'date' => now(),
+                'description' => 'اشعار  دائن  رقم ' . $creditNot->id,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $creditNot->client_id,
+
+                'created_by_employee' => Auth::id(),
+            ]);
+
+         
+            // // 2. حساب مردود المبيعات (مدين)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $retursalesnAccount->id, // حساب المبيعات
+                'description' => 'اشعار دائن',
+                'debit' => $creditNot->grand_total, // المبلغ بعد الخصم (مدين)
+                'credit' => 0,
+                'is_debit' => false,
+            ]);
+
+            // // 2. حساب العميل (دائن)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $clientaccounts->id, // حساب المبيعات
+                'description' => 'اشعار دائن',
+                'debit' => 0,
+                'credit' => $creditNot->grand_total, // المبلغ بعد الخصم (دائن)
+                'is_debit' => false,
+            ]);
+
+            // القيد الثاني
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $creditNot->id,
+                'date' => now(),
+                'description' => 'اشعار  دائن  رقم ' . $creditNot->id,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $creditNot->client_id,
+
+                'created_by_employee' => Auth::id(),
+            ]);
+
+            // // 2. حساب  المخزون (مدين)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $storeAccount->id, // حساب المبيعات
+                'description' => 'اشعار دائن',
+                'debit' => $creditNot->grand_total, // المبلغ بعد الخصم (مدين)
+                'credit' => 0,
+                'is_debit' => false,
+            ]);
+
+            // // 2. حساب العميل (دائن)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $costAccount->id, // حساب المبيعات
+                'description' => 'اشعار دائن ',
+                'debit' => 0,
+                'credit' => $creditNot->grand_total, // المبلغ بعد الخصم (دائن)
+                'is_debit' => false,
+            ]);
+
+
+            if ($clientaccounts) {
+                $clientaccounts->balance -= $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $clientaccounts->save();
+            }
+            if ($storeAccount) {
+                $storeAccount->balance += $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $storeAccount->save();
+            }
+            if ($retursalesnAccount) {
+                $retursalesnAccount->balance += $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $retursalesnAccount->save();
+            }
+            
+            if ($costAccount) {
+                $costAccount->balance -= $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $costAccount->save();
+            } 
+            DB::commit();
+            return redirect()->route('CreditNotes.index')->with('success', 'تم إنشاء اشعار دائن  بنجاح');
+        // } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('حدث خطأ في دالة store: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'عذراً، حدث خطأ أثناء حفظ  اشعار دائن: ' . $e->getMessage());
+        // }
     }
-}
 
     public function print($id)
     {
@@ -379,7 +488,6 @@ class CreditNotificationController extends Controller
             return $dompdf->stream('credit_note_' . $credit->credit_number . '.pdf', [
                 'Attachment' => false
             ]);
-
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'حدث خطأ أثناء إنشاء PDF: ' . $e->getMessage());
         }
@@ -397,5 +505,4 @@ class CreditNotificationController extends Controller
 
         return ""; // قم بتنفيذ المنطق المناسب هنا
     }
-
-    }
+}
