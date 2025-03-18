@@ -554,10 +554,14 @@ class TreasuryController extends Controller
         $currentBalance = 0;
         $allOperations = [];
 
+
         // معالجة المدفوعات
         foreach ($transactions as $transaction) {
             $amount = $transaction->debit > 0 ? $transaction->debit : $transaction->credit;
             $type = $transaction->debit > 0 ? 'إيداع' : 'سحب';
+
+            $currentBalance = $this->updateBalance($currentBalance, $amount, $type);
+
 
             $currentBalance = $this->updateBalance($currentBalance, $amount, $type);
 
@@ -572,6 +576,7 @@ class TreasuryController extends Controller
                 'type' => 'transaction',
             ];
         }
+
 
         // معالجة التحويلات
         // foreach ($transfers as $transfer) {
@@ -603,6 +608,7 @@ class TreasuryController extends Controller
         foreach ($expenses as $expense) {
             $currentBalance -= $expense->amount;
 
+
             $allOperations[] = [
                 'operation' => 'سند صرف: ' . $expense->description,
                 'deposit' => 0,
@@ -615,9 +621,11 @@ class TreasuryController extends Controller
             ];
         }
 
+
         // معالجة سندات القبض
         foreach ($revenues as $revenue) {
             $currentBalance += $revenue->amount;
+
 
             $allOperations[] = [
                 'operation' => 'سند قبض: ' . $revenue->description,
@@ -630,6 +638,7 @@ class TreasuryController extends Controller
                 'type' => 'revenue',
             ];
         }
+
 
         return $allOperations;
     }
@@ -657,6 +666,7 @@ class TreasuryController extends Controller
             ]
         );
     }
+
 
     public function updateStatus($id)
     {
