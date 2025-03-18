@@ -127,7 +127,7 @@ class ClientController extends Controller
         $categories = CategoriesClient::all();
 
         $lastClient = Client::orderBy('code', 'desc')->first();
-       
+
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
         $GeneralClientSettings = GeneralClientSetting::all();
         // إذا كان الجدول فارغًا، قم بإنشاء قيم افتراضية (مفعلة بالكامل)
@@ -152,11 +152,11 @@ class ClientController extends Controller
     }
         return view('client.create', compact('employees', 'newCode', 'categories','GeneralClientSettings'));
     }
-  
-  
+
+
     public function store(ClientRequest $request)
     {
-       
+
         $data_request = $request->except('_token');
 
         // إنشاء العميل
@@ -169,7 +169,7 @@ class ClientController extends Controller
         $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
 
         // تعيين id للعميل الجديد باستخدام الرقم الحالي
-       
+
 
         // تعيين الكود للعميل الجديد (إذا كان الكود مطلوبًا أيضًا)
         $client->code = $currentNumber;
@@ -189,7 +189,7 @@ class ClientController extends Controller
 
         // حفظ العميل
         $client->save();
-     
+
         $password = Str::random(10);
         $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
         if($request->email != null){
@@ -202,9 +202,9 @@ class ClientController extends Controller
                 'password' => Hash::make($password),
             ]);
         }
-      
 
-        
+
+
            // تسجيل اشعار نظام جديد
             ModelsLog::create([
                 'type' => 'client',
@@ -247,14 +247,16 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
     public function send_email($id)
-    {
-        
+{
+
+
+
           $employee = User::where('client_id', $id)->first();
 
           if (!$employee || empty($employee->email)) {
             return redirect()->back()->with('error', 'العميل لا يمتلك بريدًا إلكترونيًا للدخول.');
         }
-        
+
 
         // توليد كلمة مرور جديدة عشوائية
         $newPassword = $this->generateRandomPassword();
@@ -273,12 +275,12 @@ class ClientController extends Controller
         // إرسال البريد
         Mail::to($employee->email)->send(new TestMail($details));
         ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $employee->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+        'type' => 'hr_log',
+        'type_id' => $employee->id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+         ]);
 
         // return back()->with('message', 'تم إرسال البريد بنجاح!');
         return redirect()
@@ -465,7 +467,7 @@ class ClientController extends Controller
 
         // تحميل جميع المدفوعات المرتبطة بالعميل
          $payments = $client->payments;
-     
+
         // تحميل الملاحظات المرتبطة بالعميل
         $appointmentNotes = $client->appointmentNotes;
 
@@ -475,7 +477,7 @@ class ClientController extends Controller
         return view('client.show', compact('client','invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
 
-   
+
     public function updateStatus(Request $request, $id)
 {
     $client = Client::findOrFail($id);
@@ -497,7 +499,7 @@ class ClientController extends Controller
         $query = Client::with('employee')
             ->select('id', 'trade_name', 'first_name', 'last_name', 'phone', 'city', 'region', 'street1', 'street2', 'code', 'employee_id')
             ->orderBy('created_at', 'desc');
-    
+
         // البحث الأساسي (بالاسم أو الكود)
         if ($request->has('search')) {
             $search = $request->input('search');
@@ -508,7 +510,7 @@ class ClientController extends Controller
                   ->orWhere('last_name', 'like', '%' . $search . '%');
             });
         }
-    
+
         // البحث المتقدم (بالبريد الإلكتروني أو رقم الهاتف أو رقم الجوال)
         if ($request->has('advanced_search')) {
             $advancedSearch = $request->input('advanced_search');
@@ -518,9 +520,9 @@ class ClientController extends Controller
                   ->orWhere('mobile', 'like', '%' . $advancedSearch . '%');
             });
         }
-    
+
         $clients = $query->paginate(25);
-    
+
         return view('client.contacts.contact_mang', compact('clients'));
     }
 
@@ -547,7 +549,7 @@ class ClientController extends Controller
 
         // Get the first client by default
         $client = $clients->first();
-       
+
         $categories = CategoriesClient::all();
         $ClientRelations =  ClientRelation::where('client_id', $request->client_id)->get();
 
@@ -555,7 +557,7 @@ class ClientController extends Controller
             $lastClient = Client::orderBy('code', 'desc')->first();
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
-        
+
 
         return view('client.relestion_mang_client', compact('clients','ClientRelations','categories','lastClient','newCode', 'employees', 'notes', 'appointments', 'client'));
     }
@@ -568,12 +570,12 @@ class ClientController extends Controller
     {
         try {
             $ClientRelations = ClientRelation::where('client_id', $client_id)->get();
-    
+
             // التحقق من وجود ملاحظات
             if ($ClientRelations->isEmpty()) {
                 return response()->json(['message' => 'لا توجد ملاحظات لهذا العميل.'], 200);
             }
-    
+
             return response()->json($ClientRelations, 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'حدث خطأ أثناء جلب البيانات', 'details' => $e->getMessage()], 500);
@@ -621,7 +623,7 @@ public function getFirstClient()
     }
     return response()->json(['client' => null]);
 }
-    
+
     public function mang_client_store(ClientRequest $request)
     {
         $data_request = $request->except('_token');
@@ -656,7 +658,7 @@ public function getFirstClient()
 
         // حفظ العميل
         $client->save();
-        
+
            // تسجيل اشعار نظام جديد
             ModelsLog::create([
                 'type' => 'client',
@@ -701,8 +703,8 @@ public function getFirstClient()
 
     public function addnotes(Request $request)
     {
-      
-        
+
+
          $ClientRelation = new ClientRelation();
          $ClientRelation->status        = $request->status;
          $ClientRelation->client_id        = $request->client_id;

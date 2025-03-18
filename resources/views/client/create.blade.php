@@ -87,7 +87,7 @@
                                         </div>
 
                                         <!-- الاسم الأول والأخير -->
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="first_name">الاسم الأول</label>
                                                 <div class="position-relative has-icon-left">
@@ -99,7 +99,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="last_name">الاسم الأخير</label>
                                                 <div class="position-relative has-icon-left">
@@ -113,7 +113,7 @@
                                         </div>
 
                                         <!-- الهاتف والجوال -->
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="phone">الهاتف</label>
                                                 <div class="position-relative has-icon-left">
@@ -125,7 +125,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="mobile">جوال</label>
                                                 <div class="position-relative has-icon-left">
@@ -139,7 +139,7 @@
                                         </div>
 
                                         <!-- عنوان الشارع -->
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="street1">عنوان الشارع 1</label>
                                                 <div class="position-relative has-icon-left">
@@ -151,7 +151,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="street2">عنوان الشارع 2</label>
                                                 <div class="position-relative has-icon-left">
@@ -165,7 +165,7 @@
                                         </div>
 
                                         <!-- المدينة والمنطقة والرمز البريدي -->
-                                        <div class="col-md-4 mb-3">
+                                        <div class="col-md-4 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="city">المدينة</label>
                                                 <div class="position-relative has-icon-left">
@@ -177,7 +177,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-3">
+                                        <div class="col-md-4 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="region">المنطقة</label>
                                                 <div class="position-relative has-icon-left">
@@ -189,7 +189,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-4 mb-3">
+                                        <div class="col-md-4 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="postal_code">الرمز البريدي</label>
                                                 <div class="position-relative has-icon-left">
@@ -214,7 +214,7 @@
                                         </div>
 
                                         <!-- الرقم الضريبي والسجل التجاري -->
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="tax_number">الرقم الضريبي (اختياري)</label>
                                                 <div class="position-relative has-icon-left">
@@ -226,7 +226,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="commercial_registration">سجل تجاري (اختياري)</label>
                                                 <div class="position-relative has-icon-left">
@@ -244,7 +244,7 @@
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)
                                         @if($GeneralClientSetting->is_active)
                                         @if($GeneralClientSetting->key == "credit_limit")
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_limit">الحد الائتماني</label>
                                                 <div class="position-relative has-icon-left">
@@ -263,7 +263,7 @@
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)
                                         @if($GeneralClientSetting->is_active)
                                         @if($GeneralClientSetting->key == "credit_duration")
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المدة الائتمانية</label>
                                                 <div class="position-relative has-icon-left">
@@ -320,7 +320,7 @@
                     </div>
 
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title">بيانات الحساب</h4>
@@ -345,7 +345,7 @@
 
 
                                         <!-- طريقة الفاتورة -->
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="printing_method">طريقة الفاتورة</label>
                                                 <div class="position-relative has-icon-left">
@@ -369,7 +369,7 @@
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)
                                         @if($GeneralClientSetting->is_active)
                                         @if($GeneralClientSetting->key == "opening_balance")
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="opening_balance">الرصيد الافتتاحي</label>
                                                 <div class="position-relative has-icon-left">
@@ -385,7 +385,7 @@
                                            @endif
                                            @endforeach
                                         <!-- تاريخ الرصيد الاستحقاق -->
-                                        <div class="col-md-6 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="opening_balance_date">تاريخ الرصيد الاستحقاق</label>
                                                 <div class="position-relative has-icon-left">
@@ -400,7 +400,7 @@
                                         </div>
 
                                         <!-- العملة -->
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-12 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="currency">العملة</label>
                                                 <div class="position-relative has-icon-left">
@@ -420,7 +420,7 @@
                                         </div>
 
                                         <!-- البريد الإلكتروني -->
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-12 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="email">البريد الإلكتروني</label>
                                                 <div class="position-relative has-icon-left">
@@ -434,23 +434,21 @@
                                         </div>
 
                                         <!-- التصنيف -->
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-12 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="category">التصنيف</label>
                                                 <input list="classifications" class="form-control" id="client_type"
-                                                    name="category" placeholder="اكتب التصنيف"
-                                                    value="{{ old('category') }}">
-                                                <datalist id="classifications">
+                                                    name="category" placeholder="اكتب التصنيف" value="">
+                                                <datalist id="classifications" name="classification_id">
                                                     @foreach ($categories as $category)
-                                                        <option value="{{ $category->id }}">{{ $category->name }}
-                                                        </option>
+                                                        <option value="{{ $category->name }}"> <!-- هنا نعرض الـ name فقط -->
                                                     @endforeach
                                                 </datalist>
                                             </div>
                                         </div>
 
                                         <!-- الملاحظات -->
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-12 col-12 mb-3">
                                             <label for="notes">الملاحظات</label>
                                             <textarea class="form-control" id="notes" name="notes" rows="5" style="resize: none;">{{ old('notes') }}</textarea>
                                         </div>
@@ -459,7 +457,7 @@
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)
                                         @if($GeneralClientSetting->is_active)
                                         @if($GeneralClientSetting->key == "image")
-                                        <div class="col-md-12 mb-3">
+                                        <div class="col-md-12 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="attachments">المرفقات</label>
                                                 <input type="file" name="attachments" id="attachments"
@@ -477,7 +475,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-12">
+                                            <div class="col-md-12 col-12">
                                                 <div class="form-group">
                                                     <label for="language">نوع العميل </label>
                                                     <div class="position-relative has-icon-left">
@@ -498,7 +496,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-12 mb-3">
+                                            <div class="col-md-12 col-12 mb-3">
                                                 <div class="form-group">
                                                     <label for="employee_id" class="form-label">الموظف المسؤول</label>
                                                     <select name="employee_id" id="employee_id"
@@ -532,14 +530,8 @@
 
         </form>
     </div>
-
-
     </div>
     </div>
-
-    <!------------------------->
-
-
 @endsection
 
 @section('scripts')
