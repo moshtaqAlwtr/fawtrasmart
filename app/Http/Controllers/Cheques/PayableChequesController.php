@@ -19,7 +19,8 @@ class PayableChequesController extends Controller
     public function create()
     {
         $bank_accounts = Treasury::where('type', 1)->select('id', 'bank_name')->get();
-        return view('cheques.payable_cheques.create', compact('bank_accounts'));
+        $check_books = ChequeBook::select()->orderBy('id', 'desc')->get();
+        return view('cheques.payable_cheques.create', compact('bank_accounts','check_books'));
     }
 
     public function store(PayableChequeRequest $request)

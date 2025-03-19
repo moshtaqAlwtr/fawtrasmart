@@ -88,7 +88,11 @@
 
                                 <div class="form-group col-md-6">
                                     <label for="">رقم دفتر الشيكات <span style="color: red">*</span></label>
-                                    <select id="cheque_book_id" class="form-control" name="cheque_book_id">
+                                    <select  class="form-control" name="cheque_book_id">
+                                        @foreach ($check_books as $check_books)
+                                        <option value="{{ $check_books->id }}" {{ old('cheque_book_id') == $check_books->id ? 'selected' : '' }}>{{ $check_books->cheque_book_number }}</option>
+                                            
+                                        @endforeach
                                     </select>
                                 </div>
 
