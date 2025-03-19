@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('branch_settings', function (Blueprint $table) {
             $table->id();
-       
+            $table->boolean('is_active')->default(true);
+            $table->string('name')->nullable(); // اسم الصلاحية
+            $table->string('key')->unique(); // مفتاح فريد للصلاحية
+
             $table->timestamps();
         });
     }

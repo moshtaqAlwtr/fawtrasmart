@@ -34,13 +34,13 @@ return new class extends Migration
             // الحسابات
             $table->foreignId('dep_account_id')
                 ->nullable()
-                ->constrained('chart_of_accounts')
+                ->constrained('accounts')
                 ->nullOnDelete()
                 ->comment('حساب مصروف الإهلاك');
 
             $table->foreignId('acc_dep_account_id')
                 ->nullable()
-                ->constrained('chart_of_accounts')
+                ->constrained('accounts')
                 ->nullOnDelete()
                 ->comment('حساب مجمع الإهلاك');
 

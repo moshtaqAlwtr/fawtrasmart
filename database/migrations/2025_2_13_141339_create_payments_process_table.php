@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->onDelete('cascade');
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->foreignId('treasury_id')->nullable()->constrained('treasuries')->onDelete('set null');
+            $table->foreignId('account_id')->nullable()->constrained('accounts')->onDelete('set null');
             $table->dateTime('payment_date')->nullable();
             $table->decimal('amount', 10, 2)->nullable();
             $table->string('type');

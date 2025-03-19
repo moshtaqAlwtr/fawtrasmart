@@ -199,6 +199,7 @@ class InvoicesController extends Controller
         $employees = Employee::all();
         $invoice_number = $this->generateInvoiceNumber();
 
+
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $client = Client::where('user_id', auth()->user()->id)->first();
 
@@ -777,7 +778,7 @@ class InvoicesController extends Controller
             'timeout' => 30,
         ]);
 
-           
+
         // التحقق مما إذا كان للمستخدم قاعدة عمولة
         // التحقق مما إذا كان للمستخدم قاعدة عمولة
         $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();

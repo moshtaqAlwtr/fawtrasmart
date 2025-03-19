@@ -21,6 +21,8 @@ return new class extends Migration
             $table->char('Api_token',60)->nullable();
             $table->string('role')->default('employee');
             $table->integer('employee_id')->nullable();
+            $table->unsignedBigInteger('branch_id')->nullable();
+            $table->unsignedBigInteger('client_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -33,5 +35,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('users');
     }
-    
+
 };

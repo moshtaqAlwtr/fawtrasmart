@@ -70,7 +70,7 @@
             #items-table tfoot td {
                 text-align: right;
             }
-          
+
         }
     </style>
 @endsection
@@ -320,34 +320,26 @@
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">
-                                            <select name="items[0][product_id]" class="form-control product-select select2">
+                                            <select name="items[0][product_id]" class="form-control product-select">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
-
-                                                    <option value="{{ $item->id }}"
-                                                        data-price="{{ $item->price }}">{{ $item->name }}</option>
-
+                                                <option value="{{ $item->id }}" data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
 
                                                 @endforeach
                                             </select>
                                         </td>
                                         <td data-label="الوصف">
-                                            <input type="text" name="items[0][description]"
-                                                class="form-control item-description">
+                                            <input type="text" name="items[0][description]" class="form-control item-description">
                                         </td>
                                         <td data-label="الكمية">
-                                            <input type="number" name="items[0][quantity]" class="form-control quantity"
-                                                value="1" min="1" required>
+                                            <input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="1" required>
                                         </td>
                                         <td data-label="السعر">
-                                            <input type="number" name="items[0][unit_price]" class="form-control price"
-                                                step="0.01" required>
+                                            <input type="number" name="items[0][unit_price]" class="form-control price" value="" step="0.01" required>
                                         </td>
                                         <td data-label="الخصم">
                                             <div class="input-group">
-                                                <input type="number" name="items[0][discount]"
-                                                    class="form-control discount-value" value="0" min="0"
-                                                    step="0.01">
+                                                <input type="number" name="items[0][discount]" class="form-control discount-value" value="0" min="0" step="0.01">
                                                 <select name="items[0][discount_type]" class="form-control discount-type">
                                                     <option value="amount">ريال</option>
                                                     <option value="percentage">نسبة %</option>
@@ -361,9 +353,7 @@
                                                 <option value="10">قيمة مضافة  </option>
                                                 <option value="custom">إعدادات الضرائب</option>
                                             </select>
-                                        
                                         </td>
-                                        
                                         <td data-label="الضريبة 2">
                                             <select class="tax-select" data-target="tax_2">
                                                 <option value="15">القيمة المضافة</option>
@@ -371,9 +361,7 @@
                                                 <option value="10">قيمة مضافة  </option>
                                                 <option value="custom">إعدادات الضرائب</option>
                                             </select>
-                                         
                                         </td>
-                                        
                                         <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
@@ -388,54 +376,49 @@
                                 <tfoot>
                                     <tr>
                                         <td colspan="9" class="text-left">
-                                            {{-- <button type="button" id="add-row" class="btn btn-success">
-                                                <i class="fa fa-plus"></i> إضافة صف
-                                            </button> --}}
                                             <button type="button" class="btn btn-primary add-row"> <i class="fa fa-prmary"></i>إضافة </button>
                                         </td>
                                     </tr>
                                     @php
                                     $currencySymbol = '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">';
-                                @endphp
-                                
-                                <tr>
-                                    <td colspan="7" class="text-right">المجموع الفرعي</td>
-                                    <td><span id="subtotal">0.00</span>{!! $currencySymbol !!}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="7" class="text-right">مجموع الخصومات</td>
-                                    <td>
-                                        <span id="total-discount">0.00</span> 
-                                        <span id="discount-type-label">{!! $currencySymbol !!}</span>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="7" class="text-right">مجموع الضرائب</td>
-                                    <td><span id="total-tax">0.00</span>{!! $currencySymbol !!}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="7" class="text-right">تكلفة الشحن</td>
-                                    <td><span id="shipping-cost">0.00</span>{!! $currencySymbol !!}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="7" class="text-right">الدفعة القادمة</td>
-                                    <td><span id="next-payment">0.00</span>{!! $currencySymbol !!}</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="7" class="text-right">المبلغ المستحق:</td>
-                                    <td class="text-right"><span id="due-value">0.00</span>{!! $currencySymbol !!}</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="7" class="text-right">المجموع الكلي</td>
-                                    <td><span id="grand-total">0.00</span>{!! $currencySymbol !!}</td>
-                                    <td></td>
-                                </tr>
-                                
+                                    @endphp
+                                    <tr>
+                                        <td colspan="7" class="text-right">المجموع الفرعي</td>
+                                        <td><span id="subtotal">0.00</span>{!! $currencySymbol !!}</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">مجموع الخصومات</td>
+                                        <td>
+                                            <span id="total-discount">0.00</span>
+                                            <span id="discount-type-label">{!! $currencySymbol !!}</span>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">مجموع الضرائب</td>
+                                        <td><span id="total-tax">0.00</span>{!! $currencySymbol !!}</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">تكلفة الشحن</td>
+                                        <td><span id="shipping-cost">0.00</span>{!! $currencySymbol !!}</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">الدفعة القادمة</td>
+                                        <td><span id="next-payment">0.00</span>{!! $currencySymbol !!}</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">المبلغ المستحق:</td>
+                                        <td class="text-right"><span id="due-value">0.00</span>{!! $currencySymbol !!}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">المجموع الكلي</td>
+                                        <td><span id="grand-total">0.00</span>{!! $currencySymbol !!}</td>
+                                        <td></td>
+                                    </tr>
                                 </tfoot>
                             </table>
                         </div>
@@ -759,6 +742,20 @@
                 });
             }
         });
+        document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".product-select").forEach(function (select) {
+            select.addEventListener("change", function () {
+                let selectedOption = this.options[this.selectedIndex];
+                let priceField = this.closest("tr").querySelector(".price");
+
+                if (selectedOption.dataset.price) {
+                    priceField.value = selectedOption.dataset.price;
+                } else {
+                    priceField.value = ""; // إذا لم يكن هناك سعر، اجعله فارغًا
+                }
+            });
+        });
+    });
     </script>
 
 @endsection

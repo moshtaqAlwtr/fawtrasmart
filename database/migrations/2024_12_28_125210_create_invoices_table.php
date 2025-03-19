@@ -18,6 +18,7 @@ return new class extends Migration {
 
             $table->foreignId('treasury_id')->nullable()->constrained('treasuries')->onDelete('set null'); // الخزينة
             $table->tinyInteger('payment')->nullable()->default(1)->comment('1: print, 2: send to client'); // طريقة الدفع
+            $table->string('code')->unique()->nullable();
             $table->date('invoice_date')->nullable(); // تاريخ الفاتورة
             $table->date('issue_date')->nullable(); // تاريخ الإصدار
             $table->string('payment_terms', 100)->nullable(); // شروط الدفع
