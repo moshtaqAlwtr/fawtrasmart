@@ -34,10 +34,7 @@ class PaymentsProcess extends Model
         return $this->belongsTo(Employee::class, 'employee_id');
     }
 
-    public function client()
-    {
-        return $this->belongsTo(Client::class, 'client_id');
-    }
+
 
     public function purchase()
     {
@@ -64,5 +61,9 @@ class PaymentsProcess extends Model
     public function journalEntry()
 {
     return $this->belongsTo(JournalEntry::class);
+}
+public function client()
+{
+    return $this->belongsTo(Client::class);
 }
 }

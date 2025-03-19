@@ -5,8 +5,6 @@
 @stop
 
 @section('css')
-    {{-- <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}"> --}}
-
 
     <style>
         /* تخصيص الأزرار */
@@ -120,10 +118,10 @@
 
                     <!-- خيارات أخرى -->
                     <div class="dropdown">
-                        <button type="button" class="btn btn-sm btn-outline-dark d-flex align-items-center custom-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            خيارات أخرى
+                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center custom-btn dropdown-toggle" type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-ellipsis-v me-1"></i> خيارات أخرى
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="#">
                                     <i class="fas fa-money-bill-wave me-2"></i> تعيين مراكز تكلفة

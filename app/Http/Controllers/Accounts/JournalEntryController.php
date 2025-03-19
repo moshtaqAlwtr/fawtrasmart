@@ -55,21 +55,21 @@ class JournalEntryController extends Controller
         $employees = Employee::all();
         $entryDetails = JournalEntryDetail::all();
         $costCenters = CostCenter::all();
-    
+
         // جلب جميع الحسابات
         $accounts = Account::select('id', 'name', 'code', 'parent_id')
             ->with('parent')
             ->get();
-    
+
         // بناء شجرة الحسابات
         $sortedAccounts = $this->buildAccountTree($accounts);
-    
-        return view('Accounts.journal.create', compact('sortedAccounts','accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
+
+        return view('accounts.journal.create', compact('sortedAccounts','accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
     }
     private function buildAccountTree($accounts, $parentId = null, $level = 0)
     {
         $tree = [];
-    
+
         foreach ($accounts as $account) {
             if ($account->parent_id == $parentId) {
                 $account->level = $level;
@@ -78,16 +78,16 @@ class JournalEntryController extends Controller
                 $tree = array_merge($tree, $this->buildAccountTree($accounts, $account->id, $level + 1));
             }
         }
-    
+
         return $tree;
     }
-    
-        
+
+
 
     public function store(Request $request)
     {
-           
-      
+
+
         $request->validate([
             'journal_entry.date' => 'required|date',
             'journal_entry.description' => 'required|string|max:500',
@@ -177,7 +177,7 @@ ModelsLog::create([
     {
         $entry = JournalEntry::with(['details.account'])->findOrFail($id);
         $entryDetails = JournalEntryDetail::with('account')->get();
-        return view('Accounts.journal.show', compact('entry', 'entryDetails'));
+        return view('accounts.journal.show', compact('entry', 'entryDetails'));
     }
 
 
@@ -190,7 +190,7 @@ $journal = JournalEntry::findOrFail($id);
         $employees = Employee::all();
         $costCenters = CostCenter::all();
 
-        return view('Accounts.journal.edit', compact('entry','journal', 'accounts', 'clients', 'employees', 'costCenters'));
+        return view('accounts.journal.edit', compact('entry','journal', 'accounts', 'clients', 'employees', 'costCenters'));
     }
 
     public function update(Request $request, JournalEntry $entry)

@@ -440,22 +440,21 @@ class ClientController extends Controller
             'invoices' => function ($query) {
                 $query->orderBy('invoice_date', 'desc');
             },
-            'invoices.payments', // تحميل المدفوعات المرتبطة بكل فاتورة
+            'invoices.payments',
             'appointments' => function ($query) {
                 $query->orderBy('appointment_date', 'desc');
             },
             'employee',
             'account',
             'payments' => function ($query) {
-                $query->orderBy('payment_date', 'desc'); // تحميل جميع المدفوعات المرتبطة بالعميل
+                $query->orderBy('payment_date', 'desc');
             },
-            'appointmentNotes' => function ($query) { // تحميل الملاحظات المرتبطة بالعميل
+            'appointmentNotes' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             },
         ])->findOrFail($id);
 
         // تحقق من بيانات العميل مع العلاقات
-
         $bookings = Booking::where('client_id', $id)->get();
         $packages = Package::all();
         $memberships = Memberships::where('client_id', $id)->get();
@@ -464,19 +463,14 @@ class ClientController extends Controller
         $invoices = $client->invoices;
         $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
 
-
         // تحميل جميع المدفوعات المرتبطة بالعميل
-         $payments = $client->payments;
+        $payments = $client->payments()->orderBy('payment_date', 'desc')->get(); // تأكد من استرجاع جميع المدفوعات
 
         // تحميل الملاحظات المرتبطة بالعميل
         $appointmentNotes = $client->appointmentNotes;
 
-        // تحقق من الملاحظات
-
-
-        return view('client.show', compact('client','invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+        return view('client.show', compact('client', 'invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
-
 
     public function updateStatus(Request $request, $id)
 {
