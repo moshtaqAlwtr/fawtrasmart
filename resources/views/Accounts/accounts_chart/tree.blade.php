@@ -194,7 +194,7 @@ body {
                         </header>
                     </div>
                     <!--/ User Chat profile area -->
-                  
+
                     <!-- Chat Sidebar area -->
                     <div class="sidebar-content card">
                         <span class="sidebar-close-icon">
@@ -225,7 +225,7 @@ body {
                         </div>
                     </div>
                     <!--/ Chat Sidebar area -->
-                    
+
                 </div>
             </div>
             <div class="content-right">
@@ -258,7 +258,7 @@ body {
                                         <div class="">
                                             <table class="table" dir="rtl">
                                                 <tbody id="table-body">
-            
+
                                                 </tbody>
                                             </table>
                                         </div>
@@ -270,7 +270,7 @@ body {
                                                             <span class="sr-only">جار التحميل...</span>
                                                         </div>
                                                     </div>
-                                        
+
                                                     <!-- مكان عرض البيانات -->
                                                     <div id="table-container"></div>
                                                 </div>
@@ -1075,7 +1075,7 @@ body {
                 }
             });
         });
-       
+
     </script>
     <script>
 $(document).ready(function() {

@@ -19,7 +19,7 @@ class CustomShiftsController extends Controller
     public function index()
     {
         $custom_shifts = CustomShift::select()->orderBy('id', 'desc')->get();
-        return view('Attendance.custom_shifts.index', compact('custom_shifts'));
+        return view('attendance.custom_shifts.index', compact('custom_shifts'));
     }
     public function create()
     {
@@ -28,7 +28,7 @@ class CustomShiftsController extends Controller
         $departments = Department::select('id','name')->get();
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
-        return view('Attendance.custom_shifts.create',compact('employees','branches','departments','job_titles','shifts'));
+        return view('attendance.custom_shifts.create',compact('employees','branches','departments','job_titles','shifts'));
     }
 
     public function store(CustomShiftRequest $request)
@@ -59,7 +59,7 @@ class CustomShiftsController extends Controller
             }
 
             $custom_shift->employees()->attach($request['employee_id']);
-            
+
                  ModelsLog::create([
     'type' => 'atendes_log',
     'type_id' => $custom_shift->id, // ID النشاط المرتبط
@@ -85,7 +85,7 @@ class CustomShiftsController extends Controller
         $departments = Department::select('id','name')->get();
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
-        return view('Attendance.custom_shifts.edit',compact('custom_shift','employees','branches','departments','job_titles','shifts'));
+        return view('attendance.custom_shifts.edit',compact('custom_shift','employees','branches','departments','job_titles','shifts'));
     }
 
     public function update(CustomShiftRequest $request,$id)

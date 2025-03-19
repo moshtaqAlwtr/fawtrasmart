@@ -29,7 +29,7 @@ class AttendanceSheetsController extends Controller
         })->unique('id');
 
 
-        return view('Attendance.attendance_sheets.index',compact('attendanceSheets'));
+        return view('attendance.attendance_sheets.index',compact('attendanceSheets'));
     }
     public function create()
     {
@@ -38,7 +38,7 @@ class AttendanceSheetsController extends Controller
         $departments = Department::select('id','name')->get();
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
-        return view('Attendance.attendance_sheets.create',compact('employees','branches','departments','job_titles','shifts'));
+        return view('attendance.attendance_sheets.create',compact('employees','branches','departments','job_titles','shifts'));
     }
 
     public function store(AttendanceSheetsRequest $request)
@@ -63,12 +63,12 @@ class AttendanceSheetsController extends Controller
                     'use_rules' => 1,
                 ]);
             }
-            
+
 
 
 
             $attendance->employees()->attach($request['employee_id']);
-            
+
             ModelsLog::create([
     'type' => 'struct_log',
     'type_id' => $attendance->id, // ID النشاط المرتبط
@@ -94,7 +94,7 @@ class AttendanceSheetsController extends Controller
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
         $attendanceSheet = AttendanceSheets::findOrFail($id);
-        return view('Attendance.attendance_sheets.edit',compact('attendanceSheet','employees','branches','departments','job_titles','shifts'));
+        return view('attendance.attendance_sheets.edit',compact('attendanceSheet','employees','branches','departments','job_titles','shifts'));
     }
 
     public function update(AttendanceSheetsRequest $request,$id)
@@ -120,7 +120,7 @@ class AttendanceSheetsController extends Controller
                 ]);
             }
             $attendance->employees()->sync($request['employee_id']);
-            
+
                        ModelsLog::create([
     'type' => 'struct_log',
     'type_id' => $attendance->id, // ID النشاط المرتبط

@@ -13,12 +13,12 @@ class LeavePermissionsController extends Controller
     public function index()
     {
         $leavePermissions = LeavePermissions::select()->orderBy('id','DESC')->get();
-        return view('Attendance.leave-permissions.index',compact('leavePermissions'));
+        return view('attendance.leave-permissions.index',compact('leavePermissions'));
     }
     public function create()
     {
         $employees = Employee::select('id',  'first_name','middle_name')->get();
-        return view('Attendance.leave-permissions.create',compact('employees'));
+        return view('attendance.leave-permissions.create',compact('employees'));
     }
 
     public function store(Request $request)
@@ -46,7 +46,7 @@ class LeavePermissionsController extends Controller
         }
 
         $leavePermissions->save();
-        
+
           ModelsLog::create([
     'type' => 'atendes_log',
     'type_id' => $leavePermissions->id, // ID النشاط المرتبط
@@ -62,7 +62,7 @@ class LeavePermissionsController extends Controller
     {
         $leavePermission = LeavePermissions::findOrFail($id);
         $employees = Employee::select('id',  'first_name','middle_name')->get();
-        return view('Attendance.leave-permissions.edit',compact('leavePermission','employees'));
+        return view('attendance.leave-permissions.edit',compact('leavePermission','employees'));
     }
 
     public function update(Request $request,$id)
@@ -93,7 +93,7 @@ class LeavePermissionsController extends Controller
         }
 
         $leavePermission->update();
-        
+
               ModelsLog::create([
     'type' => 'atendes_log',
     'type_id' => $leavePermission->id, // ID النشاط المرتبط
@@ -114,7 +114,7 @@ class LeavePermissionsController extends Controller
     public function delete($id)
     {
         $leavePermission = LeavePermissions::findOrFail($id);
-        
+
                  ModelsLog::create([
     'type' => 'atendes_log',
     'type_id' => $leavePermission->id, // ID النشاط المرتبط

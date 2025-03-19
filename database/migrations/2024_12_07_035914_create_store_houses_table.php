@@ -23,10 +23,7 @@ return new class extends Migration
             $table->integer('value_of_view_permissions')->nullable();
             $table->integer('value_of_edit_stock_permissions')->nullable();
             $table->integer('value_of_crate_invoices_permissions')->nullable();
-            // $table->foreignId("employee_id")->references("id")->on("employees")->onUpdate("cascade");
-            // $table->foreignId("functional_role_id")->references("id")->on("functional_roles")->onUpdate("cascade");
-            // $table->foreignId("branch_id")->references("id")->on("branches")->onUpdate("cascade");
-            $table->timestamps();
+           $table->timestamps();
         });
     }
 

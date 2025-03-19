@@ -58,7 +58,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="client_id">العميل</label>
-                                        <select class="form-control" id="client_id" name="client_id" required>
+                                        <select class="form-control select2" id="client_id" name="client_id" required>
                                             <option value="">اختر العميل</option>
                                             @foreach ($clients as $client)
                                                 <option value="{{ $client->id }}">{{ $client->trade_name }}</option>

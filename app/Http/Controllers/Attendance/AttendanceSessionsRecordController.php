@@ -9,6 +9,6 @@ class AttendanceSessionsRecordController extends Controller
 {
     public function index()
     {
-        return view('Attendance.attendance-sessions-record.index');
+        return view('attendance.attendance-sessions-record.index');
 }
 }
