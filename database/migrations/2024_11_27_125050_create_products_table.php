@@ -38,10 +38,26 @@ class CreateProductsTable extends Migration
             $table->tinyInteger('tax2')->nullable(); // الضريبة الثانية
             $table->decimal('min_sale_price', 10, 2)->nullable(); // أقل سعر بيع
             $table->decimal('discount', 10, 2)->nullable(); // الخصم
-            $table->tinyInteger('discount_type')->nullable()->comment('(1_percentage) (2_currency)'); // نوع الخصم   
-            $table->enum('type', ['products', 'services'])->default('products'); // النوع
-            $table->decimal('profit_margin', 10, 2)->nullable(); // هامش الربح
-            $table->bigInteger('created_by'); // نوع هامش الربح
+            $table->tinyInteger('discount_type')->nullable()->comment('(1_percentage) (2_currency)'); // نوع الخصم
+            $table->enum('type', ['products', 'services', 'compiled'])->default('products'); // النوع
+            $table->decimal('profit_margin', 10, 2)->nullable();
+            // إضافة حقل storehouse_id للمخزن
+            $table->unsignedBigInteger('storehouse_id')->nullable()->comment('معرف المخزن الذي يتم تخزين المنتج فيه');
+
+            // إضافة حقل compile_type لنوع التجميع (فوري أو معد مسبقا)
+            $table
+                ->enum('compile_type', ['Instant', 'Pre-made'])
+                ->default('Pre-made')
+
+                ->comment('نوع التجميع: فوري أو معد مسبقا');
+
+            $table->date('expiry_date')->nullable(); // ضع اسم العمود الحالي قبله
+            $table->integer('notify_before_days')->nullable();
+
+            // إضافة حقل qyt_compile للكمية المجمعة
+            $table->integer('qyt_compile')->nullable()->comment('كمية المنتج المعد مسبقًا (إذا وجدت)');
+            $table->foreignId('parent_id')->nullable()->constrained('products')->onDelete('cascade'); // هامش الربح
+            $table->bigInteger('created_by'); // نوع هامش
             $table->timestamps(); // created_at و updated_at
         });
     }

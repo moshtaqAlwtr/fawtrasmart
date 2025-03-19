@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('type')->nullable();
             $table->integer('type_id')->nullable();
-            $table->string('description')->nullable();
+            $table->text('description')->nullable();
+            $table->string('type_log')->nullable();
+            $table->text('old_value')->nullable();
+            $table->string('icon')->nullable();
             $table->integer('created_by')->nullable();
             $table->timestamps();
         });

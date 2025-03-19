@@ -14,14 +14,13 @@ return new class extends Migration {
             $table->foreignId('purchase_quotation_id')->constrained('purchase_quotations')->onDelete('cascade');
 
             $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
-
+            $table->foreignId('purchase_order_id')->nullable()->constrained('purchase_orders')->onDelete('cascade');
             // معلومات النظام
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamps();
-
 
             // تحديد اسم مخصص وقصير للـ unique index
             $table->unique(['purchase_quotation_id', 'supplier_id'], 'quote_supplier_unique');

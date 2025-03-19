@@ -195,7 +195,7 @@
                                 <label for="currency">العملة</label>
                                 <select name="currency" class="form-control" id="currency">
                                     <option value="">العملة</option>
-                                    <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}>ريال سعودي</option>
+                                    <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}> <img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;"></option>
                                     <option value="USD" {{ request('currency') == 'USD' ? 'selected' : '' }}>دولار أمريكي</option>
                                 </select>
                             </div>

@@ -15,7 +15,7 @@ class CreateSuppliersTable extends Migration
             $table->string('trade_name'); // الاسم التجاري
             $table->string('first_name')->nullable(); // الاسم الأول
             $table->string('last_name')->nullable(); // الاسم الأخير
-
+            $table->tinyInteger('status')->default(1)->comment('1=active,2=inactive');
             // معلومات الاتصال
             $table->string('phone')->nullable(); // الهاتف
             $table->string('mobile')->nullable(); // الجوال

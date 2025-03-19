@@ -89,7 +89,7 @@
                                     @foreach($leave_policies as $leave_policy)
                                         <tr>
                                             <td>{{ $leave_policy->name }}</td>
-                                            <td>{{ $leave_policy->leavePolicyCustomize->employees->count() }}</td>
+                                            <td>{{ $leave_policy->leavePolicyCustomize->employees->full_name??'غير محدد' }}</td>
                                             <td>
                                                 @if($leave_policy->status == 0)
                                                     <span class="mr-1 bullet bullet-success bullet-sm"></span><span class="mail-date">نشط</span>

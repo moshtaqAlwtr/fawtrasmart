@@ -124,8 +124,8 @@
                             <th>نوع</th>
                             <th>رقم المستند</th>
                             <th>وسيلة الدفع</th>
-                            <th>الخزينة (ريال سعودي)</th>
-                            <th>المبلغ (ريال سعودي)</th>
+                            <th>الخزينة ( <img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">)</th>
+                            <th>المبلغ ( <img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">)</th>
                             <th>الفرع</th>
                             <th>الموظف</th>
                         </tr>

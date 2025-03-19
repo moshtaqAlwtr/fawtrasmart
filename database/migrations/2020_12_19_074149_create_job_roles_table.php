@@ -16,6 +16,10 @@ return new class extends Migration
             $table->string('role_name');
             $table->tinyInteger('role_type');
             # المبيعات sales
+
+            $table->tinyInteger('work_cycle')->default(0); //دورة العمل
+            $table->tinyInteger('templates')->default(0); // القوالب
+            $table->tinyInteger('branches')->default(0); // الفروع
             $table->tinyInteger('sales_add_invoices')->default(0); // إضافة فواتير لكل العملاء
             $table->tinyInteger('sales_add_own_invoices')->default(0); // إضافة فواتير للعملاء الخاصة به
             $table->tinyInteger('sales_edit_delete_all_invoices')->default(0); // تعديل وحذف كل الفواتير

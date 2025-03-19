@@ -29,7 +29,7 @@ class AssetsController extends Controller
     public function index()
     {
         $assets = AssetDepreciation::with(['employee', 'client', 'depreciation'])->latest()->paginate(10);
-        return view('Accounts.asol.index', compact('assets'));
+        return view('accounts.asol.index', compact('assets'));
     }
 
     /**
@@ -40,7 +40,7 @@ class AssetsController extends Controller
         $accounts = Account::where('type', '')->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('Accounts.asol.create', compact('accounts', 'employees', 'clients'));
+        return view('accounts.asol.create', compact('accounts', 'employees', 'clients'));
     }
 
     /**
@@ -90,7 +90,7 @@ class AssetsController extends Controller
             $asset->tax2 = $request->tax2;
             $asset->employee_id = $request->employee_id;
             $asset->client_id = $request->client_id;
-            
+
              // تسجيل السجل
     ModelsLog::create([
         'type' => 'finance_log',

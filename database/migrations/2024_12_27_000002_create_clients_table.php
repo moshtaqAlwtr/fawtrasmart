@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -28,6 +27,7 @@ return new class extends Migration
             $table->string('postal_code', 20)->nullable();
             $table->string('country', 100)->nullable();
             $table->string('tax_number', 50)->nullable();
+            $table->unsignedBigInteger('classification_id')->nullable()->comment('Client classification category');
             $table->string('commercial_registration', 100)->nullable();
             $table->integer('credit_limit')->nullable();
             $table->integer('credit_period')->nullable();
@@ -40,14 +40,24 @@ return new class extends Migration
             $table->string('email', 255)->nullable();
             $table->tinyInteger('client_type')->default(1)->comment('1=> Regular Client, 2=> VIP Client')->nullable();
             $table->text('notes')->nullable();
+            $table
+                ->enum('status', [
+                    'active', // العملاء النشطون
+                    'inactive', // العملاء غير النشطين
+                    'blocked', // العملاء المحظورون
+                    'potential', // العملاء المحتملون
+                    'archived', // العملاء المؤرشفون
+                ])
+                ->default('active')
+                ->nullable();
+
             $table->text('attachments')->nullable();
 
             // إضافة التصنيف
-            $table->string('category',255)->nullable();
-
+            $table->string('category', 255)->nullable();
 
             $table->timestamps();
- // إضافة soft delete للعملاء
+            // إضافة soft delete للعملاء
         });
     }
 

@@ -228,7 +228,7 @@
         <div class="net-salary">
             <div>صافي الراتب</div>
             <div class="net-amount">SR {{ number_format($salarySlip->net_salary, 2) }}</div>
-            <div class="amount-in-words">{{ NumberToWords::convert($salarySlip->net_salary) }} ريال سعودي</div>
+            <div class="amount-in-words">{{ NumberToWords::convert($salarySlip->net_salary) }} ( <img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">)</div>
         </div>
     </div>
 </body>

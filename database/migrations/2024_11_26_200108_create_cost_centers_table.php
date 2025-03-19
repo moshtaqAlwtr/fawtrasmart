@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->tinyInteger('is_main')->default(1)->comment('1=>main 2=>sub');
             $table->foreignId('parent_id')->nullable()->constrained('cost_centers')->onDelete('cascade');
             $table->boolean('is_active')->default(true);
+
             $table->unsignedBigInteger('created_by')->nullable();
 
             $table->timestamps();

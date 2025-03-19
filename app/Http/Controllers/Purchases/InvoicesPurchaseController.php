@@ -96,6 +96,7 @@ class InvoicesPurchaseController extends Controller
         $accounts = Account::all();
         $users = User::all();
 
+
         return view('Purchases.Invoices_purchase.index', compact('purchaseInvoices', 'suppliers', 'accounts', 'users'));
     }
 
@@ -106,6 +107,7 @@ class InvoicesPurchaseController extends Controller
         $items = Product::all();
         $accounts = Account::all();
         $storeHouses = StoreHouse::all(); // إضافة المستودعات
+
 
         return view('Purchases.Invoices_purchase.create', compact('suppliers', 'items', 'accounts', 'storeHouses'));
     }
@@ -174,7 +176,7 @@ class InvoicesPurchaseController extends Controller
                         'store_house_id' => $item['store_house_id'] ?? null, // إضافة معرف المستودع
                     ];
                 }
-                
+
             }
 
             // ** الخطوة الثالثة: حساب الخصم الإضافي للفاتورة ككل **
@@ -271,7 +273,7 @@ class InvoicesPurchaseController extends Controller
                 $invoice_purhase->load('product');
 
                 $Supplier = Supplier::find($request->supplier_id);
-                
+
                 // تسجيل اشعار نظام جديد لكل منتج
                 ModelsLog::create([
                     'type' => 'purchase_log',
@@ -317,7 +319,7 @@ class InvoicesPurchaseController extends Controller
             // إنشاء سجل الدفع
             $payment = PaymentsProcess::create($paymentData);
 
-             //القيود 
+             //القيود
              DB::statement('SET FOREIGN_KEY_CHECKS = 0;');
           // إنشاء القيد المحاسبي للفاتورة
           $journalEntry = JournalEntry::create([
@@ -339,12 +341,12 @@ class InvoicesPurchaseController extends Controller
             'journal_entry_id' => $journalEntry->id,
             'account_id' => $supplieraccounts->id, // حساب العميل
             'description' => 'فاتورة شراء # ' . $purchaseInvoice->code,
-            'debit' => 0, 
+            'debit' => 0,
             'credit' => $total_with_tax,// المبلغ الكلي للفاتورة دائن)
             'is_debit' => false,
         ]);
 
-       
+
         $mainstore = Account::where('name','المخزون')->first();
         // 2. حساب المخزون (مدين)
         JournalEntryDetail::create([
@@ -352,11 +354,11 @@ class InvoicesPurchaseController extends Controller
             'account_id' => $mainstore->id, // حساب المخزون الرئيسي
             'description' => ' فاتورة شراء # ' . $purchaseInvoice->code,
             'debit' => $total_with_tax, //مدين
-            'credit' => 0, 
+            'credit' => 0,
             'is_debit' => true,
         ]);
 
-         
+
 
         $tax_total =   $total_tax + $shipping_tax;
 
@@ -372,7 +374,7 @@ class InvoicesPurchaseController extends Controller
         // ]);
 
         // # القيد الثاني
-      
+
         $journalEntry = JournalEntry::create([
             'reference_number' => $purchaseInvoice->code,
             'date' => now(),
@@ -397,7 +399,7 @@ class InvoicesPurchaseController extends Controller
             'is_debit' => true,
         ]);
 
-       
+
         $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
         // 2. حساب الخزينة (مدين)
         JournalEntryDetail::create([
@@ -405,49 +407,49 @@ class InvoicesPurchaseController extends Controller
             'account_id' => $MainTreasury->id, // حساب المبيعات
            'description' => 'دفع للمورد' . $purchaseInvoice->supplier_id,
             'debit' => 0, //مدين
-            'credit' => $total_with_tax, 
+            'credit' => $total_with_tax,
             'is_debit' => false,
         ]);
 
         // // الخزينة الرئيسية
         if ($MainTreasury) {
-            $amount = $total_with_tax; 
+            $amount = $total_with_tax;
             $MainTreasury->balance += $amount;
-           
+
             $MainTreasury->save();
-        
+
             // تحديث جميع الحسابات الرئيسية المتصلة به
-            // 
-            
+            //
+
          }
-         
-           // حساب المورد 
+
+           // حساب المورد
         if ($supplieraccounts) {
-            $amount = $total_with_tax; 
+            $amount = $total_with_tax;
             $supplieraccounts->balance += $amount;
-         
+
             $supplieraccounts->save();
-         
+
             // تحديث جميع الحسابات الرئيسية المتصلة به
             // $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
-         }   
+         }
 
-            // القيمة المضافه المدفوعة  
+            // القيمة المضافه المدفوعة
         // if ($taxaccounts) {
-        //     $amount = $tax_total; 
+        //     $amount = $tax_total;
         //     $taxaccounts->balance += $amount;
         //     $taxaccounts->save();
-        
+
         //     // تحديث جميع الحسابات الرئيسية المتصلة به
         //     $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
-        //  } 
+        //  }
 
          // المخزون الرئيسي
          if ($mainstore) {
-            $amount = $total_with_tax; 
+            $amount = $total_with_tax;
             $mainstore->balance += $amount;
             $mainstore->save();
-        
+
             // تحديث جميع الحسابات الرئيسية المتصلة به
         //    $this->updateParentBalanceMainTreasury($MainTreasury->parent_id, $amount);
          }
@@ -577,7 +579,7 @@ class InvoicesPurchaseController extends Controller
                 $invoice_purhase->load('product');
 
                 $Supplier = Supplier::find($request->supplier_id);
-                
+
                 // تسجيل اشعار نظام جديد لكل منتج
                 ModelsLog::create([
                     'type' => 'purchase_log',
@@ -594,7 +596,7 @@ class InvoicesPurchaseController extends Controller
                     ),
                     'created_by' => auth()->id(), // ID المستخدم الحالي
                 ]);
-               
+
             }
 
             // معالجة المرفقات
