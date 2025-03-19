@@ -49,6 +49,16 @@ class InvoicesController extends Controller
         $this->journalEntryService = $journalEntryService;
     }
 
+    public function getUnreadNotifications()
+    {
+        $notifications = notifications::where('read', 0)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
+    
+        return response()->json(['notifications' => $notifications]);
+    }
+    
+
     /**
      * Display a listing of invoices.
      */

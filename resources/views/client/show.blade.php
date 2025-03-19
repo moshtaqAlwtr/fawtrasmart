@@ -825,10 +825,10 @@
                                 </div>
 
                                 <!-- تبويب الملاحظات -->
-                                @if ($client->appointmentNotes && $client->appointmentNotes->count() > 0)
+                            
                                     <div class="tab-pane" id="notes" aria-labelledby="notes-tab" role="tabpanel">
                                         <div class="timeline">
-                                            @foreach ($client->appointmentNotes as $note)
+                                            @foreach ($ClientRelations as $note)
                                                 <div class="timeline-item">
                                                     <div class="timeline-content d-flex align-items-start">
                                                         <div class="status-badge bg-danger text-white p-2 rounded">متابعة</div>
@@ -840,9 +840,9 @@
                                                                     {{ $note->created_at->format('H:i d/m/Y') }} - <span class="text-primary">{{ $note->status }}</span>
                                                                 </small>
                                                             </div>
-                                                            <hr>
-                                                            <p class="mb-2">{{ $note->content }}</p>
-                                                            <small class="text-muted">ID العميل: {{ $client->id }}</small>
+                                                            <hr> <i class="far fa-user me-1"></i> 
+                                                            <p class="mb-2">{{$note->process ?? ""}}</p>
+                                                            <small class="text-muted">{{$note->description ?? ""}}</small>
                                                         </div>
                                                         <div class="timeline-dot bg-danger"></div>
                                                     </div>
@@ -850,7 +850,7 @@
                                             @endforeach
                                         </div>
                                     </div>
-                                @endif
+                              
 
                                 <!-- تبويب المدفوعات -->
                                 <div class="tab-pane" id="payments" aria-labelledby="payments-tab" role="tabpanel">

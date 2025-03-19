@@ -32,6 +32,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use App\Mail\SendPasswordEmail;
 use Illuminate\Support\Facades\Mail;
+use App\Models\notifications;
 use App\Mail\TestMail;
 
 class ClientController extends Controller
@@ -468,8 +469,26 @@ class ClientController extends Controller
 
         // تحميل الملاحظات المرتبطة بالعميل
         $appointmentNotes = $client->appointmentNotes;
+        $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
+        $notes = AppointmentNote::with(['user'])
+            ->latest()
+            ->get();
+        $appointments = Appointment::all();
+        $employees = Employee::all();
 
-        return view('client.show', compact('client', 'invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+        // Get the first client by default
+        $client = $clients->first();
+
+        $categories = CategoriesClient::all();
+        $ClientRelations =  ClientRelation::where('client_id', $id)->get();
+
+        do {
+            $lastClient = Client::orderBy('code', 'desc')->first();
+            $newCode = $lastClient ? $lastClient->code + 1 : 1;
+        } while (Client::where('code', $newCode)->exists());
+
+
+        return view('client.show', compact('client','ClientRelations', 'invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
 
     public function updateStatus(Request $request, $id)
@@ -715,8 +734,16 @@ public function getFirstClient()
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
 
-            return redirect()->route('clients.mang_client')->with('success', '✨ تم إضافة العميل بنجاح!');
+$clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
 
+notifications::create([
+    'type'        => 'notes',
+    'title'       => 'ملاحظة لعميل',
+    'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
+]);
+
+              return redirect()->route('clients.show', ['id' => $ClientRelation->client_id])
+            ->with('success', 'تم إضافة الملاحظة بنجاح');
     }
 
     public function mang_client_details($id)
