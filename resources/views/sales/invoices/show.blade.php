@@ -5,7 +5,6 @@
 @stop
 
 @section('css')
-
     <style>
         /* تخصيص الأزرار */
         .custom-btn {

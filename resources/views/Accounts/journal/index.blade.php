@@ -25,226 +25,282 @@
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <!-- زر "فاتورة جديدة" -->
-                <div class="form-group col-outdo">
-                    <input class="form-check-input" type="checkbox" id="selectAll">
-                </div>
-                <div class="btn-group">
-                    <div class="dropdown">
-                        <button class="btn  dropdown-toggle mr-1 mb-1" type="button" id="dropdownMenuButton302"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton302">
-                            <a class="dropdown-item" href="#">Option 1</a>
-                            <a class="dropdown-item" href="#">Option 2</a>
-                            <a class="dropdown-item" href="#">Option 3</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="btn-group col-md-5">
-                    <div class="dropdown">
-                        <button class="btn bg-gradient-info dropdown-toggle mr-1 mb-1" type="button"
-                            id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            الاجراءات
-                        </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                            <a class="dropdown-item" href="#">Option 1</a>
-                            <a class="dropdown-item" href="#">Option 2</a>
-                            <a class="dropdown-item" href="#">Option 3</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- مربع اختيار -->
-
-                <!-- الجزء الخاص بالتصفح -->
-                <div class="d-flex align-items-center">
-                    <!-- زر الصفحة السابقة -->
-                    <button class="btn btn-outline-secondary btn-sm" aria-label="الصفحة السابقة">
-                        <i class="fa fa-angle-right"></i>
-                    </button>
-
-                    <!-- أرقام الصفحات -->
-                    <nav class="mx-2">
-                        <ul class="pagination pagination-sm mb-0">
-                            <li class="page-item"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item active"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#">4</a></li>
-                            <li class="page-item"><a class="page-link" href="#">5</a></li>
-                        </ul>
-                    </nav>
-
-                    <!-- زر الصفحة التالية -->
-                    <button class="btn btn-outline-secondary btn-sm" aria-label="الصفحة التالية">
-                        <i class="fa fa-angle-left"></i>
-                    </button>
+                <!-- Checkbox لتحديد الكل -->
+                <div class="form-check me-3">
+                    <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
                 </div>
 
-                <!-- قائمة الإجراءات -->
-
-                <a href="{{ route('journal.create') }}" class="btn btn-success btn-sm d-flex align-items-center ">
-                    <i class="fa fa-plus me-2"></i> قيد جديد
+                <!-- زر "قيد جديد" -->
+                <a href="{{ route('journal.create') }}"
+                    class="btn btn-success btn-sm d-flex align-items-center rounded-pill px-3">
+                    <i class="fas fa-plus-circle me-1"></i>قيد جديد
                 </a>
 
-                <!-- زر "المواعيد" -->
-                <a href="{{ route('journal.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center">
-                    <i class="fa fa-calendar-alt me-2"></i>سجل التعديلات
+                <!-- زر "سجل التعديلات" -->
+                <a href="{{ route('journal.index') }}"
+                    class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                    <i class="fas fa-calendar-alt me-1"></i>سجل التعديلات
                 </a>
 
+                <!-- زر "استيراد" -->
+                <a href="{{ route('questions.logsaction') }}"
+                    class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
+                    <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
+                </a>
+
+                <!-- جزء التنقل بين الصفحات -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- زر الانتقال إلى أول صفحة -->
+                        @if ($entries->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link border-0 rounded-pill" aria-label="First">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </span>
+                            </li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link border-0 rounded-pill" href="{{ $entries->url(1) }}" aria-label="First">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <!-- زر الانتقال إلى الصفحة السابقة -->
+                        @if ($entries->onFirstPage())
+                            <li class="page-item disabled">
+                                <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                    <i class="fas fa-angle-right"></i>
+                                </span>
+                            </li>
+                        @else
+                            <li class="page-item">
+                                <a class="page-link border-0 rounded-pill" href="{{ $entries->previousPageUrl() }}"
+                                    aria-label="Previous">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                        @endif
+
+                        <!-- عرض رقم الصفحة الحالية -->
+                        <li class="page-item">
+                            <span class="page-link border-0 bg-light rounded-pill px-3">
+                                صفحة {{ $entries->currentPage() }} من {{ $entries->lastPage() }}
+                            </span>
+                        </li>
+
+                        <!-- زر الانتقال إلى الصفحة التالية -->
+                        @if ($entries->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link border-0 rounded-pill" href="{{ $entries->nextPageUrl() }}"
+                                    aria-label="Next">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item disabled">
+                                <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                    <i class="fas fa-angle-left"></i>
+                                </span>
+                            </li>
+                        @endif
+
+                        <!-- زر الانتقال إلى آخر صفحة -->
+                        @if ($entries->hasMorePages())
+                            <li class="page-item">
+                                <a class="page-link border-0 rounded-pill" href="{{ $entries->url($entries->lastPage()) }}"
+                                    aria-label="Last">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                        @else
+                            <li class="page-item disabled">
+                                <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </span>
+                            </li>
+                        @endif
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-content">
-            <div class="card-body">
-                <h4 class="card-title">بحث</h4>
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center p-2">
+            <div class="d-flex gap-2">
+                <span class="hide-button-text">
+                    بحث وتصفية
+                </span>
             </div>
-
-            <div class="card-body">
-                <form class="form">
-                    <div class="form-body row">
-                        <div class="form-group col-md-4">
-                            <select name="" class="form-control" id="">
-                                <option value="">اي حساب </option>
-                                <option value="1">الكل </option>
-                            </select>
-                        </div>
-
-                        <div class="form-group col-md-4">
-                            <label for="feedback2" class="sr-only">الوصف </label>
-                            <input type="email" id="feedback2" class="form-control" placeholder="الوصف " name="email">
-                        </div>
-                        <div class="form-group col-outdo pe-1">
-                            <select name="" class="form-control" id="">
-                                <option value="">تخصيص</option>
-                                <option value="1">شهريًا</option>
-                                <option value="0">أسبوعيًا</option>
-                                <option value="2">يوميًا</option>
-                            </select>
-                        </div>
-
-                        <!-- من (التاريخ) -->
-                        <div class="form-group col-md-1.5">
-                            <input type="date" id="feedback1" class="form-control" placeholder="من"
-                                name="from_date">
-                        </div>
-
-                        <!-- إلى (التاريخ) -->
-                        <div class="form-group col-md-1.5">
-                            <input type="date" id="feedback2" class="form-control" placeholder="إلى" name="to_date">
-                        </div>
-
-                    </div>
-
-                    <div class="form-body row d-flex align-items-center g-0">
-                        <div class="form-group col-md-4">
-                            <select name="" class="form-control" id="">
-                                <option value=""> المصدر </option>
-                                <option value="1"></option>
-                                <option value="0">غير فعال</option>
-                            </select>
-                        </div>
-                        <div class="form-group col-md-4">
-                            <label for="feedback1" class="sr-only"></label>
-                            <input type="text" id="feedback1" class="form-control" placeholder="رقم "
-                                name="name">
-                        </div>
-
-                        <div class="form-group col-md-4">
-                            <select name="" class="form-control" id="">
-                                <option value="">حالة القيد</option>
-                                <option value="1">الكل </option>
-                                <option value="0">غير مدفوعة</option>
-                            </select>
-                        </div>
-
-                    </div>
-
-                    <div class="form-footer d-flex justify-content-between">
-                        <div class="form-group col-md-4">
-                            <select name="" class="form-control" id="">
-                                <option value="">مركز التكلفة </option>
-                                <option value="1">الكل </option>
-                                <option value="0">غير مدفوعة</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="collapse" id="advancedSearchForm">
-
-                        <div class="form-body row d-flex align-items-center g-2">
-
-                            <div class="form-group col-md-2">
-                                <label for="" class="sr-only">Status</label>
-
-                                <input type="text" id="feedback1" class="form-control"
-                                    placeholder="الاجمالي اكبر من " name="name">
-
-                            </div>
-                            <div class="form-group col-md-2">
-                                <label for="" class="sr-only">Status</label>
-
-                                <input type="text" id="feedback1" class="form-control"
-                                    placeholder="الاجمالي اصغر من " name="name">
-
-                            </div>
-
-                            <div class="form-group col-md-1">
-                                <select name="" class="form-control" id="">
-                                    <option value="">تخصيص</option>
-                                    <option value="1">شهريًا</option>
-                                    <option value="0">أسبوعيًا</option>
-                                    <option value="2">يوميًا</option>
-                                </select>
-                            </div>
-
-                            <!-- من (التاريخ) -->
-                            <div class="form-group col-md-1.5">
-                                <input type="date" id="feedback3" class="form-control" placeholder="من"
-                                    name="from_date_2">
-                            </div>
-
-                            <!-- إلى (التاريخ) -->
-                            <div class="form-group col-md-1.5">
-                                <input type="date" id="feedback4" class="form-control" placeholder="إلى"
-                                    name="to_date_2">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <select name="" class="form-control" id="">
-                                    <option value="">اضيفت بواسطة</option>
-                                    <option value="1">الكل </option>
-                                    <option value="0"></option>
-                                </select>
-                            </div>
-                        </div>
-
-
-
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-
-                        <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
-                            data-target="#advancedSearchForm">
-                            <i class="bi bi-sliders"></i> بحث متقدم
-                        </a>
-                        <button type="reset" class="btn btn-outline-warning waves-effect waves-light">Cancel</button>
-                    </div>
-                </form>
-
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="toggleSearchFields(this)">
+                    <i class="fa fa-times"></i>
+                    <span class="hide-button-text">اخفاء</span>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
+                    data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
+                    <i class="fa fa-filter"></i>
+                    <span class="button-text">متقدم</span>
+                </button>
             </div>
-
-
-
         </div>
+        <div class="card-body">
+            <form id="searchForm" action="{{ route('journal.index') }}" method="GET" class="form">
+                <div class="row g-3">
+                    <!-- 1. الحساب -->
+                    <div class="col-md-4">
+                        <label for="accountSelect">الحساب</label>
+                        <select name="account_id" class="form-control select2" id="accountSelect">
+                            <option value="">اختر الحساب</option>
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account->id }}" {{ request('account_id') == $account->id ? 'selected' : '' }}>
+                                    {{ $account->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-        <!--end delete-->
+                    <!-- 2. الوصف -->
+                    <div class="col-md-4">
+                        <label for="description">الوصف</label>
+                        <input type="text" id="description" class="form-control"
+                            placeholder="الوصف" name="description" value="{{ request('description') }}">
+                    </div>
 
+                    <!-- 3. التخصيص -->
+                    <div class="col-md-4">
+                        <label for="date_type">التخصيص</label>
+                        <select name="date_type" class="form-control" id="date_type">
+                            <option value="">التخصيص</option>
+                            <option value="monthly" {{ request('date_type') == 'monthly' ? 'selected' : '' }}>شهرياً</option>
+                            <option value="weekly" {{ request('date_type') == 'weekly' ? 'selected' : '' }}>أسبوعياً</option>
+                            <option value="daily" {{ request('date_type') == 'daily' ? 'selected' : '' }}>يومياً</option>
+                        </select>
+                    </div>
+                </div>
 
+                <!-- البحث المتقدم -->
+                <div class="collapse {{ request()->hasAny(['total_from', 'total_to', 'from_date', 'to_date', 'created_by', 'cost_center', 'source']) ? 'show' : '' }}" id="advancedSearchForm">
+                    <div class="row g-3 mt-2">
+                        <!-- 4. الإجمالي أكبر من -->
+                        <div class="col-md-2">
+                            <label for="total_from">الإجمالي أكبر من</label>
+                            <input type="number" class="form-control" placeholder="الإجمالي أكبر من"
+                                name="total_from" step="0.01" value="{{ request('total_from') }}">
+                        </div>
 
+                        <!-- 5. الإجمالي أصغر من -->
+                        <div class="col-md-2">
+                            <label for="total_to">الإجمالي أصغر من</label>
+                            <input type="number" class="form-control" placeholder="الإجمالي أصغر من"
+                                name="total_to" step="0.01" value="{{ request('total_to') }}">
+                        </div>
 
+                        <!-- 6. التاريخ من -->
+                        <div class="col-md-2">
+                            <label for="from_date">التاريخ من</label>
+                            <input type="date" class="form-control" placeholder="من"
+                                name="from_date" value="{{ request('from_date') }}">
+                        </div>
+
+                        <!-- 7. التاريخ إلى -->
+                        <div class="col-md-2">
+                            <label for="to_date">التاريخ إلى</label>
+                            <input type="date" class="form-control" placeholder="إلى"
+                                name="to_date" value="{{ request('to_date') }}">
+                        </div>
+
+                        <!-- 8. أضيفت بواسطة -->
+                        <div class="col-md-4">
+                            <label for="created_by">أضيفت بواسطة</label>
+                            <select name="created_by" class="form-control select2">
+                                <option value="">أضيفت بواسطة</option>
+                                @foreach ($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('created_by') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <!-- 9. مركز التكلفة -->
+                        <div class="col-md-4">
+                            <label for="cost_center">مركز التكلفة</label>
+                            <select name="cost_center" class="form-control select2">
+                                <option value="">مركز التكلفة</option>
+                                @foreach ($costCenters as $costCent)
+                                    <option value="{{ $costCent->id }}" {{ request('cost_center') == $costCent->id ? 'selected' : '' }}>
+                                        {{ $costCent->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- 10. حالة القيد -->
+                        <div class="col-md-4">
+                            <label for="status">حالة القيد</label>
+                            <select name="status" class="form-control">
+                                <option value="">حالة القيد</option>
+                                <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مدفوع</option>
+                                <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير مدفوع</option>
+                            </select>
+                        </div>
+
+                        <!-- 11. المصدر -->
+                        <div class="col-md-4">
+                            <label for="source">المصدر</label>
+                            <select name="source" class="form-control">
+                                <option value="">المصدر</option>
+                                <option value="invoice">فاتورة</option>
+                                <option value="requisition">إذن مخزن</option>
+                                <option value="stock_transaction">عملية مخزون</option>
+                                <option value="invoice_payment">مدفوعات الفواتير</option>
+                                <option value="income">سندات القبض</option>
+                                <option value="sales_cost">تكلفة مبيعات الفواتير</option>
+                                <option value="refund_receipt">فاتورة مرتجعة</option>
+                                <option value="expense">مصروف</option>
+                                <option value="stock_transfer">حركة مخزون</option>
+                                <option value="purchase_refund">مرتجع مشتريات</option>
+                                <option value="asset">أصل</option>
+                                <option value="asset_operation">عملية أصل</option>
+                                <option value="asset_deprecation">إهلاك الأصل</option>
+                                <option value="treasury_transfer">تحويل خزينة</option>
+                                <option value="credit_note">إشعار دائن</option>
+                                <option value="asset_write_off">شطب الأصول</option>
+                                <option value="asset_re_evaluate">إعادة تقدير أصل</option>
+                                <option value="asset_sell">بيع أصل</option>
+                                <option value="pay_run">مسير الراتب</option>
+                                <option value="delivered_pay_cheque">إستلام شيك مدفوع</option>
+                                <option value="rejected_pay_cheque">رفض شيك مدفوع</option>
+                                <option value="collected_pay_cheque">تحصيل شيك مدفوع</option>
+                                <option value="receivable_cheque_received">إستلام شيك</option>
+                                <option value="receivable_cheque_deposited">إيداع شيك</option>
+                                <option value="receivable_cheque_collected">تحصيل شيك مستلم</option>
+                                <option value="receivable_cheque_deposit_collected">تحصيل وديعة شيك</option>
+                                <option value="receivable_cheque_reject">رفض شيك مستلم</option>
+                                <option value="receivable_cheque_deposit_rejected">رفض وديعة شيك</option>
+                                <option value="product_cost_sales">Product Sales Cost</option>
+                                <option value="purchase_order_payment">دفع فاتورة الشراء</option>
+                                <option value="purchase_order">فاتورة شراء</option>
+                                <option value="pos_shift_validate">POS Shift Validation</option>
+                                <option value="pos_shift_refund">POS Shift Refund</option>
+                                <option value="pos_shift_sales">POS Shift Sales</option>
+                                <option value="pos_shift_transaction">POS Shift Transaction</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الأزرار -->
+                <div class="form-actions mt-2">
+                    <button type="submit" class="btn btn-primary">بحث</button>
+                    <a href="{{ route('journal.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
+                </div>
+            </form>
+        </div>
     </div>
     <div class="card">
         <div class="card-body p-0">
@@ -329,7 +385,7 @@
                                                 </form>
 
                                                 <a class="dropdown-item" href="">
-                                                    <i class="fa fa-edit me-2 text-success"></i>عرض  المصدر
+                                                    <i class="fa fa-edit me-2 text-success"></i>عرض المصدر
                                                 </a>
                                             </div>
 
@@ -347,9 +403,6 @@
             @endif
         </div>
     </div>
-
-
-    <!-- Modal delete -->
-
-
+@endsection
+@section('scripts')
 @endsection

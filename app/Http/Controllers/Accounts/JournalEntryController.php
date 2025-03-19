@@ -11,6 +11,7 @@ use App\Models\CostCenter;
 use App\Models\JournalEntry;
 use App\Models\Log as ModelsLog;
 use App\Models\JournalEntryDetail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -24,30 +25,72 @@ class JournalEntryController extends Controller
             'client',
             'costCenter',
             'createdByEmployee',
-            'account' // Include the single account relationship
+            'account',
         ]);
+
+        // البحث حسب الحساب
+        if ($request->has('account_id') && $request->account_id != '') {
+            $query->whereHas('details', function ($q) use ($request) {
+                $q->where('account_id', $request->account_id);
+            });
+        }
+
+        // البحث حسب الوصف
+        if ($request->has('description') && $request->description != '') {
+            $query->where('description', 'like', '%' . $request->description . '%');
+        }
+
+        // البحث حسب التخصيص
+        if ($request->has('date_type') && $request->date_type != '') {
+            $query->where('date_type', $request->date_type);
+        }
+
+        // البحث حسب الإجمالي
+        if ($request->has('total_from') && $request->total_from != '') {
+            $query->whereHas('details', function ($q) use ($request) {
+                $q->where('debit', '>=', $request->total_from);
+            });
+        }
+        if ($request->has('total_to') && $request->total_to != '') {
+            $query->whereHas('details', function ($q) use ($request) {
+                $q->where('debit', '<=', $request->total_to);
+            });
+        }
 
         // البحث حسب التاريخ
         if ($request->has('from_date') && $request->has('to_date')) {
             $query->whereBetween('date', [$request->from_date, $request->to_date]);
         }
 
-        // البحث حسب الحالة
-        if ($request->has('status')) {
+        // البحث حسب أضيفت بواسطة
+        if ($request->has('created_by') && $request->created_by != '') {
+            $query->where('created_by_employee', $request->created_by);
+        }
+
+        // البحث حسب مركز التكلفة
+        if ($request->has('cost_center') && $request->cost_center != '') {
+            $query->where('cost_center_id', $request->cost_center);
+        }
+
+        // البحث حسب حالة القيد
+        if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
 
-        // البحث حسب الرقم المرجعي
-        if ($request->has('reference_number')) {
-            $query->where('reference_number', 'like', '%' . $request->reference_number . '%');
+        // البحث حسب المصدر
+        if ($request->has('source') && $request->source != '') {
+            $query->where('source', $request->source);
         }
 
-        $entries = $query->get();
+        // تقسيم النتائج إلى صفحات، مع عرض 15 عنصرًا في كل صفحة
+        $entries = $query->paginate(15);
         $entryDetails = JournalEntryDetail::with('account')->get();
+        $users = User::all();
+        $costCenters = CostCenter::all();
+        $accounts = Account::all();
 
-        return view('accounts.journal.index', compact('entries', 'entryDetails'));
+        return view('accounts.journal.index', compact('entries', 'entryDetails', 'users', 'costCenters', 'accounts'));
     }
-
     public function create()
     {
         $journalEntry = JournalEntry::all();
@@ -57,14 +100,12 @@ class JournalEntryController extends Controller
         $costCenters = CostCenter::all();
 
         // جلب جميع الحسابات
-        $accounts = Account::select('id', 'name', 'code', 'parent_id')
-            ->with('parent')
-            ->get();
+        $accounts = Account::select('id', 'name', 'code', 'parent_id')->with('parent')->get();
 
         // بناء شجرة الحسابات
         $sortedAccounts = $this->buildAccountTree($accounts);
 
-        return view('accounts.journal.create', compact('sortedAccounts','accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
+        return view('accounts.journal.create', compact('sortedAccounts', 'accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
     }
     private function buildAccountTree($accounts, $parentId = null, $level = 0)
     {
@@ -82,12 +123,8 @@ class JournalEntryController extends Controller
         return $tree;
     }
 
-
-
     public function store(Request $request)
     {
-
-
         $request->validate([
             'journal_entry.date' => 'required|date',
             'journal_entry.description' => 'required|string|max:500',
@@ -154,13 +191,13 @@ class JournalEntryController extends Controller
                 }
             }
 
-ModelsLog::create([
-                        'type' => 'finance_log',
-                      'type_id' =>  $journalEntry->id, // ID النشاط المرتبط
-                      'type_log' => 'log', // نوع النشاط
-                      'description' => 'تم اضافة قيد جديد  **' . '**',
-                      'created_by' => auth()->id(), // ID المستخدم الحالي
-                  ]);
+            ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' => $journalEntry->id, // ID النشاط المرتبط
+                'type_log' => 'log', // نوع النشاط
+                'description' => 'تم اضافة قيد جديد  **' . '**',
+                'created_by' => auth()->id(), // ID المستخدم الحالي
+            ]);
 
             DB::commit();
 
@@ -180,17 +217,16 @@ ModelsLog::create([
         return view('accounts.journal.show', compact('entry', 'entryDetails'));
     }
 
-
     public function edit($id)
     {
         $entry = JournalEntry::findOrFail($id);
-$journal = JournalEntry::findOrFail($id);
+        $journal = JournalEntry::findOrFail($id);
         $accounts = Account::all();
         $clients = Client::all();
         $employees = Employee::all();
         $costCenters = CostCenter::all();
 
-        return view('accounts.journal.edit', compact('entry','journal', 'accounts', 'clients', 'employees', 'costCenters'));
+        return view('accounts.journal.edit', compact('entry', 'journal', 'accounts', 'clients', 'employees', 'costCenters'));
     }
 
     public function update(Request $request, JournalEntry $entry)
@@ -268,9 +304,7 @@ $journal = JournalEntry::findOrFail($id);
 
             DB::commit();
 
-            return redirect()
-                ->route('journal.show', $entry->id)
-                ->with('success', 'تم تحديث القيد المحاسبي بنجاح');
+            return redirect()->route('journal.show', $entry->id)->with('success', 'تم تحديث القيد المحاسبي بنجاح');
         } catch (\Exception $e) {
             DB::rollback();
             return back()
@@ -315,7 +349,7 @@ $journal = JournalEntry::findOrFail($id);
         }
     }
 
-    public function destroy( $id)
+    public function destroy($id)
     {
         try {
             DB::beginTransaction();

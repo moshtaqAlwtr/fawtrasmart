@@ -19,13 +19,13 @@ class AttendanceDaysController extends Controller
     public function index()
     {
         $attendance_days = AttendanceDays::select()->orderBy('id','DESC')->get();
-        return view('Attendance.attendance_days.index',compact('attendance_days'));
+        return view('attendance.attendance_days.index',compact('attendance_days'));
     }
 
     public function create()
     {
         $employees = Employee::select('id',  'first_name','middle_name')->get();
-        return view('Attendance.attendance_days.create',compact('employees'));
+        return view('attendance.attendance_days.create',compact('employees'));
     }
 
     public function store(AttendanceDaysRequest $request)
@@ -48,7 +48,7 @@ class AttendanceDaysController extends Controller
         $attendance->notes = $request->notes ?? null;
 
         $attendance->save();
-        
+
                  ModelsLog::create([
     'type' => 'atendes_log',
     'type_id' => $attendance->id, // ID النشاط المرتبط
@@ -64,7 +64,7 @@ class AttendanceDaysController extends Controller
     {
         $employees = Employee::select('id',  'first_name','middle_name')->get();
         $attendanceDay = AttendanceDays::findOrFail($id);
-        return view('Attendance.attendance_days.edit',compact('employees','attendanceDay'));
+        return view('attendance.attendance_days.edit',compact('employees','attendanceDay'));
     }
 
     public function update(AttendanceDaysRequest $request, $id)
@@ -87,7 +87,7 @@ class AttendanceDaysController extends Controller
         $attendance->notes = $request->notes ?? null;
 
         $attendance->update();
-        
+
                        ModelsLog::create([
     'type' => 'atendes_log',
     'type_id' => $attendance->id, // ID النشاط المرتبط
@@ -102,7 +102,7 @@ class AttendanceDaysController extends Controller
     public function show($id)
     {
         $attendance_day = AttendanceDays::findOrFail($id);
-        return view('Attendance.attendance_days.show',compact('attendance_day'));
+        return view('attendance.attendance_days.show',compact('attendance_day'));
     }
 
     public function delete($id)
@@ -126,7 +126,7 @@ class AttendanceDaysController extends Controller
         $departments = Department::select('id','name')->get();
         $job_titles = JopTitle::select('id','name')->get();
         $shifts = Shift::select('id','name')->get();
-        return view('Attendance.attendance_days.Calculation',compact('employees','branches','departments','job_titles','shifts'));
+        return view('attendance.attendance_days.Calculation',compact('employees','branches','departments','job_titles','shifts'));
     }
 
     public function calculateAttendance(Request $request)
