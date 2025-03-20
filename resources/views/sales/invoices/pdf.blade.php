@@ -156,16 +156,18 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($invoice->items as $item)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $item->item }}</td>
-                    <td>{{ $item->quantity }}</td>
-                    <td>{{ number_format($item->unit_price, 2) }}</td>
-                    <td>{{ number_format($item->discount, 2) }}</td>
-                    <td>{{ number_format($item->total, 2) }}</td>
-                </tr>
-            @endforeach
+            <tbody>
+                @foreach ($invoice->items as $item)
+                    <tr>
+                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $item->item }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ number_format($item->unit_price, 2) }}</td>
+                        <td>{{ number_format($item->discount, 2) }}</td>
+                        <td>{{ number_format($item->total, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
         </tbody>
     </table>
 
@@ -183,7 +185,7 @@
         <p>ضريبة القيمة المضافة (15%): {{ number_format($invoice->tax_total ?? 0, 2) }}
             {!! $currencySymbol !!}</p>
 
-       
+
 
         @if (($invoice->shipping_cost ?? 0) > 0)
             <p>تكلفة الشحن: {{ number_format($invoice->shipping_cost, 2) }} {!! $currencySymbol !!}</p>

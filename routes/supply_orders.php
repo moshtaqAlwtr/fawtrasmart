@@ -37,6 +37,7 @@ Route::group(
             Route::get('/edit/{id}',[SupplyOrdersController::class,'edit'])->name('SupplyOrders.edit');
 
             Route::get('/edit_status',[SupplyOrdersController::class,'edit_status'])->name('SupplyOrders.edit_status');
+
             Route::post('/store',[SupplyOrdersController::class,'store'])->name('SupplyOrders.store');
             Route::put('/update/{id}',[SupplyOrdersController::class,'update'])->name('SupplyOrders.update');
             Route::delete('/destroy/{id}',[SupplyOrdersController::class,'destroy'])->name('SupplyOrders.destroy');

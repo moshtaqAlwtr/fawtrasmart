@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-    تعديل قائمة الحالات - أمر التوريد
+    اضافة  قائمة الحالات - أمر التوريد
 @stop
 
 @section('content')
@@ -20,11 +20,11 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
-                        <a href="" class="btn btn-outline-danger">
-                            <i class="fa fa-ban"></i>الغاء
+                        <a href="{{ route('supplyOrders.index') }}" class="btn btn-outline-danger">
+                            <i class="fa fa-ban"></i> الغاء
                         </a>
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="fa fa-save"></i>حفظ
+                        <button type="submit" class="btn btn-outline-primary" id="saveAllChanges">
+                            <i class="fa fa-save"></i> حفظ التغييرات
                         </button>
                     </div>
                 </div>
@@ -45,55 +45,39 @@
                                 </tr>
                             </thead>
                             <tbody id="statusTable">
-                                <tr data-status-id="1">
-                                    <td>
-                                        <input type="text" class="form-control form-control-lg" placeholder="اسم الحالة" value="حالة 1" />
-                                    </td>
-                                    <td>
-                                        <div class="custom-dropdown">
-                                            <div class="dropdown-toggle" style="background-color: #009688;"></div>
-                                            <div class="dropdown-menu">
-                                                <div class="color-options">
-                                                    <div class="color-option" style="background-color: #009688;" data-value="#009688"></div>
-                                                    <div class="color-option" style="background-color: #4CAF50;" data-value="#4CAF50"></div>
-                                                    <div class="color-option" style="background-color: #F44336;" data-value="#F44336"></div>
-                                                    <div class="color-option" style="background-color: #FF9800;" data-value="#FF98000"></div>
-                                                    <div class="color-option" style="background-color: #2196F3;" data-value="#2196F3"></div>
-                                                    <div class="color-option" style="background-color: #9C27B0;" data-value="#9C27B0"></div>
-                                                    <div class="color-option" style="background-color: #673AB7;" data-value="#673AB7"></div>
-                                                    <div class="color-option" style="background-color: #3F51B5;" data-value="#3F51B5"></div>
-                                                    <div class="color-option" style="background-color: #00BCD4;" data-value="#00BCD4"></div>
-                                                    <div class="color-option" style="background-color: #8BC34A;" data-value="#8BC34A"></div>
-                                                    <div class="color-option" style="background-color: #CDDC39;" data-value="#CDDC39"></div>
-                                                    <div class="color-option" style="background-color: #FFEB3B;" data-value="#FFEB3B"></div>
-                                                    <div class="color-option" style="background-color: #FFC107;" data-value="#FFC107"></div>
-                                                    <div class="color-option" style="background-color: #FF9800;" data-value="#FF9800"></div>
-                                                    <div class="color-option" style="background-color: #FF5722;" data-value="#FF5722"></div>
-                                                    <div class="color-option" style="background-color: #795548;" data-value="#795548"></div>
-                                                    <div class="color-option" style="background-color: #9E9E9E;" data-value="#9E9E9E"></div>
-                                                    <div class="color-option" style="background-color: #607D8B;" data-value="#607D8B"></div>
-                                                    <div class="color-option" style="background-color: #000000;" data-value="#000000"></div>
-                                                    <div class="color-option" style="background-color: #FFFFFF;" data-value="#FFFFFF"></div>
+                                @foreach($statuses as $status)
+                                    <tr data-status-id="{{ $status->id }}">
+                                        <td>
+                                            <input type="text" class="form-control form-control-lg status-name" name="name" value="{{ $status->name }}" />
+                                        </td>
+                                        <td>
+                                            <div class="custom-dropdown">
+                                                <div class="dropdown-toggle" style="background-color: {{ $status->color }};"></div>
+                                                <div class="dropdown-menu">
+                                                    <div class="color-options">
+                                                        @foreach(['#009688', '#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#673AB7', '#3F51B5', '#00BCD4', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF5722', '#795548', '#9E9E9E', '#607D8B', '#000000', '#FFFFFF'] as $color)
+                                                            <div class="color-option" style="background-color: {{ $color }};" data-value="{{ $color }}"></div>
+                                                        @endforeach
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <select class="form-control">
-                                            <option value="open">مفتوح</option>
-                                            <option value="closed">مغلق</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-warning btn-sm edit-btn">
-                                            <i class="feather icon-edit"></i> تعديل
-                                        </button>
-                                        <button class="btn btn-danger btn-sm delete-btn">
-                                            <i class="feather icon-trash"></i> حذف
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Add more rows as needed -->
+                                        </td>
+                                        <td>
+                                            <select class="form-control status-state" name="state">
+                                                <option value="open" {{ $status->state == 'open' ? 'selected' : '' }}>مفتوح</option>
+                                                <option value="closed" {{ $status->state == 'closed' ? 'selected' : '' }}>مغلق</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-warning btn-sm edit-btn" data-status-id="{{ $status->id }}">
+                                                <i class="feather icon-edit"></i> تعديل
+                                            </button>
+                                            <button class="btn btn-danger btn-sm delete-btn" data-status-id="{{ $status->id }}">
+                                                <i class="feather icon-trash"></i> حذف
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -128,7 +112,9 @@
                                 <div class="dropdown-toggle" id="editColorDisplay" style="background-color: #009688;"></div>
                                 <div class="dropdown-menu">
                                     <div class="color-options">
-                                        <!-- Include color options here -->
+                                        @foreach(['#009688', '#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#673AB7', '#3F51B5', '#00BCD4', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF5722', '#795548', '#9E9E9E', '#607D8B', '#000000', '#FFFFFF'] as $color)
+                                            <div class="color-option" style="background-color: {{ $color }};" data-value="{{ $color }}"></div>
+                                        @endforeach
                                     </div>
                                 </div>
                             </div>
@@ -179,39 +165,22 @@
             let newRow = `
                 <tr>
                     <td>
-                        <input type="text" class="form-control form-control-lg" placeholder="اسم الحالة" />
+                        <input type="text" class="form-control form-control-lg status-name" name="name" placeholder="اسم الحالة" />
                     </td>
                     <td>
                         <div class="custom-dropdown">
                             <div class="dropdown-toggle" style="background-color: #009688;"></div>
                             <div class="dropdown-menu">
                                 <div class="color-options">
-                                    <div class="color-option" style="background-color: #009688;" data-value="#009688"></div>
-                                    <div class="color-option" style="background-color: #4CAF50;" data-value="#4CAF50"></div>
-                                    <div class="color-option" style="background-color: #F44336;" data-value="#F44336"></div>
-                                    <div class="color-option" style="background-color: #FF9800;" data-value="#FF98000"></div>
-                                    <div class="color-option" style="background-color: #2196F3;" data-value="#2196F3"></div>
-                                    <div class="color-option" style="background-color: #9C27B0;" data-value="#9C27B0"></div>
-                                    <div class="color-option" style="background-color: #673AB7;" data-value="#673AB7"></div>
-                                    <div class="color-option" style="background-color: #3F51B5;" data-value="#3F51B5"></div>
-                                    <div class="color-option" style="background-color: #00BCD4;" data-value="#00BCD4"></div>
-                                    <div class="color-option" style="background-color: #8BC34A;" data-value="#8BC34A"></div>
-                                    <div class="color-option" style="background-color: #CDDC39;" data-value="#CDDC39"></div>
-                                    <div class="color-option" style="background-color: #FFEB3B;" data-value="#FFEB3B"></div>
-                                    <div class="color-option" style="background-color: #FFC107;" data-value="#FFC107"></div>
-                                    <div class="color-option" style="background-color: #FF9800;" data-value="#FF9800"></div>
-                                    <div class="color-option" style="background-color: #FF5722;" data-value="#FF5722"></div>
-                                    <div class="color-option" style="background-color: #795548;" data-value="#795548"></div>
-                                    <div class="color-option" style="background-color: #9E9E9E;" data-value="#9E9E9E"></div>
-                                    <div class="color-option" style="background-color: #607D8B;" data-value="#607D8B"></div>
-                                    <div class="color-option" style="background-color: #000000;" data-value="#000000"></div>
-                                    <div class="color-option" style="background-color: #FFFFFF;" data-value="#FFFFFF"></div>
+                                    @foreach(['#009688', '#4CAF50', '#F44336', '#FF9800', '#2196F3', '#9C27B0', '#673AB7', '#3F51B5', '#00BCD4', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF5722', '#795548', '#9E9E9E', '#607D8B', '#000000', '#FFFFFF'] as $color)
+                                        <div class="color-option" style="background-color: {{ $color }};" data-value="{{ $color }}"></div>
+                                    @endforeach
                                 </div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <select class="form-control">
+                        <select class="form-control status-state" name="state">
                             <option value="open">مفتوح</option>
                             <option value="closed">مغلق</option>
                         </select>
@@ -227,69 +196,43 @@
             setupDropdowns(); // Reinitialize dropdowns for new row
         });
 
-        // Edit Status
-        document.addEventListener('click', function(e) {
-            if (e.target && e.target.matches('.edit-btn')) {
-                const row = e.target.closest('tr');
-                const statusName = row.querySelector('input[type="text"]').value;
-                const colorDisplay = row.querySelector('.dropdown-toggle').style.backgroundColor;
-                const statusState = row.querySelector('select').value;
+        // Save all changes
+        document.getElementById('saveAllChanges').addEventListener('click', function() {
+            const rows = document.querySelectorAll('#statusTable tr');
+            const data = [];
 
-                // Populate the modal fields
-                document.getElementById('editStatusName').value = statusName;
-                document.getElementById('editColorDisplay').style.backgroundColor = colorDisplay;
-                document.getElementById('editStatusState').value = statusState;
+            rows.forEach(row => {
+                const statusId = row.getAttribute('data-status-id');
+                const name = row.querySelector('.status-name').value;
+                const color = row.querySelector('.dropdown-toggle').style.backgroundColor;
+                const state = row.querySelector('.status-state').value;
 
-                // Store the status ID (if applicable)
-                document.getElementById('editStatusId').value = row.getAttribute('data-status-id'); // Assuming you set this attribute
+                data.push({
+                    id: statusId,
+                    name: name,
+                    color: color,
+                    state: state,
+                });
+            });
 
-                // Show the modal
-                $('#editStatusModal').modal('show');
-            }
-        });
-
-        // Save edited status
-        document.getElementById('saveEditStatus').addEventListener('click', function() {
-            const statusId = document.getElementById('editStatusId').value;
-            const updatedData = {
-                name: document.getElementById('editStatusName').value,
-                color: document.getElementById('editColorDisplay').style.backgroundColor,
-                state: document.getElementById('editStatusState').value,
-            };
-
-            // Send AJAX request to update the status
-            fetch(`/statuses/${statusId}`, {
-                method: 'PUT',
+            // Send AJAX request to save all changes
+            fetch('{{ route("statuses.updateAll") }}', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
-                body: JSON.stringify(updatedData),
+                body: JSON.stringify({ statuses: data }),
             })
             .then(response => response.json())
             .then(data => {
-                // Handle the response
                 if (data.success) {
-                    // Update the row in the table
-                    const row = document.querySelector(`tr[data-status-id="${statusId}"]`);
-                    row.querySelector('input[type="text"]').value = updatedData.name;
-                    row.querySelector('.dropdown-toggle').style.backgroundColor = updatedData.color;
-                    row.querySelector('select').value = updatedData.state;
-
-                    // Close the modal
-                    $('#editStatusModal').modal('hide');
+                    alert('تم حفظ التغييرات بنجاح');
+                    window.location.reload(); // Reload the page
                 } else {
-                    // Handle error
-                    alert('حدث خطأ أثناء تحديث الحالة');
+                    alert('حدث خطأ أثناء حفظ التغييرات');
                 }
             });
-        });
-
-        // Delete Status
-        document.addEventListener('click', function(e) {
-            if (e.target && e.target.matches('.delete-btn')) {
-                e.target.closest('tr').remove();
-            }
         });
 
         // Initial setup for dropdowns

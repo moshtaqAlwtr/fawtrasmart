@@ -36,15 +36,14 @@ class Invoice extends Model
     {
         return $this->belongsTo(Treasury::class);
     }
-    public function    employee(): BelongsTo
+    public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
     }
-    public function    branch(): BelongsTo
+    public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class, 'branch_id');
     }
-
 
     // العلاقة مع المستخدم الذي أنشأ الفاتورة
     public function createdByUser(): BelongsTo
@@ -59,12 +58,10 @@ class Invoice extends Model
     }
 
     // العلاقة مع عناصر الفاتورة
-    public function items(): HasMany
+
+    public function installments()
     {
-        return $this->hasMany(InvoiceItem::class);
-    }
-    public function installments(){
-        return $this->hasMany(Installment::class, );
+        return $this->hasMany(Installment::class);
     }
 
     // العلاقة مع جميع عمليات الدفع
@@ -85,7 +82,6 @@ class Invoice extends Model
         $totalPaid = $this->payments()->sum('amount');
         return $this->grand_total - $totalPaid;
     }
-
 
     // دالة لتحديث حالة الدفع
     public function updatePaymentStatus(): void
@@ -114,5 +110,20 @@ class Invoice extends Model
     {
         return $this->hasMany(JournalEntry::class, 'reference_id');
     }
+    // في نموذج Invoice
+    public function items()
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
 
+    // في نموذج InvoiceItem
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

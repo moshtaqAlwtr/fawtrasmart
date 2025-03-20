@@ -742,20 +742,17 @@
                 });
             }
         });
-        document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".product-select").forEach(function (select) {
-            select.addEventListener("change", function () {
-                let selectedOption = this.options[this.selectedIndex];
-                let priceField = this.closest("tr").querySelector(".price");
+        $(document).ready(function () {
+    $('.product-select').change(function () {
+        var selectedOption = $(this).find(':selected'); // الحصول على الخيار المحدد
+        var price = selectedOption.data('price'); // استخراج سعر البيع من data-price
 
-                if (selectedOption.dataset.price) {
-                    priceField.value = selectedOption.dataset.price;
-                } else {
-                    priceField.value = ""; // إذا لم يكن هناك سعر، اجعله فارغًا
-                }
-            });
-        });
+        if (price !== undefined) {
+            $(this).closest('tr').find('.price').val(price); // تعيين السعر في الحقل المناسب
+        }
     });
+});
+
     </script>
 
 @endsection

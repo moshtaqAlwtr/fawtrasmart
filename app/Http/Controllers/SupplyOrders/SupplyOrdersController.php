@@ -8,11 +8,13 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Status;
 use App\Models\Log as ModelsLog;
+use App\Models\Statuses;
 use App\Models\SupplyOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class SupplyOrdersController extends Controller
 {
@@ -281,8 +283,40 @@ class SupplyOrdersController extends Controller
 
 
     /******  f231f3e4-6f6f-43f5-9bef-d91e01b979a8  *******/
-    public function edit_status()
+    public function storeStatus(Request $request)
     {
-        return view('supplyOrders.edit_status');
+        // التحقق من صحة البيانات المدخلة
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'color' => 'required|string|max:255',
+            'state' => 'required|in:open,closed',
+            'client_id' => 'nullable|exists:clients,id', // إذا كان client_id موجودًا، تأكد من وجوده في جدول clients
+            'supply_order_id' => 'nullable|exists:supply_orders,id', // إذا كان supply_order_id موجودًا، تأكد من وجوده في جدول supply_orders
+        ]);
+
+        // إذا فشل التحقق، قم بإرجاع الأخطاء
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // إنشاء حالة جديدة
+        $status = Statuses::create([
+            'name' => $request->input('name'),
+            'color' => $request->input('color'),
+            'state' => $request->input('state'),
+            'client_id' => $request->input('client_id'), // إذا كان client_id موجودًا
+            'supply_order_id' => $request->input('supply_order_id'), // إذا كان supply_order_id موجودًا
+        ]);
+
+        // إرجاع رسالة نجاح
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إنشاء الحالة بنجاح',
+            'data' => $status,
+        ], 201);
     }
 }

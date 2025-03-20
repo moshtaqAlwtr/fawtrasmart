@@ -34,6 +34,7 @@ use App\Mail\SendPasswordEmail;
 use Illuminate\Support\Facades\Mail;
 use App\Models\notifications;
 use App\Mail\TestMail;
+use App\Models\Statuses;
 
 class ClientController extends Controller
 {
@@ -121,7 +122,6 @@ class ClientController extends Controller
         return view('client.index', compact('clients', 'users', 'employees'));
     }
 
-
     public function create()
     {
         $employees = Employee::all();
@@ -132,32 +132,19 @@ class ClientController extends Controller
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
         $GeneralClientSettings = GeneralClientSetting::all();
         // إذا كان الجدول فارغًا، قم بإنشاء قيم افتراضية (مفعلة بالكامل)
-    if ($GeneralClientSettings->isEmpty()) {
-        $defaultSettings = [
-            ['key' => 'image', 'name' => 'صورة', 'is_active' => true],
-            ['key' => 'type', 'name' => 'النوع', 'is_active' => true],
-            ['key' => 'birth_date', 'name' => 'تاريخ الميلاد', 'is_active' => true],
-            ['key' => 'location', 'name' => 'الموقع على الخريطة', 'is_active' => true],
-            ['key' => 'opening_balance', 'name' => 'الرصيد الافتتاحي', 'is_active' => true],
-            ['key' => 'credit_limit', 'name' => 'الحد الائتماني', 'is_active' => true],
-            ['key' => 'credit_duration', 'name' => 'المدة الائتمانية', 'is_active' => true],
-            ['key' => 'national_id', 'name' => 'رقم الهوية الوطنية', 'is_active' => true],
-            ['key' => 'addresses', 'name' => 'عناوين متعددة', 'is_active' => true],
-            ['key' => 'link', 'name' => 'الرابط', 'is_active' => true],
-        ];
+        if ($GeneralClientSettings->isEmpty()) {
+            $defaultSettings = [['key' => 'image', 'name' => 'صورة', 'is_active' => true], ['key' => 'type', 'name' => 'النوع', 'is_active' => true], ['key' => 'birth_date', 'name' => 'تاريخ الميلاد', 'is_active' => true], ['key' => 'location', 'name' => 'الموقع على الخريطة', 'is_active' => true], ['key' => 'opening_balance', 'name' => 'الرصيد الافتتاحي', 'is_active' => true], ['key' => 'credit_limit', 'name' => 'الحد الائتماني', 'is_active' => true], ['key' => 'credit_duration', 'name' => 'المدة الائتمانية', 'is_active' => true], ['key' => 'national_id', 'name' => 'رقم الهوية الوطنية', 'is_active' => true], ['key' => 'addresses', 'name' => 'عناوين متعددة', 'is_active' => true], ['key' => 'link', 'name' => 'الرابط', 'is_active' => true]];
 
-        // تحويل المصفوفة إلى مجموعة (Collection)
-        $GeneralClientSettings = collect($defaultSettings)->map(function ($item) {
-            return (object) $item; // تحويل المصفوفة إلى كائن
-        });
+            // تحويل المصفوفة إلى مجموعة (Collection)
+            $GeneralClientSettings = collect($defaultSettings)->map(function ($item) {
+                return (object) $item; // تحويل المصفوفة إلى كائن
+            });
+        }
+        return view('client.create', compact('employees', 'newCode', 'categories', 'GeneralClientSettings'));
     }
-        return view('client.create', compact('employees', 'newCode', 'categories','GeneralClientSettings'));
-    }
-
 
     public function store(ClientRequest $request)
     {
-
         $data_request = $request->except('_token');
 
         // إنشاء العميل
@@ -170,7 +157,6 @@ class ClientController extends Controller
         $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
 
         // تعيين id للعميل الجديد باستخدام الرقم الحالي
-
 
         // تعيين الكود للعميل الجديد (إذا كان الكود مطلوبًا أيضًا)
         $client->code = $currentNumber;
@@ -193,27 +179,25 @@ class ClientController extends Controller
 
         $password = Str::random(10);
         $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
-        if($request->email != null){
+        if ($request->email != null) {
             $user = User::create([
                 'name' => $full_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role' => 'client',
-                'client_id'   => $client->id,
+                'client_id' => $client->id,
                 'password' => Hash::make($password),
             ]);
         }
 
-
-
-           // تسجيل اشعار نظام جديد
-            ModelsLog::create([
-                'type' => 'client',
-                'type_id' => $client->id, // ID النشاط المرتبط
-                'type_log' => 'log', // نوع النشاط
-                'description' => 'تم اضافة  عميل **' . $client->trade_name. '**',
-                'created_by' => auth()->id(), // ID المستخدم الحالي
-            ]);
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'client',
+            'type_id' => $client->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة  عميل **' . $client->trade_name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         // زيادة الرقم الحالي بمقدار 1
         if ($serialSetting) {
@@ -248,16 +232,12 @@ class ClientController extends Controller
         return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
     public function send_email($id)
-{
+    {
+        $employee = User::where('client_id', $id)->first();
 
-
-
-          $employee = User::where('client_id', $id)->first();
-
-          if (!$employee || empty($employee->email)) {
+        if (!$employee || empty($employee->email)) {
             return redirect()->back()->with('error', 'العميل لا يمتلك بريدًا إلكترونيًا للدخول.');
         }
-
 
         // توليد كلمة مرور جديدة عشوائية
         $newPassword = $this->generateRandomPassword();
@@ -276,12 +256,12 @@ class ClientController extends Controller
         // إرسال البريد
         Mail::to($employee->email)->send(new TestMail($details));
         ModelsLog::create([
-        'type' => 'hr_log',
-        'type_id' => $employee->id, // ID النشاط المرتبط
-        'type_log' => 'log', // نوع النشاط
-        'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
-        'created_by' => auth()->id(), // ID المستخدم الحالي
-         ]);
+            'type' => 'hr_log',
+            'type_id' => $employee->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         // return back()->with('message', 'تم إرسال البريد بنجاح!');
         return redirect()
@@ -475,30 +455,30 @@ class ClientController extends Controller
             ->get();
         $appointments = Appointment::all();
         $employees = Employee::all();
+        $statuses = Statuses::all();
 
         // Get the first client by default
         $client = $clients->first();
 
         $categories = CategoriesClient::all();
-        $ClientRelations =  ClientRelation::where('client_id', $id)->get();
+        $ClientRelations = ClientRelation::where('client_id', $id)->get();
 
         do {
             $lastClient = Client::orderBy('code', 'desc')->first();
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
-
-        return view('client.show', compact('client','ClientRelations', 'invoice_due', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+        return view('client.show', compact('client', 'ClientRelations', 'invoice_due','statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
 
     public function updateStatus(Request $request, $id)
-{
-    $client = Client::findOrFail($id);
-    $client->notes = $request->notes; // تحديث الملاحظات بالحالة الجديدة
-    $client->save();
+    {
+        $client = Client::findOrFail($id);
+        $client->notes = $request->notes; // تحديث الملاحظات بالحالة الجديدة
+        $client->save();
 
-    return response()->json(['success' => true]);
-}
+        return response()->json(['success' => true]);
+    }
 
     public function contact()
     {
@@ -509,18 +489,16 @@ class ClientController extends Controller
 
     public function contacts(Request $request)
     {
-        $query = Client::with('employee')
-            ->select('id', 'trade_name', 'first_name', 'last_name', 'phone', 'city', 'region', 'street1', 'street2', 'code', 'employee_id')
-            ->orderBy('created_at', 'desc');
+        $query = Client::with('employee')->select('id', 'trade_name', 'first_name', 'last_name', 'phone', 'city', 'region', 'street1', 'street2', 'code', 'employee_id')->orderBy('created_at', 'desc');
 
         // البحث الأساسي (بالاسم أو الكود)
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('trade_name', 'like', '%' . $search . '%')
-                  ->orWhere('code', 'like', '%' . $search . '%')
-                  ->orWhere('first_name', 'like', '%' . $search . '%')
-                  ->orWhere('last_name', 'like', '%' . $search . '%');
+                    ->orWhere('code', 'like', '%' . $search . '%')
+                    ->orWhere('first_name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%');
             });
         }
 
@@ -529,8 +507,8 @@ class ClientController extends Controller
             $advancedSearch = $request->input('advanced_search');
             $query->where(function ($q) use ($advancedSearch) {
                 $q->where('email', 'like', '%' . $advancedSearch . '%')
-                  ->orWhere('phone', 'like', '%' . $advancedSearch . '%')
-                  ->orWhere('mobile', 'like', '%' . $advancedSearch . '%');
+                    ->orWhere('phone', 'like', '%' . $advancedSearch . '%')
+                    ->orWhere('mobile', 'like', '%' . $advancedSearch . '%');
             });
         }
 
@@ -549,6 +527,7 @@ class ClientController extends Controller
             ->latest()
             ->get();
 
+
         return view('client.contacts.show_contant', compact('client', 'notes'));
     }
     public function mang_client(Request $request)
@@ -564,21 +543,20 @@ class ClientController extends Controller
         $client = $clients->first();
 
         $categories = CategoriesClient::all();
-        $ClientRelations =  ClientRelation::where('client_id', $request->client_id)->get();
+        $ClientRelations = ClientRelation::where('client_id', $request->client_id)->get();
 
         do {
             $lastClient = Client::orderBy('code', 'desc')->first();
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
-
-        return view('client.relestion_mang_client', compact('clients','ClientRelations','categories','lastClient','newCode', 'employees', 'notes', 'appointments', 'client'));
+        return view('client.relestion_mang_client', compact('clients', 'ClientRelations', 'categories', 'lastClient', 'newCode', 'employees', 'notes', 'appointments', 'client'));
     }
     public function getAllClients()
-{
-    $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
-    return response()->json($clients);
-}
+    {
+        $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
+        return response()->json($clients);
+    }
     public function getClientNotes($client_id)
     {
         try {
@@ -595,47 +573,47 @@ class ClientController extends Controller
         }
     }
     public function getNextClient(Request $request)
-{
-    $currentClientId = $request->query('currentClientId');
-    $nextClient = Client::where('id', '>', $currentClientId)->orderBy('id', 'asc')->first();
+    {
+        $currentClientId = $request->query('currentClientId');
+        $nextClient = Client::where('id', '>', $currentClientId)->orderBy('id', 'asc')->first();
 
-    if ($nextClient) {
-        $nextClient->load('notes'); // تحميل الملاحظات المرتبطة
-        return response()->json(['client' => $nextClient]);
+        if ($nextClient) {
+            $nextClient->load('notes'); // تحميل الملاحظات المرتبطة
+            return response()->json(['client' => $nextClient]);
+        }
+
+        return response()->json(['client' => null]);
+    }
+    public function updateOpeningBalance(Request $request, $id)
+    {
+        $client = Client::findOrFail($id);
+        $client->opening_balance = $request->opening_balance;
+        $client->save();
+
+        return response()->json(['success' => true]);
     }
 
-    return response()->json(['client' => null]);
-}
-public function updateOpeningBalance(Request $request, $id)
-{
-    $client = Client::findOrFail($id);
-    $client->opening_balance = $request->opening_balance;
-    $client->save();
+    public function getPreviousClient(Request $request)
+    {
+        $currentClientId = $request->query('currentClientId');
+        $previousClient = Client::where('id', '<', $currentClientId)->orderBy('id', 'desc')->first();
 
-    return response()->json(['success' => true]);
-}
+        if ($previousClient) {
+            $previousClient->load('notes'); // تحميل الملاحظات المرتبطة
+            return response()->json(['client' => $previousClient]);
+        }
 
-public function getPreviousClient(Request $request)
-{
-    $currentClientId = $request->query('currentClientId');
-    $previousClient = Client::where('id', '<', $currentClientId)->orderBy('id', 'desc')->first();
-
-    if ($previousClient) {
-        $previousClient->load('notes'); // تحميل الملاحظات المرتبطة
-        return response()->json(['client' => $previousClient]);
+        return response()->json(['client' => null]);
     }
-
-    return response()->json(['client' => null]);
-}
-public function getFirstClient()
-{
-    $firstClient = Client::orderBy('id', 'asc')->first();
-    if ($firstClient) {
-        $firstClient->load('notes');
-        return response()->json(['client' => $firstClient]);
+    public function getFirstClient()
+    {
+        $firstClient = Client::orderBy('id', 'asc')->first();
+        if ($firstClient) {
+            $firstClient->load('notes');
+            return response()->json(['client' => $firstClient]);
+        }
+        return response()->json(['client' => null]);
     }
-    return response()->json(['client' => null]);
-}
 
     public function mang_client_store(ClientRequest $request)
     {
@@ -672,14 +650,14 @@ public function getFirstClient()
         // حفظ العميل
         $client->save();
 
-           // تسجيل اشعار نظام جديد
-            ModelsLog::create([
-                'type' => 'client',
-                'type_id' => $client->id, // ID النشاط المرتبط
-                'type_log' => 'log', // نوع النشاط
-                'description' => 'تم اضافة  عميل **' . $client->trade_name. '**',
-                'created_by' => auth()->id(), // ID المستخدم الحالي
-            ]);
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'client',
+            'type_id' => $client->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة  عميل **' . $client->trade_name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         // زيادة الرقم الحالي بمقدار 1
         if ($serialSetting) {
@@ -716,33 +694,32 @@ public function getFirstClient()
 
     public function addnotes(Request $request)
     {
+        $ClientRelation = new ClientRelation();
+        $ClientRelation->status = $request->status;
+        $ClientRelation->client_id = $request->client_id;
+        $ClientRelation->process = $request->process;
+        $ClientRelation->description = $request->description;
 
+        $ClientRelation->save();
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'notes',
+            // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة  ملاحظة **' . $request->description . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
-         $ClientRelation = new ClientRelation();
-         $ClientRelation->status        = $request->status;
-         $ClientRelation->client_id        = $request->client_id;
-         $ClientRelation->process       = $request->process;
-         $ClientRelation->description   = $request->description;
+        $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
 
-         $ClientRelation->save();
-         // تسجيل اشعار نظام جديد
-            ModelsLog::create([
-                'type' => 'notes',
-                // ID النشاط المرتبط
-                'type_log' => 'log', // نوع النشاط
-                'description' => 'تم اضافة  ملاحظة **' . $request->description. '**',
-                'created_by' => auth()->id(), // ID المستخدم الحالي
-            ]);
+        notifications::create([
+            'type' => 'notes',
+            'title' => 'ملاحظة لعميل',
+            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
+        ]);
 
-$clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
-
-notifications::create([
-    'type'        => 'notes',
-    'title'       => 'ملاحظة لعميل',
-    'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-]);
-
-              return redirect()->route('clients.show', ['id' => $ClientRelation->client_id])
+        return redirect()
+            ->route('clients.show', ['id' => $ClientRelation->client_id])
             ->with('success', 'تم إضافة الملاحظة بنجاح');
     }
 

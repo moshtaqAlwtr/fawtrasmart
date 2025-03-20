@@ -35,7 +35,7 @@
                             <div class="card-body setting">
                                 <a href="{{ route('clients.general') }}">
                                     <img class="p-3" src="{{ asset('app-assets/images/icons8-user-90.png') }}" alt="img placeholder">
-                            
+
                                     <h5><strong>عام</strong></h5>
                                 </a>
                             </div>
@@ -60,7 +60,7 @@
                     <div class="card hover-card">
                         <div class="card-content">
                             <div class="card-body setting">
-                                <a href="{{ route('clients.status') }}">
+                                <a href="{{ route('SupplyOrders.edit_status') }}">
                                     <img class="p-3" src="{{ asset('app-assets/images/icons8-pager-100.png') }}" alt="img placeholder">
                                     <h5><strong>حالات متابعة العميل</strong></h5>
                                 </a>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-               
+
 
             </div>
         </section>

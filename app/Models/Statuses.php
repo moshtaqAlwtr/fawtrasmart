@@ -15,6 +15,7 @@ class Statuses extends Model
         'name',
         'color',
         'state',
+        'client_id', // Include the foreign key in fillable properties
         'supply_order_id', // Include the foreign key in fillable properties
     ];
 

@@ -18,7 +18,7 @@
     @endif
 
     <!-- جدول عرض الحالات -->
-   
+
     <table class="table table-bordered">
         <thead>
             <tr>

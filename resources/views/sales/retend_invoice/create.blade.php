@@ -88,14 +88,16 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control select2" id="clientSelect" name="client_id" required>
-                                                    <option value="">اختر العميل</option>
-                                                    @foreach ($clients as $client)
-                                                        <option value="{{ $client->id }}" {{ $client->id == old('client_id') ? 'selected' : '' }}>
-                                                            {{ $client->trade_name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
+
+                                                    <select class="form-control select2" id="clientSelect" name="client_id" required>
+                                                        <option value="">اختر العميل</option>
+                                                        @foreach ($clients as $client)
+                                                            <option value="{{ $client->id }}" {{ $client->id == $invoice->client_id ? 'selected' : '' }}>
+                                                                {{ $client->trade_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+
                                             </div>
                                             <div class="col-md-4">
                                                 <a href="{{ route('clients.create') }}" type="button"
@@ -247,7 +249,7 @@
                                                 <input type="number" name="items[{{ $index }}][quantity]" class="form-control quantity" value="{{ $item->quantity }}" min="1" required>
                                             </td>
                                             <td>
-                                                <input type="number" name="items[{{ $index }}][unit_price]" class="form-control price" step="0.01" value="{{ $item->unit_price }}" required>
+                                                <input type="number" name="items[{{ $index }}][unit_price]" class="form-control price" step="0.01" value="{{ $invoice->due_value }}" required>
                                             </td>
                                             <td>
                                                 <div class="input-group">
