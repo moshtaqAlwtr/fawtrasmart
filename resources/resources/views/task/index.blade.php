@@ -302,8 +302,12 @@
         <button id="cancel-invite" class="cancel-list-btn">إلغاء</button>
     </div>
     <div class="board" id="board"></div>
-    
+
     <script>
+           const employeeData = {
+        name: "{{ $employee->employee_name }}",
+        photo: "{{ $employee->employee_photo ? asset('assets/uploads/employee/' . $employee->employee_photo) : asset('assets/uploads/no_image.jpg') }}"
+    };
         document.getElementById('show-list-input').addEventListener('click', function() {
             document.getElementById('list-input-container').style.display = 'block';
         });
@@ -315,7 +319,7 @@
         document.getElementById('add-list').addEventListener('click', function() {
             const listTitle = document.getElementById('list-title').value.trim();
             if (!listTitle) return;
-            
+
             const list = document.createElement('div');
             list.className = 'list-card';
             list.innerHTML = `
@@ -348,38 +352,38 @@
             document.getElementById('board').appendChild(list);
             document.getElementById('list-input-container').style.display = 'none';
             document.getElementById('list-title').value = '';
-            
+
             const addCardBtn = list.querySelector('.add-card-btn');
             const cardInputContainer = list.querySelector('.card-input-container');
             const confirmAddCard = list.querySelector('.confirm-add-card');
             const cancelAddCard = list.querySelector('.cancel-add-card');
             const cardsContainer = list.querySelector('.cards');
-            
+
             addCardBtn.addEventListener('click', function() {
                 cardInputContainer.style.display = 'block';
                 addCardBtn.style.display = 'none';
             });
-            
+
             cancelAddCard.addEventListener('click', function() {
                 cardInputContainer.style.display = 'none';
                 addCardBtn.style.display = 'block';
             });
-            
+
             confirmAddCard.addEventListener('click', function() {
                 const cardTitle = list.querySelector('.card-title').value.trim();
                 const startDate = list.querySelector('.start-date').value;
                 const endDate = list.querySelector('.end-date').value;
                 const assignedMember = list.querySelector('.assigned-member-select').value;
                 if (!cardTitle || !startDate || !endDate || !assignedMember) return;
-                
+
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="card-title">${cardTitle}</div>
                         <div class="assigned-member">
-                            <img src="https://via.placeholder.com/20" alt="صورة العضو">
-                            <span>${assignedMember}</span>
+                            <img src="${employeeData.photo}" alt"صورة العضو">
+                            <span>${employeeData->name}</span>
                         </div>
                     </div>
                     <div class="card-details">
@@ -395,7 +399,7 @@
                         <button class="add-task"></button>
                     </div>
                 `;
-                
+
                 cardsContainer.appendChild(card);
                 list.querySelector('.card-title').value = '';
                 list.querySelector('.start-date').value = '';
@@ -403,30 +407,30 @@
                 list.querySelector('.assigned-member-select').value = '';
                 cardInputContainer.style.display = 'none';
                 addCardBtn.style.display = 'block';
-                
+
                 const addTaskBtn = card.querySelector('.add-task');
                 const tasksContainer = card.querySelector('.tasks');
                 const taskInput = card.querySelector('.task-title');
                 const taskCount = card.querySelector('.task-count span');
-                
+
                 addTaskBtn.addEventListener('click', function() {
                     const taskText = taskInput.value.trim();
                     if (!taskText) return;
-                    
+
                     const task = document.createElement('div');
                     task.className = 'task';
                     task.innerHTML = `
                         <input type="checkbox" class="task-checkbox">
                         <span>${taskText}</span>
                     `;
-                    
+
                     tasksContainer.appendChild(task);
                     taskInput.value = '';
-                    
+
                     // تحديث العداد
                     const currentCount = parseInt(taskCount.textContent);
                     taskCount.textContent = currentCount + 1;
-                    
+
                     task.querySelector('.task-checkbox').addEventListener('change', function() {
                         if (this.checked) {
                             task.classList.add('task-done');
@@ -474,8 +478,8 @@
                 if (selectedTask) {
                     const assignedMemberDiv = selectedTask.querySelector('.assigned-member');
                     assignedMemberDiv.innerHTML = `
-                        <span>عضو1</span>
-                        <img src="https://via.placeholder.com/20" alt="صورة العضو">
+                        <span>${employeeData.name}</span>
+                        <img src="${employeeData.photo}" alt="صورة العضو">
                     `;
                 }
             });
@@ -508,4 +512,4 @@
         });
     </script>
 @endsection
-    
+
