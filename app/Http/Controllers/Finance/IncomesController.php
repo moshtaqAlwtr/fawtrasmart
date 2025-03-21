@@ -91,8 +91,31 @@ class IncomesController extends Controller
     // حساب الرقم التلقائي
     $lastCode = Receipt::max('code'); // نفترض أن الحقل في الجدول يسمى 'code'
     $nextCode = $lastCode ? $lastCode + 1 : 1; // إذا لم يكن هناك أي سجلات، نبدأ من 1
+  $MainTreasury = null;
+        $user = Auth::user();
 
-    return view('finance.incomes.create', compact('incomes_categories','account_storage', 'treas', 'accounts', 'nextCode'));
+        if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
+        if (!$MainTreasury) {
+            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+        }
+
+    return view('finance.incomes.create', compact('incomes_categories','account_storage', 'treas', 'accounts', 'nextCode','MainTreasury'));
 }
 public function store(Request $request)
 {
@@ -203,7 +226,17 @@ public function store(Request $request)
             'credit' => $income->amount,
             'is_debit' => false,
         ]);
+         $income_account = Account::find($income->account_id);
 
+  if ($income_account) {
+            $income_account->balance -= $income->amount; // المبلغ الكلي (المبيعات + الضريبة)
+            $income_account->save();
+        }
+
+         if ($MainTreasury) {
+            $MainTreasury->balance += $income->amount; // المبلغ الكلي (المبيعات + الضريبة)
+            $MainTreasury->save();
+        }
         DB::commit();
 
         return redirect()->route('incomes.index')->with('success', 'تم إضافة سند قبض بنجاح!');

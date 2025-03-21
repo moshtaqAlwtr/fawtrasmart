@@ -420,6 +420,16 @@
                                         </span>
                                         <span class="">إضافة إشعار مدين جديد لعملائه فقط</span>
                                     </div>
+
+                                    <div class="vs-checkbox-con vs-checkbox-primary mb-1">
+                                        <input name="Issue_an_invoice_to_a_customer_who_has_a_debt" type="checkbox" class="permission-checkbox-sales permission-main-checkbox sales-checkbox">
+                                        <span class="vs-checkbox">
+                                            <span class="vs-checkbox--check">
+                                                <i class="vs-icon feather icon-check"></i>
+                                            </span>
+                                        </span>
+                                        <span class="">   اضافة فاتورة لعميل لديه مديونية  </span>
+                                    </div>
                                 </div>
 
                                 <!-- العمود الثاني -->
@@ -1267,22 +1277,22 @@
                                             <span class="">عرض عملائه</span>
                                         </div>
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
-                                            <input name="clients_edit_delete_all_clients" type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
+                                            <input name="Edit_Client" type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
                                             <span class="vs-checkbox">
                                                 <span class="vs-checkbox--check">
                                                     <i class="vs-icon feather icon-check"></i>
                                                 </span>
                                             </span>
-                                            <span class="">تعديل وحذف جميع العملاء</span>
+                                            <span class="">تعديل  العملاء </span>
                                         </div>
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
-                                            <input name="clients_edit_delete_own_clients" type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
+                                            <input name="Delete_Client" type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
                                             <span class="vs-checkbox">
                                                 <span class="vs-checkbox--check">
                                                     <i class="vs-icon feather icon-check"></i>
                                                 </span>
                                             </span>
-                                            <span class="">تعديل وحذف عملائه</span>
+                                            <span class="">حذف العملاء</span>
                                         </div>
                                     </div>
 

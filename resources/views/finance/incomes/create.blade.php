@@ -118,13 +118,8 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
-                            <select id="warehouse" class="form-control" name="treasury_id">
-                                <option selected disabled value="1">اختر الخزينة</option>
-                                @foreach ($account_storage as $account  )
-                                    <option value="{{$account->id }}">{{ $account->name }}</option>
-
-                                @endforeach
-                            </select>
+                          <input type="text"   class="form-control" placeholder=" "
+                            value="{{$MainTreasury->name ?? ""}}" readonly>
                         </div>
                     </div>
 

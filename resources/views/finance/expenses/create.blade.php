@@ -130,12 +130,9 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
-                            <select id="warehouse" class="form-control" name="treasury_id">
-                                <option selected disabled value="1">اختر الخزينة </option>
-                                @foreach ($treasury as $trea)
-                                    <option value="{{ $trea->id }}">{{ $trea->name }}</option>
-                                @endforeach
-                            </select>
+                              <input type="text"   class="form-control" placeholder="رقم المعرف"
+                            value="{{$MainTreasury->name ?? ""}}" readonly>
+                        </div>
                         </div>
                     </div>
 

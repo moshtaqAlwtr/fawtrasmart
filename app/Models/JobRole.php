@@ -14,6 +14,9 @@ class JobRole extends Model
     public static $job_roles = [
         'sales_add_invoices',
         'sales_add_own_invoices',
+        'Issue_an_invoice_to_a_customer_who_has_a_debt',
+        'Edit_Client',
+        'Delete_Client',
         'sales_edit_delete_all_invoices',
         'sales_edit_delete_own_invoices',
         'sales_view_own_invoices',

@@ -35,6 +35,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\notifications;
 use App\Mail\TestMail;
 use App\Models\Statuses;
+use App\Models\CreditLimit;
+
 
 class ClientController extends Controller
 {
@@ -117,10 +119,31 @@ class ClientController extends Controller
 
         // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
         $users = User::all();
-        $employees = Employee::all();
+       $employees = Employee::all();
 
-        return view('client.index', compact('clients', 'users', 'employees'));
+ $creditLimit = CreditLimit::first();
+        return view('client.index', compact('clients', 'users', 'employees','creditLimit'));
     }
+public function updateCreditLimit(Request $request)
+{
+    $request->validate([
+        'value' => 'required|numeric|min:0',
+    ]);
+
+    // تحديث أو إنشاء الحد الائتماني إذا لم يكن موجودًا
+    $creditLimit = CreditLimit::first(); // يجلب أول حد ائتماني
+    if ($creditLimit) {
+        $creditLimit->value = $request->value;
+        $creditLimit->save();
+    } else {
+        CreditLimit::create([
+            'value' => $request->value,
+        ]);
+    }
+
+    return redirect()->back()->with('success', 'تم تحديث الحد الائتماني بنجاح!');
+}
+
 
     public function create()
     {
@@ -210,7 +233,7 @@ class ClientController extends Controller
             $customerAccount = new Account();
             $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
             $customerAccount->client_id = $client->id;
-
+            $customerAccount->balance   = $client->opening_balance ?? 0;
             // تعيين كود الحساب الفرعي بناءً على كود الحسابات
             $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
             $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
@@ -589,6 +612,13 @@ class ClientController extends Controller
         $client = Client::findOrFail($id);
         $client->opening_balance = $request->opening_balance;
         $client->save();
+        
+        $Account = Account::where('client_id', $id)->first();
+if ($Account) {
+    $Account->balance = $client->opening_balance;
+    $Account->save(); // حفظ التعديل في قاعدة البيانات
+}
+
 
         return response()->json(['success' => true]);
     }

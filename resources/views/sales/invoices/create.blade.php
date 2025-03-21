@@ -7,6 +7,7 @@
 @section('css')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @media (max-width: 767.98px) {
             #items-table {
@@ -669,10 +670,21 @@
         </form>
     </div>
     </div>
+    @if(session('error'))
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'تنبيه!',
+            text: '{{ session("error") }}',
+            confirmButtonText: 'حسناً'
+        });
+    </script>
+@endif
+
 @endsection
 @section('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   
     <script src="{{ asset('assets/js/invoice.js') }}"></script>
     <script>
         document.querySelectorAll('.toggle-check').forEach((checkbox) => {
@@ -754,5 +766,6 @@
 });
 
     </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @endsection

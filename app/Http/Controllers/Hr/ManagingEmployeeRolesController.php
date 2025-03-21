@@ -38,7 +38,7 @@ class ManagingEmployeeRolesController extends Controller
 
     public function store(Request $request)
     {
-        try {
+        // try {
             DB::beginTransaction();
             $role = new JobRole();
             $role->role_name = $request->role_name;
@@ -73,12 +73,12 @@ ModelsLog::create([
             return redirect()
                 ->route('managing_employee_roles.index')
                 ->with(['success' => 'تم اضافه دور وظيفي بنجاج !!']);
-        } catch (\Exception $exception) {
+        // } catch (\Exception $exception) {
             DB::rollBack();
             return redirect()
                 ->route('managing_employee_roles.index')
                 ->with(['error' => $exception->getMessage()]);
-        }
+        // }
     }
 
     public function edit($id)
