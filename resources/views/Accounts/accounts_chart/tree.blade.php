@@ -66,9 +66,6 @@
             padding-right: 20px;
         }
 
-        /* #jstree li a .jstree-icon {
-            margin-left: 5px;
-        } */
         .profile-picture-header {
             width: 40px;
             height: 40px;
@@ -83,23 +80,45 @@
         }
 
         table {
-            width: 100%; /* جعل الجدول يأخذ العرض الكامل */
-            border-collapse: collapse; /* تجنب التباعد بين الخلايا */
+            width: 100%;
+            border-collapse: collapse;
         }
+        .search-results-dropdown {
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-result-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.search-result-item:hover {
+    background: #f8f9fa;
+}
 
         .table-container {
-            max-height: 400px; /* تحديد ارتفاع الحاوية */
-          overflow-y: auto; /* إضافة شريط التمرير */
-         border: 1px solid #ddd; /* إضافة حدود للحاوية */
-         border-radius: 5px; /* تقريب الزوايا */
-         margin-bottom: 20px; /* تباعد من الأسفل */
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
+
         table th,
-table td {
-    padding: 12px; /* زيادة التباعد داخل الخلايا */
-    text-align: right; /* محاذاة النص لليمين */
-    border-bottom: 1px solid #ddd; /* إضافة حدود بين الصفوف */
-}
+        table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #ddd;
+        }
 
         #table-body tr {
             cursor: pointer;
@@ -108,49 +127,50 @@ table td {
         #table-body tr:hover {
             background-color: #f0f8ff;
         }
+
         #tree {
-    max-height: 400px; /* تحديد ارتفاع الشجرة */
-    overflow-y: auto; /* إضافة شريط التمرير */
-    padding: 10px; /* تباعد داخلي */
-    border: 1px solid #ddd; /* إضافة حدود */
-    border-radius: 5px; /* تقريب الزوايا */
-    background-color: #f8f9fa; /* لون خلفية */
-}
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
 
-.jstree-node {
-    margin-bottom: 5px; /* تباعد بين العقد */
-}
+        .jstree-node {
+            margin-bottom: 5px;
+        }
 
-.jstree-anchor {
-    font-size: 14px; /* حجم الخط */
-    color: #333; /* لون النص */
-}
+        .jstree-anchor {
+            font-size: 14px;
+            color: #333;
+        }
 
-.jstree-anchor:hover {
-    color: #7367F0; /* لون النص عند التمرير */
-}
+        .jstree-anchor:hover {
+            color: #7367F0;
+        }
 
-.jstree-icon {
-    margin-left: 5px; /* تباعد بين الأيقونة والنص */
-}
-body {
-    font-family: 'Cairo', sans-serif; /* استخدام خط Cairo */
-    direction: rtl; /* النص من اليمين لليسار */
-}
+        .jstree-icon {
+            margin-left: 5px;
+        }
 
-.card {
-    border-radius: 10px; /* تقريب زوايا الكارت */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* إضافة ظل */
-}
+        body {
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+        }
 
-.modal-content {
-    border-radius: 10px; /* تقريب زوايا المودال */
-}
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-.btn {
-    border-radius: 5px; /* تقريب زوايا الأزرار */
-}
+        .modal-content {
+            border-radius: 10px;
+        }
 
+        .btn {
+            border-radius: 5px;
+        }
     </style>
 
 </head>
@@ -203,22 +223,33 @@ body {
                         <div class="chat-fixed-search" style="position: absolute">
                             <div class="d-flex align-items-center">
                                 <fieldset class="form-group position-relative has-icon-left mx-1 my-0 w-50">
-                                    <input type="text" class="form-control" placeholder="بحث">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="بحث بالاسم أو الكود" onkeyup="performSearch(this.value, $('#branchFilter').val())">
                                     <div class="form-control-position">
                                         <i class="feather icon-search"></i>
                                     </div>
                                 </fieldset>
+
                                 <fieldset class="form-group position-relative mx-1 my-0 w-50">
-                                    <select name="" class="form-control select2" id="">
+                                    <select name="branchFilter" id="branchFilter" class="form-control select2" onchange="performSearch($('#searchInput').val(), this.value)">
                                         <option value="all">كل الفروع</option>
-                                        <option value="online">Online</option>
-                                        <option value="offline">Offline</option>
-                                        <option value="away">Away</option>
-                                        <option value="busy">Busy</option>
+                                        @foreach ($branches as $branch)
+                                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                        @endforeach
                                     </select>
                                 </fieldset>
+
+                                <div id="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="sr-only">جار التحميل...</span>
+                                    </div>
+                                </div>
                             </div>
+
+                            <!-- `div` لعرض النتائج -->
+                            <div id="search-results-dropdown" class="search-results-dropdown"></div>
                         </div>
+
+
                         <div id="users-list" class="list-group position-relative" style="margin-top: 5rem">
                             <!-- 3 setup a container element -->
                             <div id="tree"></div>
@@ -246,10 +277,10 @@ body {
                                             <fieldset class="form-group position-relative  mx-1 my-0 w-50">
                                                 <select name="" class="form-control select2" id="">
                                                     <option value="all">كل الفروع</option>
-                                                    <option value="online">Online</option>
-                                                    <option value="offline">Offline</option>
-                                                    <option value="away">Away</option>
-                                                    <option value="busy">Busy</option>
+                                                    @foreach ($branches as $branch)
+                                                        <option value="{{ $branch->id }}">{{ $branch->name }}
+                                                        </option>
+                                                    @endforeach
                                                 </select>
                                             </fieldset>
                                         </div>
@@ -265,12 +296,6 @@ body {
                                         <div class="content-right">
                                             <div class="content-wrapper">
                                                 <div class="content-body">
-                                                    <div id="loading-spinner" style="display: none;">
-                                                        <div class="spinner-border text-primary" role="status">
-                                                            <span class="sr-only">جار التحميل...</span>
-                                                        </div>
-                                                    </div>
-
                                                     <!-- مكان عرض البيانات -->
                                                     <div id="table-container"></div>
                                                 </div>
@@ -548,49 +573,49 @@ body {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    $(document).ready(function() {
-    $('#tree').jstree({
-        'core': {
-            'themes': {
-                'rtl': true,
-                'icons': true
-            },
-            'data': {
-                'url': '/accounts/tree',
-                'dataType': 'json'
-            }
-        }
-    });
-
-    $('#tree').on('select_node.jstree', function(e, data) {
-        const nodeId = data.node.id;
-        const node = data.node;
-
-        if (node.children.length === 0) {
-            $('#loading-spinner').show();
-            $('#table-container').hide();
-
-            $.ajax({
-                url: `/Accounts/accounts_chart/testone/${nodeId}`,
-                type: 'GET',
-                success: function(response) {
-                    $('#loading-spinner').hide();
-                    $('#table-container').html(response).show();
-                },
-                error: function() {
-                    Swal.fire({
-                        title: 'خطأ!',
-                        text: 'حدث خطأ أثناء جلب البيانات.',
-                        icon: 'error',
-                    });
-                    $('#loading-spinner').hide();
+        $(document).ready(function() {
+            $('#tree').jstree({
+                'core': {
+                    'themes': {
+                        'rtl': true,
+                        'icons': true
+                    },
+                    'data': {
+                        'url': '/accounts/tree',
+                        'dataType': 'json'
+                    }
                 }
             });
-        } else {
-            $('#table-container').hide();
-        }
-    });
-});
+
+            $('#tree').on('select_node.jstree', function(e, data) {
+                const nodeId = data.node.id;
+                const node = data.node;
+
+                if (node.children.length === 0) {
+                    $('#loading-spinner').show();
+                    $('#table-container').hide();
+
+                    $.ajax({
+                        url: `/Accounts/accounts_chart/testone/${nodeId}`,
+                        type: 'GET',
+                        success: function(response) {
+                            $('#loading-spinner').hide();
+                            $('#table-container').html(response).show();
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'خطأ!',
+                                text: 'حدث خطأ أثناء جلب البيانات.',
+                                icon: 'error',
+                            });
+                            $('#loading-spinner').hide();
+                        }
+                    });
+                } else {
+                    $('#table-container').hide();
+                }
+            });
+        });
 
         $(document).ready(function() {
             // جلب الآباء عند تحميل الصفحة
@@ -1075,35 +1100,35 @@ body {
                 }
             });
         });
-
     </script>
     <script>
-$(document).ready(function() {
-    // جلب القيود عند تحديد فرع من الشجرة
-    $('#tree').on('select_node.jstree', function(e, data) {
-        const nodeId = data.node.id; // ID العقدة المحددة
-        const node = data.node;
+        $(document).ready(function() {
+            // جلب القيود عند تحديد فرع من الشجرة
+            $('#tree').on('select_node.jstree', function(e, data) {
+                const nodeId = data.node.id; // ID العقدة المحددة
+                const node = data.node;
 
-        // التحقق مما إذا كان الحساب لديه أبناء (آخر جذر)
-        if (node.children.length === 0) {
-            // إظهار مؤشر التحميل
-            $('#loading-spinner').show();
-            $('#table-container').hide();
+                // التحقق مما إذا كان الحساب لديه أبناء (آخر جذر)
+                if (node.children.length === 0) {
+                    // إظهار مؤشر التحميل
+                    $('#loading-spinner').show();
+                    $('#table-container').hide();
 
-            // جلب القيود المرتبطة بالحساب
-            $.ajax({
-                url: `/Accounts/accounts_chart/${nodeId}/journal-entries`, // رابط API لجلب القيود
-                type: 'GET',
-                success: function(response) {
-                    const tableBody = $('#table-body');
-                    tableBody.empty(); // تفريغ الجدول
+                    // جلب القيود المرتبطة بالحساب
+                    $.ajax({
+                        url: `/Accounts/accounts_chart/${nodeId}/journal-entries`, // رابط API لجلب القيود
+                        type: 'GET',
+                        success: function(response) {
+                            const tableBody = $('#table-body');
+                            tableBody.empty(); // تفريغ الجدول
 
-                    if (response.length > 0) {
-                        response.forEach(entry => {
-                            // إنشاء الرابط بشكل ديناميكي
-                            const showUrl = `/ar/Accounts/journal/show/${entry.id}`;
+                            if (response.length > 0) {
+                                response.forEach(entry => {
+                                    // إنشاء الرابط بشكل ديناميكي
+                                    const showUrl =
+                                        `/ar/Accounts/journal/show/${entry.id}`;
 
-                            tableBody.append(`
+                                    tableBody.append(`
                                 <tr>
                                     <td>${entry.account.name} (${entry.account.code})</td>
                                     <td>${entry.description}</td>
@@ -1115,35 +1140,183 @@ $(document).ready(function() {
                                     </td>
                                 </tr>
                             `);
-                        });
-                    } else {
-                        tableBody.append('<tr><td colspan="4">لا توجد قيود لهذا الحساب.</td></tr>');
-                    }
+                                });
+                            } else {
+                                tableBody.append(
+                                    '<tr><td colspan="4">لا توجد قيود لهذا الحساب.</td></tr>'
+                                );
+                            }
 
-                    // إخفاء مؤشر التحميل وإظهار الجدول
-                    $('#loading-spinner').hide();
-                    $('#table-container').show();
-                },
-                error: function() {
-                    Swal.fire({
-                        title: 'خطأ!',
-                        text: 'حدث خطأ أثناء جلب القيود.',
-                        icon: 'error',
+                            // إخفاء مؤشر التحميل وإظهار الجدول
+                            $('#loading-spinner').hide();
+                            $('#table-container').show();
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'خطأ!',
+                                text: 'حدث خطأ أثناء جلب القيود.',
+                                icon: 'error',
+                            });
+
+                            // إخفاء مؤشر التحميل في حالة الخطأ
+                            $('#loading-spinner').hide();
+                        }
                     });
-
-                    // إخفاء مؤشر التحميل في حالة الخطأ
-                    $('#loading-spinner').hide();
+                } else {
+                    // إخفاء الجدول إذا كان الحساب لديه أبناء
+                    $('#table-container').hide();
                 }
             });
+        });
+
+        $(document).ready(function() {
+    // إرسال النموذج تلقائيًا عند تغيير البحث
+    $('#searchInput').on('keyup', function() {
+        const searchText = $(this).val().trim();
+        const branchId = $('#branchFilter').val();
+
+        if (searchText.length >= 2 || branchId !== 'all') {
+            performSearch(searchText, branchId);
         } else {
-            // إخفاء الجدول إذا كان الحساب لديه أبناء
-            $('#table-container').hide();
+            // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
+            loadInitialData();
         }
     });
+
+    // حدث تغيير الفرع
+    $('#branchFilter').on('change', function() {
+        const searchText = $('#searchInput').val().trim();
+        const branchId = $(this).val();
+
+        if (searchText.length >= 2 || branchId !== 'all') {
+            performSearch(searchText, branchId);
+        } else {
+            // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
+            loadInitialData();
+        }
+    });
+
+
+    // دالة لتنفيذ البحث
+    $(document).ready(function() {
+    // إرسال النموذج تلقائيًا عند تغيير البحث
+    $('#searchInput, #branchFilter').on('keyup change', function() {
+        const searchText = $('#searchInput').val().trim();
+        const branchId = $('#branchFilter').val();
+
+        if (searchText.length >= 2 || branchId !== 'all') {
+            performSearch(searchText, branchId);
+        } else {
+            // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
+            loadInitialData();
+        }
+    });
+
+    // دالة لتنفيذ البحث
+    function performSearch(searchText, branchId) {
+    $('#loading-spinner').show();
+    $('#results-container').hide();
+
+    console.log("Searching for:", searchText, "in branch:", branchId);
+
+    $.ajax({
+        url: '/accounts/search',
+        type: 'GET',
+        data: {
+            search: searchText,
+            branch_id: branchId
+        },
+        success: function(response) {
+            console.log("Response:", response);
+            const resultsContainer = $('#results-container');
+            resultsContainer.empty();
+
+            if (response.length > 0) {
+                response.forEach(account => {
+                    resultsContainer.append(`
+                        <div class="search-result-item">
+                            <strong>${account.name}</strong> - <span class="text-muted">${account.code}</span>
+                        </div>
+                    `);
+                });
+            } else {
+                resultsContainer.append('<div class="text-center text-muted">لا توجد نتائج مطابقة.</div>');
+            }
+
+            $('#loading-spinner').hide();
+            resultsContainer.show();
+        },
+        error: function() {
+            Swal.fire({
+                title: 'خطأ!',
+                text: 'حدث خطأ أثناء البحث.',
+                icon: 'error',
+            });
+            $('#loading-spinner').hide();
+        }
+    });
+}
+
+
+    // دالة لتحميل البيانات الأصلية
+    function loadInitialData() {
+        // إظهار أيقونة التحميل
+        $('#loading-spinner').show();
+        $('#table-container').hide();
+
+        $.ajax({
+            url: '/accounts/parents', // رابط لجلب الحسابات الرئيسية
+            type: 'GET',
+            success: function(parents) {
+                const tableBody = $('#table-body');
+                tableBody.empty(); // تفريغ الجدول
+
+                parents.forEach(parent => {
+                    tableBody.append(`
+                        <tr data-node-id="${parent.id}" class="table-active">
+                            <td style="width: 3%">
+                                <i class="feather icon-folder" style="font-size: 30px"></i>
+                            </td>
+                            <td>
+                                <strong>${parent.name}</strong><br>
+                                <small>${parent.code} #</small>
+                            </td>
+                            <td style="width: 5%">
+                                <strong>${parent.balance}</strong><br>
+                                <small>${parent.balance_type === 'debit' ? 'مدين' : 'دائن'}</small>
+                            </td>
+                            <td style="width: 10%">
+                                <div class="operation">
+                                    <a id="edit" href="#" class="edit-button"><i class="fa fa-edit mr-1"></i></a>
+                                    <a id="delete" href="#" class="text-danger" onclick="confirmDelete('${parent.id}')">
+                                        <i class="fa fa-trash mr-1"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                // إخفاء أيقونة التحميل وإظهار الجدول
+                $('#loading-spinner').hide();
+                $('#table-container').show();
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'خطأ!',
+                    text: 'حدث خطأ أثناء جلب البيانات.',
+                    icon: 'error',
+                });
+
+                // إخفاء أيقونة التحميل في حالة الخطأ
+                $('#loading-spinner').hide();
+            }
+        });
+    }
+});  // دالة لتحميل البيانات الأصلية
+
 });
-
-
-        </script>
+    </script>
 
 </body>
 <!-- END: Body-->

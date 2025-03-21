@@ -938,4 +938,28 @@ if ($Account) {
 
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
+    public function updateStatusClient(Request $request)
+{
+    $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'status_id' => 'required|exists:statuses,id',
+    ]);
+
+    // البحث عن سجل العميل في جدول الحالات
+    $status = Statuses::where('client_id', $request->client_id)->first();
+
+    if ($status) {
+        // تحديث الحالة القديمة
+        $status->update(['status_id' => $request->status_id]);
+    } else {
+        // إضافة حالة جديدة إذا لم تكن موجودة
+        Statuses::create([
+            'client_id' => $request->client_id,
+            'status_id' => $request->status_id
+        ]);
+    }
+
+    return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
+}
+
 }
