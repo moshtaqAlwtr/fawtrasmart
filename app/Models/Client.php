@@ -225,4 +225,8 @@ public function branch()
 {
     return $this->hasManyThrough(PaymentsProcess::class, Invoice::class);
 }
+public function locations()
+{
+    return $this->hasMany(Location::class);
+}
 }
