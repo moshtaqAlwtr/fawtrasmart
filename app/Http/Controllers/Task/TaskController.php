@@ -14,3 +14,4 @@ class TaskController extends Controller
         return view('task.index', compact('employees'));
     }
 }
+// تاتي هذه الدالة لتعرض جميع الموظفين في الصفحة الرئيسية للوحة التحكم
