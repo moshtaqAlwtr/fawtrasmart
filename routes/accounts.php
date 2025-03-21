@@ -78,9 +78,10 @@ Route::group(
                     Route::get('/testone/{accountId}', [AccountsChartController::class, 'testone'])->name('accounts_chart.testone');
                     Route::get('/getJournalEntries/{accountId}/journal-entries', [AccountsChartController::class, 'getJournalEntries'])->name('accounts_chart.getJournalEntries');
                     Route::get('/accounts/{accountId}/balance', [AccountsChartController::class, 'getAccountWithBalance']);
-                    
+                    Route::get('/accounts/search', [AccountsChartController::class, 'search'])->name('accounts_chart.search');
                     Route::delete('/destroy/{id}', [AccountsChartController::class, 'destroy'])->name('accounts_chart.destroy');
-                    Route::get('/showDetails/{id}', [AccountsChartController::class, 'showDetails'])->name('accounts_chart.showDetails');                    Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts_chart.details');
+                    Route::get('/showDetails/{id}', [AccountsChartController::class, 'showDetails'])->name('accounts_chart.showDetails');
+                                        Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts_chart.details');
                     Route::post('/store', [AccountsChartController::class, 'store_account'])->name('accounts_chart.store_account');
                 });
 

@@ -20,6 +20,7 @@ class CreateStatusesTable extends Migration
 
              // Foreign key linking to orders table
              $table->foreignId('supply_order_id')->nullable()->constrained('supply_orders')->onDelete('set null');
+             $table->foreignId('client_id')->nullable()->constrained('clients')->onDelete('set null');
             $table->timestamps(); // Created at and updated at timestamps
         });
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Accounts;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use App\Models\Log as ModelsLog;
 use App\Models\ChartOfAccount;
@@ -159,15 +160,55 @@ class AccountsChartController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        // $accounts = Account::with('children')->whereNull('parent_id')->get();
-        // $accounts = Account::with('children')->get();
-        $accounts = Account::with(['children', 'journalEntries'])->get();
-       
-        // $journalEntries = JournalEntryDetail::where('account_id', $id)->get();
-        return view('accounts.accounts_chart.tree', compact('accounts'));
+        $searchText = $request->input('search');
+        $branchId = $request->input('branch');
+
+        $accounts = Account::with(['children', 'journalEntries']);
+
+        // تصفية الحسابات بالبحث
+        if ($searchText) {
+            $accounts->where(function ($query) use ($searchText) {
+                $query->where('name', 'like', '%' . $searchText . '%')
+                      ->orWhere('code', 'like', '%' . $searchText . '%');
+            });
+        }
+
+        // تصفية الحسابات حسب الفرع إذا تم اختياره
+        if ($branchId && $branchId !== 'all') {
+            $accounts->where('branch_id', $branchId);
+        }
+
+        $accounts = $accounts->get();
+        $branches = Branch::all();
+
+        return view('accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
     }
+
+    public function search(Request $request)
+{
+    $searchText = $request->input('search');
+    $branchId = $request->input('branch_id');
+
+    $query = Account::query();
+
+    if ($searchText) {
+        $query->where(function ($q) use ($searchText) {
+            $q->where('name', 'like', '%' . $searchText . '%')
+              ->orWhere('code', 'like', '%' . $searchText . '%');
+        });
+    }
+
+    if ($branchId !== 'all') {
+        $query->where('branch_id', $branchId);
+    }
+
+    $results = $query->get();
+
+    return response()->json($results);
+}
+
     public function getAccountWithBalance($accountId)
 {
     // جلب الحساب مع الفروع الفرعية
@@ -201,20 +242,20 @@ private function calculateTotalBalance($account)
         $journalEntries = JournalEntryDetail::where('account_id', $accountId)
             ->with('account')
             ->get();
-    
+
         return response()->json($journalEntries);
     }
     public function testone($accountId)
     {
-        
+
         $journalEntries = JournalEntryDetail::where('account_id', $accountId)
         ->with('account')
         ->get();
 
-       
+
 
         return view('accounts.accounts_chart.tree_details', compact('journalEntries'));
-    
+
     }
     public function store_account(Request $request)
     {

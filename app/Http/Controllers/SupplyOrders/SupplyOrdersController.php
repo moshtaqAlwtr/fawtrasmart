@@ -283,40 +283,50 @@ class SupplyOrdersController extends Controller
 
 
     /******  f231f3e4-6f6f-43f5-9bef-d91e01b979a8  *******/
-    public function storeStatus(Request $request)
+    public function edit_status()
     {
-        // التحقق من صحة البيانات المدخلة
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'color' => 'required|string|max:255',
-            'state' => 'required|in:open,closed',
-            'client_id' => 'nullable|exists:clients,id', // إذا كان client_id موجودًا، تأكد من وجوده في جدول clients
-            'supply_order_id' => 'nullable|exists:supply_orders,id', // إذا كان supply_order_id موجودًا، تأكد من وجوده في جدول supply_orders
-        ]);
+$statuses = Statuses::all();
+        return view('supplyOrders.edit_status', compact('statuses'));
+    }
+    public function storeStatus(Request $request)
+{
+    // التحقق من صحة البيانات المدخلة
+    $validator = Validator::make($request->all(), [
+        'statuses.*.name' => 'required|string|max:255',
+        'statuses.*.color' => 'required|string|max:255',
+        'statuses.*.state' => 'required|in:open,closed',
+    ]);
 
-        // إذا فشل التحقق، قم بإرجاع الأخطاء
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors(),
-            ], 422);
+    // عرض القيم المدخلة لاختبار صحة البيانات
+
+    // إذا فشل التحقق، قم بإرجاع الأخطاء
+    if ($validator->fails()) {
+// عرض الأخطاء بوضوح
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput();
+    }
+
+    try {
+        // إنشاء أو تحديث الحالات
+        foreach ($request->input('statuses') as $statusId => $statusData) {
+            Statuses::updateOrCreate(
+                ['id' => is_numeric($statusId) ? $statusId : null],
+                [
+                    'name' => $statusData['name'],
+                    'color' => $statusData['color'],
+                    'state' => $statusData['state'] === 'open' ? 1 : 0, // تحويل النص إلى رقم
+                ]
+            );
         }
 
-        // إنشاء حالة جديدة
-        $status = Statuses::create([
-            'name' => $request->input('name'),
-            'color' => $request->input('color'),
-            'state' => $request->input('state'),
-            'client_id' => $request->input('client_id'), // إذا كان client_id موجودًا
-            'supply_order_id' => $request->input('supply_order_id'), // إذا كان supply_order_id موجودًا
-        ]);
-
         // إرجاع رسالة نجاح
-        return response()->json([
-            'success' => true,
-            'message' => 'تم إنشاء الحالة بنجاح',
-            'data' => $status,
-        ], 201);
+        return redirect()->back()->with('success', 'تم إنشاء/تحديث الحالات بنجاح');
+    } catch (\Exception $e) {
+        return redirect()->back()
+            ->with('error', 'حدث خطأ أثناء حفظ الحالات: ' . $e->getMessage())
+            ->withInput();
     }
+}
+
 }
