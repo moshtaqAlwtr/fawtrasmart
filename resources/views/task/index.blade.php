@@ -1,9 +1,27 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مهام</title>
+@extends('master')
+
+@section('title')
+    أدارة المهام
+@stop
+
+@section('content')
+<div class="fs-5">
+    <div class="fs-5">
+        <div class="content-header row">
+            <div class="content-header-left col-md-9 col-12 mb-2">
+                <div class="row breadcrumbs-top">
+                    <div class="col-12">
+                        <h2 class="content-header-title float-left mb-0"> أدارة المهام</h2>
+                        <div class="breadcrumb-wrapper col-12">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
+                                <li class="breadcrumb-item active">عرض</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     <!-- إضافة مكتبة Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -267,8 +285,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
     </style>
-</head>
-<body>
+
     <div class="header">
         إدارة المهام
     </div>
@@ -490,5 +507,4 @@
             document.getElementById('invite-email').value = '';
         });
     </script>
-</body>
-</html>
+@endsection
