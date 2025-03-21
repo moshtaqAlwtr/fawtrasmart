@@ -30,5 +30,12 @@ class StoreHouse extends Model
     {
         return $this->hasMany(WarehousePermits::class, 'store_houses_id');
     }
-
+public function products()
+{
+    return $this->belongsToMany(Product::class, 'product_details', 'store_houses_id', 'product_id');
+}
+public function categories()
+{
+    return $this->belongsToMany(Category::class, 'product_details', 'store_houses_id', 'category_id');
+}
 }

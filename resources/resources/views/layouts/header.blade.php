@@ -15,6 +15,7 @@
                         <li class="nav-item d-none d-lg-block"><a class="nav-link" href="app-chat.html" data-toggle="tooltip" data-placement="top" title="Chat"><i class="ficon feather icon-message-square"></i></a></li>
                         <li class="nav-item d-none d-lg-block"><a class="nav-link" href="app-email.html" data-toggle="tooltip" data-placement="top" title="Email"><i class="ficon feather icon-mail"></i></a></li>
                         <li class="nav-item d-none d-lg-block"><a class="nav-link" href="app-calender.html" data-toggle="tooltip" data-placement="top" title="Calendar"><i class="ficon feather icon-calendar"></i></a></li>
+                        <li class="nav-item d-none d-lg-block"><a class="nav-link" href="app-tasks.html" data-toggle="tooltip" data-placement="top" title="Tasks"><i class="ficon feather icon-list"></i></a></li>
                     </ul>
                     <ul class="nav navbar-nav">
                         <li class="nav-item d-none d-lg-block"><a class="nav-link bookmark-star"><i class="ficon feather icon-star warning"></i></a>
@@ -138,7 +139,7 @@
                             </li>
                         </ul>
                     </li>
-                    
+
                     <script>
                        $(document).ready(function () {
     function fetchNotifications() {
@@ -157,8 +158,8 @@
                 if (count > 0) {
                     notifications.forEach(notification => {
                         let listItem = `
-                            <a class="d-flex justify-content-between notification-item" 
-                                href="javascript:void(0)" 
+                            <a class="d-flex justify-content-between notification-item"
+                                href="javascript:void(0)"
                                 data-id="${notification.id}">
                                 <div class="media d-flex align-items-start">
                                     <div class="media-left">
@@ -188,7 +189,7 @@
     // تحديث الإشعار عند النقر عليه
     $(document).on('click', '.notification-item', function () {
         let notificationId = $(this).data('id');
-        
+
         $.ajax({
             url: "{{ route('notifications.markAsRead') }}", // استدعاء API التحديث
             method: "POST",
@@ -204,13 +205,13 @@
 });
 
                     </script>
-                    
+
                     <li class="dropdown dropdown-user nav-item">
                         <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown" aria-expanded="false">
                             <div class="user-nav d-sm-flex d-none">
                                 <span class="user-name text-bold-600">{{ auth()->user()->name ?? "" }}</span>
                                 <span class="user-status">
-                                    متصل 
+                                    متصل
                                     @if(auth()->user()->branch_id)
                                         - {{ auth()->user()->currentBranch()->name ?? 'بدون فرع' }}
                                     @endif
@@ -224,16 +225,16 @@
                             </span>
                             <i class="feather icon-chevron-down"></i> <!-- 🔽 رمز الدروب داون -->
                         </a>
-                    
+
                         <div class="dropdown-menu dropdown-menu-right">
-                    
+
                             <div class="dropdown-divider"></div>
-                    
+
                             <!-- 🔹 قائمة الفروع (إذا لم يكن الموظف) -->
                             @if(auth()->user()->role !== 'employee')
                                 <span class="dropdown-item font-weight-bold">🔹 الفروع:</span>
                                 @foreach(App\Models\Branch::all() as $branch)
-                                    <a class="dropdown-item branch-item {{ auth()->user()->branch_id == $branch->id ? 'active' : '' }}" 
+                                    <a class="dropdown-item branch-item {{ auth()->user()->branch_id == $branch->id ? 'active' : '' }}"
                                        href="{{ route('branch.switch', $branch->id) }}">
                                         <i class="feather icon-map-pin"></i> {{ $branch->name }}
                                         @if(auth()->user()->branch_id == $branch->id)
@@ -242,9 +243,9 @@
                                     </a>
                                 @endforeach
                             @endif
-                    
+
                             <div class="dropdown-divider"></div>
-                    
+
                             <!-- زر تسجيل الخروج -->
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf
@@ -252,8 +253,8 @@
                             </form>
                         </div>
                     </li>
-                    
-                    
+
+
                 </ul>
             </div>
         </div>
