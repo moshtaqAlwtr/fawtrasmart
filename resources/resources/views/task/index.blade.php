@@ -304,10 +304,11 @@
     <div class="board" id="board"></div>
 
     <script>
-           const employeeData = {
-        name: "{{ $employee->employee_name }}",
-        photo: "{{ $employee->employee_photo ? asset('assets/uploads/employee/' . $employee->employee_photo) : asset('assets/uploads/no_image.jpg') }}"
-    };
+        const employees = [
+            { name: "عضو1", photo: "path/to/employee1.jpg" },
+            { name: "عضو2", photo: "path/to/employee2.jpg" }
+        ];
+
         document.getElementById('show-list-input').addEventListener('click', function() {
             document.getElementById('list-input-container').style.display = 'block';
         });
@@ -342,8 +343,9 @@
                     <input type="date" class="end-date" placeholder="إلى">
                     <select class="assigned-member-select">
                         <option value="">اختر الموظف المكلف</option>
-                        <option value="عضو1">عضو1</option>
-                        <option value="عضو2">عضو2</option>
+                        ${employees.map(employee => `
+                            <option value="${employee.name}" data-photo="${employee.photo}">${employee.name}</option>
+                        `).join('')}
                     </select>
                     <button class="confirm-add-card">إضافة</button>
                     <button class="cancel-add-card">إلغاء</button>
@@ -373,20 +375,22 @@
                 const cardTitle = list.querySelector('.card-title').value.trim();
                 const startDate = list.querySelector('.start-date').value;
                 const endDate = list.querySelector('.end-date').value;
-                const assignedMember = list.querySelector('.assigned-member-select').value;
-                if (!cardTitle || !startDate || !endDate || !assignedMember) return;
+                const assignedMemberSelect = list.querySelector('.assigned-member-select');
+                const assignedMemberName = assignedMemberSelect.value;
+                const assignedMemberPhoto = assignedMemberSelect.options[assignedMemberSelect.selectedIndex].getAttribute('data-photo');
+
+                if (!cardTitle || !startDate || !endDate || !assignedMemberName) return;
 
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
-                 <div class="card-header">
-    <div class="card-title">${cardTitle}</div>
-    <div class="assigned-member">
-        <img src="${employeeData.photo}" alt="صورة العضو">
-        <span>${employeeData.name}</span> <!-- تصحيح استدعاء الاسم -->
-    </div>
-</div>
-
+                    <div class="card-header">
+                        <div class="card-title">${cardTitle}</div>
+                        <div class="assigned-member">
+                            <img src="${assignedMemberPhoto}" alt="صورة العضو">
+                            <span>${assignedMemberName}</span>
+                        </div>
+                    </div>
                     <div class="card-details">
                         <i class="fas fa-calendar-alt"></i>
                         <span>من: ${startDate}</span>
@@ -439,6 +443,9 @@
                             task.classList.remove('task-done');
                         }
                     });
+
+                    // إظهار رسالة تأكيد
+                    alert('تمت إضافة المهمة بنجاح');
                 });
             });
 
@@ -510,7 +517,9 @@
             console.log(`تم إرسال دعوة إلى: ${inviteEmail}`);
             document.getElementById('invite-modal').style.display = 'none';
             document.getElementById('invite-email').value = '';
+
+            // إظهار رسالة تأكيد
+            alert('تم إرسال الدعوة بنجاح');
         });
     </script>
 @endsection
-
