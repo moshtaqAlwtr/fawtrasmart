@@ -192,6 +192,24 @@
 @endsection
 
 
+
 @section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        function exportToExcel() {
+            // تحديد الجدول الذي تريد تصديره
+            const table = document.querySelector('.table-striped');
+
+            // تحويل الجدول إلى ورقة عمل (worksheet)
+            const worksheet = XLSX.utils.table_to_sheet(table);
+
+            // إنشاء مصنف (workbook) وإضافة الورقة العمل إليه
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+            // تصدير الملف كـ Excel
+            XLSX.writeFile(workbook, 'ملخص_عمليات_المخزون.xlsx');
+        }
+    </script>
 @endsection
-a
+
