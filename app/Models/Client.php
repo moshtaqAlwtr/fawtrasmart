@@ -229,4 +229,5 @@ public function locations()
 {
     return $this->hasMany(Location::class);
 }
+
 }

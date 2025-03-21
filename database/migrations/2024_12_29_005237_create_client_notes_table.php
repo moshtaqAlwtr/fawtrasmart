@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('appointment_notes', function (Blueprint $table) {
+        Schema::create('client_notes', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');

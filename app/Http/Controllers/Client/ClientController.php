@@ -167,101 +167,101 @@ public function updateCreditLimit(Request $request)
     }
 
     public function store(ClientRequest $request)
-{
-    $data_request = $request->except('_token');
+    {
+        $data_request = $request->except('_token');
 
-    // إنشاء العميل
-    $client = new Client();
-
-    // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
-    $serialSetting = SerialSetting::where('section', 'customer')->first();
-
-    // إذا لم يتم العثور على إعدادات، نستخدم 1 كقيمة افتراضية
-    $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
-
-    // تعيين id للعميل الجديد باستخدام الرقم الحالي
-
-    // تعيين الكود للعميل الجديد (إذا كان الكود مطلوبًا أيضًا)
-    $client->code = $currentNumber;
-
-    // تعبئة البيانات الأخرى
-    $client->fill($data_request);
-
-    // معالجة الصورة
-    if ($request->hasFile('attachments')) {
-        $file = $request->file('attachments');
-        if ($file->isValid()) {
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('assets/uploads/'), $filename);
-            $client->attachments = $filename;
+        // تحقق من وجود الإحداثيات
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $latitude = $request->latitude;
+            $longitude = $request->longitude;
+        } else {
+            return redirect()->back()->with('error', 'الإحداثيات غير موجودة');
         }
-    }
 
-    // حفظ العميل
-    $client->save();
+        $client = new Client();
 
-    // تسجيل الإحداثيات إذا كانت موجودة
-    if ($request->latitude && $request->longitude) {
+        // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
+        $serialSetting = SerialSetting::where('section', 'customer')->first();
+        $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
+
+        // تعيين id للعميل الجديد
+        $client->code = $currentNumber;
+        $client->fill($data_request);
+
+        // معالجة الصورة
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $client->attachments = $filename;
+            }
+        }
+
+        // حفظ العميل
+        $client->save();
+
+        // تسجيل الإحداثيات
         $client->locations()->create([
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
         ]);
-    }
 
-    $password = Str::random(10);
-    $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
-    if ($request->email != null) {
-        $user = User::create([
-            'name' => $full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role' => 'client',
-            'client_id' => $client->id,
-            'password' => Hash::make($password),
-        ]);
-    }
-
-    // تسجيل اشعار نظام جديد
-    ModelsLog::create([
-        'type' => 'client',
-        'type_id' => $client->id, // ID النشاط المرتبط
-        'type_log' => 'log', // نوع النشاط
-        'description' => 'تم اضافة  عميل **' . $client->trade_name . '**',
-        'created_by' => auth()->id(), // ID المستخدم الحالي
-    ]);
-
-    // زيادة الرقم الحالي بمقدار 1
-    if ($serialSetting) {
-        $serialSetting->update(['current_number' => $currentNumber + 1]);
-    }
-
-    // إنشاء حساب فرعي باستخدام trade_name
-    $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
-    if ($customers) {
-        $customerAccount = new Account();
-        $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
-        $customerAccount->client_id = $client->id;
-        $customerAccount->balance   = $client->opening_balance ?? 0;
-        // تعيين كود الحساب الفرعي بناءً على كود الحسابات
-        $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-        $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
-        $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
-
-        $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
-        $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
-        $customerAccount->is_active = false;
-        $customerAccount->save();
-    }
-
-    // حفظ جهات الاتصال المرتبطة بالعميل
-    if ($request->has('contacts') && is_array($request->contacts)) {
-        foreach ($request->contacts as $contact) {
-            $client->contacts()->create($contact);
+        // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
+        $password = Str::random(10);
+        $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
+        if ($request->email != null) {
+            User::create([
+                'name' => $full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role' => 'client',
+                'client_id' => $client->id,
+                'password' => Hash::make($password),
+            ]);
         }
-    }
 
-    return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
-}
+        // تسجيل إشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'client',
+            'type_id' => $client->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم إضافة عميل **' . $client->trade_name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
+
+        // زيادة الرقم الحالي بمقدار 1
+        if ($serialSetting) {
+            $serialSetting->update(['current_number' => $currentNumber + 1]);
+        }
+
+        // إنشاء حساب فرعي باستخدام trade_name
+        $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
+        if ($customers) {
+            $customerAccount = new Account();
+            $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
+            $customerAccount->client_id = $client->id;
+            $customerAccount->balance = $client->opening_balance ?? 0;
+            // تعيين كود الحساب الفرعي بناءً على كود الحسابات
+            $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
+            $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
+
+            $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
+            $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
+            $customerAccount->is_active = false;
+            $customerAccount->save();
+        }
+
+        // حفظ جهات الاتصال المرتبطة بالعميل
+        if ($request->has('contacts') && is_array($request->contacts)) {
+            foreach ($request->contacts as $contact) {
+                $client->contacts()->create($contact);
+            }
+        }
+
+        return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
+    }
     public function send_email($id)
     {
         $employee = User::where('client_id', $id)->first();

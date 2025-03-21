@@ -26,6 +26,10 @@
         <form id="clientForm" action="{{ route('clients.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
+            <!-- حقلين مخفيين لتخزين الإحداثيات -->
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul>
@@ -549,5 +553,175 @@
                 console.log(pair[0] + ': ' + pair[1]);
             }
         });
+
+        // دالة
+    // دالة علشان نجيب الإحداثيات
+
+    document.getElementById('clientForm').addEventListener('submit', function(e) {
+        let lat = document.getElementById('latitude').value;
+        let lon = document.getElementById('longitude').value;
+
+        if (!lat || !lon) {
+            e.preventDefault(); // إيقاف الإرسال إذا لم تكن هناك إحداثيات
+            alert("يجب تحديد موقعك قبل إرسال النموذج!");
+            getLocation(); // محاولة جلب الموقع من جديد
+        }
+    });
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+
+                    document.getElementById('latitude').value = latitude;
+                    document.getElementById('longitude').value = longitude;
+
+                    console.log('تم جلب الإحداثيات:', latitude, longitude);
+                    alert('تم تسجيل الموقع بنجاح: ' + latitude + ', ' + longitude);
+                },
+                (error) => {
+                    console.error('حدث خطأ أثناء جلب الموقع:', error);
+                    alert('⚠️ يرجى السماح للمتصفح بالوصول إلى موقعك!');
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        } else {
+            alert("المتصفح لا يدعم تحديد الموقع.");
+        }
+    }
+
+    // اجلب الموقع فور تحميل الصفحة
+    window.onload = getLocation;
+
     </script>
 @endsection
+
+
+
+
+
+
+
+
+
+
+{{--
+
+
+@extends('master')
+
+@section('title')
+    عرض تفاصيل العميل
+@stop
+
+@section('content')
+    <div class="content-header row">
+        <div class="content-header-left col-md-9 col-12 mb-2">
+            <div class="row breadcrumbs-top">
+                <div class="col-12">
+                    <h2 class="content-header-title float-left mb-0">تفاصيل العميل: {{ $client->trade_name }}</h2>
+                    <div class="breadcrumb-wrapper col-12">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('clients.index') }}">الرئيسيه</a></li>
+                            <li class="breadcrumb-item active">عرض تفاصيل العميل</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-body">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title">معلومات العميل</h4>
+            </div>
+            <div class="card-content">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>الاسم التجاري:</strong> {{ $client->trade_name }}</p>
+                            <p><strong>الاسم الأول:</strong> {{ $client->first_name }}</p>
+                            <p><strong>الاسم الأخير:</strong> {{ $client->last_name }}</p>
+                            <p><strong>الهاتف:</strong> {{ $client->phone }}</p>
+                            <p><strong>الجوال:</strong> {{ $client->mobile }}</p>
+                            <p><strong>البريد الإلكتروني:</strong> {{ $client->email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>العنوان:</strong> {{ $client->street1 }}, {{ $client->street2 }}</p>
+                            <p><strong>المدينة:</strong> {{ $client->city }}</p>
+                            <p><strong>المنطقة:</strong> {{ $client->region }}</p>
+                            <p><strong>الرمز البريدي:</strong> {{ $client->postal_code }}</p>
+                            <p><strong>البلد:</strong> {{ $client->country }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>المرفقات</h5>
+                            @if($client->attachments)
+                                <a href="{{ asset('assets/uploads/' . $client->attachments) }}" target="_blank">
+                                    <img src="{{ asset('assets/uploads/' . $client->attachments) }}" alt="Attachment" style="width: 100px; height: auto;">
+                                </a>
+                            @else
+                                <p>لا توجد مرفقات.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>جهات الاتصال</h5>
+                            @if($client->contacts->isNotEmpty())
+                                <ul>
+                                    @foreach($client->contacts as $contact)
+                                        <li>{{ $contact->name }} - {{ $contact->phone }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p>لا توجد جهات اتصال.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h5>الإحداثيات</h5>
+                            @if($client->locations->isNotEmpty())
+                                @foreach($client->locations as $location)
+                                    <p><strong>خط العرض:</strong> {{ $location->latitude }}</p>
+                                    <p><strong>خط الطول:</strong> {{ $location->longitude }}</p>
+                                    <div id="map" style="height: 400px; width: 100%;"></div>
+                                    <script>
+                                        function initMap() {
+                                            const clientLocation = { lat: {{ $location->latitude }}, lng: {{ $location->longitude }} };
+                                            const map = new google.maps.Map(document.getElementById("map"), {
+                                                zoom: 15,
+                                                center: clientLocation,
+                                            });
+                                            new google.maps.Marker({
+                                                position: clientLocation,
+                                                map: map,
+                                                title: "موقع العميل",
+                                            });
+                                        }
+                                    </script>
+                                    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd6qRt4o5zv4V9L2kE2w6bWmV2gK2XVU&callback=initMap"></script>
+                                @endforeach
+                            @else
+                                <p>لا توجد إحداثيات مسجلة.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <a href="{{ route('clients.index') }}" class="btn btn-outline-primary">عودة إلى القائمة</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection --}}
