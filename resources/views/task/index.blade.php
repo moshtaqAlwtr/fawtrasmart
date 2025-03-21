@@ -336,11 +336,13 @@
                     <input type="text" class="card-title" placeholder="عنوان البطاقة">
                     <input type="date" class="start-date" placeholder="من">
                     <input type="date" class="end-date" placeholder="إلى">
-                    <select class="assigned-member-select">
-                        <option value="">اختر الموظف المكلف</option>
-                        <option value="عضو1">عضو1</option>
-                        <option value="عضو2">عضو2</option>
-                    </select>
+                <select class="assigned-member-select">
+    <option value="">اختر الموظف المكلف</option>
+    @foreach($employees as $employee)
+        <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+    @endforeach
+</select>
+
                     <button class="confirm-add-card">إضافة</button>
                     <button class="cancel-add-card">إلغاء</button>
                 </div>
