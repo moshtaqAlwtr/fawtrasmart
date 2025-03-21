@@ -29,6 +29,8 @@ use App\Models\StoreHouse;
 use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
 use App\Models\User;
+use App\Models\CreditLimit;
+
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
 use Illuminate\Http\Request;
@@ -454,6 +456,29 @@ class InvoicesController extends Controller
             }
         }
 
+     $clientAccount = Account::where('client_id', $request->client_id)->first();
+
+  if($payment_status == 3){
+
+            if (
+                ! auth()->user()->hasAnyPermission([
+                     'Issue_an_invoice_to_a_customer_who_has_a_debt',
+                 ])
+             )
+         if ($clientAccount && $clientAccount->balance != 0) {
+             return redirect()->back()->with('error', 'عفوا، لا يمكن إصدار فاتورة للعميل. الرجاء سداد المديونية أولًا.');
+         }
+
+        }
+        
+  $creditLimit = CreditLimit::first(); // جلب أول حد ائتماني
+if($payment_status == 3){
+if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->value) {
+    return redirect()->back()->with('error', 'عفوا، لقد تجاوز العميل الحد الائتماني. الرجاء سداد المديونية أولًا.');
+}
+
+}
+
         // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
         $invoice = Invoice::create([
             'client_id' => $request->client_id,
@@ -484,7 +509,7 @@ class InvoicesController extends Controller
             'tax_total' => $tax_total,
             'grand_total' => $total_with_tax,
             'paid_amount' => $advance_payment,
-        ]);
+        ]); 
 
         // ** تحديث رصيد حساب أبناء العميل **
 
@@ -974,6 +999,17 @@ class InvoicesController extends Controller
             $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
             $MainTreasury->save();
         }
+     
+        if($invoice->payment_status == 3){
+            if ($clientaccounts) {
+                $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $clientaccounts->save();
+            }
+        }
+      
+        
+
+    
 
         // تحديث رصيد حساب الخزينة الرئيسية
 
@@ -1025,6 +1061,8 @@ class InvoicesController extends Controller
                 $MainTreasury->balance += $payment_amount;
                 $MainTreasury->save();
             }
+           
+    
 
             // إنشاء قيد محاسبي للدفعة
             $paymentJournalEntry = JournalEntry::create([

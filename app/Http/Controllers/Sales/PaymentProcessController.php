@@ -14,6 +14,8 @@ use App\Models\PaymentMethod;
 use App\Models\PaymentsProcess;
 use App\Models\PurchaseInvoice;
 use App\Models\Treasury;
+use App\Models\User;
+
 use App\Models\TreasuryEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -204,8 +206,28 @@ class PaymentProcessController extends Controller
         $treasury = Treasury::all();
         $employees = Employee::all();
         $payments = PaymentMethod::where('type','normal')->where('status','active')->get();
+        
+          $mainTreasuryAccount = null;
+        $user = Auth::user();
 
-        return view('sales.payment.create', compact('invoiceId', 'payments', 'amount', 'treasury', 'employees', 'type'));
+        if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($treasuryEmployee && $treasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $mainTreasuryAccount = Account::where('id', $treasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $mainTreasuryAccount = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+          $user = User::find(auth()->user()->id);
+        return view('sales.payment.create', compact('invoiceId', 'payments', 'amount', 'treasury', 'employees', 'type','mainTreasuryAccount','user'));
     }
 public function store(ClientPaymentRequest $request)
 {
@@ -249,7 +271,7 @@ public function store(ClientPaymentRequest $request)
             $invoice->is_paid = false;
             $invoice->due_value = $invoice->grand_total - $newTotalPayments;
         }
-
+      
         // إذا تم تحديد حالة دفع معينة في الطلب
         if ($request->has('payment_status')) {
             switch ($request->payment_status) {
@@ -352,6 +374,10 @@ public function store(ClientPaymentRequest $request)
             'is_debit' => false,
         ]);
 
+        if ($clientaccounts) {
+            $clientaccounts->balance -= $newTotalPayments; // المبلغ الكلي (المبيعات + الضريبة)
+            $clientaccounts->save();
+        }
         DB::commit();
 
         // إعداد رسالة النجاح مع حالة الدفع

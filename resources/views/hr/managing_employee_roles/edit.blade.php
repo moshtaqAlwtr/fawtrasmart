@@ -446,6 +446,7 @@ id="storeButton">
                                         </span>
                                         <span class="">إضافة إشعار مدين جديد لجميع العملاء</span>
                                     </div>
+                                    
                                     <div class="vs-checkbox-con vs-checkbox-primary mb-1">
                                         <input name="sales_add_credit_notice_own" {{ $role->sales_add_credit_notice_own == 1 ? 'checked' : '' }} type="checkbox" class="permission-checkbox-sales sales-checkbox permission-main-checkbox">
                                         <span class="vs-checkbox">
@@ -454,6 +455,15 @@ id="storeButton">
                                             </span>
                                         </span>
                                         <span class="">إضافة إشعار مدين جديد لعملائه فقط</span>
+                                    </div>
+                                    <div class="vs-checkbox-con vs-checkbox-primary mb-1">
+                                        <input name="Issue_an_invoice_to_a_customer_who_has_a_debt" {{ $role->Issue_an_invoice_to_a_customer_who_has_a_debt == 1 ? 'checked' : '' }} type="checkbox" class="permission-checkbox-sales sales-checkbox permission-main-checkbox">
+                                        <span class="vs-checkbox">
+                                            <span class="vs-checkbox--check">
+                                                <i class="vs-icon feather icon-check"></i>
+                                            </span>
+                                        </span>
+                                     <span class="">اصدار فاتورة لعميل لديه مديونية</span>
                                     </div>
                                 </div>
 
@@ -1302,22 +1312,22 @@ id="storeButton">
                                             <span class="">عرض عملائه</span>
                                         </div>
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
-                                            <input name="clients_edit_delete_all_clients" {{ $role->clients_edit_delete_all_clients == 1 ? 'checked' : '' }} type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
+                                            <input name="Edit_Client" {{ $role->Edit_Client == 1 ? 'checked' : '' }} type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
                                             <span class="vs-checkbox">
                                                 <span class="vs-checkbox--check">
                                                     <i class="vs-icon feather icon-check"></i>
                                                 </span>
                                             </span>
-                                            <span class="">تعديل وحذف جميع العملاء</span>
+                                            <span class="">تعديل  العملاء </span>
                                         </div>
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
-                                            <input name="clients_edit_delete_own_clients" {{ $role->clients_edit_delete_own_clients == 1 ? 'checked' : '' }} type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
+                                            <input name="Delete_Client" {{ $role->Delete_Client == 1 ? 'checked' : '' }} type="checkbox" class="select-all-customers permission-main-checkbox customer-checkbox">
                                             <span class="vs-checkbox">
                                                 <span class="vs-checkbox--check">
                                                     <i class="vs-icon feather icon-check"></i>
                                                 </span>
                                             </span>
-                                            <span class="">تعديل وحذف عملائه</span>
+                                            <span class=""> حذف العملاء</span>
                                         </div>
                                     </div>
 

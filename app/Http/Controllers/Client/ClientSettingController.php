@@ -24,6 +24,8 @@ class ClientSettingController extends Controller
      */
     public function general()
     {
+
+        
         $settings = GeneralClientSetting::all();
         $selectedType = ClientType::value('type'); // جلب أول قيمة من العمود type
 

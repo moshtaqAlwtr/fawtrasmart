@@ -85,14 +85,34 @@ class ExpensesController extends Controller
 
         // توليد الرقم المتسلسل
         $code = Expense::generateCode();
+        
+         $MainTreasury = null;
+        $user = Auth::user();
 
-        return view('finance.expenses.create', compact('expenses_categories', 'treasury', 'accounts', 'suppliers', 'code'));
+        if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+
+        return view('finance.expenses.create', compact('expenses_categories', 'treasury', 'accounts', 'suppliers', 'code','MainTreasury'));
     }
 
 
     public function store(Request $request)
 {
-    // try {
+    try {
     // dd($request->supplier_id);
         DB::beginTransaction();
 
@@ -207,13 +227,13 @@ class ExpensesController extends Controller
         DB::commit();
 
         return redirect()->route('expenses.index')->with('success', 'تم إضافة سند صرف بنجاح!');
-    // } catch (\Exception $e) {
+    } catch (\Exception $e) {
         DB::rollback();
         Log::error('خطأ في إضافة سند صرف: ' . $e->getMessage());
         return back()
             ->with('error', 'حدث خطأ أثناء إضافة سند الصرف: ' . $e->getMessage())
             ->withInput();
-    // }
+    }
 }
 public function update(Request $request, $id)
 {

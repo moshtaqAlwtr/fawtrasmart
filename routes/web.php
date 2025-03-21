@@ -174,6 +174,7 @@ Route::group(
                 # Client routes
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
+Route::post('clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');

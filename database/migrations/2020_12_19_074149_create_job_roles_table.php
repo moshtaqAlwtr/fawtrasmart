@@ -19,7 +19,9 @@ return new class extends Migration
 
             $table->tinyInteger('work_cycle')->default(0); //دورة العمل
             $table->tinyInteger('templates')->default(0); // القوالب
-            $table->tinyInteger('branches')->default(0); // الفروع
+            $table->tinyInteger('branches')->default(0); // الفروع 
+            $table->tinyInteger('Issue_an_invoice_to_a_customer_who_has_a_debt')->default(0);// اضافة فاتورة لعميل لديه مديونية
+            
             $table->tinyInteger('sales_add_invoices')->default(0); // إضافة فواتير لكل العملاء
             $table->tinyInteger('sales_add_own_invoices')->default(0); // إضافة فواتير للعملاء الخاصة به
             $table->tinyInteger('sales_edit_delete_all_invoices')->default(0); // تعديل وحذف كل الفواتير
@@ -97,7 +99,11 @@ return new class extends Migration
             $table->tinyInteger('client_follow_up_assign_clients_to_employees')->default(0); // تعيين العملاء إلى الموظفين
             # العملاء clients
             $table->tinyInteger('clients_add_client')->default(0); // إضافة عميل جديد
-            $table->tinyInteger('clients_view_all_clients')->default(0); // عرض جميع العملاء
+            $table->tinyInteger('clients_view_all_clients')->default(0); // عرض جميع العملاء  
+           
+            $table->tinyInteger('Edit_Client')->default(0);
+            $table->tinyInteger('Delete_Client')->default(0);
+          
             $table->tinyInteger('clients_view_own_clients')->default(0); // عرض عملائه
             $table->tinyInteger('clients_edit_delete_all_clients')->default(0); // تعديل وحذف جميع العملاء
             $table->tinyInteger('clients_edit_delete_own_clients')->default(0); // تعديل وحذف عملائه

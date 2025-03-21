@@ -53,21 +53,17 @@
                             </label>
                             <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-center">استيراد</button>
                         </form>
+                        
                     </div>
-
+  
                     <!-- القسم الأيسر -->
                     <div class="col-md-6 d-flex justify-content-center justify-content-md-end gap-2">
-                        <!-- زر الإعدادات -->
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 text-center" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-cog me-1"></i>
-                            </button>
-                            <ul class="dropdown-menu shadow-sm">
-                                <li><a class="dropdown-item py-2" href="#">إعدادات 1</a></li>
-                                <li><a class="dropdown-item py-2" href="#">إعدادات 2</a></li>
-                            </ul>
-                        </div>
+                       
+                      <!-- زر إضافة حد ائتماني مع البيانات -->
+<a href="javascript:void(0);" class="btn btn-success btn-sm rounded-pill px-4 text-center" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
+    <i class="fas fa-plus-circle me-1"></i> إضافة حد ائتماني
+</a>
+
                     </div>
                 </div>
             </div>
@@ -275,12 +271,14 @@
                                                                 <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                             </a>
                                                         </li>
+                                                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
                                                         <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('clients.edit', $client->id) }}">
+                                                            <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
                                                                 <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
                                                             </a>
                                                         </li>
+                                                    @endif
+                                                    
                                                         <a class="dropdown-item" href="{{ route('clients.send_info', $client->id) }}">
                                                             <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات الدخول
                                                         </a>
@@ -292,6 +290,7 @@
                                                                 <i class="fa fa-copy me-2 text-info"></i>نسخ
                                                             </a>
                                                         </li>
+                                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
                                                         <li>
                                                             <a class="dropdown-item text-danger" href="#"
                                                                 data-toggle="modal"
@@ -299,6 +298,7 @@
                                                                 <i class="fa fa-trash-alt me-2"></i>حذف
                                                             </a>
                                                         </li>
+                                                        @endif
                                                         <li>
                                                             <a class="dropdown-item"
                                                                 href="{{ route('clients.edit', $client->id) }}">
@@ -357,8 +357,56 @@
             </div>
         </div>
     </div>
+    <!-- زر إضافة حد ائتماني -->
+
+
+
+<!-- الـ Modal -->
+<div class="modal fade" id="creditLimitModal" tabindex="-1" aria-labelledby="creditLimitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="creditLimitModalLabel">تعديل الحد الائتماني</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('clients.update_credit_limit') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="credit_limit" class="form-label">
+                            الحد الائتماني الحالي: <span id="current_credit_limit">{{ $creditLimit->value ?? 'غير محدد' }}</span>
+                        </label>
+                        <input type="number" class="form-control" id="credit_limit" name="value" 
+                               value="{{ $creditLimit->value ?? '' }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    <button type="submit" class="btn btn-primary">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 @endsection
 
 @section('scripts')
 <script src="{{ asset('assets/js/search.js') }}"></script>
+l
+<script>
+  $('#creditLimitModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // الزر الذي فتح الـ Modal
+    var clientId = button.data('client-id');
+    var currentCredit = button.data('current-credit'); 
+
+    var modal = $(this);
+    modal.find('.modal-body #credit_limit').val(currentCredit); // تعيين الحد الائتماني الحالي
+    modal.find('.modal-body #current_credit_limit').text(currentCredit); // عرض الحد الائتماني الحالي
+});  
+    
+</script>
+
+
 @endsection

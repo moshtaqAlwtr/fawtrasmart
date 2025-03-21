@@ -83,12 +83,11 @@
                     </div>
                     <div class="col-md-6">
                         <label for="treasury_id" class="form-label">الخزينة المستخدمة </label>
-                        <select name="treasury_id" class="form-control" id="treasury_id">
-                            <option value="">اختر الخزينة</option>
-                            @foreach ($treasury as $treasur)
-                                <option value="{{ $treasur->id }}">{{ $treasur->name }}</option>
-                            @endforeach
-                        </select>
+                       
+                         
+                       
+                          <input type="text"   class="form-control" placeholder="رقم المعرف"
+                            value="{{$mainTreasuryAccount->name ?? ""}}" readonly>
                     </div>
                 </div>
                 <div class="row mb-3">
