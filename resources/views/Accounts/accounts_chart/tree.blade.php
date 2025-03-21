@@ -83,27 +83,28 @@
             width: 100%;
             border-collapse: collapse;
         }
+
         .search-results-dropdown {
-    position: absolute;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    max-height: 300px;
-    overflow-y: auto;
-    width: 100%;
-    z-index: 1000;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
-}
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        }
 
-.search-result-item {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-}
+        .search-result-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
 
-.search-result-item:hover {
-    background: #f8f9fa;
-}
+        .search-result-item:hover {
+            background: #f8f9fa;
+        }
 
         .table-container {
             max-height: 400px;
@@ -223,14 +224,17 @@
                         <div class="chat-fixed-search" style="position: absolute">
                             <div class="d-flex align-items-center">
                                 <fieldset class="form-group position-relative has-icon-left mx-1 my-0 w-50">
-                                    <input type="text" id="searchInput" class="form-control" placeholder="بحث بالاسم أو الكود" onkeyup="performSearch(this.value, $('#branchFilter').val())">
+                                    <input type="text" id="searchInput" class="form-control"
+                                        placeholder="بحث بالاسم أو الكود"
+                                        onkeyup="performSearch(this.value, $('#branchFilter').val())">
                                     <div class="form-control-position">
                                         <i class="feather icon-search"></i>
                                     </div>
                                 </fieldset>
 
                                 <fieldset class="form-group position-relative mx-1 my-0 w-50">
-                                    <select name="branchFilter" id="branchFilter" class="form-control select2" onchange="performSearch($('#searchInput').val(), this.value)">
+                                    <select name="branchFilter" id="branchFilter" class="form-control select2"
+                                        onchange="performSearch($('#searchInput').val(), this.value)">
                                         <option value="all">كل الفروع</option>
                                         @foreach ($branches as $branch)
                                             <option value="{{ $branch->id }}">{{ $branch->name }}</option>
@@ -250,7 +254,8 @@
                         </div>
 
 
-                        <div id="users-list" class="list-group position-relative" style="margin-top: 5rem">
+                        <div id="users-list" class="list-group position-relative"
+                            style="margin-top: 5rem; height: 600px">
                             <!-- 3 setup a container element -->
                             <div id="tree"></div>
                         </div>
@@ -267,7 +272,7 @@
                         <div class="chat-overlay"></div>
                         <section class="chat-app-window">
 
-                            <div class="card" style="height: calc(var(--vh, 1vh) * 100 - 13rem)">
+                            <div class="card" style="height: calc(var(--vh, 1vh) * 150 - 13rem); overflow-y: auto; position: relative;">
                                 <div class="card-content">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center justify-content-between">
@@ -1170,109 +1175,111 @@
         });
 
         $(document).ready(function() {
-    // إرسال النموذج تلقائيًا عند تغيير البحث
-    $('#searchInput').on('keyup', function() {
-        const searchText = $(this).val().trim();
-        const branchId = $('#branchFilter').val();
+            // إرسال النموذج تلقائيًا عند تغيير البحث
+            $('#searchInput').on('keyup', function() {
+                const searchText = $(this).val().trim();
+                const branchId = $('#branchFilter').val();
 
-        if (searchText.length >= 2 || branchId !== 'all') {
-            performSearch(searchText, branchId);
-        } else {
-            // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
-            loadInitialData();
-        }
-    });
+                if (searchText.length >= 2 || branchId !== 'all') {
+                    performSearch(searchText, branchId);
+                } else {
+                    // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
+                    loadInitialData();
+                }
+            });
 
-    // حدث تغيير الفرع
-    $('#branchFilter').on('change', function() {
-        const searchText = $('#searchInput').val().trim();
-        const branchId = $(this).val();
+            // حدث تغيير الفرع
+            $('#branchFilter').on('change', function() {
+                const searchText = $('#searchInput').val().trim();
+                const branchId = $(this).val();
 
-        if (searchText.length >= 2 || branchId !== 'all') {
-            performSearch(searchText, branchId);
-        } else {
-            // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
-            loadInitialData();
-        }
-    });
+                if (searchText.length >= 2 || branchId !== 'all') {
+                    performSearch(searchText, branchId);
+                } else {
+                    // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
+                    loadInitialData();
+                }
+            });
 
 
-    // دالة لتنفيذ البحث
-    $(document).ready(function() {
-    // إرسال النموذج تلقائيًا عند تغيير البحث
-    $('#searchInput, #branchFilter').on('keyup change', function() {
-        const searchText = $('#searchInput').val().trim();
-        const branchId = $('#branchFilter').val();
+            // دالة لتنفيذ البحث
+            $(document).ready(function() {
+                // إرسال النموذج تلقائيًا عند تغيير البحث
+                $('#searchInput, #branchFilter').on('keyup change', function() {
+                    const searchText = $('#searchInput').val().trim();
+                    const branchId = $('#branchFilter').val();
 
-        if (searchText.length >= 2 || branchId !== 'all') {
-            performSearch(searchText, branchId);
-        } else {
-            // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
-            loadInitialData();
-        }
-    });
+                    if (searchText.length >= 2 || branchId !== 'all') {
+                        performSearch(searchText, branchId);
+                    } else {
+                        // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
+                        loadInitialData();
+                    }
+                });
 
-    // دالة لتنفيذ البحث
-    function performSearch(searchText, branchId) {
-    $('#loading-spinner').show();
-    $('#results-container').hide();
+                // دالة لتنفيذ البحث
+                function performSearch(searchText, branchId) {
+                    $('#loading-spinner').show();
+                    $('#results-container').hide();
 
-    console.log("Searching for:", searchText, "in branch:", branchId);
+                    console.log("Searching for:", searchText, "in branch:", branchId);
 
-    $.ajax({
-        url: '/accounts/search',
-        type: 'GET',
-        data: {
-            search: searchText,
-            branch_id: branchId
-        },
-        success: function(response) {
-            console.log("Response:", response);
-            const resultsContainer = $('#results-container');
-            resultsContainer.empty();
+                    $.ajax({
+                        url: '/accounts/search',
+                        type: 'GET',
+                        data: {
+                            search: searchText,
+                            branch_id: branchId
+                        },
+                        success: function(response) {
+                            console.log("Response:", response);
+                            const resultsContainer = $('#results-container');
+                            resultsContainer.empty();
 
-            if (response.length > 0) {
-                response.forEach(account => {
-                    resultsContainer.append(`
+                            if (response.length > 0) {
+                                response.forEach(account => {
+                                    resultsContainer.append(`
                         <div class="search-result-item">
                             <strong>${account.name}</strong> - <span class="text-muted">${account.code}</span>
                         </div>
                     `);
-                });
-            } else {
-                resultsContainer.append('<div class="text-center text-muted">لا توجد نتائج مطابقة.</div>');
-            }
+                                });
+                            } else {
+                                resultsContainer.append(
+                                    '<div class="text-center text-muted">لا توجد نتائج مطابقة.</div>'
+                                    );
+                            }
 
-            $('#loading-spinner').hide();
-            resultsContainer.show();
-        },
-        error: function() {
-            Swal.fire({
-                title: 'خطأ!',
-                text: 'حدث خطأ أثناء البحث.',
-                icon: 'error',
-            });
-            $('#loading-spinner').hide();
-        }
-    });
-}
+                            $('#loading-spinner').hide();
+                            resultsContainer.show();
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'خطأ!',
+                                text: 'حدث خطأ أثناء البحث.',
+                                icon: 'error',
+                            });
+                            $('#loading-spinner').hide();
+                        }
+                    });
+                }
 
 
-    // دالة لتحميل البيانات الأصلية
-    function loadInitialData() {
-        // إظهار أيقونة التحميل
-        $('#loading-spinner').show();
-        $('#table-container').hide();
+                // دالة لتحميل البيانات الأصلية
+                function loadInitialData() {
+                    // إظهار أيقونة التحميل
+                    $('#loading-spinner').show();
+                    $('#table-container').hide();
 
-        $.ajax({
-            url: '/accounts/parents', // رابط لجلب الحسابات الرئيسية
-            type: 'GET',
-            success: function(parents) {
-                const tableBody = $('#table-body');
-                tableBody.empty(); // تفريغ الجدول
+                    $.ajax({
+                        url: '/accounts/parents', // رابط لجلب الحسابات الرئيسية
+                        type: 'GET',
+                        success: function(parents) {
+                            const tableBody = $('#table-body');
+                            tableBody.empty(); // تفريغ الجدول
 
-                parents.forEach(parent => {
-                    tableBody.append(`
+                            parents.forEach(parent => {
+                                tableBody.append(`
                         <tr data-node-id="${parent.id}" class="table-active">
                             <td style="width: 3%">
                                 <i class="feather icon-folder" style="font-size: 30px"></i>
@@ -1295,27 +1302,27 @@
                             </td>
                         </tr>
                     `);
-                });
+                            });
 
-                // إخفاء أيقونة التحميل وإظهار الجدول
-                $('#loading-spinner').hide();
-                $('#table-container').show();
-            },
-            error: function() {
-                Swal.fire({
-                    title: 'خطأ!',
-                    text: 'حدث خطأ أثناء جلب البيانات.',
-                    icon: 'error',
-                });
+                            // إخفاء أيقونة التحميل وإظهار الجدول
+                            $('#loading-spinner').hide();
+                            $('#table-container').show();
+                        },
+                        error: function() {
+                            Swal.fire({
+                                title: 'خطأ!',
+                                text: 'حدث خطأ أثناء جلب البيانات.',
+                                icon: 'error',
+                            });
 
-                // إخفاء أيقونة التحميل في حالة الخطأ
-                $('#loading-spinner').hide();
-            }
+                            // إخفاء أيقونة التحميل في حالة الخطأ
+                            $('#loading-spinner').hide();
+                        }
+                    });
+                }
+            }); // دالة لتحميل البيانات الأصلية
+
         });
-    }
-});  // دالة لتحميل البيانات الأصلية
-
-});
     </script>
 
 </body>
