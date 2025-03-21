@@ -379,13 +379,14 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
-                    <div class="card-header">
-                        <div class="card-title">${cardTitle}</div>
-                        <div class="assigned-member">
-                            <img src="${employeeData.photo}" alt"صورة العضو">
-                            <span>${employeeData->name}</span>
-                        </div>
-                    </div>
+                 <div class="card-header">
+    <div class="card-title">${cardTitle}</div>
+    <div class="assigned-member">
+        <img src="${employeeData.photo}" alt="صورة العضو">
+        <span>${employeeData.name}</span> <!-- تصحيح استدعاء الاسم -->
+    </div>
+</div>
+
                     <div class="card-details">
                         <i class="fas fa-calendar-alt"></i>
                         <span>من: ${startDate}</span>
