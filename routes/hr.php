@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Task\TaskController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Hr\EmployeeController;
 use App\Http\Controllers\Hr\ManagingEmployeeRolesController;
@@ -79,6 +80,16 @@ Route::group(
                 Route::get('/add_shift',[EmployeeController::class,'add_shift'])->name('add_shift');
                 Route::get('/employee_role_management/add_new_role',[EmployeeController::class,'add_new_role'])->name('employee.employee_role_management.add_new_role');
             });
+                # task
+                Route::prefix('task')->group(function () {
+                    Route::get('/index',[TaskController::class,'index'])->name('task.index');
+
+
+
+
+
+
+                });
 
         });
 
