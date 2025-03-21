@@ -368,6 +368,7 @@ class StorehouseController extends Controller
 
         $storehouse = StoreHouse::findOrFail($id);
 
+
         return view('stock.storehouse.inventory_value', compact('products', 'storehouse'));
     }
 

@@ -126,21 +126,9 @@
 
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-end align-items-center gap-2">
-                    <a href="#" class="btn btn-gradient-blue mb-1">
-                        <i class="fa fa-print"></i> طباعة
-                    </a>
+                <div class="d-flex justify-content-between">
 
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-gradient-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fa fa-download"></i> تصدير
-                        </button>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item" href="#" onclick="exportToExcel()">Excel</a>
-                        </div>
-                    </div>
                 </div>
-
                 <div class="table-responsive">
                     <table class="table">
                         <thead class="table-light">
@@ -192,24 +180,6 @@
 @endsection
 
 
-
 @section('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        function exportToExcel() {
-            // تحديد الجدول الذي تريد تصديره
-            const table = document.querySelector('.table-striped');
-
-            // تحويل الجدول إلى ورقة عمل (worksheet)
-            const worksheet = XLSX.utils.table_to_sheet(table);
-
-            // إنشاء مصنف (workbook) وإضافة الورقة العمل إليه
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
-            // تصدير الملف كـ Excel
-            XLSX.writeFile(workbook, 'ملخص_عمليات_المخزون.xlsx');
-        }
-    </script>
 @endsection
-
+a

@@ -3,8 +3,8 @@
 @section('title')
     ملخص عمليات المخزون
 @stop
-
 @section('css')
+
     <style>
         /* تأثير التدرج للأزرار */
         .btn-gradient-blue {
@@ -30,7 +30,6 @@
         }
     </style>
 @endsection
-
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -39,8 +38,10 @@
                     <h2 class="content-header-title float-left mb-0">ملخص عمليات المخزون</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
-                            <li class="breadcrumb-item active">{{ $storehouse->name }}</li>
+                            <li class="breadcrumb-item"><a href="">الرئيسيه</a>
+                            </li>
+                            <li class="breadcrumb-item active">{{ $storehouse->name }}
+                            </li>
                         </ol>
                     </div>
                 </div>
@@ -49,9 +50,9 @@
     </div>
 
     <div class="content-body">
+
         @include('layouts.alerts.error')
         @include('layouts.alerts.success')
-
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center p-2">
                 <div class="d-flex gap-2">
@@ -123,6 +124,7 @@
                                 @endif
                             </select>
                         </div>
+
                         <div class="col-md-6">
                             <label for="category">التصنيف</label>
                             <select name="category" class="form-control" id="category">
@@ -134,6 +136,7 @@
                                 @endif
                             </select>
                         </div>
+
                     </div>
                     <div class="form-actions mt-2">
                         <button type="submit" class="btn btn-primary">بحث</button>
@@ -151,11 +154,15 @@
                     </a>
 
                     <div class="btn-group">
-                        <button type="button" class="btn btn-gradient-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="btn btn-gradient-primary dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-haspopup="true" aria-expanded="false">
                             <i class="fa fa-download"></i> تصدير
                         </button>
+
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="#" onclick="exportToExcel()">Excel</a>
+                            <a class="dropdown-item" href="#">PDF</a>
+                            <a class="dropdown-item" href="#">Excel</a>
+                            <a class="dropdown-item" href="#">CSV</a>
                         </div>
                     </div>
                 </div>
@@ -171,7 +178,7 @@
                             </tr>
                             <tr class="table-info">
                                 <th>فواتير الشراء</th>
-                                <th>مرتجع المبيعات</th>
+                                <th>مرتجع المبيعات</th> <!-- تم تغيير هذا العمود -->
                                 <th>التحويل</th>
                                 <th>يدوي</th>
                                 <th>الإجمالي</th>
@@ -191,15 +198,18 @@
                                         </strong>
                                     </td>
                                     <td>0</td>
-                                    <td>{{ $product['sales_return_quantity'] }}</td>
+                                    <td>{{ $product['sales_return_quantity'] }}</td> <!-- عرض مرتجع المبيعات -->
                                     <td>{{ $product['incoming_transfer'] }}</td>
                                     <td>{{ $product['incoming_manual'] }}</td>
                                     <td>{{ $product['incoming_total'] }}</td>
-                                    <td>{{ $product['sold_quantity'] }}</td>
+
+                                    <td>{{ $product['sold_quantity'] }}</td> <!-- عرض عدد فواتير البيع -->
+
                                     <td>0</td>
                                     <td>{{ $product['outgoing_transfer'] != 0 ? '-' . $product['outgoing_transfer'] : 0 }}</td>
                                     <td>{{ $product['outgoing_manual'] != 0 ? '-' . $product['outgoing_manual'] : 0 }}</td>
                                     <td>{{ $product['outgoing_total'] != 0 ? '-' . $product['outgoing_total'] : 0 }}</td>
+
                                     <td class="active">
                                         <a href="">
                                             <u>
@@ -214,25 +224,12 @@
                 </div>
             </div>
         </div>
+
     </div>
+
 @endsection
 
+
 @section('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        function exportToExcel() {
-            // تحديد الجدول الذي تريد تصديره
-            const table = document.querySelector('.table-striped');
-
-            // تحويل الجدول إلى ورقة عمل (worksheet)
-            const worksheet = XLSX.utils.table_to_sheet(table);
-
-            // إنشاء مصنف (workbook) وإضافة الورقة العمل إليه
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
-            // تصدير الملف كـ Excel
-            XLSX.writeFile(workbook, 'ملخص_عمليات_المخزون.xlsx');
-        }
-    </script>
+<script src="{{ asset('assets/js/search.js') }}"></script>
 @endsection
