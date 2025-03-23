@@ -8,7 +8,6 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Notification;
 use App\Models\Location;
-use App\Models\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -128,18 +127,28 @@ class VisitController extends Controller
 
                 // إذا كان الموظف داخل نطاق 100 متر من العميل
                 if ($distance < 100) {
-                    // تسجيل الزيارة
-                    $visit = Visit::create([
-                        'employee_id' => $employeeId,
-                        'client_id' => $client->id,
-                        'visit_date' => now(),
-                        'status' => 'present',
-                        'employee_latitude' => $latitude,
-                        'employee_longitude' => $longitude,
-                    ]);
+                    // التحقق من وجود زيارة سابقة لنفس الموظف ونفس العميل في نفس اليوم
+                    $existingVisit = Visit::where('employee_id', $employeeId)
+                        ->where('client_id', $client->id)
+                        ->whereDate('visit_date', now()->toDateString())
+                        ->first();
 
-                    // إرسال إشعار للمدير
-                    $this->sendNotificationToManager($visit);
+                    // إذا لم تكن هناك زيارة مسجلة في نفس اليوم
+                    if (!$existingVisit) {
+                        // تسجيل الزيارة
+                        $visit = Visit::create([
+                            'employee_id' => $employeeId,
+                            'client_id' => $client->id,
+                            'visit_date' => now(),
+                            'status' => 'present',
+                            'employee_latitude' => $latitude,
+                            'employee_longitude' => $longitude,
+                            'notes' => 'تم تسجيل الزيارة تلقائيًا عند المرور بالقرب من العميل.', // إضافة ملاحظات
+                        ]);
+
+                        // إرسال إشعار للمدير
+                        $this->sendNotificationToManager($visit);
+                    }
                 }
             }
         }
@@ -150,30 +159,36 @@ class VisitController extends Controller
     {
         $earthRadius = 6371000; // نصف قطر الأرض بالمتر
 
+        // تحويل الدرجات إلى راديان
         $latFrom = deg2rad($lat1);
         $lonFrom = deg2rad($lon1);
         $latTo = deg2rad($lat2);
         $lonTo = deg2rad($lon2);
 
+        // حساب الفروق بين الإحداثيات
         $latDelta = $latTo - $latFrom;
         $lonDelta = $lonTo - $lonFrom;
 
-        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
-            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
-        return $angle * $earthRadius;
-    }
+        // حساب المسافة باستخدام صيغة هافرساين
+        $angle = 2 * asin(sqrt(
+            pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)
+        ));
 
+        return $angle * $earthRadius; // المسافة بالمتر
+    }
     // إرسال إشعار للمدير عند تسجيل زيارة
     private function sendNotificationToManager($visit)
     {
-        $manager = Employee::where('role', 'manager')->first(); // جلب المدير
+        // جلب المدير
+        $manager = Employee::where('role', 'manager')->first();
 
         if ($manager) {
+            // إنشاء إشعار جديد
             Notification::create([
-                'type' => 'visit',
-                'title' => 'زيارة جديدة',
-                'description' => "تم تسجيل زيارة جديدة من قبل الموظف: {$visit->employee->name} لعميل: {$visit->client->name}",
-                'user_id' => $manager->id,
+                'user_id' => $manager->id, // معرف المستخدم (المدير)
+                'message' => "تم تسجيل زيارة جديدة من قبل الموظف: {$visit->employee->full_name} لعميل: {$visit->client->trade_name}", // نص الإشعار
+                'status' => 'unread', // حالة الإشعار (غير مقروء)
             ]);
         }
     }

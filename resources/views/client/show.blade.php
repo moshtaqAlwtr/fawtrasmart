@@ -461,12 +461,7 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="account-movement-tab" data-toggle="tab"
-                                        href="#account-movement" aria-controls="account-movement" role="tab"
-                                        aria-selected="false">
-                                        زيارات العميل  <span
-                                            class="badge badge-pill badge-info">{{ $client->transactions->count() }}</span>
-                                    </a>
+                                    <a class="nav-link" id="visits-tab" data-toggle="tab" href="#visits" role="tab" aria-controls="visits" aria-selected="false">الزيارات</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" id="balance-summary-tab" data-toggle="tab"
@@ -531,6 +526,9 @@
                                         حركة الحساب <span
                                             class="badge badge-pill badge-info">{{ $client->transactions->count() }}</span>
                                     </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="visits-tab" data-toggle="tab" href="#visits" role="tab" aria-controls="visits" aria-selected="false">الزيارات</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" id="balance-summary-tab" data-toggle="tab"
@@ -1344,6 +1342,34 @@
                                                 </table>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="visits-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>تاريخ الزيارة</th>
+                                                    <th>الموظف</th>
+                                                    <th>الحالة</th>
+                                                    <th>الإحداثيات</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($client->visits as $visit)
+                                                    <tr>
+                                                        <td>{{ $loop->iteration }}</td>
+                                                        <td>{{ $visit->visit_date }}</td>
+                                                        <td>{{ $visit->employee->name }}</td>
+                                                        <td>{{ $visit->status }}</td>
+                                                        <td>({{ $visit->employee_latitude }}, {{ $visit->employee_longitude }})</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                                 <!-- تبويب ملخص الرصيد -->

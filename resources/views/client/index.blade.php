@@ -43,9 +43,11 @@
             <div class="card-body">
                 <div class="row align-items-center gy-3">
                     <!-- القسم الأيمن -->
-                    <div class="col-md-6 d-flex flex-wrap align-items-center gap-2 justify-content-center justify-content-md-start">
+                    <div
+                        class="col-md-6 d-flex flex-wrap align-items-center gap-2 justify-content-center justify-content-md-start">
                         <!-- زر إضافة عميل -->
-                        <a href="{{ route('clients.create') }}" class="btn btn-success btn-sm rounded-pill px-4 text-center">
+                        <a href="{{ route('clients.create') }}"
+                            class="btn btn-success btn-sm rounded-pill px-4 text-center">
                             <i class="fas fa-plus-circle me-1"></i>
                             إضافة عميل
                         </a>
@@ -58,14 +60,16 @@
                                 <i class="fas fa-upload"></i> تحميل ملف Excel
                                 <input type="file" name="file" class="d-none" required>
                             </label>
-                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-center">استيراد</button>
+                            <button type="submit"
+                                class="btn btn-primary btn-sm rounded-pill px-3 text-center">استيراد</button>
                         </form>
                     </div>
 
                     <!-- القسم الأيسر -->
                     <div class="col-md-6 d-flex justify-content-center justify-content-md-end gap-2">
                         <!-- زر إضافة حد ائتماني -->
-                        <a href="javascript:void(0);" class="btn btn-success btn-sm rounded-pill px-4 text-center" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
+                        <a href="javascript:void(0);" class="btn btn-success btn-sm rounded-pill px-4 text-center"
+                            data-bs-toggle="modal" data-bs-target="#creditLimitModal">
                             <i class="fas fa-plus-circle me-1"></i> إضافة حد ائتماني
                         </a>
                     </div>
@@ -124,9 +128,12 @@
                             <div class="col-md-4 col-12">
                                 <select name="classifications" class="form-control">
                                     <option value="">اختر التصنيف</option>
-                                    <option value="1" {{ request('classifications') == '1' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}></option>
+                                    <option value="1" {{ request('classifications') == '1' ? 'selected' : '' }}>
+                                    </option>
+                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
+                                    </option>
+                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
+                                    </option>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
@@ -148,9 +155,11 @@
                             <div class="col-md-4 col-12">
                                 <select name="country" class="form-control">
                                     <option value="">اختر البلد</option>
-                                    <option value="1" {{ request('country') == '1' ? 'selected' : '' }}>السعودية</option>
+                                    <option value="1" {{ request('country') == '1' ? 'selected' : '' }}>السعودية
+                                    </option>
                                     <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>مصر</option>
-                                    <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>اليمن</option>
+                                    <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>اليمن
+                                    </option>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
@@ -222,7 +231,8 @@
                                     <tr>
                                         <td>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" value="{{ $client->id }}">
+                                                <input class="form-check-input" type="checkbox"
+                                                    value="{{ $client->id }}">
                                             </div>
                                         </td>
                                         <td>
@@ -241,8 +251,9 @@
                                         </td>
                                         <td>
                                             <p class="mb-0">
-                                                <i class="fas fa-map-marker-alt text-primary me-2" style="cursor: pointer;"
-                                                   onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }})"></i>
+                                                <i class="fas fa-map-marker-alt text-primary me-2"
+                                                    style="cursor: pointer;"
+                                                    onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }})"></i>
                                                 {{ $client->city }}, {{ $client->region }}
                                             </p>
                                         </td>
@@ -265,15 +276,18 @@
                                                             </a>
                                                         </li>
                                                         @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
-                                                            </a>
-                                                        </li>
-                                                    @endif
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('clients.edit', $client->id) }}">
+                                                                    <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
+                                                                </a>
+                                                            </li>
+                                                        @endif
 
-                                                        <a class="dropdown-item" href="{{ route('clients.send_info', $client->id) }}">
-                                                            <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات الدخول
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.send_info', $client->id) }}">
+                                                            <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
+                                                            الدخول
                                                         </a>
 
 
@@ -284,18 +298,19 @@
                                                             </a>
                                                         </li>
                                                         @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                                        <li>
-                                                            <a class="dropdown-item text-danger" href="#"
-                                                                data-toggle="modal"
-                                                                data-target="#modal_DELETE{{ $client->id }}">
-                                                                <i class="fa fa-trash-alt me-2"></i>حذف
-                                                            </a>
-                                                        </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modal_DELETE{{ $client->id }}">
+                                                                    <i class="fa fa-trash-alt me-2"></i>حذف
+                                                                </a>
+                                                            </li>
                                                         @endif
                                                         <li>
                                                             <a class="dropdown-item"
                                                                 href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف حساب
+                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
+                                                                حساب
                                                             </a>
                                                         </li>
                                                     </div>
@@ -352,7 +367,8 @@
     </div>
 
     <!-- Modal إضافة حد ائتماني -->
-    <div class="modal fade" id="creditLimitModal" tabindex="-1" aria-labelledby="creditLimitModalLabel" aria-hidden="true">
+    <div class="modal fade" id="creditLimitModal" tabindex="-1" aria-labelledby="creditLimitModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -364,10 +380,11 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="credit_limit" class="form-label">
-                                الحد الائتماني الحالي: <span id="current_credit_limit">{{ $creditLimit->value ?? 'غير محدد' }}</span>
+                                الحد الائتماني الحالي: <span
+                                    id="current_credit_limit">{{ $creditLimit->value ?? 'غير محدد' }}</span>
                             </label>
                             <input type="number" class="form-control" id="credit_limit" name="value"
-                                   value="{{ $creditLimit->value ?? '' }}" required>
+                                value="{{ $creditLimit->value ?? '' }}" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -382,26 +399,34 @@
 @endsection
 
 @section('scripts')
-<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
-<script>
-    function initMap() {
-        const map = new google.maps.Map(document.getElementById('map'), {
-            center: { lat: 24.68737261, lng: 46.65221190 }, // مركز الخريطة (الرياض)
-            zoom: 6 // مستوى التكبير
-        });
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
+        async defer></script>
+    <script>
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: {
+                    lat: 24.68737261,
+                    lng: 46.65221190
+                }, // مركز الخريطة (الرياض)
+                zoom: 6 // مستوى التكبير
+            });
 
-        const infoWindow = new google.maps.InfoWindow();
+            const infoWindow = new google.maps.InfoWindow();
 
-        @foreach ($clients as $client)
-            @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
-                const marker{{ $client->id }} = new google.maps.Marker({
-                    position: { lat: {{ $client->locations->latitude }}, lng: {{ $client->locations->longitude }} },
-                    map: map,
-                    title: "{{ $client->trade_name }}",
-                    label: "{{ $client->code }}"
-                });
+            @foreach ($clients as $client)
+                @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
+                    const marker{{ $client->id }} = new google.maps.Marker({
+                        position: {
+                            lat: {{ $client->locations->latitude }},
+                            lng: {{ $client->locations->longitude }}
+                        },
+                        map: map,
+                        title: "{{ $client->trade_name }}",
+                        label: "{{ $client->code }}"
+                    });
 
-                const contentString{{ $client->id }} = `
+                    const contentString{{ $client->id }} = `
                     <div style="color: #333; font-family: Arial, sans-serif;">
                         <h4 style="margin: 0; font-size: 16px; color: #007BFF;">{{ $client->trade_name }}</h4>
                         <p style="margin: 5px 0; font-size: 14px;">
@@ -420,7 +445,7 @@
                             <strong>الرمز البريدي:</strong> {{ $client->postal_code }}
                         </p>
  <p style="margin: 5px 0; font-size: 14px;">
-                            <strong>الرمز البريدي:</strong> {{ $client->Balance }}
+                            <strong>الرصيد:</strong> {{ $client->Balance }}
                         </p>
                         <a href="{{ route('clients.show', $client->id) }}" target="_blank" style="color: #007BFF; text-decoration: none; font-size: 14px;">
                             عرض التفاصيل
@@ -428,27 +453,27 @@
                     </div>
                 `;
 
-                marker{{ $client->id }}.addListener('click', () => {
-                    infoWindow.setContent(contentString{{ $client->id }});
-                    infoWindow.open(map, marker{{ $client->id }});
-                });
-            @endif
-        @endforeach
-    }
+                    marker{{ $client->id }}.addListener('click', () => {
+                        infoWindow.setContent(contentString{{ $client->id }});
+                        infoWindow.open(map, marker{{ $client->id }});
+                    });
+                @endif
+            @endforeach
+        }
 
-    function openMap(latitude, longitude) {
-        const mapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        window.open(mapUrl, '_blank');
-    }
+        function openMap(latitude, longitude) {
+            const mapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            window.open(mapUrl, '_blank');
+        }
 
-    $('#creditLimitModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // الزر الذي فتح الـ Modal
-        var clientId = button.data('client-id');
-        var currentCredit = button.data('current-credit');
+        $('#creditLimitModal').on('show.bs.modal', function(event) {
+            var button = $(event.relatedTarget); // الزر الذي فتح الـ Modal
+            var clientId = button.data('client-id');
+            var currentCredit = button.data('current-credit');
 
-        var modal = $(this);
-        modal.find('.modal-body #credit_limit').val(currentCredit); // تعيين الحد الائتماني الحالي
-        modal.find('.modal-body #current_credit_limit').text(currentCredit); // عرض الحد الائتماني الحالي
-    });
-</script>
+            var modal = $(this);
+            modal.find('.modal-body #credit_limit').val(currentCredit); // تعيين الحد الائتماني الحالي
+            modal.find('.modal-body #current_credit_limit').text(currentCredit); // عرض الحد الائتماني الحالي
+        });
+    </script>
 @stop

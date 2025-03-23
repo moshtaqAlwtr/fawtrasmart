@@ -439,67 +439,72 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'تم حذف العميل وجميع البيانات المرتبطة به بنجاح');
     }
     public function show($id)
-    {
-        // تحميل البيانات المطلوبة
-        $installment = Installment::with('invoice.client')->get();
-        $employees = Employee::all();
-        $account = Account::all();
+{
+    // تحميل البيانات المطلوبة
+    $installment = Installment::with('invoice.client')->get();
+    $employees = Employee::all();
+    $account = Account::all();
 
-        // تحميل العميل مع الفواتير والمدفوعات والملاحظات المرتبطة بها
-        $client = Client::with([
-            'invoices' => function ($query) {
-                $query->orderBy('invoice_date', 'desc');
-            },
-            'invoices.payments',
-            'appointments' => function ($query) {
-                $query->orderBy('appointment_date', 'desc');
-            },
-            'employee',
-            'account',
-            'payments' => function ($query) {
-                $query->orderBy('payment_date', 'desc');
-            },
-            'appointmentNotes' => function ($query) {
-                $query->orderBy('created_at', 'desc');
-            },
-        ])->findOrFail($id);
+    // تحميل العميل مع الفواتير والمدفوعات والملاحظات المرتبطة بها
+    $client = Client::with([
+        'invoices' => function ($query) {
+            $query->orderBy('invoice_date', 'desc');
+        },
+        'invoices.payments',
+        'appointments' => function ($query) {
+            $query->orderBy('appointment_date', 'desc');
+        },
+        'employee',
+        'account',
+        'payments' => function ($query) {
+            $query->orderBy('payment_date', 'desc');
+        },
+        'appointmentNotes' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        },
+        'visits' => function ($query) {
+            $query->orderBy('visit_date', 'desc')->with('employee');
+        },
+    ])->findOrFail($id);
 
-        // تحقق من بيانات العميل مع العلاقات
-        $bookings = Booking::where('client_id', $id)->get();
-        $packages = Package::all();
-        $memberships = Memberships::where('client_id', $id)->get();
+    // تحقق من بيانات العميل مع العلاقات
+    $bookings = Booking::where('client_id', $id)->get();
+    $packages = Package::all();
+    $memberships = Memberships::where('client_id', $id)->get();
 
-        // تحميل الفواتير المرتبطة بالعميل
-        $invoices = $client->invoices;
-        $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
+    // تحميل الفواتير المرتبطة بالعميل
+    $invoices = $client->invoices;
+    $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
 
-        // تحميل جميع المدفوعات المرتبطة بالعميل
-        $payments = $client->payments()->orderBy('payment_date', 'desc')->get(); // تأكد من استرجاع جميع المدفوعات
+    // تحميل جميع المدفوعات المرتبطة بالعميل
+    $payments = $client->payments()->orderBy('payment_date', 'desc')->get();
 
-        // تحميل الملاحظات المرتبطة بالعميل
-        $appointmentNotes = $client->appointmentNotes;
-        $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
-        $notes = AppointmentNote::with(['user'])
-            ->latest()
-            ->get();
-        $appointments = Appointment::all();
-        $employees = Employee::all();
-        $statuses = Statuses::all();
+    // تحميل الملاحظات المرتبطة بالعميل
+    $appointmentNotes = $client->appointmentNotes;
+    $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
+    $notes = AppointmentNote::with(['user'])
+        ->latest()
+        ->get();
+    $appointments = Appointment::all();
+    $employees = Employee::all();
+    $statuses = Statuses::all();
 
-        // Get the first client by default
-        $client = $clients->first();
+    // Get the first client by default
+    $client = $clients->first();
 
-        $categories = CategoriesClient::all();
-        $ClientRelations = ClientRelation::where('client_id', $id)->get();
+    $categories = CategoriesClient::all();
+    $ClientRelations = ClientRelation::where('client_id', $id)->get();
 
-        do {
-            $lastClient = Client::orderBy('code', 'desc')->first();
-            $newCode = $lastClient ? $lastClient->code + 1 : 1;
-        } while (Client::where('code', $newCode)->exists());
+    do {
+        $lastClient = Client::orderBy('code', 'desc')->first();
+        $newCode = $lastClient ? $lastClient->code + 1 : 1;
+    } while (Client::where('code', $newCode)->exists());
 
-        return view('client.show', compact('client', 'ClientRelations', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
-    }
+    // تحميل الزيارات المرتبطة بالعميل
+    $visits = $client->visits;
 
+    return view('client.show', compact('client', 'ClientRelations', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes', 'visits'));
+}
     public function updateStatus(Request $request, $id)
     {
         $client = Client::findOrFail($id);

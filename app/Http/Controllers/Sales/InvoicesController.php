@@ -470,7 +470,7 @@ class InvoicesController extends Controller
          }
 
         }
-        
+
   $creditLimit = CreditLimit::first(); // جلب أول حد ائتماني
 if($payment_status == 3){
 if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->value) {
@@ -509,7 +509,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             'tax_total' => $tax_total,
             'grand_total' => $total_with_tax,
             'paid_amount' => $advance_payment,
-        ]); 
+        ]);
 
         // ** تحديث رصيد حساب أبناء العميل **
 
@@ -915,7 +915,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
 
             ]);
 
@@ -999,17 +999,17 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
             $MainTreasury->save();
         }
-     
+
         if($invoice->payment_status == 3){
             if ($clientaccounts) {
                 $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $clientaccounts->save();
             }
         }
-      
-        
 
-    
+
+
+
 
         // تحديث رصيد حساب الخزينة الرئيسية
 
@@ -1061,8 +1061,8 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 $MainTreasury->balance += $payment_amount;
                 $MainTreasury->save();
             }
-           
-    
+
+
 
             // إنشاء قيد محاسبي للدفعة
             $paymentJournalEntry = JournalEntry::create([
