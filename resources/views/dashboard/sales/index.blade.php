@@ -467,12 +467,12 @@
     </div>
 
 @endsection
-
 @section('scripts')
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         if (!navigator.geolocation) {
-            alert("❌ المتصفح لا يدعم ميزة تحديد الموقع الجغرافي.");
+            console.error("❌ المتصفح لا يدعم ميزة تحديد الموقع الجغرافي.");
             return;
         }
 
@@ -495,12 +495,11 @@
                             watchEmployeeLocation();
                         },
                         function (error) {
-                            alert("⚠️ يرجى السماح بالوصول إلى الموقع عند ظهور الطلب.");
                             console.error("❌ خطأ في الحصول على الموقع:", error);
                         }
                     );
                 } else {
-                    alert("⚠️ الوصول إلى الموقع محظور! يرجى تغييره من إعدادات المتصفح.");
+                    console.error("⚠️ الوصول إلى الموقع محظور! يرجى تغييره من إعدادات المتصفح.");
                 }
             });
         }

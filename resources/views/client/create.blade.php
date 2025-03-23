@@ -287,7 +287,7 @@
                                         @if($GeneralClientSetting->is_active)
                                         @if($GeneralClientSetting->key == "location")
                                         <div class="col-12 mb-3">
-                                            <button type="button" class="btn btn-outline-primary mb-2" onclick="toggleMap()">
+                                            <button type="button" class="btn btn-outline-primary mb-2" onclick="requestLocationPermission()">
                                                 <i class="feather icon-map"></i> إظهار الخريطة
                                             </button>
                                             <div id="map-container" style="display: none;">
@@ -540,114 +540,84 @@
 @section('scripts')
     <script src="{{ asset('assets/js/scripts.js') }}"></script>
     <!-- إضافة مكتبة Google Maps -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDBeu4hWvQrZbE1JFsUm6eYEtIVeiVRN0&libraries=places"></script>
-
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
     <script>
         // دالة لعرض الخريطة
         function toggleMap() {
             const mapContainer = document.getElementById('map-container');
             if (mapContainer.style.display === 'none') {
                 mapContainer.style.display = 'block';
-                initMap(); // تهيئة الخريطة
             } else {
                 mapContainer.style.display = 'none';
             }
         }
 
-        // دالة لتهيئة الخريطة
-        function initMap() {
-    // التحقق من دعم المتصفح لـ Geolocation API
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                // الحصول على الإحداثيات الحالية
-                const userLat = position.coords.latitude;
-                const userLng = position.coords.longitude;
-
-                // تعيين الإحداثيات في الحقول المخفية
-                document.getElementById('latitude').value = userLat;
-                document.getElementById('longitude').value = userLng;
-
-                // تهيئة الخريطة مع موقع المستخدم الحالي
-                const map = new google.maps.Map(document.getElementById('map'), {
-                    center: { lat: userLat, lng: userLng },
-                    zoom: 13,
-                });
-
-                // إضافة علامة (Marker) في موقع المستخدم الحالي
-                const marker = new google.maps.Marker({
-                    position: { lat: userLat, lng: userLng },
-                    map: map,
-                    draggable: true, // السماح بسحب العلامة
-                });
-
-                // تحديث الحقول المخفية عند تحريك العلامة
-                google.maps.event.addListener(marker, 'dragend', function () {
-                    const lat = marker.getPosition().lat();
-                    const lng = marker.getPosition().lng();
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lng;
-
-                    // جلب العنوان بناءً على الإحداثيات الجديدة
-                    fetchAddressFromCoordinates(lat, lng);
-                });
-
-                // جلب العنوان عند النقر على الخريطة
-                google.maps.event.addListener(map, 'click', function (event) {
-                    const lat = event.latLng.lat();
-                    const lng = event.latLng.lng();
-                    marker.setPosition({ lat, lng });
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lng;
-
-                    // جلب العنوان بناءً على الإحداثيات الجديدة
-                    fetchAddressFromCoordinates(lat, lng);
-                });
-            },
-            (error) => {
-                // في حالة فشل الحصول على الموقع، نستخدم موقع افتراضي (الرياض)
-                console.error('Error getting user location:', error);
-                const defaultLat = 24.7136;
-                const defaultLng = 46.6753;
-
-                document.getElementById('latitude').value = defaultLat;
-                document.getElementById('longitude').value = defaultLng;
-
-                const map = new google.maps.Map(document.getElementById('map'), {
-                    center: { lat: defaultLat, lng: defaultLng },
-                    zoom: 13,
-                });
-
-                const marker = new google.maps.Marker({
-                    position: { lat: defaultLat, lng: defaultLng },
-                    map: map,
-                    draggable: true,
-                });
-
-                google.maps.event.addListener(marker, 'dragend', function () {
-                    const lat = marker.getPosition().lat();
-                    const lng = marker.getPosition().lng();
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lng;
-                    fetchAddressFromCoordinates(lat, lng);
-                });
-
-                google.maps.event.addListener(map, 'click', function (event) {
-                    const lat = event.latLng.lat();
-                    const lng = event.latLng.lng();
-                    marker.setPosition({ lat, lng });
-                    document.getElementById('latitude').value = lat;
-                    document.getElementById('longitude').value = lng;
-                    fetchAddressFromCoordinates(lat, lng);
-                });
+        // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
+        function requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // إذا وافق المستخدم، نعرض الخريطة
+                        toggleMap();
+                        initMap(position.coords.latitude, position.coords.longitude);
+                    },
+                    (error) => {
+                        // إذا رفض المستخدم أو حدث خطأ
+                        alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
+                        console.error('Error getting location:', error);
+                    }
+                );
+            } else {
+                // إذا كان المتصفح لا يدعم الـ Geolocation
+                alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
             }
-        );
-    } else {
-        // في حالة عدم دعم المتصفح لـ Geolocation API
-        alert('Geolocation is not supported by this browser.');
-    }
-}
-        // دالة لجلب العنوان من الإحداثيات باستخدام Google Geocoding API
+        }
+
+        // دالة لتهيئة الخريطة
+        function initMap(lat, lng) {
+            // تعيين الإحداثيات في الحقول المخفية
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+
+            // تهيئة الخريطة مع الإحداثيات المحددة
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat, lng },
+                zoom: 15, // زيادة مستوى التكبير لدقة أعلى
+            });
+
+            // إضافة علامة (Marker) في الموقع المحدد
+            const marker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                draggable: true, // السماح بسحب العلامة
+                title: 'موقعك الحالي',
+            });
+
+            // تحديث الحقول المخفية عند تحريك العلامة
+            google.maps.event.addListener(marker, 'dragend', function () {
+                const newLat = marker.getPosition().lat();
+                const newLng = marker.getPosition().lng();
+                document.getElementById('latitude').value = newLat;
+                document.getElementById('longitude').value = newLng;
+
+                // جلب العنوان بناءً على الإحداثيات الجديدة
+                fetchAddressFromCoordinates(newLat, newLng);
+            });
+
+            // جلب العنوان عند النقر على الخريطة
+            google.maps.event.addListener(map, 'click', function (event) {
+                const newLat = event.latLng.lat();
+                const newLng = event.latLng.lng();
+                marker.setPosition({ lat: newLat, lng: newLng });
+                document.getElementById('latitude').value = newLat;
+                document.getElementById('longitude').value = newLng;
+
+                // جلب العنوان بناءً على الإحداثيات الجديدة
+                fetchAddressFromCoordinates(newLat, newLng);
+            });
+        }
+
+        // دالة لجلب العنوان من الإحداثيات
         function fetchAddressFromCoordinates(lat, lng) {
             const geocoder = new google.maps.Geocoder();
             const latLng = { lat, lng };

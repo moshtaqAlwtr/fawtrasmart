@@ -117,6 +117,7 @@
     <script src="{{ asset('app-assets/js/core/app-menu.js')}}"></script>
     <script src="{{ asset('app-assets/js/core/app.js')}}"></script>
     <script src="{{ asset('app-assets/js/scripts/components.js')}}"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
     <!-- END: Theme JS-->
 
     <!-- BEGIN: Page JS-->

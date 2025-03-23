@@ -37,7 +37,6 @@ use App\Mail\TestMail;
 use App\Models\Statuses;
 use App\Models\CreditLimit;
 
-
 class ClientController extends Controller
 {
     public function index(Request $request)
@@ -119,31 +118,30 @@ class ClientController extends Controller
 
         // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
         $users = User::all();
-       $employees = Employee::all();
+        $employees = Employee::all();
 
- $creditLimit = CreditLimit::first();
-        return view('client.index', compact('clients', 'users', 'employees','creditLimit'));
+        $creditLimit = CreditLimit::first();
+        return view('client.index', compact('clients', 'users', 'employees', 'creditLimit'));
     }
-public function updateCreditLimit(Request $request)
-{
-    $request->validate([
-        'value' => 'required|numeric|min:0',
-    ]);
-
-    // تحديث أو إنشاء الحد الائتماني إذا لم يكن موجودًا
-    $creditLimit = CreditLimit::first(); // يجلب أول حد ائتماني
-    if ($creditLimit) {
-        $creditLimit->value = $request->value;
-        $creditLimit->save();
-    } else {
-        CreditLimit::create([
-            'value' => $request->value,
+    public function updateCreditLimit(Request $request)
+    {
+        $request->validate([
+            'value' => 'required|numeric|min:0',
         ]);
+
+        // تحديث أو إنشاء الحد الائتماني إذا لم يكن موجودًا
+        $creditLimit = CreditLimit::first(); // يجلب أول حد ائتماني
+        if ($creditLimit) {
+            $creditLimit->value = $request->value;
+            $creditLimit->save();
+        } else {
+            CreditLimit::create([
+                'value' => $request->value,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'تم تحديث الحد الائتماني بنجاح!');
     }
-
-    return redirect()->back()->with('success', 'تم تحديث الحد الائتماني بنجاح!');
-}
-
 
     public function create()
     {
@@ -499,7 +497,7 @@ public function updateCreditLimit(Request $request)
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
-        return view('client.show', compact('client', 'ClientRelations', 'invoice_due','statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+        return view('client.show', compact('client', 'ClientRelations', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
     }
 
     public function updateStatus(Request $request, $id)
@@ -557,7 +555,6 @@ public function updateCreditLimit(Request $request)
             })
             ->latest()
             ->get();
-
 
         return view('client.contacts.show_contant', compact('client', 'notes'));
     }
@@ -622,11 +619,10 @@ public function updateCreditLimit(Request $request)
         $client->save();
 
         $Account = Account::where('client_id', $id)->first();
-if ($Account) {
-    $Account->balance = $client->opening_balance;
-    $Account->save(); // حفظ التعديل في قاعدة البيانات
-}
-
+        if ($Account) {
+            $Account->balance = $client->opening_balance;
+            $Account->save(); // حفظ التعديل في قاعدة البيانات
+        }
 
         return response()->json(['success' => true]);
     }
@@ -947,27 +943,26 @@ if ($Account) {
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
     public function updateStatusClient(Request $request)
-{
-    $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'status_id' => 'required|exists:statuses,id',
-    ]);
-
-    // البحث عن سجل العميل في جدول الحالات
-    $status = Statuses::where('client_id', $request->client_id)->first();
-
-    if ($status) {
-        // تحديث الحالة القديمة
-        $status->update(['status_id' => $request->status_id]);
-    } else {
-        // إضافة حالة جديدة إذا لم تكن موجودة
-        Statuses::create([
-            'client_id' => $request->client_id,
-            'status_id' => $request->status_id
+    {
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'status_id' => 'required|exists:statuses,id',
         ]);
+
+        // البحث عن سجل العميل في جدول الحالات
+        $status = Statuses::where('client_id', $request->client_id)->first();
+
+        if ($status) {
+            // تحديث الحالة القديمة
+            $status->update(['status_id' => $request->status_id]);
+        } else {
+            // إضافة حالة جديدة إذا لم تكن موجودة
+            Statuses::create([
+                'client_id' => $request->client_id,
+                'status_id' => $request->status_id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
     }
-
-    return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
-}
-
 }

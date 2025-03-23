@@ -461,6 +461,14 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link" id="account-movement-tab" data-toggle="tab"
+                                        href="#account-movement" aria-controls="account-movement" role="tab"
+                                        aria-selected="false">
+                                        زيارات العميل  <span
+                                            class="badge badge-pill badge-info">{{ $client->transactions->count() }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link" id="balance-summary-tab" data-toggle="tab"
                                         href="#balance-summary" aria-controls="balance-summary" role="tab"
                                         aria-selected="false">ملخص الرصيد</a>

@@ -7,7 +7,7 @@ use App\Models\Visit;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Notification;
-use App\Models\Location; // تأكد من استيراد نموذج Location
+use App\Models\Location;
 use App\Models\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +36,7 @@ class VisitController extends Controller
     {
         // تحقق من البيانات المرسلة
         $request->validate([
-        'employee_id' => 'required|exists:users,id',
+            'employee_id' => 'required|exists:users,id',
             'client_id' => 'required|exists:clients,id',
             'visit_date' => 'required|date',
             'status' => 'required|in:present,absent',
@@ -81,16 +81,7 @@ class VisitController extends Controller
 
         return response()->json(['message' => 'العميل ليس لديه موقع مسجل'], 400);
     }
-    public function login(Request $request)
-    {
-        // التحقق من بيانات الدخول
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-            // إعادة توجيه إلى صفحة تأكيد الموقع
-            return redirect()->route('confirm.location');
-        }
 
-        return back()->withErrors(['email' => 'بيانات الدخول غير صحيحة']);
-    }
     // تخزين موقع الموظف تلقائيًا
     public function storeEmployeeLocation(Request $request)
     {
@@ -109,61 +100,49 @@ class VisitController extends Controller
             ]
         );
 
+        // التحقق من المسافة وتسجيل الزيارة تلقائيًا
+        $this->checkDistanceAndLogVisit(auth()->id(), $request->latitude, $request->longitude);
+
         return response()->json([
             'message' => 'تم تحديث الموقع بنجاح',
             'location' => $location,
         ], 200);
     }
-    // التحقق من المسافة وتسجيل الزيارة
-    public function checkDistance(Request $request)
+
+    // التحقق من المسافة وتسجيل الزيارة تلقائيًا
+    private function checkDistanceAndLogVisit($employeeId, $latitude, $longitude)
     {
-        // تحقق من البيانات المرسلة
-        $request->validate([
-            'employee_id' => 'required|exists:users,id',
-            'client_id' => 'required|exists:clients,id',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-        ]);
+        // جلب جميع العملاء
+        $clients = Client::all();
 
-        // جلب أحدث موقع مسجل للعميل
-        $clientLocation = Location::where('client_id', $request->client_id)
-            ->latest()
-            ->first();
+        foreach ($clients as $client) {
+            // جلب أحدث موقع مسجل للعميل
+            $clientLocation = $client->locations()->latest()->first();
 
-        // إذا كان العميل عنده موقع مسجل
-        if ($clientLocation) {
-            // حساب المسافة بين موقع الموظف وموقع العميل
-            $distance = $this->calculateDistance(
-                $clientLocation->latitude, $clientLocation->longitude,
-                $request->latitude, $request->longitude
-            );
+            if ($clientLocation) {
+                // حساب المسافة بين موقع الموظف وموقع العميل
+                $distance = $this->calculateDistance(
+                    $clientLocation->latitude, $clientLocation->longitude,
+                    $latitude, $longitude
+                );
 
-            // إذا كان الموظف داخل نطاق 100 متر من العميل
-            if ($distance < 100) {
-                // تسجيل الزيارة
-                $visit = Visit::create([
-                    'employee_id' => $request->employee_id,
-                    'client_id' => $request->client_id,
-                    'visit_date' => now(),
-                    'status' => 'present',
-                    'employee_latitude' => $request->latitude,
-                    'employee_longitude' => $request->longitude,
-                ]);
+                // إذا كان الموظف داخل نطاق 100 متر من العميل
+                if ($distance < 100) {
+                    // تسجيل الزيارة
+                    $visit = Visit::create([
+                        'employee_id' => $employeeId,
+                        'client_id' => $client->id,
+                        'visit_date' => now(),
+                        'status' => 'present',
+                        'employee_latitude' => $latitude,
+                        'employee_longitude' => $longitude,
+                    ]);
 
-                return response()->json([
-                    'message' => 'تم تسجيل الزيارة بنجاح',
-                    'visit' => $visit,
-                    'distance' => $distance
-                ], 201);
-            } else {
-                return response()->json([
-                    'message' => 'أنت لست قريبًا من العميل',
-                    'distance' => $distance
-                ], 200);
+                    // إرسال إشعار للمدير
+                    $this->sendNotificationToManager($visit);
+                }
             }
         }
-
-        return response()->json(['message' => 'العميل ليس لديه موقع مسجل'], 400);
     }
 
     // دالة لحساب المسافة بين نقطتين
@@ -191,6 +170,7 @@ class VisitController extends Controller
 
         if ($manager) {
             Notification::create([
+                'type' => 'visit',
                 'title' => 'زيارة جديدة',
                 'description' => "تم تسجيل زيارة جديدة من قبل الموظف: {$visit->employee->name} لعميل: {$visit->client->name}",
                 'user_id' => $manager->id,
