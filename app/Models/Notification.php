@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Notification
- * 
+ *
  * @property int $notification_id
  * @property int $user_id
  * @property string $message
@@ -35,4 +35,5 @@ class Notification extends Model
 		'message',
 		'status'
 	];
+
 }

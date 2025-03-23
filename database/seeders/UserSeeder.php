@@ -20,9 +20,9 @@ class UserSeeder extends Seeder
         $adminUser = User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'يوسف محمد',
+                'name' => 'عبدالمنعم',
                 'email' => 'admin@example.com',
-                'password' => Hash::make('12345678'),
+                'password' => Hash::make('123456'),
                 'role' => 'manager',
                 'phone' => '0966123456789'
             ]
@@ -47,7 +47,7 @@ class UserSeeder extends Seeder
                 'name' => 'محمد فالح العتيبي',
                 'email' => 'alrwies@gmail.com',
                 'password' => Hash::make('123456'),
-                'role' => 'owner',
+                'role' => 'manager',
                 'phone' => '0534781241'
             ]
         );

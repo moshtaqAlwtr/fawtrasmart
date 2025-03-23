@@ -53,12 +53,12 @@
                             </label>
                             <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 text-center">استيراد</button>
                         </form>
-                        
+
                     </div>
-  
+
                     <!-- القسم الأيسر -->
                     <div class="col-md-6 d-flex justify-content-center justify-content-md-end gap-2">
-                       
+
                       <!-- زر إضافة حد ائتماني مع البيانات -->
 <a href="javascript:void(0);" class="btn btn-success btn-sm rounded-pill px-4 text-center" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
     <i class="fas fa-plus-circle me-1"></i> إضافة حد ائتماني
@@ -278,7 +278,7 @@
                                                             </a>
                                                         </li>
                                                     @endif
-                                                    
+
                                                         <a class="dropdown-item" href="{{ route('clients.send_info', $client->id) }}">
                                                             <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات الدخول
                                                         </a>
@@ -376,7 +376,7 @@
                         <label for="credit_limit" class="form-label">
                             الحد الائتماني الحالي: <span id="current_credit_limit">{{ $creditLimit->value ?? 'غير محدد' }}</span>
                         </label>
-                        <input type="number" class="form-control" id="credit_limit" name="value" 
+                        <input type="number" class="form-control" id="credit_limit" name="value"
                                value="{{ $creditLimit->value ?? '' }}" required>
                     </div>
                 </div>
@@ -399,13 +399,13 @@ l
   $('#creditLimitModal').on('show.bs.modal', function (event) {
     var button = $(event.relatedTarget); // الزر الذي فتح الـ Modal
     var clientId = button.data('client-id');
-    var currentCredit = button.data('current-credit'); 
+    var currentCredit = button.data('current-credit');
 
     var modal = $(this);
     modal.find('.modal-body #credit_limit').val(currentCredit); // تعيين الحد الائتماني الحالي
     modal.find('.modal-body #current_credit_limit').text(currentCredit); // عرض الحد الائتماني الحالي
-});  
-    
+});
+
 </script>
 
 

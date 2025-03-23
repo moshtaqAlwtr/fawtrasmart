@@ -58,7 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Branch::find($this->branch_id);
     }
-    
+
     public function isEmployee()
     {
         return $this->role === 'employee';
@@ -67,4 +67,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Branch::class);
     }
+    public function notifications()
+{
+    return $this->hasMany(Notification::class);
+}
 }
