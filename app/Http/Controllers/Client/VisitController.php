@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Visit;
 use App\Models\Client;
 use App\Models\Employee;
-use App\Models\Notification;
+
 use App\Models\Location;
+use App\Models\notifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -181,16 +182,12 @@ class VisitController extends Controller
     private function sendNotificationToManager($visit)
     {
         // جلب المدير
-        $manager = Employee::where('role', 'manager')->first();
 
-        if ($manager) {
-            // إنشاء إشعار جديد
-            Notification::create([
-                'user_id' => $manager->id, // معرف المستخدم (المدير)
-                'message' => "تم تسجيل زيارة جديدة من قبل الموظف: {$visit->employee->full_name} لعميل: {$visit->client->trade_name}", // نص الإشعار
-                'status' => 'unread', // حالة الإشعار (غير مقروء)
-            ]);
-        }
+        notifications::create([
+            'type' => 'visit', // نوع الإشعار
+            'title' => 'زيارة جديدة', // عنوان الإشعار
+            'description' => "تم تسجيل زيارة جديدة من قبل الموظف: {$visit->employee->name} لعميل: {$visit->client->trade_name}", // وصف الإشعار
+        ]);
     }
 
     // تحديث زيارة معينة
