@@ -19,7 +19,7 @@ class BranchesController extends Controller
         $branches = Branch::all();
 
         // عرض صفحة الفروع مع البيانات
-        return view('Branches.index', compact('branches'));
+        return view('branches.index', compact('branches'));
     }
 
     // عرض نموذج إضافة فرع جديد
@@ -28,7 +28,7 @@ class BranchesController extends Controller
         $lastBranch = Branch::latest('id')->first();
         $code = $lastBranch ? str_pad($lastBranch->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
         // عرض صفحة إضافة فرع
-        return view('Branches.create', compact('code'));
+        return view('branches.create', compact('code'));
     }
     public function switchBranch($branchId)
     {
@@ -126,7 +126,7 @@ class BranchesController extends Controller
         $branch = Branch::findOrFail($id);
 
         // عرض صفحة التعديل
-        return view('Branches.edit', compact('branch'));
+        return view('branches.edit', compact('branch'));
     }
 
     // تحديث بيانات الفرع
@@ -202,7 +202,7 @@ class BranchesController extends Controller
         }
 
         // تمرير البيانات إلى الـ view
-        return view('Branches.settings', compact('branchs', 'settings', 'selectedBranchId'));
+        return view('branches.settings', compact('branchs', 'settings', 'selectedBranchId'));
     }
 
     public function settings_store(Request $request)

@@ -241,23 +241,32 @@ class CustomerReportController extends Controller
     } // عرض دليل العملاء
     public function customerGuide(Request $request)
     {
-        $query = Client::query();
+        $query = Client::query()->with(['locations']);
 
-        // تطبيق الفلاتر إذا كانت موجودة
-        if ($request->has('region') && $request->region !== 'الكل') {
+        // تطبيق الفلاتر
+        if ($request->filled('region') && $request->region !== 'الكل') {
             $query->where('region', $request->region);
         }
 
-        if ($request->has('city') && $request->city !== 'الكل') {
+        if ($request->filled('city') && $request->city !== 'الكل') {
             $query->where('city', $request->city);
         }
 
-        if ($request->has('classification') && $request->classification !== 'الكل') {
-            $query->where('category', $request->classification);
+        if ($request->filled('country')) {
+            $query->where('country', 'like', '%'.$request->country.'%');
         }
 
-        if ($request->has('branch') && $request->branch !== 'الكل') {
-            $query->where('branch', $request->branch);
+        if ($request->filled('classification') && $request->classification !== 'الكل') {
+            $query->where('category_id', $request->classification);
+        }
+
+        if ($request->filled('branch') && $request->branch !== 'الكل') {
+            $query->where('branch_id', $request->branch);
+        }
+
+        // جلب فقط العملاء الذين لديهم مواقع إذا تم اختيار مشاهدة التفاصيل
+        if ($request->boolean('view_details')) {
+            $query->whereHas('locations');
         }
 
         $clients = $query->get();
