@@ -211,7 +211,7 @@ class InvoicesController extends Controller
     }
     public function create(Request $request)
     {
-     
+
         $invoice_number = $this->generateInvoiceNumber();
         $items = Product::all();
         $clients = Client::all();
@@ -227,7 +227,7 @@ class InvoicesController extends Controller
          $client = Client::find($request->client_id);
         return view('sales.invoices.create', compact('clients','account_setting', 'price_lists','taxs' ,'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees','client'));
     }
-    
+
     public function verify_code(Request $request)
     {
     // تحقق من وجود العميل
@@ -247,12 +247,12 @@ class InvoicesController extends Controller
 
     public function store(Request $request)
     {
-      
-       
-        
-       
+
+
+
+
         try {
-    
+
 
         // ** الخطوة الأولى: إنشاء كود للفاتورة **
         $code = $request->code;
@@ -350,7 +350,7 @@ class InvoicesController extends Controller
                 }
 
 
-             
+
 
                 // حساب تفاصيل الكمية والأسعار
                 $quantity = floatval($item['quantity']);
@@ -491,7 +491,7 @@ class InvoicesController extends Controller
          }
 
         }
-        
+
   $creditLimit = CreditLimit::first(); // جلب أول حد ائتماني
 if($payment_status == 3){
 if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->value) {
@@ -533,24 +533,24 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             'tax_total' => $tax_total,
             'grand_total' => $total_with_tax,
             'paid_amount' => $advance_payment,
-        ]); 
-        
-        
-        
-        
+        ]);
 
-        
+
+
+
+
+
         // حساب الضريبة
    foreach ($request->items as $item) {
     // حساب الإجمالي لكل منتج (السعر × الكمية)
-    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+    $item_subtotal = $item['unit_price'] * $item['quantity'];
 
     // حساب الضرائب بناءً على البيانات القادمة من `request`
-    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    $tax_ids = ['tax_1_id', 'tax_2_id'];
     foreach ($tax_ids as $tax_id) {
         if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
-            $tax = TaxSitting::find($item[$tax_id]); 
-            
+            $tax = TaxSitting::find($item[$tax_id]);
+
             if ($tax) {
                 $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
 
@@ -973,7 +973,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
 
             ]);
 
@@ -1057,17 +1057,17 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
             $MainTreasury->save();
         }
-     
+
         if($invoice->payment_status == 3){
             if ($clientaccounts) {
                 $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $clientaccounts->save();
             }
         }
-      
-        
 
-    
+
+
+
 
         // تحديث رصيد حساب الخزينة الرئيسية
 
@@ -1119,8 +1119,8 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 $MainTreasury->balance += $payment_amount;
                 $MainTreasury->save();
             }
-           
-    
+
+
 
             // إنشاء قيد محاسبي للدفعة
             $paymentJournalEntry = JournalEntry::create([
@@ -1131,7 +1131,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
             // 1. حساب الخزينة المستهدفة (مدين)
