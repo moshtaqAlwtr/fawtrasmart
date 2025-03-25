@@ -209,7 +209,7 @@ class InvoicesController extends Controller
 
         return view('sales.invoices.index', compact('invoices', 'account_setting', 'client', 'clients', 'users', 'invoice_number', 'employees'));
     }
-    public function create()
+    public function create(Request $request)
     {
      
         $invoice_number = $this->generateInvoiceNumber();
@@ -224,12 +224,49 @@ class InvoicesController extends Controller
         $invoiceType = 'normal'; // نوع الفاتورة عادي
         $taxs = TaxSitting::all();
          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        return view('sales.invoices.create', compact('clients','account_setting', 'price_lists','taxs' ,'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
+         $client = Client::find($request->client_id);
+        return view('sales.invoices.create', compact('clients','account_setting', 'price_lists','taxs' ,'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees','client'));
+    }
+    
+    public function verify_code(Request $request)
+    {
+    // تحقق من وجود العميل
+    $client = Client::find($request->client_id);
+
+    if (!$client) {
+        return response()->json(["error" => "العميل غير موجود."], 400);
+    }
+
+    // السماح برمز ثابت "123" كرمز صالح مؤقتًا
+    if ($request->verification_code == "123") {
+        return response()->json(["success" => "تم التحقق بنجاح."]);
+    }
+
+    return response()->json(["error" => "رمز التحقق غير صحيح."], 400);;
+    }
+    
+    public function notifications()
+    {
+        $notifications = notifications::where('read', 0)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'description', 'created_at']);
+            
+            return view('notifications.index',compact('notifications'));
+    }
+    
+    public function markAsReadid($id)
+    {
+        $notifications = notifications::find($id);
+        $notifications->read = 1;
+        $notifications->save();
+        
+        return back();
+        
     }
 
     public function store(Request $request)
     {
-        
+      
        
         try {
     
@@ -479,7 +516,10 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
 }
 
 }
-
+// // التحقق من الرمز قبل إنشاء الفاتورة
+// if ($request->verification_code !== '123') {
+//     return response()->json(['error' => 'رمز التحقق غير صحيح.'], 400);
+// }
         // ** الخطوة الرابعة: إنشاء الفاتورة في قاعدة البيانات **
         $invoice = Invoice::create([
             'client_id' => $request->client_id,

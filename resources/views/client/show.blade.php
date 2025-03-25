@@ -122,32 +122,37 @@
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->id }}</small>
-                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color??'#ffffff' }}; color: white;">
-                            {{ $statuses->find($client->status_id)->name??'غير محدد' }}
+                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
+                            {{ $statuses->find($client->status_id)->name }}
                         </span>
-                            <br>
-                            <small class="text-muted">
-                                حساب الأستاذ:
-                                @if ($client->account)
-                                    <a href="#">{{ $client->account->name }} #{{ $client->account->code }}</a>
-                                @else
-                                    <span>No account associated</span>
-                                @endif
-                            </small>
+                        <br>
+                        <small class="text-muted">
+                            حساب الأستاذ:
+                            @if ($client->account)
+                                <a href="#">{{ $client->account->name }} #{{ $client->account->code }}</a>
+                            @else
+                                <span>No account associated</span>
+                            @endif
+                        </small>
                     </div>
-                     @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
+                    @php
+                        $currency = $account_setting->currency ?? 'SAR';
+                        $currencySymbol =
+                            $currency == 'SAR' || empty($currency)
+                                ? '<img src="' .
+                                    asset('assets/images/Saudi_Riyal.svg') .
+                                    '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                : $currency;
+                    @endphp
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted">{!! $currencySymbol !!}</span>
+                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
+                                class="text-muted">{!! $currencySymbol !!}</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
                         @if ($invoices->isNotEmpty())
                             <div class="text-muted">
-                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
-                                    class="text-muted"></span>
+                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted"></span>
                                 <span class="d-block text-warning">مفتوح</span>
                             </div>
                         @endif
@@ -1358,20 +1363,17 @@
                                                     <th>#</th>
                                                     <th>تاريخ الزيارة</th>
                                                     <th>الموظف</th>
-
                                                 </tr>
                                             </thead>
-                                            {{-- <tbody>
+                                            <tbody>
                                                 @foreach ($visits as $visit)
                                                     <tr>
                                                         <td>{{ $visit->id }}</td>
                                                         <td>{{ $visit->visit_date }}</td>
-                                                        <td>{{ $visit->employee->name }}</td>
-
-
+                                                        <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
                                                     </tr>
                                                 @endforeach
-                                            </tbody> --}}
+                                            </tbody>
                                         </table>
                                     </div>
                                 </div>

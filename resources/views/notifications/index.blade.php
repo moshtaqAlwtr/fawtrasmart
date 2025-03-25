@@ -1,61 +1,49 @@
 @extends('master')
 
 @section('title')
-    أدارة الأشتراكات
+    إدارة الإشعارات
 @stop
 
 @section('content')
-    <div style="font-size: 1.1rem;">
-        <div class="content-header row">
-            <div class="content-header-left col-md-9 col-12 mb-2">
-                <div class="row breadcrumbs-top">
-                    <div class="col-12">
-                        <h2 class="content-header-title float-left mb-0"> الأشعارات </h2>
-                        <div class="breadcrumb-wrapper col-12">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
-                                <li class="breadcrumb-item active">عرض</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
+    <div class="container mt-4">
+        <div class="card shadow-lg p-4 rounded">
+            <!-- عنوان الإشعارات بخلفية بيضاء -->
+            <div class="card-header bg-white text-dark border-bottom">
+                <h4 class="mb-0 fw-bold">الإشعارات</h4>
             </div>
-        </div>
 
-
-            <div class="container mt-4">
-              
-        
-                <div class="card p-3 mt-4">
-                    <table class="table table-bordered text-center">
-                        <thead class="table-light">
+            <!-- محتوى الكارد -->
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover text-center">
+                        <thead class="bg-secondary text-white">
                             <tr>
                                 <th>عنوان التنبيه</th>
                                 <th>بيانات التنبيه</th>
-                                <th>اجراءات</th>
-                            
+                                <th>إجراءات</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($notifications as $notification)
-                            <tr>
-                              
-                                    
-                               
-                                <td>{{$notification->title ?? ""}}</td>
-                                <td>{{$notification->description ?? ""}}</td>
-                                <td><a class="dropdown-item"
-                                    href="{{ route('notifications.markAsReadid', $notification->id) }}">
-                                    </i>اخفاء
-                                </a></td>
-                             
-                            </tr>
-                               @endforeach
+                            @forelse ($notifications as $notification)
+                                <tr class="align-middle">
+                                    <td class="fw-bold text-dark">{{ $notification->title ?? 'بدون عنوان' }}</td>
+                                    <td class="fw-bold text-dark">{{ $notification->description ?? 'لا توجد بيانات' }}</td>
+                                    <td>
+                                        <a href="{{ route('notifications.markAsReadid', $notification->id) }}" 
+                                           class="btn btn-sm btn-danger fw-bold">
+                                            <i class="fa fa-eye-slash"></i> إخفاء
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="text-muted fw-bold">لا توجد إشعارات حاليًا</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-   
-     
-        
-        @endsection
+        </div>
+    </div>
+@endsection
