@@ -93,7 +93,7 @@
         </div>
     </div>
     <div class="content-body">
-        <form id="invoice-form" action="{{ route('invoices.store') }}" method="post">
+        <form id="invoiceForm" action="{{ route('invoices.store') }}" method="post">
             @csrf
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -121,9 +121,9 @@
                             <a href="" class="btn btn-outline-danger">
                                 <i class="fa fa-ban"></i>الغاء
                             </a>
-                            <button type="submit" class="btn btn-outline-primary">
-                                <i class="fa fa-save"></i>حفظ
-                            </button>
+                           <button type="button" id="saveInvoice" class="btn btn-outline-primary">
+    <i class="fa fa-save"></i> حفظ
+</button>
                         </div>
 
                     </div>
@@ -142,7 +142,7 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control" id="clientSelect" name="payment">
+                                                <select class="form-control"  name="payment">
                                                     <option value="">اختر الطريقة </option>
                                                     <option value="1">ارسال عبر البريد</option>
                                                     <option value="2">طباعة </option>
@@ -166,7 +166,10 @@
                                                     @endforeach
 
                                                 </select>
+                                                
+                                               
                                             </div>
+                                             <input type="hidden" id="client_id_hidden" name="client_id" value="">
                                             <div class="col-md-4">
                                                 <a href="{{ route('clients.create') }}" type="button"
                                                     class="btn btn-primary mr-1 mb-1 waves-effect waves-light">
@@ -687,8 +690,9 @@
     </div>
 @endsection
 @section('scripts')
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
     <script src="{{ asset('assets/js/invoice.js') }}"></script>
     <script>
         document.querySelectorAll('.toggle-check').forEach((checkbox) => {
@@ -723,6 +727,7 @@
 }
 
  </script>
+
     
     <script>
         $(document).ready(function() {
@@ -855,6 +860,7 @@ document.addEventListener('change', function (e) {
 
 
 document.addEventListener("DOMContentLoaded", function () {
+
     function calculateTotals() {
         let subtotal = 0; // المجموع الفرعي (بدون ضريبة)
         let grandTotal = 0; // المجموع الكلي
@@ -988,8 +994,84 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // حساب القيم عند تحميل الصفحة
     calculateTotals();
+  const clientSelect = document.getElementById("clientSelect");
+const clientIdHidden = document.getElementById("client_id_hidden");
+const saveButton = document.getElementById("saveInvoice");
+const invoiceForm = document.getElementById("invoiceForm");
+
+// 1. تحديث الحقل المخفي عند تغيير العميل
+clientSelect.addEventListener("change", function() {
+    clientIdHidden.value = this.value;
+    console.log("تم تحديث client_id إلى:", this.value);
+});
+
+// 2. معالجة زر الحفظ
+saveButton.addEventListener("click", function(event) {
+    event.preventDefault(); // منع الإرسال الافتراضي
+
+    const clientId = clientSelect.value;
+    
+    console.log("قيمة العميل المختار:", clientId);
+    console.log("قيمة الحقل المخفي قبل الإرسال:", clientIdHidden.value);
+
+    if (!clientId) {
+        Swal.fire({
+            icon: "error",
+            title: "خطأ",
+            text: "الرجاء اختيار عميل من القائمة"
+        });
+        return;
+    }
+
+    // جلب بيانات العميل
+    fetch(`/sales/invoices/get-client/${clientId}`)
+    .then(response => {
+        if (!response.ok) throw new Error("فشل في جلب بيانات العميل");
+        return response.json();
+    })
+    .then(client => {
+        // عرض نافذة التحقق
+   Swal.fire({
+    title: "🔐 التحقق من الهوية",
+    html: `
+        <div style="text-align: right; direction: rtl;">
+            <p><strong>اسم العميل:</strong> ${client.trade_name}</p>
+            <p><strong>رقم الهاتف:</strong> ${client.phone ?? "غير متوفر"}</p>
+            <p>يرجى إدخال رمز التحقق لإكمال العملية.</p>
+        </div>
+    `,
+    input: "text",
+    inputPlaceholder: "أدخل الرمز المرسل (123)",
+    showCancelButton: true,
+    confirmButtonText: "✅ تحقق",
+    cancelButtonText: "❌ إلغاء",
+    icon: "info",
+    inputValidator: (value) => {
+        if (!value) return "⚠️ يجب إدخال رمز التحقق!";
+        if (value !== "123") return "❌ الرمز غير صحيح!";
+    }
+}).then((result) => {
+    if (result.isConfirmed) {
+        // تنفيذ العملية بعد التحقق
+        clientIdHidden.value = clientId;
+        console.log("تم تحديث client_id_hidden إلى:", clientIdHidden.value);
+        invoiceForm.submit();
+    }
+});
+
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        Swal.fire("خطأ", "تعذر جلب بيانات العميل", "error");
+    });
+});
+
+     
 });
 
 
+    </script>
+    <script>
+     
     </script>
 @endsection

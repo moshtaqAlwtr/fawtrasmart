@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Client\ClientSettingController;
-use App\Http\Controllers\Client\VisitController;
 use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
@@ -24,7 +23,6 @@ use App\Http\Controllers\Sales\PaymentProcessController;
 use App\Http\Controllers\Sales\ReturnInvoiceController;
 use App\Http\Controllers\Sales\ShippingOptionsController;
 use App\Http\Controllers\Sales\SittingInvoiceController;
-
 use App\Models\Client;
 
 require __DIR__ . '/auth.php';
@@ -43,6 +41,7 @@ Route::group(
             Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الأسعار
             Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
+
         });
         Route::prefix('sales')
             ->middleware(['auth', 'check.branch'])
@@ -53,6 +52,13 @@ Route::group(
                     ->group(function () {
                         Route::get('/index', [InvoicesController::class, 'index'])->name('invoices.index');
                         Route::get('/create', [InvoicesController::class, 'create'])->name('invoices.create');
+                           Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
+                           Route::get('/get-client/{id}', function ($id) {
+                             $client = Client::find($id);
+                             return response()->json($client);
+                              });
+
+                        
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
                         Route::post('/invoices/import', [InvoicesController::class, 'import'])->name('invoices.import');
                         Route::get('/edit/{id}', [InvoicesController::class, 'edit'])->name('invoices.edit');
@@ -175,7 +181,7 @@ Route::group(
                 # Client routes
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
-                    Route::post('clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
+Route::post('clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
@@ -191,10 +197,12 @@ Route::group(
 
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
-                    Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
+
+Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
                     // صلاحيات العميل
                     Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
                     Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
+
 
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
@@ -214,16 +222,19 @@ Route::group(
                     Route::get('/previous', [ClientController::class, 'getPreviousClient'])->name('clients.previous');
                     Route::post('/{id}/update-opening-balance', [ClientController::class, 'updateOpeningBalance']);
 
-                    Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])->name('clients.assign-employees');
-                    Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])->name('clients.remove-employee');
-                    Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])->name('clients.get-assigned-employees');
-                    Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
+                    Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])
+                        ->name('clients.assign-employees');
+                    Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])
+                        ->name('clients.remove-employee');
+                    Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])
+                        ->name('clients.get-assigned-employees');
+                        Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
                     Route::get('/clients/search', function (Request $request) {
+
                         $query = $request->query('query');
 
-                        $clients = Client::with('latestStatus')
-                            ->where('trade_name', 'LIKE', "%{$query}%")
+                        $clients = Client::with('latestStatus')->where('trade_name', 'LIKE', "%{$query}%")
                             ->orWhere('first_name', 'LIKE', "%{$query}%")
                             ->orWhere('last_name', 'LIKE', "%{$query}%")
                             ->orWhere('phone', 'LIKE', "%{$query}%")
@@ -283,18 +294,9 @@ Route::group(
                 Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
-            Route::prefix('visits')
-            ->middleware(['auth'])
-            ->group(function () {
 
-                Route::get('/visits', [VisitController::class, 'index']); // عرض جميع الزيارات
-                Route::get('/visits/{id}', [VisitController::class, 'show']); // عرض تفاصيل زيارة معينة
-                Route::post('/visits', [VisitController::class, 'store']); // تسجيل زيارة جديدة
-                Route::put('/visits/{id}', [VisitController::class, 'update']); // تحديث زيارة معينة
-                Route::delete('/visits/{id}', [VisitController::class, 'destroy']); // حذف زيارة معينة
-                Route::post('/employee-location', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
-                Route::post('/check-distance', [VisitController::class, 'checkDistance']);
-            });
+
+
         Route::prefix('commission')
             ->middleware(['auth'])
             ->group(function () {
@@ -311,4 +313,6 @@ Route::group(
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
     },
+
+
 );
