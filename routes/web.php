@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Client\ClientSettingController;
+use App\Http\Controllers\Client\VisitController;
 use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
@@ -58,7 +59,7 @@ Route::group(
                              return response()->json($client);
                               });
 
-                        
+
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
                         Route::post('/invoices/import', [InvoicesController::class, 'import'])->name('invoices.import');
                         Route::get('/edit/{id}', [InvoicesController::class, 'edit'])->name('invoices.edit');
@@ -294,7 +295,12 @@ Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteSta
                 Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
+            Route::prefix('visits')
+            ->middleware(['auth'])
+            ->group(function () {
+                Route::post('/visits', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
 
+            });
 
 
         Route::prefix('commission')
