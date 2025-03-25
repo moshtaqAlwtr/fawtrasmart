@@ -18,9 +18,7 @@ class CreateStatusesTable extends Migration
             $table->string('color')->nullable(); // Color associated with the status
             $table->tinyInteger('state')->default(1)->nullable(); // State of the status
 
-             // Foreign key linking to orders table
-             $table->foreignId('supply_order_id')->nullable()->constrained('supply_orders')->onDelete('set null');
-             $table->foreignId('client_id')->nullable()->constrained('clients')->onDelete('set null');
+
             $table->timestamps(); // Created at and updated at timestamps
         });
     }

@@ -206,34 +206,19 @@ class VisitController extends Controller
     // إرسال إشعار للمدير
     private function sendNotificationToManager($visit, $type)
     {
-        $title = '';
-        $description = '';
 
-        if ($type === 'visit_arrival') {
-            $title = 'حضور تلقائي';
-            $description = "موظف: {$visit->employee->name} قام بتسجيل حضور عند عميل: {$visit->client->trade_name}";
-        } elseif ($type === 'visit_departure') {
-            $title = 'انصراف تلقائي';
-            $description = "موظف: {$visit->employee->name} قام بتسجيل انصراف من عميل: {$visit->client->trade_name}";
-        }
 
         notifications::create([
-            'user_id' => $this->getManagerId(), // دالة للحصول على مدير الموظف
-            'type' => $type,
-            'title' => $title,
-            'description' => $description,
-            'related_id' => $visit->id,
-            'related_type' => 'visit'
+
+            'type' => 'visit',
+            'title' => 'زيارة جديدة',
+            'description' =>'زيارة جديدة للعميل ' . $visit->client->trade_name . ' - ' . $visit->notes,
+
         ]);
     }
 
     // الحصول على مدير الموظف (يمكنك تعديلها حسب نظامك)
-    private function getManagerId()
-    {
-        // هنا يمكنك تطبيق منطق للحصول على المدير المسؤول
-        // هذا مثال افتراضي
-        return User::where('role', 'manager')->first()->id;
-    }
+
 
     // تحديث زيارة معينة
     public function update(Request $request, $id)

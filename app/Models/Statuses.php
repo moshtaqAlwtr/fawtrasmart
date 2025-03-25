@@ -24,4 +24,8 @@ class Statuses extends Model
     {
         return $this->belongsTo(SupplyOrder::class);
     }
+public function client()
+{
+    return $this->belongsTo(Client::class);
+}
 }
