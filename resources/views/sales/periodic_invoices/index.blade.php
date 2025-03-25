@@ -182,7 +182,11 @@
                                     </td>
                                     <td>{{ $preInvoice->created_at ? date('Y-m-d', strtotime($preInvoice->created_at)) : '-' }}
                                     </td>
-                                    <td>{{ number_format($preInvoice->grand_total, 2) }} ريال</td>
+                                    @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
+                                    <td>{{ number_format($preInvoice->grand_total, 2) }}  {!! $currencySymbol !!}</td>
                                     <td>{{ $preInvoice->repeat_interval }}
                                         @if ($preInvoice->repeat_type == 1)
                                             يوم

@@ -130,17 +130,29 @@
     </table>
 
     <div class="totals">
-        <p>المجموع الفرعي: {{ number_format($credit->subtotal ?? 0, 2) }} ريال</p>
+         @php
+        $currency = $account_setting->currency ?? 'SAR';
+        $currencySymbol =
+            $currency == 'SAR' || empty($currency)
+                ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15">'
+                : $currency;
+    @endphp
+        <p>المجموع الفرعي: {{ number_format($credit->subtotal ?? 0, 2) }} {!! $currencySymbol !!}</p>
 
         @if(($credit->total_discount ?? 0) > 0)
-            <p>الخصم: {{ number_format($credit->total_discount, 2) }} ريال</p>
+            <p>الخصم: {{ number_format($credit->total_discount, 2) }} {!! $currencySymbol !!}</p>
         @endif
 
-        @if(($credit->tax_total ?? 0) > 0)
-            <p>ضريبة القيمة المضافة (15%): {{ number_format($credit->tax_total, 2) }} ريال</p>
-        @endif
-
-        <p style="font-size: 14px; margin-top: 10px;">المجموع الكلي: {{ number_format($credit->grand_total ?? 0, 2) }} ريال</p>
+            @if($TaxsInvoice->isNotEmpty())
+    @foreach($TaxsInvoice as $TaxInvoice)
+        <p> {{ $TaxInvoice->name }} ({{ $TaxInvoice->rate }}%): 
+            {{ number_format($TaxInvoice->value ?? 0, 2) }} {!! $currencySymbol !!}
+        </p>
+    @endforeach
+@else
+    <p>الضريبة: 0.00 {!! $currencySymbol !!}</p>
+@endif
+        <p style="font-size: 14px; margin-top: 10px;">المجموع الكلي: {{ number_format($credit->grand_total ?? 0, 2) }} {!! $currencySymbol !!}</p>
         <p>{{ $amount_in_words ?? '' }}</p>
     </div>
 

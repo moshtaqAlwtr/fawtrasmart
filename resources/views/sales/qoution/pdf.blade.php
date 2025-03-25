@@ -165,21 +165,36 @@
     </table>
 
     <div class="totals">
+         @php
+        $currency = $account_setting->currency ?? 'SAR';
+        $currencySymbol =
+            $currency == 'SAR' || empty($currency)
+                ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15">'
+                : $currency;
+    @endphp
         <!-- الضريبة -->
-        <p>ضريبة القيمة المضافة (15%): {{ number_format($quote->tax_total ?? 0, 2) }} ريال</p>
+        @if($TaxsInvoice->isNotEmpty())
+    @foreach($TaxsInvoice as $TaxInvoice)
+        <p> {{ $TaxInvoice->name }} ({{ $TaxInvoice->rate }}%): 
+            {{ number_format($TaxInvoice->value ?? 0, 2) }} {!! $currencySymbol !!}
+        </p>
+    @endforeach
+@else
+    <p>الضريبة: 0.00 {!! $currencySymbol !!}</p>
+@endif
 
         <!-- الشحن -->
         @if(($quote->shipping_cost ?? 0) > 0)
-            <p>تكلفة الشحن: {{ number_format($quote->shipping_cost, 2) }} ريال</p>
+            <p>تكلفة الشحن: {{ number_format($quote->shipping_cost, 2) }} {!! $currencySymbol !!}</p>
         @endif
 
         <!-- الخصم -->
         @if(($quote->total_discount ?? 0) > 0)
-            <p>الخصم: {{ number_format($quote->total_discount, 2) }} ريال</p>
+            <p>الخصم: {{ number_format($quote->total_discount, 2) }} {!! $currencySymbol !!}</p>
         @endif
 
         <!-- المجموع الكلي -->
-        <p>المجموع الكلي: {{ number_format($quote->grand_total ?? 0, 2) }} ريال</p>
+        <p>المجموع الكلي: {{ number_format($quote->grand_total ?? 0, 2) }} {!! $currencySymbol !!}</p>
     </div>
 
     <!-- قسم QR Code -->

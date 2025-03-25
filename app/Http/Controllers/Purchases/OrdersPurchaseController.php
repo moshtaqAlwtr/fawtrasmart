@@ -65,20 +65,20 @@ class OrdersPurchaseController extends Controller
         // تنفيذ الاستعلام وترتيب النتائج
         $purchaseOrders = $query->latest()->paginate(10);
 
-        return view('purchases.ordersPurchase.index', compact('employees', 'purchaseOrders'));
+        return view('Purchases.ordersPurchase.index', compact('employees', 'purchaseOrders'));
     }
     public function show($id)
     {
         $productDetails = ProductDetails::all();
         $purchaseOrder = PurchaseOrder::findOrFail($id);
-        return view('purchases.ordersPurchase.show', compact('purchaseOrder', 'productDetails'));
+        return view('Purchases.ordersPurchase.show', compact('purchaseOrder', 'productDetails'));
     }
 
     public function create()
     {
         $products = Product::all();
         $employees = Employee::all();
-        return view('purchases.ordersPurchase.create', compact('employees', 'products'));
+        return view('Purchases.ordersPurchase.create', compact('employees', 'products'));
     }
     public function store(Request $request)
     {
@@ -153,7 +153,7 @@ class OrdersPurchaseController extends Controller
         $purchaseOrder = PurchaseOrder::with('productDetails')->findOrFail($id);
         $products = Product::all();
         $employees = Employee::all();
-        return view('purchases.ordersPurchase.edit', compact('purchaseOrder', 'products', 'employees'));
+        return view('Purchases.ordersPurchase.edit', compact('purchaseOrder', 'products', 'employees'));
     }
 
     public function update(Request $request, $id)

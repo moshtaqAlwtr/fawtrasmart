@@ -141,10 +141,28 @@
             <td>إجمالي الخصم:</td>
             <td>{{ number_format($purchaseInvoice->total_discount, 2) }}</td>
         </tr>
+        
+        @php
+        $currency = $account_setting->currency ?? 'SAR';
+        $currencySymbol =
+            $currency == 'SAR' || empty($currency)
+                ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15">'
+                : $currency;
+    @endphp
+    @if($TaxsInvoice->isNotEmpty())
+        @foreach($TaxsInvoice as $TaxInvoice)
+            <tr>
+                <td>{{ $TaxInvoice->name }} ({{ $TaxInvoice->rate }}%):</td>
+                <td>{{ number_format($TaxInvoice->value ?? 0, 2) }} {!! $currencySymbol !!}</td>
+            </tr>
+        @endforeach
+    @else
         <tr>
-            <td>القيمة المضافة (15%):</td>
-            <td>{{ number_format($purchaseInvoice->total_tax, 2) }}</td>
+            <td>الضريبة:</td>
+            <td>0.00 {!! $currencySymbol !!}</td>  
         </tr>
+    @endif
+
         <td>الشحن:</td>
         <td>{{ number_format($purchaseInvoice->shipping_cost, 2) }}</td>
         <tr>

@@ -8,6 +8,9 @@ use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
+use App\Models\AccountSetting;
 use App\Models\Log as ModelsLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -122,16 +125,21 @@ class CityNoticesController extends Controller
         $cityNotices = $query->paginate(10);
         $suppliers = Supplier::all();
         $users = User::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('purchases.city_notices.index', compact('cityNotices', 'suppliers', 'users'));
+        return view('Purchases.city_notices.index', compact('cityNotices', 'suppliers', 'users','account_setting'));
     }
     public function create()
     {
+      
         $suppliers = Supplier::all();
         $items = Product::all();
         $users = User::all();
+        $taxs = TaxSitting::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('purchases.city_notices.create', compact('suppliers', 'items', 'users'));
+        return view('Purchases.city_notices.create', compact('suppliers',
+        'taxs','items', 'users','account_setting'));
     }
 
     public function store(Request $request)
@@ -219,10 +227,18 @@ class CityNoticesController extends Controller
             $amount_after_discount = $total_amount - $final_total_discount;
 
             // ** حساب الضرائب **
-            $total_tax = 0;
-            $tax_rate = floatval($request->tax_rate ?? 0); // الحصول على نسبة الضريبة من المستخدم
-            if ($request->tax_type == 1 && $tax_rate > 0) {
-                $total_tax = ($amount_after_discount * $tax_rate) / 100; // حساب الضريبة باستخدام النسبة المدخلة
+         $total_tax = 0;
+          
+             foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
+
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $total_tax += $item_tax;
             }
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
@@ -230,9 +246,9 @@ class CityNoticesController extends Controller
 
             // ** حساب ضريبة التوصيل (إذا كانت الضريبة مفعلة) **
             $shipping_tax = 0;
-            if ($request->tax_type == 1 && $tax_rate > 0) {
-                $shipping_tax = ($shipping_cost * $tax_rate) / 100; // حساب ضريبة التوصيل باستخدام النسبة المدخلة
-            }
+            // if ($request->tax_type == 1 && $tax_rate > 0) {
+            //     $shipping_tax = ($shipping_cost * $tax_rate) / 100; // حساب ضريبة التوصيل باستخدام النسبة المدخلة
+            // }
 
             // ** الحساب النهائي للمجموع الكلي **
             $total_with_tax = $amount_after_discount + $total_tax + $shipping_cost + $shipping_tax;
@@ -277,7 +293,7 @@ class CityNoticesController extends Controller
                 'payment_type' => $request->payment_type ?? 1,
                 'shipping_cost' => $shipping_cost,
                 'tax_type' => $request->tax_type ?? 1,
-                'tax_rate' => $tax_rate, // حفظ نسبة الضريبة
+                'tax_rate' =>  $total_tax, // حفظ نسبة الضريبة
                 'payment_method' => $request->payment_method,
                 'reference_number' => $request->reference_number,
                 'received_date' => $request->received_date,
@@ -289,6 +305,32 @@ class CityNoticesController extends Controller
                 'grand_total' => $grand_total,
             ]);
 
+ foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $cityNotices->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value, 
+                    'type_invoice' => 'cityNotices_purchase',
+                ]);
+            }
+        }
+    }
+}
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $cityNotices->id; // تعيين purchase_invoice_id
@@ -587,8 +629,9 @@ ModelsLog::create([
             'invoiceItems.product',
             'supplier',
         ])->findOrFail($id);
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('Purchases.city_notices.show', compact('cityNotice'));
+        return view('Purchases.city_notices.show', compact('cityNotice','account_setting'));
     }
 
 }

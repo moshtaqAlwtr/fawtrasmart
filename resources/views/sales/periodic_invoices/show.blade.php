@@ -18,6 +18,10 @@
 @endsection
 
 @section('content')
+  @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
     <div class="row">
         <div class="col-lg-12 col-md-12">
             <div class="card">
@@ -67,9 +71,9 @@
                                     </tr>
                                     <tr>
                                         <td>إجمالي الغير مدفوع:</td>
-                                        <td>{{ number_format($periodicInvoice->grand_total ?? 0, 2) }} ر.س</td>
+                                        <td>{{ number_format($periodicInvoice->grand_total ?? 0, 2) }} {!! $currencySymbol !!}</td>
                                         <td>إجمالي المدفوع:</td>
-                                        <td>{{ number_format($periodicInvoice->total ?? 0, 2) }} ر.س</td>
+                                        <td>{{ number_format($periodicInvoice->total ?? 0, 2) }} {!! $currencySymbol !!}</td>
                                     </tr>
                                 </table>
                             </div>
@@ -118,7 +122,7 @@
                                                     @endif
                                                 </td>
                                                 <td>{{ $instance->invoice->last_sent_at ?? 'لم ترسل' }}</td>
-                                                <td>{{ number_format($instance->invoice->grand_total, 2) }} ر.س</td>
+                                                <td>{{ number_format($instance->invoice->grand_total, 2) }} {!! $currencySymbol !!}</td>
                                                 <td class="text-center">
                                                     <a href="#" class="btn btn-sm btn-outline-primary" title="عرض">
                                                         <i class="fas fa-eye"></i>

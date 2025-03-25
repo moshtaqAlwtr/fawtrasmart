@@ -46,3 +46,4 @@ Stack trace:
 Stack trace:
 #0 {main}
   thrown in /home/sehohoqm/hitstest.sehoool.com/index.php on line 13
+[22-Mar-2025 21:51:11 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Sitting\TaxSittingController::update() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Sitting/TaxSittingController.php on line 41

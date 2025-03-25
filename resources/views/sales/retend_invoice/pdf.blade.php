@@ -184,14 +184,17 @@
             @endforeach
         </tbody>
     </table>
-
+                                             @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
     <div class="totals">
-        <p>إجمالي المرتجع قبل الضريبة: {{ number_format($return_invoice->subtotal ?? 0, 2) }} ريال</p>
-        <p>ضريبة القيمة المضافة (15%): {{ number_format($return_invoice->tax_total ?? 0, 2) }} ريال</p>
+        <p>إجمالي المرتجع قبل الضريبة: {{ number_format($return_invoice->subtotal ?? 0, 2) }} {!! $currencySymbol !!}</p>
+        <p>ضريبة القيمة المضافة (15%): {{ number_format($return_invoice->tax_total ?? 0, 2) }} {!! $currencySymbol !!}</p>
         @if(($return_invoice->total_discount ?? 0) > 0)
-            <p>الخصم: {{ number_format($return_invoice->total_discount, 2) }} ريال</p>
+            <p>الخصم: {{ number_format($return_invoice->total_discount, 2) }} {!! $currencySymbol !!}</p>
         @endif
-        <p>إجمالي المرتجع: {{ number_format($return_invoice->grand_total ?? 0, 2) }} ريال</p>
+        <p>إجمالي المرتجع: {{ number_format($return_invoice->grand_total ?? 0, 2) }} {!! $currencySymbol !!}</p>
     </div>
 
     <div class="qrcode">

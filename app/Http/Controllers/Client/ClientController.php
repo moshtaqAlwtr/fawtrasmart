@@ -20,6 +20,8 @@ use App\Models\GeneralClientSetting;
 use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\Memberships;
+use App\Models\AccountSetting;
+
 use App\Models\Package;
 use App\Models\PaymentsProcess;
 use App\Models\SerialSetting;
@@ -508,10 +510,15 @@ class ClientController extends Controller
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
+             $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('client.show', compact('client', 'ClientRelations', 'invoice_due','statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes','account_setting'));
+
+
         // تحميل الزيارات مع بيانات الموظفين إلزاميًا
 
 
         return view('client.show', compact('client', 'ClientRelations','visits', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
+
     }
 
     public function updateStatus(Request $request, $id)

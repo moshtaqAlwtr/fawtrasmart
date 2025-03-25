@@ -287,9 +287,13 @@
                             <p class="mb-0"><small>{{ $payment->payment_date }}</small></p>
                             <small class="text-muted">بواسطة: {{ $payment->employee->full_name ?? '' }}</small>
                         </div>
+                         @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                         <div class="col-md-3 text-center">
                             <h5 class="mb-1 font-weight-bold">
-                                {{ number_format($payment->amount, 2) }} ر.س
+                                {{ number_format($payment->amount, 2) }}  {!! $currencySymbol !!}
                             </h5>
 
                             @php

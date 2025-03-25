@@ -6,10 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaxSitting extends Model
 {
-    protected $fillable = [
-        'name',
-        'tax',
-        'type',
-        
-    ];
+   protected $fillable = ['name', 'tax', 'type'];
 }

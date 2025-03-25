@@ -30,7 +30,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h4>عملية الدفع #{{ $payment->id }}</h4>
-                        <p>العميل: {{ $payment->invoice->client->trade_name }}</p>
+                        <p>العميل: {{ $payment->invoice->client->trade_name ?? "" }}</p>
                         <a href="#">Journal #{{ $payment->journal_id }}</a>
                     </div>
                     <div class="btn-group">
@@ -59,15 +59,19 @@
                         <table class="table table-bordered">
                             <tr>
                                 <td>رقم الفاتورة</td>
-                                <td>{{ $payment->invoice->invoice_number }}</td>
+                                <td>{{ $payment->invoice->invoice_number  ?? ""}}</td>
                             </tr>
                             <tr>
                                 <td>وسيلة دفع</td>
                                 <td>{{ $payment->payment_type ? \App\Models\ClientPayment::PAYMENT_TYPES[$payment->payment_type] : '-' }}</td>
                             </tr>
+                             @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                             <tr>
                                 <td>المبلغ</td>
-                                <td>{{ number_format($payment->amount, 2) }} ر.س</td>
+                                <td>{{ number_format($payment->amount, 2) }} {!! $currencySymbol !!}</td>
                             </tr>
                             <tr>
                                 <td>حالة الدفع</td>
@@ -98,7 +102,7 @@
                         <table class="table table-bordered">
                             <tr>
                                 <td>اسم العميل</td>
-                                <td>{{ $payment->invoice->client->trade_name }}</td>
+                                <td>{{ $payment->invoice->client->trade_name  ?? ""}}</td>
                             </tr>
                             <tr>
                                 <td>المدينة</td>

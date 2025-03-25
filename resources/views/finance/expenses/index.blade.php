@@ -141,20 +141,23 @@
             <div class="card-body">
                 <h5 class="card-title text-center">إجمالي المصروفات</h5>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-
+ @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                     <div class="text-center">
                         <p class="text-muted">آخر 7 أيام</p>
-                        <h2 class="text-white">ر.س {{ $totalLast7Days }}</h2>
+                        <h2 class="text-white">{!! $currencySymbol !!} {{ $totalLast7Days }}</h2>
                     </div>
 
                     <div class="text-center">
                         <p class="text-muted">آخر 30 يوم</p>
-                        <h2 class="text-white">ر.س {{ $totalLast30Days }}</h2>
+                        <h2 class="text-white">{!! $currencySymbol !!} {{ $totalLast30Days }}</h2>
                     </div>
 
                     <div class="text-center">
                         <p class="text-muted">آخر 365 يوم</p>
-                        <h2 class="text-white">ر.س {{ $totalLast365Days }}</h2>
+                        <h2 class="text-white">{!! $currencySymbol !!} {{ $totalLast365Days }}</h2>
                     </div>
 
                 </div>

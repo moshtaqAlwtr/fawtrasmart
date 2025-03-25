@@ -10,6 +10,8 @@ use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseQuotationView;
 use App\Models\Supplier;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -71,7 +73,7 @@ class ViewPurchasePriceController extends Controller
         // الحصول على النتائج مع التقسيم إلى صفحات
         $purchaseQuotation = $query->get();
 
-        return view('purchases.view_purchase_price.index', compact('suppliers', 'purchaseQuotation'));
+        return view('Purchases.view_purchase_price.index', compact('suppliers', 'purchaseQuotation'));
     }
 
     public function show($id)
@@ -84,6 +86,8 @@ class ViewPurchasePriceController extends Controller
                 'items.product',
                 'creator'
             ])->findOrFail($id);
+            
+          
 
             // جلب جميع الموردين
             $suppliers = Supplier::select('id', 'trade_name')->get();
@@ -100,11 +104,13 @@ class ViewPurchasePriceController extends Controller
         $accounts = Account::all();
         $items = Product::all();
         $suppliers = Supplier::all();
-
-        return view('Purchases.view_purchase_price.create', compact('suppliers', 'items', 'accounts'));
+        $taxs = TaxSitting::all();
+        
+        return view('Purchases.view_purchase_price.create', compact('suppliers', 'items','taxs', 'accounts'));
     }
     public function store(Request $request)
     {
+      
         try {
             // توليد الكود تلقائياً إذا لم يتم إرساله
             if (!$request->code) {
@@ -126,16 +132,16 @@ class ViewPurchasePriceController extends Controller
 
             $validator = Validator::make($request->all(), $rules);
 
-            if ($validator->fails()) {
-                return response()->json(
-                    [
-                        'success' => false,
-                        'message' => 'خطأ في البيانات المدخلة',
-                        'errors' => $validator->errors(),
-                    ],
-                    422,
-                );
-            }
+            // if ($validator->fails()) {
+            //     return response()->json(
+            //         [
+            //             'success' => false,
+            //             'message' => 'خطأ في البيانات المدخلة',
+            //             'errors' => $validator->errors(),
+            //         ],
+            //         422,
+            //     );
+            // }
 
             $validatedData = $validator->validated();
 
@@ -151,9 +157,47 @@ class ViewPurchasePriceController extends Controller
                 'status' => $validatedData['status'] ?? 1,
                 'created_by' => Auth::id(),
             ]);
+  $total_tax = 0;
+          
+             foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
 
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $total_tax += $item_tax;
+            }
             $total_amount = 0;
             $total_discount = 0;
+            foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $quotation->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value,
+                    'type_invoice' => 'quotation_purchase',
+                ]);
+            }
+        }
+    }
+}
 
             // معالجة عناصر الفاتورة في جدول invoice_items
             if ($request->has('items')) {
@@ -163,7 +207,7 @@ class ViewPurchasePriceController extends Controller
                     $item_total = $item['quantity'] * $item['unit_price'];
                     $item_discount = $item['discount'] ?? 0;
 
-                    $total_amount += $item_total;
+                    $total_amount += $item_total + $total_tax;
                     $total_discount += $item_discount;
 
                     $invoiceItems[] = [

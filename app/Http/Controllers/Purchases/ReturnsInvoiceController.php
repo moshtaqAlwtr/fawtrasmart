@@ -10,6 +10,10 @@ use App\Models\JournalEntryDetail;
 use App\Models\Product;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
+use App\Models\AccountSetting;
+
 use App\Models\Log as ModelsLog;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -127,15 +131,18 @@ class ReturnsInvoiceController extends Controller
         $invoices = $query->paginate(10);
         $suppliers = Supplier::all();
         $users = User::all();
+          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('purchases.returns.index', compact('invoices', 'suppliers', 'users'));
+        return view('Purchases.Returns.index', compact('invoices','account_setting', 'suppliers', 'users'));
     }
     public function create()
     {
         $suppliers = Supplier::all();
         $items = Product::all();
+        $taxs = TaxSitting::all();
+       $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('Purchases.Returns.create', compact('suppliers', 'items'));
+        return view('Purchases.Returns.create', compact('suppliers','taxs','account_setting', 'items'));
     }
     public function store(Request $request)
     {
@@ -214,7 +221,20 @@ class ReturnsInvoiceController extends Controller
                     $invoice_discount = floatval($request->discount_amount);
                 }
             }
+ $total_tax = 0;
+          
+             foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
 
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $total_tax += $item_tax;
+            }
+            
             // الخصومات الإجمالية
             $final_total_discount = $total_discount + $invoice_discount;
 
@@ -222,10 +242,10 @@ class ReturnsInvoiceController extends Controller
             $amount_after_discount = $total_amount - $final_total_discount;
 
             // ** حساب الضرائب **
-            $total_tax = 0;
-            if ($request->tax_type == 1) {
-                $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
-            }
+            // $total_tax = 0;
+            // if ($request->tax_type == 1) {
+            //     $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+            // }
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
             $shipping_cost = floatval($request->shipping_cost ?? 0);
@@ -290,6 +310,32 @@ class ReturnsInvoiceController extends Controller
                 'grand_total' => $grand_total,
             ]);
 
+ foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $purchaseInvoiceReturn->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value,
+                    'type_invoice' => 'InvoiceReturn_purchase',
+                ]);
+            }
+        }
+    }
+}
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
             foreach ($items_data as $item) {
                 $item['purchase_invoice_id'] = $purchaseInvoiceReturn->id; // تعيين purchase_invoice_id

@@ -17,6 +17,9 @@ use App\Models\ProductDetails;
 use App\Models\StoreHouse;
 use App\Models\Treasury;
 use App\Models\User;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
+use App\Models\AccountSetting;
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
 use Illuminate\Http\Request;
@@ -171,8 +174,9 @@ class ReturnInvoiceController extends Controller
         $clients = Client::all();
         $users = User::all();
         $employees = Employee::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('sales.retend_invoice.index', compact('return', 'clients', 'users', 'employees'));
+        return view('sales.retend_invoice.index', compact('return','account_setting', 'clients', 'users', 'employees'));
     }
     public function create($id)
     {
@@ -189,9 +193,10 @@ class ReturnInvoiceController extends Controller
         $clients = Client::all();
         $treasury = Treasury::all();
         $users = User::all();
-
+        $taxs = TaxSitting::all();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         // تمرير البيانات إلى العرض
-        return view('sales.retend_invoice.create', compact('clients', 'items', 'treasury',  'users', 'invoice'));
+        return view('sales.retend_invoice.create', compact('clients','account_setting','taxs', 'items', 'treasury',  'users', 'invoice'));
     }
     // private function generateInvoiceNumber()
     // {
@@ -202,6 +207,7 @@ class ReturnInvoiceController extends Controller
 
     public function store(Request $request)
     {
+        
         try {
             // التحقق من وجود invoice_id
             if (empty($request->invoice_id) || !is_numeric($request->invoice_id)) {
@@ -224,6 +230,7 @@ class ReturnInvoiceController extends Controller
 
             // جلب العناصر (items) الخاصة بالفاتورة
             $invoiceItems = $invoice->items;
+           
 
             // التكرار على كل عنصر (item) وإضافة الكمية المرتجعة إلى المخزون
             foreach ($invoiceItems as $item) {
@@ -274,7 +281,40 @@ class ReturnInvoiceController extends Controller
                     'warehouse_permits_id' => $wareHousePermits->id,
                 ]);
             }
+  foreach ($invoiceItems as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+    
+    // حساب قيمة الضريبة 1 إن وجدت
+    if (!empty($item['tax_1_id'])) {
+        $tax1 = TaxSitting::find($item['tax_1_id']);
+        if ($tax1) {
+            $tax_value1 = ($tax1->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
+            TaxInvoice::create([
+                'name' => $tax1->name,
+                'invoice_id' => $invoice->id,
+                'type' => $tax1->type,
+                'rate' => $tax1->tax,
+                'value' => $tax_value1,
+            ]);
+        }
+    }
 
+    // حساب قيمة الضريبة 2 إن وجدت
+    if (!empty($item['tax_2_id'])) {
+        $tax2 = TaxSitting::find($item['tax_2_id']);
+        if ($tax2) {
+            $tax_value2 = ($tax2->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
+            TaxInvoice::create([
+                'name' => $tax2->name,
+                'invoice_id' => $invoice->id,
+                'type' => $tax2->type,
+                'rate' => $tax2->tax,
+                'value' => $tax_value2,
+            ]);
+        }
+    }
+}
             // عكس القيود المحاسبية
             $journalEntries = JournalEntry::where('invoice_id', $invoice->id)->get();
 
@@ -591,8 +631,10 @@ class ReturnInvoiceController extends Controller
     {
         $clients = Client::all();
         $employees = Employee::all();
-        $return_invoice = Invoice::find($id);
+        $return_invoice = Invoice::find($id); 
+         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->get();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         // $invoice_number = $this->generateInvoiceNumber();
-        return view('sales.retend_invoice.show', compact('clients', 'employees', 'return_invoice'));
+        return view('sales.retend_invoice.show', compact('clients','TaxsInvoice', 'employees','account_setting', 'return_invoice'));
     }
 }
