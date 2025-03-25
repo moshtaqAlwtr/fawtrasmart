@@ -20,7 +20,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0-alpha1/css/bootstrap.min.css" rel="stylesheet">
@@ -118,6 +117,7 @@
     <script src="{{ asset('app-assets/js/core/app-menu.js')}}"></script>
     <script src="{{ asset('app-assets/js/core/app.js')}}"></script>
     <script src="{{ asset('app-assets/js/scripts/components.js')}}"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
     <!-- END: Theme JS-->
 
     <!-- BEGIN: Page JS-->

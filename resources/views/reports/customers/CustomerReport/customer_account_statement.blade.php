@@ -177,7 +177,7 @@
                                     <td>{{ $entry->reference_number }}</td>
                                     <td>{{ $entry->id }}</td>
                                     <td>{{ $entry->date->format('Y-m-d') }}</td>
-                                    <td>{{ $entry->employee ? $entry->employee->full_name : 'غير متوفر' }}</td>
+                                    <td>{{ $entry->createdByEmployee ? $entry->createdByEmployee->name : 'غير متوفر' }}</td>
                                     <td>{{ number_format($detail->debit, 2) }}</td>
                                     <td>{{ number_format($detail->credit, 2) }}</td>
                                     <td>{{ number_format($totalBalance > 0 ? $totalBalance : 0, 2) }}</td>

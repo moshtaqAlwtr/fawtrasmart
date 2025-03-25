@@ -13,12 +13,13 @@ class Location extends Model
     // علاقة كثير إلى واحد مع جدول الموظفين (employees)
     public function employee()
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(User::class);
     }
 
     // علاقة كثير إلى واحد مع جدول العملاء (clients)
     public function client()
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class, 'client_id');
     }
+
 }

@@ -44,14 +44,14 @@
             top: 50%;
             transform: translateY(-50%);
         }
+
         .dropdown-menu .dropdown-item {
-    transition: background 0.3s ease-in-out;
-}
+            transition: background 0.3s ease-in-out;
+        }
 
-.dropdown-menu .dropdown-item:hover {
-    filter: brightness(90%);
-}
-
+        .dropdown-menu .dropdown-item:hover {
+            filter: brightness(90%);
+        }
     </style>
 @endsection
 @section('content')
@@ -181,54 +181,57 @@
                         </div>
                     </div>
                     @php
-                    // جلب الحالة الحالية للعميل
-                    $currentStatus = $statuses->where('id', old('status_id', $client->status_id))->first();
-                @endphp
+                        // جلب الحالة الحالية للعميل
+                        $currentStatus = $statuses->where('id', old('status_id', $client->status_id))->first();
+                    @endphp
 
-                <form method="POST" action="{{ route('clients.updateStatusClient') }}">
-                    @csrf
-                    <input type="hidden" name="client_id" value="{{ $client->id }}" id="client_id">
+                    <form method="POST" action="{{ route('clients.updateStatusClient') }}">
+                        @csrf
+                        <input type="hidden" name="client_id" value="{{ $client->id }}" id="client_id">
 
-                    <div class="dropdown">
-                        <!-- زر القائمة المنسدلة -->
-                        <button class="btn btn-light dropdown-toggle text-start" type="button" id="clientStatusDropdown"
-                            data-bs-toggle="dropdown" aria-expanded="false"
-                            style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
+                        <div class="dropdown">
+                            <!-- زر القائمة المنسدلة -->
+                            <button class="btn btn-light dropdown-toggle text-start" type="button"
+                                id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
                                    color: #000;
                                    border: 1px solid #ccc;
                                    min-width: 150px; /* عرض افتراضي للزر */
                                    max-width: max-content; /* التوسع حسب المحتوى */
                                    white-space: nowrap;">
-                            {{ $currentStatus->name ?? 'اختر الحالة ' }}
-                        </button>
+                                {{ $currentStatus->name ?? 'اختر الحالة ' }}
+                            </button>
 
-                        <!-- القائمة المنسدلة -->
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientStatusDropdown"
-                            style="min-width: 150px; /* عرض افتراضي */
+                            <!-- القائمة المنسدلة -->
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientStatusDropdown"
+                                style="min-width: 150px; /* عرض افتراضي */
                                    width: auto; /* يجعل الحجم يتكيف */
                                    max-width: max-content; /* يتمدد حسب المحتوى */
                                    white-space: nowrap; /* يمنع كسر النص إلى سطر جديد */
                                    border-radius: 8px;">
-                            @foreach ($statuses as $status)
-                                <li>
-                                    <button type="submit" class="dropdown-item text-white d-flex align-items-center justify-content-between"
-                                        name="status_id" value="{{ $status->id }}" style="background-color: {{ $status->color }};">
-                                        <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
-                                    </button>
-                                </li>
-                            @endforeach
+                                @foreach ($statuses as $status)
+                                    <li>
+                                        <button type="submit"
+                                            class="dropdown-item text-white d-flex align-items-center justify-content-between"
+                                            name="status_id" value="{{ $status->id }}"
+                                            style="background-color: {{ $status->color }};">
+                                            <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
+                                        </button>
+                                    </li>
+                                @endforeach
 
-                            <!-- زر تعديل الحالات -->
-                            <li>
-                                <a href="{{ route('SupplyOrders.edit_status') }}" class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                    style="border-top: 1px solid #ddd; padding: 8px;">
-                                    <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </form>
-                                </div>
+                                <!-- زر تعديل الحالات -->
+                                <li>
+                                    <a href="{{ route('SupplyOrders.edit_status') }}"
+                                        class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                                        style="border-top: 1px solid #ddd; padding: 8px;">
+                                        <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
         <div class="card border-0">
@@ -465,6 +468,12 @@
                                     </a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link" id="visits-tab" data-toggle="tab" href="#visits" role="tab"
+                                        aria-controls="visits" aria-selected="false">
+                                        زيارات العميل  <span class="badge badge-pill badge-info">{{ $client->visits->count() }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link" id="balance-summary-tab" data-toggle="tab"
                                         href="#balance-summary" aria-controls="balance-summary" role="tab"
                                         aria-selected="false">ملخص الرصيد</a>
@@ -526,6 +535,12 @@
                                         aria-selected="false">
                                         حركة الحساب <span
                                             class="badge badge-pill badge-info">{{ $client->transactions->count() }}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="visits-tab" data-toggle="tab" href="#visits" role="tab"
+                                        aria-controls="visits" aria-selected="false">
+                                        زيارات العميل  <span class="badge badge-pill badge-info">{{ $client->visits->count() }}</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -1342,6 +1357,33 @@
                                         </div>
                                     </div>
                                 </div>
+
+
+                                <div class="tab-pane fade" id="visits" role="tabpanel" aria-labelledby="visits-tab">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>تاريخ الزيارة</th>
+                                                    <th>الموظف</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($visits as $visit)
+                                                    <tr>
+                                                        <td>{{ $visit->id }}</td>
+                                                        <td>{{ $visit->visit_date }}</td>
+                                                        <td>{{ $visit->employee->name }}</td>
+
+
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                                 <!-- تبويب ملخص الرصيد -->
                                 <div class="tab-pane" id="balance-summary" aria-labelledby="balance-summary-tab"
                                     role="tabpanel">
@@ -1609,9 +1651,11 @@
                     })
                     .catch(error => console.error('❌ خطأ:', error));
             }
+
             function selectStatus(name, color) {
-        document.getElementById("clientStatusDropdown").innerHTML = `<span class="status-color" style="background-color: ${color};"></span> ${name}`;
-    }
+                document.getElementById("clientStatusDropdown").innerHTML =
+                    `<span class="status-color" style="background-color: ${color};"></span> ${name}`;
+            }
         </script>
 
 

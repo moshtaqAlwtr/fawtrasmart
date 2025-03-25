@@ -26,6 +26,10 @@
         <form id="clientForm" action="{{ route('clients.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
+            <!-- حقلين مخفيين لتخزين الإحداثيات -->
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul>
@@ -283,8 +287,7 @@
                                         @if($GeneralClientSetting->is_active)
                                         @if($GeneralClientSetting->key == "location")
                                         <div class="col-12 mb-3">
-                                            <button type="button" class="btn btn-outline-primary mb-2"
-                                                onclick="toggleMap()">
+                                            <button type="button" class="btn btn-outline-primary mb-2" onclick="requestLocationPermission()">
                                                 <i class="feather icon-map"></i> إظهار الخريطة
                                             </button>
                                             <div id="map-container" style="display: none;">
@@ -486,9 +489,9 @@
                                                             <option value="2"
                                                                 {{ old('client_type') == 2 ? 'selected' : '' }}>عميل عادي
                                                                 عادي</option>
-                                                            {{-- --}}
 
-                                                        </select>
+
+                                                         </select>
                                                         <div class="form-control-position">
 
                                                         </div>
@@ -535,18 +538,125 @@
 @endsection
 
 @section('scripts')
-
     <script src="{{ asset('assets/js/scripts.js') }}"></script>
+    <!-- إضافة مكتبة Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
     <script>
+        // دالة لعرض الخريطة
+        function toggleMap() {
+            const mapContainer = document.getElementById('map-container');
+            if (mapContainer.style.display === 'none') {
+                mapContainer.style.display = 'block';
+            } else {
+                mapContainer.style.display = 'none';
+            }
+        }
+
+        // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
+        function requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        // إذا وافق المستخدم، نعرض الخريطة
+                        toggleMap();
+                        initMap(position.coords.latitude, position.coords.longitude);
+                    },
+                    (error) => {
+                        // إذا رفض المستخدم أو حدث خطأ
+                        alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
+                        console.error('Error getting location:', error);
+                    }
+                );
+            } else {
+                // إذا كان المتصفح لا يدعم الـ Geolocation
+                alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
+            }
+        }
+
+        // دالة لتهيئة الخريطة
+        function initMap(lat, lng) {
+            // تعيين الإحداثيات في الحقول المخفية
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+
+            // تهيئة الخريطة مع الإحداثيات المحددة
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat, lng },
+                zoom: 15, // زيادة مستوى التكبير لدقة أعلى
+            });
+
+            // إضافة علامة (Marker) في الموقع المحدد
+            const marker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                draggable: true, // السماح بسحب العلامة
+                title: 'موقعك الحالي',
+            });
+
+            // تحديث الحقول المخفية عند تحريك العلامة
+            google.maps.event.addListener(marker, 'dragend', function () {
+                const newLat = marker.getPosition().lat();
+                const newLng = marker.getPosition().lng();
+                document.getElementById('latitude').value = newLat;
+                document.getElementById('longitude').value = newLng;
+
+                // جلب العنوان بناءً على الإحداثيات الجديدة
+                fetchAddressFromCoordinates(newLat, newLng);
+            });
+
+            // جلب العنوان عند النقر على الخريطة
+            google.maps.event.addListener(map, 'click', function (event) {
+                const newLat = event.latLng.lat();
+                const newLng = event.latLng.lng();
+                marker.setPosition({ lat: newLat, lng: newLng });
+                document.getElementById('latitude').value = newLat;
+                document.getElementById('longitude').value = newLng;
+
+                // جلب العنوان بناءً على الإحداثيات الجديدة
+                fetchAddressFromCoordinates(newLat, newLng);
+            });
+        }
+
+        // دالة لجلب العنوان من الإحداثيات
+        function fetchAddressFromCoordinates(lat, lng) {
+            const geocoder = new google.maps.Geocoder();
+            const latLng = { lat, lng };
+
+            geocoder.geocode({ location: latLng }, (results, status) => {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        const addressComponents = results[0].address_components;
+
+                        // تعبئة الحقول بناءً على البيانات المسترجعة
+                        document.getElementById('country').value = getAddressComponent(addressComponents, 'country');
+                        document.getElementById('region').value = getAddressComponent(addressComponents, 'administrative_area_level_1');
+                        document.getElementById('city').value = getAddressComponent(addressComponents, 'locality') || getAddressComponent(addressComponents, 'administrative_area_level_2');
+                        document.getElementById('postal_code').value = getAddressComponent(addressComponents, 'postal_code');
+                        document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
+                        document.getElementById('street2').value = getAddressComponent(addressComponents, 'neighborhood');
+                    } else {
+                        console.error('لم يتم العثور على عنوان لهذه الإحداثيات.');
+                    }
+                } else {
+                    console.error('حدث خطأ أثناء جلب العنوان:', status);
+                }
+            });
+        }
+
+        // دالة مساعدة لاستخراج مكونات العنوان
+        function getAddressComponent(addressComponents, type) {
+            const component = addressComponents.find(component => component.types.includes(type));
+            return component ? component.long_name : '';
+        }
+
+        // التأكد من وجود الإحداثيات قبل الإرسال
         document.getElementById('clientForm').addEventListener('submit', function(e) {
-            // e.preventDefault(); // احذف هذا السطر إذا كنت تريد أن يتم إرسال النموذج
+            const lat = document.getElementById('latitude').value;
+            const lon = document.getElementById('longitude').value;
 
-            console.log('تم تقديم النموذج');
-
-            // طباعة جميع البيانات المرسلة
-            const formData = new FormData(this);
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
+            if (!lat || !lon) {
+                e.preventDefault();
+                alert('⚠️ يرجى تحديد الموقع من الخريطة قبل الإرسال!');
             }
         });
     </script>

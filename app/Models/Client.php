@@ -227,7 +227,12 @@ public function branch()
 }
 public function locations()
 {
-    return $this->hasMany(Location::class);
+    return $this->hasOne(Location::class, 'client_id');
 }
 
+
+public function visits()
+{
+    return $this->hasMany(Visit::class, 'client_id');
+}
 }
