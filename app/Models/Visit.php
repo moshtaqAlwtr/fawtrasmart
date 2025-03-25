@@ -16,23 +16,27 @@ class Visit extends Model
         'status',
         'employee_latitude',
         'employee_longitude',
+        'arrival_time',
+        'departure_time',
+        'notes',
         'client_latitude',
         'client_longitude',
         'distance',
-        'duration',
-        'notes',
-        'start_time',
-        'end_time',
-        'visit_type',
-        'signature',
-        'photos'
+        'recording_method',
+        'is_approved',
+        'approved_by'
     ];
 
     protected $casts = [
         'visit_date' => 'datetime',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'photos' => 'array'
+        'arrival_time' => 'datetime',
+        'departure_time' => 'datetime',
+        'is_approved' => 'boolean',
+        'distance' => 'decimal:2',
+        'employee_latitude' => 'decimal:8',
+        'employee_longitude' => 'decimal:8',
+        'client_latitude' => 'decimal:8',
+        'client_longitude' => 'decimal:8'
     ];
 
     // علاقة كثير إلى واحد مع جدول الموظفين (employees)
@@ -47,8 +51,13 @@ class Visit extends Model
         return $this->belongsTo(Client::class);
     }
 
-    // حساب المسافة بين موظف والعميل
+    // علاقة كثير إلى واحد مع المسؤول الذي وافق على الزيارة
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
 
+    // حساب المسافة بين موظف والعميل
     private function haversineDistance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; // نصف قطر الأرض بالمتر

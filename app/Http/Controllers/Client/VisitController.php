@@ -11,6 +11,7 @@ use App\Models\Notification;
 use App\Models\notifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class VisitController extends Controller
 {
@@ -88,6 +89,13 @@ class VisitController extends Controller
 
         $employeeId = auth()->id();
 
+        Log::info('Employee location update', [
+            'employee_id' => $employeeId,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'time' => now()
+        ]);
+
         // تحديث أو إنشاء موقع الموظف
         $location = Location::updateOrCreate(
             ['employee_id' => $employeeId],
@@ -113,6 +121,12 @@ class VisitController extends Controller
     // التحقق من المسافة وتسجيل الزيارة تلقائيًا
     private function checkDistanceAndLogVisit($employeeId, $latitude, $longitude)
     {
+        Log::info('Checking distance for automatic visit logging', [
+            'employee_id' => $employeeId,
+            'latitude' => $latitude,
+            'longitude' => $longitude
+        ]);
+
         $clients = Client::has('locations')->get();
 
         foreach ($clients as $client) {
@@ -125,11 +139,17 @@ class VisitController extends Controller
                 $longitude
             );
 
+            Log::info('Distance calculation result', [
+                'client_id' => $client->id,
+                'distance' => $distance,
+                'threshold' => 100
+            ]);
+
             if ($distance < 100) {
                 $existingVisit = Visit::where('employee_id', $employeeId)
                     ->where('client_id', $client->id)
                     ->whereDate('visit_date', now()->toDateString())
-                    ->whereNull('arrival_time')
+                    ->whereNull('departure_time')
                     ->first();
 
                 if (!$existingVisit) {
@@ -144,7 +164,26 @@ class VisitController extends Controller
                         'notes' => 'تم تسجيل الحضور تلقائياً عند الاقتراب من العميل'
                     ]);
 
+                    Log::info('New visit created automatically', [
+                        'visit_id' => $visit->id,
+                        'arrival_time' => $visit->arrival_time
+                    ]);
+
                     $this->sendNotificationToManager($visit, 'visit_arrival');
+                } else {
+                    if (is_null($existingVisit->arrival_time)) {
+                        $existingVisit->update([
+                            'arrival_time' => now(),
+                            'employee_latitude' => $latitude,
+                            'employee_longitude' => $longitude,
+                            'notes' => 'تم تحديث وقت الحضور تلقائياً'
+                        ]);
+
+                        Log::info('Existing visit updated with arrival time', [
+                            'visit_id' => $existingVisit->id,
+                            'arrival_time' => $existingVisit->arrival_time
+                        ]);
+                    }
                 }
             }
         }
@@ -153,11 +192,15 @@ class VisitController extends Controller
     // التحقق من الخروج من نطاق العميل وتسجيل الانصراف
     private function checkExitAndLogDeparture($employeeId, $latitude, $longitude)
     {
+        Log::info('Checking for automatic departure logging', ['employee_id' => $employeeId]);
+
         $activeVisits = Visit::where('employee_id', $employeeId)
             ->whereDate('visit_date', now()->toDateString())
             ->whereNotNull('arrival_time')
             ->whereNull('departure_time')
             ->get();
+
+        Log::info('Active visits found', ['count' => $activeVisits->count()]);
 
         foreach ($activeVisits as $visit) {
             $clientLocation = $visit->client->locations()->latest()->first();
@@ -170,10 +213,20 @@ class VisitController extends Controller
                     $longitude
                 );
 
+                Log::info('Current distance from client', [
+                    'visit_id' => $visit->id,
+                    'distance' => $currentDistance
+                ]);
+
                 if ($currentDistance > 100) {
                     $visit->update([
                         'departure_time' => now(),
-                        'notes' => $visit->notes . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل"
+                        'notes' => ($visit->notes ?? '') . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل"
+                    ]);
+
+                    Log::info('Departure time recorded', [
+                        'visit_id' => $visit->id,
+                        'departure_time' => $visit->departure_time
                     ]);
 
                     $this->sendNotificationToManager($visit, 'visit_departure');
@@ -210,29 +263,25 @@ class VisitController extends Controller
         $description = '';
 
         if ($type === 'visit_arrival') {
-            $title = 'حضور تلقائي';
-            $description = "موظف: {$visit->employee->name} قام بتسجيل حضور عند عميل: {$visit->client->trade_name}";
+            $title = 'وصول موظف';
+            $description = 'الموظف ' . $visit->employee->name . ' قام بزيارة العميل ' . $visit->client->trade_name . ' في ' . $visit->arrival_time;
         } elseif ($type === 'visit_departure') {
-            $title = 'انصراف تلقائي';
-            $description = "موظف: {$visit->employee->name} قام بتسجيل انصراف من عميل: {$visit->client->trade_name}";
+            $title = 'انصراف موظف';
+            $description = 'الموظف ' . $visit->employee->name . ' انصرف من زيارة العميل ' . $visit->client->trade_name . ' في ' . $visit->departure_time;
         }
 
         notifications::create([
-            'user_id' => $this->getManagerId(), // دالة للحصول على مدير الموظف
-            'type' => $type,
+            'type' => 'visit',
             'title' => $title,
             'description' => $description,
-            'related_id' => $visit->id,
-            'related_type' => 'visit'
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
-    }
 
-    // الحصول على مدير الموظف (يمكنك تعديلها حسب نظامك)
-    private function getManagerId()
-    {
-        // هنا يمكنك تطبيق منطق للحصول على المدير المسؤول
-        // هذا مثال افتراضي
-        return User::where('role', 'manager')->first()->id;
+        Log::info('Notification sent to manager', [
+            'type' => $type,
+            'visit_id' => $visit->id
+        ]);
     }
 
     // تحديث زيارة معينة

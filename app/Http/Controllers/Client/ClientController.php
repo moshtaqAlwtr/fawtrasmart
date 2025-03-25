@@ -42,89 +42,105 @@ use App\Models\CreditLimit;
 class ClientController extends Controller
 {
     public function index(Request $request)
-    {
-        // الحصول على المستخدم الحالي
-        $user = auth()->user();
+{
+    // الحصول على المستخدم الحالي
+    $user = auth()->user();
 
-        // بدء بناء الاستعلام
-        $query = Client::query();
+    // بدء بناء الاستعلام مع تحميل العلاقات الأساسية
+    $query = Client::with([
+        'employee',
+        'status' => function($q) {
+            $q->select('id', 'name', 'color');
+        },
+        'locations'
+    ]);
 
-        // التحقق مما إذا كان للمستخدم فرع أم لا
-        if ($user->branch) {
-            $branch = $user->branch;
+    // التحقق مما إذا كان للمستخدم فرع أم لا
+    if ($user->branch) {
+        $branch = $user->branch;
 
-            // التحقق من صلاحية "مشاركة بيانات العملاء"
-            $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+        // التحقق من صلاحية "مشاركة بيانات العملاء"
+        $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
 
-            // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
-            if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
-                $query->whereHas('employee', function ($query) use ($branch) {
-                    $query->where('branch_id', $branch->id);
-                });
-            }
-        }
-
-        // تطبيق شروط البحث بناءً على الحقول المحددة
-        if ($request->has('client') && $request->client != '') {
-            $query->where('id', $request->client);
-        }
-
-        if ($request->has('name') && $request->name != '') {
-            $query->where('trade_name', 'like', '%' . $request->name . '%');
-        }
-
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->has('classifications') && $request->classifications != '') {
-            $query->where('category', $request->classifications);
-        }
-
-        if ($request->has('end_date_to') && $request->end_date_to != '') {
-            $query->whereDate('created_at', '<=', $request->end_date_to);
-        }
-
-        if ($request->has('address') && $request->address != '') {
-            $query->where('street1', 'like', '%' . $request->address . '%')->orWhere('street2', 'like', '%' . $request->address . '%');
-        }
-
-        if ($request->has('postal_code') && $request->postal_code != '') {
-            $query->where('postal_code', $request->postal_code);
-        }
-
-        if ($request->has('country') && $request->country != '') {
-            $query->where('country', $request->country);
-        }
-
-        if ($request->has('tage') && $request->tage != '') {
-            $query->where('tags', 'like', '%' . $request->tage . '%');
-        }
-
-        if ($request->has('user') && $request->user != '') {
-            $query->where('employee_id', $request->user);
-        }
-
-        if ($request->has('type') && $request->type != '') {
-            $query->where('client_type', $request->type);
-        }
-
-        if ($request->has('full_name') && $request->full_name != '') {
-            $query->whereHas('employee', function ($query) use ($request) {
-                $query->where('id', $request->full_name);
+        // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
+        if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
+            $query->whereHas('employee', function ($query) use ($branch) {
+                $query->where('branch_id', $branch->id);
             });
         }
-
-        // تنفيذ الاستعلام مع التقسيم (Pagination)
-        $clients = $query->with('employee')->orderBy('created_at', 'desc')->get();
-
-        // جلب جميع المستخدمين والموظفين (إذا كان مطلوبًا)
-        $users = User::all();
-        $employees = Employee::all();
-
-        $creditLimit = CreditLimit::first();
-        return view('client.index', compact('clients', 'users', 'employees', 'creditLimit'));
     }
+
+    // تطبيق شروط البحث بناءً على الحقول المحددة
+    if ($request->filled('client')) {
+        $query->where('id', $request->client);
+    }
+
+    if ($request->filled('name')) {
+        $query->where('trade_name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status_id', $request->status); // استخدام status_id بدلاً من status
+    }
+
+    if ($request->filled('classifications')) {
+        $query->where('category', $request->classifications);
+    }
+
+    if ($request->filled('end_date_to')) {
+        $query->whereDate('created_at', '<=', $request->end_date_to);
+    }
+
+    if ($request->filled('address')) {
+        $query->where(function($q) use ($request) {
+            $q->where('street1', 'like', '%' . $request->address . '%')
+              ->orWhere('street2', 'like', '%' . $request->address . '%');
+        });
+    }
+
+    if ($request->filled('postal_code')) {
+        $query->where('postal_code', $request->postal_code);
+    }
+
+    if ($request->filled('country')) {
+        $query->where('country', $request->country);
+    }
+
+    if ($request->filled('tage')) {
+        $query->where('tags', 'like', '%' . $request->tage . '%');
+    }
+
+    if ($request->filled('user')) {
+        $query->where('employee_id', $request->user);
+    }
+
+    if ($request->filled('type')) {
+        $query->where('client_type', $request->type);
+    }
+
+    if ($request->filled('full_name')) {
+        $query->whereHas('employee', function ($query) use ($request) {
+            $query->where('id', $request->full_name);
+        });
+    }
+
+    // تنفيذ الاستعلام مع الترتيب
+    $clients = $query->orderBy('created_at', 'desc')->get();
+
+    // جلب البيانات الإضافية للعرض
+    $users = User::all();
+    $employees = Employee::all();
+    $statuses = Statuses::select('id', 'name', 'color')->get(); // جلب الحالات مع ألوانها
+    $creditLimit = CreditLimit::first();
+
+    return view('client.index', compact(
+        'clients',
+        'users',
+        'employees',
+        'creditLimit',
+        'statuses'
+    ));
+}
     public function updateCreditLimit(Request $request)
     {
         $request->validate([
@@ -459,8 +475,8 @@ class ClientController extends Controller
             'appointmentNotes' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             },
-            'visits' => function ($query) {
-                $query->orderBy('visit_date', 'desc');
+            'visits.employee' => function ($query) {
+                $query->orderBy('created_at', 'desc');
             },
         ])->findOrFail($id);
 
@@ -486,7 +502,7 @@ class ClientController extends Controller
         // تحميل الفئات والعلاقات الأخرى
         $categories = CategoriesClient::all();
         $ClientRelations = ClientRelation::where('client_id', $id)->get();
-        $visits = $client->visits()->with('employee')->get();
+        $visits = $client->visits()->orderBy('created_at', 'desc')->get();
 
         // إنشاء كود جديد للعميل (إن وجد)
         do {
@@ -494,17 +510,26 @@ class ClientController extends Controller
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
-             $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        return view('client.show', compact('client', 'ClientRelations', 'invoice_due','statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes','account_setting'));
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-
-        // تحميل الزيارات مع بيانات الموظفين إلزاميًا
-
-
-        return view('client.show', compact('client', 'ClientRelations','visits', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
-
+        return view('client.show', compact(
+            'client',
+            'ClientRelations',
+            'visits',
+            'invoice_due',
+            'statuses',
+            'account',
+            'installment',
+            'employees',
+            'bookings',
+            'packages',
+            'memberships',
+            'invoices',
+            'payments',
+            'appointmentNotes',
+            'account_setting'
+        ));
     }
-
     public function updateStatus(Request $request, $id)
     {
         $client = Client::findOrFail($id);
@@ -948,26 +973,17 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
     public function updateStatusClient(Request $request)
-    {
-        $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'status_id' => 'required|exists:statuses,id',
-        ]);
+{
+    $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'status_id' => 'required|exists:statuses,id',
+    ]);
 
-        // البحث عن سجل العميل في جدول الحالات
-        $status = Statuses::where('client_id', $request->client_id)->first();
+    // البحث عن العميل وتحديث حالته مباشرة
+    $client = Client::findOrFail($request->client_id);
+    $client->status_id = $request->status_id;
+    $client->save();
 
-        if ($status) {
-            // تحديث الحالة القديمة
-            $status->update(['status_id' => $request->status_id]);
-        } else {
-            // إضافة حالة جديدة إذا لم تكن موجودة
-            Statuses::create([
-                'client_id' => $request->client_id,
-                'status_id' => $request->status_id,
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
-    }
+    return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
+}
 }

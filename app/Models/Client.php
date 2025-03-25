@@ -235,4 +235,12 @@ public function visits()
 {
     return $this->hasMany(Visit::class, 'client_id');
 }
+// في ملف app/Models/Client.php
+public function status()
+{
+    return $this->belongsTo(Statuses::class)->withDefault([
+        'name' => 'غير محدد',
+        'color' => '#CCCCCC'
+    ]);
+}
 }

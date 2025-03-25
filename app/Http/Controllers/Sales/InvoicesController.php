@@ -248,7 +248,7 @@ class InvoicesController extends Controller
     public function store(Request $request)
     {
       
-        $client = Client::find($request->client_id);
+       
         
        
         try {

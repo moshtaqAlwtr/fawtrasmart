@@ -122,12 +122,9 @@
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->id }}</small>
-                        <span class="badge badge-success">
-                            @if ($client->status == 'active')
-                                نشط
-                            @elseif ($client->status == 'inactive')
-                                غير نشط
-                            @endif
+                        <span class="badge"
+                            style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
+                            {{ $statuses->find($client->status_id)->name }}
                         </span>
                         <br>
                         <small class="text-muted">
@@ -139,19 +136,24 @@
                             @endif
                         </small>
                     </div>
-                     @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
+                    @php
+                        $currency = $account_setting->currency ?? 'SAR';
+                        $currencySymbol =
+                            $currency == 'SAR' || empty($currency)
+                                ? '<img src="' .
+                                    asset('assets/images/Saudi_Riyal.svg') .
+                                    '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                : $currency;
+                    @endphp
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted">{!! $currencySymbol !!}</span>
+                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
+                                class="text-muted">{!! $currencySymbol !!}</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
                         @if ($invoices->isNotEmpty())
                             <div class="text-muted">
-                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
-                                    class="text-muted"></span>
+                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted"></span>
                                 <span class="d-block text-warning">مفتوح</span>
                             </div>
                         @endif
@@ -181,34 +183,28 @@
                         </div>
                     </div>
                     @php
-                        // جلب الحالة الحالية للعميل
-                        $currentStatus = $statuses->where('id', old('status_id', $client->status_id))->first();
+                        // جلب الحالة الحالية للعميل من العلاقة
+                        $currentStatus = $client->status;
                     @endphp
 
                     <form method="POST" action="{{ route('clients.updateStatusClient') }}">
                         @csrf
-                        <input type="hidden" name="client_id" value="{{ $client->id }}" id="client_id">
+                        <input type="hidden" name="client_id" value="{{ $client->id }}">
 
                         <div class="dropdown">
-                            <!-- زر القائمة المنسدلة -->
                             <button class="btn btn-light dropdown-toggle text-start" type="button"
                                 id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
                                 style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
-                                   color: #000;
-                                   border: 1px solid #ccc;
-                                   min-width: 150px; /* عرض افتراضي للزر */
-                                   max-width: max-content; /* التوسع حسب المحتوى */
-                                   white-space: nowrap;">
-                                {{ $currentStatus->name ?? 'اختر الحالة ' }}
+                               color: #000;
+                               border: 1px solid #ccc;
+                               min-width: 150px;
+                               max-width: max-content;
+                               white-space: nowrap;">
+                                {{ $currentStatus->name ?? 'اختر الحالة' }}
                             </button>
 
-                            <!-- القائمة المنسدلة -->
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientStatusDropdown"
-                                style="min-width: 150px; /* عرض افتراضي */
-                                   width: auto; /* يجعل الحجم يتكيف */
-                                   max-width: max-content; /* يتمدد حسب المحتوى */
-                                   white-space: nowrap; /* يمنع كسر النص إلى سطر جديد */
-                                   border-radius: 8px;">
+                                style="min-width: 150px; width: auto; max-width: max-content; white-space: nowrap; border-radius: 8px;">
                                 @foreach ($statuses as $status)
                                     <li>
                                         <button type="submit"
@@ -220,7 +216,6 @@
                                     </li>
                                 @endforeach
 
-                                <!-- زر تعديل الحالات -->
                                 <li>
                                     <a href="{{ route('SupplyOrders.edit_status') }}"
                                         class="dropdown-item text-muted d-flex align-items-center justify-content-center"
@@ -470,7 +465,8 @@
                                 <li class="nav-item">
                                     <a class="nav-link" id="visits-tab" data-toggle="tab" href="#visits" role="tab"
                                         aria-controls="visits" aria-selected="false">
-                                        زيارات العميل  <span class="badge badge-pill badge-info">{{ $client->visits->count() }}</span>
+                                        زيارات العميل <span
+                                            class="badge badge-pill badge-info">{{ $client->visits->count() }}</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -540,7 +536,8 @@
                                 <li class="nav-item">
                                     <a class="nav-link" id="visits-tab" data-toggle="tab" href="#visits" role="tab"
                                         aria-controls="visits" aria-selected="false">
-                                        زيارات العميل  <span class="badge badge-pill badge-info">{{ $client->visits->count() }}</span>
+                                        زيارات العميل <span
+                                            class="badge badge-pill badge-info">{{ $client->visits->count() }}</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -1367,19 +1364,20 @@
                                                     <th>#</th>
                                                     <th>تاريخ الزيارة</th>
                                                     <th>الموظف</th>
-
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($visits as $visit)
+                                                @forelse ($visits as $visit)
                                                     <tr>
                                                         <td>{{ $visit->id }}</td>
                                                         <td>{{ $visit->visit_date }}</td>
-                                                        <td>{{ $visit->employee->name }}</td>
-
-
+                                                        <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
                                                     </tr>
-                                                @endforeach
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="3" class="text-center">لا توجد زيارات مسجلة</td>
+                                                    </tr>
+                                                @endforelse
                                             </tbody>
                                         </table>
                                     </div>

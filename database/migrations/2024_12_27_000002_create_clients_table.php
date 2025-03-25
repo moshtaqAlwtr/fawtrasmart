@@ -38,6 +38,7 @@ return new class extends Migration {
 
             $table->string('currency', 50)->nullable();
             $table->string('email', 255)->nullable();
+            $table->unsignedBigInteger('status_id')->nullable();
             $table->tinyInteger('client_type')->default(1)->comment('1=> Regular Client, 2=> VIP Client')->nullable();
             $table->text('notes')->nullable();
             $table

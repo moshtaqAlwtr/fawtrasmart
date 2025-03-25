@@ -61,7 +61,7 @@
         .map-card {
             height: 100%;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             border: none;
             display: flex;
             flex-direction: column;
@@ -153,8 +153,13 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         /* تحسينات للجدول */
@@ -201,37 +206,32 @@
                     <div class="row">
                         <div class="col-md-3">
                             <label for="region" class="form-label">المنطقة:</label>
-                            <select id="region" name="region" class="form-control" onchange="updateCities()">
+                            <select id="region" name="region" class="form-control">
                                 <option value="الكل">الكل</option>
-                                @foreach(array_keys($saudiRegions) as $region)
-                                    <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>
-                                        {{ $region }}
-                                    </option>
-                                @endforeach
+                                <option value="منطقة الرياض" {{ request('region') == 'منطقة الرياض' ? 'selected' : '' }}>منطقة الرياض</option>
+                                <option value="منطقة جدة" {{ request('region') == 'منطقة جدة' ? 'selected' : '' }}>منطقة جدة</option>
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label for="city" class="form-label">المدينة:</label>
                             <select id="city" name="city" class="form-control">
                                 <option value="الكل">الكل</option>
-                                @if(request('region') && request('region') !== 'الكل')
-                                    @foreach($saudiRegions[request('region')] as $city)
-                                        <option value="{{ $city }}" {{ request('city') == $city ? 'selected' : '' }}>
-                                            {{ $city }}
-                                        </option>
-                                    @endforeach
-                                @endif
+                                <option value="الرياض" {{ request('city') == 'الرياض' ? 'selected' : '' }}>الرياض</option>
+                                <option value="جدة" {{ request('city') == 'جدة' ? 'selected' : '' }}>جدة</option>
                             </select>
-                        </div>                        <div class="col-md-3">
+                        </div>
+                        <div class="col-md-3">
                             <label for="country" class="form-label">البلد:</label>
-                            <input type="text" id="country" name="country" class="form-control" value="{{ request('country') }}">
+                            <input type="text" id="country" name="country" class="form-control"
+                                value="{{ request('country') }}">
                         </div>
                         <div class="col-md-3">
                             <label for="classification" class="form-label">التصنيف:</label>
                             <select id="classification" name="classification" class="form-control">
                                 <option value="الكل">الكل</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}" {{ request('classification') == $category->id ? 'selected' : '' }}>
+                                    <option value="{{ $category->id }}"
+                                        {{ request('classification') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
@@ -245,7 +245,8 @@
                             <select id="branch" name="branch" class="form-control">
                                 <option value="الكل">الكل</option>
                                 @foreach ($branch as $br)
-                                    <option value="{{ $br->id }}" {{ request('branch') == $br->id ? 'selected' : '' }}>
+                                    <option value="{{ $br->id }}"
+                                        {{ request('branch') == $br->id ? 'selected' : '' }}>
                                         {{ $br->name }}
                                     </option>
                                 @endforeach
@@ -254,13 +255,17 @@
                         <div class="col-md-3">
                             <label for="group-by" class="form-label">تجميع حسب:</label>
                             <select id="group-by" name="group_by" class="form-control">
-                                <option value="العميل" {{ request('group_by') == 'العميل' ? 'selected' : '' }}>العميل</option>
-                                <option value="الفرع" {{ request('group_by') == 'الفرع' ? 'selected' : '' }}>الفرع</option>
-                                <option value="المدينة" {{ request('group_by') == 'المدينة' ? 'selected' : '' }}>المدينة</option>
+                                <option value="العميل" {{ request('group_by') == 'العميل' ? 'selected' : '' }}>العميل
+                                </option>
+                                <option value="الفرع" {{ request('group_by') == 'الفرع' ? 'selected' : '' }}>الفرع
+                                </option>
+                                <option value="المدينة" {{ request('group_by') == 'المدينة' ? 'selected' : '' }}>المدينة
+                                </option>
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-center">
-                            <input type="checkbox" id="view-details" name="view_details" class="form-check-input me-2" {{ request('view_details') ? 'checked' : '' }}>
+                            <input type="checkbox" id="view-details" name="view_details" class="form-check-input me-2"
+                                {{ request('view_details') ? 'checked' : '' }}>
                             <label for="view-details" class="form-check-label">مشاهدة التفاصيل</label>
                         </div>
                     </div>
@@ -288,10 +293,11 @@
                 <button class="btn btn-export export-excel">
                     <i class="fas fa-file-excel"></i> تصدير إلى Excel
                 </button>
+
             </div>
         </div>
     </div>
-    <div class="card mt-4" id="mapSection">
+    <div class="card" id="mapSection">
         <div class="card-body">
             <div class="col-md-12">
                 <div class="card map-card h-60">
@@ -343,18 +349,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($clients as $index => $client)
+                                @foreach ($clients as $index => $client)
                                     <tr data-client-id="{{ $client->id }}">
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $client->code }}</td>
                                         <td>{{ $client->trade_name }}</td>
                                         <td>
-                                            @if($client->locations)
+                                            @if ($client->locations)
                                                 <a href="#mapSection" class="location-link"
-                                                   data-lat="{{ $client->locations->latitude }}"
-                                                   data-lng="{{ $client->locations->longitude }}"
-                                                   data-name="{{ $client->trade_name }}"
-                                                   data-code="{{ $client->code }}">
+                                                    data-lat="{{ $client->locations->latitude }}"
+                                                    data-lng="{{ $client->locations->longitude }}"
+                                                    data-name="{{ $client->trade_name }}"
+                                                    data-code="{{ $client->code }}">
                                                     عرض على الخريطة
                                                 </a>
                                             @else
@@ -380,7 +386,9 @@
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap&libraries=places&v=weekly" async defer></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap&libraries=places&v=weekly"
+        async defer></script>
 
 
     <script>
@@ -408,7 +416,8 @@
 
                 googleMapsLoading = true;
                 const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap&libraries=places&v=weekly`;
+                script.src =
+                    `https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&callback=initMap&libraries=places&v=weekly`;
                 script.async = true;
                 script.defer = true;
                 script.onload = () => {
@@ -428,21 +437,22 @@
             if (!mapElement) return;
 
             map = new google.maps.Map(mapElement, {
-                center: { lat: 24.7136, lng: 46.6753 },
+                center: {
+                    lat: 24.7136,
+                    lng: 46.6753
+                },
                 zoom: 6,
-                styles: [
-                    {
-                        "featureType": "poi",
-                        "stylers": [
-                            { "visibility": "off" }
-                        ]
-                    }
-                ]
+                styles: [{
+                    "featureType": "poi",
+                    "stylers": [{
+                        "visibility": "off"
+                    }]
+                }]
             });
             mapInitialized = true;
 
-            @foreach($clients as $client)
-                @if($client->locations)
+            @foreach ($clients as $client)
+                @if ($client->locations)
                     addClientMarker(
                         {{ $client->id }},
                         {{ $client->locations->latitude }},
@@ -480,7 +490,10 @@
                         clearInterval(checkMap);
 
                         // Center the map on the selected location
-                        map.setCenter({ lat, lng });
+                        map.setCenter({
+                            lat,
+                            lng
+                        });
                         map.setZoom(15);
 
                         // Find or create the marker
@@ -506,7 +519,10 @@
         }
 
         function addClientMarker(id, lat, lng, name = null, code = null) {
-            const position = { lat, lng };
+            const position = {
+                lat,
+                lng
+            };
             const marker = new google.maps.Marker({
                 position,
                 map,
@@ -535,7 +551,11 @@
                 infoWindow.open(map, marker);
             });
 
-            const markerObj = { id, marker, infoWindow };
+            const markerObj = {
+                id,
+                marker,
+                infoWindow
+            };
             markers.push(markerObj);
             return markerObj;
         }
@@ -559,11 +579,12 @@
         // Export to Excel function
         function exportToExcel() {
             const table = document.querySelector('table');
-            const workbook = XLSX.utils.table_to_book(table, { sheet: "دليل العملاء" });
+            const workbook = XLSX.utils.table_to_book(table, {
+                sheet: "دليل العملاء"
+            });
             XLSX.writeFile(workbook, 'دليل_العملاء_' + new Date().toISOString().slice(0, 10) + '.xlsx');
         }
 
         document.querySelector('.export-excel').addEventListener('click', exportToExcel);
-
     </script>
 @endsection
