@@ -244,12 +244,29 @@ class InvoicesController extends Controller
 
     return response()->json(["error" => "رمز التحقق غير صحيح."], 400);;
     }
+    
+    public function notifications()
+    {
+        $notifications = notifications::where('read', 0)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'description', 'created_at']);
+            
+            return view('notifications.index',compact('notifications'));
+    }
+    
+    public function markAsReadid($id)
+    {
+        $notifications = notifications::find($id);
+        $notifications->read = 1;
+        $notifications->save();
+        
+        return back();
+        
+    }
 
     public function store(Request $request)
     {
       
-       
-        
        
         try {
     
