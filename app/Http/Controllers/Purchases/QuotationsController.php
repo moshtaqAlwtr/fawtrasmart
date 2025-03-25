@@ -65,7 +65,7 @@ class QuotationsController extends Controller
         $purchaseQuotation = $query->latest()->paginate(10);
         $suppliers = Supplier::all();
 
-        return view('purchases.quotations.index', compact('suppliers', 'purchaseQuotation'));
+        return view('Purchases.Quotations.index', compact('suppliers', 'purchaseQuotation'));
     }
     public function show($id)
     {
@@ -76,7 +76,7 @@ class QuotationsController extends Controller
             // تحميل تفاصيل المنتجات
             $productDetails = ProductDetails::where('purchase_quotation_id', $id)->get();
 
-            return view('purchases.Quotations.show', compact('purchaseQuotation', 'productDetails', 'suppliers'));
+            return view('Purchases.Quotations.show', compact('purchaseQuotation', 'productDetails', 'suppliers'));
         } catch (\Exception $e) {
             return redirect()
                 ->route('Quotations.index')
@@ -87,7 +87,7 @@ class QuotationsController extends Controller
     {
         $products = Product::all();
         $suppliers = Supplier::all();
-        return view('purchases.quotations.create', compact('suppliers', 'products'));
+        return view('Purchases.Quotations.create', compact('suppliers', 'products'));
     }
 
     public function store(Request $request)

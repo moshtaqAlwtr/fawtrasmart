@@ -14,6 +14,9 @@ use App\Models\ProductDetails;
 use App\Models\PurchaseInvoice;
 use App\Models\StoreHouse;
 use App\Models\Supplier;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
+use App\Models\AccountSetting;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -95,9 +98,9 @@ class InvoicesPurchaseController extends Controller
         $suppliers = Supplier::all();
         $accounts = Account::all();
         $users = User::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-
-        return view('Purchases.Invoices_purchase.index', compact('purchaseInvoices', 'suppliers', 'accounts', 'users'));
+        return view('Purchases.Invoices_purchase.index', compact('purchaseInvoices', 'suppliers', 'accounts', 'users','account_setting'));
     }
 
 
@@ -107,9 +110,10 @@ class InvoicesPurchaseController extends Controller
         $items = Product::all();
         $accounts = Account::all();
         $storeHouses = StoreHouse::all(); // إضافة المستودعات
+        $taxs = TaxSitting::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-
-        return view('Purchases.Invoices_purchase.create', compact('suppliers', 'items', 'accounts', 'storeHouses'));
+        return view('Purchases.Invoices_purchase.create', compact('suppliers', 'items','taxs', 'accounts', 'storeHouses','account_setting'));
     }
 
     public function store(Request $request)
@@ -197,8 +201,17 @@ class InvoicesPurchaseController extends Controller
 
             // ** حساب الضرائب **
             $total_tax = 0;
-            if ($request->tax_type == 1) {
-                $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
+          
+             foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
+
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $total_tax += $item_tax;
             }
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
@@ -240,6 +253,32 @@ class InvoicesPurchaseController extends Controller
                 'grand_total' => $total_with_tax, // تخزين المبلغ الإجمالي الكامل
                 'due_value' => 0, // لا توجد قيمة مستحقة لأن الفاتورة مدفوعة بالكامل
             ]);
+            foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $purchaseInvoice->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value,
+                    'type_invoice' => 'purchase',
+                ]);
+            }
+        }
+    }
+}
 
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
             foreach ($items_data as $item) {
@@ -718,7 +757,7 @@ class InvoicesPurchaseController extends Controller
         'invoiceItems.product',
         'supplier',
     ])->findOrFail($id);
-
-    return view('Purchases.Invoices_purchase.show', compact('purchaseInvoice'));
+ $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'purchase')->get();
+    return view('Purchases.Invoices_purchase.show', compact('purchaseInvoice','TaxsInvoice'));
 }
 }

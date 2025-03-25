@@ -480,17 +480,20 @@
                                         <i class="fas fa-mobile-alt me-1"></i> المصدر: تطبيق الهاتف المحمول
                                     </small>
                                 </div>
-
+ @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                                 <!-- المبلغ وحالة الدفع -->
                                 <div class="col-md-3 text-center">
                                     <h5 class="mb-1 font-weight-bold">
                                         {{ number_format($retur->grand_total ?? $retur->total, 2) }}
-                                        {{ $retur->currency ?? 'SAR' }}
+                                       <small class="currency">{!! $currencySymbol !!}</small>
                                     </h5>
 
                                     @if($retur->due_value > 0)
                                         <small class="d-block mb-2 text-danger">
-                                            المبلغ المستحق: {{ number_format($retur->due_value, 2) }} {{ $retur->currency ?? 'SAR' }}
+                                            المبلغ المستحق: {{ number_format($retur->due_value, 2) }} {!! $currencySymbol !!}
                                         </small>
                                     @endif
 

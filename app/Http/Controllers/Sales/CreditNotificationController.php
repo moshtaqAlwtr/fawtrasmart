@@ -13,6 +13,9 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Product;
 use App\Models\User;
+use App\Models\TaxSitting;
+use App\Models\AccountSetting;
+use App\Models\TaxInvoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -120,9 +123,10 @@ class CreditNotificationController extends Controller
         $Credits_number = $this->generateInvoiceNumber();
         $clients = Client::all();
         $users = User::all();
-
+ $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('sales.creted_note.index', compact(
             'credits',
+            'account_setting',
             'users',
             'Credits_number',
             'clients'
@@ -142,13 +146,16 @@ class CreditNotificationController extends Controller
         $Credits_number = $this->generateInvoiceNumber();
         $clients = Client::all();
         $users = User::all();
-        return view('sales.creted_note.create', compact('clients', 'users', 'Credits_number', 'items'));
+        $taxs = TaxSitting::all();
+            $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.creted_note.create', compact('clients','taxs', 'users', 'Credits_number', 'items','account_setting'));
     }
     public function show($id)
     {
         $credit = CreditNotification::with(['client', 'createdBy', 'items'])->findOrFail($id);
-
-        return view('sales.creted_note.show', compact('credit'));
+ $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice','credit')->get();
+   $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.creted_note.show', compact('credit','TaxsInvoice','account_setting'));
     }
     public function edit($id)
     {
@@ -274,10 +281,21 @@ class CreditNotificationController extends Controller
             $tax_type = $tax_type_map[$validated['tax_type']];
             $tax_rate = floatval($validated['tax_rate'] ?? 0); // الحصول على نسبة الضريبة من المستخدم
 
-            if ($tax_type === 'vat' && $tax_rate > 0) {
-                // حساب الضريبة على المبلغ بعد الخصم باستخدام النسبة التي أدخلها المستخدم
-                $tax_total = ($amount_after_discount * $tax_rate) / 100;
+            $tax_total = 0;
+       
+            // حساب الضريبة بناءً على القيمة التي يدخلها المستخدم في tax_1 أو tax_2
+            foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
+
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $tax_total += $item_tax;
             }
+        
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
             $shipping_cost = floatval($validated['shipping_cost'] ?? 0);
@@ -314,6 +332,43 @@ class CreditNotificationController extends Controller
                 'grand_total' => $total_with_tax,
                 'status' => 1, // حالة العرض (1: Draft)
             ]);
+            
+             foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+    
+    // حساب قيمة الضريبة 1 إن وجدت
+    if (!empty($item['tax_1_id'])) {
+        $tax1 = TaxSitting::find($item['tax_1_id']);
+        if ($tax1) {
+            $tax_value1 = ($tax1->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
+            TaxInvoice::create([
+                'name' => $tax1->name,
+                'invoice_id' => $creditNot->id,
+                'type' => $tax1->type,
+                'rate' => $tax1->tax,
+                'value' => $tax_value1,
+                 'type_invoice' =>     'credit',    
+            ]);
+        }
+    }
+
+    // حساب قيمة الضريبة 2 إن وجدت
+    if (!empty($item['tax_2_id'])) {
+        $tax2 = TaxSitting::find($item['tax_2_id']);
+        if ($tax2) {
+            $tax_value2 = ($tax2->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
+            TaxInvoice::create([
+                'name' => $tax2->name,
+                'invoice_id' => $creditNot->id,
+                'type' => $tax2->type,
+                'rate' => $tax2->tax,
+                'value' => $tax_value2,
+                 'type_invoice' =>     'credit',       
+            ]);
+        }
+    }
+}
 
             // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للعرض **
             foreach ($items_data as $item) {

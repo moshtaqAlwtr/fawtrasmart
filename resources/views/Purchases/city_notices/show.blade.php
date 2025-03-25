@@ -103,7 +103,7 @@
                                         <div class="card shadow" style="max-width: 600px; margin: 20px auto;">
                                             <div class="card-body bg-white p-4" style="min-height: 400px; overflow: auto;">
                                                 <div style="transform: scale(0.8); transform-origin: top center;">
-                                                    @include('purchases.city_notices.pdf', ['cityNotice' => $cityNotice])
+                                                    @include('Purchases.city_notices.pdf', ['cityNotice' => $cityNotice])
                                                 </div>
                                             </div>
                                         </div>

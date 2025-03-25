@@ -57,23 +57,32 @@
                     enctype="multipart/form-data">
                     @csrf
                     <div class="row">
-                        <div class="form-group col-md-4">
+                         @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
+                        <div class="form-group col-md-3">
                             <label for="amount">المبلغ <span style="color: red">*</span></label>
                             <input type="text" class="form-control form-control-lg py-3" id="amount"
-                                placeholder="ر.س 0.00" name="amount">
+                                placeholder="{!! $currencySymbol !!} 0.00" name="">
                             @error('amount')
                                 <span class="text-danger" id="basic-default-name-error" class="error">
                                     {{ $message }}
                                 </span>
                             @enderror
                         </div>
+<div class="form-group col-md-3">
+    <label for="total_amount">المبلغ الإجمالي بعد الضريبة</label>
+    <input type="text" class="form-control form-control-lg py-3" id="total_amount"
+        placeholder="{!! $currencySymbol !!} 0.00" name="amount" readonly>
+</div>
 
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label for="description">الوصف</label>
                             <textarea class="form-control" id="description" rows="3" name="description"></textarea>
                         </div>
 
-                        <div class="form-group col-md-4">
+                        <div class="form-group col-md-3">
                             <label for="attachments">المرفقات</label>
                             <input type="file" name="attachments" id="attachments" class="d-none">
                             <div class="upload-area border rounded p-3 text-center position-relative"
@@ -170,18 +179,22 @@
                             <div class="form-group col-md-6">
                                 <label for="tax1">الضريبة الأولى</label>
                                 <select id="tax1" class="form-control" name="tax1">
-                                    <option selected disabled>-</option>
-                                    <option value="1">ضريبة 1</option>
-                                    <option value="2">ضريبة 2</option>
+                                    <option>اختر الضريبة</option>
+                                    @foreach($taxs as $tax)
+                                    
+                                    <option value="{{$tax->tax}}">{{$tax->name ?? "" }}</option>
+                                @endforeach
                                 </select>
                                 <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax1_amount">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="tax2">الضريبة الثانية</label>
                                 <select id="tax2" class="form-control" name="tax2">
-                                    <option selected disabled>-</option>
-                                    <option value="1">ضريبة 1</option>
-                                    <option value="2">ضريبة 2</option>
+                                 <option>اختر الضريبة</option>
+                                    @foreach($taxs as $tax)
+                                    
+                                    <option value="{{$tax->tax}}">{{$tax->name ?? "" }}</option>
+                                @endforeach
                                 </select>
                                 <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax2_amount">
                             </div>
@@ -253,4 +266,35 @@
             $("#tax-fields").slideUp();
         }
     </script>
+    <!-- إضافة مكتبة jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+<script>
+    $(document).ready(function () {
+        function calculateTax() {
+            let amount = parseFloat($("#amount").val()) || 0; // المبلغ الأساسي
+            let tax1Rate = parseFloat($("#tax1").val()) || 0; // نسبة الضريبة الأولى
+            let tax2Rate = parseFloat($("#tax2").val()) || 0; // نسبة الضريبة الثانية
+
+            // حساب قيمة الضرائب
+            let tax1Amount = (amount * tax1Rate) / 100;
+            let tax2Amount = (amount * tax2Rate) / 100;
+
+            // تحديث الحقول بقيم الضرائب
+            $("input[name='tax1_amount']").val(tax1Amount.toFixed(2));
+            $("input[name='tax2_amount']").val(tax2Amount.toFixed(2));
+
+            // حساب المجموع النهائي مع الضرائب
+            let totalAmount = amount + tax1Amount + tax2Amount;
+            $("#total_amount").val(totalAmount.toFixed(2));
+        }
+
+        // عند إدخال المبلغ أو تغيير الضريبة يتم تحديث الحساب
+        $("#amount, #tax1, #tax2").on("input change", calculateTax);
+    });
+</script>
+
+
 @endsection

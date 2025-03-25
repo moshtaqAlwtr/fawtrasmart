@@ -12,6 +12,8 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Supplier;
 use App\Models\Treasury;
+use App\Models\TaxSitting;
+use App\Models\AccountSetting;
 use App\Models\TreasuryEmployee;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -73,14 +75,16 @@ class ExpensesController extends Controller
                 return $query->where('employee_id', $added_by);
             })
             ->paginate(10);
+             $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('finance.expenses.index', compact('expenses', 'categories', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
+        return view('finance.expenses.index', compact('expenses', 'categories','account_setting', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
     }
     public function create()
     {
         $accounts = Account::all();
         $treasury = Treasury::all();
         $suppliers = Supplier::all();
+        
         $expenses_categories = ExpensesCategory::select('id', 'name')->get();
 
         // توليد الرقم المتسلسل
@@ -105,8 +109,10 @@ class ExpensesController extends Controller
             $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
         }
 
-
-        return view('finance.expenses.create', compact('expenses_categories', 'treasury', 'accounts', 'suppliers', 'code','MainTreasury'));
+         $taxs = TaxSitting::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+         
+        return view('finance.expenses.create', compact('expenses_categories','taxs', 'treasury', 'accounts', 'suppliers', 'code','MainTreasury','account_setting'));
     }
 
 

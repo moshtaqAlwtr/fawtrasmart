@@ -365,11 +365,15 @@
 
                         <!-- المبلغ وحالة الدفع -->
                         <div class="col-md-3 text-center">
+                             @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                             <!-- عرض المبلغ الإجمالي -->
                             <div class="mb-2">
                                 <strong class="text-danger fs-2 d-block">
                                     {{ number_format($quote->grand_total ?? $quote->total, 2) }}
-                                    {{ $quote->currency ?? 'SAR' }}
+                                    <small class="currency">{!! $currencySymbol !!}</small>
                                 </strong>
 
                                 <!-- عرض حالة الدفع مع تغيير اللون بناءً على الحالة -->

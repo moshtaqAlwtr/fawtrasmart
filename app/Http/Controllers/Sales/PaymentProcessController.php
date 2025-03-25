@@ -15,7 +15,7 @@ use App\Models\PaymentsProcess;
 use App\Models\PurchaseInvoice;
 use App\Models\Treasury;
 use App\Models\User;
-
+use App\Models\AccountSetting;
 use App\Models\TreasuryEmployee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -90,8 +90,8 @@ class PaymentProcessController extends Controller
         // تنفيذ الاستعلام مع Pagination لعرض 25 عنصر في الصفحة
         $payments = $query->paginate(25);
         $employees = Employee::all();
-
-        return view('sales.payment.index', compact('payments', 'employees'));
+       $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.payment.index', compact('payments', 'employees','account_setting'));
     }
     public function indexPurchase(Request $request)
     {
@@ -186,7 +186,7 @@ class PaymentProcessController extends Controller
         $payments = $query->paginate(25);
 
 
-        return view('purchases.supplier_payments.index', compact('payments', 'employees'));
+        return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
     }
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
     {
@@ -602,8 +602,9 @@ public function createPurchase($id)
     {
         $payment = PaymentsProcess::with(['invoice.client', 'invoice.payments_process', 'employee'])->findOrFail($id);
         $employees = Employee::all();
-
-        return view('sales.payment.show', compact('payment', 'employees'));
+        
+  $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.payment.show', compact('payment', 'employees','account_setting'));
     }
     public function showSupplierPayment($id)
     {

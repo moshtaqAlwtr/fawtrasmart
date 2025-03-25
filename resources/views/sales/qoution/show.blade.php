@@ -148,12 +148,12 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="d-flex align-items-center">
                                             <span class="badge badge-pill badge-success">{{ $quote->created_at->format('d M') }}</span>
-                                            <p class="mb-0 ml-2">أنشأ {{ $quote->employee->name }} عرض الأسعار رقم <strong>#{{ $quote->id }}</strong>
-                                                للعميل <strong>{{ $quote->client->trade_name }}</strong> بإجمالي
+                                            <p class="mb-0 ml-2">أنشأ {{ $quote->employee->name ?? "" }} عرض الأسعار رقم <strong>#{{ $quote->id }}</strong>
+                                                للعميل <strong>{{ $quote->client->trade_name ?? "" }}</strong> بإجمالي
                                                 <strong>{{ $quote->total }}</strong></p>
                                         </div>
                                         <div class="d-flex align-items-center">
-                                            <span class="mr-2">{{ $quote->created_at->format('H:i:s') }} - {{ $quote->employee->name }}</span>
+                                            <span class="mr-2">{{ $quote->created_at->format('H:i:s') ?? "" }} - {{ $quote->employee->name ?? "" }}</span>
                                             <span class="badge badge-pill badge-info">Main Branch</span>
                                         </div>
                                     </div>

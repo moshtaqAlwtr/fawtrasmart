@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\AccountSetting;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Receipt;
+
 use App\Models\Log as ModelsLog;
 use App\Models\ReceiptCategory;
 use App\Models\Supplier;
+use App\Models\TaxSitting;
 use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
 use Illuminate\Http\Request;
@@ -78,7 +81,8 @@ class IncomesController extends Controller
     $Accounts = Account::all(); // جلب جميع الحسابات الفرعية
     $employees = Employee::all(); // جلب جميع الموظفين
 
-    return view('finance.incomes.index', compact('incomes', 'categories', 'Accounts', 'employees', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
+$account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    return view('finance.incomes.index', compact('incomes', 'categories', 'Accounts', 'employees','account_setting', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
 }
 
     public function create()
@@ -114,8 +118,10 @@ class IncomesController extends Controller
         if (!$MainTreasury) {
             throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
         }
-
-    return view('finance.incomes.create', compact('incomes_categories','account_storage', 'treas', 'accounts', 'nextCode','MainTreasury'));
+         $taxs = TaxSitting::all();
+         
+$account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    return view('finance.incomes.create', compact('incomes_categories','account_storage','taxs', 'treas', 'accounts','account_setting', 'nextCode','MainTreasury'));
 }
 public function store(Request $request)
 {

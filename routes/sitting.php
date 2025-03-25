@@ -79,7 +79,10 @@ Route::group(
                 });
                 Route::prefix('TaxSitting')->group(function () {
                     Route::get('/index', [TaxSittingController::class, 'index'])->name('TaxSitting.index');
-                    Route::post('/update', [TaxSittingController::class, 'update'])->name('TaxSitting.update');
+                    // Route::post('/update/{id}', [TaxSittingController::class, 'update'])->name('TaxSitting.update');
+                    Route::post('/tax-setting/update', [TaxSittingController::class, 'updateAll'])->name('TaxSitting.updateAll');
+Route::delete('/tax-sittings/{id}', [TaxSittingController::class, 'destroy'])->name('tax-sittings.destroy');
+
                 });
                 Route::prefix('Sms')->group(function () {
                     Route::get('/index', [SmsController::class, 'index'])->name('Sms.index');

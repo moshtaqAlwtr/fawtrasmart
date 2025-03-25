@@ -379,14 +379,17 @@
                                 {{ $credit->createdBy->name ?? 'غير محدد' }}
                             </small>
                         </div>
-
+                                        @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                         <!-- المبلغ وحالة الاشعار -->
                         <div class="col-md-3 text-center">
                             <!-- عرض المبلغ الإجمالي -->
                             <div class="mb-2">
                                 <strong class="text-danger fs-2 d-block">
                                     {{ number_format($credit->grand_total, 2) }}
-                                    {{ $credit->currency ?? 'SAR' }}
+                                    <small class="currency">{!! $currencySymbol !!}</small>
                                 </strong>
 
                                 <!-- عرض حالة الاشعار مع تغيير اللون بناءً على الحالة -->

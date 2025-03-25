@@ -14,6 +14,7 @@ use App\Models\CompiledProducts;
 use App\Models\DefaultWarehouses;
 use App\Models\Employee;
 use App\Models\Invoice;
+use App\Models\TaxInvoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
 use App\Models\Log as ModelsLog;
@@ -30,6 +31,7 @@ use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
 use App\Models\User;
 use App\Models\CreditLimit;
+use App\Models\TaxSitting;
 
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
@@ -209,6 +211,7 @@ class InvoicesController extends Controller
     }
     public function create()
     {
+     
         $invoice_number = $this->generateInvoiceNumber();
         $items = Product::all();
         $clients = Client::all();
@@ -219,19 +222,17 @@ class InvoicesController extends Controller
         $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
         $price_sales = PriceListItems::all();
         $invoiceType = 'normal'; // نوع الفاتورة عادي
-
-        return view('sales.invoices.create', compact('clients', 'price_lists', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
+        $taxs = TaxSitting::all();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.invoices.create', compact('clients','account_setting', 'price_lists','taxs' ,'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees'));
     }
 
     public function store(Request $request)
     {
-        // try {
-        // $telegramApiUrl = env('TELEGRAM_BOT_TOKEN');
-
-        // // تحقق من قيمة المتغير
-        // if (is_null($telegramApiUrl)) {
-        //     throw new \Exception('عنوان API الخاص ببوت Telegram غير معرف في ملف .env');
-        // }
+        
+       
+        try {
+    
 
         // ** الخطوة الأولى: إنشاء كود للفاتورة **
         $code = $request->code;
@@ -329,8 +330,7 @@ class InvoicesController extends Controller
                 }
 
 
-                // إرجاع store_id
-                // return $storeId;
+             
 
                 // حساب تفاصيل الكمية والأسعار
                 $quantity = floatval($item['quantity']);
@@ -350,6 +350,7 @@ class InvoicesController extends Controller
                 // تحديث الإجماليات
                 $total_amount += $item_total;
                 $total_discount += $item_discount;
+
 
                 // تجهيز بيانات البند
                 $items_data[] = [
@@ -510,6 +511,40 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             'grand_total' => $total_with_tax,
             'paid_amount' => $advance_payment,
         ]); 
+        
+        
+        
+        
+
+        
+        // حساب الضريبة
+   foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $invoice->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value,
+                    'type_invoice' => 'invoice',
+                ]);
+            }
+        }
+    }
+}
+
 
         // ** تحديث رصيد حساب أبناء العميل **
 
@@ -1115,14 +1150,14 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             ->route('invoices.show', $invoice->id)
             ->with('success', sprintf('تم إنشاء فاتورة المبيعات بنجاح. رقم الفاتورة: %s', $invoice->code));
 
-        // } catch (\Exception $e) {
+        } catch (\Exception $e) {
             DB::rollback();
             Log::error('خطأ في إنشاء فاتورة المبيعات: ' . $e->getMessage());
             return redirect()
                 ->back()
                 ->withInput()
                 ->with('error', 'عذراً، حدث خطأ أثناء حفظ فاتورة المبيعات: ' . $e->getMessage());
-        // }
+        }
         //edit
     }
     private function getSalesAccount()
@@ -1166,6 +1201,10 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
             }
         }
     }
+private function calculateTaxValue($rate, $total)
+{
+    return ($rate / 100) * $total;
+}
 
     private function updateParentBalanceSalesAccount($parentId, $amount)
     {
@@ -1186,7 +1225,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
-
+        $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $client = Client::where('user_id', auth()->user()->id)->first();
 
@@ -1199,7 +1238,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
 
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage'));
+        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage','TaxsInvoice'));
     }
     public function edit($id)
     {

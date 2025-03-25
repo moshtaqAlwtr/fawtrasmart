@@ -266,7 +266,11 @@
                                                 <span class="badge bg-secondary">غير محدد</span>
                                         @endswitch
                                     </td>
-                                    <td>{{ number_format($notice->grand_total, 2) }} ريال</td>
+                                     @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
+                                    <td>{{ number_format($notice->grand_total, 2) }} {!! $currencySymbol !!}</td>
                                     <td>
                                         @if ($notice->is_paid)
                                             <span class="badge bg-success">تم التسوية</span>

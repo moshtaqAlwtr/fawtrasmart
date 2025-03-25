@@ -139,15 +139,19 @@
                             @endif
                         </small>
                     </div>
+                     @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted">SAR</span>
+                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted">{!! $currencySymbol !!}</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
                         @if ($invoices->isNotEmpty())
                             <div class="text-muted">
                                 <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
-                                    class="text-muted">SAR</span>
+                                    class="text-muted"></span>
                                 <span class="d-block text-warning">مفتوح</span>
                             </div>
                         @endif
@@ -945,7 +949,7 @@
                                                             @php
                                                                 $currency = $account_setting->currency ?? 'SAR';
                                                                 $currencySymbol =
-                                                                    $currency == 'SAR' || empty($currency)
+                                                                    $currency == '' || empty($currency)
                                                                         ? '<img src="' .
                                                                             asset('assets/images/Saudi_Riyal.svg') .
                                                                             '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'

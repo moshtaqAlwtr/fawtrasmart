@@ -118,32 +118,33 @@
                 <th>الإجمالي</th>
             </tr>
         </thead>
-        <tbody>
-            @foreach($purchaseQuotation->items as $item)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $item->product->name ?? $item->item }}</td>
-                    <td>{{ $item->quantity }}</td>
-                    <td>{{ number_format($item->unit_price) }}</td>
-                    <td>{{ number_format($item->discount) }}</td>
-                    <td>{{ number_format($item->tax_1) }}</td>
-                    <td>{{ number_format($item->tax_2) }}</td>
-                    <td>{{ number_format($item->total) }}</td>
-                </tr>
-            @endforeach
-            <tr>
-                <td colspan="7" style="text-align: left; font-weight: bold;">إجمالي الخصم:</td>
-                <td>{{ number_format($purchaseQuotation->total_discount) }}</td>
-            </tr>
-            <tr>
-                <td colspan="7" style="text-align: left; font-weight: bold;">إجمالي الضريبة:</td>
-                <td>{{ number_format($purchaseQuotation->total_tax) }}</td>
-            </tr>
-            <tr>
-                <td colspan="7" style="text-align: left; font-weight: bold;">المجموع النهائي:</td>
-                <td>{{ number_format($purchaseQuotation->grand_total) }}</td>
-            </tr>
-        </tbody>
+       <tbody>
+    @foreach($purchaseQuotation->items as $item)
+        <tr>
+            <td>{{ $loop->iteration }}</td>
+            <td>{{ $item->product->name ?? $item->item }}</td>
+            <td>{{ $item->quantity }}</td>
+            <td>{{ number_format($item->unit_price, 2) }}</td>
+            <td>{{ number_format($item->discount, 2) }}</td>
+            <td>{{ number_format($item->tax_1, 2) }}%</td>
+            <td>{{ number_format($item->tax_2, 2) }}%</td>
+            <td>{{ number_format($item->total, 2) }}</td>
+        </tr>
+    @endforeach
+    <tr>
+        <td colspan="7" style="text-align: left; font-weight: bold;">إجمالي الخصم:</td>
+        <td>{{ number_format($purchaseQuotation->total_discount, 2) }}</td>
+    </tr>
+    <tr>
+        <td colspan="7" style="text-align: left; font-weight: bold;">إجمالي الضريبة:</td>
+        <td>{{ number_format($purchaseQuotation->total_tax, 2) }}</td>
+    </tr>
+    <tr>
+        <td colspan="7" style="text-align: left; font-weight: bold;">المجموع النهائي:</td>
+        <td>{{ number_format($purchaseQuotation->grand_total, 2) }}</td>
+    </tr>
+</tbody>
+
     </table>
 </body>
 </html>

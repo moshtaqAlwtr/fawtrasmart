@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\InvoiceItem;
 use App\Models\PeriodicInvoice;
 use App\Models\Product;
+use App\Models\AccountSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -60,15 +61,17 @@ class PeriodicInvoicesController extends Controller
         // جلب قوائم العملاء والمنتجات
         $clients = Client::all();
         $items = Product::all();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('sales.periodic_invoices.index', compact('periodicInvoices', 'clients', 'items'));
+        return view('sales.periodic_invoices.index', compact('periodicInvoices', 'clients','account_setting', 'items'));
     }
     public function create()
     {
         $items = Product::all();
         $periodicInvoices = PeriodicInvoice::all();
         $clients = Client::all();
-        return view('sales.periodic_invoices.create', compact('periodicInvoices', 'clients', 'items'));
+          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.periodic_invoices.create', compact('periodicInvoices', 'clients','account_setting', 'items'));
     }
 
     public function show($id)
@@ -86,7 +89,8 @@ class PeriodicInvoicesController extends Controller
                 return $instance->invoice->payment_status !== 'paid' ? $instance->invoice->grand_total : 0;
             });
 
-        return view('sales.periodic_invoices.show', compact('periodicInvoice'));
+  $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.periodic_invoices.show', compact('periodicInvoice','account_setting'));
     }
 
     /**

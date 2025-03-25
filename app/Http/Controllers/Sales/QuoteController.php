@@ -12,6 +12,10 @@ use App\Models\Product;
 use App\Models\Quote;
 use App\Models\SerialSetting;
 use App\Models\User;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
+use App\Models\AccountSetting;
+
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -125,9 +129,10 @@ class QuoteController extends Controller
         $clients = Client::all();
         $users = User::all();
         $employees = Employee::all();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
         // إرجاع البيانات مع المتغيرات المطلوبة للعرض
-        return view('sales.qoution.index', compact('quotes', 'quotes_number', 'clients', 'users', 'employees'))
+        return view('sales.qoution.index', compact('quotes','account_setting', 'quotes_number', 'clients', 'users', 'employees'))
             ->with('search_params', $request->all()); // إرجاع معاملات البحث للحفاظ على حالة النموذج
     }
     private function generateInvoiceNumber()
@@ -142,8 +147,9 @@ class QuoteController extends Controller
         $items = Product::all();
         $clients = Client::all();
         $users = User::all();
-
-        return view('sales.qoution.create', compact('clients', 'users', 'items', 'quotes_number'));
+        $taxs = TaxSitting::all();
+          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.qoution.create', compact('clients','taxs', 'users','account_setting', 'items', 'quotes_number'));
     }
 
     public function store(Request $request)
@@ -257,11 +263,22 @@ class QuoteController extends Controller
             // ** حساب الضرائب بناءً على القيمة التي يدخلها المستخدم **
             $tax_total = 0;
             $tax_type = $validated['tax_type'];
-            if ($tax_type == 1) { // إذا كانت الضريبة مفعلة
-                $tax_rate = $validated['tax_rate'] ?? 0; // نسبة الضريبة التي يدخلها المستخدم (افتراضيًا 0 إذا لم يتم تقديمها)
-                $tax_total = ($amount_after_discount * $tax_rate) / 100; // حساب الضريبة
-            }
+            // if ($tax_type == 1) { // إذا كانت الضريبة مفعلة
+            //     $tax_rate = $validated['tax_rate'] ?? 0; // نسبة الضريبة التي يدخلها المستخدم (افتراضيًا 0 إذا لم يتم تقديمها)
+            //     $tax_total = ($amount_after_discount * $tax_rate) / 100; // حساب الضريبة
+            // }
 
+ foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
+
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $tax_total += $item_tax;
+            }
             // ** إضافة تكلفة الشحن (إذا وجدت) **
             $shipping_cost = floatval($validated['shipping_cost'] ?? 0);
 
@@ -298,12 +315,43 @@ class QuoteController extends Controller
                 'grand_total' => $total_with_tax,
                 'status' => 1, // حالة العرض (1: Draft)
             ]);
+            
 
-            // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للعرض **
-            foreach ($items_data as $item) {
-                $item['quotation_id'] = $quote->id;
-                InvoiceItem::create($item);
+
+
+foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
+
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $quote->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value,
+                    'type_invoice' => 'quote',
+                ]);
             }
+        }
+    }
+}
+
+// ** بعد حفظ الضرائب، نقوم بحفظ المنتجات **
+foreach ($items_data as $item) {
+    $item['quotation_id'] = $quote->id;
+    InvoiceItem::create($item);
+}
+
 
             DB::commit();
             return redirect()->route('questions.index')->with('success', 'تم إنشاء عرض السعر بنجاح');
@@ -320,7 +368,9 @@ class QuoteController extends Controller
     public function show($id)
     {
         $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
-        return view('sales.qoution.show', compact('quote'));
+        $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'quote')->get();
+          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('sales.qoution.show', compact('quote','TaxsInvoice','account_setting'));
     }
 
     public function edit($id)

@@ -182,8 +182,17 @@
 
         <p>المجموع الكلي: {{ number_format($invoice->grand_total ?? 0, 2) }} {!! $currencySymbol !!}
         </p>
-        <p>ضريبة القيمة المضافة (15%): {{ number_format($invoice->tax_total ?? 0, 2) }}
-            {!! $currencySymbol !!}</p>
+        
+     @if($TaxsInvoice->isNotEmpty())
+    @foreach($TaxsInvoice as $TaxInvoice)
+        <p> {{ $TaxInvoice->name }} ({{ $TaxInvoice->rate }}%): 
+            {{ number_format($TaxInvoice->value ?? 0, 2) }} {!! $currencySymbol !!}
+        </p>
+    @endforeach
+@else
+    <p>الضريبة: 0.00 {!! $currencySymbol !!}</p>
+@endif
+
 
 
 

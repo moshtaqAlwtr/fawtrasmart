@@ -13,6 +13,9 @@ use App\Models\PurchaseInvoice;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Models\AccountSetting;
+use App\Models\TaxSitting;
+use App\Models\TaxInvoice;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -128,8 +131,9 @@ class PurchaseOrdersRequestsController extends Controller
         $purchaseOrdersRequests = $query->paginate(10);
         $suppliers = Supplier::all();
         $users = User::all();
+          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('Purchases.Purchasing_order_requests.index', compact('purchaseOrdersRequests', 'suppliers', 'users'));
+        return view('Purchases.Purchasing_order_requests.index', compact('purchaseOrdersRequests', 'suppliers', 'users','account_setting'));
     }
 
     public function Show($id)
@@ -150,7 +154,9 @@ class PurchaseOrdersRequestsController extends Controller
         $items = Product::all();
         $accounts = Account::all();
         $users = User::all();
-        return view('Purchases.Purchasing_order_requests.create', compact('suppliers', 'accounts', 'users', 'items'));
+        $taxs = TaxSitting::all();
+          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        return view('Purchases.Purchasing_order_requests.create', compact('suppliers', 'accounts','taxs', 'users', 'items','account_setting'));
     }
 
     public function store(Request $request)
@@ -239,9 +245,17 @@ class PurchaseOrdersRequestsController extends Controller
 
         // ** حساب الضرائب **
         $total_tax = 0;
-        if ($request->tax_type == 1) {
-            $total_tax = $amount_after_discount * 0.15; // نسبة الضريبة 15%
-        }
+        foreach ($request->items as $item) {
+                $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
+                $tax_2 = floatval($item['tax_2'] ?? 0); // الضريبة الثانية
+
+                // حساب الضريبة لكل بند
+                $item_total = floatval($item['quantity']) * floatval($item['unit_price']);
+                $item_tax = ($item_total * $tax_1) / 100 + ($item_total * $tax_2) / 100;
+
+                // إضافة الضريبة إلى الإجمالي
+                $total_tax += $item_tax;
+            }
 
         // ** إضافة تكلفة الشحن (إذا وجدت) **
         $shipping_cost = floatval($request->shipping_cost ?? 0);
@@ -305,7 +319,32 @@ class PurchaseOrdersRequestsController extends Controller
             'total_tax' => $total_tax + $shipping_tax, // إضافة ضريبة التوصيل إلى مجموع الضرائب
             'grand_total' => $grand_total,
         ]);
+foreach ($request->items as $item) {
+    // حساب الإجمالي لكل منتج (السعر × الكمية)
+    $item_subtotal = $item['unit_price'] * $item['quantity']; 
 
+    // حساب الضرائب بناءً على البيانات القادمة من `request`
+    $tax_ids = ['tax_1_id', 'tax_2_id']; 
+    foreach ($tax_ids as $tax_id) {
+        if (!empty($item[$tax_id])) { // التحقق مما إذا كان هناك ضريبة
+            $tax = TaxSitting::find($item[$tax_id]); 
+            
+            if ($tax) {
+                $tax_value = ($tax->tax / 100) * $item_subtotal; // حساب قيمة الضريبة
+
+                // حفظ الضريبة في جدول TaxInvoice
+                TaxInvoice::create([
+                    'name' => $tax->name,
+                    'invoice_id' => $purchaseOrderRequest->id,
+                    'type' => $tax->type,
+                    'rate' => $tax->tax,
+                    'value' => $tax_value,
+                    'type_invoice' => 'purchase',
+                ]);
+            }
+        }
+    }
+}
         // ** الخطوة الخامسة: إنشاء سجلات البنود (items) للفاتورة **
         foreach ($items_data as $item) {
             $item['purchase_invoice_id'] = $purchaseOrderRequest->id; // تعيين purchase_invoice_id

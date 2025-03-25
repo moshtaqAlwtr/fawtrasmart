@@ -375,37 +375,41 @@
                                             </button>
                                         </td>
                                     </tr>
+                                     @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                                     <tr>
                                         <td colspan="7" class="text-right">المجموع الفرعي</td>
-                                        <td><span id="subtotal">0.00</span> ر.س</td>
+                                        <td><span id="subtotal">0.00</span> {!! $currencySymbol !!}</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">مجموع الخصومات</td>
                                         <td>
-                                            <span id="total-discount">0.00</span>
+                                            <span id="total-discount">0.00</span>{!! $currencySymbol !!}
                                             <span id="discount-type-label"></span>
                                         </td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">مجموع الضرائب</td>
-                                        <td><span id="total-tax">0.00</span> ر.س</td>
+                                        <td><span id="total-tax">0.00</span> {!! $currencySymbol !!}</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">تكلفة الشحن</td>
-                                        <td><span id="shipping-cost">0.00</span> ر.س</td>
+                                        <td><span id="shipping-cost">0.00</span> {!! $currencySymbol !!}</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">الدفعة القادمة</td>
-                                        <td><span id="next-payment">0.00</span> ر.س</td>
+                                        <td><span id="next-payment">0.00</span> {!! $currencySymbol !!}</td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">المجموع الكلي</td>
-                                        <td><span id="grand-total">0.00</span> ر.س</td>
+                                        <td><span id="grand-total">0.00</span> {!! $currencySymbol !!}</td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
