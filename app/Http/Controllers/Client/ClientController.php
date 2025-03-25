@@ -475,8 +475,8 @@ class ClientController extends Controller
             'appointmentNotes' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             },
-            'visits' => function ($query) {
-                $query->orderBy('visit_date', 'desc');
+            'visits.employee' => function ($query) {
+                $query->orderBy('created_at', 'desc');
             },
         ])->findOrFail($id);
 
@@ -502,7 +502,7 @@ class ClientController extends Controller
         // تحميل الفئات والعلاقات الأخرى
         $categories = CategoriesClient::all();
         $ClientRelations = ClientRelation::where('client_id', $id)->get();
-        $visits = $client->visits()->with('employee')->get();
+        $visits = $client->visits()->orderBy('created_at', 'desc')->get();
 
         // إنشاء كود جديد للعميل (إن وجد)
         do {
@@ -510,17 +510,26 @@ class ClientController extends Controller
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
-             $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        return view('client.show', compact('client', 'ClientRelations', 'invoice_due','statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes','account_setting'));
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-
-        // تحميل الزيارات مع بيانات الموظفين إلزاميًا
-
-
-        return view('client.show', compact('client', 'ClientRelations','visits', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes'));
-
+        return view('client.show', compact(
+            'client',
+            'ClientRelations',
+            'visits',
+            'invoice_due',
+            'statuses',
+            'account',
+            'installment',
+            'employees',
+            'bookings',
+            'packages',
+            'memberships',
+            'invoices',
+            'payments',
+            'appointmentNotes',
+            'account_setting'
+        ));
     }
-
     public function updateStatus(Request $request, $id)
     {
         $client = Client::findOrFail($id);
