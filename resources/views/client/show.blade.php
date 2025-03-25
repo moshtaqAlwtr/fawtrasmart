@@ -122,8 +122,8 @@
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->id }}</small>
-                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
-                            {{ $statuses->find($client->status_id)->name }}
+                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color??'#ffffff' }}; color: white;">
+                            {{ $statuses->find($client->status_id)->name??'غير محدد' }}
                         </span>
                             <br>
                             <small class="text-muted">
@@ -1361,7 +1361,7 @@
 
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            {{-- <tbody>
                                                 @foreach ($visits as $visit)
                                                     <tr>
                                                         <td>{{ $visit->id }}</td>
@@ -1371,7 +1371,7 @@
 
                                                     </tr>
                                                 @endforeach
-                                            </tbody>
+                                            </tbody> --}}
                                         </table>
                                     </div>
                                 </div>

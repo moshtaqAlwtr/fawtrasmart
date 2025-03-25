@@ -7,6 +7,7 @@ use App\Models\ApplicationSetting;
 
 class ApplicationSettingsSeeder extends Seeder
 {
+
     public function run()
     {
         $settings = [
