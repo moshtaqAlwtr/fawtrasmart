@@ -21,7 +21,7 @@
                 </div>
             @endif
             <div class="card">
-             
+
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
@@ -47,26 +47,14 @@
                 <div class="card-body">
                     <!-- Date and Time -->
                     <div class="row mb-3">
-                        {{-- <div class="col-md-2">
-                            <label for="date" class="form-label">التاريخ</label>
-                            <input type="date" class="form-control" name="date" value="{{ date('Y-m-d') }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="time" class="form-label">الوقت</label>
-                            <input type="time" class="form-control" name="time" value="{{ date('H:i') }}">
-                        </div> --}}
+
                         <div class="form-group col-md-6">
-                            <label for="time" class="form-label">اختار الاجراء </label>
+                            <label for="action_type">نوع الإجراء</label>
                             <select class="form-control" id="action_type" name="process" required>
-                                <option value="">اختر الإجراء</option>
-                                <option value="متابعة هاتفية">متابعة هاتفية</option>
-                                <option value="تحصيل">تحصيل</option>
-                                <option value="توصيل">توصيل</option>
-                                <option value="حجز">حجز</option>
+                                <option value="">اختر نوع الإجراء</option>
+                                <option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>
                             </select>
                             <input type="hidden" name="client_id" value="{{$id}}" >
-                         
-
                         </div>
 
                         <!-- Modal -->
@@ -104,13 +92,41 @@
                         <div class="form-group col-md-6">
                             <label for="time" class="form-label">اختر الحالة</label>
 
-                            <select class="form-control" name="status">
-                                <option value="">اختر الحالة</option>
-                                <option class="btn btn-warning" value="مديون">مديون</option>
-                                <option class="btn btn-danger" value="دائن">دائن</option>
-                                <option class="btn btn-primary" value="مميز">مميز</option>
-                            </select>
+                            <div class="dropdown col-md-6">
+                                <button class="btn btn-light dropdown-toggle text-start w-100" type="button"
+                                    id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                    style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
+                                           color: #000;
+                                           border: 1px solid #ccc;">
+                                    {{ $currentStatus->name ?? 'اختر الحالة' }}
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="clientStatusDropdown"
+                                    style="border-radius: 8px;">
+                                    @foreach ($statuses as $status)
+                                        <li>
+                                            <a href="#"
+                                                class="dropdown-item text-white d-flex align-items-center justify-content-between status-option"
+                                                data-id="{{ $status->id }}" data-name="{{ $status->name }}"
+                                                data-color="{{ $status->color }}"
+                                                style="background-color: {{ $status->color }};">
+                                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+
+                                    <li>
+                                        <a href="{{ route('SupplyOrders.edit_status') }}"
+                                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                                            style="border-top: 1px solid #ddd; padding: 8px;">
+                                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
+
+
 
                     </div>
 
@@ -146,6 +162,7 @@
     </div>
 @endsection
 @section('scripts')
+    @parent
     <script>
         $(document).ready(function() {
             // تحميل الإجراءات من localStorage أو استخدام القائمة الافتراضية
@@ -185,12 +202,12 @@
                 let listHtml = '';
                 procedures.forEach((proc, index) => {
                     listHtml += `
-            <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
-                <span>${proc}</span>
-                <button class="btn btn-sm btn-outline-danger delete-procedure" data-index="${index}">
-                    <i class="fas fa-trash"></i> حذف
-                </button>
-            </div>`;
+                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                    <span>${proc}</span>
+                    <button class="btn btn-sm btn-outline-danger delete-procedure" data-index="${index}">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>`;
                 });
                 $('#procedures-list').html(listHtml);
             }
@@ -210,14 +227,14 @@
             });
 
             // تحديث خيارات القائمة المنسدلة
-            // function updateSelectOptions() {
-            //     let selectHtml = '<option value="">اختر نوع الإجراء</option>';
-            //     procedures.forEach(proc => {
-            //         selectHtml += `<option value="${proc}">${proc}</option>`;
-            //     });
-            //     selectHtml += '<option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>';
-            //     $('#action_type').html(selectHtml);
-            // }
+            function updateSelectOptions() {
+                let selectHtml = '<option value="">اختر نوع الإجراء</option>';
+                procedures.forEach(proc => {
+                    selectHtml += `<option value="${proc}">${proc}</option>`;
+                });
+                selectHtml += '<option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>';
+                $('#action_type').html(selectHtml);
+            }
 
             // حفظ التغييرات
             $('#saveProcedures').on('click', function() {
@@ -274,6 +291,38 @@
                 if ($(this).is(':checked')) {
                     loadEmployees();
                 }
+            });
+        });
+
+        // دالة إظهار/إخفاء حقول التكرار
+        function toggleRecurringFields(checkbox) {
+            const recurringFields = document.getElementById('recurring-fields');
+            if (checkbox.checked) {
+                recurringFields.style.display = 'block';
+            } else {
+                recurringFields.style.display = 'none';
+            }
+        }
+
+        // دالة إظهار/إخفاء حقول الموظفين
+        function toggleStaffFields(checkbox) {
+            const staffFields = document.getElementById('staff-fields');
+            if (checkbox.checked) {
+                staffFields.style.display = 'block';
+            } else {
+                staffFields.style.display = 'none';
+            }
+        }
+        document.querySelectorAll('.status-option').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                let statusName = this.getAttribute('data-name');
+                let statusColor = this.getAttribute('data-color');
+
+                let dropdownButton = document.getElementById('clientStatusDropdown');
+                dropdownButton.innerText = statusName;
+                dropdownButton.style.backgroundColor = statusColor;
             });
         });
     </script>
