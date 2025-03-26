@@ -1047,7 +1047,9 @@
                                         @foreach ($ClientRelations as $note)
                                             <div class="timeline-item">
                                                 <div class="timeline-content d-flex align-items-start">
-                                                    <div class="status-badge bg-danger text-white p-2 rounded">متابعة</div>
+                                                    <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
+                                                        {{ $statuses->find($client->status_id)->name }}
+                                                    </span>
                                                     <div
                                                         class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
                                                         <div class="d-flex justify-content-between align-items-center">

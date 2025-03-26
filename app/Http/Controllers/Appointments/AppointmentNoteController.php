@@ -42,16 +42,17 @@ class AppointmentNoteController extends Controller
 
     // Get the first client by default
     $client = $clients->first();
-   
+
     $categories = CategoriesClient::all();
-   
+$statuses=Statuses::all();
+
 
     do {
         $lastClient = Client::orderBy('code', 'desc')->first();
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
     } while (Client::where('code', $newCode)->exists());
-    
-    return view('client.appointments.note.add_note', compact('clients', 'appointments', 'id'));
+
+    return view('client.appointments.note.add_note', compact('clients', 'appointments','statuses', 'id'));
 }
     /**
      * حفظ ملاحظة جديدة
