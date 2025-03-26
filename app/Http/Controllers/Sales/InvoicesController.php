@@ -990,7 +990,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
 
             ]);
 
@@ -1148,7 +1148,7 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
             // 1. حساب الخزينة المستهدفة (مدين)
