@@ -122,8 +122,7 @@
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->id }}</small>
-                        <span class="badge"
-                            style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
+                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
                             {{ $statuses->find($client->status_id)->name }}
                         </span>
                         <br>
@@ -1367,17 +1366,13 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @forelse ($visits as $visit)
+                                                @foreach ($visits as $visit)
                                                     <tr>
                                                         <td>{{ $visit->id }}</td>
                                                         <td>{{ $visit->visit_date }}</td>
                                                         <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
                                                     </tr>
-                                                @empty
-                                                    <tr>
-                                                        <td colspan="3" class="text-center">لا توجد زيارات مسجلة</td>
-                                                    </tr>
-                                                @endforelse
+                                                @endforeach
                                             </tbody>
                                         </table>
                                     </div>
