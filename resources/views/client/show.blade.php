@@ -122,37 +122,32 @@
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->id }}</small>
-                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
-                            {{ $statuses->find($client->status_id)->name }}
+                        <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
+                            {{ $statuses->find($client->status_id)->name ?? 'غير محدد' }}
                         </span>
-                        <br>
-                        <small class="text-muted">
-                            حساب الأستاذ:
-                            @if ($client->account)
-                                <a href="#">{{ $client->account->name }} #{{ $client->account->code }}</a>
-                            @else
-                                <span>No account associated</span>
-                            @endif
-                        </small>
+                            <br>
+                            <small class="text-muted">
+                                حساب الأستاذ:
+                                @if ($client->account)
+                                    <a href="#">{{ $client->account->name  }} #{{ $client->account->code }}</a>
+                                @else
+                                    <span>No account associated</span>
+                                @endif
+                            </small>
                     </div>
-                    @php
-                        $currency = $account_setting->currency ?? 'SAR';
-                        $currencySymbol =
-                            $currency == 'SAR' || empty($currency)
-                                ? '<img src="' .
-                                    asset('assets/images/Saudi_Riyal.svg') .
-                                    '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
-                                : $currency;
-                    @endphp
+                     @php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        @endphp
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div class="text-muted">
-                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
-                                class="text-muted">{!! $currencySymbol !!}</span>
+                            <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted">{!! $currencySymbol !!}</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
                         @if ($invoices->isNotEmpty())
                             <div class="text-muted">
-                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted"></span>
+                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span
+                                    class="text-muted"></span>
                                 <span class="d-block text-warning">مفتوح</span>
                             </div>
                         @endif
@@ -1240,10 +1235,11 @@
                                                 <div
                                                     class="d-flex flex-column flex-md-row align-items-center justify-content-end gap-2">
                                                     <!-- زر التبديل -->
-                                                    <div class="form-check form-switch">
+                                                    <div class="form-check form-switch d-flex align-items-center w-100 w-md-auto">
                                                         <input class="form-check-input" type="checkbox" id="showDetails">
-                                                        <label class="form-check-label" for="showDetails">اعرض
-                                                            التفاصيل</label>
+                                                        <label class="form-check-label ms-2 w-100 d-flex align-items-center justify-content-between" for="showDetails">
+                                                            <span><i class="fas fa-eye me-2"></i> اعرض التفاصيل</span>
+                                                        </label>
                                                     </div>
 
                                                     <!-- حقل التاريخ -->
@@ -1365,6 +1361,7 @@
                                                     <th>#</th>
                                                     <th>تاريخ الزيارة</th>
                                                     <th>الموظف</th>
+
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -1372,7 +1369,9 @@
                                                     <tr>
                                                         <td>{{ $visit->id }}</td>
                                                         <td>{{ $visit->visit_date }}</td>
-                                                        <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
+                                                        <td>{{ $visit->employee->name }}</td>
+
+
                                                     </tr>
                                                 @endforeach
                                             </tbody>

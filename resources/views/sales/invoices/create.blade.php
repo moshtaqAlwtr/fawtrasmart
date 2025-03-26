@@ -735,13 +735,29 @@
             initializeEvents();
 
             // إعادة تهيئة الأحداث عند إضافة صف جديد
-           $(document).on('click', '.add-row', function() {
-    var newRow = $('.item-row').first().clone(); // استنساخ الصف الأول
-    newRow.find('input, select').val(''); // مسح القيم في الصف الجديد
-    newRow.find('.row-total').text('0.00'); // إعادة تعيين المجموع
+         $(document).on('click', '.add-row', function() {
+    var lastRow = $('.item-row').last(); // الحصول على آخر صف
+    var newRow = lastRow.clone(); // استنساخ آخر صف
+    var rowIndex = $('.item-row').length; // تحديد رقم الصف الجديد
+
+    // مسح القيم في الصف الجديد
+    newRow.find('input, select').val('');
+    newRow.find('.row-total').text('0.00');
+
+    // تحديث أسماء الحقول لتكون فريدة (حسب الصف الجديد)
+    newRow.find('input, select').each(function() {
+        var name = $(this).attr('name');
+        if (name) {
+            // تحديث الأرقام في أسماء الحقول
+            name = name.replace(/\[\d+\]/, '[' + rowIndex + ']');
+            $(this).attr('name', name);
+        }
+    });
+
     newRow.appendTo('tbody'); // إضافة الصف الجديد إلى الجدول
     initializeEvents(); // إعادة تهيئة الأحداث للصف الجديد
 });
+
 
 
             function initializeEvents() {
