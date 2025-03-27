@@ -52,23 +52,23 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')->group(base_path('routes/supply_orders.php'));
             Route::middleware('web')->group(base_path('routes/dashboard.php'));
             Route::middleware('web')->group(base_path('routes/time-tracking.php'));
-           
+
             Route::middleware('web')->group(base_path('routes/orders.php'));
             Route::middleware('web')->group(base_path('routes/customers.php'));
             Route::middleware('web')->group(base_path('routes/inventory.php'));
-          
+
             Route::middleware('web')->group(base_path('routes/attendance.php'));
             Route::middleware('web')->group(base_path('routes/track_time.php'));
             Route::middleware('web')->group(base_path('routes/salaries.php'));
             Route::middleware('web')->group(base_path('routes/supply_orders.php'));
             Route::middleware('web')->group(base_path('routes/dashboard.php'));
             Route::middleware('web')->group(base_path('routes/time-tracking.php'));
-   
+
             Route::middleware('web')->group(base_path('routes/orders.php'));
             Route::middleware('web')->group(base_path('routes/customers.php'));
             Route::middleware('web')->group(base_path('routes/inventory.php'));
             Route::middleware('web')->group(base_path('routes/activity.php'));
-         
+
             Route::middleware('web')->group(base_path('routes/track_time.php'));
             Route::middleware('web')->group(base_path('routes/purchases.php'));
             Route::middleware('web')->group(base_path('routes/reservations.php'));
@@ -79,13 +79,14 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')->group(base_path('routes/sitting.php'));
             Route::middleware('web')->group(base_path('routes/installments.php'));
             Route::middleware('web')->group(base_path('routes/rental_management.php'));
-            Route::middleware('web')->group(base_path('routes/Loyalty_Points.php'));
+            Route::middleware('web')->group(base_path('routes/loyalty_points.php'));
             Route::middleware('web')->group(base_path('routes/customer_attendance.php'));
             Route::middleware('web')->group(base_path('routes/insurance_agents.php'));
             Route::middleware('web')->group(base_path('routes/manufacturing.php'));
             Route::middleware('web')->group(base_path('routes/pos.php'));
             Route::middleware('web')->group(base_path('routes/online_store.php'));
             Route::middleware('web')->group(base_path('routes/orders.php'));
+
         });
     }
 

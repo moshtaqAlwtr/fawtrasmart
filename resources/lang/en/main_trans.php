@@ -200,6 +200,15 @@ return [
     'File_Management_and_Documents' => 'File Management and Documents',
     'Auto_Send_Rules' => 'Auto Send Rules',
 
+'Sittings'=>'Sittings',
+'tasks' => 'Tasks',
+'management_Tasks' => 'Management Tasks',
+'create_Task' => 'Create Task',
+'Management_Projects' => 'Management Projects',
+'Calendar' => 'Calendar',
+'Task_Categories' => 'Task Categories',
+'Task_Settings' => 'Task Settings',
+
 
 
 ];

@@ -189,5 +189,13 @@ return [
 'Export_and_Import' => 'निर्यात और आयात',
 'Data_Backup' => 'डेटा बैकअप',
 'Data_Restore' => 'डेटा पुनर्स्थापना',
+'Sittings'=>'सिटिंग्स',
+'tasks' => 'काज',
+'management_Tasks' => 'काज प्रबंधन',
+'create_Task' => 'काज बनाएं',
+'Management_Projects' => 'प्रजेक्ट प्रबंधन',
+'Calendar' => 'कैलेंडर',
+'Task_Categories' => 'काज कатегорी',
+'Task_Settings' => 'काज सेटिंग्स',
 
 ];

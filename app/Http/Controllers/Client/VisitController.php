@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Visit;
 use App\Models\Client;
-use App\Models\Employee;
+use App\Models\User;
 use App\Models\Location;
 use App\Models\Notification;
+use App\Models\notifications;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,8 +19,8 @@ class VisitController extends Controller
     public function index()
     {
         $visits = Visit::with(['employee', 'client'])
-                      ->orderBy('visit_date', 'desc')
-                      ->get();
+            ->orderBy('visit_date', 'desc')
+            ->get();
         return response()->json($visits);
     }
 
@@ -49,12 +50,7 @@ class VisitController extends Controller
         $clientLocation = $client->locations()->latest()->first();
 
         if ($clientLocation) {
-            $distance = $this->calculateDistance(
-                $clientLocation->latitude,
-                $clientLocation->longitude,
-                $request->latitude,
-                $request->longitude
-            );
+            $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $request->latitude, $request->longitude);
 
             if ($distance < 100) {
                 $visit = Visit::create([
@@ -66,7 +62,7 @@ class VisitController extends Controller
                     'employee_longitude' => $request->longitude,
                     'arrival_time' => now(),
                     'notes' => 'تم تسجيل الزيارة يدوياً',
-                    'departure_notification_sent' => false // إضافة حقل جديد
+                    'departure_notification_sent' => false,
                 ]);
 
                 $this->sendNotificationToManager($visit, 'visit_arrival');
@@ -93,7 +89,7 @@ class VisitController extends Controller
             'employee_id' => $employeeId,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
-            'time' => now()
+            'time' => now(),
         ]);
 
         // تحديث أو إنشاء موقع الموظف
@@ -102,7 +98,7 @@ class VisitController extends Controller
             [
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
-                'recorded_at' => now()
+                'recorded_at' => now(),
             ]
         );
 
@@ -124,7 +120,7 @@ class VisitController extends Controller
         Log::info('Checking distance for automatic visit logging', [
             'employee_id' => $employeeId,
             'latitude' => $latitude,
-            'longitude' => $longitude
+            'longitude' => $longitude,
         ]);
 
         $clients = Client::has('locations')->get();
@@ -132,17 +128,12 @@ class VisitController extends Controller
         foreach ($clients as $client) {
             $clientLocation = $client->locations()->latest()->first();
 
-            $distance = $this->calculateDistance(
-                $clientLocation->latitude,
-                $clientLocation->longitude,
-                $latitude,
-                $longitude
-            );
+            $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $latitude, $longitude);
 
             Log::info('Distance calculation result', [
                 'client_id' => $client->id,
                 'distance' => $distance,
-                'threshold' => 100
+                'threshold' => 100,
             ]);
 
             if ($distance < 100) {
@@ -162,12 +153,12 @@ class VisitController extends Controller
                         'employee_longitude' => $longitude,
                         'arrival_time' => now(),
                         'notes' => 'تم تسجيل الحضور تلقائياً عند الاقتراب من العميل',
-                        'departure_notification_sent' => false
+                        'departure_notification_sent' => false,
                     ]);
 
                     Log::info('New visit created automatically', [
                         'visit_id' => $visit->id,
-                        'arrival_time' => $visit->arrival_time
+                        'arrival_time' => $visit->arrival_time,
                     ]);
 
                     $this->sendNotificationToManager($visit, 'visit_arrival');
@@ -177,12 +168,12 @@ class VisitController extends Controller
                             'arrival_time' => now(),
                             'employee_latitude' => $latitude,
                             'employee_longitude' => $longitude,
-                            'notes' => 'تم تحديث وقت الحضور تلقائياً'
+                            'notes' => 'تم تحديث وقت الحضور تلقائياً',
                         ]);
 
                         Log::info('Existing visit updated with arrival time', [
                             'visit_id' => $existingVisit->id,
-                            'arrival_time' => $existingVisit->arrival_time
+                            'arrival_time' => $existingVisit->arrival_time,
                         ]);
                     }
                 }
@@ -216,20 +207,21 @@ class VisitController extends Controller
 
                 Log::info('Current distance from client', [
                     'visit_id' => $visit->id,
-                    'distance' => $currentDistance
+                    'client_id' => $visit->client_id,
+                    'distance' => $currentDistance,
+                    'threshold' => 100,
                 ]);
 
-                // إضافة شرط التحقق من المسافة والوقت وعدم إرسال الإشعار مسبقاً
-                if ($currentDistance > 100 && !$visit->departure_notification_sent) {
+                if ($currentDistance > 100) {
                     $visit->update([
                         'departure_time' => now(),
                         'departure_notification_sent' => true,
-                        'notes' => ($visit->notes ?? '') . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل"
+                        'notes' => ($visit->notes ?? '') . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل",
                     ]);
 
                     Log::info('Departure time recorded', [
                         'visit_id' => $visit->id,
-                        'departure_time' => $visit->departure_time
+                        'departure_time' => $visit->departure_time,
                     ]);
 
                     $this->sendNotificationToManager($visit, 'visit_departure');
@@ -260,47 +252,21 @@ class VisitController extends Controller
     }
 
     // إرسال إشعار للمدير (معدلة)
-    private function sendNotificationToManager($visit, $type)
+    private function sendNotificationToManager($visit, $type = 'visit_arrival')
     {
-        // التحقق من عدم وجود إشعار مسبق لنفس الزيارة ونفس النوع
-        $existingNotification = Notification::where('type', 'visit')
-            ->where('related_id', $visit->id)
-            ->where('notification_type', $type)
-            ->whereDate('created_at', today())
-            ->first();
+        $title = $type === 'visit_arrival'
+            ? 'وصول موظف إلى عميل'
+            : 'انصراف موظف من عميل';
 
-        if ($existingNotification) {
-            Log::info('Notification already sent for this visit', [
-                'visit_id' => $visit->id,
-                'type' => $type
-            ]);
-            return;
-        }
+        $description = $type === 'visit_arrival'
+            ? "تم تسجيل وصول الموظف: {$visit->employee->name} إلى عميل: {$visit->client->trade_name}"
+            : "تم تسجيل انصراف الموظف: {$visit->employee->name} من عميل: {$visit->client->trade_name}";
 
-        $title = '';
-        $description = '';
-
-        if ($type === 'visit_arrival') {
-            $title = 'وصول موظف';
-            $description = 'الموظف ' . $visit->employee->name . ' قام بزيارة العميل ' . $visit->client->trade_name . ' في ' . $visit->arrival_time;
-        } elseif ($type === 'visit_departure') {
-            $title = 'انصراف موظف';
-            $description = 'الموظف ' . $visit->employee->name . ' انصرف من زيارة العميل ' . $visit->client->trade_name . ' في ' . $visit->departure_time;
-        }
-
-        Notification::create([
+        notifications::create([
             'type' => 'visit',
-            'notification_type' => $type,
-            'related_id' => $visit->id,
             'title' => $title,
             'description' => $description,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
-
-        Log::info('Notification sent to manager', [
-            'type' => $type,
-            'visit_id' => $visit->id
+            'read' => false,
         ]);
     }
 
@@ -321,7 +287,7 @@ class VisitController extends Controller
             'employee_longitude' => 'sometimes|numeric',
             'arrival_time' => 'sometimes|date',
             'departure_time' => 'sometimes|date|after:arrival_time',
-            'notes' => 'sometimes|string'
+            'notes' => 'sometimes|string',
         ]);
 
         $visit->update($request->all());
