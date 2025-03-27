@@ -2,11 +2,11 @@
 
 @section('title')
     انشاء فاتورة مبيعات
-@stop
+@endsection
 
 @section('css')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ asset('assets/css/invoice.css') }}">
+
     <style>
         @media (max-width: 767.98px) {
             #items-table {
@@ -166,8 +166,8 @@
                                                     @endforeach
 
                                                 </select>
-                                                
-                                               
+
+
                                             </div>
                                              <input type="hidden" id="client_id_hidden" name="client_id" value="">
                                             <div class="col-md-4">
@@ -381,8 +381,8 @@
         <input type="hidden" name="items[0][tax_2_id]">
     </div>
 </td
-                             
-                                        
+
+
                                         <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
@@ -394,8 +394,8 @@
                                         </td>
                                     </tr>
                                 </tbody>
-                                
-                                
+
+
                                 <tfoot id="tax-rows">
                                      <tr>
                                         <td colspan="9" class="text-left">
@@ -411,7 +411,7 @@
                                         <td><span id="subtotal">0.00</span>{!! $currencySymbol !!}</td>
                                         <td></td>
                                     </tr>
-                                
+
                                     <tr>
                                         <td colspan="7" class="text-right">مجموع الخصومات</td>
                                         <td>
@@ -421,12 +421,12 @@
                                         <td></td>
                                     </tr>
                                 <tr>
-    
+
     <td>
-    
+
         <small id="tax-details"></small> <!-- مكان عرض تفاصيل الضرائب -->
     </td>
-    
+
 </tr>
  <tr>
         <td colspan="7" class="text-right">المجموع الكلي</td>
@@ -436,9 +436,9 @@
     </tr>
 
 
-                                   
+
                                 </tfoot>
-                                
+
                             </table>
                         </div>
                     </div>
@@ -692,7 +692,7 @@
 @section('scripts')
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  
+
     <script src="{{ asset('assets/js/invoice.js') }}"></script>
     <script>
         document.querySelectorAll('.toggle-check').forEach((checkbox) => {
@@ -708,7 +708,7 @@
 
 
     </script>
- 
+
    <script>
    function updateHiddenInput(selectElement) {
     // البحث عن أقرب صف يحتوي على العنصر المحدد
@@ -728,7 +728,7 @@
 
  </script>
 
-    
+
     <script>
         $(document).ready(function() {
             // تهيئة الأحداث للصفوف الموجودة مسبقًا
@@ -823,7 +823,7 @@ document.addEventListener('change', function (e) {
         let tax1Select = row.querySelector('[name^="items"][name$="[tax_1]"]');
         let tax1Name = tax1Select.options[tax1Select.selectedIndex].dataset.name;
         let tax1Value = parseFloat(tax1Select.value);
-        
+
         // الحصول على الضريبة 2
         let tax2Select = row.querySelector('[name^="items"][name$="[tax_2]"]');
         let tax2Name = tax2Select.options[tax2Select.selectedIndex].dataset.name;
@@ -1026,7 +1026,7 @@ saveButton.addEventListener("click", function(event) {
     event.preventDefault(); // منع الإرسال الافتراضي
 
     const clientId = clientSelect.value;
-    
+
     console.log("قيمة العميل المختار:", clientId);
     console.log("قيمة الحقل المخفي قبل الإرسال:", clientIdHidden.value);
 
@@ -1082,12 +1082,12 @@ saveButton.addEventListener("click", function(event) {
     });
 });
 
-     
+
 });
 
 
     </script>
     <script>
-     
+
     </script>
 @endsection

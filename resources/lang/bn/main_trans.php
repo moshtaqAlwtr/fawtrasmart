@@ -182,4 +182,13 @@ return [
 'Data_Backup' => 'ডেটা ব্যাকআপ',
 'Data_Restore' => 'ডেটা পুনরুদ্ধার',
 
+'Sittings'=>'সিটিংস',
+'tasks' => 'কাজ',
+'management_Tasks' => 'কাজের পরিচালনা',
+'create_Task' => 'কাজ তৈরি করুন',
+'Management_Projects' => 'প্রজেক্ট পরিচালনা',
+'Calendar' => 'ক্যালেন্ডার',
+'Task_Categories' => 'কাজের বিভাগ',
+'Task_Settings' => 'কাজের সেটিংস',
+
 ];

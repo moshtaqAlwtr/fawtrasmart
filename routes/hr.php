@@ -82,17 +82,13 @@ Route::group(
             });
                 # task
                 Route::prefix('task')->group(function () {
-                    Route::get('/index',[TaskController::class,'index'])->name('task.index');
+                    Route::get('/task',[TaskController::class,'index'])->name('task.index');
 
 
-
-
-
-
-                });
 
         });
 
 
 
 });
+    });

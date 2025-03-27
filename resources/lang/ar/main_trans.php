@@ -107,12 +107,12 @@ return [
     'Received_Cheques' => 'الشيكات المستلمة',
     'Orders' => 'الطلبات',
     'Order_Management' => 'إدارة الطلبات',
-    
+
     'Employees' => 'الموظفين',
     'Employee_Management' => 'إدارة الموظفين',
     'Employee_Roles_Management' => 'إدارة أدوار الموظفين',
-    
-    
+
+
     'Organizational_Structure' => 'الهيكل التنظيمي',
     'Job_Titles_Management' => 'إدارة المسميات الوظيفية',
     'Departments_Management' => 'إدارة الأقسام',
@@ -127,7 +127,7 @@ return [
     'Shift_Management' => 'إدارة الورديات',
     'Custom_Shifts' => 'ورديات مخصصة',
     'Attendance_Sessions_Log' => 'سجل جلسات الحضور',
-    
+
     'Salaries' => 'المرتبات',
     'Contracts' => 'العقود',
     'Payroll' => 'مسير الرواتب',
@@ -135,7 +135,7 @@ return [
     'Advances' => 'السلف',
     'Salary_Items' => 'بنود الراتب',
     'Salary_Templates' => 'قوالب الراتب',
-    
+
     'Reports' => 'التقارير',
     'Sales_Report' => 'تقرير المبيعات',
     'Purchases_Report' => 'تقرير المشتريات',
@@ -164,7 +164,7 @@ return [
     'Terms_and_Conditions' => 'الشروط والأحكام',
     'Document_Management' => 'إدارة الملفات والمستندات',
     'Automatic_Sending_Rules' => 'قواعد الإرسال الآلي',
-    
+
     'Account_Information' => 'معلومات الحساب',
     'Account_Settings' => 'إعدادات الحساب',
     'SMTP_Settings' => 'إعدادات الـ SMTP',
@@ -215,5 +215,12 @@ return [
 'Sessions' => 'الجلسات',
 'POS_Reports' => 'تقرير نقاط البيع',
 'POS_Settings' => 'إعدادات نقاط البيع',
-'settings'=>'الأعدادات',
+'Sittings'=>'الأعدادات',
+'tasks' => 'المهام',
+'management_Tasks' => 'إدارة المهام',
+'create_Task' => 'إنشاء مهمة جديدة',
+'Management_Projects' => 'إدارة المشاريع',
+'Calendar' => 'تقويم المهام',
+'Task_Categories' => 'فئات المهام',
+'Task_Settings' => 'إعدادات المهام',
 ];

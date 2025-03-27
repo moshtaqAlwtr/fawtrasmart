@@ -180,4 +180,13 @@ return [
     'Terms_and_Conditions' => 'شرائط و ضوابط',
     'File_Management_and_Documents' => 'فائل مینجمنٹ اور دستاویزات',
     'Auto_Send_Rules' => 'خودکار ارسال کے قواعد',
+
+'Sittings'=>'ترتیبات',
+'tasks' => 'كام',
+'management_Tasks' => 'كام کا انتظام',
+'create_Task' => 'كام بنائیں',
+'Management_Projects' => 'پروجیکٹ کا انتظام',
+'Calendar' => 'کیلنڈر',
+'Task_Categories' => 'كام کا بخش',
+'Task_Settings' => 'كام کی ترتیبات',
 ];
