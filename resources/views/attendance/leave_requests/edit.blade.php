@@ -1,6 +1,6 @@
 @extends('master')
 
-@section('title', 'إضافة طلب إجازة')
+@section('title', 'تعديل طلب إجازة')
 
 @section('content')
     <!-- رأس الصفحة -->
@@ -8,11 +8,11 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">إضافة طلب إجازة</h2>
+                    <h2 class="content-header-title float-left mb-0">تعديل طلب إجازة</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">إضافة طلب إجازة</li>
+                            <li class="breadcrumb-item active">تعديل طلب إجازة</li>
                         </ol>
                     </div>
                 </div>
@@ -20,29 +20,31 @@
         </div>
     </div>
 
-    <form id="leave-request-form" method="POST" action="{{ route('attendance.leave_requests.store') }}" enctype="multipart/form-data">
+    <form id="leave-request-form" method="POST" action="{{ route('attendance.leave_requests.update', $leaveRequest->id) }}" enctype="multipart/form-data">
         @csrf
+        @method('PUT')
+
         @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-@if (session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
 
-@if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <!-- أزرار الإجراءات -->
         <div class="card mb-3">
@@ -52,7 +54,7 @@
                         <span class="text-muted">الحقول المميزة بعلامة <span class="text-danger">*</span> إلزامية</span>
                     </div>
                     <div>
-                        <a href="{{ route('Assets.index') }}" class="btn btn-outline-danger">
+                        <a href="{{ route('attendance.leave_requests.index') }}" class="btn btn-outline-danger">
                             <i class="fas fa-ban"></i> إلغاء
                         </a>
                         <button type="submit" form="leave-request-form" class="btn btn-outline-primary">
@@ -73,9 +75,11 @@
                     <div class="col-md-6">
                         <label for="employee" class="form-label">الموظف <span class="text-danger">*</span></label>
                         <select class="form-control select2" id="employee" name="employee_id" required>
-                            <option value="" selected disabled>اختر موظف</option>
+                            <option value="" disabled>اختر موظف</option>
                             @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                <option value="{{ $employee->id }}" {{ old('employee_id', $leaveRequest->employee_id) == $employee->id ? 'selected' : '' }}>
+                                    {{ $employee->full_name }}
+                                </option>
                             @endforeach
                         </select>
                         <div class="mt-2">
@@ -89,9 +93,9 @@
                     <div class="col-md-6">
                         <label for="type" class="form-label">نوع الطلب <span class="text-danger">*</span></label>
                         <select class="form-control" id="type" name="request_type" required>
-                            <option value="leave" selected>إجازة</option>
-                            <option value="emergency">إجازة طارئة</option>
-                            <option value="sick">إجازة مرضية</option>
+                            <option value="leave" {{ old('request_type', $leaveRequest->request_type) == 'leave' ? 'selected' : '' }}>إجازة</option>
+                            <option value="emergency" {{ old('request_type', $leaveRequest->request_type) == 'emergency' ? 'selected' : '' }}>إجازة طارئة</option>
+                            <option value="sick" {{ old('request_type', $leaveRequest->request_type) == 'sick' ? 'selected' : '' }}>إجازة مرضية</option>
                         </select>
                     </div>
                 </div>
@@ -100,20 +104,23 @@
                     <!-- عدد الأيام -->
                     <div class="col-md-4">
                         <label for="days" class="form-label">عدد الأيام <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="days" name="days" min="1" required>
+                        <input type="number" class="form-control" id="days" name="days" min="1" required
+                               value="{{ old('days', $leaveRequest->days) }}">
                         <small class="text-muted">سيتم حساب تاريخ الانتهاء تلقائيًا</small>
                     </div>
 
                     <!-- تاريخ البدء -->
                     <div class="col-md-4">
                         <label for="start-date" class="form-label">تاريخ البدء <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="start-date" name="start_date" required>
+                        <input type="date" class="form-control" id="start-date" name="start_date" required
+                               value="{{ old('start_date', \Carbon\Carbon::parse($leaveRequest->start_date)->format('Y-m-d')) }}">
                     </div>
 
                     <!-- تاريخ الانتهاء -->
                     <div class="col-md-4">
                         <label for="end-date" class="form-label">تاريخ الانتهاء <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="end-date" name="end_date" required>
+                        <input type="date" class="form-control" id="end-date" name="end_date" required
+                               value="{{ old('end_date', \Carbon\Carbon::parse($leaveRequest->start_date)->format('Y-m-d')) }}">
                     </div>
                 </div>
 
@@ -122,20 +129,36 @@
                     <div class="col-md-6">
                         <label for="leave-type" class="form-label">نوع الإجازة <span class="text-danger">*</span></label>
                         <select class="form-control" id="leave-type" name="leave_type" required>
-                            <option value="annual" selected>إجازة اعتيادية</option>
-                            <option value="casual">إجازة عرضية</option>
-                            <option value="sick">إجازة مرضية</option>
-                            <option value="unpaid">إجازة بدون راتب</option>
+                            <option value="annual" {{ old('leave_type', $leaveRequest->leave_type) == 'annual' ? 'selected' : '' }}>إجازة اعتيادية</option>
+                            <option value="casual" {{ old('leave_type', $leaveRequest->leave_type) == 'casual' ? 'selected' : '' }}>إجازة عرضية</option>
+                            <option value="sick" {{ old('leave_type', $leaveRequest->leave_type) == 'sick' ? 'selected' : '' }}>إجازة مرضية</option>
+                            <option value="unpaid" {{ old('leave_type', $leaveRequest->leave_type) == 'unpaid' ? 'selected' : '' }}>إجازة بدون راتب</option>
                         </select>
                         <div class="mt-2">
-                            <span class="text-primary">رصيد الإجازات: <span id="leave-balance">0</span> يوم</span>
+                            <span class="text-primary">رصيد الإجازات: <span id="leave-balance">{{ $leaveRequest->employee->leave_balance ?? 0 }}</span> يوم</span>
                         </div>
                     </div>
 
                     <!-- المرفقات -->
                     <div class="col-md-6">
                         <label for="attachments" class="form-label">المرفقات</label>
-                        <input type="file" name="attachments" id="attachments" class="d-none" multiple>
+
+                        @if($leaveRequest->attachments)
+                            <div class="mb-3">
+                                <label class="form-label">المرفقات الحالية</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach(json_decode($leaveRequest->attachments) as $attachment)
+                                        <div class="border p-2 rounded">
+                                            <a href="{{ asset('storage/' . $attachment) }}" target="_blank">
+                                                <i class="fas fa-file-alt mr-2"></i> {{ basename($attachment) }}
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <input type="file" name="attachments[]" id="attachments" class="d-none" multiple>
                         <div class="upload-area border rounded p-3 text-center position-relative" onclick="document.getElementById('attachments').click()">
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <i class="fas fa-cloud-upload-alt text-primary"></i>
@@ -154,7 +177,7 @@
                 <!-- الوصف -->
                 <div class="mb-3">
                     <label for="description" class="form-label">الوصف</label>
-                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="أدخل وصفًا لطلب الإجازة (اختياري)"></textarea>
+                    <textarea class="form-control" id="description" name="description" rows="3">{{ old('description', $leaveRequest->description) }}</textarea>
                 </div>
 
             </div>
@@ -281,6 +304,11 @@
                     let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                     $('#days').val(diffDays);
                 }
+            }
+
+            // تشغيل حساب التواريخ عند تحميل الصفحة إذا كانت هناك قيم موجودة
+            if ($('#start-date').val() && $('#days').val()) {
+                calculateDates();
             }
         });
     </script>
