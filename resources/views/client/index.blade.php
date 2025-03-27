@@ -252,8 +252,8 @@
                                         <td>
                                             <p class="mb-0">
                                                 <i class="fas fa-map-marker-alt text-primary me-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }})"></i>
+                                                   style="cursor: pointer;"
+                                                   onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }}, '{{ $client->trade_name }}')"></i>
                                                 {{ $client->city }}, {{ $client->region }}
                                             </p>
                                         </td>
@@ -402,6 +402,14 @@
         src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
         async defer></script>
     <script>
+  function openMap(lat, lng, title = '') {
+    if (lat === 0 || lng === 0) {
+        alert('لا يوجد إحداثيات متاحة لهذا العميل');
+        return;
+    }
+
+    window.location.href = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+}
         function initMap() {
             // إنشاء الخريطة بنفس تصميم جوجل
             const map = new google.maps.Map(document.getElementById('map'), {
