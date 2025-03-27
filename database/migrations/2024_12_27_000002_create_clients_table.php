@@ -27,6 +27,7 @@ return new class extends Migration {
             $table->string('postal_code', 20)->nullable();
             $table->string('country', 100)->nullable();
             $table->string('tax_number', 50)->nullable();
+            $table->string('verification_code', 50)->nullable();
             $table->unsignedBigInteger('classification_id')->nullable()->comment('Client classification category');
             $table->string('commercial_registration', 100)->nullable();
             $table->integer('credit_limit')->nullable();

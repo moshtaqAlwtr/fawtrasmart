@@ -53,11 +53,15 @@ Route::group(
                     ->group(function () {
                         Route::get('/index', [InvoicesController::class, 'index'])->name('invoices.index');
                         Route::get('/create', [InvoicesController::class, 'create'])->name('invoices.create');
-                           Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
+                          Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
                            Route::get('/get-client/{id}', function ($id) {
                              $client = Client::find($id);
                              return response()->json($client);
                               });
+
+
+                          Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
+                          Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
 
 
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
@@ -66,6 +70,7 @@ Route::group(
                         Route::post('/store', [InvoicesController::class, 'store'])->name('invoices.store');
                         Route::delete('/delete/{id}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
                         Route::get('/{id}/generatePdf', [InvoicesController::class, 'generatePdf'])->name('invoices.generatePdf');
+                        Route::get('/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
                         Route::get('/get-price', [InvoicesController::class, 'getPrice'])->name('get-price');
                         Route::get('/notifications/unread', [InvoicesController::class, 'getUnreadNotifications'])->name('notifications.unread');
                         Route::post('/notifications/mark', [InvoicesController::class, 'markAsRead'])->name('notifications.markAsRead');

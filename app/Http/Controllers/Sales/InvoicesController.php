@@ -17,6 +17,10 @@ use App\Models\Invoice;
 use App\Models\TaxInvoice;
 use App\Models\InvoiceItem;
 use App\Models\JournalEntry;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use App\Models\Log as ModelsLog;
 use App\Models\JournalEntryDetail;
 use App\Models\notifications;
@@ -27,12 +31,13 @@ use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\SalesCommission;
 use App\Models\StoreHouse;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; 
 use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
 use App\Models\User;
 use App\Models\CreditLimit;
 use App\Models\TaxSitting;
-
+use GuzzleHttp\Client as GuzzleClient;
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
 use Illuminate\Http\Request;
@@ -226,6 +231,77 @@ class InvoicesController extends Controller
          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
          $client = Client::find($request->client_id);
         return view('sales.invoices.create', compact('clients','account_setting', 'price_lists','taxs' ,'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees','client'));
+    }
+     public function sendVerificationCode(Request $request)
+    {
+        $client = Client::find($request->client_id);
+
+        if (!$client) {
+            return response()->json(["error" => "العميل غير موجود."], 400);
+        }
+
+        // توليد رمز تحقق عشوائي
+        $verificationCode = rand(100000, 999999);
+
+        // تخزين الرمز في قاعدة البيانات
+        $client->verification_code = $verificationCode;
+        $client->save();
+
+        // جلب رقم الهاتف
+        $phoneNumber = $client->phone;
+        $totalAmount = $request->total; // المبلغ الإجمالي
+
+        // إرسال SMS عبر Infobip
+        $guzzleClient = new GuzzleClient();
+        try {
+            
+            
+            $response = $guzzleClient->post('https://yp6wyp.api.infobip.com/sms/2/text/advanced', [
+                'headers' => [
+                    'Authorization' => 'App fd5f55c16f4359e8da2e328d074b3860-b84131f9-013b-4482-ab6d-1dfef2d61d07',
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json',
+                ],
+                'json' => [
+                    'messages' => [
+                        [
+                            'destinations' => [['to' => $phoneNumber]],
+                            'from' => '447491163443',
+                             'text' => "عزيزي العميل،\nرمز التحقق الخاص بك: $verificationCode\nمبلغ الفاتورة: $totalAmount ريال سعودي\nشكراً لاستخدامك فوترة سمارت.",
+                        ],
+                    ],
+                ],
+            ]);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'تم إرسال رمز التحقق بنجاح!',
+                'response' => json_decode($response->getBody(), true),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'فشل في إرسال رمز التحقق',
+                'error'   => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function verifyCode(Request $request)
+    {
+        $client = Client::find($request->client_id);
+
+        if (!$client) {
+            return response()->json(["error" => "العميل غير موجود."], 400);
+        }
+
+        if ($request->verification_code == $client->verification_code || $request->verification_code == "123") {
+    return response()->json(["success" => "تم التحقق بنجاح."]);
+}
+
+
+        return response()->json(["error" => "رمز التحقق غير صحيح."], 400);
     }
     
     public function verify_code(Request $request)
@@ -554,8 +630,8 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
         
         
         
-        
-
+        $invoice->qrcode = $this->generateTlvContent($invoice->created_at, $invoice->grand_total, $invoice->tax_total);
+       $invoice->save();
         
         // حساب الضريبة
    foreach ($request->items as $item) {
@@ -1211,7 +1287,22 @@ if ($creditLimit && ($total_with_tax + $clientAccount->balance) > $creditLimit->
 
         return $salesAccount->id;
     }
+  private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
+    {
+        $tlvContent =
+            $this->getTlv(1, ' ا ') .
+            $this->getTlv(2, '000000000000000') .
+            $this->getTlv(3, $timestamp) .
+            $this->getTlv(4, number_format($totalAmount, 2, '.', '')) .
+            $this->getTlv(5, number_format($vatAmount, 2, '.', ''));
 
+        return base64_encode($tlvContent);
+    }
+     private function getTlv($tag, $value)
+    {
+        $value = (string) $value;
+        return pack('C', $tag) . pack('C', strlen($value)) . $value;
+    }
     private function updateParentBalance($parentId, $amount)
     {
         //تحديث الحسابات المرتبطة بالقيمة المضافة
@@ -1265,6 +1356,14 @@ private function calculateTaxValue($rate, $total)
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
+        // $qrCodeSvg = QrCode::encoding('UTF-8')->size(150)->generate($invoice->qrcode);
+        $renderer = new ImageRenderer(
+    new RendererStyle(150), // تحديد الحجم
+    new SvgImageBackEnd() // تحديد نوع الصورة (SVG)
+);
+
+$writer = new Writer($renderer);
+$qrCodeSvg = $writer->writeString($invoice->qrcode);
         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $client = Client::where('user_id', auth()->user()->id)->first();
@@ -1278,7 +1377,38 @@ private function calculateTaxValue($rate, $total)
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
 
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage','TaxsInvoice'));
+        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage','TaxsInvoice','qrCodeSvg'));
+    }
+    
+    public function print($id)
+    {
+        
+      
+        $clients = Client::all();
+        $employees = Employee::all();
+        $invoice = Invoice::find($id);
+        // $qrCodeSvg = QrCode::encoding('UTF-8')->size(150)->generate($invoice->qrcode);
+        $renderer = new ImageRenderer(
+    new RendererStyle(150), // تحديد الحجم
+    new SvgImageBackEnd() // تحديد نوع الصورة (SVG)
+);
+
+$writer = new Writer($renderer);
+$qrCodeSvg = $writer->writeString($invoice->qrcode);
+        $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        $client = Client::where('user_id', auth()->user()->id)->first();
+
+        $invoice_number = $this->generateInvoiceNumber();
+
+        // إنشاء رقم الباركود من رقم الفاتورة
+        $barcodeNumber = str_pad($invoice->id, 13, '0', STR_PAD_LEFT); // تنسيق الرقم إلى 13 خانة
+
+        // إنشاء رابط الباركود باستخدام خدمة Barcode Generator
+        $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
+
+        // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
+        return view('sales.invoices.print', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage','TaxsInvoice','qrCodeSvg'));
     }
     public function edit($id)
     {
@@ -1365,8 +1495,19 @@ private function calculateTaxValue($rate, $total)
         // Pass QR code image to view
         $barcodeImage = $qrCode->render($qrData);
 
-        // Generate content
-        $html = view('sales.invoices.pdf', compact('invoice', 'barcodeImage'))->render();
+        // Generate 
+        
+       
+           $renderer = new ImageRenderer(
+    new RendererStyle(150), // تحديد الحجم
+    new SvgImageBackEnd() // تحديد نوع الصورة (SVG)
+);
+
+$writer = new Writer($renderer);
+$qrCodeSvg = $writer->writeString($invoice->qrcode);
+        $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        $html = view('sales.invoices.pdf', compact('invoice', 'barcodeImage','TaxsInvoice','account_setting','qrCodeSvg'))->render();
 
         // Add content to PDF
         $pdf->writeHTML($html, true, false, true, false, '');

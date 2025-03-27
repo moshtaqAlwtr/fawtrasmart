@@ -15,7 +15,8 @@ return new class extends Migration {
             $table->id(); // Primary Key
             $table->foreignId('client_id')->nullable()->constrained('clients')->onDelete('set null'); // العميل
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null'); // العميل
-
+            
+            $table->text('qrcode')->nullable();
             $table->foreignId('treasury_id')->nullable()->constrained('treasuries')->onDelete('set null'); // الخزينة
             $table->tinyInteger('payment')->nullable()->default(1)->comment('1: print, 2: send to client'); // طريقة الدفع
             $table->string('code')->unique()->nullable();
