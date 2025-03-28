@@ -387,7 +387,7 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+       <div class="card">
             <div class="card-body">
                 <div class="accordion" id="clientAccordion">
                     <div class="card">
@@ -1420,7 +1420,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> 
 
         <!-- Modal إضافة الرصيد الافتتاحي -->
         <div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel"
