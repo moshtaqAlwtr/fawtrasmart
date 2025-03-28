@@ -158,4 +158,7 @@ class LeaveRequest extends Model
     {
         return $this->status === 'rejected';
     }
+public function leaveType(){
+    return $this->belongsTo(LeaveType::class);
+}
 }

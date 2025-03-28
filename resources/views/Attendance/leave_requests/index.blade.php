@@ -28,10 +28,6 @@
 
     @include('layouts.alerts.success')
     @include('layouts.alerts.error')
-    <div class="card shadow-sm">
-
-
-    </div>
 
     <div class="card">
         <div class="card-content">

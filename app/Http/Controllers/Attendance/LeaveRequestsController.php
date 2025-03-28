@@ -105,7 +105,8 @@ class LeaveRequestsController extends Controller
     public function create()
     {
         $employees = Employee::all();
-        return view('attendance.leave_requests.create', compact('employees'));
+        $leaveTypes = LeaveType::all();
+        return view('attendance.leave_requests.create', compact('employees', 'leaveTypes'));
     }
 
     public function store(Request $request)
@@ -116,7 +117,7 @@ class LeaveRequestsController extends Controller
                 [
                     'employee_id' => 'required|exists:employees,id',
                     'request_type' => 'required|in:leave,emergency,sick',
-                    'leave_type' => 'required|in:annual,casual,sick,unpaid',
+                    'leave_type_id' => 'required|exists:leave_types,id',
                     'start_date' => 'required|date|after_or_equal:today',
                     'end_date' => 'required|date|after_or_equal:start_date',
                     'days' => 'required|integer|min:1',
@@ -126,6 +127,8 @@ class LeaveRequestsController extends Controller
                 [
                     'employee_id.required' => 'حقل الموظف مطلوب',
                     'employee_id.exists' => 'الموظف المحدد غير موجود',
+                    'leave_type_id.required' => 'نوع الإجازة مطلوب',
+                    'leave_type_id.exists' => 'نوع الإجازة غير موجود',
                     'start_date.after_or_equal' => 'تاريخ البدء يجب أن يكون اليوم أو بعده',
                     'end_date.after_or_equal' => 'تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء',
                     'days.min' => 'عدد الأيام يجب أن يكون على الأقل يوم واحد',
@@ -134,8 +137,11 @@ class LeaveRequestsController extends Controller
                 ],
             );
 
-            // التحقق من رصيد الإجازات
+            // جلب بيانات الموظف والتحقق من وجوده
             $employee = Employee::findOrFail($validated['employee_id']);
+
+            // التحقق من نوع الإجازة من قاعدة البيانات
+            $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
 
             // حساب عدد الأيام إذا كان هناك تناقض بين التواريخ والأيام
             $start = new \DateTime($validated['start_date']);
@@ -146,38 +152,31 @@ class LeaveRequestsController extends Controller
                 return back()->withInput()->with('error', 'عدد الأيام المدخل لا يتطابق مع الفترة بين تاريخي البدء والانتهاء');
             }
 
-            // معالجة المرفقات
-
             // إنشاء طلب الإجازة
-            try {
-                $leaveRequest = LeaveRequest::create([
-                    'employee_id' => $validated['employee_id'],
-                    'request_type' => $validated['request_type'],
-                    'leave_type' => $validated['leave_type'],
-                    'start_date' => $validated['start_date'],
-                    'end_date' => $validated['end_date'],
-                    'days' => $validated['days'],
-                    'description' => $validated['description'],
-                    'status' => 'pending',
-                    'attachments' => null,
-                ]);
-                if ($request->hasFile('attachments')) {
-                    $file = $request->file('attachments');
-                    if ($file->isValid()) {
-                        $filename = time() . '_' . $file->getClientOriginalName();
-                        $file->move(public_path('assets/uploads/'), $filename);
-                        $leaveRequest->attachments = $filename;
-                    }
-                }
-            } catch (\Exception $e) {
-                // حذف المرفقات إذا فشل إنشاء الطلب
+            $leaveRequest = LeaveRequest::create([
+                'employee_id' => $validated['employee_id'],
+                'request_type' => $validated['request_type'],
+                'leave_type_id' => $validated['leave_type_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'days' => $validated['days'],
+                'description' => $validated['description'],
+                'status' => 'pending',
+                'attachments' => null,
+            ]);
 
-                return back()
-                    ->withInput()
-                    ->with('error', 'حدث خطأ أثناء حفظ طلب الإجازة: ' . $e->getMessage());
+            // معالجة المرفقات
+            if ($request->hasFile('attachments')) {
+                $file = $request->file('attachments');
+                if ($file->isValid()) {
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('assets/uploads/'), $filename);
+                    $leaveRequest->attachments = $filename;
+                    $leaveRequest->save();
+                }
             }
 
-            // إرسال إشعار للموظف
+            // إرسال إشعار للموظف (إذا كان مطلوبًا)
 
             return redirect()->route('attendance.leave_requests.index')->with('success', 'تم إرسال طلب الإجازة بنجاح وسيتم مراجعته قريباً');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -188,6 +187,7 @@ class LeaveRequestsController extends Controller
                 ->with('error', 'حدث خطأ غير متوقع: ' . $e->getMessage());
         }
     }
+
     public function show($id)
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
@@ -197,6 +197,7 @@ class LeaveRequestsController extends Controller
     {
         $employees = Employee::all();
         $leaveRequest = LeaveRequest::findOrFail($id);
+        $leaveTypes = LeaveType::all();
         return view('attendance.leave_requests.edit', compact('leaveRequest', 'employees'));
     }
 
@@ -210,7 +211,7 @@ class LeaveRequestsController extends Controller
             $validated = $request->validate([
                 'employee_id' => 'required|exists:employees,id',
                 'request_type' => 'required|in:leave,emergency,sick',
-                'leave_type' => 'required|in:annual,casual,sick,unpaid',
+                'leave_type_id' => 'required|exists:leave_types,id',
                 'start_date' => 'required|date|after_or_equal:today',
                 'end_date' => 'required|date|after_or_equal:start_date',
                 'days' => 'required|integer|min:1',

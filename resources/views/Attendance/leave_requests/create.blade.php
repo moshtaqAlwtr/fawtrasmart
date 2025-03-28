@@ -20,29 +20,30 @@
         </div>
     </div>
 
-    <form id="leave-request-form" method="POST" action="{{ route('attendance.leave_requests.store') }}" enctype="multipart/form-data">
+    <form id="leave-request-form" method="POST" action="{{ route('attendance.leave_requests.store') }}"
+        enctype="multipart/form-data">
         @csrf
         @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-@if (session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
 
-@if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
+        @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <!-- أزرار الإجراءات -->
         <div class="card mb-3">
@@ -121,11 +122,12 @@
                     <!-- نوع الإجازة -->
                     <div class="col-md-6">
                         <label for="leave-type" class="form-label">نوع الإجازة <span class="text-danger">*</span></label>
-                        <select class="form-control" id="leave-type" name="leave_type" required>
-                            <option value="annual" selected>إجازة اعتيادية</option>
-                            <option value="casual">إجازة عرضية</option>
-                            <option value="sick">إجازة مرضية</option>
-                            <option value="unpaid">إجازة بدون راتب</option>
+                        <select class="form-control" id="leave-type" name="leave_type_id" required>
+                            <option value="annual" selected>نوع الإجازة</option>
+                            @foreach ($leaveTypes as $leaveType)
+                                <option value="{{ $leaveType->id }}">{{ $leaveType->name }}</option>
+                            @endforeach
+
                         </select>
                         <div class="mt-2">
                             <span class="text-primary">رصيد الإجازات: <span id="leave-balance">0</span> يوم</span>
@@ -136,7 +138,8 @@
                     <div class="col-md-6">
                         <label for="attachments" class="form-label">المرفقات</label>
                         <input type="file" name="attachments" id="attachments" class="d-none" multiple>
-                        <div class="upload-area border rounded p-3 text-center position-relative" onclick="document.getElementById('attachments').click()">
+                        <div class="upload-area border rounded p-3 text-center position-relative"
+                            onclick="document.getElementById('attachments').click()">
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <i class="fas fa-cloud-upload-alt text-primary"></i>
                                 <span class="text-primary">اضغط هنا</span>
@@ -154,7 +157,8 @@
                 <!-- الوصف -->
                 <div class="mb-3">
                     <label for="description" class="form-label">الوصف</label>
-                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="أدخل وصفًا لطلب الإجازة (اختياري)"></textarea>
+                    <textarea class="form-control" id="description" name="description" rows="3"
+                        placeholder="أدخل وصفًا لطلب الإجازة (اختياري)"></textarea>
                 </div>
 
             </div>
@@ -162,7 +166,8 @@
     </form>
 
     <!-- مودال رصيد الإجازات -->
-    <div class="modal fade" id="leaveBalanceModal" tabindex="-1" role="dialog" aria-labelledby="leaveBalanceModalLabel" aria-hidden="true">
+    <div class="modal fade" id="leaveBalanceModal" tabindex="-1" role="dialog"
+        aria-labelledby="leaveBalanceModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -250,7 +255,8 @@
                         },
                         error: function() {
                             $('#leave-balance').text('0');
-                            $('#leave-balance-details').html('<tr><td colspan="4">لا يوجد بيانات</td></tr>');
+                            $('#leave-balance-details').html(
+                                '<tr><td colspan="4">لا يوجد بيانات</td></tr>');
                         }
                     });
                 }
