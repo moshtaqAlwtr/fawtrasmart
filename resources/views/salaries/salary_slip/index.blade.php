@@ -245,12 +245,22 @@
                                         <input type="checkbox" style="margin-left: 10px;">
                                         {{ $slip->id }}
                                     </td>
-                                    <td>{{ $slip->name }}</td>
+                                    <td>{{ $slip->employee->first_name }} {{ $slip->employee->middle_name }} {{ $slip->employee->nickname }}</td>
                                     <td>{{ date('d/m/Y', strtotime($slip->from_date)) }} -
                                         {{ date('d/m/Y', strtotime($slip->to_date)) }}</td>
 
                                     <td>{{ $slip->net_salary }}</td>
-                                    <td>{{ $slip->status }}</td>
+                                   <td>
+            @if ($slip->status == 'approved')
+                <span class="badge badge-success">
+                    ✅ تمت الموافقة
+                </span>
+            @else
+                <span class="badge badge-danger">
+                    ❌ لم يتم الموافقة
+                </span>
+            @endif
+        </td>
                                     <td>
                                         <div class="btn-group">
                                             <div class="dropdown">

@@ -14,6 +14,7 @@ class CreateSalarySlipsTable extends Migration
             // معرف الموظف مع علاقة مع جدول الموظفين - عند حذف الموظف تحذف كل قسائمه
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->date('slip_date'); // تاريخ إنشاء القسيمة
+            $table->string('status')->nullable()->default('cancel');
             $table->date('from_date'); // تاريخ بداية فترة الراتب
             $table->date('to_date'); // تاريخ نهاية فترة الراتب
             $table->string('currency', 10); // رمز العملة المستخدمة في القسيمة

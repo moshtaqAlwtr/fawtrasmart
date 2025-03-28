@@ -183,7 +183,7 @@ class AccountsChartController extends Controller
         $accounts = $accounts->get();
         $branches = Branch::all();
 
-        return view('accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
+        return view('Accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
     }
 
     public function search(Request $request)
@@ -254,7 +254,7 @@ private function calculateTotalBalance($account)
 
 
 
-        return view('accounts.accounts_chart.tree_details', compact('journalEntries'));
+        return view('Accounts.accounts_chart.tree_details', compact('journalEntries'));
 
     }
     public function store_account(Request $request)

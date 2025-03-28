@@ -3,7 +3,7 @@
 @section('title', 'إضافة طلب إجازة')
 
 @section('content')
-    <!-- رأس الصفحة -->
+    <!-- Header Section -->
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -12,7 +12,7 @@
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">إضافة طلب إجازة</li>
+                            <li class="breadcrumb-item active">إضافة</li>
                         </ol>
                     </div>
                 </div>
@@ -20,6 +20,7 @@
         </div>
     </div>
 
+<<<<<<< HEAD
     <form id="leave-request-form" method="POST" action="{{ route('attendance.leave_requests.store') }}"
         enctype="multipart/form-data">
         @csrf
@@ -60,86 +61,95 @@
                             <i class="fas fa-save"></i> حفظ
                         </button>
                     </div>
+=======
+    <!-- Form Actions -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                </div>
+                <div>
+                    <a href="{{ route('Assets.index') }}" class="btn btn-outline-danger">
+                        <i class="fa fa-ban"></i> إلغاء
+                    </a>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fa fa-save"></i> حفظ
+                    </button>
+>>>>>>> 7a9e4574bccad6056952352da4d0a63fce63cdf8
                 </div>
             </div>
         </div>
-
-        <!-- نموذج طلب الإجازة -->
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title mb-4">معلومات طلب الإجازة</h4>
-
+    </div>
+    <div class="card mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">معلومات طلب الإجازة</h4>
+            <form>
                 <div class="row g-3 mb-3">
-                    <!-- الموظف -->
                     <div class="col-md-6">
-                        <label for="employee" class="form-label">الموظف <span class="text-danger">*</span></label>
-                        <select class="form-control select2" id="employee" name="employee_id" required>
-                            <option value="" selected disabled>اختر موظف</option>
-                            @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
-                            @endforeach
+                        <label for="employee" class="form-label">موظف <span class="text-danger">*</span></label>
+                        <select class="form-control" id="employee" required>
+                            <option selected disabled>اختر موظف</option>
+                            <!-- Add options here -->
                         </select>
-                        <div class="mt-2">
-                            <a href="#" class="text-primary" data-toggle="modal" data-target="#leaveBalanceModal">
-                                <i class="fas fa-info-circle"></i> تفقد رصيد الإجازات
-                            </a>
-                        </div>
+                        <hr>
+                        <p class="text-primary" >تفقد رصيد الإجازات</p>
                     </div>
-
-                    <!-- نوع الطلب -->
                     <div class="col-md-6">
-                        <label for="type" class="form-label">نوع الطلب <span class="text-danger">*</span></label>
-                        <select class="form-control" id="type" name="request_type" required>
-                            <option value="leave" selected>إجازة</option>
-                            <option value="emergency">إجازة طارئة</option>
-                            <option value="sick">إجازة مرضية</option>
+                        <label for="type" class="form-label">النوع <span class="text-danger">*</span></label>
+                        <select class="form-control" id="type" required>
+                            <option selected disabled>إجازة</option>
+                            <!-- Add options here -->
                         </select>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
-                    <!-- عدد الأيام -->
                     <div class="col-md-4">
-                        <label for="days" class="form-label">عدد الأيام <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="days" name="days" min="1" required>
-                        <small class="text-muted">سيتم حساب تاريخ الانتهاء تلقائيًا</small>
+                        <label for="days" class="form-label">أيام <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="days" placeholder="تفقد رصيد الإجازات" required>
                     </div>
-
-                    <!-- تاريخ البدء -->
                     <div class="col-md-4">
                         <label for="start-date" class="form-label">تاريخ البدء <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="start-date" name="start_date" required>
+                        <input type="date" class="form-control" id="start-date" required>
                     </div>
-
-                    <!-- تاريخ الانتهاء -->
                     <div class="col-md-4">
                         <label for="end-date" class="form-label">تاريخ الانتهاء <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="end-date" name="end_date" required>
+                        <input type="date" class="form-control" id="end-date" required>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
-                    <!-- نوع الإجازة -->
                     <div class="col-md-6">
                         <label for="leave-type" class="form-label">نوع الإجازة <span class="text-danger">*</span></label>
+<<<<<<< HEAD
                         <select class="form-control" id="leave-type" name="leave_type_id" required>
                             <option value="annual" selected>نوع الإجازة</option>
                             @foreach ($leaveTypes as $leaveType)
                                 <option value="{{ $leaveType->id }}">{{ $leaveType->name }}</option>
                             @endforeach
 
+=======
+                        <select class="form-control" id="leave-type" required>
+                            <option selected disabled>أجازة أعتيادية</option>
+                            <option>أجازة عرضية </option>
+                            <!-- Add options here -->
+>>>>>>> 7a9e4574bccad6056952352da4d0a63fce63cdf8
                         </select>
-                        <div class="mt-2">
-                            <span class="text-primary">رصيد الإجازات: <span id="leave-balance">0</span> يوم</span>
-                        </div>
+                        <hr>
+                        <p class="text-primary">رصيد الأجازات 0</p>
                     </div>
-
-                    <!-- المرفقات -->
                     <div class="col-md-6">
                         <label for="attachments" class="form-label">المرفقات</label>
+<<<<<<< HEAD
                         <input type="file" name="attachments" id="attachments" class="d-none" multiple>
                         <div class="upload-area border rounded p-3 text-center position-relative"
                             onclick="document.getElementById('attachments').click()">
+=======
+                        <input type="file" name="attachments" id="attachments" class="d-none">
+                        <div class="upload-area border rounded p-3 text-center position-relative" onclick="document.getElementById('attachments').click()">
+>>>>>>> 7a9e4574bccad6056952352da4d0a63fce63cdf8
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <i class="fas fa-cloud-upload-alt text-primary"></i>
                                 <span class="text-primary">اضغط هنا</span>
@@ -150,13 +160,12 @@
                                 <i class="fas fa-file-alt fs-3 text-secondary"></i>
                             </div>
                         </div>
-                        <div id="file-list" class="mt-2 small text-muted"></div>
                     </div>
                 </div>
 
-                <!-- الوصف -->
                 <div class="mb-3">
                     <label for="description" class="form-label">الوصف</label>
+<<<<<<< HEAD
                     <textarea class="form-control" id="description" name="description" rows="3"
                         placeholder="أدخل وصفًا لطلب الإجازة (اختياري)"></textarea>
                 </div>
@@ -291,3 +300,14 @@
         });
     </script>
 @endsection
+=======
+                    <textarea class="form-control" id="description" rows="3" placeholder="أدخل الوصف"></textarea>
+                </div>
+
+              
+            </form>
+        </div>
+    </div>
+</div>
+@endsection
+>>>>>>> 7a9e4574bccad6056952352da4d0a63fce63cdf8

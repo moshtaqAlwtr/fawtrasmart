@@ -73,7 +73,7 @@
                                                 <div class="card-body bg-white p-4"
                                                     style="min-height: 400px; overflow: auto;">
                                                     <div style="transform: scale(0.8); transform-origin: top center;">
-                                                        @include('accounts.journal.pdf', [
+                                                        @include('Accounts.journal.pdf', [
                                                             'entry' => $entry,
                                                         ])
                                                     </div>
