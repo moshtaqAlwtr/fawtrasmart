@@ -3,7 +3,7 @@
 @section('title', 'إضافة طلب إجازة')
 
 @section('content')
-    <!-- رأس الصفحة -->
+    <!-- Header Section -->
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -12,7 +12,7 @@
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">إضافة طلب إجازة</li>
+                            <li class="breadcrumb-item active">إضافة</li>
                         </ol>
                     </div>
                 </div>
@@ -20,122 +20,77 @@
         </div>
     </div>
 
-    <form id="leave-request-form" method="POST" action="{{ route('attendance.leave_requests.store') }}" enctype="multipart/form-data">
-        @csrf
-        @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-@if (session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
-
-@if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-        <!-- أزرار الإجراءات -->
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div>
-                        <span class="text-muted">الحقول المميزة بعلامة <span class="text-danger">*</span> إلزامية</span>
-                    </div>
-                    <div>
-                        <a href="{{ route('Assets.index') }}" class="btn btn-outline-danger">
-                            <i class="fas fa-ban"></i> إلغاء
-                        </a>
-                        <button type="submit" form="leave-request-form" class="btn btn-outline-primary">
-                            <i class="fas fa-save"></i> حفظ
-                        </button>
-                    </div>
+    <!-- Form Actions -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                </div>
+                <div>
+                    <a href="{{ route('Assets.index') }}" class="btn btn-outline-danger">
+                        <i class="fa fa-ban"></i> إلغاء
+                    </a>
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="fa fa-save"></i> حفظ
+                    </button>
                 </div>
             </div>
         </div>
-
-        <!-- نموذج طلب الإجازة -->
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title mb-4">معلومات طلب الإجازة</h4>
-
+    </div>
+    <div class="card mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h4 class="card-title mb-4">معلومات طلب الإجازة</h4>
+            <form>
                 <div class="row g-3 mb-3">
-                    <!-- الموظف -->
                     <div class="col-md-6">
-                        <label for="employee" class="form-label">الموظف <span class="text-danger">*</span></label>
-                        <select class="form-control select2" id="employee" name="employee_id" required>
-                            <option value="" selected disabled>اختر موظف</option>
-                            @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
-                            @endforeach
+                        <label for="employee" class="form-label">موظف <span class="text-danger">*</span></label>
+                        <select class="form-control" id="employee" required>
+                            <option selected disabled>اختر موظف</option>
+                            <!-- Add options here -->
                         </select>
-                        <div class="mt-2">
-                            <a href="#" class="text-primary" data-toggle="modal" data-target="#leaveBalanceModal">
-                                <i class="fas fa-info-circle"></i> تفقد رصيد الإجازات
-                            </a>
-                        </div>
+                        <hr>
+                        <p class="text-primary" >تفقد رصيد الإجازات</p>
                     </div>
-
-                    <!-- نوع الطلب -->
                     <div class="col-md-6">
-                        <label for="type" class="form-label">نوع الطلب <span class="text-danger">*</span></label>
-                        <select class="form-control" id="type" name="request_type" required>
-                            <option value="leave" selected>إجازة</option>
-                            <option value="emergency">إجازة طارئة</option>
-                            <option value="sick">إجازة مرضية</option>
+                        <label for="type" class="form-label">النوع <span class="text-danger">*</span></label>
+                        <select class="form-control" id="type" required>
+                            <option selected disabled>إجازة</option>
+                            <!-- Add options here -->
                         </select>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
-                    <!-- عدد الأيام -->
                     <div class="col-md-4">
-                        <label for="days" class="form-label">عدد الأيام <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" id="days" name="days" min="1" required>
-                        <small class="text-muted">سيتم حساب تاريخ الانتهاء تلقائيًا</small>
+                        <label for="days" class="form-label">أيام <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="days" placeholder="تفقد رصيد الإجازات" required>
                     </div>
-
-                    <!-- تاريخ البدء -->
                     <div class="col-md-4">
                         <label for="start-date" class="form-label">تاريخ البدء <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="start-date" name="start_date" required>
+                        <input type="date" class="form-control" id="start-date" required>
                     </div>
-
-                    <!-- تاريخ الانتهاء -->
                     <div class="col-md-4">
                         <label for="end-date" class="form-label">تاريخ الانتهاء <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" id="end-date" name="end_date" required>
+                        <input type="date" class="form-control" id="end-date" required>
                     </div>
                 </div>
 
                 <div class="row g-3 mb-3">
-                    <!-- نوع الإجازة -->
                     <div class="col-md-6">
                         <label for="leave-type" class="form-label">نوع الإجازة <span class="text-danger">*</span></label>
-                        <select class="form-control" id="leave-type" name="leave_type" required>
-                            <option value="annual" selected>إجازة اعتيادية</option>
-                            <option value="casual">إجازة عرضية</option>
-                            <option value="sick">إجازة مرضية</option>
-                            <option value="unpaid">إجازة بدون راتب</option>
+                        <select class="form-control" id="leave-type" required>
+                            <option selected disabled>أجازة أعتيادية</option>
+                            <option>أجازة عرضية </option>
+                            <!-- Add options here -->
                         </select>
-                        <div class="mt-2">
-                            <span class="text-primary">رصيد الإجازات: <span id="leave-balance">0</span> يوم</span>
-                        </div>
+                        <hr>
+                        <p class="text-primary">رصيد الأجازات 0</p>
                     </div>
-
-                    <!-- المرفقات -->
                     <div class="col-md-6">
                         <label for="attachments" class="form-label">المرفقات</label>
-                        <input type="file" name="attachments" id="attachments" class="d-none" multiple>
+                        <input type="file" name="attachments" id="attachments" class="d-none">
                         <div class="upload-area border rounded p-3 text-center position-relative" onclick="document.getElementById('attachments').click()">
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <i class="fas fa-cloud-upload-alt text-primary"></i>
@@ -147,141 +102,17 @@
                                 <i class="fas fa-file-alt fs-3 text-secondary"></i>
                             </div>
                         </div>
-                        <div id="file-list" class="mt-2 small text-muted"></div>
                     </div>
                 </div>
 
-                <!-- الوصف -->
                 <div class="mb-3">
                     <label for="description" class="form-label">الوصف</label>
-                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="أدخل وصفًا لطلب الإجازة (اختياري)"></textarea>
+                    <textarea class="form-control" id="description" rows="3" placeholder="أدخل الوصف"></textarea>
                 </div>
 
-            </div>
-        </div>
-    </form>
-
-    <!-- مودال رصيد الإجازات -->
-    <div class="modal fade" id="leaveBalanceModal" tabindex="-1" role="dialog" aria-labelledby="leaveBalanceModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="leaveBalanceModalLabel">رصيد الإجازات</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>نوع الإجازة</th>
-                                    <th>المستحق</th>
-                                    <th>المستخدم</th>
-                                    <th>المتبقي</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leave-balance-details">
-                                <!-- سيتم ملؤها بالجافاسكريبت -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
-                </div>
-            </div>
+              
+            </form>
         </div>
     </div>
-@endsection
-
-@section('scripts')
-    <script>
-        $(document).ready(function() {
-            // عرض الملفات المرفوعة
-            $('#attachments').change(function() {
-                let files = $(this)[0].files;
-                let fileList = $('#file-list');
-                fileList.empty();
-
-                if (files.length > 0) {
-                    for (let i = 0; i < files.length; i++) {
-                        fileList.append('<div><i class="fas fa-file mr-2"></i>' + files[i].name + '</div>');
-                    }
-                } else {
-                    fileList.append('<div>لم يتم اختيار أي ملفات</div>');
-                }
-            });
-
-            // حساب التواريخ عند تغيير تاريخ البدء أو عدد الأيام
-            $('#start-date, #days').on('change', function() {
-                calculateDates();
-            });
-
-            // حساب عدد الأيام عند تغيير تاريخ الانتهاء
-            $('#end-date').on('change', function() {
-                calculateDays();
-            });
-
-            // جلب رصيد الإجازات عند اختيار موظف
-            $('#employee').change(function() {
-                let employeeId = $(this).val();
-                if (employeeId) {
-                    $.ajax({
-                        url: '/employees/' + employeeId + '/leave-balance',
-                        method: 'GET',
-                        success: function(data) {
-                            $('#leave-balance').text(data.balance);
-
-                            // تحديث جدول رصيد الإجازات في المودال
-                            let balanceDetails = '';
-                            data.details.forEach(function(item) {
-                                balanceDetails += `
-                                    <tr>
-                                        <td>${item.type}</td>
-                                        <td>${item.entitled}</td>
-                                        <td>${item.used}</td>
-                                        <td>${item.remaining}</td>
-                                    </tr>
-                                `;
-                            });
-                            $('#leave-balance-details').html(balanceDetails);
-                        },
-                        error: function() {
-                            $('#leave-balance').text('0');
-                            $('#leave-balance-details').html('<tr><td colspan="4">لا يوجد بيانات</td></tr>');
-                        }
-                    });
-                }
-            });
-
-            // دالة حساب تاريخ الانتهاء بناءً على تاريخ البدء وعدد الأيام
-            function calculateDates() {
-                let startDate = new Date($('#start-date').val());
-                let days = parseInt($('#days').val());
-
-                if (startDate && !isNaN(days) && days > 0) {
-                    let endDate = new Date(startDate);
-                    endDate.setDate(endDate.getDate() + days - 1);
-
-                    // تحويل التاريخ إلى صيغة YYYY-MM-DD
-                    let formattedDate = endDate.toISOString().split('T')[0];
-                    $('#end-date').val(formattedDate);
-                }
-            }
-
-            // دالة حساب عدد الأيام بناءً على تاريخي البدء والانتهاء
-            function calculateDays() {
-                let startDate = new Date($('#start-date').val());
-                let endDate = new Date($('#end-date').val());
-
-                if (startDate && endDate && startDate <= endDate) {
-                    let diffTime = endDate - startDate;
-                    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                    $('#days').val(diffDays);
-                }
-            }
-        });
-    </script>
+</div>
 @endsection

@@ -11,7 +11,16 @@ use App\Models\JopTitle;
 use App\Models\SalaryAdvance;
 use App\Models\SalaryItem;
 use App\Models\SalarySlip;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
+use App\Models\Account;
+use App\Mail\SalarySlipMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\notifications;
+use App\Mail\TestMail;
+use Illuminate\Support\Facades\Auth;
 use Exception;
+use TCPDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -362,6 +371,126 @@ class SalarySlipController extends Controller
         $deductionItems = SalaryItem::where('type', 2)->select('id', 'name', 'calculation_formula', 'amount')->get();
         return view('salaries.salary_slip.show', compact('salarySlip', 'additionItems', 'deductionItems'));
     }
+    public function approve($id)
+{
+    $salarySlip = SalarySlip::findOrFail($id);
+    $salarySlip->status = 'approved';
+    $salarySlip->save();
+    
+    
+    $Salaries_Wages = Account::where('name', 'الأجور المستحقة')->first();
+    $Accrued_Wages = Account::where('name', 'الرواتب والأجور')->first();
+     
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $salarySlip->id,
+                'date' => now(),
+                'description' => 'مرتب الموظف' .$salarySlip->employee->first_name ?? "",
+                'status' => 1,
+                'currency' => 'SAR',
+                'salary_id' => $id,
+                'created_by_employee' => Auth::id(),
+            ]);
+
+      
+        // // إضافة تفاصيل القيد المحاسبي
+        // // 1. حساب الاجور المستحقة (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $Salaries_Wages->id, // حساب العميل
+            'description' => 'قسيمة راتب',
+            'debit' => 0, 
+            'credit' => $salarySlip->net_salary, // دائن
+            'is_debit' => true,
+        ]);
+        
+         JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $Accrued_Wages->id, // حساب العميل
+            'description' => 'قسيمة راتب',
+            'debit' => $salarySlip->net_salary, // مدين
+            'credit' => 0,
+            'is_debit' => false,
+        ]);
+        
+         if ($Accrued_Wages) {
+            $amount = $salarySlip->net_salary;
+            $Accrued_Wages->balance += $amount;
+            $Accrued_Wages->save();
+        }
+         if ($Salaries_Wages) {
+            $amount = $salarySlip->net_salary;
+            $Salaries_Wages->balance += $amount;
+            $Salaries_Wages->save();
+        }
+        $fullName = trim(implode(' ', array_filter([
+    $salarySlip->employee->first_name,
+    $salarySlip->employee->middle_name,
+  // إذا كنت تريد تضمينه
+    $salarySlip->employee->nickname
+])));
+  $details = [
+    'name' => $fullName,
+    'email' => $salarySlip->employee->email,
+    'from' => \Carbon\Carbon::parse($salarySlip->from_date)->format('Y-m-d'),
+    'to' => \Carbon\Carbon::parse($salarySlip->to_date)->format('Y-m-d'),
+    'create' => \Carbon\Carbon::parse($salarySlip->slip_date)->format('Y-m-d'),
+    'total_salary' => $salarySlip->total_salary,
+    'total_deductions' => $salarySlip->total_deductions,
+    'net_salary' => $salarySlip->net_salary,
+   ];
+
+if (empty($salarySlip->employee->email)) {
+    session()->flash('error', 'لا يوجد بريد إلكتروني لهذا الموظف.');
+    return redirect()->back(); // أو قم بإعادة توجيه الصفحة إلى مكان آخر
+}
+
+
+
+
+Mail::to($salarySlip->employee->email)->send(new SalarySlipMail($details));
+
+    return redirect()->back()->with('success', 'تمت الموافقة بنجاح.');
+}
+
+
+
+
+public function cancel($id)
+{
+    $salarySlip = SalarySlip::findOrFail($id);
+    $salarySlip->status = 'cancel';
+    $salarySlip->save();
+    
+   
+$journalEntry = JournalEntry::where('salary_id', $id)->first();
+
+if ($journalEntry) {
+    // جلب تفاصيل القيد المالي المرتبطة به
+    $journalEntryDetails = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->get();
+    
+    foreach ($journalEntryDetails as $journal) {
+        // جلب الحساب المرتبط بكل تفصيل
+        $account = Account::where('id', $journal->account_id)->first();
+        
+        if ($account) {
+            // خصم المبلغ من الحساب
+            $amount = $salarySlip->net_salary;
+            $account->balance -= $amount;
+            $account->save();
+        }
+    }
+
+    // حذف جميع التفاصيل المرتبطة بالقيد
+    JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->delete();
+
+    // حذف القيد الرئيسي
+    $journalEntry->delete();
+}
+
+    
+    return redirect()->back()->with('success', 'تم إلغاء الموافقة.');
+}
+
     public function destroy($id)
     {
         try {

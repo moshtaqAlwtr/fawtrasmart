@@ -83,25 +83,4 @@ class Employee extends Model
             'client_id'
         )->withTimestamps();
     }
-
-    public function jobTitle()
-    {
-        return $this->belongsTo(JopTitle::class);
-    }
-
-    public function functionalLevel()
-    {
-        return $this->belongsTo(FunctionalLevels::class);
-    }
-
-    public function shift()
-    {
-        return $this->belongsTo(Shift::class);
-    }
-
-
-    public function jobType()
-    {
-        return $this->belongsTo(TypesJobs::class, 'job_type_id');
-    }
 }

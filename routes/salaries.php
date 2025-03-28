@@ -52,11 +52,14 @@ Route::group(
                     Route::get('/edit/{id}', [PayrollProcessController::class, 'edit'])->name('PayrollProcess.edit');
                     Route::delete('/destroy/{id}', [PayrollProcessController::class, 'destroy'])->name('PayrollProcess.destroy');
                 });
-                Route::prefix(' SalarySlip')->group(function () {
+                Route::prefix('SalarySlip')->group(function () {
                     Route::get('/index', [SalarySlipController::class, 'index'])->name('salarySlip.index');
                     Route::get('/create', [SalarySlipController::class, 'create'])->name('salarySlip.create');
                     Route::post('/store', [SalarySlipController::class, 'store'])->name('salarySlip.store');
                     Route::get('/show/{id}', [SalarySlipController::class, 'show'])->name('salarySlip.show');
+                    Route::get('/salary/{id}/approve', [SalarySlipController::class, 'approve'])->name('salary.approve');
+                    Route::get('/salary/{id}/cancel', [SalarySlipController::class, 'cancel'])->name('salary.cancel');
+
                     Route::get('/edit/{id}', [SalarySlipController::class, 'edit'])->name('salarySlip.edit');
                     Route::put('/update/{id}', [SalarySlipController::class, 'update'])->name('salarySlip.update');
                     Route::delete('/destroy/{id}', [SalarySlipController::class, 'destroy'])->name('salarySlip.destroy');

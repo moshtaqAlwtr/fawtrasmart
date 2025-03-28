@@ -260,15 +260,9 @@ class ClientController extends Controller
             $customerAccount->balance = $client->opening_balance ?? 0;
             // تعيين كود الحساب الفرعي بناءً على كود الحسابات
             $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-            
-$newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
+            $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
 
-// تحقق مما إذا كان الكود موجودًا بالفعل في قاعدة البيانات
-while (\App\Models\Account::where('code', $newCode)->exists()) {
-    $newCode = $this->generateNextCode($newCode); // توليد كود جديد
-}
-
-$customerAccount->code = $newCode;
             $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
             $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
             $customerAccount->is_active = false;
@@ -307,7 +301,7 @@ $customerAccount->code = $newCode;
         ];
 
         // إرسال البريد
-        Mail::to($employee->email)->send(new TestMail($details));
+        Mail::to($employee->email)->send($details);
         ModelsLog::create([
             'type' => 'hr_log',
             'type_id' => $employee->id, // ID النشاط المرتبط

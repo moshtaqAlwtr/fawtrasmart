@@ -886,15 +886,15 @@
                                                 @foreach ($ClientRelations as $note)
                                                     <div class="timeline-item">
                                                         <div class="timeline-content d-flex align-items-start">
-                                                            <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color }}; color: white;">
-                                                                {{ $statuses->find($client->status_id)->name }}
+                                                            <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color?? '#007BFF' }}; color: white;">
+                                                                {{ $statuses->find($client->status_id)->name ?? '' }}
                                                             </span>
                                                             <div class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
                                                                 <div class="d-flex justify-content-between align-items-center">
-                                                                    <h6 class="mb-0"><i class="fas fa-user"></i> {{ $note->created_by }}</h6>
+                                                                    <h6 class="mb-0"><i class="fas fa-user"></i> {{ $note->created_by ?? ""}}</h6>
                                                                     <small class="text-muted">
                                                                         <i class="fas fa-clock"></i>
-                                                                        {{ $note->created_at->format('H:i d/m/Y') }} - <span class="text-primary">{{ $note->status }}</span>
+                                                                        {{ $note->created_at->format('H:i d/m/Y') }} - <span class="text-primary">{{ $note->status?? '' }}</span>
                                                                     </small>
                                                                 </div>
                                                                 <hr> <i class="far fa-user me-1"></i>
