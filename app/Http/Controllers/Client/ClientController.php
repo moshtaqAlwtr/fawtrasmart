@@ -42,105 +42,87 @@ use App\Models\CreditLimit;
 class ClientController extends Controller
 {
     public function index(Request $request)
-{
-    // الحصول على المستخدم الحالي
-    $user = auth()->user();
+    {
+        // بدء بناء الاستعلام مع تحميل العلاقات الأساسية
+        $query = Client::with([
+            'employee',
+            'status' => function($q) {
+                $q->select('id', 'name', 'color');
+            },
+            'locations'
+        ]);
 
-    // بدء بناء الاستعلام مع تحميل العلاقات الأساسية
-    $query = Client::with([
-        'employee',
-        'status' => function($q) {
-            $q->select('id', 'name', 'color');
-        },
-        'locations'
-    ]);
+        // تطبيق شروط البحث فقط
+        if ($request->filled('client')) {
+            $query->where('id', $request->client);
+        }
 
-    // التحقق مما إذا كان للمستخدم فرع أم لا
-    if ($user->branch) {
-        $branch = $user->branch;
+        if ($request->filled('name')) {
+            $query->where('trade_name', 'like', '%' . $request->name . '%');
+        }
 
-        // التحقق من صلاحية "مشاركة بيانات العملاء"
-        $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+        if ($request->filled('status')) {
+            $query->where('status_id', $request->status);
+        }
 
-        // إذا كانت الصلاحية غير مفعلة، عرض العملاء الخاصين بالفرع فقط
-        if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
-            $query->whereHas('employee', function ($query) use ($branch) {
-                $query->where('branch_id', $branch->id);
+        if ($request->filled('classifications')) {
+            $query->where('category', $request->classifications);
+        }
+
+        if ($request->filled('end_date_to')) {
+            $query->whereDate('created_at', '<=', $request->end_date_to);
+        }
+
+        if ($request->filled('address')) {
+            $query->where(function($q) use ($request) {
+                $q->where('street1', 'like', '%' . $request->address . '%')
+                  ->orWhere('street2', 'like', '%' . $request->address . '%');
             });
         }
+
+        if ($request->filled('postal_code')) {
+            $query->where('postal_code', $request->postal_code);
+        }
+
+        if ($request->filled('country')) {
+            $query->where('country', $request->country);
+        }
+
+        if ($request->filled('tag')) {
+            $query->where('tags', 'like', '%' . $request->tag . '%');
+        }
+
+        if ($request->filled('user')) {
+            $query->where('employee_id', $request->user);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('client_type', $request->type);
+        }
+
+        if ($request->filled('full_name')) {
+            $query->whereHas('employee', function ($query) use ($request) {
+                $query->where('id', $request->full_name);
+            });
+        }
+
+        // تنفيذ الاستعلام مع الترتيب
+        $clients = $query->orderBy('created_at', 'desc')->get();
+
+        // جلب البيانات الإضافية للعرض
+        $users = User::all();
+        $employees = Employee::all();
+        $statuses = Statuses::select('id', 'name', 'color')->get();
+        $creditLimit = CreditLimit::first();
+
+        return view('client.index', compact(
+            'clients',
+            'users',
+            'employees',
+            'creditLimit',
+            'statuses'
+        ));
     }
-
-    // تطبيق شروط البحث بناءً على الحقول المحددة
-    if ($request->filled('client')) {
-        $query->where('id', $request->client);
-    }
-
-    if ($request->filled('name')) {
-        $query->where('trade_name', 'like', '%' . $request->name . '%');
-    }
-
-    if ($request->filled('status')) {
-        $query->where('status_id', $request->status); // استخدام status_id بدلاً من status
-    }
-
-    if ($request->filled('classifications')) {
-        $query->where('category', $request->classifications);
-    }
-
-    if ($request->filled('end_date_to')) {
-        $query->whereDate('created_at', '<=', $request->end_date_to);
-    }
-
-    if ($request->filled('address')) {
-        $query->where(function($q) use ($request) {
-            $q->where('street1', 'like', '%' . $request->address . '%')
-              ->orWhere('street2', 'like', '%' . $request->address . '%');
-        });
-    }
-
-    if ($request->filled('postal_code')) {
-        $query->where('postal_code', $request->postal_code);
-    }
-
-    if ($request->filled('country')) {
-        $query->where('country', $request->country);
-    }
-
-    if ($request->filled('tage')) {
-        $query->where('tags', 'like', '%' . $request->tage . '%');
-    }
-
-    if ($request->filled('user')) {
-        $query->where('employee_id', $request->user);
-    }
-
-    if ($request->filled('type')) {
-        $query->where('client_type', $request->type);
-    }
-
-    if ($request->filled('full_name')) {
-        $query->whereHas('employee', function ($query) use ($request) {
-            $query->where('id', $request->full_name);
-        });
-    }
-
-    // تنفيذ الاستعلام مع الترتيب
-    $clients = $query->orderBy('created_at', 'desc')->get();
-
-    // جلب البيانات الإضافية للعرض
-    $users = User::all();
-    $employees = Employee::all();
-    $statuses = Statuses::select('id', 'name', 'color')->get(); // جلب الحالات مع ألوانها
-    $creditLimit = CreditLimit::first();
-
-    return view('client.index', compact(
-        'clients',
-        'users',
-        'employees',
-        'creditLimit',
-        'statuses'
-    ));
-}
     public function updateCreditLimit(Request $request)
     {
         $request->validate([
@@ -260,9 +242,15 @@ class ClientController extends Controller
             $customerAccount->balance = $client->opening_balance ?? 0;
             // تعيين كود الحساب الفرعي بناءً على كود الحسابات
             $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
-            $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
 
+$newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+
+// تحقق مما إذا كان الكود موجودًا بالفعل في قاعدة البيانات
+while (\App\Models\Account::where('code', $newCode)->exists()) {
+    $newCode = $this->generateNextCode($newCode); // توليد كود جديد
+}
+
+$customerAccount->code = $newCode;
             $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
             $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
             $customerAccount->is_active = false;
@@ -301,7 +289,7 @@ class ClientController extends Controller
         ];
 
         // إرسال البريد
-        Mail::to($employee->email)->send($details);
+        Mail::to($employee->email)->send(new TestMail($details));
         ModelsLog::create([
             'type' => 'hr_log',
             'type_id' => $employee->id, // ID النشاط المرتبط
