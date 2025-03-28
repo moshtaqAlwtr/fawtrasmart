@@ -22,6 +22,7 @@ class JournalEntry extends Model
         'employee_id',
         'invoice_id',
         'cost_center_id',
+        'salary_id',
         'created_by_employee',
         'approved_by_employee'
     ];

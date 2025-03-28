@@ -22,6 +22,28 @@
     </div>
 
     <div class="card">
+         @csrf
+           @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
+@if (session('success'))
+    <div class="alert alert-success">
+        {{ session('success') }}
+    </div>
+@endif
         <div class="card-body">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
@@ -50,6 +72,7 @@
                 style="min-width: 90px;">
                 تعديل <i class="fa fa-edit ms-1"></i>
             </a>
+            
             <div class="vr"></div>
 
             <div class="vr"></div>
@@ -65,6 +88,7 @@
                     aria-expanded="false">
                     المطبوعات <i class="dropdown-toggle"></i>
                 </button>
+                
                 <ul class="dropdown-menu py-1" aria-labelledby="printDropdown">
                     <li><a class="dropdown-item d-flex align-items-center" href="{{ route('salarySlip.printPayslip1', $salarySlip->id) }}"><i
                                 class="fa fa-file-alt me-2 text-primary"></i>payslip Layout 1</a></li>
@@ -83,6 +107,20 @@
                                 class="fa fa-file-pdf me-2 text-danger"></i>نموذج 3 قسيمة راتب</a></li>
                 </ul>
             </div>
+            @if($salarySlip->status == "cancel")
+    <a href="{{ route('salary.approve', $salarySlip->id) }}"
+       class="btn btn-success btn-sm d-inline-flex align-items-center justify-content-center px-3"
+       style="min-width: 90px;">
+       <i class="fa fa-check-circle me-1"></i> موافقة
+    </a>
+@else
+    <a href="{{ route('salary.cancel', $salarySlip->id) }}"
+       class="btn btn-danger btn-sm d-inline-flex align-items-center justify-content-center px-3"
+       style="min-width: 90px;">
+       <i class="fa fa-times-circle me-1"></i> إلغاء الموافقة
+    </a>
+@endif
+
         </div>
 
         <div class="card-body">

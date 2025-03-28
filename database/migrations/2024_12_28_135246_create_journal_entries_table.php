@@ -20,7 +20,7 @@ return new class extends Migration
             $table->tinyInteger('status')->default(0)->comment('0=>pending, 1=>approved, 2=>rejected'); // حالة القيد
             $table->string('currency')->nullable(); // العملة
             $table->string('attachment')->nullable(); // مرفق
-
+            $table->unsignedBigInteger('salary_id')->nullable();
             // المفاتيح الخارجية
             $table->foreignId('client_id')->nullable()->constrained('clients')->onDelete('set null'); // معرف العميل
             $table->foreignId('employee_id')->nullable()->constrained('employees')->onDelete('set null'); // معرف الموظف

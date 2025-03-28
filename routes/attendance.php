@@ -73,11 +73,6 @@ Route::group(
             Route::prefix('leave_requests')->group(function () {
                 Route::get('/index', [LeaveRequestsController::class, 'index'])->name('attendance.leave_requests.index');
                 Route::get('create', [LeaveRequestsController::class,'create'])->name('attendance.leave_requests.create');
-                Route::post('store', [LeaveRequestsController::class,'store'])->name('attendance.leave_requests.store');
-                Route::get('show/{id}', [LeaveRequestsController::class,'show'])->name('attendance.leave_requests.show');
-                Route::get('edit/{id}', [LeaveRequestsController::class,'edit'])->name('attendance.leave_requests.edit');
-                Route::put('update/{id}', [LeaveRequestsController::class,'update'])->name('attendance.leave_requests.update');
-                Route::delete('destroy/{id}', [LeaveRequestsController::class,'destroy'])->name('attendance.leave_requests.destroy');
             });
 
             Route::prefix('custom-shifts')->group(function () {
