@@ -29,7 +29,7 @@ class AssetsController extends Controller
     public function index()
     {
         $assets = AssetDepreciation::with(['employee', 'client', 'depreciation'])->latest()->paginate(10);
-        return view('accounts.asol.index', compact('assets'));
+        return view('Accounts.asol.index', compact('assets'));
     }
 
     /**
@@ -40,7 +40,7 @@ class AssetsController extends Controller
         $accounts = Account::where('type', '')->get();
         $employees = Employee::all();
         $clients = Client::all();
-        return view('accounts.asol.create', compact('accounts', 'employees', 'clients'));
+        return view('Accounts.asol.create', compact('accounts', 'employees', 'clients'));
     }
 
     /**
@@ -104,7 +104,8 @@ class AssetsController extends Controller
             if ($request->region_age && $request->region_age > 0) {
                 $purchaseDate = Carbon::parse($request->date_price);
                 $depreciationYears = $request->region_age;
-                $fullyDepreciatedDate = $purchaseDate->copy()->addYears($depreciationYears);
+              $fullyDepreciatedDate = $purchaseDate->copy()->addYears(intval($depreciationYears));
+
 
                 if (Carbon::now()->greaterThan($fullyDepreciatedDate)) {
                     $asset->status = 3; // مهلك
@@ -123,6 +124,16 @@ class AssetsController extends Controller
             }
 
             $asset->save();
+            
+        $account = new Account();
+        $account->name = $request->name;
+        $account->type_accont = 0; // نوع الحساب (خزينة)
+        $account->is_active = $request->is_active ?? 1; // حالة الحساب (افتراضي: نشط)
+        $account->parent_id = 6; // الأب الافتراضي
+        $account->code = $this->generateNextCode($request->input('parent_id')); // إنشاء الكود
+        $account->balance_type = 'debit'; // نوع الرصيد (مدين)
+        // $account->treasury_id = $treasury->id; // ربط الحساب بالخزينة
+        $account->save();
 
             DB::commit();
 
@@ -137,7 +148,14 @@ class AssetsController extends Controller
                 ->withErrors(['error' => 'حدث خطأ أثناء إضافة الأصل. ' . $e->getMessage()]);
         }
     }
+   public function generateNextCode($parentId)
+    {
+        // جلب أعلى كود موجود تحت نفس الحساب الأب
+        $lastCode = Account::where('parent_id', $parentId)->orderBy('code', 'DESC')->value('code'); // يأخذ فقط قيمة الكود الأعلى
 
+        // إذا لم يكن هناك أي كود سابق، ابدأ من 1
+        return $lastCode ? $lastCode + 1 : 1;
+    }
     /**
      * Display the specified resource.
      */
