@@ -153,6 +153,11 @@ Route::group(
             Route::prefix('attendance.Settings.machines')->group(function () {
                 Route::get('/index', [MachinesController::class, 'index'])->name('attendance.settings.machines.index');
                 Route::get('create', [MachinesController::class, 'create'])->name('attendance.settings.machines.create');
+                Route::post('store', [MachinesController::class, 'store'])->name('attendance.settings.machines.store');
+                Route::get('show/{id}', [MachinesController::class, 'show'])->name('attendance.settings.machines.show');
+                Route::get('edit/{id}', [MachinesController::class, 'edit'])->name('attendance.settings.machines.edit');
+                Route::put('update/{id}', [MachinesController::class, 'update'])->name('attendance.settings.machines.update');
+                Route::delete('destroy/{id}', [MachinesController::class, 'destroy'])->name('attendance.settings.machines.destroy');
             });
 
             Route::prefix('attendance.Settings.printable-templates')->group(function () {

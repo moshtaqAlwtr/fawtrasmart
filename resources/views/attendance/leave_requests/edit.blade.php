@@ -128,16 +128,18 @@
                     <!-- نوع الإجازة -->
                     <div class="col-md-6">
                         <label for="leave-type" class="form-label">نوع الإجازة <span class="text-danger">*</span></label>
-                        <select class="form-control" id="leave-type" name="leave_type" required>
-                            <option value="annual" {{ old('leave_type', $leaveRequest->leave_type) == 'annual' ? 'selected' : '' }}>إجازة اعتيادية</option>
-                            <option value="casual" {{ old('leave_type', $leaveRequest->leave_type) == 'casual' ? 'selected' : '' }}>إجازة عرضية</option>
-                            <option value="sick" {{ old('leave_type', $leaveRequest->leave_type) == 'sick' ? 'selected' : '' }}>إجازة مرضية</option>
-                            <option value="unpaid" {{ old('leave_type', $leaveRequest->leave_type) == 'unpaid' ? 'selected' : '' }}>إجازة بدون راتب</option>
+                        <select class="form-control" id="leave-type" name="leave_type_id" required>
+                            <option value="annual" selected>نوع الإجازة</option>
+                            @foreach ($leaveTypes as $leaveType)
+                                <option value="{{ $leaveType->id }}">{{ $leaveType->name }}</option>
+                            @endforeach
+
                         </select>
                         <div class="mt-2">
-                            <span class="text-primary">رصيد الإجازات: <span id="leave-balance">{{ $leaveRequest->employee->leave_balance ?? 0 }}</span> يوم</span>
+                            <span class="text-primary">رصيد الإجازات: <span id="leave-balance">0</span> يوم</span>
                         </div>
                     </div>
+
 
                     <!-- المرفقات -->
                     <div class="col-md-6">
