@@ -7,9 +7,14 @@ use App\Models\Branch;
 use App\Models\SalaryAdvance;
 use App\Models\Employee;
 use App\Models\Treasury;
+use App\Models\TreasuryEmployee;
+use App\Models\Account;
+use App\Models\JournalEntry;
+use App\Models\JournalEntryDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class AncestorController extends Controller
 {
@@ -166,8 +171,72 @@ class AncestorController extends Controller
             $data['submission_date'] = date('Y-m-d', strtotime($data['submission_date']));
             $data['installment_start_date'] = date('Y-m-d', strtotime($data['installment_start_date']));
 
+        $MainTreasury = null;
+        $user = Auth::user();
             // إنشاء السلفة
             $advance = SalaryAdvance::create($data);
+            if ($user && $user->employee_id) {
+            // البحث عن الخزينة المرتبطة بالموظف
+            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                // إذا كان الموظف لديه خزينة مرتبطة
+                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+            } else {
+                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
+        if (!$MainTreasury) {
+            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+        }
+           $salaryadvanc = Account::where('name', 'السلف')->first();
+            if (!$salaryadvanc) {
+            throw new \Exception('لا يوجد حساب سلف يرجى التحقق من شجرة الحسابات   .');
+        }
+        // تحديث رصيد الخزينة
+        $MainTreasury->balance -= $advance->amount;
+        $MainTreasury->save();
+        
+        $salaryadvanc->balance += $advance->amount;
+        $salaryadvanc->save();
+
+        // إنشاء قيد محاسبي لسند القبض
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $advance->id,
+            'date' => $advance->created_at,
+            'description' => '  سلفية رقم ' . $advance->id,
+            'status' => 1,
+            'currency' => 'SAR',
+            'employee_id' => $advance->employee_id, // استخدام client_id بدلاً من seller
+            'created_by_employee' => Auth::id(),
+        ]);
+
+        // إضافة تفاصيل القيد المحاسبي لسند القبض
+        // 1. حساب الخزينة المستهدفة (مدين)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $MainTreasury->id,
+            'description' => '  سلفة من الخزينة  ',
+            'debit' => 0,
+            'credit' => $advance->amount,
+            'is_debit' => true,
+        ]);
+
+        // 2. حساب الإيرادات (دائن)
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $salaryadvanc->id, // استخدام account_id بدلاً من sup_account
+            'description' => ' سلفة  ',
+            'debit' => $advance->amount,
+            'credit' => 0,
+            'is_debit' => false,
+        ]);
 
             DB::commit();
             return redirect()->route('ancestor.index')->with('success', 'تم إضافة السلفة بنجاح');
