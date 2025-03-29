@@ -18,9 +18,6 @@ class LeavePoliciesController extends Controller
     public function index()
     {
         $leave_policies = LeavePolicy::select()->orderBy('id','DESC')->get();
-
-
-
         return view('attendance.settings.leave_policies.index',compact('leave_policies'));
     }
     public function create ()
