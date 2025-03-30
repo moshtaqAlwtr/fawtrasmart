@@ -12,7 +12,14 @@ class AttendanceDeterminant extends Model
     protected $fillable =[
         'name', 'status', 'enable_ip_verification',
         'ip_investigation', 'allowed_ips', 'enable_location_verification',
-        'location_investigation', 'latitude', 'longitude', 'radius',
-        'radius_type', 'capture_employee_image', 'image_investigation'
+        'location_investigation', 'latitude',
+ 'capture_employee_image', 'image_investigation'
     ];
+
+// في ملف App\Models\AttendanceDeterminant.php
+public function location()
+{
+    return $this->hasOne(Location::class);
+    // تغيير من belongsTo إلى hasOne لأن كل محدد حضور له موقع واحد
+}
 }
