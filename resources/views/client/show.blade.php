@@ -286,42 +286,42 @@
                     <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-info col-12 col-md-auto">
                         <i class="fas fa-user-edit me-1"></i> تعديل
                     </a>
-        
+
                     <!-- إضافة ملاحظة/مرفق -->
                     <a href="{{ route('appointment.notes.create', $client->id) }}" class="btn btn-sm btn-secondary col-12 col-md-auto">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
-        
+
                     <!-- ترتيب موعد -->
                     <a href="{{ route('appointments.create') }}" class="btn btn-sm btn-success col-12 col-md-auto">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-        
+
                     <!-- كشف حساب -->
                     <a href="#" class="btn btn-sm btn-warning col-12 col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
-        
+
                     <!-- إنشاء عرض سعر -->
                     <a href="{{ route('questions.create') }}" class="btn btn-sm btn-warning col-12 col-md-auto">
                         <i class="fas fa-file-signature me-1"></i> إنشاء عرض سعر
                     </a>
-        
+
                     <!-- إنشاء إشعار دائن -->
                     <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-danger col-12 col-md-auto">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
-        
+
                     <!-- إنشاء فاتورة -->
                     <a href="{{ route('invoices.create') }}" class="btn btn-sm btn-dark col-12 col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
-        
+
                     <!-- الحجوزات -->
                     <a href="{{ route('Reservations.client', $client->id) }}" class="btn btn-sm btn-light text-dark col-12 col-md-auto">
                         <i class="fas fa-calendar-check me-1"></i> الحجوزات
                     </a>
-        
+
                     <!-- خيارات أخرى -->
                     <div class="dropdown col-12 col-md-auto">
                         <a href="#" class="btn btn-sm btn-outline-dark dropdown-toggle w-100 text-start text-md-center"
@@ -342,7 +342,7 @@
                 </div>
             </div>
         </div>
-        
+
 {{-- زر خيارات اخرى --}}
         {{-- <div class="card">
             <div class="card-body">
@@ -455,7 +455,7 @@
                 </div>
             </div>
         </div> --}}
-       
+
 
         {{-- التبويبات --}}
         <div class="card">
@@ -466,7 +466,7 @@
                         <i class="fas fa-info-circle me-2"></i> التفاصيل
                     </button>
                 {{-- </div> --}}
-        
+
                 <!-- ✅ محتوى التفاصيل ✅ -->
                 <div id="details" class="collapse mt-2">
                     <div class="card card-body">
@@ -518,7 +518,7 @@
                                 <p><strong>تاريخ الرصيد الافتتاحي:</strong> {{ $client->opening_balance_date }}</p>
                             </div>
                         </div>
-        
+
                         @if ($client->notes)
                             <hr>
                             <div class="row">
@@ -959,46 +959,6 @@
                                                                             </a>
                                                                         </li>
                                                                     </div>
-<<<<<<< HEAD
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- تبويب الملاحظات -->
-                                <div class="accordion-item">
-                                    <h3 class="accordion-header d-flex justify-content-center">
-                                        <button class="accordion-button collapsed text-center" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#notes-tab"
-                                            aria-expanded="false" aria-controls="notes-tab" style="background-color: #0d6efd; color: white;">
-                                            <i class="fas fa-sticky-note me-2"></i> الملاحظات
-                                            <span class="badge bg-transparent text-black ms-2 border border-white">{{ $ClientRelations->count() }}</span>
-                                        </button>
-                                    </h3>
-                                    <div id="notes-tab" class="accordion-collapse collapse"
-                                        aria-labelledby="notes-tab" data-bs-parent="#clientAccordion">
-                                        <div class="accordion-body">
-                                            <div class="timeline">
-                                                @foreach ($ClientRelations as $note)
-                                                    <div class="timeline-item">
-                                                        <div class="timeline-content d-flex align-items-start">
-                                                            <span class="badge" style="background-color: {{ $statuses->find($client->status_id)->color?? '#007BFF' }}; color: white;">
-                                                                {{ $statuses->find($client->status_id)->name ?? '' }}
-                                                            </span>
-                                                            <div class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
-                                                                <div class="d-flex justify-content-between align-items-center">
-                                                                    <h6 class="mb-0"><i class="fas fa-user"></i> {{ $note->created_by?? }}</h6>
-                                                                    <small class="text-muted">
-                                                                        <i class="fas fa-clock"></i>
-                                                                        {{ $note->created_at->format('H:i d/m/Y') }} - <span class="text-primary">{{ $note->status?? '' }}</span>
-                                                                    </small>
-=======
->>>>>>> 7a9e4574bccad6056952352da4d0a63fce63cdf8
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -1366,11 +1326,11 @@
                 </div>
             </div>
         </div>
-        
 
 
-          
-            
+
+
+
         <!-- Modal إضافة الرصيد الافتتاحي -->
         <div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel"
             aria-hidden="true">
@@ -1401,8 +1361,8 @@
     </div>
 
 
- 
-    
+
+
 @endsection
 @section('scripts')
 
