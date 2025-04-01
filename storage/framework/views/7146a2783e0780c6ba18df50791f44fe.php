@@ -138,6 +138,32 @@
 
                     <!-- Attachments -->
                     
+                                            <!-- المرفقات -->
+<?php $__currentLoopData = $GeneralClientSettings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $GeneralClientSetting): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+<?php if($GeneralClientSetting->is_active): ?>
+    <?php if($GeneralClientSetting->key == "image"): ?>
+        <div class="col-md-12 col-12 mb-3">
+            <div class="form-group">
+                <label for="attachments">المرفقات</label>
+                <input type="file" name="attachments" id="attachments" class="d-none">
+                <div class="upload-area border rounded p-3 text-center position-relative"
+                    onclick="document.getElementById('attachments').click()">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                        <span class="text-primary">اضغط هنا</span>
+                        <span>أو</span>
+                        <span class="text-primary">اختر من جهازك</span>
+                    </div>
+                    <div class="position-absolute end-0 top-50 translate-middle-y me-3">
+                        <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+<?php endif; ?>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
 
                     <!-- Options -->
                     <div class="form-check mt-3">

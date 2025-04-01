@@ -222,42 +222,42 @@
                     <a href="<?php echo e(route('clients.edit', $client->id)); ?>" class="btn btn-sm btn-info col-12 col-md-auto">
                         <i class="fas fa-user-edit me-1"></i> تعديل
                     </a>
-        
+
                     <!-- إضافة ملاحظة/مرفق -->
                     <a href="<?php echo e(route('appointment.notes.create', $client->id)); ?>" class="btn btn-sm btn-secondary col-12 col-md-auto">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
-        
+
                     <!-- ترتيب موعد -->
                     <a href="<?php echo e(route('appointments.create')); ?>" class="btn btn-sm btn-success col-12 col-md-auto">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-        
+
                     <!-- كشف حساب -->
                     <a href="#" class="btn btn-sm btn-warning col-12 col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
-        
+
                     <!-- إنشاء عرض سعر -->
                     <a href="<?php echo e(route('questions.create')); ?>" class="btn btn-sm btn-warning col-12 col-md-auto">
                         <i class="fas fa-file-signature me-1"></i> إنشاء عرض سعر
                     </a>
-        
+
                     <!-- إنشاء إشعار دائن -->
                     <a href="<?php echo e(route('CreditNotes.create')); ?>" class="btn btn-sm btn-danger col-12 col-md-auto">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
-        
+
                     <!-- إنشاء فاتورة -->
                     <a href="<?php echo e(route('invoices.create')); ?>" class="btn btn-sm btn-dark col-12 col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
-        
+
                     <!-- الحجوزات -->
                     <a href="<?php echo e(route('Reservations.client', $client->id)); ?>" class="btn btn-sm btn-light text-dark col-12 col-md-auto">
                         <i class="fas fa-calendar-check me-1"></i> الحجوزات
                     </a>
-        
+
                     <!-- خيارات أخرى -->
                     <div class="dropdown col-12 col-md-auto">
                         <a href="#" class="btn btn-sm btn-outline-dark dropdown-toggle w-100 text-start text-md-center"
@@ -278,10 +278,10 @@
                 </div>
             </div>
         </div>
-        
+
 
         
-       
+
 
         
         <div class="card">
@@ -292,7 +292,7 @@
                         <i class="fas fa-info-circle me-2"></i> التفاصيل
                     </button>
                 
-        
+
                 <!-- ✅ محتوى التفاصيل ✅ -->
                 <div id="details" class="collapse mt-2">
                     <div class="card card-body">
@@ -344,7 +344,7 @@
                                 <p><strong>تاريخ الرصيد الافتتاحي:</strong> <?php echo e($client->opening_balance_date); ?></p>
                             </div>
                         </div>
-        
+
                         <?php if($client->notes): ?>
                             <hr>
                             <div class="row">
@@ -686,6 +686,10 @@
                             </div>
                         </div>
                     </div>
+                  
+                    
+                    
+                    
         
                         <div class="col-lg-0 col-md-3 col-12">
                             <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#payments">
@@ -1162,11 +1166,11 @@
                 </div>
             </div>
         </div>
-        
 
 
-          
-            
+
+
+
         <!-- Modal إضافة الرصيد الافتتاحي -->
         <div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel"
             aria-hidden="true">
@@ -1197,8 +1201,8 @@
     </div>
 
 
- 
-    
+
+
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('scripts'); ?>
 
@@ -1270,7 +1274,43 @@
                 `<span class="status-color" style="background-color: ${color};"></span> ${name}`;
         }
     </script>
-
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let mediaRecorder;
+        let audioChunks = [];
+    
+        document.getElementById("startRecording").addEventListener("click", async function () {
+            let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            audioChunks = [];
+    
+            mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+            mediaRecorder.onstop = async () => {
+                let audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+                let audioUrl = URL.createObjectURL(audioBlob);
+                document.getElementById("audioPreview").src = audioUrl;
+                document.getElementById("audioPreview").classList.remove("d-none");
+    
+                let reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = function () {
+                    document.getElementById("recordedAudio").value = reader.result;
+                };
+            };
+    
+            document.getElementById("stopRecording").classList.remove("d-none");
+            document.getElementById("startRecording").classList.add("d-none");
+        });
+    
+        document.getElementById("stopRecording").addEventListener("click", function () {
+            mediaRecorder.stop();
+            document.getElementById("stopRecording").classList.add("d-none");
+            document.getElementById("startRecording").classList.remove("d-none");
+        });
+    });
+    </script>
+    
 
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <script src="<?php echo e(asset('assets/js/applmintion.js')); ?>"></script>
