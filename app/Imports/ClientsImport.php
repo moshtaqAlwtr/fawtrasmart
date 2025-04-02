@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Employee;
+use App\Models\Statuses;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -29,6 +30,10 @@ class ClientsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnF
         // التحقق من وجود branch_id
         $branchId = $this->validateId($row['branch_id'] ?? null, Branch::class);
         if ($branchId === false) {
+            return null;
+        }
+        $statusId = $this->validateId($row['status_id'] ?? null, Statuses::class);
+        if ($statusId === false) {
             return null;
         }
 
@@ -59,6 +64,7 @@ class ClientsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnF
             'notes'                 => $this->nullIfEmpty($row['notes'] ?? null),
             'employee_id'           => $employeeId,
             'branch_id'             => $branchId,
+            'status_id'             => $statusId,
             'status'                => $this->nullIfEmpty($row['status'] ?? null),
         ]);
     }
@@ -88,6 +94,7 @@ class ClientsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnF
      * تنسيق خاص لـ opening_balance
      */
     private function formatBalance($value)
+
     {
         if (is_null($value) || $value === '') {
             return 0;

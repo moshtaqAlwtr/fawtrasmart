@@ -342,61 +342,154 @@ $customerAccount->code = $newCode;
     }
 
     public function update(ClientRequest $request, $id)
-    {
-        // استدعاء التحقق من البيانات باستخدام ClientRequest
-        $data_request = $request->except('_token');
+{
+    // التحقق من البيانات المطلوبة بما فيها الإحداثيات
+    $validated = $request->validate([
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        // بقية قواعد التحقق...
+    ]);
 
-        // العثور على العميل باستخدام الـ ID
+    // بدء المعاملة لضمان سلامة البيانات
+    DB::beginTransaction();
+
+    try {
+        $data_request = $request->except('_token', 'contacts');
         $client = Client::findOrFail($id);
+        $oldData = $client->getOriginal();
 
-        // حفظ نسخة من البيانات القديمة لتحديد التعديلات
-
-        // معالجة الصورة إذا تم تحميلها
+        // 1. معالجة المرفقات
         if ($request->hasFile('attachments')) {
             $file = $request->file('attachments');
             if ($file->isValid()) {
-                // حذف الملف القديم إذا وجد
+                // حذف الملف القديم إن وجد
                 if ($client->attachments) {
-                    $oldFile = public_path('uploads/clients/') . $client->attachments;
-                    if (file_exists($oldFile)) {
-                        unlink($oldFile);
+                    $oldFilePath = public_path('assets/uploads/') . $client->attachments;
+                    if (File::exists($oldFilePath)) {
+                        File::delete($oldFilePath);
                     }
                 }
 
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('uploads/clients'), $filename);
+                $file->move(public_path('assets/uploads/'), $filename);
                 $data_request['attachments'] = $filename;
             }
         }
 
-        // تحديث بيانات العميل
+        // 2. تحديث بيانات العميل الأساسية
         $client->update($data_request);
 
-        // تحديد الحقول التي تم تعديلها
+        // 3. معالجة الإحداثيات - الطريقة المؤكدة
+        $client->locations()->delete(); // حذف جميع المواقع القديمة
 
-        // معالجة جهات الاتصال
-        if ($request->has('contacts') && is_array($request->contacts)) {
-            $existingContactIds = $client->contacts->pluck('id')->toArray();
+        $client->locations()->create([
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'client_id' => $client->id
+        ]);
 
-            foreach ($request->contacts as $contactData) {
-                if (isset($contactData['id']) && in_array($contactData['id'], $existingContactIds)) {
-                    // تحديث جهة الاتصال الموجودة
-                    $contact = $client->contacts()->find($contactData['id']);
-                    $contact->update($contactData);
-                } else {
-                    // إضافة جهة اتصال جديدة
-                    $newContact = $client->contacts()->create($contactData);
-                }
+        // 4. تحديث بيانات المستخدم
+        if ($request->email) {
+            $full_name = implode(' ', array_filter([
+                $client->trade_name,
+                $client->first_name,
+                $client->last_name
+            ]));
+
+            $userData = [
+                'name' => $full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+            ];
+
+            $user = User::where('client_id', $client->id)->first();
+
+            if ($user) {
+                $user->update($userData);
+            } else {
+                $userData['password'] = Hash::make(Str::random(10));
+                $userData['role'] = 'client';
+                $userData['client_id'] = $client->id;
+                User::create($userData);
             }
-
-            // حذف جهات الاتصال غير المدرجة في الطلب
-            $newContactIds = array_column($request->contacts, 'id');
-            $contactsToDelete = array_diff($existingContactIds, $newContactIds);
-            $client->contacts()->whereIn('id', $contactsToDelete)->delete();
         }
 
-        return redirect()->route('clients.index')->with('success', '✨ تم تحديث العميل بنجاح!');
+        // 5. تحديث الحساب المالي
+        $customersAccount = Account::where('name', 'العملاء')->first();
+
+        if ($customersAccount) {
+            $accountData = [
+                'name' => $client->trade_name,
+                'balance' => $client->opening_balance ?? 0,
+                'parent_id' => $customersAccount->id,
+                'balance_type' => 'debit',
+                'is_active' => false
+            ];
+
+            $clientAccount = Account::where('client_id', $client->id)->first();
+
+            if ($clientAccount) {
+                $clientAccount->update($accountData);
+            } else {
+                $lastChild = Account::where('parent_id', $customersAccount->id)
+                    ->orderBy('code', 'desc')
+                    ->first();
+
+                $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customersAccount->code . '1';
+
+                while (Account::where('code', $newCode)->exists()) {
+                    $newCode = $this->generateNextCode($newCode);
+                }
+
+                $accountData['code'] = $newCode;
+                $accountData['client_id'] = $client->id;
+                Account::create($accountData);
+            }
+        }
+
+        // 6. معالجة جهات الاتصال
+        if ($request->has('contacts')) {
+            $existingContacts = $client->contacts->keyBy('id');
+            $newContacts = collect($request->contacts);
+
+            // الحذف
+            $contactsToDelete = $existingContacts->diffKeys($newContacts->whereNotNull('id')->keyBy('id'));
+            $client->contacts()->whereIn('id', $contactsToDelete->keys())->delete();
+
+            // التحديث والإضافة
+            foreach ($request->contacts as $contact) {
+                if (isset($contact['id']) && $existingContacts->has($contact['id'])) {
+                    $existingContacts[$contact['id']]->update($contact);
+                } else {
+                    $client->contacts()->create($contact);
+                }
+            }
+        }
+
+        // 7. تسجيل العملية في السجل
+        ModelsLog::create([
+            'type' => 'client',
+            'type_id' => $client->id,
+            'type_log' => 'update',
+            'description' => 'تم تحديث بيانات العميل: ' . $client->trade_name,
+            'created_by' => auth()->id(),
+            'old_data' => json_encode($oldData),
+            'new_data' => json_encode($client->getAttributes())
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('clients.index')
+            ->with('success', 'تم تحديث بيانات العميل بنجاح');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return redirect()->back()
+            ->with('error', 'حدث خطأ أثناء التحديث: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     public function edit_question($id)
     {
