@@ -144,7 +144,7 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
-                        <small class="text-muted">#{{ $client->id }}</small>
+                        <small class="text-muted">#{{ $client->code }}</small>
                         <span class="badge"
                             style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
                             {{ $statuses->find($client->status_id)->name ?? 'غير محدد' }}
@@ -856,10 +856,10 @@
                             </div>
                         </div>
                     </div>
-                  
-                    
-                    
-                    
+
+
+
+
         {{-- المدفوعات --}}
                         <div class="col-lg-0 col-md-3 col-12">
                             <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#payments">
@@ -1442,31 +1442,31 @@
     document.addEventListener("DOMContentLoaded", function () {
         let mediaRecorder;
         let audioChunks = [];
-    
+
         document.getElementById("startRecording").addEventListener("click", async function () {
             let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.start();
             audioChunks = [];
-    
+
             mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
             mediaRecorder.onstop = async () => {
                 let audioBlob = new Blob(audioChunks, { type: "audio/wav" });
                 let audioUrl = URL.createObjectURL(audioBlob);
                 document.getElementById("audioPreview").src = audioUrl;
                 document.getElementById("audioPreview").classList.remove("d-none");
-    
+
                 let reader = new FileReader();
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = function () {
                     document.getElementById("recordedAudio").value = reader.result;
                 };
             };
-    
+
             document.getElementById("stopRecording").classList.remove("d-none");
             document.getElementById("startRecording").classList.add("d-none");
         });
-    
+
         document.getElementById("stopRecording").addEventListener("click", function () {
             mediaRecorder.stop();
             document.getElementById("stopRecording").classList.add("d-none");
@@ -1474,7 +1474,7 @@
         });
     });
     </script>
-    
+
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="{{ asset('assets/js/applmintion.js') }}"></script>
