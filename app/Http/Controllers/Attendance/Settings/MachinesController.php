@@ -92,4 +92,11 @@ class MachinesController extends Controller
         return redirect()->route('attendance.settings.machines.index')
             ->with('success', 'تم حذف الماكينة بنجاح');
     }
+
+
+    public function show($id)
+    {
+        $machine = Machine::findOrFail($id);
+        return view('attendance.settings.machines.show', compact('machine'));
+    }
 }

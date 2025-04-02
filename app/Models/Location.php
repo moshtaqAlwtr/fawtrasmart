@@ -8,7 +8,7 @@ class Location extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['employee_id', 'client_id', 'latitude', 'longitude'];
+    protected $fillable = ['employee_id', 'client_id', 'attendance_determinant_id', 'radius_type', 'radius', 'latitude', 'longitude'];
 
     // علاقة كثير إلى واحد مع جدول الموظفين (employees)
     public function employee()
@@ -21,5 +21,10 @@ class Location extends Model
     {
         return $this->belongsTo(Client::class, 'client_id');
     }
-
+    // في ملف App\Models\Location.php
+    public function attendanceDeterminant()
+{
+    return $this->belongsTo(AttendanceDeterminant::class);
+    // إزالة العلاقة hasMany لأننا غيرناها إلى hasOne
+}
 }
