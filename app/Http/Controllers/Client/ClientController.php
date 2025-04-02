@@ -307,7 +307,7 @@ $customerAccount->code = $newCode;
     {
         return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
-    public function testcient()
+    public function testcddfient()
     {
         $clients = Client::all();
 
@@ -330,6 +330,166 @@ $customerAccount->code = $newCode;
             }
         }
     }
+    
+  public function testcient()
+{
+    // الحصول على العملاء المفقودين
+    $missingClients = $this->getMissingClients();
+    
+    if ($missingClients->isEmpty()) {
+        return ['success' => true, 'message' => 'لا يوجد عملاء مفقودين في جدول الحسابات'];
+    }
+    
+    // الحصول على حساب العملاء الرئيسي
+    $parentAccount = Account::where('name', 'العملاء')->first();
+    
+    if (!$parentAccount) {
+        return ['success' => false, 'message' => 'حساب العملاء الرئيسي غير موجود'];
+    }
+    
+    $successCount = 0;
+    $errors = [];
+    
+    foreach ($missingClients as $client) {
+        try {
+            // إنشاء الحساب الجديد
+            $account = new Account();
+            $account->client_id = $client->id;
+            $account->name = $client->trade_name ?? 'عميل بدون اسم';
+            $account->parent_id = $parentAccount->id;
+            $account->balance = $client->opening_balance ?? 0;
+            $account->balance_type = 'debit';
+            $account->is_active = true;
+            
+            // توليد كود فريد
+            $account->code = $this->generateUniqueAccountCode($parentAccount);
+            
+            if ($account->save()) {
+                $successCount++;
+            } else {
+                $errors[] = "فشل حفظ حساب العميل {$client->id}";
+            }
+            
+        } catch (\Exception $e) {
+            $errors[] = "خطأ في العميل {$client->id}: " . $e->getMessage();
+        }
+    }
+    
+    $result = [
+        'success' => true,
+        'added_count' => $successCount,
+        'total_missing' => count($missingClients),
+        'errors' => $errors
+    ];
+    
+    if ($successCount < count($missingClients)) {
+        $result['success'] = false;
+        $result['message'] = 'تمت إضافة بعض العملاء مع وجود أخطاء';
+    } else {
+        $result['message'] = 'تمت إضافة جميع العملاء المفقودين بنجاح';
+    }
+    
+    return $result;
+} 
+public function registerMissingClients()
+{
+    // الحصول على العملاء بدون حسابات (بطريقة بديلة آمنة)
+    $missingClients = DB::table('clients')
+        ->leftJoin('accounts', 'clients.id', '=', 'accounts.client_id')
+        ->whereNull('accounts.id')
+        ->select('clients.*')
+        ->get();
+
+    if ($missingClients->isEmpty()) {
+        return [
+            'success' => true,
+            'message' => 'لا يوجد عملاء مفقودين في جدول الحسابات',
+            'added_count' => 0,
+            'total_missing' => 0,
+            'errors' => []
+        ];
+    }
+
+    $parentAccount = Account::where('name', 'العملاء')->first();
+
+    if (!$parentAccount) {
+        return [
+            'success' => false,
+            'message' => 'حساب العملاء الرئيسي غير موجود',
+            'added_count' => 0,
+            'total_missing' => count($missingClients),
+            'errors' => ['حساب العملاء الرئيسي غير موجود']
+        ];
+    }
+
+    $successCount = 0;
+    $errors = [];
+
+    foreach ($missingClients as $client) {
+        try {
+            $account = new Account();
+            $account->client_id = $client->id;
+            $account->name = $client->trade_name ?? 'عميل بدون اسم';
+            $account->parent_id = $parentAccount->id;
+            $account->balance = $client->opening_balance ?? 0;
+            $account->balance_type = 'debit';
+            $account->is_active = true;
+            $account->code = $this->generateUniqueAccountCode($parentAccount->id, $parentAccount->code);
+
+            if ($account->save()) {
+                $successCount++;
+            } else {
+                $errors[] = "فشل حفظ حساب العميل {$client->id}";
+            }
+        } catch (\Exception $e) {
+            $errors[] = "خطأ في العميل {$client->id}: " . $e->getMessage();
+        }
+    }
+
+    return [
+        'success' => $successCount == count($missingClients),
+        'message' => $successCount == count($missingClients) 
+            ? 'تمت إضافة جميع العملاء بنجاح' 
+            : "تمت إضافة {$successCount} من أصل " . count($missingClients),
+        'added_count' => $successCount,
+        'total_missing' => count($missingClients),
+        'errors' => $errors
+    ];
+}
+
+protected function generateUniqueAccountCode($parentId, $parentCode)
+{
+    $lastChild = Account::where('parent_id', $parentId)
+        ->orderBy('code', 'desc')
+        ->first();
+
+    $baseCode = $lastChild ? ((int)$lastChild->code + 1) : $parentCode . '001';
+
+    $counter = 1;
+    $newCode = $baseCode;
+
+    while (Account::where('code', $newCode)->exists()) {
+        $newCode = $baseCode . '_' . $counter;
+        $counter++;
+
+        if ($counter > 100) {
+            throw new \RuntimeException('فشل توليد كود فريد');
+        }
+    }
+
+    return $newCode;
+}
+    
+    public function getMissingClients()
+{
+   
+    
+    // طريقة بديلة باستخدام join
+    return Client::leftJoin('accounts', 'clients.id', '=', 'accounts.client_id')
+                ->whereNull('accounts.id')
+                ->select('clients.*')
+                ->get();
+}
     // إضافة هذه الدالة في نفس وحدة التحكم
     private function generateNextCode(string $lastChildCode): string
     {
@@ -343,13 +503,25 @@ $customerAccount->code = $newCode;
 
     public function update(ClientRequest $request, $id)
     {
-        // استدعاء التحقق من البيانات باستخدام ClientRequest
         $data_request = $request->except('_token');
 
         // العثور على العميل باستخدام الـ ID
         $client = Client::findOrFail($id);
 
         // حفظ نسخة من البيانات القديمة لتحديد التعديلات
+        $oldData = $client->getOriginal();
+
+        // تحقق من وجود الإحداثيات إذا تم إرسالها
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $latitude = $request->latitude;
+            $longitude = $request->longitude;
+
+            // تحديث أو إنشاء موقع جديد
+            $client->locations()->updateOrCreate(
+                ['client_id' => $client->id],
+                ['latitude' => $latitude, 'longitude' => $longitude]
+            );
+        }
 
         // معالجة الصورة إذا تم تحميلها
         if ($request->hasFile('attachments')) {
@@ -357,14 +529,14 @@ $customerAccount->code = $newCode;
             if ($file->isValid()) {
                 // حذف الملف القديم إذا وجد
                 if ($client->attachments) {
-                    $oldFile = public_path('uploads/clients/') . $client->attachments;
+                    $oldFile = public_path('assets/uploads/') . $client->attachments;
                     if (file_exists($oldFile)) {
                         unlink($oldFile);
                     }
                 }
 
                 $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('uploads/clients'), $filename);
+                $file->move(public_path('assets/uploads/'), $filename);
                 $data_request['attachments'] = $filename;
             }
         }
@@ -372,7 +544,60 @@ $customerAccount->code = $newCode;
         // تحديث بيانات العميل
         $client->update($data_request);
 
-        // تحديد الحقول التي تم تعديلها
+        // تحديث بيانات المستخدم إذا كان موجودا
+        if ($request->email != null) {
+            $user = User::where('client_id', $client->id)->first();
+            $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
+
+            if ($user) {
+                $user->update([
+                    'name' => $full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                ]);
+            } else {
+                $password = Str::random(10);
+                User::create([
+                    'name' => $full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                    'role' => 'client',
+                    'client_id' => $client->id,
+                    'password' => Hash::make($password),
+                ]);
+            }
+        }
+
+        // تحديث الحساب الفرعي إذا تغير trade_name
+        $customers = Account::where('name', 'العملاء')->first();
+        if ($customers) {
+            $customerAccount = Account::where('client_id', $client->id)->first();
+            if ($customerAccount) {
+                $customerAccount->update([
+                    'name' => $client->trade_name,
+                    'balance' => $client->opening_balance ?? $customerAccount->balance,
+                ]);
+            } else {
+                // إنشاء حساب جديد إذا لم يكن موجودا
+                $customerAccount = new Account();
+                $customerAccount->name = $client->trade_name;
+                $customerAccount->client_id = $client->id;
+                $customerAccount->balance = $client->opening_balance ?? 0;
+
+                $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+                $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+
+                while (\App\Models\Account::where('code', $newCode)->exists()) {
+                    $newCode = $this->generateNextCode($newCode);
+                }
+
+                $customerAccount->code = $newCode;
+                $customerAccount->balance_type = 'debit';
+                $customerAccount->parent_id = $customers->id;
+                $customerAccount->is_active = false;
+                $customerAccount->save();
+            }
+        }
 
         // معالجة جهات الاتصال
         if ($request->has('contacts') && is_array($request->contacts)) {
@@ -390,10 +615,19 @@ $customerAccount->code = $newCode;
             }
 
             // حذف جهات الاتصال غير المدرجة في الطلب
-            $newContactIds = array_column($request->contacts, 'id');
+            $newContactIds = array_filter(array_column($request->contacts, 'id'));
             $contactsToDelete = array_diff($existingContactIds, $newContactIds);
             $client->contacts()->whereIn('id', $contactsToDelete)->delete();
         }
+
+        // تسجيل إشعار نظام جديد للتحديث
+        ModelsLog::create([
+            'type' => 'client',
+            'type_id' => $client->id,
+            'type_log' => 'log',
+            'description' => 'تم تحديث بيانات عميل **' . $client->trade_name . '**',
+            'created_by' => auth()->id(),
+        ]);
 
         return redirect()->route('clients.index')->with('success', '✨ تم تحديث العميل بنجاح!');
     }
@@ -482,6 +716,7 @@ $customerAccount->code = $newCode;
         // تحميل الفواتير والمدفوعات
         $invoices = $client->invoices;
         $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
+        $due         = Account::where('client_id', $id)->sum('balance');
         $payments = $client->payments()->orderBy('payment_date', 'desc')->get();
 
         // تحميل الملاحظات
@@ -511,6 +746,7 @@ $customerAccount->code = $newCode;
             'employees',
             'bookings',
             'packages',
+            'due',
             'memberships',
             'invoices',
             'payments',
