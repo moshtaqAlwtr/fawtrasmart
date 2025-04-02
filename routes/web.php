@@ -261,6 +261,7 @@ Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteSta
                     Route::get('/paymentsClient/create/{id}/{type?}', [PaymentProcessController::class, 'create'])->name('paymentsClient.create');
                     Route::post('/store', [PaymentProcessController::class, 'store'])->name('paymentsClient.store');
                     Route::get('/show/{id}', [PaymentProcessController::class, 'show'])->name('paymentsClient.show');
+                    Route::get('/rereceipt/{id}', [PaymentProcessController::class, 'rereceipt'])->name('paymentsClient.rereceipt');
                     Route::get('/edit/{id}', [PaymentProcessController::class, 'edit'])->name('paymentsClient.edit');
                     Route::delete('/destroy/{id}', [PaymentProcessController::class, 'destroy'])->name('paymentsClient.destroy');
 

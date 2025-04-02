@@ -838,35 +838,46 @@ $customerAccount->code = $newCode;
     }
 
     public function addnotes(Request $request)
-    {
-        $ClientRelation = new ClientRelation();
-        $ClientRelation->status = $request->status;
-        $ClientRelation->client_id = $request->client_id;
-        $ClientRelation->process = $request->process;
-        $ClientRelation->description = $request->description;
+{
+    $ClientRelation = new ClientRelation();
+    $ClientRelation->status = $request->status;
+    $ClientRelation->client_id = $request->client_id;
+    $ClientRelation->process = $request->process;
+    $ClientRelation->description = $request->description;
 
-        $ClientRelation->save();
-        // تسجيل اشعار نظام جديد
-        ModelsLog::create([
-            'type' => 'notes',
-            // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
-            'description' => 'تم اضافة  ملاحظة **' . $request->description . '**',
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
-
-        $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
-
-        notifications::create([
-            'type' => 'notes',
-            'title' => 'ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-        ]);
-
-        return redirect()
-            ->route('clients.show', ['id' => $ClientRelation->client_id])
-            ->with('success', 'تم إضافة الملاحظة بنجاح');
+    // معالجة المرفقات إن وجدت
+    if ($request->hasFile('attachments')) {
+        $file = $request->file('attachments');
+        if ($file->isValid()) {
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('assets/uploads/notes'), $filename);
+            $ClientRelation->attachments = $filename;
+        }
     }
+
+    $ClientRelation->save();
+
+    // تسجيل اشعار نظام جديد
+    ModelsLog::create([
+        'type' => 'notes',
+        'type_log' => 'log', // نوع النشاط
+        'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
+
+    $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
+
+    notifications::create([
+        'type' => 'notes',
+        'title' => 'ملاحظة لعميل',
+        'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
+    ]);
+
+    return redirect()
+        ->route('clients.show', ['id' => $ClientRelation->client_id])
+        ->with('success', 'تم إضافة الملاحظة بنجاح');
+}
+
 
     public function mang_client_details($id)
     {
