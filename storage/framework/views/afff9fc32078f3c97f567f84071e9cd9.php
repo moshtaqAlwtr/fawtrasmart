@@ -552,6 +552,11 @@
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Client_settings')); ?></span>
                                     </a>
                                 </li>
+                                  <li><a href="<?php echo e(route('clients.group_client')); ?>"><i
+                                        class="feather icon-circle"></i><span class="menu-item"
+                                        data-i18n="eCommerce">اعدادات المجموعات</span>
+                                </a>
+                            </li>
                             <?php endif; ?>
 
                         </ul>

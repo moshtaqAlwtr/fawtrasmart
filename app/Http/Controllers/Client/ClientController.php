@@ -20,8 +20,9 @@ use App\Models\GeneralClientSetting;
 use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\Memberships;
+use App\Models\Neighborhood;
 use App\Models\AccountSetting;
-
+use App\Models\Region_groub;
 use App\Models\Package;
 use App\Models\PaymentsProcess;
 use App\Models\SerialSetting;
@@ -143,11 +144,37 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'تم تحديث الحد الائتماني بنجاح!');
     }
 
+    public function group_client()
+    {
+       $Regions_groub = Region_groub::all();
+         return view('client.group_client', compact('Regions_groub'));
+    }
+    
+    public function group_client_create()
+    {
+         return view('client.group_client_create');
+    }
+    
+  public function group_client_store(Request $request)
+{
+    // تحقق من صحة البيانات المدخلة
+    $request->validate([
+        'name' => 'required|string|unique:region_groubs,name',
+    ]);
+
+    // إنشاء مجموعة المنطقة الجديدة
+    $regionGroup = new Region_groub();
+    $regionGroup->name = $request->name;
+    $regionGroup->save();
+
+    // إرجاع البيانات المحفوظة أو رسالة نجاح
+   return redirect()->route('clients.group_client')->with('success', 'تم إنشاء المجموعة بنجاح');
+}
     public function create()
     {
         $employees = Employee::all();
         $categories = CategoriesClient::all();
-
+        $Regions_groub = Region_groub::all();
         $lastClient = Client::orderBy('code', 'desc')->first();
 
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
@@ -161,13 +188,36 @@ class ClientController extends Controller
                 return (object) $item; // تحويل المصفوفة إلى كائن
             });
         }
-        return view('client.create', compact('employees', 'newCode', 'categories', 'GeneralClientSettings'));
+        return view('client.create', compact('employees', 'newCode', 'categories', 'GeneralClientSettings','Regions_groub'));
     }
+    private function getNeighborhoodFromGoogle($latitude, $longitude) {
+        $apiKey = env('GOOGLE_MAPS_API_KEY'); // احصل على API Key من .env
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey&language=ar";
 
+        $response = file_get_contents($url);
+        $data = json_decode($response, true);
+
+        if (!empty($data['results'])) {
+            foreach ($data['results'][0]['address_components'] as $component) {
+                if (in_array("sublocality", $component['types']) || in_array("neighborhood", $component['types'])) {
+                    return $component['long_name']; // اسم الحي
+                }
+            }
+        }
+        return "لم يتم العثور على الحي";
+    }
     public function store(ClientRequest $request)
     {
         $data_request = $request->except('_token');
+  $rules = [
+        'region_id' => ['required'], // إلزامي فقط
+    ];
 
+    $messages = [
+        'region_id.required' => 'حقل المجموعة مطلوب.', //  
+    ];
+    
+    $request->validate($rules, $messages);
         // تحقق من وجود الإحداثيات
         if ($request->has('latitude') && $request->has('longitude')) {
             $latitude = $request->latitude;
@@ -204,6 +254,12 @@ class ClientController extends Controller
             'latitude' => $latitude,
             'longitude' => $longitude,
         ]);
+        $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
+        $Neighborhood = new Neighborhood();
+        $Neighborhood->name      = $neighborhoodName ?? "غير محدد"; 
+        $Neighborhood->region_id = $request->region_id;
+        $Neighborhood->client_id =  $client->id;
+        $Neighborhood->save();
 
         // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
         $password = Str::random(10);
@@ -307,7 +363,7 @@ $customerAccount->code = $newCode;
     {
         return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
-    public function testcient()
+    public function testciddent()
     {
         $clients = Client::all();
 
@@ -330,6 +386,94 @@ $customerAccount->code = $newCode;
             }
         }
     }
+    public function testcient()
+{
+    // الحصول على العملاء بدون حسابات (بطريقة بديلة آمنة)
+    $missingClients = DB::table('clients')
+        ->leftJoin('accounts', 'clients.id', '=', 'accounts.client_id')
+        ->whereNull('accounts.id')
+        ->select('clients.*')
+        ->get();
+
+    if ($missingClients->isEmpty()) {
+        return [
+            'success' => true,
+            'message' => 'لا يوجد عملاء مفقودين في جدول الحسابات',
+            'added_count' => 0,
+            'total_missing' => 0,
+            'errors' => []
+        ];
+    }
+
+    $parentAccount = Account::where('name', 'العملاء')->first();
+
+    if (!$parentAccount) {
+        return [
+            'success' => false,
+            'message' => 'حساب العملاء الرئيسي غير موجود',
+            'added_count' => 0,
+            'total_missing' => count($missingClients),
+            'errors' => ['حساب العملاء الرئيسي غير موجود']
+        ];
+    }
+
+    $successCount = 0;
+    $errors = [];
+
+    foreach ($missingClients as $client) {
+        try {
+            $account = new Account();
+            $account->client_id = $client->id;
+            $account->name = $client->trade_name ?? 'عميل بدون اسم';
+            $account->parent_id = $parentAccount->id;
+            $account->balance = $client->opening_balance ?? 0;
+            $account->balance_type = 'debit';
+            $account->is_active = true;
+            $account->code = $this->generateUniqueAccountCode($parentAccount->id, $parentAccount->code);
+
+            if ($account->save()) {
+                $successCount++;
+            } else {
+                $errors[] = "فشل حفظ حساب العميل {$client->id}";
+            }
+        } catch (\Exception $e) {
+            $errors[] = "خطأ في العميل {$client->id}: " . $e->getMessage();
+        }
+    }
+
+    return [
+        'success' => $successCount == count($missingClients),
+        'message' => $successCount == count($missingClients) 
+            ? 'تمت إضافة جميع العملاء بنجاح' 
+            : "تمت إضافة {$successCount} من أصل " . count($missingClients),
+        'added_count' => $successCount,
+        'total_missing' => count($missingClients),
+        'errors' => $errors
+    ];
+}
+
+protected function generateUniqueAccountCode($parentId, $parentCode)
+{
+    $lastChild = Account::where('parent_id', $parentId)
+        ->orderBy('code', 'desc')
+        ->first();
+
+    $baseCode = $lastChild ? ((int)$lastChild->code + 1) : $parentCode . '001';
+
+    $counter = 1;
+    $newCode = $baseCode;
+
+    while (Account::where('code', $newCode)->exists()) {
+        $newCode = $baseCode . '_' . $counter;
+        $counter++;
+
+        if ($counter > 100) {
+            throw new \RuntimeException('فشل توليد كود فريد');
+        }
+    }
+
+    return $newCode;
+}
     // إضافة هذه الدالة في نفس وحدة التحكم
     private function generateNextCode(string $lastChildCode): string
     {
@@ -349,7 +493,15 @@ $customerAccount->code = $newCode;
         'longitude' => 'required|numeric',
         // بقية قواعد التحقق...
     ]);
+ $rules = [
+        'region_id' => ['required'], // إلزامي فقط
+    ];
 
+    $messages = [
+        'region_id.required' => 'حقل المجموعة مطلوب.', //  
+    ];
+    
+    $request->validate($rules, $messages);
     // بدء المعاملة لضمان سلامة البيانات
     DB::beginTransaction();
 
@@ -378,6 +530,11 @@ $customerAccount->code = $newCode;
 
         // 2. تحديث بيانات العميل الأساسية
         $client->update($data_request);
+        
+        
+        
+
+
 
         // 3. معالجة الإحداثيات - الطريقة المؤكدة
         $client->locations()->delete(); // حذف جميع المواقع القديمة
@@ -387,7 +544,26 @@ $customerAccount->code = $newCode;
             'longitude' => $request->longitude,
             'client_id' => $client->id
         ]);
+   
 
+$neighborhoodName = $this->getNeighborhoodFromGoogle($request->latitude, $request->longitude);
+
+// البحث عن الحي الحالي للعميل
+$Neighborhood = Neighborhood::where('client_id', $client->id)->first();
+
+if ($Neighborhood) {
+    // إذا كان لديه حي، قم بتحديثه
+    $Neighborhood->name = $neighborhoodName ?? "غير محدد";
+    $Neighborhood->region_id = $request->region_id;
+    $Neighborhood->save();
+} else {
+    // إذا لم يكن لديه حي، أضف حيًا جديدًا
+    $Neighborhood = new Neighborhood();
+    $Neighborhood->name = $neighborhoodName ?? "غير محدد";
+    $Neighborhood->region_id = $request->region_id;
+    $Neighborhood->client_id = $client->id;
+    $Neighborhood->save();
+}
         // 4. تحديث بيانات المستخدم
         if ($request->email) {
             $full_name = implode(' ', array_filter([
@@ -491,12 +667,16 @@ $customerAccount->code = $newCode;
     }
 }
 
-    public function edit_question($id)
-    {
-        $client = Client::findOrFail($id);
-        $employees = Employee::all();
-        return view('client.edit', compact('client', 'employees'));
-    }
+ public function edit_question($id)
+{
+    $client = Client::findOrFail($id);
+    $employees = Employee::all();
+    
+    // جلب جميع المجموعات المتاحة
+    $Regions_groub = Region_groub::all();
+    
+    return view('client.edit', compact('client', 'employees', 'Regions_groub'));
+}
     public function destroy($id)
     {
         $client = Client::findOrFail($id);

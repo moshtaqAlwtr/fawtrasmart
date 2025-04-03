@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Client extends Model
 {
@@ -28,6 +29,11 @@ public function branch()
 {
     return $this->belongsTo(Branch::class);
 }
+public function Neighborhoodname()
+{
+    return $this->hasOne(Neighborhood::class, 'client_id');
+}
+
 public function Balance()
 {
     return Account::where('client_id', $this->id)->sum('balance');
@@ -55,6 +61,10 @@ public function Balance()
         }
 
         return implode(', ', $address);
+    }
+     public function accounts(): HasMany
+    {
+        return $this->hasMany(Account::class, 'client_id');
     }
     // العلاقة مع ملاحظات المواعيد
     public function appointmentNotes()
@@ -138,10 +148,7 @@ public function Balance()
 {
     return $this->hasMany(AppointmentNote::class);
 }
-  public function accounts(): HasMany
-    {
-        return $this->hasMany(Account::class, 'client_id');
-    }
+ 
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {

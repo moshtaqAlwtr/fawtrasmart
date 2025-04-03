@@ -1,13 +1,10 @@
-
-
-
 <?php $__env->startSection('title'); ?>
     الفواتير
 <?php $__env->stopSection(); ?>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <?php $__env->startSection('css'); ?>
 
-    <link rel="stylesheet" href="<?php echo e(asset('assets/css/invoice.css')); ?>">
+
     <style>
         .card-header button.active {
             border: 2px solid #007bff;

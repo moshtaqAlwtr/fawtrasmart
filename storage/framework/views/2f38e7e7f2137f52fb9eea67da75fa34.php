@@ -1,6 +1,7 @@
 <?php $__env->startSection('title'); ?>
 لوحة التحكم
 <?php $__env->stopSection(); ?>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <?php $__env->startSection('css'); ?>
     <style>
@@ -46,8 +47,8 @@
                                     <i class="feather icon-users text-primary font-medium-5"></i>
                                 </div>
                             </div>
-                            <h2 class="text-bold-700 mt-1">92.6k</h2>
-                            <p class="mb-0">المشتركين</p>
+                            <h2 class="text-bold-700 mt-1"><?php echo e($ClientCount ?? 0); ?></h2>
+                            <p class="mb-0">العملاء</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-1"></div>
@@ -62,8 +63,8 @@
                                     <i class="feather icon-credit-card text-success font-medium-5"></i>
                                 </div>
                             </div>
-                            <h2 class="text-bold-700 mt-1">97.5k</h2>
-                            <p class="mb-0">الإيرادات</p>
+                            <h2 class="text-bold-700 mt-1"> <?php echo e(number_format($Invoice, 2) ?? 0); ?></h2>
+                            <p class="mb-0">المبيعات</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-2"></div>
@@ -78,8 +79,8 @@
                                     <i class="feather icon-shopping-cart text-danger font-medium-5"></i>
                                 </div>
                             </div>
-                            <h2 class="text-bold-700 mt-1">36%</h2>
-                            <p class="mb-0">المبيعات الربعية</p>
+                            <h2 class="text-bold-700 mt-1"><?php echo e($Visit ?? 0); ?></h2>
+                            <p class="mb-0">الزيارات</p>
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-3"></div>
@@ -99,6 +100,196 @@
                         </div>
                         <div class="card-content">
                             <div id="line-area-chart-4"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="row">
+              <div class="col-lg-4 col-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-end">
+            <h4>مبيعات المجموعات</h4>
+            <div class="dropdown chart-dropdown">
+               
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
+                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                    <a class="dropdown-item" href="#">العام الماضي</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="card-body pt-0">
+                <div id="sales-chart" class="mb-1"></div>
+                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="chart-info d-flex justify-content-between mb-1">
+                        <div class="series-info d-flex align-items-center">
+                            <i class="feather icon-layers font-medium-2 text-primary"></i>
+                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name); ?></span>
+                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
+                        </div>
+                    </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <!--<div class="col-lg-4 col-12">-->
+                <!--    <div class="card chat-application">-->
+                <!--        <div class="card-header">-->
+                <!--            <h4 class="card-title">الدردشة</h4>-->
+                <!--        </div>-->
+                <!--        <div class="chat-app-window">-->
+                <!--            <div class="user-chats">-->
+                <!--                <div class="chats">-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>كعكة السمسم</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>فطيرة التفاح</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>كعكة الشوكولاتة</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>دونات</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>حلوى عرق السوس</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>حلوى التوفي</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>فطيرة التفاح</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>كعكة البسكويت</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--            </div>-->
+                <!--            <div class="chat-footer">-->
+                <!--                <div class="card-body d-flex justify-content-around pt-0">-->
+                <!--                    <input type="text" class="form-control mr-50" placeholder="اكتب رسالتك">-->
+                <!--                    <button type="button" class="btn btn-icon btn-primary"><i class="feather icon-navigation"></i></button>-->
+                <!--                </div>-->
+                <!--            </div>-->
+                <!--        </div>-->
+                <!--    </div>-->
+                <!--</div>-->
+                <div class="col-lg-4 col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between pb-0">
+                            <h4 class="card-title">مبيعات الموظفين</h4>
+                            <div class="dropdown chart-dropdown">
+                               
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body py-0">
+                                <div id="customer-charts">
+                                    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var options = {
+            series: <?php echo json_encode($chartData->pluck('percentage'), 15, 512) ?>,
+            chart: {
+                type: 'donut',
+                height: 300
+            },
+            labels: <?php echo json_encode($chartData->pluck('name'), 15, 512) ?>,
+            colors: ['#007bff', '#ffc107', '#dc3545', '#28a745'],
+            legend: {
+                position: 'bottom'
+            },
+            dataLabels: {
+                formatter: function (val) {
+                    return val.toFixed(2) + "%";
+                }
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#customer-charts"), options);
+        chart.render();
+    });
+</script>
+
+                                    
+                                </div>
+                            </div>
+                         
                         </div>
                     </div>
                 </div>
@@ -237,235 +428,271 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-4 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-end">
-                            <h4>الجلسات حسب الجهاز</h4>
-                            <div class="dropdown chart-dropdown">
-                                <button class="btn btn-sm border-0 dropdown-toggle px-0" type="button" id="dropdownItem1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    آخر 7 أيام
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                                    <a class="dropdown-item" href="#">العام الماضي</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body pt-0">
-                                <div id="session-chart" class="mb-1"></div>
-                                <div class="chart-info d-flex justify-content-between mb-1">
-                                    <div class="series-info d-flex align-items-center">
-                                        <i class="feather icon-monitor font-medium-2 text-primary"></i>
-                                        <span class="text-bold-600 mx-50">كمبيوتر</span>
-                                        <span> - 58.6%</span>
-                                    </div>
-                                    <div class="series-result">
-                                        <span>2%</span>
-                                        <i class="feather icon-arrow-up text-success"></i>
-                                    </div>
-                                </div>
-                                <div class="chart-info d-flex justify-content-between mb-1">
-                                    <div class="series-info d-flex align-items-center">
-                                        <i class="feather icon-tablet font-medium-2 text-warning"></i>
-                                        <span class="text-bold-600 mx-50">جوال</span>
-                                        <span> - 34.9%</span>
-                                    </div>
-                                    <div class="series-result">
-                                        <span>8%</span>
-                                        <i class="feather icon-arrow-up text-success"></i>
-                                    </div>
-                                </div>
-                                <div class="chart-info d-flex justify-content-between mb-50">
-                                    <div class="series-info d-flex align-items-center">
-                                        <i class="feather icon-tablet font-medium-2 text-danger"></i>
-                                        <span class="text-bold-600 mx-50">تابلت</span>
-                                        <span> - 6.5%</span>
-                                    </div>
-                                    <div class="series-result">
-                                        <span>-5%</span>
-                                        <i class="feather icon-arrow-down text-danger"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-12">
-                    <div class="card chat-application">
-                        <div class="card-header">
-                            <h4 class="card-title">الدردشة</h4>
-                        </div>
-                        <div class="chat-app-window">
-                            <div class="user-chats">
-                                <div class="chats">
-                                    <div class="chat">
-                                        <div class="chat-avatar">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>كعكة السمسم</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat chat-left">
-                                        <div class="chat-avatar mt-50">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>فطيرة التفاح</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat">
-                                        <div class="chat-avatar">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>كعكة الشوكولاتة</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat chat-left">
-                                        <div class="chat-avatar mt-50">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>دونات</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat">
-                                        <div class="chat-avatar mt-50">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>حلوى عرق السوس</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat chat-left">
-                                        <div class="chat-avatar mt-50">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>حلوى التوفي</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat">
-                                        <div class="chat-avatar">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>فطيرة التفاح</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="chat chat-left">
-                                        <div class="chat-avatar mt-50">
-                                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">
-                                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />
-                                            </a>
-                                        </div>
-                                        <div class="chat-body">
-                                            <div class="chat-content">
-                                                <p>كعكة البسكويت</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="chat-footer">
-                                <div class="card-body d-flex justify-content-around pt-0">
-                                    <input type="text" class="form-control mr-50" placeholder="اكتب رسالتك">
-                                    <button type="button" class="btn btn-icon btn-primary"><i class="feather icon-navigation"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between pb-0">
-                            <h4 class="card-title">العملاء</h4>
-                            <div class="dropdown chart-dropdown">
-                                <button class="btn btn-sm border-0 dropdown-toggle px-0" type="button" id="dropdownItem3" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    آخر 7 أيام
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem3">
-                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                                    <a class="dropdown-item" href="#">العام الماضي</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body py-0">
-                                <div id="customer-chart"></div>
-                            </div>
-                            <ul class="list-group list-group-flush customer-info">
-                                <li class="list-group-item d-flex justify-content-between ">
-                                    <div class="series-info">
-                                        <i class="fa fa-circle font-small-3 text-primary"></i>
-                                        <span class="text-bold-600">جديد</span>
-                                    </div>
-                                    <div class="product-result">
-                                        <span>890</span>
-                                    </div>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between ">
-                                    <div class="series-info">
-                                        <i class="fa fa-circle font-small-3 text-warning"></i>
-                                        <span class="text-bold-600">عائد</span>
-                                    </div>
-                                    <div class="product-result">
-                                        <span>258</span>
-                                    </div>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between ">
-                                    <div class="series-info">
-                                        <i class="fa fa-circle font-small-3 text-danger"></i>
-                                        <span class="text-bold-600">مراجع</span>
-                                    </div>
-                                    <div class="product-result">
-                                        <span>149</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+              <div class="col-lg-4 col-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-end">
+            <h4>مبيعات المجموعات</h4>
+            <div class="dropdown chart-dropdown">
+               
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
+                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                    <a class="dropdown-item" href="#">العام الماضي</a>
                 </div>
             </div>
+        </div>
+        <div class="card-content">
+            <div class="card-body pt-0">
+                <div id="sales-chart" class="mb-1"></div>
+                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <div class="chart-info d-flex justify-content-between mb-1">
+                        <div class="series-info d-flex align-items-center">
+                            <i class="feather icon-layers font-medium-2 text-primary"></i>
+                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name); ?></span>
+                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
+                        </div>
+                    </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <!--<div class="col-lg-4 col-12">-->
+                <!--    <div class="card chat-application">-->
+                <!--        <div class="card-header">-->
+                <!--            <h4 class="card-title">الدردشة</h4>-->
+                <!--        </div>-->
+                <!--        <div class="chat-app-window">-->
+                <!--            <div class="user-chats">-->
+                <!--                <div class="chats">-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>كعكة السمسم</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>فطيرة التفاح</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>كعكة الشوكولاتة</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>دونات</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>حلوى عرق السوس</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>حلوى التوفي</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat">-->
+                <!--                        <div class="chat-avatar">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>فطيرة التفاح</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="chat chat-left">-->
+                <!--                        <div class="chat-avatar mt-50">-->
+                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
+                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
+                <!--                            </a>-->
+                <!--                        </div>-->
+                <!--                        <div class="chat-body">-->
+                <!--                            <div class="chat-content">-->
+                <!--                                <p>كعكة البسكويت</p>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
+                <!--            </div>-->
+                <!--            <div class="chat-footer">-->
+                <!--                <div class="card-body d-flex justify-content-around pt-0">-->
+                <!--                    <input type="text" class="form-control mr-50" placeholder="اكتب رسالتك">-->
+                <!--                    <button type="button" class="btn btn-icon btn-primary"><i class="feather icon-navigation"></i></button>-->
+                <!--                </div>-->
+                <!--            </div>-->
+                <!--        </div>-->
+                <!--    </div>-->
+                <!--</div>-->
+              
+            </div>
         </section>
+
 
     </div>
 
 <?php $__env->stopSection(); ?>
-
-
 <?php $__env->startSection('scripts'); ?>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!navigator.geolocation) {
+            console.error("❌ المتصفح لا يدعم ميزة تحديد الموقع الجغرافي.");
+            return;
+        }
+
+        // متغيرات لتخزين الإحداثيات السابقة
+        let previousLatitude = null;
+        let previousLongitude = null;
+
+        // طلب الوصول إلى الموقع
+        requestLocationAccess();
+
+        function requestLocationAccess() {
+            navigator.permissions.query({ name: 'geolocation' }).then(function (result) {
+                if (result.state === "granted") {
+                    // إذا كان الإذن ممنوحًا مسبقًا، ابدأ بمتابعة الموقع
+                    watchEmployeeLocation();
+                } else if (result.state === "prompt") {
+                    // إذا لم يكن الإذن ممنوحًا، اطلبه من المستخدم
+                    navigator.geolocation.getCurrentPosition(
+                        function () {
+                            watchEmployeeLocation();
+                        },
+                        function (error) {
+                            console.error("❌ خطأ في الحصول على الموقع:", error);
+                        }
+                    );
+                } else {
+                    console.error("⚠️ الوصول إلى الموقع محظور! يرجى تغييره من إعدادات المتصفح.");
+                }
+            });
+        }
+
+        // دالة لمتابعة تغييرات الموقع
+        function watchEmployeeLocation() {
+            navigator.geolocation.watchPosition(
+                function (position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    console.log("📍 الإحداثيات الجديدة:", latitude, longitude);
+
+                    // التحقق من تغيير الموقع
+                    if (latitude !== previousLatitude || longitude !== previousLongitude) {
+                        console.log("🔄 الموقع تغير، يتم التحديث...");
+
+                        // إرسال البيانات إلى السيرفر
+                        fetch("<?php echo e(route('visits.storeEmployeeLocation')); ?>", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "<?php echo e(csrf_token()); ?>"
+                            },
+                            body: JSON.stringify({ latitude, longitude })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error("❌ خطأ في الشبكة");
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("✅ تم تحديث الموقع بنجاح:", data);
+                        })
+                        .catch(error => {
+                            console.error("❌ خطأ في تحديث الموقع:", error);
+                        });
+
+                        // تحديث الإحداثيات السابقة
+                        previousLatitude = latitude;
+                        previousLongitude = longitude;
+                    } else {
+                        console.log("⏹️ الموقع لم يتغير.");
+                    }
+                },
+                function (error) {
+                    console.error("❌ خطأ في متابعة الموقع:", error);
+                },
+                {
+                    enableHighAccuracy: true, // دقة عالية
+                    timeout: 5000, // انتظار 5 ثواني
+                    maximumAge: 0 // لا تستخدم بيانات موقع قديمة
+                }
+            );
+        }
+    });
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var options = {
+        chart: {
+            type: 'bar',
+            height: 350
+        },
+        series: [{
+            name: 'المبيعات',
+            data: <?php echo json_encode($groups->pluck('total_sales'), 15, 512) ?>
+        }],
+        xaxis: {
+            categories: <?php echo json_encode($groups->pluck('Region.name'), 15, 512) ?>
+        }
+    };
+
+    var chart = new ApexCharts(document.querySelector("#sales-chart"), options);
+    chart.render();
+});
+</script>
+
+<?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/sehohoqm/hitstest.sehoool.com/resources/views/dashboard/sales/index.blade.php ENDPATH**/ ?>

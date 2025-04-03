@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class InstallmentPayment extends Model
 {
-   protected $fillable = ['amount', 'payment_date', 'status','created_by','account_id','salary_advance_id','installment_number'];
+   protected $fillable = ['amount', 'payment_date', 'status','created_by','account_id','salary_advance_id','installment_number','due_date'];
     
     public function salaryAdvance()
     {

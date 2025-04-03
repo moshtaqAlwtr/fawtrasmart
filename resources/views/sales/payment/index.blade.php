@@ -364,12 +364,12 @@
                                             </button>
                                         </form>
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', $payment->id) }}">
+                                            <a class="dropdown-item" href="#">
                                                 <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', $payment->id) }}">
+                                            <a class="dropdown-item" href="#">
                                                 <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات حراري
                                             </a>
                                         </li>
