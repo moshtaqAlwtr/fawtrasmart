@@ -114,7 +114,7 @@ class ClientController extends Controller
         $employees = Employee::all();
         $statuses = Statuses::select('id', 'name', 'color')->get();
         $creditLimit = CreditLimit::first();
-        // $due = Account::where('client_id', $id)->sum('balance');
+
         return view('client.index', compact(
             'clients',
             'users',
@@ -575,7 +575,7 @@ $customerAccount->code = $newCode;
         // تحميل الفواتير والمدفوعات
         $invoices = $client->invoices;
         $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
- 
+        $due = Account::where('client_id', $id)->sum('balance');
         
         $payments = $client->payments()->orderBy('payment_date', 'desc')->get();
 

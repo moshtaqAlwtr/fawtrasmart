@@ -282,7 +282,7 @@ class CreditNotificationController extends Controller
             $tax_rate = floatval($validated['tax_rate'] ?? 0); // الحصول على نسبة الضريبة من المستخدم
 
             $tax_total = 0;
-       
+
             // حساب الضريبة بناءً على القيمة التي يدخلها المستخدم في tax_1 أو tax_2
             foreach ($request->items as $item) {
                 $tax_1 = floatval($item['tax_1'] ?? 0); // الضريبة الأولى
@@ -295,7 +295,7 @@ class CreditNotificationController extends Controller
                 // إضافة الضريبة إلى الإجمالي
                 $tax_total += $item_tax;
             }
-        
+
 
             // ** إضافة تكلفة الشحن (إذا وجدت) **
             $shipping_cost = floatval($validated['shipping_cost'] ?? 0);
@@ -332,11 +332,11 @@ class CreditNotificationController extends Controller
                 'grand_total' => $total_with_tax,
                 'status' => 1, // حالة العرض (1: Draft)
             ]);
-            
+
              foreach ($request->items as $item) {
     // حساب الإجمالي لكل منتج (السعر × الكمية)
-    $item_subtotal = $item['unit_price'] * $item['quantity']; 
-    
+    $item_subtotal = $item['unit_price'] * $item['quantity'];
+
     // حساب قيمة الضريبة 1 إن وجدت
     if (!empty($item['tax_1_id'])) {
         $tax1 = TaxSitting::find($item['tax_1_id']);
@@ -348,7 +348,7 @@ class CreditNotificationController extends Controller
                 'type' => $tax1->type,
                 'rate' => $tax1->tax,
                 'value' => $tax_value1,
-                 'type_invoice' =>     'credit',    
+                 'type_invoice' =>     'credit',
             ]);
         }
     }
@@ -364,7 +364,7 @@ class CreditNotificationController extends Controller
                 'type' => $tax2->type,
                 'rate' => $tax2->tax,
                 'value' => $tax_value2,
-                 'type_invoice' =>     'credit',       
+                 'type_invoice' =>     'credit',
             ]);
         }
     }
@@ -408,10 +408,10 @@ class CreditNotificationController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $creditNot->client_id,
 
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
-         
+
             // // 2. حساب مردود المبيعات (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
@@ -477,11 +477,11 @@ class CreditNotificationController extends Controller
                 $retursalesnAccount->balance += $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $retursalesnAccount->save();
             }
-            
+
             if ($costAccount) {
                 $costAccount->balance -= $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $costAccount->save();
-            } 
+            }
             DB::commit();
             return redirect()->route('CreditNotes.index')->with('success', 'تم إنشاء اشعار دائن  بنجاح');
         // } catch (\Exception $e) {

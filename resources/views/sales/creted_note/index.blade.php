@@ -336,157 +336,172 @@
             </div>
         </div>
         <div class="card">
-            <!-- قائمة الاشعارات الدائنة -->
-            @foreach ($credits as $credit)
-                <div class="card-body">
-                    <div class="row border-bottom py-2 align-items-center">
-                        <!-- معلومات الاشعار الدائن -->
-                        <div class="col-md-4">
-                            <p class="mb-0">
-                                <strong>#{{ $credit->credit_number }}</strong>
-                            </p>
-                            <small class="text-muted">
-                                <i class="fas fa-user me-1"></i>
-                                {{ $credit->client ? ($credit->client->trade_name ?: $credit->client->first_name . ' ' . $credit->client->last_name) : 'عميل غير معروف' }}
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="15%">رقم الإشعار</th>
+                                <th width="25%">العميل</th>
+                                <th width="15%">التاريخ</th>
+                                <th width="15%" class="text-center">المبلغ</th>
+                                <th width="15%" class="text-center">الحالة</th>
+                                <th width="15%" class="text-end">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($credits as $credit)
+                                <tr>
+                                    <!-- رقم الإشعار -->
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <strong>#{{ $credit->credit_number }}</strong>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user-tie me-1"></i>
+                                                {{ $credit->createdBy->name ?? 'غير محدد' }}
+                                            </small>
+                                            <small class="text-muted">
+                                                <i class="fas fa-mobile-alt me-1"></i> تطبيق الهاتف
+                                            </small>
+                                        </div>
+                                    </td>
 
-                                الرقم الضريبي
-                                @if ($credit->client && $credit->client->tax_number)
-                                    <i class="fas fa- me-1"></i>{{ $credit->client->tax_number }}
-                                @endif
-                            </small>
-                            <small class="d-block">
-                                @if ($credit->client && $credit->client->full_address)
-                                    <i class="fas fa-map-marker-alt me-1"></i>{{ $credit->client->full_address }}
-                                @endif
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-user-tie me-1"></i> بواسطة:
-                                {{ $credit->createdBy->name ?? 'غير محدد' }}
-                            </small>
-                            <p class="mb-0 text-muted">
-                                <i class="fas fa-mobile-alt me-1"></i> المصدر: تطبيق الهاتف المحمول
-                            </p>
-                        </div>
+                                    <!-- بيانات العميل -->
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <strong>{{ $credit->client ? ($credit->client->trade_name ?: $credit->client->first_name . ' ' . $credit->client->last_name) : 'عميل غير معروف' }}</strong>
 
-                        <!-- تاريخ الاشعار الدائن -->
-                        <div class="col-md-3">
-                            <p class="mb-0">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                {{ $credit->credit_date ? $credit->credit_date : '--' }}
-                            </p>
-                            <small class="text-muted">
-                                <i class="fas fa-user me-1"></i> بواسطة:
-                                {{ $credit->createdBy->name ?? 'غير محدد' }}
-                            </small>
-                        </div>
+                                            @if($credit->client)
+                                                <small class="text-muted">
+                                                    <i class="fas fa-hashtag me-1"></i>
+                                                    {{ $credit->client->tax_number ?? 'لا يوجد' }}
+                                                </small>
+
+                                                @if($credit->client->full_address)
+                                                    <small class="text-muted text-truncate" style="max-width: 200px;" title="{{ $credit->client->full_address }}">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                                        {{ $credit->client->full_address }}
+                                                    </small>
+                                                @endif
+                                            @endif
+                                        </div>
+                                    </td>
+
+                                    <!-- التاريخ -->
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span>{{ $credit->credit_date ? $credit->credit_date : '--' }}</span>
+                                            <small class="text-muted">
+                                                <i class="fas fa-user me-1"></i>
+                                                {{ $credit->createdBy->name ?? 'غير محدد' }}
+                                            </small>
+                                        </div>
+                                    </td>
+
+                                    <!-- المبلغ -->
+                                    <td class="text-center">
                                         @php
                                             $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                            $currencySymbol = $currency == 'SAR' || empty($currency)
+                                                ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                : $currency;
                                         @endphp
-                        <!-- المبلغ وحالة الاشعار -->
-                        <div class="col-md-3 text-center">
-                            <!-- عرض المبلغ الإجمالي -->
-                            <div class="mb-2">
-                                <strong class="text-danger fs-2 d-block">
-                                    {{ number_format($credit->grand_total, 2) }}
-                                    <small class="currency">{!! $currencySymbol !!}</small>
-                                </strong>
+                                        <strong class="text-danger">
+                                            {{ number_format($credit->grand_total, 2) }}
+                                            <small class="currency">{!! $currencySymbol !!}</small>
+                                        </strong>
+                                    </td>
 
-                                <!-- عرض حالة الاشعار مع تغيير اللون بناءً على الحالة -->
-                                @php
-                                    $statusClass = '';
-                                    $statusText = '';
+                                    <!-- الحالة -->
+                                    <td class="text-center">
+                                        @php
+                                            switch ($credit->status) {
+                                                case 1: $statusClass = 'bg-success'; $statusText = 'مسودة'; break;
+                                                case 2: $statusClass = 'bg-warning'; $statusText = 'قيد الانتظار'; break;
+                                                case 3: $statusClass = 'bg-primary'; $statusText = 'معتمد'; break;
+                                                case 4: $statusClass = 'bg-info'; $statusText = 'تم التحويل'; break;
+                                                case 5: $statusClass = 'bg-danger'; $statusText = 'ملغى'; break;
+                                                default: $statusClass = 'bg-secondary'; $statusText = 'غير معروف';
+                                            }
+                                        @endphp
+                                        <span class="badge {{ $statusClass }} p-2 rounded-pill">
+                                            <i class="fas fa-circle me-1"></i> {{ $statusText }}
+                                        </span>
+                                    </td>
 
-                                    switch ($credit->status) {
-                                        case 1:
-                                            $statusClass = 'bg-success';
-                                            $statusText = 'مسودة';
-                                            break;
-                                        case 2:
-                                            $statusClass = 'bg-warning';
-                                            $statusText = 'قيد الانتظار';
-                                            break;
-                                        case 3:
-                                            $statusClass = 'bg-primary';
-                                            $statusText = 'معتمد';
-                                            break;
-                                        case 4:
-                                            $statusClass = 'bg-info';
-                                            $statusText = 'تم التحويل إلى فاتورة';
-                                            break;
-                                        case 5:
-                                            $statusClass = 'bg-danger';
-                                            $statusText = 'ملغى';
-                                            break;
-                                        default:
-                                            $statusClass = 'bg-secondary';
-                                            $statusText = 'غير معروف';
-                                    }
-                                @endphp
-
-                                <!-- عرض حالة الاشعار -->
-                                <span class="badge {{ $statusClass }} d-inline-block mt-2 p-1 rounded small"
-                                    style="font-size: 0.8rem;">
-                                    <i class="fas fa-circle me-1"></i> {{ $statusText }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- الأزرار -->
-                        <div class="col-md-2 text-end">
-                            <div class="btn-group">
-                                <div class="dropdown">
-                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                        id="dropdownMenuButton{{ $credit->id }}" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $credit->id }}">
-                                        <a class="dropdown-item" href="{{ route('CreditNotes.edit', $credit->id) }}">
-                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                        </a>
-                                        <a class="dropdown-item" href="{{ route('CreditNotes.show', $credit->id) }}">
-                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            <i class="fa fa-money-bill me-2 text-success"></i>إضافة دفعة
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-                                        </a>
-                                        <a class="dropdown-item" href="{{ route('CreditNotes.print', $credit->id) }}" target="_blank">
-                                            <i class="fa fa-print me-2 text-dark"></i>طباعة
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
-                                        </a>
-                                        <a class="dropdown-item" href="#">
-                                            <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                        </a>
-                                        <form action="{{ route('CreditNotes.destroy', $credit->id) }}" method="POST"
-                                            class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="fa fa-trash me-2"></i>حذف
+                                    <!-- الإجراءات -->
+                                    <td class="text-end">
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm bg-gradient-info dropdown-toggle" type="button"
+                                                    id="dropdownMenuButton{{ $credit->id }}" data-bs-toggle="dropdown"
+                                                    aria-expanded="false">
+                                                <i class="fas fa-ellipsis-v"></i>
                                             </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $credit->id }}">
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('CreditNotes.edit', $credit->id) }}">
+                                                        <i class="fas fa-edit me-2 text-success"></i>تعديل
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('CreditNotes.show', $credit->id) }}">
+                                                        <i class="fas fa-eye me-2 text-primary"></i>عرض
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-money-bill me-2 text-success"></i>إضافة دفعة
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-file-pdf me-2 text-danger"></i>PDF
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('CreditNotes.print', $credit->id) }}" target="_blank">
+                                                        <i class="fas fa-print me-2 text-dark"></i>طباعة
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-envelope me-2 text-warning"></i>إرسال
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="#">
+                                                        <i class="fas fa-copy me-2 text-secondary"></i>نسخ
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{{ route('CreditNotes.destroy', $credit->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            <i class="fas fa-trash me-2"></i>حذف
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="alert alert-warning mb-0">
+                                            <i class="fas fa-exclamation-circle me-2"></i>لا توجد اشعارات دائنة
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            @endforeach
-
-            <!-- إذا لم تكن هناك اشعارات دائنة -->
-            @if ($credits->isEmpty())
-                <div class="alert alert-warning" role="alert">
-                    <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد اشعارات دائنة</p>
-                </div>
-            @endif
+            </div>
         </div>
-
-
 
 
 
