@@ -74,7 +74,6 @@ class AccountSeeder extends Seeder
         // باقي الحسابات
         $this->createSubAccount($longTermLiabilities->id, 'اوراق الدفع');
         $this->createSubAccount($longTermLiabilities->id, 'مجمع الاهلاك');
-        $this->createSubAccount($longTermLiabilities->id, 'الأجور المستحقة');
         $RequiredAddedValue = $this->createSubAccount($longTermLiabilities->id, 'القيمة المضافة المطلوبة');
         $this->createSubAccount($RequiredAddedValue->id, 'القيمة المضافة المحصلة');
         $this->createSubAccount($longTermLiabilities->id, 'أرصدة افتتاحية');
@@ -112,8 +111,6 @@ class AccountSeeder extends Seeder
         $this->createSubAccount($adminExpenses->id, 'مياه');
         $this->createSubAccount($adminExpenses->id, 'مصاريف حكومية');
 
-
-        $salary = $this->createSubAccount($expenses->id, 'الرواتب والأجور');
         // حساب مصروفات الاهلاك
         $this->createSubAccount($expenses->id, 'مصروفات الاهلاك');
 

@@ -57,14 +57,14 @@
                 <div class="row mb-2">
                     <div class="col-md-6">
                         <label for="employee" class="form-label">الاسم <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="application-date" name="name" value="{{ old('name') }}" required>
+                        <input type="text" class="form-control" id="application-date" name="name" value="{{ old('name') }}">
                     </div>
 
                     <div class="col-md-6">
                         <label for="">الحالة <span class="text-danger">*</span></label>
-                        <select name="status" class="form-control" required>
-                            <option value="1" {{ old('status', 1) == 1 ? 'selected' : '' }}>نشط</option>
-                            <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>غير نشط</option>
+                        <select name="status" class="form-control">
+                            <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>نشط</option>
+                            <option value="1" {{ old('status') == 1 ? 'selected' : '' }}>غير نشط</option>
                         </select>
                     </div>
                 </div>
@@ -88,7 +88,7 @@
 
                     <div class="col-md-6">
                         <label for="">التحقق <span class="text-danger">*</span></label>
-                        <select name="image_investigation" class="form-control" required>
+                        <select name="image_investigation" class="form-control">
                             <option value="1" {{ old('image_investigation') == 1 ? 'selected' : '' }}>مطلوب</option>
                             <option value="2" {{ old('image_investigation') == 2 ? 'selected' : '' }}>اختياري</option>
                         </select>
@@ -114,14 +114,14 @@
 
                     <div class="col-md-6">
                         <label for="">التحقق <span class="text-danger">*</span></label>
-                        <select name="ip_investigation" class="form-control" required>
-                            <option value="1" {{ old('ip_investigation') == 1 ? 'selected' : '' }}>مطلوب</option>
-                            <option value="2" {{ old('ip_investigation') == 2 ? 'selected' : '' }}>اختياري</option>
+                        <select name="image_investigation" class="form-control">
+                            <option value="1" {{ old('image_investigation') == 1 ? 'selected' : '' }}>مطلوب</option>
+                            <option value="2" {{ old('image_investigation') == 2 ? 'selected' : '' }}>اختياري</option>
                         </select>
                     </div>
 
                     <div class="col-md-12">
-                        <label for="">بروتوكولات التعريف الشبكى المسموح بها</label>
+                        <label for="">بروتوكولات التعريف الشبكى المسموح بها <span class="text-danger">*</span></label>
                         <textarea name="allowed_ips" class="form-control" rows="2">{{ old('allowed_ips','2a02:cb80:4226:39aa:a4b2:a9c2:913d:a3de') }}</textarea>
                     </div>
                 </div>
@@ -132,7 +132,7 @@
                     <div class="col-md-6 mt-1">
                         <fieldset>
                             <div class="vs-checkbox-con vs-checkbox-primary">
-                                <input type="checkbox" value="1" name="enable_location_verification" id="enable_location_verification" {{ old('enable_location_verification') == 1 ? 'checked' : '' }}>
+                                <input type="checkbox" value="1" name="enable_location_verification" {{ old('enable_location_verification') == 1 ? 'checked' : '' }}>
                                 <span class="vs-checkbox">
                                     <span class="vs-checkbox--check">
                                         <i class="vs-icon feather icon-check"></i>
@@ -145,32 +145,36 @@
 
                     <div class="col-md-6">
                         <label for="">التحقق <span class="text-danger">*</span></label>
-                        <select name="location_investigation" class="form-control" required>
+                        <select name="location_investigation" class="form-control">
                             <option value="1" {{ old('location_investigation') == 1 ? 'selected' : '' }}>مطلوب</option>
                             <option value="2" {{ old('location_investigation') == 2 ? 'selected' : '' }}>اختياري</option>
                         </select>
                     </div>
 
-                    <div class="col-md-6" id="radius_field">
+                    <div class="col-md-6">
                         <label for="">نطاق التوقيع <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control" min="1" step="0.01" name="radius" value="{{ old('radius') }}" id="radius_input">
+                        <input type="number" class="form-control" min="1" step="0.01"  name="radius" value="{{ old('radius') }}">
                     </div>
 
-                    <div class="col-md-6" id="radius_type_field">
+                    <div class="col-md-6">
                         <label for="">المقياس <span class="text-danger">*</span></label>
-                        <select name="radius_type" class="form-control" id="radius_type_select">
+                        <select name="radius_type" class="form-control">
                             <option value="1" {{ old('radius_type') == 1 ? 'selected' : '' }}>أمتار</option>
                             <option value="2" {{ old('radius_type') == 2 ? 'selected' : '' }}>كيلومترات</option>
                         </select>
                     </div>
 
-                    <div class="col-md-12 mt-2">
+                    <br>
+
+                    <div class="col-md-12">
                         <label class="mb-2">الموقع <span class="text-danger">*</span></label>
                         <div id="map" style="width: 100%; height: 400px"></div>
-                        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', '24.7136') }}">
-                        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', '46.6753') }}">
+                        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude') }}">
+                        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude') }}">
                     </div>
                 </div>
+
+
             </form>
         </div>
     </div>
@@ -178,12 +182,11 @@
 @endsection
 
 @section('scripts')
+
     <script>
         function initMap() {
             // إعداد موقع الخريطة الافتراضي
-            const defaultLat = parseFloat(document.getElementById('latitude').value) || 24.7136;
-            const defaultLng = parseFloat(document.getElementById('longitude').value) || 46.6753;
-            const center = { lat: defaultLat, lng: defaultLng };
+            const center = { lat: 24.7136, lng: 46.6753 }; // الرياض كموقع افتراضي
 
             // إنشاء الخريطة
             const map = new google.maps.Map(document.getElementById("map"), {
@@ -195,67 +198,43 @@
             const marker = new google.maps.Marker({
                 position: center,
                 map: map,
-                draggable: true,
+                draggable: true, // يتيح سحب المؤشر
             });
 
             // تحديث الحقول المخفية عند تحريك المؤشر
-            function updatePosition(lat, lng) {
+            function updateHiddenFields(lat, lng) {
                 document.getElementById("latitude").value = lat;
                 document.getElementById("longitude").value = lng;
-                marker.setPosition({ lat: lat, lng: lng });
-                map.panTo({ lat: lat, lng: lng });
             }
 
             // حدث النقر على الخريطة
-            map.addListener("click", function(event) {
-                updatePosition(event.latLng.lat(), event.latLng.lng());
+            map.addListener("click", function (event) {
+                const latitude = event.latLng.lat(); // إحداثيات العرض (Latitude)
+                const longitude = event.latLng.lng(); // إحداثيات الطول (Longitude)
+
+                // نقل المؤشر إلى الموقع الجديد
+                marker.setPosition(event.latLng);
+
+                // تحديث الحقول المخفية
+                updateHiddenFields(latitude, longitude);
             });
 
             // حدث سحب المؤشر
-            marker.addListener("dragend", function(event) {
-                updatePosition(event.latLng.lat(), event.latLng.lng());
+            marker.addListener("dragend", function (event) {
+                const latitude = event.latLng.lat(); // إحداثيات العرض (Latitude)
+                const longitude = event.latLng.lng(); // إحداثيات الطول (Longitude)
+
+                // تحديث الحقول المخفية
+                updateHiddenFields(latitude, longitude);
             });
 
-            // التحكم في إظهار/إخفاء حقول النطاق
-            const locationCheckbox = document.getElementById('enable_location_verification');
-            const radiusField = document.getElementById('radius_field');
-            const radiusTypeField = document.getElementById('radius_type_field');
-            const radiusInput = document.getElementById('radius_input');
-            const radiusTypeSelect = document.getElementById('radius_type_select');
-
-            function toggleRadiusFields() {
-                if (locationCheckbox.checked) {
-                    radiusField.style.display = 'block';
-                    radiusTypeField.style.display = 'block';
-                    radiusInput.required = true;
-                    radiusTypeSelect.required = true;
-                } else {
-                    radiusField.style.display = 'none';
-                    radiusTypeField.style.display = 'none';
-                    radiusInput.required = false;
-                    radiusTypeSelect.required = false;
-                }
-            }
-
-            // التهيئة الأولية
-            toggleRadiusFields();
-
-            // إضافة مستمع للحدث
-            locationCheckbox.addEventListener('change', toggleRadiusFields);
+            // إعداد القيم الافتراضية للحقلين المخفيين عند تحميل الخريطة
+            updateHiddenFields(center.lat, center.lng);
         }
-
-        // تحميل خرائط جوجل
-        function loadGoogleMaps() {
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap`;
-            script.async = true;
-            script.defer = true;
-            document.body.appendChild(script);
-        }
-
-        // تحميل الخرائط عند اكتمال تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            loadGoogleMaps();
-        });
     </script>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB6Hsnt5MiyjXtrGT5q-5KUj09XmLPV5So&callback=initMap">
+    </script>
+
 @endsection

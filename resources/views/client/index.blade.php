@@ -222,6 +222,7 @@
                                     <th width="50">#</th>
                                     <th>معلومات العميل</th>
                                     <th>العنوان</th>
+                                    <th>الكود</th>
                                     <th>رقم الهاتف</th>
                                     <th style="width: 10%">الإجراءات</th>
                                 </tr>
@@ -257,6 +258,7 @@
                                                 {{ $client->city }}, {{ $client->region }}
                                             </p>
                                         </td>
+                                        <td>{{$client->code ?? ""}}</td>
                                         <td>
                                             <strong class="text-primary">
                                                 <i class="fas fa-phone me-2"></i>{{ $client->phone }}
@@ -555,8 +557,9 @@
                         </tr>
                         <tr>
                             <td style="color: #666;">الرصيد:</td>
-                            <td style="color: {{ $client->Balance < 0 ? '#EA4335' : '#34A853' }}; font-weight: bold;">
-                                {{ $client->Balance }} ر.س
+                            <td style="color: {{ $client->Balance() < 0 ? '#EA4335' : '#34A853' }}; font-weight: bold;">
+                                {{ $client->Balance() }} ر.س
+                         
                             </td>
                         </tr>
                     </table>

@@ -28,7 +28,10 @@ public function branch()
 {
     return $this->belongsTo(Branch::class);
 }
-
+public function Balance()
+{
+    return Account::where('client_id', $this->id)->sum('balance');
+}
     public function getFullAddressAttribute()
     {
         $address = [];
@@ -135,6 +138,10 @@ public function branch()
 {
     return $this->hasMany(AppointmentNote::class);
 }
+  public function accounts(): HasMany
+    {
+        return $this->hasMany(Account::class, 'client_id');
+    }
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {

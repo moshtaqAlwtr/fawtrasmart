@@ -575,6 +575,8 @@ $customerAccount->code = $newCode;
         // تحميل الفواتير والمدفوعات
         $invoices = $client->invoices;
         $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
+        $due = Account::where('client_id', $id)->sum('balance');
+        
         $payments = $client->payments()->orderBy('payment_date', 'desc')->get();
 
         // تحميل الملاحظات
@@ -597,6 +599,7 @@ $customerAccount->code = $newCode;
             'client',
             'ClientRelations',
             'visits',
+            'due',
             'invoice_due',
             'statuses',
             'account',
