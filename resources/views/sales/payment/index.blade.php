@@ -364,13 +364,13 @@
                                             </button>
                                         </form>
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', $payment->id) }}">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
+                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=a4">
+                                                <i class="fa fa-envelope me-2 text-warning"></i>إيصال مدفوعات (A4)
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', $payment->id) }}">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات حراري
+                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=thermal">
+                                                <i class="fa fa-envelope me-2 text-warning"></i>إيصال مدفوعات (حراري)
                                             </a>
                                         </li>
                                     </div>

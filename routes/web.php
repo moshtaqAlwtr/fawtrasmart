@@ -263,6 +263,9 @@ Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteSta
                     Route::get('/show/{id}', [PaymentProcessController::class, 'show'])->name('paymentsClient.show');
                     Route::get('/rereceipt/{id}', [PaymentProcessController::class, 'rereceipt'])->name('paymentsClient.rereceipt');
                     Route::get('/edit/{id}', [PaymentProcessController::class, 'edit'])->name('paymentsClient.edit');
+
+                    Route::get('/receipt/pdf/{id}', [PaymentProcessController::class, 'pdfReceipt'])->name('paymentsClient.pdf');
+
                     Route::delete('/destroy/{id}', [PaymentProcessController::class, 'destroy'])->name('paymentsClient.destroy');
 
                     Route::put('/update/{id}', [PaymentProcessController::class, 'update'])->name('paymentsClient.update');

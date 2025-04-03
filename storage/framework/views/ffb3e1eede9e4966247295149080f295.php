@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
-
 <head>
     <meta charset="UTF-8">
-    <title>إيصال استلام #{{ $receipt->id }}</title>
+    <title>إيصال استلام #<?php echo e($receipt->id); ?></title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -96,75 +95,76 @@
         }
     </style>
 </head>
-
 <body>
     <div class="receipt-container">
         <div class="receipt-header">
-            <div class="receipt-title">إيصال استلام</div>
-            <div>{{ $receipt->branch->name ?? 'مؤسسة أعمال خاصة للنجارة' }}</div>
-            <div>{{ $receipt->branch->address ?? 'الرياض' }}</div>
+            <div class="company-name"><?php echo e($receipt->branch->name ?? 'مؤسسة أعمال خاصة للنجارة'); ?></div>
+            <div><?php echo e($receipt->branch->address ?? 'الرياض - المملكة العربية السعودية'); ?></div>
+            <div>السجل التجاري: <?php echo e($receipt->branch->commercial_register ?? '١٢٣٤٥٦٧٨٩'); ?></div>
+            <h1 class="receipt-title">إيصال استلام</h1>
         </div>
 
         <div class="receipt-info">
             <div class="info-row">
-                <span class="info-label">رقم:</span>
-                <span>{{ str_pad($receipt->id, 6, '0', STR_PAD_LEFT) }}</span>
+                <span class="info-label">رقم الإيصال:</span>
+                <span><?php echo e(str_pad($receipt->id, 6, '0', STR_PAD_LEFT)); ?></span>
             </div>
 
             <div class="info-row">
-                <span class="info-label">تاريخ:</span>
-                <span>{{ $receipt->payment_date->format('d/m/Y') }}</span>
+                <span class="info-label">التاريخ:</span>
+                <span><?php echo e($receipt->payment_date->format('d/m/Y')); ?></span>
             </div>
 
             <div class="info-row">
-                <span class="info-label">من:</span>
+                <span class="info-label">اسم العميل:</span>
                 <span>
-                    {{ $receipt->invoice->client->trade_name ?? 'غير محدد' }}
+                    <span>
+                        <?php echo e($receipt->invoice->client->trade_name ??'غير محدد'); ?>
+
+                    </span>
                 </span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">المبلغ:</span>
-                <span>SAR {{ number_format($receipt->amount, 2) }}</span>
+                <span>SAR <?php echo e(number_format($receipt->amount, 2)); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">المستلم:</span>
-                <span>{{ $receipt->employee->name ?? 'عدنان العولقي' }}</span>
+                <span><?php echo e($receipt->invoice->employee->full_name ?? 'غير محدد'); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">الخزينة:</span>
-                <span>{{ $receipt->treasury->name ?? 'خزينة الشرقية' }}</span>
+                <span><?php echo e($receipt->treasury->name ?? 'خزينة الرئيسية'); ?></span>
             </div>
         </div>
 
         <div class="payment-details">
-            <div>طريقة الدفع: {{ $receipt->payment_type->name ?? 'غير محدد' }}</div>
-            <div>رقم المرجع: {{ $receipt->reference_number ?? 'غير محدد' }}</div>
+            <div>طريقة الدفع: <?php echo e($receipt->payment_type->name ?? 'غير محدد'); ?></div>
+            <div>رقم المرجع: <?php echo e($receipt->reference_number ?? 'غير محدد'); ?></div>
         </div>
 
         <div class="signature-area">
-            <div>......</div>
-            <div class="signature-line">التوقيع: {{ $receipt->employee->name ?? 'غير محدد' }}</div>
-            <div style="margin-top: 30px;">شكراً لتعاملكم معنا</div>
-            <div style="margin-top: 10px;">لديك سؤال؟</div>
+            <div class="signature-line">التوقيع: <?php echo e($receipt->employee->name ?? 'المحاسب'); ?></div>
+            <div style="margin-top: 1cm;">ختم الشركة</div>
         </div>
 
-        @if ($receipt->payment_status == 1)
-            <div class="stamp">
-                <div class="stamp-content">مدفوع</div>
-            </div>
-        @endif
+        <?php if($receipt->payment_status == 1): ?>
+        <div class="stamp">
+            <div class="stamp-content">مدفوع</div>
+        </div>
+        <?php endif; ?>
+
+        <div class="footer-note">
+            <div>شكراً لتعاملكم معنا</div>
+            <div style="margin-top: 0.3cm;">هاتف: <?php echo e($receipt->branch->phone ?? '0535319612'); ?> | البريد الإلكتروني: <?php echo e($receipt->client->branch->email ?? 'غير محدد'); ?></div>
+            <div style="margin-top: 0.5cm;">لديك استفسار؟ لا تتردد في الاتصال بنا</div>
+        </div>
     </div>
 
-    <script>
-        window.onload = function() {
-            setTimeout(() => {
-                window.print();
-            }, 200);
-        };
-    </script>
-</body>
 
+</body>
 </html>
+<?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/payment/receipt/pdf_repeatA4.blade.php ENDPATH**/ ?>

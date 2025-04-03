@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
-
 <head>
     <meta charset="UTF-8">
-    <title>إيصال استلام #{{ $receipt->id }}</title>
+    <title>إيصال استلام #<?php echo e($receipt->id); ?></title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -96,66 +95,70 @@
         }
     </style>
 </head>
-
 <body>
     <div class="receipt-container">
         <div class="receipt-header">
             <div class="receipt-title">إيصال استلام</div>
-            <div>{{ $receipt->branch->name ?? 'مؤسسة أعمال خاصة للنجارة' }}</div>
-            <div>{{ $receipt->branch->address ?? 'الرياض' }}</div>
+            <div><?php echo e($receipt->branch->name ?? 'مؤسسة أعمال خاصة للنجارة'); ?></div>
+            <div><?php echo e($receipt->branch->address ?? 'الرياض'); ?></div>
         </div>
 
         <div class="receipt-info">
             <div class="info-row">
                 <span class="info-label">رقم:</span>
-                <span>{{ str_pad($receipt->id, 6, '0', STR_PAD_LEFT) }}</span>
+                <span><?php echo e(str_pad($receipt->id, 6, '0', STR_PAD_LEFT)); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">تاريخ:</span>
-                <span>{{ $receipt->payment_date->format('d/m/Y') }}</span>
+                <span><?php echo e($receipt->payment_date->format('d/m/Y')); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">من:</span>
                 <span>
-                    {{ $receipt->invoice->client->trade_name ?? 'غير محدد' }}
+                    <?php if($receipt->client): ?>
+                        <?php echo e($receipt->client->trade_name ?? $receipt->client->first_name . ' ' . $receipt->client->last_name); ?>
+
+                    <?php else: ?>
+                        تموينات واجة الجزئ
+                    <?php endif; ?>
                 </span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">المبلغ:</span>
-                <span>SAR {{ number_format($receipt->amount, 2) }}</span>
+                <span>SAR <?php echo e(number_format($receipt->amount, 2)); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">المستلم:</span>
-                <span>{{ $receipt->employee->name ?? 'عدنان العولقي' }}</span>
+                <span><?php echo e($receipt->employee->name ?? 'عدنان العولقي'); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">الخزينة:</span>
-                <span>{{ $receipt->treasury->name ?? 'خزينة الشرقية' }}</span>
+                <span><?php echo e($receipt->treasury->name ?? 'خزينة الشرقية'); ?></span>
             </div>
         </div>
 
         <div class="payment-details">
-            <div>طريقة الدفع: {{ $receipt->payment_type->name ?? 'غير محدد' }}</div>
-            <div>رقم المرجع: {{ $receipt->reference_number ?? 'غير محدد' }}</div>
+            <div>طريقة الدفع: <?php echo e($receipt->payment_type->name ?? 'غير محدد'); ?></div>
+            <div>رقم المرجع: <?php echo e($receipt->reference_number ?? 'غير محدد'); ?></div>
         </div>
 
         <div class="signature-area">
             <div>......</div>
-            <div class="signature-line">التوقيع: {{ $receipt->employee->name ?? 'غير محدد' }}</div>
+            <div class="signature-line">التوقيع: <?php echo e($receipt->employee->name ?? 'غير محدد'); ?></div>
             <div style="margin-top: 30px;">شكراً لتعاملكم معنا</div>
             <div style="margin-top: 10px;">لديك سؤال؟</div>
         </div>
 
-        @if ($receipt->payment_status == 1)
-            <div class="stamp">
-                <div class="stamp-content">مدفوع</div>
-            </div>
-        @endif
+        <?php if($receipt->payment_status == 1): ?>
+        <div class="stamp">
+            <div class="stamp-content">مدفوع</div>
+        </div>
+        <?php endif; ?>
     </div>
 
     <script>
@@ -166,5 +169,5 @@
         };
     </script>
 </body>
-
 </html>
+<?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/payment/receipt/pdf_receipt.blade.php ENDPATH**/ ?>

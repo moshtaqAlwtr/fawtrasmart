@@ -17,6 +17,7 @@ use App\Models\Treasury;
 use App\Models\User;
 use App\Models\AccountSetting;
 use App\Models\TreasuryEmployee;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -787,7 +788,29 @@ class PaymentProcessController extends Controller
     }
     public function rereceipt($id)
     {
-$receipt=PaymentsProcess::findOrFail($id);
-        return view('sales.payment.receipt.index_repeat', compact('receipt'));
+        $receipt = PaymentsProcess::findOrFail($id);
+        $type = request()->query('type', 'a4'); // افتراضي A4 إذا لم يتم تحديد النوع
+
+        return view('sales.payment.receipt.index_repeat', [
+            'receipt' => $receipt,
+            'receiptType' => $type
+        ]);
+    }
+    public function pdfReceipt($id)
+    {
+        $receipt = PaymentsProcess::findOrFail($id);
+
+        // اختياري: إذا كنت تريد حفظ نسخة من PDF
+        // $pdfPath = storage_path('app/public/receipts/receipt_'.$id.'.pdf');
+
+        $pdf = Pdf::loadView('sales.payment.receipt.pdf_receipt', compact('receipt'));
+
+        // اختياري: لحفظ الملف
+        // $pdf->save($pdfPath);
+
+        // return $pdf->download('receipt_'.$id.'.pdf');
+
+        //    أو إذا كنت تريد العرض في المتصفح مباشرة:
+        return $pdf->stream('receipt_' . $id . '.pdf');
     }
 }
