@@ -15,7 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-
+use Carbon\Carbon;
+use App\Models\InstallmentPayment;
 class AncestorController extends Controller
 {
     public function index(Request $request)
@@ -97,7 +98,148 @@ class AncestorController extends Controller
         $treasuries = Treasury::all();
         return view('salaries.ancestor.create', compact('employees', 'treasuries'));
     }
+    
+// public function storePayments(Request $request, $id)
+// {
+//     $validated = $request->validate([
+//         'payments' => 'required|array|min:1',
+//         'payments.*.installment_number' => 'required|integer',
+//         'payments.*.amount' => 'required|numeric|min:0.01',
+//         'payments.*.payment_date' => 'required|date',
+//         'account_id' => 'required|exists:accounts,id'
+//     ]);
+    
+//     DB::beginTransaction();
+    
+//     try {
+//         $salaryAdvance = SalaryAdvance::findOrFail($id);
+        
+//         foreach ($request->payments as $payment) {
+//             $salaryAdvance->payments()->create([
+//                 'installment_number' => $payment['installment_number'],
+//                 'amount' => $payment['amount'],
+//                 'payment_date' => $payment['payment_date'],
+//                 'account_id' => $request->account_id,
+//                 'status' => 'paid',
+//                 'created_by' => auth()->id()
+//             ]);
+//         }
+        
+//         DB::commit();
+        
+//         return redirect()->back()->with('success', 'تم حفظ المدفوعات بنجاح');
+        
+//     } catch (\Exception $e) {
+//         DB::rollBack();
+//         return redirect()->back()->with('error', 'حدث خطأ: ' . $e->getMessage());
+//     }
+// }
 
+
+
+protected function calculateInstallments($salaryAdvance)
+{
+    $installments = [];
+    $installmentAmount = $salaryAdvance->installment_amount;
+    $totalInstallments = $salaryAdvance->total_installments;
+    $startDate = Carbon::parse($salaryAdvance->installment_start_date);
+    
+    for ($i = 1; $i <= $totalInstallments; $i++) {
+        $dueDate = clone $startDate;
+        
+        switch ($salaryAdvance->payment_rate) {
+            case 1: $dueDate->addMonths($i - 1); break; // شهري
+            case 2: $dueDate->addWeeks($i - 1); break;  // أسبوعي
+            case 3: $dueDate->addMonths(($i - 1) * 3); break; // ربع سنوي
+        }
+        
+        $installments[] = [
+            'number' => $i,
+            'amount' => $installmentAmount,
+            'due_date' => $dueDate->format('Y-m-d')
+        ];
+    }
+    
+    return $installments;
+}
+
+
+
+//
+public function pay($id)
+{
+    $salaryAdvance = SalaryAdvance::with(['payments'])->findOrFail($id);
+    $accounts = Account::where('is_active', true)->get();
+    
+    // حساب الأقساط الغير مدفوعة فقط
+    $unpaidInstallments = $this->getUnpaidInstallments($salaryAdvance);
+    
+    return view('salaries.ancestor.pay', compact('salaryAdvance', 'accounts', 'unpaidInstallments'));
+}
+
+protected function getUnpaidInstallments($salaryAdvance)
+{
+    // الأقساط المدفوعة (من جدول installment_payments)
+    $paidInstallments = $salaryAdvance->payments->pluck('installment_number')->toArray();
+    
+    // جميع الأقساط المفترضة
+    $allInstallments = $this->calculateInstallments($salaryAdvance);
+    
+    // تصفية الأقساط الغير مدفوعة
+    return array_filter($allInstallments, function($installment) use ($paidInstallments) {
+        return !in_array($installment['number'], $paidInstallments);
+    });
+}
+
+public function storePayments(Request $request, $id)
+{
+    
+    // dd($request->all());
+    // $validated = $request->validate([
+    //     'amount' => 'required|numeric|min:0.01',
+    //     'payment_date' => 'required|date',
+    //     'account_id' => 'required|exists:accounts,id',
+    //     'installment_number' => 'required|integer'
+    // ]);
+
+    DB::beginTransaction();
+    
+    try {
+       $salaryAdvance = SalaryAdvance::findOrFail($id);
+
+// تسجيل الدفعة في جدول installment_payments
+$payment = InstallmentPayment::create([
+    'salary_advance_id' => $salaryAdvance->id,
+    'installment_number' => $request->installment_number,
+    'amount' => $request->amount,
+    'payment_date' => $request->payment_date,
+    'account_id' => $request->account_id,
+    'status' => 'paid',
+    'created_by' => auth()->id()
+]);
+
+// لا داعي لاستدعاء $payment->save(); لأن create() يقوم بالحفظ تلقائيًا
+
+        
+        DB::commit();
+        
+        return redirect()->back()->with('success', 'تم حفظ الدفعة بنجاح');
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()->with('error', 'فشل في حفظ الدفعة: ' . $e->getMessage());
+    }
+}
+
+protected function updateAdvanceStatus($salaryAdvance)
+{
+    $totalPaid = $salaryAdvance->payments()->sum('amount');
+    $totalAmount = $salaryAdvance->total_amount;
+    
+    if ($totalPaid >= $totalAmount) {
+        $salaryAdvance->update(['status' => 'paid']);
+    }
+}
     public function store(Request $request)
     {
         try {

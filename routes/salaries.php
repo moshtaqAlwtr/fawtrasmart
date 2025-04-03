@@ -76,6 +76,9 @@ Route::group(
                     Route::post('/store', [AncestorController::class, 'store'])->name('ancestor.store');
                     Route::get('/show/{id}', [AncestorController::class, 'show'])->name('ancestor.show');
                     Route::get('/edit/{id}', [AncestorController::class, 'edit'])->name('ancestor.edit');
+                         Route::get('/pay/{id}', [AncestorController::class, 'pay'])->name('ancestor.pay');
+                         Route::get('/salary-advance/{id}/pay', [AncestorController::class, 'pay'])->name('salary-advance.pay');
+Route::post('/salary-advance/{id}/pay', [AncestorController::class, 'storePayments'])->name('salary-advance.store-payments');
                     Route::put('/update/{id}', [AncestorController::class, 'update'])->name('ancestor.update');
                     Route::delete('/destroy/{id}', [AncestorController::class, 'destroy'])->name('ancestor.destroy');
                 });

@@ -6,47 +6,47 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class AttendanceDeterminantRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
-    public function rules(): array
-    {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'status' => 'required|in:0,1',
-            'capture_employee_image' => 'nullable|in:0,1',
-            'image_investigation' => 'required_if:capture_employee_image,1|in:1,2',
-            'enable_ip_verification' => 'nullable|in:0,1',
-            'ip_investigation' => 'required_if:enable_ip_verification,1|in:1,2',
-            'allowed_ips' => 'nullable|string',
-            'enable_location_verification' => 'nullable|in:0,1',
-            'location_investigation' => 'required_if:enable_location_verification,1|in:1,2',
-        ];
-
-        if ($this->enable_location_verification == 1) {
-            $rules['radius'] = 'required|numeric|min:0.1';
-            $rules['radius_type'] = 'required|in:1,2';
-            $rules['latitude'] = 'required|numeric';
-            $rules['longitude'] = 'required|numeric';
-        }
-
-        return $rules;
-    }
-
-    public function messages(): array
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules()
     {
         return [
-            'name.required' => 'اسم محدد الحضور مطلوب',
-            'status.required' => 'حالة محدد الحضور مطلوبة',
-            'image_investigation.required_if' => 'نوع التحقق للصورة مطلوب عند تفعيل التقاط الصورة',
-            'ip_investigation.required_if' => 'نوع التحقق لـ IP مطلوب عند تفعيل التحقق من IP',
-            'location_investigation.required_if' => 'نوع التحقق للموقع مطلوب عند تفعيل التحقق من الموقع',
-            'radius.required' => 'نطاق التوقيع مطلوب',
-            'radius_type.required' => 'نوع المقياس مطلوب',
-            'latitude.required' => 'خط العرض مطلوب',
-            'longitude.required' => 'خط الطول مطلوب',
+            'name' => 'required|string|max:255',
+            'status' => 'required|in:0,1',
+            'image_investigation' => 'required|in:0,1',
+            'allowed_ips' => 'nullable|string',
+            'location_investigation' => 'required|in:0,1',
+            'enable_ip_verification' => 'required|in:0,1',
+            'radius' => 'required_if:enable_location_verification,1|numeric|min:1',
+            'radius_type' => 'required_if:enable_location_verification,1|in:1,2',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
         ];
     }
+
+    /**
+     * رسائل التحقق المخصصة.
+     */
+    public function messages()
+    {
+        return [
+            'name.required' => 'اسم الحقل مطلوب.',
+            'status.required' => 'يجب اختيار الحالة.',
+            'radius.required_if' => 'يجب تحديد النطاق عند تمكين التحقق من الموقع.',
+            'latitude.required' => 'يجب تحديد خط العرض.',
+            'longitude.required' => 'يجب تحديد خط الطول.',
+        ];
+    }
+
 }

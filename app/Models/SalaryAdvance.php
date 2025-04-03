@@ -56,7 +56,14 @@ class SalaryAdvance extends Model
             default => 'غير معروف',
         };
     }
-
+public function payments()
+{
+    return $this->hasMany(InstallmentPayment::class);
+}
+public function account()
+{
+    return $this->belongsTo(Account::class);
+}
     /**
      * Get the employee that owns the salary advance
      */

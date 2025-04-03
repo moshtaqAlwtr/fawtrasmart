@@ -11,7 +11,7 @@ class Client extends Model
     public $timestamps = true;
 
     // الحقول القابلة للتعبئة
-    protected $fillable = ['trade_name','classification_id ', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id'];
+    protected $fillable = ['trade_name','classification_id ', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id','branch_id' ];
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -28,7 +28,10 @@ public function branch()
 {
     return $this->belongsTo(Branch::class);
 }
-
+public function Balance()
+{
+    return Account::where('client_id', $this->id)->sum('balance');
+}
     public function getFullAddressAttribute()
     {
         $address = [];
@@ -135,6 +138,10 @@ public function branch()
 {
     return $this->hasMany(AppointmentNote::class);
 }
+  public function accounts(): HasMany
+    {
+        return $this->hasMany(Account::class, 'client_id');
+    }
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {
