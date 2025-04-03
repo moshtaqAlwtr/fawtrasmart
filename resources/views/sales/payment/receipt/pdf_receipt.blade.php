@@ -130,12 +130,12 @@
 
             <div class="info-row">
                 <span class="info-label">المستلم:</span>
-                <span>{{ $receipt->employee->name ?? 'عدنان العولقي' }}</span>
+                <span>{{ $receipt->employee->name ?? 'غير محدد' }}</span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">الخزينة:</span>
-                <span>{{ $receipt->treasury->name ?? 'خزينة الشرقية' }}</span>
+                <span>{{ $receipt->treasury->name ?? 'خزينة الرئيسية' }}</span>
             </div>
         </div>
 
@@ -146,7 +146,7 @@
 
         <div class="signature-area">
             <div>......</div>
-            <div class="signature-line">التوقيع: {{ $receipt->employee->name ?? 'غير محدد' }}</div>
+            <div class="signature-line">التوقيع: {{ $receipt->invoice->employee->full_name ?? 'غير محدد' }}</div>
             <div style="margin-top: 30px;">شكراً لتعاملكم معنا</div>
             <div style="margin-top: 10px;">لديك سؤال؟</div>
         </div>

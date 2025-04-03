@@ -277,111 +277,147 @@
 
             <!-- بداية الصف -->
             <div class="card-body">
-                <?php $__currentLoopData = $payments->where('type', 'client payments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="row border-bottom py-2 align-items-center">
-                        <div class="col-md-4">
-                            <p class="mb-"><strong>#<?php echo e($payment->id); ?></strong> </p>
-                            <small class="text-muted">#<?php echo e($payment->invoice->invoice_number ?? ''); ?> ملاحظات:
-                                <?php echo e($payment->notes); ?></small>
-                        </div>
-                        <div class="col-md-3">
-                            <p class="mb-0"><small><?php echo e($payment->payment_date); ?></small></p>
-                            <small class="text-muted">بواسطة: <?php echo e($payment->employee->full_name ?? ''); ?></small>
-                        </div>
-                         <?php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        ?>
-                        <div class="col-md-3 text-center">
-                            <h5 class="mb-1 font-weight-bold">
-                                <?php echo e(number_format($payment->amount, 2)); ?>  <?php echo $currencySymbol; ?>
+                <div class="table">
+                    <table class="table table-hover">
+                        <thead class="bg-light">
+                            <tr>
+                                <th width="25%">البيانات الأساسية</th>
+                                <th width="20%">التاريخ والموظف</th>
+                                <th width="20%" class="text-center">المبلغ</th>
+                                <th width="15%" class="text-center">الحالة</th>
+                                <th width="20%" class="text-end">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $payments->where('type', 'client payments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <strong>#<?php echo e($payment->id); ?></strong>
+                                        <small class="text-muted">
+                                            <?php if($payment->invoice): ?>
+                                                الفاتورة: #<?php echo e($payment->invoice->invoice_number); ?>
 
-                            </h5>
+                                            <?php endif; ?>
+                                        </small>
+                                        <?php if($payment->notes): ?>
+                                        <small class="text-muted mt-1">
+                                            <i class="fas fa-comment-alt"></i> <?php echo e(Str::limit($payment->notes, 30)); ?>
 
-                            <?php
-                                $statusClass = '';
-                                $statusText = '';
-                                $statusIcon = '';
+                                        </small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <small><?php echo e($payment->payment_date); ?></small>
+                                        <?php if($payment->employee): ?>
+                                        <small class="text-muted mt-1">
+                                            <i class="fas fa-user"></i> <?php echo e($payment->employee->full_name); ?>
 
-                                if ($payment->payment_status == 2) {
-                                    $statusClass = 'badge-warning';
-                                    $statusText = 'غير مكتمل';
-                                    $statusIcon = 'fa-clock';
-                                } elseif ($payment->payment_status == 1) {
-                                    $statusClass = 'badge-success';
-                                    $statusText = 'مكتمل';
-                                    $statusIcon = 'fa-check-circle';
-                                } elseif ($payment->payment_status == 4) {
-                                    $statusClass = 'badge-info';
-                                    $statusText = 'تحت المراجعة';
-                                    $statusIcon = 'fa-sync';
-                                } elseif ($payment->payment_status == 5) {
-                                    $statusClass = 'badge-danger';
-                                    $statusText = 'فاشلة';
-                                    $statusIcon = 'fa-times-circle';
-                                } elseif ($payment->payment_status == 3) {
-                                    $statusClass = 'badge-secondary';
-                                    $statusText = 'مسودة';
-                                    $statusIcon = 'fa-file-alt';
-                                } else {
-                                    $statusClass = 'badge-light';
-                                    $statusText = 'غير معروف';
-                                    $statusIcon = 'fa-question-circle';
-                                }
-                            ?>
+                                        </small>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <?php
+                                        $currency = $account_setting->currency ?? 'SAR';
+                                        $currencySymbol = $currency == 'SAR' || empty($currency)
+                                            ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                            : $currency;
+                                    ?>
+                                    <h6 class="mb-0 font-weight-bold">
+                                        <?php echo e(number_format($payment->amount, 2)); ?> <?php echo $currencySymbol; ?>
 
-                            <span class="badge <?php echo e($statusClass); ?>">
-                                <i class="fas <?php echo e($statusIcon); ?> me-1"></i>
-                                <?php echo e($statusText); ?>
+                                    </h6>
+                                </td>
+                                <td class="text-center">
+                                    <?php
+                                        $statusClass = '';
+                                        $statusText = '';
+                                        $statusIcon = '';
 
-                            </span>
-                        </div>
-                        <div class="col-md-2 text-end">
-                            <div class="btn-group">
-                                <div class="dropdown">
-                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                        id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false">
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                        <li>
-                                            <a class="dropdown-item"
-                                                href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
-                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item"
-                                                href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
-                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                            </a>
-                                        </li>
-                                        <form action="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>"
-                                            method="POST">
-                                            <?php echo csrf_field(); ?>
-                                            <?php echo method_field('DELETE'); ?>
+                                        if ($payment->payment_status == 2) {
+                                            $statusClass = 'badge-warning';
+                                            $statusText = 'غير مكتمل';
+                                            $statusIcon = 'fa-clock';
+                                        } elseif ($payment->payment_status == 1) {
+                                            $statusClass = 'badge-success';
+                                            $statusText = 'مكتمل';
+                                            $statusIcon = 'fa-check-circle';
+                                        } elseif ($payment->payment_status == 4) {
+                                            $statusClass = 'badge-info';
+                                            $statusText = 'تحت المراجعة';
+                                            $statusIcon = 'fa-sync';
+                                        } elseif ($payment->payment_status == 5) {
+                                            $statusClass = 'badge-danger';
+                                            $statusText = 'فاشلة';
+                                            $statusIcon = 'fa-times-circle';
+                                        } elseif ($payment->payment_status == 3) {
+                                            $statusClass = 'badge-secondary';
+                                            $statusText = 'مسودة';
+                                            $statusIcon = 'fa-file-alt';
+                                        } else {
+                                            $statusClass = 'badge-light';
+                                            $statusText = 'غير معروف';
+                                            $statusIcon = 'fa-question-circle';
+                                        }
+                                    ?>
+                                    <span class="badge <?php echo e($statusClass); ?> rounded-pill">
+                                        <i class="fas <?php echo e($statusIcon); ?> me-1"></i>
+                                        <?php echo e($statusText); ?>
 
-                                            <button type="submit" class="dropdown-item"
-                                                style="border: none; background: none;">
-                                                <i class="fa fa-trash me-2 text-danger"></i> حذف
-                                            </button>
-                                        </form>
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=a4">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>إيصال مدفوعات (A4)
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=thermal">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>إيصال مدفوعات (حراري)
-                                            </a>
-                                        </li>
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="col-md-2 text-end">
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
+                                                    id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
+                                                    <i class="fas fa-eye me-2 text-primary"></i>عرض
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
+                                                    <i class="fas fa-edit me-2 text-success"></i>تعديل
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form action="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>" method="POST">
+                                                    <?php echo csrf_field(); ?>
+                                                    <?php echo method_field('DELETE'); ?>
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fas fa-trash me-2"></i>حذف
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=a4">
+                                                    <i class="fas fa-file-pdf me-2 text-warning"></i>إيصال (A4)
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=thermal">
+                                                    <i class="fas fa-receipt me-2 text-warning"></i>إيصال (حراري)
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

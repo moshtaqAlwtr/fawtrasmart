@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
+
 <head>
     <meta charset="UTF-8">
     <title>إيصال استلام #<?php echo e($receipt->id); ?></title>
@@ -95,6 +96,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="receipt-container">
         <div class="receipt-header">
@@ -117,12 +119,8 @@
             <div class="info-row">
                 <span class="info-label">من:</span>
                 <span>
-                    <?php if($receipt->client): ?>
-                        <?php echo e($receipt->client->trade_name ?? $receipt->client->first_name . ' ' . $receipt->client->last_name); ?>
+                    <?php echo e($receipt->invoice->client->trade_name ?? 'غير محدد'); ?>
 
-                    <?php else: ?>
-                        تموينات واجة الجزئ
-                    <?php endif; ?>
                 </span>
             </div>
 
@@ -133,12 +131,12 @@
 
             <div class="info-row">
                 <span class="info-label">المستلم:</span>
-                <span><?php echo e($receipt->employee->name ?? 'عدنان العولقي'); ?></span>
+                <span><?php echo e($receipt->employee->name ?? 'غير محدد'); ?></span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">الخزينة:</span>
-                <span><?php echo e($receipt->treasury->name ?? 'خزينة الشرقية'); ?></span>
+                <span><?php echo e($receipt->treasury->name ?? 'خزينة الرئيسية'); ?></span>
             </div>
         </div>
 
@@ -149,15 +147,15 @@
 
         <div class="signature-area">
             <div>......</div>
-            <div class="signature-line">التوقيع: <?php echo e($receipt->employee->name ?? 'غير محدد'); ?></div>
+            <div class="signature-line">التوقيع: <?php echo e($receipt->invoice->employee->full_name ?? 'غير محدد'); ?></div>
             <div style="margin-top: 30px;">شكراً لتعاملكم معنا</div>
             <div style="margin-top: 10px;">لديك سؤال؟</div>
         </div>
 
         <?php if($receipt->payment_status == 1): ?>
-        <div class="stamp">
-            <div class="stamp-content">مدفوع</div>
-        </div>
+            <div class="stamp">
+                <div class="stamp-content">مدفوع</div>
+            </div>
         <?php endif; ?>
     </div>
 
@@ -169,5 +167,6 @@
         };
     </script>
 </body>
+
 </html>
 <?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/payment/receipt/pdf_receipt.blade.php ENDPATH**/ ?>

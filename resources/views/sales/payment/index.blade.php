@@ -276,109 +276,142 @@
 
             <!-- بداية الصف -->
             <div class="card-body">
-                @foreach ($payments->where('type', 'client payments') as $payment)
-                    <div class="row border-bottom py-2 align-items-center">
-                        <div class="col-md-4">
-                            <p class="mb-"><strong>#{{ $payment->id }}</strong> </p>
-                            <small class="text-muted">#{{ $payment->invoice->invoice_number ?? '' }} ملاحظات:
-                                {{ $payment->notes }}</small>
-                        </div>
-                        <div class="col-md-3">
-                            <p class="mb-0"><small>{{ $payment->payment_date }}</small></p>
-                            <small class="text-muted">بواسطة: {{ $payment->employee->full_name ?? '' }}</small>
-                        </div>
-                         @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
-                        <div class="col-md-3 text-center">
-                            <h5 class="mb-1 font-weight-bold">
-                                {{ number_format($payment->amount, 2) }}  {!! $currencySymbol !!}
-                            </h5>
+                <div class="table">
+                    <table class="table table-hover">
+                        <thead class="bg-light">
+                            <tr>
+                                <th width="25%">البيانات الأساسية</th>
+                                <th width="20%">التاريخ والموظف</th>
+                                <th width="20%" class="text-center">المبلغ</th>
+                                <th width="15%" class="text-center">الحالة</th>
+                                <th width="20%" class="text-end">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($payments->where('type', 'client payments') as $payment)
+                            <tr>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <strong>#{{ $payment->id }}</strong>
+                                        <small class="text-muted">
+                                            @if($payment->invoice)
+                                                الفاتورة: #{{ $payment->invoice->invoice_number }}
+                                            @endif
+                                        </small>
+                                        @if($payment->notes)
+                                        <small class="text-muted mt-1">
+                                            <i class="fas fa-comment-alt"></i> {{ Str::limit($payment->notes, 30) }}
+                                        </small>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <small>{{ $payment->payment_date }}</small>
+                                        @if($payment->employee)
+                                        <small class="text-muted mt-1">
+                                            <i class="fas fa-user"></i> {{ $payment->employee->full_name }}
+                                        </small>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @php
+                                        $currency = $account_setting->currency ?? 'SAR';
+                                        $currencySymbol = $currency == 'SAR' || empty($currency)
+                                            ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                            : $currency;
+                                    @endphp
+                                    <h6 class="mb-0 font-weight-bold">
+                                        {{ number_format($payment->amount, 2) }} {!! $currencySymbol !!}
+                                    </h6>
+                                </td>
+                                <td class="text-center">
+                                    @php
+                                        $statusClass = '';
+                                        $statusText = '';
+                                        $statusIcon = '';
 
-                            @php
-                                $statusClass = '';
-                                $statusText = '';
-                                $statusIcon = '';
-
-                                if ($payment->payment_status == 2) {
-                                    $statusClass = 'badge-warning';
-                                    $statusText = 'غير مكتمل';
-                                    $statusIcon = 'fa-clock';
-                                } elseif ($payment->payment_status == 1) {
-                                    $statusClass = 'badge-success';
-                                    $statusText = 'مكتمل';
-                                    $statusIcon = 'fa-check-circle';
-                                } elseif ($payment->payment_status == 4) {
-                                    $statusClass = 'badge-info';
-                                    $statusText = 'تحت المراجعة';
-                                    $statusIcon = 'fa-sync';
-                                } elseif ($payment->payment_status == 5) {
-                                    $statusClass = 'badge-danger';
-                                    $statusText = 'فاشلة';
-                                    $statusIcon = 'fa-times-circle';
-                                } elseif ($payment->payment_status == 3) {
-                                    $statusClass = 'badge-secondary';
-                                    $statusText = 'مسودة';
-                                    $statusIcon = 'fa-file-alt';
-                                } else {
-                                    $statusClass = 'badge-light';
-                                    $statusText = 'غير معروف';
-                                    $statusIcon = 'fa-question-circle';
-                                }
-                            @endphp
-
-                            <span class="badge {{ $statusClass }}">
-                                <i class="fas {{ $statusIcon }} me-1"></i>
-                                {{ $statusText }}
-                            </span>
-                        </div>
-                        <div class="col-md-2 text-end">
-                            <div class="btn-group">
-                                <div class="dropdown">
-                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                        id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false">
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                        <li>
-                                            <a class="dropdown-item"
-                                                href="{{ route('paymentsClient.show', $payment->id) }}">
-                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item"
-                                                href="{{ route('paymentsClient.edit', $payment->id) }}">
-                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                            </a>
-                                        </li>
-                                        <form action="{{ route('paymentsClient.destroy', $payment->id) }}"
-                                            method="POST">
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="dropdown-item"
-                                                style="border: none; background: none;">
-                                                <i class="fa fa-trash me-2 text-danger"></i> حذف
-                                            </button>
-                                        </form>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=a4">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>إيصال مدفوعات (A4)
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=thermal">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>إيصال مدفوعات (حراري)
-                                            </a>
-                                        </li>
+                                        if ($payment->payment_status == 2) {
+                                            $statusClass = 'badge-warning';
+                                            $statusText = 'غير مكتمل';
+                                            $statusIcon = 'fa-clock';
+                                        } elseif ($payment->payment_status == 1) {
+                                            $statusClass = 'badge-success';
+                                            $statusText = 'مكتمل';
+                                            $statusIcon = 'fa-check-circle';
+                                        } elseif ($payment->payment_status == 4) {
+                                            $statusClass = 'badge-info';
+                                            $statusText = 'تحت المراجعة';
+                                            $statusIcon = 'fa-sync';
+                                        } elseif ($payment->payment_status == 5) {
+                                            $statusClass = 'badge-danger';
+                                            $statusText = 'فاشلة';
+                                            $statusIcon = 'fa-times-circle';
+                                        } elseif ($payment->payment_status == 3) {
+                                            $statusClass = 'badge-secondary';
+                                            $statusText = 'مسودة';
+                                            $statusIcon = 'fa-file-alt';
+                                        } else {
+                                            $statusClass = 'badge-light';
+                                            $statusText = 'غير معروف';
+                                            $statusIcon = 'fa-question-circle';
+                                        }
+                                    @endphp
+                                    <span class="badge {{ $statusClass }} rounded-pill">
+                                        <i class="fas {{ $statusIcon }} me-1"></i>
+                                        {{ $statusText }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="col-md-2 text-end">
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
+                                                    id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('paymentsClient.show', $payment->id) }}">
+                                                    <i class="fas fa-eye me-2 text-primary"></i>عرض
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('paymentsClient.edit', $payment->id) }}">
+                                                    <i class="fas fa-edit me-2 text-success"></i>تعديل
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form action="{{ route('paymentsClient.destroy', $payment->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fas fa-trash me-2"></i>حذف
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=a4">
+                                                    <i class="fas fa-file-pdf me-2 text-warning"></i>إيصال (A4)
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=thermal">
+                                                    <i class="fas fa-receipt me-2 text-warning"></i>إيصال (حراري)
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                @endforeach
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
