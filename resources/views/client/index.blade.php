@@ -11,6 +11,14 @@
             width: 100%;
             margin-bottom: 20px;
         }
+
+    .hover-effect:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
     </style>
 @stop
 
@@ -43,30 +51,27 @@
             <div class="card-body">
                 <div class="row align-items-center gy-3">
                     <!-- القسم الأيمن -->
-                    <div
-                        class="col-md-6 d-flex flex-wrap align-items-center gap-2 justify-content-center justify-content-md-start">
+                    <div class="col-md-6 d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-2 flex-column flex-md-row">
                         <!-- زر إضافة عميل -->
-                        <a href="{{ route('clients.create') }}"
-                            class="btn btn-success btn-sm rounded-pill px-4 text-center">
+                        <a href="{{ route('clients.create') }}" class="btn btn-success btn-sm rounded-pill px-4 text-center">
                             <i class="fas fa-plus-circle me-1"></i>
                             إضافة عميل
                         </a>
 
                         <!-- زر استيراد -->
                         <form action="{{ route('clients.import') }}" method="POST" enctype="multipart/form-data"
-                            class="d-inline-flex align-items-center gap-2">
+                            class="d-flex flex-column flex-md-row align-items-center gap-2 text-center">
                             @csrf
-                            <label class="btn btn-outline-primary btn-sm rounded-pill px-3 mb-0 text-center">
+                            <label class="btn btn-outline-primary btn-sm rounded-pill px-3 mb-0">
                                 <i class="fas fa-upload"></i> تحميل ملف Excel
                                 <input type="file" name="file" class="d-none" required>
                             </label>
-                            <button type="submit"
-                                class="btn btn-primary btn-sm rounded-pill px-3 text-center">استيراد</button>
+                            <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">استيراد</button>
                         </form>
                     </div>
 
                     <!-- القسم الأيسر -->
-                    <div class="col-md-6 d-flex justify-content-center justify-content-md-end gap-2">
+                    <div class="col-md-6 d-flex justify-content-center justify-content-md-end gap-2 flex-column flex-md-row">
                         <!-- زر إضافة حد ائتماني -->
                         <a href="javascript:void(0);" class="btn btn-success btn-sm rounded-pill px-4 text-center"
                             data-bs-toggle="modal" data-bs-target="#creditLimitModal">
@@ -213,6 +218,7 @@
 
         <!-- جدول العملاء -->
         @if (isset($clients) && $clients->count() > 0)
+<<<<<<< HEAD
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -290,87 +296,163 @@
                                                                 </a>
                                                             </li>
                                                         @endif
+=======
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table" id="fawtra">
+                    <thead>
+                        <tr>
+                            <th width="50">#</th>
+                            <th>معلومات العميل</th>
+                            <th>العنوان</th>
+                            <th>الكود</th>
+                            <th>رقم الهاتف</th>
+                            <th style="width: 10%">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($clients as $client)
+                        <tr onclick="window.location='{{ route('clients.show', $client->id) }}'"
+                            style="cursor: pointer;"
+                            class="hover-effect">
+                            <td>
+                                <div class="form-check" onclick="event.stopPropagation()">
+                                    <input class="form-check-input" type="checkbox"
+                                        value="{{ $client->id }}">
+                                </div>
+                            </td>
+                            <td>
+                                <h6 class="mb-0">{{ $client->trade_name }}</h6>
+                                <small class="text-muted">{{ $client->code }}</small>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-user me-1"></i>
+                                    {{ $client->first_name }} {{ $client->last_name }}
+                                </p>
+                                @if ($client->employee)
+                                    <p class="text-muted mb-0">
+                                        <i class="fas fa-user-tie me-1"></i>
+                                        {{ $client->employee->first_name }} {{ $client->employee->last_name }}
+                                    </p>
+                                @endif
+                            </td>
+                            <td>
+                                <p class="mb-0">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"
+                                       style="cursor: pointer;"
+                                       onclick="event.stopPropagation(); openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }}, '{{ $client->trade_name }}')"></i>
+                                    {{ $client->city }}, {{ $client->region }}
+                                </p>
+                            </td>
+                            <td>{{$client->code ?? ""}}</td>
+                            <td>
+                                <strong class="text-primary">
+                                    <i class="fas fa-phone me-2"></i>{{ $client->phone }}
+                                </strong>
+                            </td>
+                            <td onclick="event.stopPropagation()">
+                                <div class="btn-group">
+                                    <div class="dropdown">
+                                        <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                            type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false"></button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('clients.show', $client->id) }}">
+                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                </a>
+                                            </li>
+                                            @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('clients.edit', $client->id) }}">
+                                                        <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
+                                                    </a>
+                                                </li>
+                                            @endif
+>>>>>>> 3aa6d78d1dccb85899d584da5435470176d57b6f
 
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('clients.send_info', $client->id) }}">
-                                                            <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
-                                                            الدخول
-                                                        </a>
+                                            <a class="dropdown-item"
+                                                href="{{ route('clients.send_info', $client->id) }}">
+                                                <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
+                                                الدخول
+                                            </a>
 
 
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-copy me-2 text-info"></i>نسخ
-                                                            </a>
-                                                        </li>
-                                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="#"
-                                                                    data-toggle="modal"
-                                                                    data-target="#modal_DELETE{{ $client->id }}">
-                                                                    <i class="fa fa-trash-alt me-2"></i>حذف
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
-                                                                حساب
-                                                            </a>
-                                                        </li>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-
-                                        <!-- Modal Delete -->
-                                        <div class="modal fade" id="modal_DELETE{{ $client->id }}" tabindex="-1"
-                                            role="dialog" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-danger">
-                                                        <h5 class="modal-title text-white">تأكيد الحذف</h5>
-                                                        <button type="button" class="close" data-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <form action="{{ route('clients.destroy', $client->id) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <div class="modal-body">
-                                                            <p>هل أنت متأكد من الحذف
-                                                                "{{ $client->trade_name }}"؟</p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-dismiss="modal">إلغاء</button>
-                                                            <button type="submit" class="btn btn-danger">تأكيد
-                                                                الحذف</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('clients.edit', $client->id) }}">
+                                                    <i class="fa fa-copy me-2 text-info"></i>نسخ
+                                                </a>
+                                            </li>
+                                            @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="#"
+                                                        data-toggle="modal"
+                                                        data-target="#modal_DELETE{{ $client->id }}">
+                                                        <i class="fa fa-trash-alt me-2"></i>حذف
+                                                    </a>
+                                                </li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item"
+                                                    href="{{ route('clients.edit', $client->id) }}">
+                                                    <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
+                                                    حساب
+                                                </a>
+                                            </li>
                                         </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
 
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                        <!-- Modal Delete -->
+                        <div class="modal fade" id="modal_DELETE{{ $client->id }}" tabindex="-1"
+                            role="dialog" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger">
+                                        <h5 class="modal-title text-white">تأكيد الحذف</h5>
+                                        <button type="button" class="close" data-dismiss="modal"
+                                            aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <form action="{{ route('clients.destroy', $client->id) }}"
+                                        method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <div class="modal-body">
+                                            <p>هل أنت متأكد من الحذف
+                                                "{{ $client->trade_name }}"؟</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-dismiss="modal">إلغاء</button>
+                                            <button type="submit" class="btn btn-danger">تأكيد
+                                                الحذف</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        @else
-            <div class="alert alert-danger text-xl-center" role="alert">
-                <p class="mb-0">
-                    لا توجد عملاء !!
-                </p>
-            </div>
-        @endif
+        </div>
+    </div>
+@else
+    <div class="alert alert-danger text-xl-center" role="alert">
+        <p class="mb-0">
+            لا توجد عملاء !!
+        </p>
+    </div>
+@endif
+
+
     </div>
 
     <!-- Modal إضافة حد ائتماني -->
@@ -564,7 +646,7 @@
                             <td style="color: #666;">الرصيد:</td>
                             <td style="color: {{ $client->Balance() < 0 ? '#EA4335' : '#34A853' }}; font-weight: bold;">
                                 {{ $client->Balance() }} ر.س
-                         
+
                             </td>
                         </tr>
                     </table>

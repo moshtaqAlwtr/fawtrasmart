@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     ايصال
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -46,13 +44,13 @@
                             <div class="card shadow" style="max-width: 600px; margin: 20px auto;">
                                 <div class="card-body bg-white p-4" style="min-height: 400px; overflow: auto;">
                                     <div id="receipt-content" style="transform: scale(0.8); transform-origin: top center;">
-                                        @if(request()->query('type') == 'thermal')
-                                            {{-- عرض الإيصال الحراري --}}
-                                            @include('sales.payment.receipt.pdf_receipt', ['receipt' => $receipt])
-                                        @else
-                                            {{-- عرض الإيصال A4 (القيمة الافتراضية) --}}
-                                            @include('sales.payment.receipt.pdf_repeatA4', ['receipt' => $receipt])
-                                        @endif
+                                        <?php if(request()->query('type') == 'thermal'): ?>
+                                            
+                                            <?php echo $__env->make('sales.payment.receipt.pdf_receipt', ['receipt' => $receipt], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                                        <?php else: ?>
+                                            
+                                            <?php echo $__env->make('sales.payment.receipt.pdf_repeatA4', ['receipt' => $receipt], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -62,9 +60,9 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script>
         function printReceipt() {
             const receiptContent = document.getElementById('receipt-content').innerHTML;
@@ -83,4 +81,6 @@
             });
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/payment/receipt/index_repeat.blade.php ENDPATH**/ ?>

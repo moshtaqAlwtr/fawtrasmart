@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
-
 <head>
     <meta charset="UTF-8">
     <title>إيصال استلام #{{ $receipt->id }}</title>
@@ -96,30 +95,32 @@
         }
     </style>
 </head>
-
 <body>
     <div class="receipt-container">
         <div class="receipt-header">
-            <div class="receipt-title">إيصال استلام</div>
-            <div>{{ $receipt->branch->name ?? 'مؤسسة أعمال خاصة للنجارة' }}</div>
-            <div>{{ $receipt->branch->address ?? 'الرياض' }}</div>
+            <div class="company-name">{{ $receipt->branch->name ?? 'مؤسسة أعمال خاصة للنجارة' }}</div>
+            <div>{{ $receipt->branch->address ?? 'الرياض - المملكة العربية السعودية' }}</div>
+            <div>السجل التجاري: {{ $receipt->branch->commercial_register ?? '١٢٣٤٥٦٧٨٩' }}</div>
+            <h1 class="receipt-title">إيصال استلام</h1>
         </div>
 
         <div class="receipt-info">
             <div class="info-row">
-                <span class="info-label">رقم:</span>
+                <span class="info-label">رقم الإيصال:</span>
                 <span>{{ str_pad($receipt->id, 6, '0', STR_PAD_LEFT) }}</span>
             </div>
 
             <div class="info-row">
-                <span class="info-label">تاريخ:</span>
+                <span class="info-label">التاريخ:</span>
                 <span>{{ $receipt->payment_date->format('d/m/Y') }}</span>
             </div>
 
             <div class="info-row">
-                <span class="info-label">من:</span>
+                <span class="info-label">اسم العميل:</span>
                 <span>
-                    {{ $receipt->invoice->client->trade_name ?? 'غير محدد' }}
+                    <span>
+                        {{ $receipt->invoice->client->trade_name ??'غير محدد' }}
+                    </span>
                 </span>
             </div>
 
@@ -130,12 +131,12 @@
 
             <div class="info-row">
                 <span class="info-label">المستلم:</span>
-                <span>{{ $receipt->employee->name ?? 'غير محدد' }}</span>
+                <span>{{ $receipt->invoice->employee->full_name ?? 'غير محدد' }}</span>
             </div>
 
             <div class="info-row">
                 <span class="info-label">الخزينة:</span>
-                <span>{{ $receipt->treasury->name ?? 'خزينة الرئيسية' }}</span>
+                <span>{{ $receipt->treasury->name ?? 'خزينة الرئيسية' }}</span>
             </div>
         </div>
 
@@ -145,26 +146,23 @@
         </div>
 
         <div class="signature-area">
-            <div>......</div>
-            <div class="signature-line">التوقيع: {{ $receipt->invoice->employee->full_name ?? 'غير محدد' }}</div>
-            <div style="margin-top: 30px;">شكراً لتعاملكم معنا</div>
-            <div style="margin-top: 10px;">لديك سؤال؟</div>
+            <div class="signature-line">التوقيع: {{ $receipt->employee->name ?? 'المحاسب' }}</div>
+            <div style="margin-top: 1cm;">ختم الشركة</div>
         </div>
 
-        @if ($receipt->payment_status == 1)
-            <div class="stamp">
-                <div class="stamp-content">مدفوع</div>
-            </div>
+        @if($receipt->payment_status == 1)
+        <div class="stamp">
+            <div class="stamp-content">مدفوع</div>
+        </div>
         @endif
+
+        <div class="footer-note">
+            <div>شكراً لتعاملكم معنا</div>
+            <div style="margin-top: 0.3cm;">هاتف: {{ $receipt->branch->phone ?? '0535319612' }} | البريد الإلكتروني: {{ $receipt->client->branch->email ?? 'غير محدد' }}</div>
+            <div style="margin-top: 0.5cm;">لديك استفسار؟ لا تتردد في الاتصال بنا</div>
+        </div>
     </div>
 
-    <script>
-        window.onload = function() {
-            setTimeout(() => {
-                window.print();
-            }, 200);
-        };
-    </script>
-</body>
 
+</body>
 </html>
