@@ -144,10 +144,10 @@
                                         <!-- عنوان الشارع -->
                                         <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
-                                                <label for="street1">عنوان الشارع 1</label>
+                                                <label for="street1">الشارع </label>
                                                 <div class="position-relative has-icon-left">
-                                                    <input type="text" name="street1" id="street1" class="form-control"
-                                                        value="<?php echo e(old('street1')); ?>">
+                                                    <input type="text" name="street1" id="street1"
+                                                        class="form-control" value="<?php echo e(old('street1')); ?>">
                                                     <div class="form-control-position">
                                                         <i class="feather icon-map-pin"></i>
                                                     </div>
@@ -156,7 +156,7 @@
                                         </div>
                                         <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
-                                                <label for="street2">عنوان الشارع 2</label>
+                                                <label for="street2">الحي</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="text" name="street2" id="street2"
                                                         class="form-control" value="<?php echo e(old('street2')); ?>">
@@ -209,10 +209,8 @@
                                         <div class="col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="country">البلد</label>
-                                                <select name="country" id="country" class="form-control">
-                                                    <option value="SA" <?php echo e(old('country') == 'SA' ? 'selected' : ''); ?>>
-                                                        المملكة العربية السعودية (SA)</option>
-                                                </select>
+                                                <input type="text" name="country" id="country" class="form-control"
+                                                    value="<?php echo e(old('country')); ?>">
                                             </div>
                                         </div>
 
@@ -245,57 +243,60 @@
 
                                         <!-- الحد الائتماني والمدة الائتمانية -->
                                         <?php $__currentLoopData = $GeneralClientSettings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $GeneralClientSetting): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php if($GeneralClientSetting->is_active): ?>
-                                        <?php if($GeneralClientSetting->key == "credit_limit"): ?>
-                                        <div class="col-md-6 col-12 mb-3">
-                                            <div class="form-group">
-                                                <label for="credit_limit">الحد الائتماني</label>
-                                                <div class="position-relative has-icon-left">
-                                                    <input type="number" name="credit_limit" id="credit_limit"
-                                                        class="form-control" value="<?php echo e(old('credit_limit', 0)); ?>">
-                                                    <div class="form-control-position">
-                                                        <span>SAR</span>
+                                            <?php if($GeneralClientSetting->is_active): ?>
+                                                <?php if($GeneralClientSetting->key == 'credit_limit'): ?>
+                                                    <div class="col-md-6 col-12 mb-3">
+                                                        <div class="form-group">
+                                                            <label for="credit_limit">الحد الائتماني</label>
+                                                            <div class="position-relative has-icon-left">
+                                                                <input type="number" name="credit_limit"
+                                                                    id="credit_limit" class="form-control"
+                                                                    value="<?php echo e(old('credit_limit', 0)); ?>">
+                                                                <div class="form-control-position">
+                                                                    <span>SAR</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php endif; ?>
-                                        <?php endif; ?>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                         <?php $__currentLoopData = $GeneralClientSettings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $GeneralClientSetting): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php if($GeneralClientSetting->is_active): ?>
-                                        <?php if($GeneralClientSetting->key == "credit_duration"): ?>
-                                        <div class="col-md-6 col-12 mb-3">
-                                            <div class="form-group">
-                                                <label for="credit_period">المدة الائتمانية</label>
-                                                <div class="position-relative has-icon-left">
-                                                    <input type="number" name="credit_period" id="credit_period"
-                                                        class="form-control" value="<?php echo e(old('credit_period', 0)); ?>">
-                                                    <div class="form-control-position">
-                                                        <span>أيام</span>
+                                            <?php if($GeneralClientSetting->is_active): ?>
+                                                <?php if($GeneralClientSetting->key == 'credit_duration'): ?>
+                                                    <div class="col-md-6 col-12 mb-3">
+                                                        <div class="form-group">
+                                                            <label for="credit_period">المدة الائتمانية</label>
+                                                            <div class="position-relative has-icon-left">
+                                                                <input type="number" name="credit_period"
+                                                                    id="credit_period" class="form-control"
+                                                                    value="<?php echo e(old('credit_period', 0)); ?>">
+                                                                <div class="form-control-position">
+                                                                    <span>أيام</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php endif; ?>
-                                        <?php endif; ?>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         <!-- زر إظهار الخريطة -->
                                         <?php $__currentLoopData = $GeneralClientSettings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $GeneralClientSetting): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php if($GeneralClientSetting->is_active): ?>
-                                        <?php if($GeneralClientSetting->key == "location"): ?>
-                                        <div class="col-12 mb-3">
-                                            <button type="button" class="btn btn-outline-primary mb-2" onclick="requestLocationPermission()">
-                                                <i class="feather icon-map"></i> إظهار الخريطة
-                                            </button>
-                                            <div id="map-container" style="display: none;">
-                                                <div id="map" style="height: 400px; width: 100%;"></div>
-                                            </div>
-                                        </div>
-                                         <?php endif; ?>
-                                         <?php endif; ?>
-                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                            <?php if($GeneralClientSetting->is_active): ?>
+                                                <?php if($GeneralClientSetting->key == 'location'): ?>
+                                                    <div class="col-12 mb-3">
+                                                        <button type="button" class="btn btn-outline-primary mb-2"
+                                                            onclick="requestLocationPermission()">
+                                                            <i class="feather icon-map"></i> إظهار الخريطة
+                                                        </button>
+                                                        <div id="map-container" style="display: none;">
+                                                            <div id="map" style="height: 400px; width: 100%;"></div>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         <div class="card">
                                             <div class="card-header">
                                                 <h4 class="card-title">قائمة الاتصال</h4>
@@ -369,23 +370,24 @@
 
                                         <!-- الرصيد الافتتاحي -->
                                         <?php $__currentLoopData = $GeneralClientSettings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $GeneralClientSetting): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php if($GeneralClientSetting->is_active): ?>
-                                        <?php if($GeneralClientSetting->key == "opening_balance"): ?>
-                                        <div class="col-md-6 col-12 mb-3">
-                                            <div class="form-group">
-                                                <label for="opening_balance">الرصيد الافتتاحي</label>
-                                                <div class="position-relative has-icon-left">
-                                                    <input type="number" id="opening_balance" class="form-control"
-                                                        name="opening_balance" value="<?php echo e(old('opening_balance')); ?>">
-                                                    <div class="form-control-position">
-                                                        <i class="feather icon-dollar-sign"></i>
+                                            <?php if($GeneralClientSetting->is_active): ?>
+                                                <?php if($GeneralClientSetting->key == 'opening_balance'): ?>
+                                                    <div class="col-md-6 col-12 mb-3">
+                                                        <div class="form-group">
+                                                            <label for="opening_balance">الرصيد الافتتاحي</label>
+                                                            <div class="position-relative has-icon-left">
+                                                                <input type="number" id="opening_balance"
+                                                                    class="form-control" name="opening_balance"
+                                                                    value="<?php echo e(old('opening_balance')); ?>">
+                                                                <div class="form-control-position">
+                                                                    <i class="feather icon-dollar-sign"></i>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                          <?php endif; ?>
-                                           <?php endif; ?>
-                                           <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         <!-- تاريخ الرصيد الاستحقاق -->
                                         <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
@@ -443,7 +445,8 @@
                                                     name="category" placeholder="اكتب التصنيف" value="">
                                                 <datalist id="classifications" name="classification_id">
                                                     <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($category->name); ?>"> <!-- هنا نعرض الـ name فقط -->
+                                                        <option value="<?php echo e($category->name); ?>">
+                                                            <!-- هنا نعرض الـ name فقط -->
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </datalist>
                                             </div>
@@ -457,52 +460,58 @@
 
                                         <!-- المرفقات -->
                                         <?php $__currentLoopData = $GeneralClientSettings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $GeneralClientSetting): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php if($GeneralClientSetting->is_active): ?>
-                                        <?php if($GeneralClientSetting->key == "image"): ?>
-                                        <div class="col-md-12 col-12 mb-3">
-                                            <div class="form-group">
-                                                <label for="attachments">المرفقات</label>
-                                                <input type="file" name="attachments" id="attachments"
-                                                    class="d-none">
-                                                <div class="upload-area border rounded p-3 text-center position-relative"
-                                                    onclick="document.getElementById('attachments').click()">
-                                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                                        <i class="fas fa-cloud-upload-alt text-primary"></i>
-                                                        <span class="text-primary">اضغط هنا</span>
-                                                        <span>أو</span>
-                                                        <span class="text-primary">اختر من جهازك</span>
-                                                    </div>
-                                                    <div class="position-absolute end-0 top-50 translate-middle-y me-3">
-                                                        <i class="fas fa-file-alt fs-3 text-secondary"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-12 col-12">
-                                                <div class="form-group">
-                                                    <label for="language">نوع العميل </label>
-                                                    <div class="position-relative has-icon-left">
-                                                        <select class="form-control" name="client_type" id="client_type">
-                                                            <option value="1"
-                                                                <?php echo e(old('client_type') == 1 ? 'selected' : ''); ?>>عميل VIP
-                                                            </option>
-                                                            <option value="2"
-                                                                <?php echo e(old('client_type') == 2 ? 'selected' : ''); ?>>عميل عادي
-                                                                عادي</option>
-
-
-                                                         </select>
-                                                        <div class="form-control-position">
-
+                                            <?php if($GeneralClientSetting->is_active): ?>
+                                                <?php if($GeneralClientSetting->key == 'image'): ?>
+                                                    <div class="col-md-12 col-12 mb-3">
+                                                        <div class="form-group">
+                                                            <label for="attachments">المرفقات</label>
+                                                            <input type="file" name="attachments" id="attachments"
+                                                                class="d-none">
+                                                            <div class="upload-area border rounded p-3 text-center position-relative"
+                                                                onclick="document.getElementById('attachments').click()">
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center gap-2">
+                                                                    <i class="fas fa-cloud-upload-alt text-primary"></i>
+                                                                    <span class="text-primary">اضغط هنا</span>
+                                                                    <span>أو</span>
+                                                                    <span class="text-primary">اختر من جهازك</span>
+                                                                </div>
+                                                                <div
+                                                                    class="position-absolute end-0 top-50 translate-middle-y me-3">
+                                                                    <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                        <div class="col-md-12 col-12">
+                                                            <div class="form-group">
+                                                                <label for="language">نوع العميل </label>
+                                                                <div class="position-relative has-icon-left">
+                                                                    <select class="form-control" name="client_type"
+                                                                        id="client_type">
+                                                                        <option value="1"
+                                                                            <?php echo e(old('client_type') == 1 ? 'selected' : ''); ?>>
+                                                                            عميل VIP
+                                                                        </option>
+                                                                        <option value="2"
+                                                                            <?php echo e(old('client_type') == 2 ? 'selected' : ''); ?>>
+                                                                            عميل عادي
+                                                                            عادي</option>
 
-                                            <div class="col-md-12 col-12 mb-3">
-                                                <div class="form-group">
-                                                    <label for="employee_id" class="form-label">الموظف المسؤول</label>
-                                                    <select name="employee_id" id="employee_id"
-                                                        class="form-control <?php $__errorArgs = ['employee_id'];
+
+                                                                    </select>
+                                                                    <div class="form-control-position">
+
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-md-12 col-12 mb-3">
+                                                            <div class="form-group">
+                                                                <label for="employee_id" class="form-label">الموظف
+                                                                    المسؤول</label>
+                                                                <select name="employee_id" id="employee_id"
+                                                                    class="form-control <?php $__errorArgs = ['employee_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -510,31 +519,31 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
-                                                        <option value="">اختر الموظف</option>
-                                                        <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                            <option value="<?php echo e($employee->id); ?>">
-                                                                <?php echo e($employee->full_name); ?>
+                                                                    <option value="">اختر الموظف</option>
+                                                                    <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                        <option value="<?php echo e($employee->id); ?>">
+                                                                            <?php echo e($employee->full_name); ?>
 
-                                                            </option>
-                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                    </select>
-                                                    <?php $__errorArgs = ['employee_id'];
+                                                                        </option>
+                                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                                </select>
+                                                                <?php $__errorArgs = ['employee_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                                                        <div class="invalid-feedback"><?php echo e($message); ?></div>
-                                                    <?php unset($message);
+                                                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                                                <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                                                </div>
-                                            </div>
+                                                            </div>
+                                                        </div>
 
-                                        </div>
-                                         <?php endif; ?>
-                                         <?php endif; ?>
-                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         <!-- لغة العرض -->
 
                                     </div>
@@ -595,20 +604,26 @@ unset($__errorArgs, $__bag); ?>
 
             // تهيئة الخريطة مع الإحداثيات المحددة
             const map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat, lng },
+                center: {
+                    lat,
+                    lng
+                },
                 zoom: 15, // زيادة مستوى التكبير لدقة أعلى
             });
 
             // إضافة علامة (Marker) في الموقع المحدد
             const marker = new google.maps.Marker({
-                position: { lat, lng },
+                position: {
+                    lat,
+                    lng
+                },
                 map: map,
                 draggable: true, // السماح بسحب العلامة
                 title: 'موقعك الحالي',
             });
 
             // تحديث الحقول المخفية عند تحريك العلامة
-            google.maps.event.addListener(marker, 'dragend', function () {
+            google.maps.event.addListener(marker, 'dragend', function() {
                 const newLat = marker.getPosition().lat();
                 const newLng = marker.getPosition().lng();
                 document.getElementById('latitude').value = newLat;
@@ -619,10 +634,13 @@ unset($__errorArgs, $__bag); ?>
             });
 
             // جلب العنوان عند النقر على الخريطة
-            google.maps.event.addListener(map, 'click', function (event) {
+            google.maps.event.addListener(map, 'click', function(event) {
                 const newLat = event.latLng.lat();
                 const newLng = event.latLng.lng();
-                marker.setPosition({ lat: newLat, lng: newLng });
+                marker.setPosition({
+                    lat: newLat,
+                    lng: newLng
+                });
                 document.getElementById('latitude').value = newLat;
                 document.getElementById('longitude').value = newLng;
 
@@ -634,20 +652,32 @@ unset($__errorArgs, $__bag); ?>
         // دالة لجلب العنوان من الإحداثيات
         function fetchAddressFromCoordinates(lat, lng) {
             const geocoder = new google.maps.Geocoder();
-            const latLng = { lat, lng };
+            const latLng = {
+                lat,
+                lng
+            };
 
-            geocoder.geocode({ location: latLng }, (results, status) => {
+            geocoder.geocode({
+                location: latLng
+            }, (results, status) => {
                 if (status === 'OK') {
                     if (results[0]) {
                         const addressComponents = results[0].address_components;
 
                         // تعبئة الحقول بناءً على البيانات المسترجعة
-                        document.getElementById('country').value = getAddressComponent(addressComponents, 'country');
-                        document.getElementById('region').value = getAddressComponent(addressComponents, 'administrative_area_level_1');
-                        document.getElementById('city').value = getAddressComponent(addressComponents, 'locality') || getAddressComponent(addressComponents, 'administrative_area_level_2');
-                        document.getElementById('postal_code').value = getAddressComponent(addressComponents, 'postal_code');
+                        document.getElementById('country').value = getAddressComponent(addressComponents,
+                            'country');
+                        document.getElementById('region').value = getAddressComponent(addressComponents,
+                            'administrative_area_level_1');
+                        document.getElementById('city').value = getAddressComponent(addressComponents,
+                            'locality') || getAddressComponent(addressComponents, 'administrative_area_level_2');
+                        document.getElementById('postal_code').value = getAddressComponent(addressComponents,
+                            'postal_code');
                         document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
-                        document.getElementById('street2').value = getAddressComponent(addressComponents, 'neighborhood');
+                        document.getElementById('street2').value =
+                            getAddressComponent(addressComponents, 'neighborhood') ||
+                            getAddressComponent(addressComponents, 'sublocality') ||
+                            getAddressComponent(addressComponents, 'sublocality_level_1');
                     } else {
                         console.error('لم يتم العثور على عنوان لهذه الإحداثيات.');
                     }
