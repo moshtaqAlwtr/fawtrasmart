@@ -557,10 +557,10 @@
                         </tr>
                         <tr>
                             <td style="color: #666;">الرصيد:</td>
-                           
-                            </td> <td style="color: {{ $client->Balance() < 0 ? '#EA4335' : '#34A853' }}; font-weight: bold;">
-        {{ $client->Balance() }} ر.س
-    </td>
+                            <td style="color: {{ $client->Balance() < 0 ? '#EA4335' : '#34A853' }}; font-weight: bold;">
+                                {{ $client->Balance() }} ر.س
+                         
+                            </td>
                         </tr>
                     </table>
                     <div style="margin-top: 15px; display: flex; gap: 5px;">

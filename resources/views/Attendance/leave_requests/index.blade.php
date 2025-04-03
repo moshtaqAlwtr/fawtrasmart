@@ -43,47 +43,9 @@
             </li>
         </ul>
 
-<<<<<<< HEAD
-    @include('layouts.alerts.success')
-    @include('layouts.alerts.error')
-
-    <div class="card">
-        <div class="card-content">
-            <div class="card-body">
-                <div class="card-title">
-
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <!-- التبويبات -->
-                        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
-                            <li class="nav-item">
-                                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all"
-                                    type="button" role="tab" aria-controls="all" aria-selected="true">الكل</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
-                                    type="button" role="tab" aria-controls="pending" aria-selected="false">تحت
-                                    المراجعة</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved"
-                                    type="button" role="tab" aria-controls="approved" aria-selected="false">موافق
-                                    عليه</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link" id="rejected-tab" data-bs-toggle="tab" data-bs-target="#rejected"
-                                    type="button" role="tab" aria-controls="rejected"
-                                    aria-selected="false">مرفوض</button>
-                            </li>
-                        </ul>
-
-                        <!-- الأزرار -->
-                        <div>
-                            <div>
-=======
         <!-- الأزرار -->
         <div>
         <div>
->>>>>>> 7a9e4574bccad6056952352da4d0a63fce63cdf8
                                 <a href="{{ route('attendance.leave_requests.create') }}" class="btn btn-outline-success">
                                     <i class="fa fa-plus me-2"></i>أضف طلب الأجازة
                                 </a>

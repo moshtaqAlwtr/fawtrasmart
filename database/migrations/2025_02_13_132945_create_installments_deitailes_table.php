@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('installments_details', function (Blueprint $table) {
             $table->id();
             $table->decimal('amount', 10, 2)->nullable();
-            $table->unsignedBigInteger('installments_id')->nullable();
+            $table->foreignId('installments_id')->nullable()->constrained('installments')->onDelete('cascade');
             $table->tinyInteger('status')->nullable()->default(1);
             $table->date('due_date')->nullable();
             $table->timestamps();
