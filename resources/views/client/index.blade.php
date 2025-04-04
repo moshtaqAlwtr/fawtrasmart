@@ -350,10 +350,10 @@
                                         </td>
                                         <td>{{ $client->Neighborhoodname->Region->name ?? '' }}</td>
                                         <td>{{ $client->Neighborhoodname->name ?? '' }}</td>
-<<<<<<< HEAD
-=======
+
+
                                            <td>{{ $client->branch->name ?? '' }}</td>
->>>>>>> 7fffb75db39f499ec6338cd5d423cd453aac09f5
+
                                         <td>{{ $client->code ?? '' }}</td>
                                         <td>
                                             <strong class="text-primary">

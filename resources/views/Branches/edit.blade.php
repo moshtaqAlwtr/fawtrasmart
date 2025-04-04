@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-تعديل فرع
+تعديل فرع - {{ $branch->name }}
 @stop
 
 @section('content')
@@ -12,7 +12,8 @@
                 <h2 class="content-header-title float-left mb-0">تعديل فرع</h2>
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
+                        <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('branches.index') }}">الفروع</a></li>
                         <li class="breadcrumb-item active">تعديل</li>
                     </ol>
                 </div>
@@ -21,124 +22,344 @@
     </div>
 </div>
 
+<div class="content-body">
+    <section id="basic-vertical-layouts">
+        <div class="row match-height">
+            <div class="col-md-12 col-12">
+                <form class="form form-vertical" action="{{ route('branches.update', $branch->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
 
-<form action="{{ route('branches.update', $branch->id) }}" method="POST" >
-            @csrf
-            @method('PUT')
-            <!-- عرض الأخطاء -->
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
-            <div class="card">
-    <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div>
-                <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
-            </div>
-            <div>
-                <a href="{{ route('branches.index') }}" class="btn btn-outline-danger">
-                    <i class="fa fa-ban"></i>الغاء
-                </a>
-                <button type="submit" class="btn btn-outline-primary">
-                    <i class="fa fa-save"></i> حفظ
-                </button>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <div>
+                                    <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                                </div>
+                                <div>
+                                    <a href="{{ route('branches.index') }}" class="btn btn-outline-danger">
+                                        <i class="fa fa-ban"></i>الغاء
+                                    </a>
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="fa fa-save"></i> حفظ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">بيانات الفرع</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-body">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label for="name">اسم الفرع <span class="text-danger">*</span></label>
+                                                <input type="text" id="name" class="form-control" name="name"
+                                                    value="{{ old('name', $branch->name) }}" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="code">الكود <span class="text-danger">*</span></label>
+                                                <input type="text" id="code" class="form-control" name="code"
+                                                    value="{{ old('code', $branch->code) }}" readonly required>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="phone">هاتف الفرع</label>
+                                                <input type="text" id="phone" class="form-control" name="phone"
+                                                    value="{{ old('phone', $branch->phone) }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="mobile">الجوال</label>
+                                                <input type="text" id="mobile" class="form-control" name="mobile"
+                                                    value="{{ old('mobile', $branch->mobile) }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="country">البلد <span class="text-danger">*</span></label>
+                                                <input type="text" id="country" class="form-control" name="country"
+                                                    value="{{ old('country', $branch->country) }}" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="city">المدينة <span class="text-danger">*</span></label>
+                                                <input type="text" id="city" class="form-control" name="city"
+                                                    value="{{ old('city', $branch->city) }}" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="region">المنطقة</label>
+                                                <input type="text" id="region" class="form-control" name="region"
+                                                    value="{{ old('region', $branch->region) }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label for="address1">العنوان الرئيسي</label>
+                                                <input type="text" id="address1" class="form-control" name="address1"
+                                                    value="{{ old('address1', $branch->address1) }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label for="address2">العنوان الثانوي</label>
+                                                <input type="text" id="address2" class="form-control" name="address2"
+                                                    value="{{ old('address2', $branch->address2) }}">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="work_hours">ساعات العمل</label>
+                                                <textarea id="work_hours" class="form-control" name="work_hours">{{ old('work_hours', $branch->work_hours) }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 col-12">
+                                            <div class="form-group">
+                                                <label for="description">وصف الفرع</label>
+                                                <textarea id="description" class="form-control" name="description">{{ old('description', $branch->description) }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        <!-- خريطة تحديد الموقع -->
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-outline-primary mb-2" onclick="toggleMap()">
+                                                    <i class="feather icon-map"></i>
+                                                    {{ $branch->location ? 'تعديل موقع الفرع' : 'تحديد موقع الفرع' }}
+                                                </button>
+                                                <div id="map-container" style="display: none; margin-bottom: 20px;">
+                                                    <div class="input-group mb-2">
+                                                        <input type="text" id="search-location" class="form-control" placeholder="ابحث عن موقع...">
+                                                        <div class="input-group-append">
+                                                            <button class="btn btn-outline-secondary" type="button" onclick="searchLocation()">
+                                                                <i class="feather icon-search"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div id="map" style="height: 400px; width: 100%; border: 1px solid #ddd; border-radius: 4px;"></div>
+                                                    <small class="text-muted">اسحب العلامة لتحديد الموقع بدقة</small>
+                                                </div>
+                                                <input type="hidden" id="latitude" name="latitude" value="{{ $branch->location->latitude ?? '' }}">
+                                                <input type="hidden" id="longitude" name="longitude" value="{{ $branch->location->longitude ?? '' }}">
+
+                                                @if($branch->location)
+                                                <div class="current-location mt-2">
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-map-pin text-primary"></i>
+                                                        الموقع الحالي:
+                                                        <span class="text-info">
+                                                            {{ $branch->location->latitude }}, {{ $branch->location->longitude }}
+                                                        </span>
+                                                    </p>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
             </div>
         </div>
-    </div>
+    </section>
 </div>
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title text-center">بيانات الفرع</h5>
-       
-            <!-- الحقول -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="name" class="form-label">الاسم <span style="color: red">*</span></label>
-                    <input type="text" id="name" name="name" value="{{ $branch->name ?? '' }}" class="form-control" placeholder="اسم الفرع" required>
-                </div>
-                <div class="col-md-6">
-    <label for="code" class="form-label">الكود <span style="color: red">*</span></label>
-    <input 
-        type="text" 
-        id="code" 
-        name="code" 
-        class="form-control" 
-        value="{{ old('code', $branch->code) }}" 
-        @if(isset($branch->code)) readonly @endif 
-        @if(!isset($branch->code)) required @endif>
-</div>
+@endsection
 
+@section('scripts')
+<script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
 
-            </div>
-            <!-- باقي الحقول -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="phone" class="form-label">الهاتف</label>
-                    <input type="text" id="phone" name="phone" class="form-control" placeholder="رقم الهاتف" value="{{ $branch->phone ?? '' }}">
-                </div>
-                <div class="col-md-6">
-                    <label for="mobile" class="form-label">جوال</label>
-                    <input type="text" id="mobile" name="mobile" class="form-control" placeholder="رقم الجوال" value="{{ $branch->mobile ?? '' }}">
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="address1" class="form-label">العنوان 1</label>
-                    <input type="text" id="address1" name="address1" class="form-control" placeholder="العنوان الأول" value="{{ $branch->address1 ?? '' }}">
-                </div>
-                <div class="col-md-6">
-                    <label for="address2" class="form-label">العنوان 2</label>
-                    <input type="text" id="address2" name="address2" class="form-control" placeholder="العنوان الثاني">
-                </div>
-            </div>
-            <!-- مدينة وبلد -->
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label for="city" class="form-label">المدينة</label>
-                    <input type="text" id="city" name="city" class="form-control" placeholder="المدينة" required>
-                </div>
-                <div class="col-md-4">
-                    <label for="region" class="form-label">المنطقة</label>
-                    <input type="text" id="region" name="region" class="form-control" placeholder="المنطقة">
-                </div>
-                <div class="col-md-4">
-                    <label for="country" class="form-label">البلد</label>
-                    <input type="text" id="country" name="country" class="form-control" placeholder="البلد" required>
-                </div>
-            </div>
+<script>
+    let map;
+    let marker;
+    let geocoder;
+    let searchBox;
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="work_hours" class="form-label">ساعات العمل</label>
-                    <textarea id="work_hours" name="work_hours" class="form-control" rows="2" placeholder="أدخل ساعات العمل"></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label for="description" class="form-label">الوصف</label>
-                    <textarea id="description" name="description" class="form-control" rows="2" placeholder="الوصف"></textarea>
-                </div>
-            </div>
+    function initMap() {
+        // الموقع الافتراضي (الرياض)
+        const defaultLocation = {
+            lat: 24.7136,
+            lng: 46.6753
+        };
 
-            <div class="col-12 mb-3">
-                <button type="button" class="btn btn-outline-primary mb-2" onclick="toggleMap()">
-                    <i class="feather icon-map"></i> إظهار الخريطة
-                </button>
-                <div id="map-container" style="display: none;">
-                    <div id="map" style="height: 400px; width: 100%;"></div>
-                </div>
-            </div>
+        // إنشاء الخريطة
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: defaultLocation,
+            zoom: 12,
+            mapTypeControl: true,
+            streetViewControl: false
+        });
 
-    </div>
-    </form>
-</div>
+        // إنشاء العلامة
+        marker = new google.maps.Marker({
+            position: defaultLocation,
+            map: map,
+            draggable: true,
+            title: "اسحبني لتحديد الموقع"
+        });
+
+        // تهيئة خدمة العناوين
+        geocoder = new google.maps.Geocoder();
+
+        // تحديث الإحداثيات وعنوان الفرع عند تحريك العلامة
+        marker.addListener('dragend', function() {
+            updatePosition(marker.getPosition());
+            getAddressFromLatLng(marker.getPosition());
+        });
+
+        // تحديد الموقع وعنوان الفرع عند النقر على الخريطة
+        map.addListener('click', function(event) {
+            marker.setPosition(event.latLng);
+            updatePosition(event.latLng);
+            getAddressFromLatLng(event.latLng);
+        });
+
+        // تهيئة مربع البحث
+        const input = document.getElementById('search-location');
+        searchBox = new google.maps.places.SearchBox(input);
+
+        // عند اختيار نتيجة بحث
+        searchBox.addListener('places_changed', function() {
+            const places = searchBox.getPlaces();
+            if (places.length === 0) return;
+
+            const bounds = new google.maps.LatLngBounds();
+            places.forEach(place => {
+                if (!place.geometry) return;
+
+                if (place.geometry.viewport) {
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+
+                marker.setPosition(place.geometry.location);
+                updatePosition(place.geometry.location);
+                getAddressFromPlace(place); // استخدام بيانات المكان مباشرة
+                map.fitBounds(bounds);
+            });
+        });
+    }
+
+    function updatePosition(latLng) {
+        document.getElementById('latitude').value = latLng.lat();
+        document.getElementById('longitude').value = latLng.lng();
+    }
+
+    function getAddressFromLatLng(latLng) {
+        geocoder.geocode({ 'location': latLng }, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    fillAddressFields(results[0]);
+                }
+            }
+        });
+    }
+
+    function getAddressFromPlace(place) {
+        // إنشاء كائن بنفس بنية نتائج geocoder
+        const result = {
+            address_components: place.address_components,
+            formatted_address: place.formatted_address
+        };
+        fillAddressFields(result);
+    }
+
+    function fillAddressFields(result) {
+        // تحليل مكونات العنوان
+        const addressComponents = result.address_components;
+        let streetNumber = '';
+        let route = '';
+        let neighborhood = ''; // الحي
+        let locality = ''; // المدينة
+        let administrativeArea = ''; // المنطقة
+        let country = ''; // البلد
+        let postalCode = '';
+
+        addressComponents.forEach(component => {
+            const types = component.types;
+            if (types.includes('street_number')) {
+                streetNumber = component.long_name;
+            } else if (types.includes('route')) {
+                route = component.long_name;
+            } else if (types.includes('neighborhood') || types.includes('sublocality')) {
+                neighborhood = component.long_name;
+            } else if (types.includes('locality')) {
+                locality = component.long_name;
+            } else if (types.includes('administrative_area_level_1')) {
+                administrativeArea = component.long_name;
+            } else if (types.includes('country')) {
+                country = component.long_name;
+            } else if (types.includes('postal_code')) {
+                postalCode = component.long_name;
+            }
+        });
+
+        // ملء الحقول في النموذج
+        document.getElementById('address1').value = [streetNumber, route].filter(Boolean).join(' ');
+        document.getElementById('address2').value = neighborhood;
+        document.getElementById('city').value = locality;
+        document.getElementById('region').value = administrativeArea;
+        document.getElementById('country').value = country;
+    }
+
+    function toggleMap() {
+        const mapContainer = document.getElementById('map-container');
+        if (mapContainer.style.display === 'none') {
+            mapContainer.style.display = 'block';
+            if (typeof google === 'object' && typeof google.maps === 'object') {
+                if (!map) initMap();
+            } else {
+                alert('جاري تحميل الخريطة، يرجى الانتظار...');
+            }
+        } else {
+            mapContainer.style.display = 'none';
+        }
+    }
+
+    function searchLocation() {
+        const input = document.getElementById('search-location');
+        if (input.value.trim() !== '') {
+            if (searchBox && map) {
+                const places = searchBox.getPlaces();
+                if (places.length === 0) {
+                    alert('لم يتم العثور على الموقع المطلوب');
+                }
+            }
+        }
+    }
+</script>
 @endsection

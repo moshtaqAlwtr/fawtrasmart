@@ -309,7 +309,16 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
             Route::prefix('visits')
             ->middleware(['auth'])
             ->group(function () {
+
                 Route::post('/visits', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
+
+                // Route::get('/my-visits', [VisitController::class, 'myVisits']);
+
+                // // تتبع الموقع
+                // Route::post('/track-employee', [VisitController::class, 'trackEmployee']);
+
+                // إدارة الزيارات
+
 
             });
 

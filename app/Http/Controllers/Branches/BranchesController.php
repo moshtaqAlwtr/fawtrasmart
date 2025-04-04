@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\BranchSetting;
 use App\Models\Log as ModelsLog;
 use App\Models\BranchSettingBranch;
+use App\Models\Location;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Http\Request;
 
@@ -49,45 +50,50 @@ class BranchesController extends Controller
     // تخزين بيانات الفرع
     public function store(Request $request)
     {
-        // التحقق من صحة البيانات المدخلة
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string',
-            'mobile' => 'nullable|string',
-            'address1' => 'required|string|max:255',
-            'address2' => 'nullable|string|max:255',
-            'city' => 'required|string|max:255',
-            'region' => 'nullable|string|max:255',
-            'country' => 'required|string|max:255',
-            'work_hours' => 'nullable|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'location' => 'nullable|string|max:255',
+            // بقية القواعد...
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         // توليد الكود تلقائيًا
         $lastBranch = Branch::latest('id')->first();
         $newCode = $lastBranch ? str_pad($lastBranch->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
 
-        // دمج الكود مع باقي البيانات
-        $branchData = $request->all();
-        $branchData['code'] = $newCode;
-
         // إنشاء الفرع
-        $branch = Branch::create($branchData);
+        $branch = Branch::create([
+            'name' => $request->name,
+            'code' => $newCode,
+            'phone' => $request->phone,
+            'mobile' => $request->mobile,
+            'address1' => $request->address1,
+            'address2' => $request->address2,
+            'city' => $request->city,
+            'region' => $request->region,
+            'country' => $request->country,
+            'work_hours' => $request->work_hours,
+            'description' => $request->description,
+        ]);
+
+        // إنشاء الموقع إذا تم تحديده
+        if ($request->filled('latitude') && $request->filled('longitude')) {
+            Location::create([
+                'branch_id' => $branch->id,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+            ]);
+        }
+
+        // بقية الكود الخاص بالإعدادات والإشعارات...
         $defaultPermissions = [
             'share_cost_center' => 0,
-            'share_customers' => 0,
-            'share_products' => 0,
-            'share_suppliers' => 0,
-            'account_tree' => 0,
+            // بقية الصلاحيات...
         ];
 
         foreach ($defaultPermissions as $key => $status) {
-            // جلب الـ ID الخاص بالصلاحية
             $branchSettingId = BranchSetting::where('key', $key)->value('id');
-
             if ($branchSettingId) {
-                // إضافة الصلاحية للفرع الجديد
                 BranchSettingBranch::create([
                     'branch_id' => $branch->id,
                     'branch_setting_id' => $branchSettingId,
@@ -96,19 +102,16 @@ class BranchesController extends Controller
             }
         }
 
-        // تسجيل اشعار نظام جديد
         ModelsLog::create([
             'type' => 'branch',
-            'type_id' => $branch->id, // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
+            'type_id' => $branch->id,
+            'type_log' => 'log',
             'description' => 'تم اضافة فرع جديد **' . $branch->name . '**',
-            'created_by' => auth()->id(), // ID المستخدم الحالي
+            'created_by' => auth()->id(),
         ]);
 
-        // إعادة التوجيه مع رسالة نجاح
         return redirect()->route('branches.index')->with('success', 'تم إضافة الفرع بنجاح');
     }
-
     // عرض تفاصيل الفرع
     public function show($id)
     {
@@ -131,41 +134,63 @@ class BranchesController extends Controller
 
     // تحديث بيانات الفرع
     public function update(Request $request, $id)
-    {
-        // التحقق من صحة البيانات المدخلة
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:255|unique:branches,code,' . $id,
-            'phone' => 'nullable|string',
-            'mobile' => 'nullable|string',
-            'address1' => 'required|string|max:255',
-            'address2' => 'nullable|string|max:255',
-            'city' => 'required|string|max:255',
-            'region' => 'nullable|string|max:255',
-            'country' => 'required|string|max:255',
-            'work_hours' => 'nullable|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'location' => 'nullable|string|max:255',
-        ]);
+{
+    // التحقق من صحة البيانات المدخلة
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'code' => 'required|string|max:255|unique:branches,code,' . $id,
+        'phone' => 'nullable|string',
+        'mobile' => 'nullable|string',
+        'address1' => 'required|string|max:255',
+        'address2' => 'nullable|string|max:255',
+        'city' => 'required|string|max:255',
+        'region' => 'nullable|string|max:255',
+        'country' => 'required|string|max:255',
+        'work_hours' => 'nullable|string|max:255',
+        'description' => 'nullable|string|max:1000',
+        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+    ]);
 
-        // استرجاع الفرع بواسطة الـ id
-        $branch = Branch::findOrFail($id);
-        $oldName = $branch->name;
-        // تحديث البيانات
-        $branch->update($request->all());
+    // استرجاع الفرع بواسطة الـ id
+    $branch = Branch::findOrFail($id);
+    $oldName = $branch->name;
 
-        // تسجيل اشعار نظام جديد
-        ModelsLog::create([
-            'type' => 'branch',
-            'type_id' => $branch->id, // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
-            'description' => 'تم تعديل الفرع من **' . $oldName . '** إلى **' . $branch->name . '**',
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
+    // تحديث بيانات الفرع
+    $branch->update($request->except(['latitude', 'longitude']));
 
-        // إعادة التوجيه مع رسالة نجاح
-        return redirect()->route('branches.index')->with('success', 'تم تحديث بيانات الفرع بنجاح');
+    // تحديث أو إنشاء الموقع
+    if ($request->filled('latitude') && $request->filled('longitude')) {
+        $locationData = [
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'branch_id' => $branch->id
+        ];
+
+        if ($branch->location) {
+            // تحديث الموقع الحالي
+            $branch->location->update($locationData);
+        } else {
+            // إنشاء موقع جديد
+            Location::create($locationData);
+        }
+    } elseif ($branch->location && (!$request->filled('latitude') || !$request->filled('longitude'))) {
+        // حذف الموقع إذا تم إزالة الإحداثيات
+        $branch->location->delete();
     }
+
+    // تسجيل اشعار نظام جديد
+    ModelsLog::create([
+        'type' => 'branch',
+        'type_id' => $branch->id,
+        'type_log' => 'log',
+        'description' => 'تم تعديل الفرع من **' . $oldName . '** إلى **' . $branch->name . '**',
+        'created_by' => auth()->id(),
+    ]);
+
+    // إعادة التوجيه مع رسالة نجاح
+    return redirect()->route('branches.index')->with('success', 'تم تحديث بيانات الفرع بنجاح');
+}
 
     // حذف الفرع
     public function destroy($id)
