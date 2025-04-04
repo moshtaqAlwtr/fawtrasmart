@@ -297,154 +297,160 @@
 
         <!-- جدول العملاء -->
         @if (isset($clients) && $clients->count() > 0)
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table" id="fawtra">
-                    <thead>
-                        <tr>
-                            <th width="50">#</th>
-                            <th>معلومات العميل</th>
-                            <th>العنوان</th>
-                            <th>الكود</th>
-                            <th>رقم الهاتف</th>
-                            <th style="width: 10%">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($clients as $client)
-                            <tr onclick="handleRowClick(event, '{{ route('clients.show', $client->id) }}')"
-                                style="cursor: pointer;" class="hover-effect">
-                                <td>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox"
-                                            value="{{ $client->id }}">
-                                    </div>
-                                </td>
-                                <td>
-                                    <h6 class="mb-0">{{ $client->trade_name }}</h6>
-                                    <small class="text-muted">{{ $client->code }}</small>
-                                    <p class="text-muted mb-0">
-                                        <i class="fas fa-user me-1"></i>
-                                        {{ $client->first_name }} {{ $client->last_name }}
-                                    </p>
-                                    @if ($client->employee)
-                                        <p class="text-muted mb-0">
-                                            <i class="fas fa-user-tie me-1"></i>
-                                            {{ $client->employee->first_name }} {{ $client->employee->last_name }}
-                                        </p>
-                                    @endif
-                                </td>
-                                <td>
-                                    <p class="mb-0">
-                                        <i class="fas fa-map-marker-alt text-primary me-2"
-                                           style="cursor: pointer;"
-                                           onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }}, '{{ $client->trade_name }}')"></i>
-                                        {{ $client->city }}, {{ $client->region }}
-                                    </p>
-                                </td>
-                                <td>{{$client->code ?? ""}}</td>
-                                <td>
-                                    <strong class="text-primary">
-                                        <i class="fas fa-phone me-2"></i>{{ $client->phone }}
-                                    </strong>
-                                </td>
-                                <td>
-                                    <div class="btn-group">
-                                        <div class="dropdown">
-                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                type="button" id="dropdownMenuButton303" data-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false"></button>
-                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('clients.show', $client->id) }}">
-                                                        <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                    </a>
-                                                </li>
-                                                @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                                                    <li>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="fawtra">
+                            <thead>
+                                <tr>
+                                    <th width="50">#</th>
+                                    <th>معلومات العميل</th>
+                                    <th>العنوان</th>
+                                    <th>الكود</th>
+                                    <th>رقم الهاتف</th>
+                                    <th style="width: 10%">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($clients as $client)
+                                    <tr onclick="handleRowClick(event, '{{ route('clients.show', $client->id) }}')"
+                                        style="cursor: pointer;" class="hover-effect">
+                                        <td>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox"
+                                                    value="{{ $client->id }}">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <h6 class="mb-0">{{ $client->trade_name }}</h6>
+                                            <small class="text-muted">{{ $client->code }}</small>
+                                            <p class="text-muted mb-0">
+                                                <i class="fas fa-user me-1"></i>
+                                                {{ $client->first_name }} {{ $client->last_name }}
+                                            </p>
+                                            @if ($client->employee)
+                                                <p class="text-muted mb-0">
+                                                    <i class="fas fa-user-tie me-1"></i>
+                                                    {{ $client->employee->first_name }} {{ $client->employee->last_name }}
+                                                </p>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <p class="mb-0">
+                                                <i class="fas fa-map-marker-alt text-primary me-2"
+                                                    style="cursor: pointer;"
+                                                    onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }}, '{{ $client->trade_name }}')"></i>
+                                                {{ $client->city }}, {{ $client->region }}
+                                            </p>
+                                        </td>
+                                        <td>{{ $client->code ?? '' }}</td>
+                                        <td>
+                                            <strong class="text-primary">
+                                                <i class="fas fa-phone me-2"></i>{{ $client->phone }}
+                                            </strong>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <div class="dropdown">
+                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                        type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                        aria-haspopup="true" aria-expanded="false"></button>
+                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('clients.show', $client->id) }}">
+                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                            </a>
+                                                        </li>
+                                                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('clients.edit', $client->id) }}">
+                                                                    <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
+                                                                </a>
+                                                            </li>
+                                                        @endif
+
                                                         <a class="dropdown-item"
-                                                            href="{{ route('clients.edit', $client->id) }}">
-                                                            <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
+                                                            href="{{ route('clients.send_info', $client->id) }}">
+                                                            <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
+                                                            الدخول
                                                         </a>
-                                                    </li>
-                                                @endif
 
-                                                <a class="dropdown-item"
-                                                    href="{{ route('clients.send_info', $client->id) }}">
-                                                    <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات الدخول
-                                                </a>
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('clients.edit', $client->id) }}">
+                                                                <i class="fa fa-copy me-2 text-info"></i>نسخ
+                                                            </a>
+                                                        </li>
+                                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modal_DELETE{{ $client->id }}">
+                                                                    <i class="fa fa-trash-alt me-2"></i>حذف
+                                                                </a>
+                                                            </li>
+                                                        @endif
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('clients.edit', $client->id) }}">
+                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
+                                                                حساب
+                                                            </a>
+                                                        </li>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
 
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('clients.edit', $client->id) }}">
-                                                        <i class="fa fa-copy me-2 text-info"></i>نسخ
-                                                    </a>
-                                                </li>
-                                                @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#"
-                                                            data-toggle="modal"
-                                                            data-target="#modal_DELETE{{ $client->id }}">
-                                                            <i class="fa fa-trash-alt me-2"></i>حذف
-                                                        </a>
-                                                    </li>
-                                                @endif
-                                                <li>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('clients.edit', $client->id) }}">
-                                                        <i class="fa fa-file-invoice me-2 text-warning"></i>كشف حساب
-                                                    </a>
-                                                </li>
+                                        <!-- Modal Delete -->
+                                        <div class="modal fade" id="modal_DELETE{{ $client->id }}" tabindex="-1"
+                                            role="dialog" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-danger">
+                                                        <h5 class="modal-title text-white">تأكيد الحذف</h5>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                            aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form action="{{ route('clients.destroy', $client->id) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <div class="modal-body">
+                                                            <p>هل أنت متأكد من الحذف "{{ $client->trade_name }}"؟</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary"
+                                                                data-dismiss="modal">إلغاء</button>
+                                                            <button type="submit" class="btn btn-danger">تأكيد
+                                                                الحذف</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
 
-                                <!-- Modal Delete -->
-                                <div class="modal fade" id="modal_DELETE{{ $client->id }}" tabindex="-1"
-                                    role="dialog" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered" role="document">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger">
-                                                <h5 class="modal-title text-white">تأكيد الحذف</h5>
-                                                <button type="button" class="close" data-dismiss="modal"
-                                                    aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            </div>
-                                            <form action="{{ route('clients.destroy', $client->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <div class="modal-body">
-                                                    <p>هل أنت متأكد من الحذف "{{ $client->trade_name }}"؟</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary"
-                                                        data-dismiss="modal">إلغاء</button>
-                                                    <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-@else
-    <div class="alert alert-danger text-xl-center" role="alert">
-        <p class="mb-0">
-            لا توجد عملاء !!
-        </p>
-    </div>
-@endif
+        @else
+            <div class="alert alert-danger text-xl-center" role="alert">
+                <p class="mb-0">
+                    لا توجد عملاء !!
+                </p>
+            </div>
+            <div class="d-flex justify-content-center mt-3">
+                {{ $clients->links() }}
+            </div>
+        @endif
 
 
     </div>
@@ -679,43 +685,42 @@
             @endforeach
         }
 
-    function handleRowClick(event, url) {
-        let target = event.target;
+        function handleRowClick(event, url) {
+            let target = event.target;
 
-        // السماح بالنقر على العناصر التالية بدون تحويل
-        if (target.tagName.toLowerCase() === 'a' ||
-            target.closest('.dropdown-menu') ||
-            target.closest('.btn') ||
-            target.closest('.form-check-input')) {
-            return;
+            // السماح بالنقر على العناصر التالية بدون تحويل
+            if (target.tagName.toLowerCase() === 'a' ||
+                target.closest('.dropdown-menu') ||
+                target.closest('.btn') ||
+                target.closest('.form-check-input')) {
+                return;
+            }
+
+            // تحويل المستخدم لصفحة العميل عند الضغط على الصف
+            window.location = url;
         }
 
-        // تحويل المستخدم لصفحة العميل عند الضغط على الصف
-        window.location = url;
-    }
+        // إصلاح مشكلة عدم فتح الدروب داون
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll(".dropdown-toggle").forEach(function(dropdown) {
+                dropdown.addEventListener("click", function(event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    let menu = this.nextElementSibling;
+                    if (menu) {
+                        menu.classList.toggle("show");
+                    }
+                });
+            });
 
-    // إصلاح مشكلة عدم فتح الدروب داون
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll(".dropdown-toggle").forEach(function (dropdown) {
-            dropdown.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                let menu = this.nextElementSibling;
-                if (menu) {
-                    menu.classList.toggle("show");
-                }
+            // إغلاق الدروب داون عند النقر خارجها
+            document.addEventListener("click", function(event) {
+                document.querySelectorAll(".dropdown-menu").forEach(function(menu) {
+                    if (!menu.parentElement.contains(event.target)) {
+                        menu.classList.remove("show");
+                    }
+                });
             });
         });
-
-        // إغلاق الدروب داون عند النقر خارجها
-        document.addEventListener("click", function (event) {
-            document.querySelectorAll(".dropdown-menu").forEach(function (menu) {
-                if (!menu.parentElement.contains(event.target)) {
-                    menu.classList.remove("show");
-                }
-            });
-        });
-    });
-
     </script>
 @stop

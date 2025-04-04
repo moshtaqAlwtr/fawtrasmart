@@ -107,8 +107,8 @@ class ClientController extends Controller
             });
         }
 
-        // تنفيذ الاستعلام مع الترتيب
-        $clients = $query->orderBy('created_at', 'desc')->get();
+        // تنفيذ الاستعلام مع الترتيب والترقيم
+        $clients = $query->orderBy('created_at', 'desc')->paginate(15); // التعديل هنا
 
         // جلب البيانات الإضافية للعرض
         $users = User::all();
@@ -149,12 +149,12 @@ class ClientController extends Controller
        $Regions_groub = Region_groub::all();
          return view('client.group_client', compact('Regions_groub'));
     }
-    
+
     public function group_client_create()
     {
          return view('client.group_client_create');
     }
-    
+
   public function group_client_store(Request $request)
 {
     // تحقق من صحة البيانات المدخلة
@@ -214,9 +214,9 @@ class ClientController extends Controller
     ];
 
     $messages = [
-        'region_id.required' => 'حقل المجموعة مطلوب.', //  
+        'region_id.required' => 'حقل المجموعة مطلوب.', //
     ];
-    
+
     $request->validate($rules, $messages);
         // تحقق من وجود الإحداثيات
         if ($request->has('latitude') && $request->has('longitude')) {
@@ -256,7 +256,7 @@ class ClientController extends Controller
         ]);
         $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
         $Neighborhood = new Neighborhood();
-        $Neighborhood->name      = $neighborhoodName ?? "غير محدد"; 
+        $Neighborhood->name      = $neighborhoodName ?? "غير محدد";
         $Neighborhood->region_id = $request->region_id;
         $Neighborhood->client_id =  $client->id;
         $Neighborhood->save();
@@ -443,8 +443,8 @@ $customerAccount->code = $newCode;
 
     return [
         'success' => $successCount == count($missingClients),
-        'message' => $successCount == count($missingClients) 
-            ? 'تمت إضافة جميع العملاء بنجاح' 
+        'message' => $successCount == count($missingClients)
+            ? 'تمت إضافة جميع العملاء بنجاح'
             : "تمت إضافة {$successCount} من أصل " . count($missingClients),
         'added_count' => $successCount,
         'total_missing' => count($missingClients),
@@ -498,9 +498,9 @@ protected function generateUniqueAccountCode($parentId, $parentCode)
     ];
 
     $messages = [
-        'region_id.required' => 'حقل المجموعة مطلوب.', //  
+        'region_id.required' => 'حقل المجموعة مطلوب.', //
     ];
-    
+
     $request->validate($rules, $messages);
     // بدء المعاملة لضمان سلامة البيانات
     DB::beginTransaction();
@@ -530,9 +530,9 @@ protected function generateUniqueAccountCode($parentId, $parentCode)
 
         // 2. تحديث بيانات العميل الأساسية
         $client->update($data_request);
-        
-        
-        
+
+
+
 
 
 
@@ -544,7 +544,7 @@ protected function generateUniqueAccountCode($parentId, $parentCode)
             'longitude' => $request->longitude,
             'client_id' => $client->id
         ]);
-   
+
 
 $neighborhoodName = $this->getNeighborhoodFromGoogle($request->latitude, $request->longitude);
 
@@ -671,10 +671,10 @@ if ($Neighborhood) {
 {
     $client = Client::findOrFail($id);
     $employees = Employee::all();
-    
+
     // جلب جميع المجموعات المتاحة
     $Regions_groub = Region_groub::all();
-    
+
     return view('client.edit', compact('client', 'employees', 'Regions_groub'));
 }
     public function destroy($id)
@@ -756,7 +756,7 @@ if ($Neighborhood) {
         $invoices = $client->invoices;
         $invoice_due = Invoice::where('client_id', $id)->sum('due_value');
         $due = Account::where('client_id', $id)->sum('balance');
-        
+
         $payments = $client->payments()->orderBy('payment_date', 'desc')->get();
 
         // تحميل الملاحظات

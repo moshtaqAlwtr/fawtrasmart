@@ -8,7 +8,8 @@ use App\Models\Invoice;
 use App\Models\Neighborhood;
 use App\Models\Visit;
 use App\Models\User;
-use DB;
+use Illuminate\Support\Facades\DB;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
