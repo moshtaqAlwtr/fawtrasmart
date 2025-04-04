@@ -1,5 +1,5 @@
 <?php $__env->startSection('title'); ?>
-    اضافة سلفة راتب
+    تعديل سلفة راتب
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -7,7 +7,7 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">اضافة سلفة راتب</h2>
+                    <h2 class="content-header-title float-left mb-0">تعديل سلفة راتب</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a>
@@ -24,8 +24,10 @@
     </div>
 
     <div class="content-body">
-        <form class="form" action="<?php echo e(route('ancestor.store')); ?>" method="post" enctype="multipart/form-data">
+        <form class="form" action="<?php echo e(route('ancestor.update', $ancestor->id)); ?>" method="post" enctype="multipart/form-data">
             <?php echo csrf_field(); ?>
+            <?php echo method_field('PUT'); ?>
+
             <?php if($errors->any()): ?>
                 <div class="alert alert-danger">
                     <ul>
@@ -73,29 +75,27 @@
                             <!-- موظف -->
                             <div class="col-md-6 mb-3">
                                 <label for="employee">موظف<span class="text-danger">*</span></label>
-                                <select class="form-control" id="employee" name="employee_id">
-                                    <option value="">إختر موظف...</option>
-                                    <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($employee->id); ?>"><?php echo e($employee->full_name); ?></option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
+                             <select class="form-control" id="employee" name="employee_id" disabled>
+    <option value="<?php echo e($employee->id); ?>" selected><?php echo e($employee->full_name); ?></option>
+</select>
+<input type="hidden" name="employee_id" value="<?php echo e($employee->id); ?>">
                             </div>
 
                             <!-- تاريخ التقديم -->
                             <div class="col-md-6 mb-3">
                                 <label for="submission_date">تاريخ التقديم<span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="submission_date" name="submission_date"
-                                    placeholder="DD/MM/YYYY">
+                                    placeholder="DD/MM/YYYY" value="<?php echo e(old('submission_date', $ancestor->submission_date)); ?>">
                             </div>
 
                             <!-- المبلغ -->
                             <div class="col-md-6 mb-3">
                                 <label for="amount">المبلغ<span class="text-danger">*</span></label>
                                 <div class="input-group border rounded" style="height: 50px;">
-                                    <input type="number" class="form-control border-0 text-center" value="0.00"
-                                        id="amount" name="amount" style="height: 100%; font-size: 1rem;">
+                                    <input type="number" class="form-control border-0 text-center"
+                                        id="amount" name="amount" style="height: 100%; font-size: 1rem;" value="<?php echo e(old('amount', $ancestor->amount)); ?>">
 
-                                    <select name="currency" id="" class="form-select border-0 h-100 text-center"
+                                    <select name="currency" id="" class="form-select border-0 h-100 text-center "value  = "<?php echo e(old('currency', $ancestor->currency)); ?>"
                                         style="font-size: 1rem;">
                                         <option value="1">SAR</option>
                                         <option value="2">USD</option>
@@ -120,7 +120,7 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>"
                                         id="installment_amount" name="installment_amount"
-                                        value="<?php echo e(old('installment_amount', '0.00')); ?>" step="0.01"
+                                        value="<?php echo e(old('installment_amount', $ancestor->installment_amount)); ?>" step="0.01"
                                         style="height: 100%; font-size: 1rem;">
 
                                     <div class="input-group-prepend" style="min-width: 120px;">
@@ -128,7 +128,7 @@ unset($__errorArgs, $__bag); ?>"
                                             <div class="text-center w-100">
                                                 <label for="installment_count" class="form-label"> عدد الاقساط</label>
                                                 <input type="number" class="form-control border-0 text-center"
-                                                    value="0" readonly id="installment_count"
+                                                    value="<?php echo e(old('installment_count', $ancestor->installment_count)); ?>" readonly id="installment_count"
                                                     style="background: transparent; font-size: 1rem;">
                                             </div>
                                         </div>
@@ -154,7 +154,7 @@ unset($__errorArgs, $__bag); ?>
                             <div class="col-md-6 mb-3">
                                 <label for="payment_rate">معدل السداد<span class="text-danger">*</span></label>
 
-                                <select name="payment_rate" id="payment_rate" class="form-control" required>
+                                <select name="payment_rate" id="payment_rate" class="form-control"  value="<?php echo e(old('payment_rate', $ancestor->payment_rate)); ?>">
                                     <option value="">اختر معدل الدفع</option>
                                     <option value="monthly" <?php echo e(old('payment_rate') == 'monthly' ? 'selected' : ''); ?>>شهري
                                     </option>
@@ -170,17 +170,17 @@ unset($__errorArgs, $__bag); ?>
                                 <label for="installment_start_date">تاريخ بدء الأقساط<span
                                         class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="installment_start_date"
-                                    name="installment_start_date" placeholder="DD/MM/YYYY">
+                                    name="installment_start_date" placeholder="DD/MM/YYYY" value="<?php echo e(old('installment_start_date', $ancestor->installment_start_date)); ?>">
                             </div>
 
                             <!-- الخزنة -->
                             <div class="col-md-6 mb-3">
-                              <label for="treasury_id" class="form-label">الخزينة المستخدمة </label>
-                    
-                        <input type="text" name="treasury_id" class="form-control" 
-       placeholder="رقم المعرف"
-       value="<?php echo e($mainTreasuryAccount->id ?? ''); ?>" readonly>
-
+                                <label for="treasury">الخزنة<span class="text-danger">*</span></label>
+                              <!-- Treasury Select - غير قابل للتعديل -->
+<select class="form-control" id="treasury" name="treasury_id" required disabled>
+    <option value="<?php echo e($treasure->id); ?>" selected><?php echo e($treasure->name); ?></option>
+</select>
+<input type="hidden" name="treasury_id" value="<?php echo e($treasure->id); ?>">
                             </div>
 
                             <!-- الدفع من قسيمة الراتب -->
@@ -191,9 +191,9 @@ unset($__errorArgs, $__bag); ?>
                                         <div
                                             class="custom-control custom-checkbox d-flex justify-content-start align-items-center w-100">
                                             <input id="duration_check" class="custom-control-input" type="checkbox"
-                                                name="pay_from_salary">
+                                                name="pay_from_salary" value="<?php echo e(old('pay_from_salary', $ancestor->pay_from_salary ? '1' : '0' )); ?>">
                                             <label for="duration_check" class="custom-control-label ml-2">
-                                              الدفع من قسيمة الراتب <span class="required">*</span>
+                                                التحقق من الحضور <span class="required">*</span>
                                             </label>
                                         </div>
                                     </div>
@@ -204,14 +204,14 @@ unset($__errorArgs, $__bag); ?>
                             <!-- رسوم -->
                             <div class="col-md-6 mb-3">
                                 <label for="fees">وسوم</label>
-                                <input type="text" class="form-control" id="fees" name="tag" placeholder=""
+                                <input type="text" class="form-control" id="fees" name="tag" value="<?php echo e(old('tag', $ancestor->tag)); ?>"
                                     placeholder="الوسوم">
                             </div>
 
                             <!-- ملاحظة -->
                             <div class="col-md-6 mb-3">
                                 <label for="note">ملاحظة</label>
-                                <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+                                <textarea class="form-control" id="note" name="note" rows="3"><?php echo e(old('note', $ancestor->note)); ?></textarea>
                             </div>
                         </div>
                     </div>
@@ -295,4 +295,4 @@ unset($__errorArgs, $__bag); ?>
     </script>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/sehohoqm/hitstest.sehoool.com/resources/views/salaries/ancestor/create.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/sehohoqm/hitstest.sehoool.com/resources/views/salaries/ancestor/edit.blade.php ENDPATH**/ ?>

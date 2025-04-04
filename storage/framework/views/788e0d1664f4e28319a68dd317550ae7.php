@@ -16,6 +16,77 @@
         .custom-dropdown {
     min-width: 200px; /* يمكنك تعديل العرض حسب الحاجة */
 }
+/* إصلاح تخطيط الصفحة الرئيسية */
+.tab-content {
+    position: relative;
+    z-index: 1;
+}
+ .pdf-iframe {
+        width: 100%;
+        height: 800px;
+        border: none;
+        display: block;
+        margin: 0 auto;
+    }
+
+.sidebar {
+    position: fixed;
+    z-index: 100;
+    /* تأكد من وجود هذه الخصائص */
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 250px; /* تعديل حسب عرض السايد بار */
+    background: #f8f9fa;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+}
+ .invoice-wrapper {
+        /* عزل الفاتورة عن تخطيط الصفحة */
+        contain: content;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        overflow: visible;
+        padding: 20px 0;
+    }
+/* إصلاحات نهائية للسايد بار */
+.sidebar {
+    position: fixed !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+
+.main-content {
+    transition: none !important;
+    transform: none !important;
+}
+.main-content {
+    margin-left: 250px; /* نفس عرض السايد بار */
+    padding: 20px;
+    width: calc(100% - 250px);
+}
+/* تحسينات لعرض الفاتورة ضمن التبويب */
+.pdf-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+/* إصلاح مشكلة الـ RTL */
+[dir="rtl"] .pdf-wrapper {
+    direction: rtl;
+}
+
+/* منع تأثيرات التبويبات على الفاتورة */
+.tab-content > .active {
+    overflow: visible !important;
+}
 
 .custom-dropdown .dropdown-item {
     padding: 0.5rem 1rem; /* تعديل الحشوة لتتناسب مع الأزرار */
@@ -59,11 +130,11 @@
                         </span>
                         <strong>الفاتورة #<?php echo e($invoice->id); ?></strong>
                     </div>
-                    <div class="d-flex gap-2">
-                        <a href="<?php echo e(route('invoices.generatePdf', $invoice->id)); ?>" class="btn btn-primary btn-sm">
-                            <i class="fa fa-print"></i> طباعة الفاتورة
-                        </a>
-                    </div>
+                  <div class="d-flex gap-2">
+    <button onclick="printInvoice('<?php echo e(route('invoices.print', $invoice->id)); ?>')" class="btn btn-primary btn-sm">
+        <i class="fa fa-print"></i> طباعة الفاتورة
+    </button>
+</div>
                 </div>
                 <div class="text-center text-sm-start">
                     <span>المستلم: <?php echo e($invoice->client->trade_name ?? ''); ?></span><br>
@@ -85,7 +156,7 @@
                     </a>
 
                     <!-- طباعة -->
-                    <a href="<?php echo e(route('invoices.generatePdf', $invoice->id)); ?>"
+                    <a href="<?php echo e(route('invoices.print', $invoice->id)); ?>"
                         class="btn btn-sm btn-outline-success d-flex align-items-center custom-btn">
                         <i class="fas fa-print me-1"></i> طباعة
                     </a>
@@ -225,9 +296,13 @@
                 </ul>
                 <div class="tab-content" id="myTabContent">
                     <!-- Tab 1: Invoice -->
-                    <div class="tab-pane fade show active" id="invoice" role="tabpanel" aria-labelledby="invoice-tab">
-                        <?php echo $__env->make('sales.invoices.pdf', ['invoice' => $invoice], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-                    </div>
+                <div class="tab-pane fade show active" id="invoice" role="tabpanel" aria-labelledby="invoice-tab">
+    <iframe src="<?php echo e(route('invoices.print', ['id' => $invoice->id, 'embed' => true])); ?>" 
+            class="pdf-iframe"
+            frameborder="0"></iframe>
+</div>
+
+</div>
 
                     <!-- Tab 2: Invoice Details -->
                     <div class="tab-pane fade" id="invoice-details" role="tabpanel"
@@ -527,6 +602,8 @@
                 </div>
             </div>
         </div>
+
+
     <?php $__env->stopSection(); ?>
 
     <?php $__env->startSection('scripts'); ?>

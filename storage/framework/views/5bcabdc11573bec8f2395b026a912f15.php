@@ -30,6 +30,19 @@
 
     <div class="content-body">
         <div class="card">
+            <?php if(session('error')): ?>
+    <div class="alert alert-danger">
+        <?php echo e(session('error')); ?>
+
+    </div>
+<?php endif; ?>
+
+<?php if(session('success')): ?>
+    <div class="alert alert-success">
+        <?php echo e(session('success')); ?>
+
+    </div>
+<?php endif; ?>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -189,7 +202,7 @@
                             <th>موظف</th>
                             <th>الأقساط المدفوعة</th>
                             <th>الدفعة القادمة</th>
-                            <th>المبلغ</th>
+                      
                             <th>وسوم</th>
                             <th>ترتيب بواسطة</th>
 
@@ -197,6 +210,11 @@
                     </thead>
                     <tbody>
                         <?php $__empty_1 = true; $__currentLoopData = $ancestors; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ancestor): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                          <?php
+        $totalPaid = $ancestor->payments->where('status', 'paid')->sum('amount');
+        $paidInstallments = $ancestor->payments->where('status', 'paid')->count();
+        $progressPercentage = $ancestor->amount > 0 ? ($totalPaid / $ancestor->amount) * 100 : 0;
+    ?>
                             <tr>
                                 <td><?php echo e($ancestor->id); ?></td>
                                 <td>
@@ -213,31 +231,47 @@
                                         </span>
                                     </div>
                                 </td>
-
+                                     <?php
+                                            $currency = $account_setting->currency ?? 'SAR';
+                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                        ?>
 
                                 <!-- عمود الأقساط المدفوعة -->
-                                <td>
-                                    <?php echo e($ancestor->total_installments); ?> / <?php echo e($ancestor->paid_installments); ?>
+                             <td>
+        <div class="mb-2">
+            <label class="text-muted">حالة السداد:</label>
+            <div class="mt-1">
+                <div style="width: fit-content;">
+                    <div style="font-weight: bold; margin-bottom: 4px; position: relative;">
+                        <div style="border-bottom: 2px solid #ffc107; width: <?php echo e($progressPercentage); ?>%; position: absolute; bottom: -2px;"></div>
+                        <div style="border-bottom: 1px solid #dee2e6; width: fit-content;">
+                            <?php echo e(number_format($ancestor->amount, 2)); ?> <?php echo $currencySymbol; ?> (إجمالي السلفة)
+                        </div>
+                    </div>
+                    <div style="color: #666; font-size: 0.9em;">
+                        <span><?php echo e(number_format($totalPaid, 2)); ?> <?php echo $currencySymbol; ?> مدفوعة (<?php echo e($paidInstallments); ?> قسط)</span>
+                        <span class="mx-2">|</span>
+                        <span><?php echo e(number_format($ancestor->amount - $totalPaid, 2)); ?> <?php echo $currencySymbol; ?> متبقي</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </td>
+                            <td>
+    <?php if($ancestor->next_payment): ?>
+        <?php echo e($ancestor->next_payment->due_date); ?>
 
-                                </td>
-                                <td><?php echo e($ancestor->installment_start_date); ?></td>
+        <span class="badge badge-warning">قادم</span>
+    <?php else: ?>
+        <?php if($ancestor->payments->where('status', 'unpaid')->isEmpty()): ?>
+            <span class="badge badge-success">مكتمل</span>
+        <?php else: ?>
+            <span class="badge badge-danger">متأخر</span>
+        <?php endif; ?>
+    <?php endif; ?>
+</td>
 
-                                <td>
-                                    <div style="text-align: right;">
-                                        <div style="width: fit-content; margin-right: auto;">
-                                            <div style="font-weight: bold; margin-bottom: 4px; position: relative;">
-                                                <div style="border-bottom: 2px solid #ffc107; width: <?php echo e(($ancestor->installment_amount / $ancestor->amount) * 100); ?>%; position: absolute; bottom: -2px;"></div>
-                                                <div style="border-bottom: 1px solid #dee2e6; width: fit-content;">
-                                                    <?php echo e(number_format($ancestor->amount, 2)); ?> ر.س
-                                                </div>
-                                            </div>
-                                            <div style="color: #666; font-size: 0.9em;">
-                                                <span><?php echo e($ancestor->status ?? 'Paid'); ?></span>
-                                                <span><?php echo e(number_format($ancestor->installment_amount, 2)); ?> ر.س</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
+                         
                                 <td></td>
                                 <td>
                                     <div class="btn-group">

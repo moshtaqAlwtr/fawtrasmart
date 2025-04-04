@@ -162,13 +162,12 @@
 
                             <!-- الخزنة -->
                             <div class="col-md-6 mb-3">
-                                <label for="treasury">الخزنة<span class="text-danger">*</span></label>
-                                <select class="form-control" id="treasury" name="treasury_id">
-                                    <option value="">إختر خزنة...</option>
-                                    @foreach ($treasuries as $treasure)
-                                        <option value="{{ $treasure->id }}">{{ $treasure->name }}</option>
-                                    @endforeach
-                                </select>
+                              <label for="treasury_id" class="form-label">الخزينة المستخدمة </label>
+                    
+                        <input type="text" name="treasury_id" class="form-control" 
+       placeholder="رقم المعرف"
+       value="{{ $mainTreasuryAccount->id ?? '' }}" readonly>
+
                             </div>
 
                             <!-- الدفع من قسيمة الراتب -->
@@ -181,7 +180,7 @@
                                             <input id="duration_check" class="custom-control-input" type="checkbox"
                                                 name="pay_from_salary">
                                             <label for="duration_check" class="custom-control-label ml-2">
-                                                التحقق من الحضور <span class="required">*</span>
+                                              الدفع من قسيمة الراتب <span class="required">*</span>
                                             </label>
                                         </div>
                                     </div>

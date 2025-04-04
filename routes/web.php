@@ -204,7 +204,7 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
 
-Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
+                  Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
                     // صلاحيات العميل
                     Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
                     Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
@@ -214,6 +214,9 @@ Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteSta
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
+                      Route::get('/group', [ClientController::class, 'group_client'])->name('clients.group_client');
+                          Route::get('/group/create', [ClientController::class, 'group_client_create'])->name('clients.group_client_create');
+                           Route::post('/group/store', [ClientController::class, 'group_client_store'])->name('clients.group_client_store');
                     Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
@@ -261,7 +264,6 @@ Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteSta
                     Route::get('/paymentsClient/create/{id}/{type?}', [PaymentProcessController::class, 'create'])->name('paymentsClient.create');
                     Route::post('/store', [PaymentProcessController::class, 'store'])->name('paymentsClient.store');
                     Route::get('/show/{id}', [PaymentProcessController::class, 'show'])->name('paymentsClient.show');
-                    Route::get('/rereceipt/{id}', [PaymentProcessController::class, 'rereceipt'])->name('paymentsClient.rereceipt');
                     Route::get('/edit/{id}', [PaymentProcessController::class, 'edit'])->name('paymentsClient.edit');
 
                     Route::get('/receipt/pdf/{id}', [PaymentProcessController::class, 'pdfReceipt'])->name('paymentsClient.pdf');

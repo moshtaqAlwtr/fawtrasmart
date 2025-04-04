@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('installment_payments', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('salary_advance_id')->nullable();
+            $table->string('installment_number', 200)->nullable();
+            $table->float('amount')->nullable();
+            $table->unsignedBigInteger('account_id')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->date('payment_date')->nullable();
+            $table->date('due_date')->nullable();
+            $table->string('status', 200)->default('unpaid');
             $table->timestamps();
         });
     }

@@ -76,12 +76,10 @@
                             <!-- موظف -->
                             <div class="col-md-6 mb-3">
                                 <label for="employee">موظف<span class="text-danger">*</span></label>
-                                <select class="form-control" id="employee" name="employee_id">
-                                    <option value="">إختر موظف...</option>
-                                    @foreach ($employees as $employee)
-                                        <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
-                                    @endforeach
-                                </select>
+                             <select class="form-control" id="employee" name="employee_id" disabled>
+    <option value="{{ $employee->id }}" selected>{{ $employee->full_name }}</option>
+</select>
+<input type="hidden" name="employee_id" value="{{ $employee->id }}">
                             </div>
 
                             <!-- تاريخ التقديم -->
@@ -165,12 +163,11 @@
                             <!-- الخزنة -->
                             <div class="col-md-6 mb-3">
                                 <label for="treasury">الخزنة<span class="text-danger">*</span></label>
-                                <select class="form-control" id="treasury" name="treasury_id" required value="{{ old('treasury_id', $ancestor->treasury_id) }}">
-                                    <option value=" ">إختر خزنة...</option>
-                                    @foreach ($treasuries as $treasure)
-                                        <option value="{{ $treasure->id }}">{{ $treasure->name }}</option>
-                                    @endforeach
-                                </select>
+                              <!-- Treasury Select - غير قابل للتعديل -->
+<select class="form-control" id="treasury" name="treasury_id" required disabled>
+    <option value="{{ $treasure->id }}" selected>{{ $treasure->name }}</option>
+</select>
+<input type="hidden" name="treasury_id" value="{{ $treasure->id }}">
                             </div>
 
                             <!-- الدفع من قسيمة الراتب -->
