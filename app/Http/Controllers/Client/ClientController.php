@@ -44,14 +44,50 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        // بدء بناء الاستعلام مع تحميل العلاقات الأساسية
-        $query = Client::with([
+        
+         // جلب المستخدم الحالي
+        $user = auth()->user();
+
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
+
+            // التحقق من صلاحية "مشاركة المنتجات"
+            $shareProductsStatus = $branch->settings()->where('key', 'share_customers')->first();
+
+            // إذا كانت الصلاحية غير مفعلة، عرض المنتجات التي أضافها المستخدمون من نفس الفرع فقط
+            if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
+            
+        $query = Client::where('branch_id', $branch->id)->with([
             'employee',
-            'status' => function($q) {
+            'status' => function ($q) {
                 $q->select('id', 'name', 'color');
             },
-            'locations'
+            'locations',
         ]);
+            } else {
+              
+               
+        $query = Client::with([
+            'employee',
+            'status' => function ($q) {
+                $q->select('id', 'name', 'color');
+            },
+            'locations',
+        ]);
+            }
+        } else {
+         
+          
+        $query = Client::with([
+            'employee',
+            'status' => function ($q) {
+                $q->select('id', 'name', 'color');
+            },
+            'locations',
+        ]);
+        }
+      
 
         // تطبيق شروط البحث فقط
         if ($request->filled('client')) {
@@ -75,9 +111,8 @@ class ClientController extends Controller
         }
 
         if ($request->filled('address')) {
-            $query->where(function($q) use ($request) {
-                $q->where('street1', 'like', '%' . $request->address . '%')
-                  ->orWhere('street2', 'like', '%' . $request->address . '%');
+            $query->where(function ($q) use ($request) {
+                $q->where('street1', 'like', '%' . $request->address . '%')->orWhere('street2', 'like', '%' . $request->address . '%');
             });
         }
 
@@ -116,13 +151,7 @@ class ClientController extends Controller
         $statuses = Statuses::select('id', 'name', 'color')->get();
         $creditLimit = CreditLimit::first();
 
-        return view('client.index', compact(
-            'clients',
-            'users',
-            'employees',
-            'creditLimit',
-            'statuses'
-        ));
+        return view('client.index', compact('clients', 'users', 'employees', 'creditLimit', 'statuses'));
     }
     public function updateCreditLimit(Request $request)
     {
@@ -146,30 +175,30 @@ class ClientController extends Controller
 
     public function group_client()
     {
-       $Regions_groub = Region_groub::all();
-         return view('client.group_client', compact('Regions_groub'));
+        $Regions_groub = Region_groub::all();
+        return view('client.group_client', compact('Regions_groub'));
     }
 
     public function group_client_create()
     {
-         return view('client.group_client_create');
+        return view('client.group_client_create');
     }
 
-  public function group_client_store(Request $request)
-{
-    // تحقق من صحة البيانات المدخلة
-    $request->validate([
-        'name' => 'required|string|unique:region_groubs,name',
-    ]);
+    public function group_client_store(Request $request)
+    {
+        // تحقق من صحة البيانات المدخلة
+        $request->validate([
+            'name' => 'required|string|unique:region_groubs,name',
+        ]);
 
-    // إنشاء مجموعة المنطقة الجديدة
-    $regionGroup = new Region_groub();
-    $regionGroup->name = $request->name;
-    $regionGroup->save();
+        // إنشاء مجموعة المنطقة الجديدة
+        $regionGroup = new Region_groub();
+        $regionGroup->name = $request->name;
+        $regionGroup->save();
 
-    // إرجاع البيانات المحفوظة أو رسالة نجاح
-   return redirect()->route('clients.group_client')->with('success', 'تم إنشاء المجموعة بنجاح');
-}
+        // إرجاع البيانات المحفوظة أو رسالة نجاح
+        return redirect()->route('clients.group_client')->with('success', 'تم إنشاء المجموعة بنجاح');
+    }
     public function create()
     {
         $employees = Employee::all();
@@ -188,9 +217,10 @@ class ClientController extends Controller
                 return (object) $item; // تحويل المصفوفة إلى كائن
             });
         }
-        return view('client.create', compact('employees', 'newCode', 'categories', 'GeneralClientSettings','Regions_groub'));
+        return view('client.create', compact('employees', 'newCode', 'categories', 'GeneralClientSettings', 'Regions_groub'));
     }
-    private function getNeighborhoodFromGoogle($latitude, $longitude) {
+    private function getNeighborhoodFromGoogle($latitude, $longitude)
+    {
         $apiKey = env('GOOGLE_MAPS_API_KEY'); // احصل على API Key من .env
         $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=$latitude,$longitude&key=$apiKey&language=ar";
 
@@ -199,25 +229,25 @@ class ClientController extends Controller
 
         if (!empty($data['results'])) {
             foreach ($data['results'][0]['address_components'] as $component) {
-                if (in_array("sublocality", $component['types']) || in_array("neighborhood", $component['types'])) {
+                if (in_array('sublocality', $component['types']) || in_array('neighborhood', $component['types'])) {
                     return $component['long_name']; // اسم الحي
                 }
             }
         }
-        return "لم يتم العثور على الحي";
+        return 'لم يتم العثور على الحي';
     }
     public function store(ClientRequest $request)
     {
         $data_request = $request->except('_token');
-  $rules = [
-        'region_id' => ['required'], // إلزامي فقط
-    ];
+        $rules = [
+            'region_id' => ['required'], // إلزامي فقط
+        ];
 
-    $messages = [
-        'region_id.required' => 'حقل المجموعة مطلوب.', //
-    ];
+        $messages = [
+            'region_id.required' => 'حقل المجموعة مطلوب.', //
+        ];
 
-    $request->validate($rules, $messages);
+        $request->validate($rules, $messages);
         // تحقق من وجود الإحداثيات
         if ($request->has('latitude') && $request->has('longitude')) {
             $latitude = $request->latitude;
@@ -256,9 +286,9 @@ class ClientController extends Controller
         ]);
         $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
         $Neighborhood = new Neighborhood();
-        $Neighborhood->name      = $neighborhoodName ?? "غير محدد";
+        $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
         $Neighborhood->region_id = $request->region_id;
-        $Neighborhood->client_id =  $client->id;
+        $Neighborhood->client_id = $client->id;
         $Neighborhood->save();
 
         // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
@@ -299,14 +329,14 @@ class ClientController extends Controller
             // تعيين كود الحساب الفرعي بناءً على كود الحسابات
             $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
 
-$newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
 
-// تحقق مما إذا كان الكود موجودًا بالفعل في قاعدة البيانات
-while (\App\Models\Account::where('code', $newCode)->exists()) {
-    $newCode = $this->generateNextCode($newCode); // توليد كود جديد
-}
+            // تحقق مما إذا كان الكود موجودًا بالفعل في قاعدة البيانات
+            while (\App\Models\Account::where('code', $newCode)->exists()) {
+                $newCode = $this->generateNextCode($newCode); // توليد كود جديد
+            }
 
-$customerAccount->code = $newCode;
+            $customerAccount->code = $newCode;
             $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
             $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
             $customerAccount->is_active = false;
@@ -387,93 +417,85 @@ $customerAccount->code = $newCode;
         }
     }
     public function testcient()
-{
-    // الحصول على العملاء بدون حسابات (بطريقة بديلة آمنة)
-    $missingClients = DB::table('clients')
-        ->leftJoin('accounts', 'clients.id', '=', 'accounts.client_id')
-        ->whereNull('accounts.id')
-        ->select('clients.*')
-        ->get();
+    {
+        // الحصول على العملاء بدون حسابات (بطريقة بديلة آمنة)
+        $missingClients = DB::table('clients')->leftJoin('accounts', 'clients.id', '=', 'accounts.client_id')->whereNull('accounts.id')->select('clients.*')->get();
 
-    if ($missingClients->isEmpty()) {
-        return [
-            'success' => true,
-            'message' => 'لا يوجد عملاء مفقودين في جدول الحسابات',
-            'added_count' => 0,
-            'total_missing' => 0,
-            'errors' => []
-        ];
-    }
+        if ($missingClients->isEmpty()) {
+            return [
+                'success' => true,
+                'message' => 'لا يوجد عملاء مفقودين في جدول الحسابات',
+                'added_count' => 0,
+                'total_missing' => 0,
+                'errors' => [],
+            ];
+        }
 
-    $parentAccount = Account::where('name', 'العملاء')->first();
+        $parentAccount = Account::where('name', 'العملاء')->first();
 
-    if (!$parentAccount) {
-        return [
-            'success' => false,
-            'message' => 'حساب العملاء الرئيسي غير موجود',
-            'added_count' => 0,
-            'total_missing' => count($missingClients),
-            'errors' => ['حساب العملاء الرئيسي غير موجود']
-        ];
-    }
+        if (!$parentAccount) {
+            return [
+                'success' => false,
+                'message' => 'حساب العملاء الرئيسي غير موجود',
+                'added_count' => 0,
+                'total_missing' => count($missingClients),
+                'errors' => ['حساب العملاء الرئيسي غير موجود'],
+            ];
+        }
 
-    $successCount = 0;
-    $errors = [];
+        $successCount = 0;
+        $errors = [];
 
-    foreach ($missingClients as $client) {
-        try {
-            $account = new Account();
-            $account->client_id = $client->id;
-            $account->name = $client->trade_name ?? 'عميل بدون اسم';
-            $account->parent_id = $parentAccount->id;
-            $account->balance = $client->opening_balance ?? 0;
-            $account->balance_type = 'debit';
-            $account->is_active = true;
-            $account->code = $this->generateUniqueAccountCode($parentAccount->id, $parentAccount->code);
+        foreach ($missingClients as $client) {
+            try {
+                $account = new Account();
+                $account->client_id = $client->id;
+                $account->name = $client->trade_name ?? 'عميل بدون اسم';
+                $account->parent_id = $parentAccount->id;
+                $account->balance = $client->opening_balance ?? 0;
+                $account->balance_type = 'debit';
+                $account->is_active = true;
+                $account->code = $this->generateUniqueAccountCode($parentAccount->id, $parentAccount->code);
 
-            if ($account->save()) {
-                $successCount++;
-            } else {
-                $errors[] = "فشل حفظ حساب العميل {$client->id}";
+                if ($account->save()) {
+                    $successCount++;
+                } else {
+                    $errors[] = "فشل حفظ حساب العميل {$client->id}";
+                }
+            } catch (\Exception $e) {
+                $errors[] = "خطأ في العميل {$client->id}: " . $e->getMessage();
             }
-        } catch (\Exception $e) {
-            $errors[] = "خطأ في العميل {$client->id}: " . $e->getMessage();
         }
+
+        return [
+            'success' => $successCount == count($missingClients),
+            'message' => $successCount == count($missingClients) ? 'تمت إضافة جميع العملاء بنجاح' : "تمت إضافة {$successCount} من أصل " . count($missingClients),
+            'added_count' => $successCount,
+            'total_missing' => count($missingClients),
+            'errors' => $errors,
+        ];
     }
 
-    return [
-        'success' => $successCount == count($missingClients),
-        'message' => $successCount == count($missingClients)
-            ? 'تمت إضافة جميع العملاء بنجاح'
-            : "تمت إضافة {$successCount} من أصل " . count($missingClients),
-        'added_count' => $successCount,
-        'total_missing' => count($missingClients),
-        'errors' => $errors
-    ];
-}
+    protected function generateUniqueAccountCode($parentId, $parentCode)
+    {
+        $lastChild = Account::where('parent_id', $parentId)->orderBy('code', 'desc')->first();
 
-protected function generateUniqueAccountCode($parentId, $parentCode)
-{
-    $lastChild = Account::where('parent_id', $parentId)
-        ->orderBy('code', 'desc')
-        ->first();
+        $baseCode = $lastChild ? (int) $lastChild->code + 1 : $parentCode . '001';
 
-    $baseCode = $lastChild ? ((int)$lastChild->code + 1) : $parentCode . '001';
+        $counter = 1;
+        $newCode = $baseCode;
 
-    $counter = 1;
-    $newCode = $baseCode;
+        while (Account::where('code', $newCode)->exists()) {
+            $newCode = $baseCode . '_' . $counter;
+            $counter++;
 
-    while (Account::where('code', $newCode)->exists()) {
-        $newCode = $baseCode . '_' . $counter;
-        $counter++;
-
-        if ($counter > 100) {
-            throw new \RuntimeException('فشل توليد كود فريد');
+            if ($counter > 100) {
+                throw new \RuntimeException('فشل توليد كود فريد');
+            }
         }
-    }
 
-    return $newCode;
-}
+        return $newCode;
+    }
     // إضافة هذه الدالة في نفس وحدة التحكم
     private function generateNextCode(string $lastChildCode): string
     {
@@ -486,197 +508,184 @@ protected function generateUniqueAccountCode($parentId, $parentCode)
     }
 
     public function update(ClientRequest $request, $id)
-{
-    // التحقق من البيانات المطلوبة بما فيها الإحداثيات
-    $validated = $request->validate([
-        'latitude' => 'required|numeric',
-        'longitude' => 'required|numeric',
-        // بقية قواعد التحقق...
-    ]);
- $rules = [
-        'region_id' => ['required'], // إلزامي فقط
-    ];
+    {
+        // التحقق من البيانات المطلوبة بما فيها الإحداثيات
+        $validated = $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            // بقية قواعد التحقق...
+        ]);
+        $rules = [
+            'region_id' => ['required'], // إلزامي فقط
+        ];
 
-    $messages = [
-        'region_id.required' => 'حقل المجموعة مطلوب.', //
-    ];
+        $messages = [
+            'region_id.required' => 'حقل المجموعة مطلوب.', //
+        ];
 
-    $request->validate($rules, $messages);
-    // بدء المعاملة لضمان سلامة البيانات
-    DB::beginTransaction();
+        $request->validate($rules, $messages);
+        // بدء المعاملة لضمان سلامة البيانات
+        DB::beginTransaction();
 
-    try {
-        $data_request = $request->except('_token', 'contacts');
-        $client = Client::findOrFail($id);
-        $oldData = $client->getOriginal();
+        try {
+            $data_request = $request->except('_token', 'contacts');
+            $client = Client::findOrFail($id);
+            $oldData = $client->getOriginal();
 
-        // 1. معالجة المرفقات
-        if ($request->hasFile('attachments')) {
-            $file = $request->file('attachments');
-            if ($file->isValid()) {
-                // حذف الملف القديم إن وجد
-                if ($client->attachments) {
-                    $oldFilePath = public_path('assets/uploads/') . $client->attachments;
-                    if (File::exists($oldFilePath)) {
-                        File::delete($oldFilePath);
+            // 1. معالجة المرفقات
+            if ($request->hasFile('attachments')) {
+                $file = $request->file('attachments');
+                if ($file->isValid()) {
+                    // حذف الملف القديم إن وجد
+                    if ($client->attachments) {
+                        $oldFilePath = public_path('assets/uploads/') . $client->attachments;
+                        if (File::exists($oldFilePath)) {
+                            File::delete($oldFilePath);
+                        }
+                    }
+
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('assets/uploads/'), $filename);
+                    $data_request['attachments'] = $filename;
+                }
+            }
+
+            // 2. تحديث بيانات العميل الأساسية
+            $client->update($data_request);
+
+            // 3. معالجة الإحداثيات - الطريقة المؤكدة
+            $client->locations()->delete(); // حذف جميع المواقع القديمة
+
+            $client->locations()->create([
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'client_id' => $client->id,
+            ]);
+
+            $neighborhoodName = $this->getNeighborhoodFromGoogle($request->latitude, $request->longitude);
+
+            // البحث عن الحي الحالي للعميل
+            $Neighborhood = Neighborhood::where('client_id', $client->id)->first();
+
+            if ($Neighborhood) {
+                // إذا كان لديه حي، قم بتحديثه
+                $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
+                $Neighborhood->region_id = $request->region_id;
+                $Neighborhood->save();
+            } else {
+                // إذا لم يكن لديه حي، أضف حيًا جديدًا
+                $Neighborhood = new Neighborhood();
+                $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
+                $Neighborhood->region_id = $request->region_id;
+                $Neighborhood->client_id = $client->id;
+                $Neighborhood->save();
+            }
+            // 4. تحديث بيانات المستخدم
+            if ($request->email) {
+                $full_name = implode(' ', array_filter([$client->trade_name, $client->first_name, $client->last_name]));
+
+                $userData = [
+                    'name' => $full_name,
+                    'email' => $request->email,
+                    'phone' => $request->phone,
+                ];
+
+                $user = User::where('client_id', $client->id)->first();
+
+                if ($user) {
+                    $user->update($userData);
+                } else {
+                    $userData['password'] = Hash::make(Str::random(10));
+                    $userData['role'] = 'client';
+                    $userData['client_id'] = $client->id;
+                    User::create($userData);
+                }
+            }
+
+            // 5. تحديث الحساب المالي
+            $customersAccount = Account::where('name', 'العملاء')->first();
+
+            if ($customersAccount) {
+                $accountData = [
+                    'name' => $client->trade_name,
+                    'balance' => $client->opening_balance ?? 0,
+                    'parent_id' => $customersAccount->id,
+                    'balance_type' => 'debit',
+                    'is_active' => false,
+                ];
+
+                $clientAccount = Account::where('client_id', $client->id)->first();
+
+                if ($clientAccount) {
+                    $clientAccount->update($accountData);
+                } else {
+                    $lastChild = Account::where('parent_id', $customersAccount->id)->orderBy('code', 'desc')->first();
+
+                    $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customersAccount->code . '1';
+
+                    while (Account::where('code', $newCode)->exists()) {
+                        $newCode = $this->generateNextCode($newCode);
+                    }
+
+                    $accountData['code'] = $newCode;
+                    $accountData['client_id'] = $client->id;
+                    Account::create($accountData);
+                }
+            }
+
+            // 6. معالجة جهات الاتصال
+            if ($request->has('contacts')) {
+                $existingContacts = $client->contacts->keyBy('id');
+                $newContacts = collect($request->contacts);
+
+                // الحذف
+                $contactsToDelete = $existingContacts->diffKeys($newContacts->whereNotNull('id')->keyBy('id'));
+                $client->contacts()->whereIn('id', $contactsToDelete->keys())->delete();
+
+                // التحديث والإضافة
+                foreach ($request->contacts as $contact) {
+                    if (isset($contact['id']) && $existingContacts->has($contact['id'])) {
+                        $existingContacts[$contact['id']]->update($contact);
+                    } else {
+                        $client->contacts()->create($contact);
                     }
                 }
-
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('assets/uploads/'), $filename);
-                $data_request['attachments'] = $filename;
             }
+
+            // 7. تسجيل العملية في السجل
+            ModelsLog::create([
+                'type' => 'client',
+                'type_id' => $client->id,
+                'type_log' => 'update',
+                'description' => 'تم تحديث بيانات العميل: ' . $client->trade_name,
+                'created_by' => auth()->id(),
+                'old_data' => json_encode($oldData),
+                'new_data' => json_encode($client->getAttributes()),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('clients.index')->with('success', 'تم تحديث بيانات العميل بنجاح');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->with('error', 'حدث خطأ أثناء التحديث: ' . $e->getMessage())
+                ->withInput();
         }
-
-        // 2. تحديث بيانات العميل الأساسية
-        $client->update($data_request);
-
-
-
-
-
-
-        // 3. معالجة الإحداثيات - الطريقة المؤكدة
-        $client->locations()->delete(); // حذف جميع المواقع القديمة
-
-        $client->locations()->create([
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'client_id' => $client->id
-        ]);
-
-
-$neighborhoodName = $this->getNeighborhoodFromGoogle($request->latitude, $request->longitude);
-
-// البحث عن الحي الحالي للعميل
-$Neighborhood = Neighborhood::where('client_id', $client->id)->first();
-
-if ($Neighborhood) {
-    // إذا كان لديه حي، قم بتحديثه
-    $Neighborhood->name = $neighborhoodName ?? "غير محدد";
-    $Neighborhood->region_id = $request->region_id;
-    $Neighborhood->save();
-} else {
-    // إذا لم يكن لديه حي، أضف حيًا جديدًا
-    $Neighborhood = new Neighborhood();
-    $Neighborhood->name = $neighborhoodName ?? "غير محدد";
-    $Neighborhood->region_id = $request->region_id;
-    $Neighborhood->client_id = $client->id;
-    $Neighborhood->save();
-}
-        // 4. تحديث بيانات المستخدم
-        if ($request->email) {
-            $full_name = implode(' ', array_filter([
-                $client->trade_name,
-                $client->first_name,
-                $client->last_name
-            ]));
-
-            $userData = [
-                'name' => $full_name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-            ];
-
-            $user = User::where('client_id', $client->id)->first();
-
-            if ($user) {
-                $user->update($userData);
-            } else {
-                $userData['password'] = Hash::make(Str::random(10));
-                $userData['role'] = 'client';
-                $userData['client_id'] = $client->id;
-                User::create($userData);
-            }
-        }
-
-        // 5. تحديث الحساب المالي
-        $customersAccount = Account::where('name', 'العملاء')->first();
-
-        if ($customersAccount) {
-            $accountData = [
-                'name' => $client->trade_name,
-                'balance' => $client->opening_balance ?? 0,
-                'parent_id' => $customersAccount->id,
-                'balance_type' => 'debit',
-                'is_active' => false
-            ];
-
-            $clientAccount = Account::where('client_id', $client->id)->first();
-
-            if ($clientAccount) {
-                $clientAccount->update($accountData);
-            } else {
-                $lastChild = Account::where('parent_id', $customersAccount->id)
-                    ->orderBy('code', 'desc')
-                    ->first();
-
-                $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customersAccount->code . '1';
-
-                while (Account::where('code', $newCode)->exists()) {
-                    $newCode = $this->generateNextCode($newCode);
-                }
-
-                $accountData['code'] = $newCode;
-                $accountData['client_id'] = $client->id;
-                Account::create($accountData);
-            }
-        }
-
-        // 6. معالجة جهات الاتصال
-        if ($request->has('contacts')) {
-            $existingContacts = $client->contacts->keyBy('id');
-            $newContacts = collect($request->contacts);
-
-            // الحذف
-            $contactsToDelete = $existingContacts->diffKeys($newContacts->whereNotNull('id')->keyBy('id'));
-            $client->contacts()->whereIn('id', $contactsToDelete->keys())->delete();
-
-            // التحديث والإضافة
-            foreach ($request->contacts as $contact) {
-                if (isset($contact['id']) && $existingContacts->has($contact['id'])) {
-                    $existingContacts[$contact['id']]->update($contact);
-                } else {
-                    $client->contacts()->create($contact);
-                }
-            }
-        }
-
-        // 7. تسجيل العملية في السجل
-        ModelsLog::create([
-            'type' => 'client',
-            'type_id' => $client->id,
-            'type_log' => 'update',
-            'description' => 'تم تحديث بيانات العميل: ' . $client->trade_name,
-            'created_by' => auth()->id(),
-            'old_data' => json_encode($oldData),
-            'new_data' => json_encode($client->getAttributes())
-        ]);
-
-        DB::commit();
-
-        return redirect()->route('clients.index')
-            ->with('success', 'تم تحديث بيانات العميل بنجاح');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        return redirect()->back()
-            ->with('error', 'حدث خطأ أثناء التحديث: ' . $e->getMessage())
-            ->withInput();
     }
-}
 
- public function edit_question($id)
-{
-    $client = Client::findOrFail($id);
-    $employees = Employee::all();
+    public function edit_question($id)
+    {
+        $client = Client::findOrFail($id);
+        $employees = Employee::all();
 
-    // جلب جميع المجموعات المتاحة
-    $Regions_groub = Region_groub::all();
+        // جلب جميع المجموعات المتاحة
+        $Regions_groub = Region_groub::all();
 
-    return view('client.edit', compact('client', 'employees', 'Regions_groub'));
-}
+        return view('client.edit', compact('client', 'employees', 'Regions_groub'));
+    }
     public function destroy($id)
     {
         $client = Client::findOrFail($id);
@@ -775,24 +784,7 @@ if ($Neighborhood) {
 
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('client.show', compact(
-            'client',
-            'ClientRelations',
-            'visits',
-            'due',
-            'invoice_due',
-            'statuses',
-            'account',
-            'installment',
-            'employees',
-            'bookings',
-            'packages',
-            'memberships',
-            'invoices',
-            'payments',
-            'appointmentNotes',
-            'account_setting'
-        ));
+        return view('client.show', compact('client', 'ClientRelations', 'visits', 'due', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes', 'account_setting'));
     }
     public function updateStatus(Request $request, $id)
     {
@@ -1021,46 +1013,45 @@ if ($Neighborhood) {
     }
 
     public function addnotes(Request $request)
-{
-    $ClientRelation = new ClientRelation();
-    $ClientRelation->status = $request->status;
-    $ClientRelation->client_id = $request->client_id;
-    $ClientRelation->process = $request->process;
-    $ClientRelation->description = $request->description;
+    {
+        $ClientRelation = new ClientRelation();
+        $ClientRelation->status = $request->status;
+        $ClientRelation->client_id = $request->client_id;
+        $ClientRelation->process = $request->process;
+        $ClientRelation->description = $request->description;
 
-    // معالجة المرفقات إن وجدت
-    if ($request->hasFile('attachments')) {
-        $file = $request->file('attachments');
-        if ($file->isValid()) {
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('assets/uploads/notes'), $filename);
-            $ClientRelation->attachments = $filename;
+        // معالجة المرفقات إن وجدت
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/notes'), $filename);
+                $ClientRelation->attachments = $filename;
+            }
         }
+
+        $ClientRelation->save();
+
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'notes',
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
+
+        $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
+
+        notifications::create([
+            'type' => 'notes',
+            'title' => 'ملاحظة لعميل',
+            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
+        ]);
+
+        return redirect()
+            ->route('clients.show', ['id' => $ClientRelation->client_id])
+            ->with('success', 'تم إضافة الملاحظة بنجاح');
     }
-
-    $ClientRelation->save();
-
-    // تسجيل اشعار نظام جديد
-    ModelsLog::create([
-        'type' => 'notes',
-        'type_log' => 'log', // نوع النشاط
-        'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-        'created_by' => auth()->id(), // ID المستخدم الحالي
-    ]);
-
-    $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
-
-    notifications::create([
-        'type' => 'notes',
-        'title' => 'ملاحظة لعميل',
-        'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-    ]);
-
-    return redirect()
-        ->route('clients.show', ['id' => $ClientRelation->client_id])
-        ->with('success', 'تم إضافة الملاحظة بنجاح');
-}
-
 
     public function mang_client_details($id)
     {
@@ -1248,17 +1239,17 @@ if ($Neighborhood) {
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
     public function updateStatusClient(Request $request)
-{
-    $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'status_id' => 'required|exists:statuses,id',
-    ]);
+    {
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'status_id' => 'required|exists:statuses,id',
+        ]);
 
-    // البحث عن العميل وتحديث حالته مباشرة
-    $client = Client::findOrFail($request->client_id);
-    $client->status_id = $request->status_id;
-    $client->save();
+        // البحث عن العميل وتحديث حالته مباشرة
+        $client = Client::findOrFail($request->client_id);
+        $client->status_id = $request->status_id;
+        $client->save();
 
-    return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
-}
+        return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
+    }
 }
