@@ -94,7 +94,10 @@ class TreasuryController extends Controller
         $account->type_accont = 0; // نوع الحساب (خزينة)
         $account->is_active = $request->is_active ?? 1; // حالة الحساب (افتراضي: نشط)
         $account->parent_id = 13; // الأب الافتراضي
-        $account->code = $this->generateNextCode($request->input('parent_id')); // إنشاء الكود
+     
+        
+        $account->code = $this->generateNextCode(13);
+          
         $account->balance_type = 'debit'; // نوع الرصيد (مدين)
         // $account->treasury_id = $treasury->id; // ربط الحساب بالخزينة
         $account->save();
@@ -112,14 +115,16 @@ class TreasuryController extends Controller
         return redirect()->route('treasury.index')->with('success', 'تم إضافة الخزينة بنجاح!');
     }
 
-    public function generateNextCode($parentId)
-    {
-        // جلب أعلى كود موجود تحت نفس الحساب الأب
-        $lastCode = Account::where('parent_id', $parentId)->orderBy('code', 'DESC')->value('code'); // يأخذ فقط قيمة الكود الأعلى
+  public function generateNextCode($parentId)
+{
+    do {
+        $lastCode = Account::where('parent_id', $parentId)->orderBy('code', 'DESC')->value('code');
+        $newCode = $lastCode ? $lastCode + 1 : 1;
+    } while (Account::where('code', $newCode)->exists()); // تأكيد عدم التكرار
 
-        // إذا لم يكن هناك أي كود سابق، ابدأ من 1
-        return $lastCode ? $lastCode + 1 : 1;
-    }
+    return $newCode;
+}
+
 
     public function transferCreate()
     {
@@ -403,7 +408,7 @@ class TreasuryController extends Controller
         $account->type_accont = 1; // نوع الحساب (بنكي)
         $account->is_active = $request->status; // حالة الحساب (افتراضي: نشط)
         $account->parent_id = 13; // الأب الافتراضي
-        $account->code = $this->generateNextCode($request->input('parent_id')); // إنشاء الكود
+       $account->code = $this->generateNextCode(13);
         $account->balance_type = 'debit'; // نوع الرصيد (مدين)
         // $account->treasury_id = $treasury->id; // ربط الحساب بالخزينة
         $account->save();
