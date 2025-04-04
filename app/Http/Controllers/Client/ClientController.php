@@ -44,7 +44,30 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        // بدء بناء الاستعلام مع تحميل العلاقات الأساسية
+        
+         // جلب المستخدم الحالي
+        $user = auth()->user();
+
+        // التحقق مما إذا كان للمستخدم فرع أم لا
+        if ($user->branch) {
+            $branch = $user->branch;
+
+            // التحقق من صلاحية "مشاركة المنتجات"
+            $shareProductsStatus = $branch->settings()->where('key', 'share_customers')->first();
+
+            // إذا كانت الصلاحية غير مفعلة، عرض المنتجات التي أضافها المستخدمون من نفس الفرع فقط
+            if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
+            
+        $query = Client::where('branch_id', $branch->id)->with([
+            'employee',
+            'status' => function ($q) {
+                $q->select('id', 'name', 'color');
+            },
+            'locations',
+        ]);
+            } else {
+              
+               
         $query = Client::with([
             'employee',
             'status' => function ($q) {
@@ -52,6 +75,19 @@ class ClientController extends Controller
             },
             'locations',
         ]);
+            }
+        } else {
+         
+          
+        $query = Client::with([
+            'employee',
+            'status' => function ($q) {
+                $q->select('id', 'name', 'color');
+            },
+            'locations',
+        ]);
+        }
+      
 
         // تطبيق شروط البحث فقط
         if ($request->filled('client')) {
