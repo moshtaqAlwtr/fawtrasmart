@@ -306,6 +306,8 @@
                                     <th width="50">#</th>
                                     <th>معلومات العميل</th>
                                     <th>العنوان</th>
+                                    <th>المجموعة</th>
+                                    <th>الحي</th>
                                     <th>الكود</th>
                                     <th>رقم الهاتف</th>
                                     <th style="width: 10%">الإجراءات</th>
@@ -343,6 +345,8 @@
                                                 {{ $client->city }}, {{ $client->region }}
                                             </p>
                                         </td>
+                                        <td>{{$client->Neighborhoodname->Region->name ?? ""}}</td>
+                                           <td>{{$client->Neighborhoodname->name ?? ""}}</td>
                                         <td>{{ $client->code ?? '' }}</td>
                                         <td>
                                             <strong class="text-primary">
