@@ -447,9 +447,7 @@
                     لا توجد عملاء !!
                 </p>
             </div>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $clients->links() }}
-            </div>
+
         @endif
 
 

@@ -107,8 +107,8 @@ class ClientController extends Controller
             });
         }
 
-        // تنفيذ الاستعلام مع الترتيب والترقيم
-        $clients = $query->orderBy('created_at', 'desc')->paginate(15); // التعديل هنا
+        // تنفيذ الاستعلام مع الترتيب
+        $clients = $query->orderBy('created_at', 'desc')->get();
 
         // جلب البيانات الإضافية للعرض
         $users = User::all();
