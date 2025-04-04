@@ -29,8 +29,8 @@
             @method('PUT')
 
             <!-- حقلين مخفيين لتخزين الإحداثيات -->
-            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $client->latitude) }}">
-            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $client->longitude) }}">
+            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $client->locations->latitude) }}">
+            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $client->locations->longitude) }}">
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -289,7 +289,7 @@
     @endforeach
 </select>
 
-                                                    
+
                                                     </div>
                                                 </div>
                                             </div>
