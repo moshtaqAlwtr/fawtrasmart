@@ -1252,7 +1252,7 @@ class InvoicesController extends Controller
     }
     private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
     {
-        $tlvContent = $this->getTlv(1, ' ا ') . $this->getTlv(2, '000000000000000') . $this->getTlv(3, $timestamp) . $this->getTlv(4, number_format($totalAmount, 2, '.', '')) . $this->getTlv(5, number_format($vatAmount, 2, '.', ''));
+        $tlvContent = $this->getTlv(1, 'مؤسسة اعمال خاصة للتجارة') . $this->getTlv(2, '000000000000000') . $this->getTlv(3, $timestamp) . $this->getTlv(4, number_format($totalAmount, 2, '.', '')) . $this->getTlv(5, number_format($vatAmount, 2, '.', ''));
 
         return base64_encode($tlvContent);
     }
