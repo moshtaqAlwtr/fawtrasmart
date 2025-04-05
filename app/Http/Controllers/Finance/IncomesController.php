@@ -202,8 +202,8 @@ public function store(Request $request)
             }
 
             // تحديث رصيد الخزينة
-            $MainTreasury->balance += $income->amount;
-            $MainTreasury->save();
+            // $MainTreasury->balance += $income->amount;
+            // $MainTreasury->save();
 
             // إنشاء قيد محاسبي لسند القبض
             $journalEntry = JournalEntry::create([

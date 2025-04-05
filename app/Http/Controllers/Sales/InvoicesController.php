@@ -213,41 +213,22 @@ class InvoicesController extends Controller
         return view('sales.invoices.index', compact('invoices', 'account_setting', 'client', 'clients', 'users', 'invoice_number', 'employees'));
     }
     public function create(Request $request)
-{
-    $invoice_number = $this->generateInvoiceNumber();
-    $items = Product::all();
-    $clients = Client::all();
-    $users = User::all();
-    $treasury = Treasury::all();
-    $employees = Employee::all();
+    {
+        $invoice_number = $this->generateInvoiceNumber();
+        $items = Product::all();
+        $clients = Client::all();
+        $users = User::all();
+        $treasury = Treasury::all();
+        $employees = Employee::all();
 
-    $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
-    $price_sales = PriceListItems::all();
-    $invoiceType = 'normal'; // نوع الفاتورة عادي
-    $taxs = TaxSitting::all();
-    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-    // ✅ إضافة التحقق من وجود client_id في الطلب
-    $client = null;
-    if ($request->has('client_id')) {
+        $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
+        $price_sales = PriceListItems::all();
+        $invoiceType = 'normal'; // نوع الفاتورة عادي
+        $taxs = TaxSitting::all();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         $client = Client::find($request->client_id);
+        return view('sales.invoices.create', compact('clients', 'account_setting', 'price_lists', 'taxs', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees', 'client'));
     }
-
-    return view('sales.invoices.create', compact(
-        'clients',
-        'account_setting',
-        'price_lists',
-        'taxs',
-        'treasury',
-        'users',
-        'items',
-        'invoice_number',
-        'invoiceType',
-        'employees',
-        'client'
-    ));
-}
-
     public function sendVerificationCode(Request $request)
     {
         $client = Client::find($request->client_id);
@@ -334,17 +315,13 @@ class InvoicesController extends Controller
     }
 
     public function notifications()
-{
-    if (auth()->user()->role == 'employee') {
-        return redirect()->back()->with('error', 'غير مسموح لك بالوصول إلى الإشعارات.');
+    {
+        $notifications = notifications::where('read', 0)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'description', 'created_at']);
+
+        return view('notifications.index', compact('notifications'));
     }
-
-    $notifications = notifications::where('read', 0)
-        ->orderBy('created_at', 'desc')
-        ->get(['id', 'title', 'description', 'created_at']);
-
-    return view('notifications.index', compact('notifications'));
-}
 
     public function markAsReadid($id)
     {
@@ -354,7 +331,6 @@ class InvoicesController extends Controller
 
         return back();
     }
-
 
     public function store(Request $request)
     {
@@ -453,7 +429,7 @@ class InvoicesController extends Controller
                         // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، اختر الخزينة الرئيسية
                         $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
                     }
-
+                          
                     // حساب تفاصيل الكمية والأسعار
                     $quantity = floatval($item['quantity']);
                     $unit_price = floatval($item['unit_price']);
@@ -1043,7 +1019,8 @@ class InvoicesController extends Controller
                     $invoice->save();
                 }
             }
-
+            $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
+            if ($invoice->payment_status == 3) {
             // استرجاع حساب القيمة المضافة المحصلة
             $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
             if (!$vatAccount) {
@@ -1066,7 +1043,7 @@ class InvoicesController extends Controller
                 // 'created_by_employee' => Auth::id(),
             ]);
 
-            $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
+            
             // // إضافة تفاصيل القيد المحاسبي
             // // 1. حساب العميل (مدين)
             JournalEntryDetail::create([
@@ -1141,13 +1118,13 @@ class InvoicesController extends Controller
                 $assetsAccount->save();
             }
             // تحديث رصيد حساب الخزينة الرئيسية
-            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            if ($MainTreasury) {
-                $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-                $MainTreasury->save();
-            }
+            
+            // if ($MainTreasury) {
+            //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+            //     $MainTreasury->save();
+            // }
 
-            if ($invoice->payment_status == 3) {
+           
                 if ($clientaccounts) {
                     $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                     $clientaccounts->save();
@@ -1274,7 +1251,7 @@ class InvoicesController extends Controller
 
         return $salesAccount->id;
     }
-    private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
+  private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
     {
         $tlvContent = $this->getTlv(1, 'مؤسسة اعمال خاصة للتجارة') . $this->getTlv(2, '000000000000000') . $this->getTlv(3, $timestamp) . $this->getTlv(4, number_format($totalAmount, 2, '.', '')) . $this->getTlv(5, number_format($vatAmount, 2, '.', ''));
 
