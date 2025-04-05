@@ -177,7 +177,7 @@
 
                             <!-- عرض الموظف -->
                             <tr style="background-color: #f8f9fa;">
-                                <td colspan="12"><strong>{{ $employee->full_name ?? 'غير معروف' }}</strong></td>
+                                <td colspan="12"><strong>{{ $receipt->user->name  }}</strong></td>
                             </tr>
 
                             <!-- عرض التفاصيل تحت الموظف -->

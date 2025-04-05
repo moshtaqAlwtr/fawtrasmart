@@ -36,6 +36,7 @@ use App\Models\Treasury;
 use App\Models\TreasuryEmployee;
 use App\Models\User;
 use App\Models\CreditLimit;
+use App\Models\Location;
 use App\Models\TaxSitting;
 use GuzzleHttp\Client as GuzzleClient;
 use App\Models\WarehousePermits;
@@ -266,7 +267,7 @@ class InvoicesController extends Controller
             'invoiceType' => $invoiceType,
             'employees' => $employees,
             'client' => $client,
-            'client_id' => $client_id
+            'client_id' => $client_id,
         ]);
     }
     public function sendVerificationCode(Request $request)
@@ -371,10 +372,56 @@ class InvoicesController extends Controller
 
         return back();
     }
+    // private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    // {
+    //     $earthRadius = 6371000; // نصف قطر الأرض بالمتر
 
+    //     $latFrom = deg2rad($lat1);
+    //     $lonFrom = deg2rad($lon1);
+    //     $latTo = deg2rad($lat2);
+    //     $lonTo = deg2rad($lon2);
+
+    //     $latDelta = $latTo - $latFrom;
+    //     $lonDelta = $lonTo - $lonFrom;
+
+    //     $angle = 2 * asin(sqrt(
+    //         pow(sin($latDelta / 2), 2) +
+    //         cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)
+    //     ));
+
+    //     return $angle * $earthRadius;
+    // }
     public function store(Request $request)
     {
         try {
+            // ** الخطوة الأولى: إنشاء كود للفاتورة **
+            $code = $request->code;
+            $client = Client::findOrFail($request->client_id);
+            $clientLocation = $client->locations()->latest()->first();
+
+            if (!$clientLocation) {
+                return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - العميل ليس لديه موقع مسجل');
+            }
+
+            // الحصول على موقع الموظف الحالي
+            // $employeeLocation = Location::where('employee_id', auth()->id())->latest()->first();
+
+            // if (!$employeeLocation) {
+            //     return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - لم يتم تحديد موقعك الحالي');
+            // }
+
+            // // حساب المسافة بين الموظف والعميل
+            // $distance = $this->calculateDistance(
+            //     $clientLocation->latitude,
+            //     $clientLocation->longitude,
+            //     $employeeLocation->latitude,
+            //     $employeeLocation->longitude
+            // );
+
+            // if ($distance > 100) {
+            //     return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - يجب أن تكون ضمن نطاق 100 متر من العميل');
+            // }
+
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
             $code = $request->code;
             if (!$code) {
@@ -1061,109 +1108,107 @@ class InvoicesController extends Controller
             }
             $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
             if ($invoice->payment_status == 3) {
-            // استرجاع حساب القيمة المضافة المحصلة
-            $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
-            if (!$vatAccount) {
-                throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
-            }
-            $salesAccount = Account::where('name', 'المبيعات')->first();
-            if (!$salesAccount) {
-                throw new \Exception('حساب المبيعات غير موجود');
-            }
+                // استرجاع حساب القيمة المضافة المحصلة
+                $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
+                if (!$vatAccount) {
+                    throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
+                }
+                $salesAccount = Account::where('name', 'المبيعات')->first();
+                if (!$salesAccount) {
+                    throw new \Exception('حساب المبيعات غير موجود');
+                }
 
-            //     // إنشاء القيد المحاسبي للفاتورة
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $invoice->code,
-                'date' => now(),
-                'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
-                'status' => 1,
-                'currency' => 'SAR',
-                'client_id' => $invoice->client_id,
-                'invoice_id' => $invoice->id,
-                // 'created_by_employee' => Auth::id(),
-            ]);
+                //     // إنشاء القيد المحاسبي للفاتورة
+                $journalEntry = JournalEntry::create([
+                    'reference_number' => $invoice->code,
+                    'date' => now(),
+                    'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
+                    'status' => 1,
+                    'currency' => 'SAR',
+                    'client_id' => $invoice->client_id,
+                    'invoice_id' => $invoice->id,
+                    // 'created_by_employee' => Auth::id(),
+                ]);
 
+                // // إضافة تفاصيل القيد المحاسبي
+                // // 1. حساب العميل (مدين)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $clientaccounts->id, // حساب العميل
+                    'description' => 'فاتورة مبيعات',
+                    'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
+                    'credit' => 0,
+                    'is_debit' => true,
+                ]);
 
-            // // إضافة تفاصيل القيد المحاسبي
-            // // 1. حساب العميل (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $clientaccounts->id, // حساب العميل
-                'description' => 'فاتورة مبيعات',
-                'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
-                'credit' => 0,
-                'is_debit' => true,
-            ]);
+                // // 2. حساب المبيعات (دائن)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $salesAccount->id, // حساب المبيعات
+                    'description' => 'إيرادات مبيعات',
+                    'debit' => 0,
+                    'credit' => $amount_after_discount, // المبلغ بعد الخصم (دائن)
+                    'is_debit' => false,
+                ]);
 
-            // // 2. حساب المبيعات (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $salesAccount->id, // حساب المبيعات
-                'description' => 'إيرادات مبيعات',
-                'debit' => 0,
-                'credit' => $amount_after_discount, // المبلغ بعد الخصم (دائن)
-                'is_debit' => false,
-            ]);
+                // // 3. حساب القيمة المضافة المحصلة (دائن)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
+                    'description' => 'ضريبة القيمة المضافة',
+                    'debit' => 0,
+                    'credit' => $tax_total, // قيمة الضريبة (دائن)
+                    'is_debit' => false,
+                ]);
 
-            // // 3. حساب القيمة المضافة المحصلة (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
-                'description' => 'ضريبة القيمة المضافة',
-                'debit' => 0,
-                'credit' => $tax_total, // قيمة الضريبة (دائن)
-                'is_debit' => false,
-            ]);
+                // ** تحديث رصيد حساب المبيعات (إيرادات) **
+                //  if ($salesAccount) {
+                //     $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
+                //     $salesAccount->save();
+                // }
 
-            // ** تحديث رصيد حساب المبيعات (إيرادات) **
-            //  if ($salesAccount) {
-            //     $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
-            //     $salesAccount->save();
-            // }
+                // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
+                if ($salesAccount) {
+                    $amount = $amount_after_discount;
+                    $salesAccount->balance += $amount;
+                    $salesAccount->save();
 
-            // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
-            if ($salesAccount) {
-                $amount = $amount_after_discount;
-                $salesAccount->balance += $amount;
-                $salesAccount->save();
+                    // تحديث جميع الحسابات الرئيسية المتصلة به
+                    // $this->updateParentBalanceSalesAccount($salesAccount->parent_id, $amount);
+                }
 
-                // تحديث جميع الحسابات الرئيسية المتصلة به
-                // $this->updateParentBalanceSalesAccount($salesAccount->parent_id, $amount);
-            }
+                // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
+                $revenueAccount = Account::where('name', 'الإيرادات')->first();
+                if ($revenueAccount) {
+                    $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
+                    $revenueAccount->save();
+                }
 
-            // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
-            $revenueAccount = Account::where('name', 'الإيرادات')->first();
-            if ($revenueAccount) {
-                $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
-                $revenueAccount->save();
-            }
+                // $vatAccount->balance += $tax_total; // قيمة الضريبة
+                // $vatAccount->save();
 
-            // $vatAccount->balance += $tax_total; // قيمة الضريبة
-            // $vatAccount->save();
+                //تحديث رصيد حساب القيمة المضافة (الخصوم)
+                if ($vatAccount) {
+                    $amount = $tax_total;
+                    $vatAccount->balance += $amount;
+                    $vatAccount->save();
 
-            //تحديث رصيد حساب القيمة المضافة (الخصوم)
-            if ($vatAccount) {
-                $amount = $tax_total;
-                $vatAccount->balance += $amount;
-                $vatAccount->save();
+                    // تحديث جميع الحسابات الرئيسية المتصلة به
+                    $this->updateParentBalance($vatAccount->parent_id, $amount);
+                }
 
-                // تحديث جميع الحسابات الرئيسية المتصلة به
-                $this->updateParentBalance($vatAccount->parent_id, $amount);
-            }
+                // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
+                $assetsAccount = Account::where('name', 'الأصول')->first();
+                if ($assetsAccount) {
+                    $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+                    $assetsAccount->save();
+                }
+                // تحديث رصيد حساب الخزينة الرئيسية
 
-            // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
-            $assetsAccount = Account::where('name', 'الأصول')->first();
-            if ($assetsAccount) {
-                $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-                $assetsAccount->save();
-            }
-            // تحديث رصيد حساب الخزينة الرئيسية
-
-            // if ($MainTreasury) {
-            //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-            //     $MainTreasury->save();
-            // }
-
+                // if ($MainTreasury) {
+                //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+                //     $MainTreasury->save();
+                // }
 
                 if ($clientaccounts) {
                     $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
@@ -1291,7 +1336,7 @@ class InvoicesController extends Controller
 
         return $salesAccount->id;
     }
-  private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
+    private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
     {
         $tlvContent = $this->getTlv(1, 'مؤسسة اعمال خاصة للتجارة') . $this->getTlv(2, '000000000000000') . $this->getTlv(3, $timestamp) . $this->getTlv(4, number_format($totalAmount, 2, '.', '')) . $this->getTlv(5, number_format($vatAmount, 2, '.', ''));
 
