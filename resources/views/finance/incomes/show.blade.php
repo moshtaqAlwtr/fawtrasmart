@@ -117,7 +117,7 @@
                             style="background: rgba(0, 0, 0, 0.05);">
 
                             <!-- عرض سند PDF -->
-                            @include('finance.incomes.pdf')
+                            @include('finance.incomes.print_normal', ['income' => $income])
 
 
                         </div>

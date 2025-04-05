@@ -12,7 +12,7 @@ class AccountsSettingsController extends Controller
      */
     public function index()
     {
-        return view("Accounts.accounts_settings.index");
+        return view("accounts.accounts_settings.index");
     }
 
     /**

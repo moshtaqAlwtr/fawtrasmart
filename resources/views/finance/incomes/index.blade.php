@@ -356,34 +356,33 @@
                                         <div class="btn-group">
                                             <div class="dropdown">
                                                 <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
-                                                    type="button"id="dropdownMenuButton303" data-toggle="dropdown"
-                                                    aria-haspopup="true"aria-expanded="false"></button>
+                                                    type="button" id="dropdownMenuButton303" data-toggle="dropdown"
+                                                    aria-haspopup="true" aria-expanded="false"></button>
                                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                     <li>
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('incomes.show', $income->id) }}">
+                                                        <a class="dropdown-item" href="{{ route('incomes.show', $income->id) }}">
                                                             <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('incomes.edit', $income->id) }}">
+                                                        <a class="dropdown-item" href="{{ route('incomes.edit', $income->id) }}">
                                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                         </a>
                                                     </li>
-
                                                     <li>
-                                                        <a class="dropdown-item text-danger" href="#"
-                                                            data-toggle="modal"
-                                                            data-target="#modal_DELETE{{ $income->id }}">
-                                                            <i class="fa fa-trash me-2"></i>حذف
+                                                        <a class="dropdown-item" href="{{ route('incomes.print', ['id' => $income->id, 'type' => 'thermal']) }}">
+                                                            <i class="fa fa-print me-2 text-info"></i>طباعة سند قبض حراري
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('incomes.print', ['id' => $income->id, 'type' => 'normal']) }}">
+                                                            <i class="fa fa-print me-2 text-info"></i>طباعة سند قبض عادي
                                                         </a>
                                                     </li>
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
-
                                     <!-- Modal delete -->
                                     <div class="modal fade text-left" id="modal_DELETE{{ $income->id }}"
                                         tabindex="-1" role="dialog" aria-labelledby="myModalLabel1"

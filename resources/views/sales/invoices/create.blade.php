@@ -91,7 +91,7 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
     <div class="content-body">
         <form id="invoiceForm" action="{{ route('invoices.store') }}" method="post">
             @csrf

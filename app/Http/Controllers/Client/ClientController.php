@@ -52,10 +52,10 @@ class ClientController extends Controller
         if ($user->branch) {
             $branch = $user->branch;
 
-            // التحقق من صلاحية "مشاركة المنتجات"
+            // التحقق من صلاحية "مشاركة العملاء"
             $shareProductsStatus = $branch->settings()->where('key', 'share_customers')->first();
 
-            // إذا كانت الصلاحية غير مفعلة، عرض المنتجات التي أضافها المستخدمون من نفس الفرع فقط
+            // إذا كانت الصلاحية غير مفعلة، عرض العملاء التي أضافها المستخدمون من نفس الفرع فقط
             if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
             
         $query = Client::where('branch_id', $branch->id)->with([

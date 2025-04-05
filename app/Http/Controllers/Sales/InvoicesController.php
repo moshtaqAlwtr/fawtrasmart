@@ -213,22 +213,41 @@ class InvoicesController extends Controller
         return view('sales.invoices.index', compact('invoices', 'account_setting', 'client', 'clients', 'users', 'invoice_number', 'employees'));
     }
     public function create(Request $request)
-    {
-        $invoice_number = $this->generateInvoiceNumber();
-        $items = Product::all();
-        $clients = Client::all();
-        $users = User::all();
-        $treasury = Treasury::all();
-        $employees = Employee::all();
+{
+    $invoice_number = $this->generateInvoiceNumber();
+    $items = Product::all();
+    $clients = Client::all();
+    $users = User::all();
+    $treasury = Treasury::all();
+    $employees = Employee::all();
 
-        $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
-        $price_sales = PriceListItems::all();
-        $invoiceType = 'normal'; // نوع الفاتورة عادي
-        $taxs = TaxSitting::all();
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
+    $price_sales = PriceListItems::all();
+    $invoiceType = 'normal'; // نوع الفاتورة عادي
+    $taxs = TaxSitting::all();
+    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+
+    // ✅ إضافة التحقق من وجود client_id في الطلب
+    $client = null;
+    if ($request->has('client_id')) {
         $client = Client::find($request->client_id);
-        return view('sales.invoices.create', compact('clients', 'account_setting', 'price_lists', 'taxs', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees', 'client'));
     }
+
+    return view('sales.invoices.create', compact(
+        'clients',
+        'account_setting',
+        'price_lists',
+        'taxs',
+        'treasury',
+        'users',
+        'items',
+        'invoice_number',
+        'invoiceType',
+        'employees',
+        'client'
+    ));
+}
+
     public function sendVerificationCode(Request $request)
     {
         $client = Client::find($request->client_id);
@@ -315,13 +334,17 @@ class InvoicesController extends Controller
     }
 
     public function notifications()
-    {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']);
-
-        return view('notifications.index', compact('notifications'));
+{
+    if (auth()->user()->role == 'employee') {
+        return redirect()->back()->with('error', 'غير مسموح لك بالوصول إلى الإشعارات.');
     }
+
+    $notifications = notifications::where('read', 0)
+        ->orderBy('created_at', 'desc')
+        ->get(['id', 'title', 'description', 'created_at']);
+
+    return view('notifications.index', compact('notifications'));
+}
 
     public function markAsReadid($id)
     {
@@ -331,6 +354,7 @@ class InvoicesController extends Controller
 
         return back();
     }
+
 
     public function store(Request $request)
     {
