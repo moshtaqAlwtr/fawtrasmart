@@ -346,7 +346,7 @@
                                         <p><small>{{ $income->date }} | {{ $income->description }}</small></p>
                                         <img src="{{ asset('assets/uploads/incomes/' . $income->attachments) }}"
                                             alt="img" width="100"><br>
-                                        <i class="fa fa-user"></i> <small>اضيفت بواسطة :</small> <strong>ابو فالح</strong>
+                                        <i class="fa fa-user"></i> <small>اضيفت بواسطة :</small> <strong>{{$income->user->name ?? ""}}</strong>
                                     </td>
                                     <td>
                                         <p><strong>{{ $income->amount }} رس</strong></p>

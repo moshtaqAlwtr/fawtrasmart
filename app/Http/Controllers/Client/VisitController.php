@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Location;
 use App\Models\Notification;
 use App\Models\notifications;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -268,6 +269,29 @@ class VisitController extends Controller
             'description' => $description,
             'read' => false,
         ]);
+
+        $employeeName = $visit->employee->name ?? 'غير معروف';
+        $clientName = $visit->client->trade_name ?? 'غير معروف';
+        $visitDate = \Carbon\Carbon::parse($visit->visit_date)->format('Y-m-d H:i');
+    
+        // إعداد رسالة التليجرام
+        $message = "✅ *تمت زيارة عميل*\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= "👤 *الموظف:* `$employeeName`\n";
+        $message .= "🏢 *العميل:* `$clientName`\n";
+        $message .= "📅 *التاريخ:* `$visitDate`\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+    
+    
+    
+    // إرسال الرسالة إلى التلقرام
+    $response = Http::post($telegramApiUrl, [
+        'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
+        'text' => $message,
+        'parse_mode' => 'Markdown',
+        'timeout' => 60,
+    ]);
     }
 
     // تحديث زيارة معينة

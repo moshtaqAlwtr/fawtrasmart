@@ -36,6 +36,11 @@ class Receipt extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class , 'created_by');
+    }
+
     // Scope للبحث عن السندات حسب الحالة
     public function scopeStatus($query, $status)
     {

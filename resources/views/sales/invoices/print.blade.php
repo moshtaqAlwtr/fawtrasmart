@@ -201,9 +201,9 @@
         <div class="invoice-content">
             <div class="header">
                 <h1>فاتورة ضريبية مبسطة</h1>
-                <p>{{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}</p>
-                <p>{{ $invoice->client->street1 ?? 'غير متوفر' }}</p>
-                <p>{{ $invoice->client->phone ?? 'غير متوفر' }}</p>
+                <p>مؤسسة اعمال خاصة للتجارة</p>
+                <p>العنوان: الرياض</p>
+                <p>رقم الهاتف: 059992803</p>
             </div>
 
            <div class="info-list">

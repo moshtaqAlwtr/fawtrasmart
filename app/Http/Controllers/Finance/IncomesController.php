@@ -93,8 +93,12 @@ $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first()
     $account_storage = Account::where('parent_id', 13)->get();
 
     // حساب الرقم التلقائي
-    $lastCode = Receipt::max('code'); // نفترض أن الحقل في الجدول يسمى 'code'
-    $nextCode = $lastCode ? $lastCode + 1 : 1; // إذا لم يكن هناك أي سجلات، نبدأ من 1
+    $nextCode = Receipt::max('code') ?? 0;
+
+// نحاول تكرار البحث حتى نحصل على كود غير مكرر
+while (Receipt::where('code', $nextCode)->exists()) {
+    $nextCode++;
+}
   $MainTreasury = null;
         $user = Auth::user();
 
@@ -147,6 +151,7 @@ public function store(Request $request)
         $income->end_date = $request->input('end_date');
         $income->tax1 = $request->input('tax1');
         $income->tax2 = $request->input('tax2');
+        $income->created_by  = auth()->id();
         $income->tax1_amount = $request->input('tax1_amount');
         $income->tax2_amount = $request->input('tax2_amount');
         $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
