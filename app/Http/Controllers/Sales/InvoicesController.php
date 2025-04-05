@@ -74,8 +74,17 @@ class InvoicesController extends Controller
     public function index(Request $request)
     {
         // بدء بناء الاستعلام
-        $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])->orderBy('created_at', 'desc');
-
+        if (auth()->user()->hasAnyPermission(['sales_view_all_invoices'])) {
+            // عنده صلاحية، يشوف كل الفواتير
+            $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
+                        ->orderBy('created_at', 'desc');
+        } else {
+            // ما عنده صلاحية، يشوف فقط فواتيره
+            $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
+                        ->where('created_by', auth()->user()->id)
+                        ->orderBy('created_at', 'desc');
+        }
+        
         // 1. البحث حسب العميل
         if ($request->has('client_id') && $request->client_id) {
             $invoices->where('client_id', $request->client_id);
