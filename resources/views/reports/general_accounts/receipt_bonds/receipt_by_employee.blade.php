@@ -65,7 +65,8 @@
                         <select class="form-control" id="inputTaxType" name="treasury">
                             <option value="">اختر الخزينة</option>
                             @foreach ($treasuries as $treasury)
-                                <option value="{{ $treasury->id }}" {{ request('treasury') == $treasury->id ? 'selected' : '' }}>
+                                <option value="{{ $treasury->id }}"
+                                    {{ request('treasury') == $treasury->id ? 'selected' : '' }}>
                                     {{ $treasury->name }}</option>
                             @endforeach
                         </select>
@@ -75,7 +76,8 @@
                         <select class="form-control" id="inputTaxType" name="employee">
                             <option value="">اختر الموظف</option>
                             @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                <option value="{{ $employee->id }}"
+                                    {{ request('employee') == $employee->id ? 'selected' : '' }}>
                                     {{ $employee->full_name }}</option>
                             @endforeach
                         </select>
@@ -95,7 +97,8 @@
                         <select class="form-control" id="inputCurrency" name="branch">
                             <option value="all" {{ request('branch') == 'all' ? 'selected' : '' }}>كل الفروع</option>
                             @foreach ($branches as $branch)
-                                <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                <option value="{{ $branch->id }}"
+                                    {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                     {{ $branch->name }}</option>
                             @endforeach
                         </select>
@@ -146,86 +149,97 @@
             </div>
 
             <!-- Summary Table -->
+            @php
+                $totalAmount = 0;
+                $totalTax = 0;
+                $totalWithTax = 0;
+
+                foreach ($groupedReceipts as $receiptsByUser) {
+                    $totalAmount += $receiptsByUser->sum('amount');
+                    $totalTax += $receiptsByUser->sum('tax1_amount') + $receiptsByUser->sum('tax2_amount');
+                    $totalWithTax +=
+                        $receiptsByUser->sum('amount') +
+                        $receiptsByUser->sum('tax1_amount') +
+                        $receiptsByUser->sum('tax2_amount');
+                }
+            @endphp
+
             <div id="summaryTable">
                 <table class="table table-bordered table-striped">
-                    <thead class="table-header">
+                    <thead class="table-header text-center">
                         <tr>
                             <th>الكود</th>
                             <th>التاريخ</th>
-                            <th>خزينة</th>
+                            <th>الخزينة</th>
                             <th>التصنيف</th>
                             <th>البائع</th>
                             <th>الحساب الفرعي</th>
-                            <th>اسم المستخدم</th>
+                            <th>الموظف</th>
                             <th>ملاحظة</th>
-                            <th>فرع</th>
+                            <th>الفرع</th>
                             <th>المبلغ</th>
                             <th>الضرائب</th>
                             <th>الإجمالي مع الضريبة</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            // تجميع البيانات حسب المستخدم (created_by)
-                            $groupedReceipts = $receipts->groupBy('created_by');
-                        @endphp
-
-                        @foreach ($groupedReceipts as $userId => $receiptsInUser)
+                        @foreach ($groupedReceipts as $userId => $receiptsByUser)
                             @php
-                                $user = $receiptsInUser->first()->user;
+                                $user = $users->find($userId);
                             @endphp
 
-                            <!-- عرض المستخدم -->
-                            <tr style="background-color: #f8f9fa;">
-                                <td colspan="12">
-                                    <strong>
-                                        <i class="fas fa-user me-2"></i>
-                                        {{ $user->name ?? 'غير معروف' }}
-                                        @if($user->employee)
-                                            ({{ $user->employee->full_name }})
-                                        @endif
-                                    </strong>
-                                </td>
+                            <!-- اسم المستخدم -->
+                            <tr style="background-color: #f0f0f0;">
+                                <td colspan="12"><strong>المستخدم: {{ $user->name ?? 'غير معروف' }}</strong></td>
                             </tr>
 
-                            <!-- عرض التفاصيل تحت المستخدم -->
-                            @foreach ($receiptsInUser as $receipt)
+                            <!-- السندات -->
+                            @foreach ($receiptsByUser as $receipt)
                                 <tr>
                                     <td>{{ $receipt->code }}</td>
-                                    <td>{{ $receipt->date->format('Y-m-d') }}</td>
+                                    <td>{{ $receipt->date }}</td>
                                     <td>{{ $receipt->treasury->name ?? 'N/A' }}</td>
                                     <td>{{ $receipt->incomes_category->name ?? 'N/A' }}</td>
                                     <td>{{ $receipt->seller ?? 'N/A' }}</td>
                                     <td>{{ $receipt->sup_account ?? 'N/A' }}</td>
                                     <td>{{ $receipt->user->name ?? 'N/A' }}</td>
-                                    <td>{{ Str::limit($receipt->description, 30) }}</td>
+                                    <td>{{ $receipt->description ?? '-' }}</td>
                                     <td>{{ $receipt->branch->name ?? 'N/A' }}</td>
-                                    <td class="text-end">{{ number_format($receipt->amount, 2) }}</td>
-                                    <td class="text-end">{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
-                                    <td class="text-end">{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
+                                    <td>{{ number_format($receipt->amount, 2) }}</td>
+                                    <td>{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
+                                    <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}
+                                    </td>
                                 </tr>
                             @endforeach
 
-                            <!-- عرض المجموع لكل مستخدم -->
+                            <!-- مجموع المستخدم -->
                             <tr style="background-color: #e9ecef;">
                                 <td colspan="9"><strong>المجموع</strong></td>
-                                <td class="text-end"><strong>{{ number_format($receiptsInUser->sum('amount'), 2) }}</strong></td>
-                                <td class="text-end"><strong>{{ number_format($receiptsInUser->sum('tax1_amount') + $receiptsInUser->sum('tax2_amount'), 2) }}</strong></td>
-                                <td class="text-end"><strong>{{ number_format($receiptsInUser->sum('amount') + $receiptsInUser->sum('tax1_amount') + $receiptsInUser->sum('tax2_amount'), 2) }}</strong></td>
+                                <td><strong>{{ number_format($receiptsByUser->sum('amount'), 2) }}</strong></td>
+                                <td><strong>{{ number_format($receiptsByUser->sum('tax1_amount') + $receiptsByUser->sum('tax2_amount'), 2) }}</strong>
+                                </td>
+                                <td><strong>{{ number_format(
+                                    $receiptsByUser->sum('amount') + $receiptsByUser->sum('tax1_amount') + $receiptsByUser->sum('tax2_amount'),
+                                    2,
+                                ) }}</strong>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
+
+                    <!-- التذييل الإجمالي الكلي -->
+                    <tfoot>
+                        <tr style="background-color: #d1ecf1;">
+                            <td colspan="9" class="text-center"><strong>الإجمالي الكلي</strong></td>
+                            <td><strong>{{ number_format($totalAmount, 2) }}</strong></td>
+                            <td><strong>{{ number_format($totalTax, 2) }}</strong></td>
+                            <td><strong>{{ number_format($totalWithTax, 2) }}</strong></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
-            <style>
-                .text-end {
-                    text-align: end !important;
-                }
-                .table-header {
-                    background-color: #f5f5f5;
-                }
-            </style>
+
             <!-- Details Table -->
             <div id="detailsTable" class="hidden">
                 <table class="table table-bordered table-striped">
