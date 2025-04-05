@@ -5,295 +5,271 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>فاتورة #{{ $invoice->id }}</title>
     <style>
-        /* أنماط الصفحة الرئيسية */
+        /* أنماط الصفحة الرئيسية - جميع النصوص عريضة */
         body {
-            font-family: 'aealarabiya', Arial, sans-serif;
+            font-family: Arial, sans-serif;
             direction: rtl;
-            background: white; /* خلفية بيضاء */
+            background: white;
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             min-height: 100vh;
+            font-size: 14px !important; /* زيادة حجم الخط العام */
+            font-weight: bold !important;
         }
-/* أنماط قائمة المعلومات */
-.info-list {
-    width: 100%;
-    margin: 15px 0;
-    border-bottom: 1px solid #eee;
-}
 
-.info-row {
-    display: flex;
-    padding: 8px 0;
-    border-top: 1px solid #eee;
-}
-
-.info-label {
-    font-weight: bold;
-    width: 120px;
-    flex-shrink: 0;
-}
-
-.info-value {
-    flex-grow: 1;
-    text-align: left;
-    padding-right: 10px;
-}
-
-/* أنماط قائمة العناصر */
-.items-list {
-    width: 100%;
-    margin: 20px 0;
-}
-
-.items-header {
-    display: flex;
-    font-weight: bold;
-    padding: 8px 0;
-    border-bottom: 2px solid #000;
-}
-
-.item-row {
-    display: flex;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.item-col {
-    flex: 1;
-    text-align: center;
-    padding: 0 5px;
-}
-
-/* تعديلات للطباعة */
-@media print {
-    .info-row, .item-row {
-        page-break-inside: avoid;
-    }
-}
-        /* وعاء الفاتورة الرئيسي */
         .invoice-main-container {
-            width: 100%;
-            max-width: 58mm;
-            background: white;
-            padding: 15px;
-            margin: 20px auto;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 80mm;
+            padding: 8px; /* زيادة الحشوة قليلاً */
+            margin: 0 auto;
+            text-align: center;
         }
-        
-        /* أزرار التحكم */
-        .invoice-controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            width: 100%;
-            position: fixed;
-            top: 20px;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-        
-        .invoice-controls button {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        
-        .print-btn {
-            background: #28a745;
-            color: white;
-        }
-        
-        .back-btn {
-            background: #6c757d;
-            color: white;
-        }
-        
-        /* أنماط الفاتورة الداخلية */
-        .invoice-content {
-            width: 100%;
-            margin-top: 60px; /* لمنع تداخل الأزرار مع المحتوى */
-        }
-        
+
+        /* أنماط الرأس */
         .header {
             text-align: center;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #000;
-            padding-bottom: 10px;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #333;
         }
-        
+
         .header h1 {
             margin: 0;
             padding: 0;
-            font-size: 16px;
+            font-size: 20px; /* زيادة حجم العنوان الرئيسي */
+            font-weight: bold;
         }
-        
-        /* أنماط الجداول والمحتوى */
-        .info-grid {
-            width: 100%;
+
+        .header h2 {
+            margin: 5px 0;
+            font-size: 16px; /* زيادة حجم النص الثانوي */
+        }
+
+        .header p, .header h4 {
+            margin: 4px 0;
+            font-size: 14px; /* زيادة حجم النص */
+        }
+
+        /* أنماط معلومات العميل */
+        .client-info {
             margin: 10px 0;
+            text-align: right;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #333;
         }
-        
-        .data-table {
+
+        .client-info h3 {
+            margin: 8px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .client-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .invoice-meta {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed #ccc;
+            font-size: 14px;
+        }
+
+        /* أنماط جدول العناصر */
+        .items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            margin: 10px auto;
+            font-size: 14px; /* زيادة حجم خط الجدول */
         }
-        
-        .data-table th, 
-        .data-table td {
-            border: 1px solid #000;
-            padding: 5px;
+
+        .items-table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            padding: 8px 5px; /* زيادة الحشوة */
+            border-bottom: 1px solid #333;
             text-align: center;
         }
-        
+
+        .items-table td {
+            padding: 8px 5px;
+            border-bottom: 1px dashed #ddd;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* أنماط قسم المجموع */
+        .total-section {
+            margin: 15px auto 0;
+            padding-top: 8px;
+            border-top: 1px dashed #333;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 4px 0;
+        }
+
+        .total-row:last-child {
+            border-top: 1px dashed #333;
+            padding-top: 8px;
+        }
+
+        /* أنماط التوقيع والباركود */
+        .signature {
+            margin: 15px auto 0;
+            padding-top: 10px;
+            border-top: 1px dashed #333;
+            width: 90%;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .barcode {
+            text-align: center;
+            margin: 10px auto;
+            padding: 8px 0;
+        }
+
+        .thank-you {
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+
         /* أنماط الطباعة */
         @media print {
             body {
-                background: white !important;
-                padding: 0 !important;
                 display: block !important;
+                width: 80mm !important;
+                font-size: 14px !important;
+                background: white !important;
+                font-weight: bold !important;
             }
-            
-            .invoice-controls {
-                display: none !important;
-            }
-            
+
             .invoice-main-container {
                 box-shadow: none !important;
                 margin: 0 auto !important;
-                padding: 10px !important;
-                width: 58mm !important;
-                max-width: 100% !important;
+                padding: 5px !important;
             }
-            
-            .invoice-content {
-                margin-top: 0 !important;
+
+            .barcode svg {
+                width: 70px !important;
+                height: 70px !important;
             }
         }
     </style>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="invoice-controls">
-        <!--<button class="print-btn" onclick="window.print()">-->
-        <!--    <i class="fas fa-print"></i> طباعة-->
-        <!--</button>-->
-        <!--<button class="back-btn" onclick="window.history.back()">-->
-        <!--    <i class="fas fa-arrow-left"></i> رجوع-->
-        <!--</button>-->
-    </div>
-    
     <div class="invoice-main-container">
         <div class="invoice-content">
+            <!-- رأس الفاتورة -->
             <div class="header">
-                <h1>فاتورة ضريبية مبسطة</h1>
-                <p>{{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}</p>
-                <p>{{ $invoice->client->street1 ?? 'غير متوفر' }}</p>
-                <p>{{ $invoice->client->phone ?? 'غير متوفر' }}</p>
+                <h1>فاتورة</h1>
+                <h2>مؤسسة أعمال خاصة للتجارة</h2>
+                <p>الرياض - الرياض</p>
+                <h4>رقم المسؤول: 0509992803</h4>
             </div>
 
-           <div class="info-list">
-    <div class="info-row">
-        <span class="info-label">رقم الفاتورة:</span>
-        <span class="info-value">{{ str_pad($invoice->id, 5, '0', STR_PAD_LEFT) }}</span>
-    </div>
-    <div class="info-row">
-        <span class="info-label">تاريخ الفاتورة:</span>
-        <span class="info-value">
-            {{ $invoice->created_at ? $invoice->created_at->format($account_setting->time_formula ?? 'H:i:s d/m/Y') : '' }}
-        </span>
-    </div>
-    <div class="info-row">
-        <span class="info-label">العميل:</span>
-        <span class="info-value">
-            {{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}
-        </span>
-    </div>
-    <div class="info-row">
-        <span class="info-label">العنوان:</span>
-        <span class="info-value">{{ $invoice->client->street2 ?? 'غير متوفر' }}</span>
-    </div>
-</div>
+            <!-- معلومات العميل -->
+            <div class="client-info">
+                <h3>فاتورة إلى: {{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}</h3>
+                <p>{{ $invoice->client->street1 ?? 'غير متوفر' }}</p>
+                <h3 style="text-align: center">{{ $invoice->client->code ?? 'غير متوفر' }}</h3>
+                <p>الرقم الضريبي: {{ $invoice->client->tax_number ?? 'غير متوفر' }}</p>
+                @if($invoice->client->phone)
+                <p>رقم جوال العميل: {{ $invoice->client->phone }}</p>
+                @endif
 
-            <h3 class="section-title">تفاصيل الفاتورة:</h3>
-         <div class="items-list">
-    <div class="items-header">
-        <span class="item-col">#</span>
-        <span class="item-col">البند</span>
-        <span class="item-col">الكمية</span>
-        <span class="item-col">سعر الوحدة</span>
-        <span class="item-col">الخصم</span>
-        <span class="item-col">المجموع</span>
-    </div>
-    
-    @foreach ($invoice->items as $item)
-    <div class="item-row">
-        <span class="item-col">{{ $loop->iteration }}</span>
-        <span class="item-col">{{ $item->item }}</span>
-        <span class="item-col">{{ $item->quantity }}</span>
-        <span class="item-col">{{ number_format($item->unit_price, 2) }}</span>
-        <span class="item-col">{{ number_format($item->discount, 2) }}</span>
-        <span class="item-col">{{ number_format($item->total, 2) }}</span>
-    </div>
-    @endforeach
-</div>
+                <div class="invoice-meta">
+                    <p>رقم الفاتورة: {{ str_pad($invoice->id, 5, '0', STR_PAD_LEFT) }}</p>
+                    <p>تاريخ الفاتورة: {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y H:i') }}</p>
+                </div>
+            </div>
 
-            <div class="totals">
-                @php
-                    $currency = $account_setting->currency ?? 'SAR';
-                    $currencySymbol = $currency == 'SAR' || empty($currency)
-                        ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15">'
-                        : $currency;
-                @endphp
+            <!-- جدول العناصر -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th width="40%">البند</th>
+                        <th width="15%">الكمية</th>
+                        <th width="20%">السعر</th>
+                        <th width="25%">المجموع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invoice->items as $item)
+                    <tr>
+                        <td style="text-align: right;">{{ $item->item }}</td>
+                        <td>{{ $item->quantity }}</td>
+                        <td>{{ number_format($item->unit_price, 2) }}</td>
+                        <td>{{ number_format($item->total, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
 
-                <p>المجموع الكلي: {{ number_format($invoice->grand_total ?? 0, 2) }} {!! $currencySymbol !!}</p>
-                
+            <!-- قسم المجموع -->
+            <div class="total-section">
+                <div class="total-row">
+                    <span>المجموع الكلي:</span>
+                    <span>{{ number_format($invoice->grand_total, 2) }} ر.س</span>
+                </div>
+
+                @if($invoice->total_discount > 0)
+                <div class="total-row">
+                    <span>الخصم:</span>
+                    <span>{{ number_format($invoice->total_discount, 2) }} ر.س</span>
+                </div>
+                @endif
+
+                @if($invoice->shipping_cost > 0)
+                <div class="total-row">
+                    <span>تكلفة الشحن:</span>
+                    <span>{{ number_format($invoice->shipping_cost, 2) }} ر.س</span>
+                </div>
+                @endif
+
                 @if($TaxsInvoice->isNotEmpty())
                     @foreach($TaxsInvoice as $TaxInvoice)
-                        <p>{{ $TaxInvoice->name }} ({{ $TaxInvoice->rate }}%): 
-                            {{ number_format($TaxInvoice->value ?? 0, 2) }} {!! $currencySymbol !!}
-                        </p>
+                    <div class="total-row">
+                        <span>{{ $TaxInvoice->name }} ({{ $TaxInvoice->rate }}%):</span>
+                        <span>{{ number_format($TaxInvoice->value, 2) }} ر.س</span>
+                    </div>
                     @endforeach
-                @else
-                    <p>الضريبة: 0.00 {!! $currencySymbol !!}</p>
                 @endif
 
-                @if (($invoice->shipping_cost ?? 0) > 0)
-                    <p>تكلفة الشحن: {{ number_format($invoice->shipping_cost, 2) }} {!! $currencySymbol !!}</p>
+                @if($invoice->advance_payment > 0)
+                <div class="total-row">
+                    <span>الدفعة المقدمة:</span>
+                    <span>{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
+                </div>
                 @endif
 
-                @if (($invoice->total_discount ?? 0) > 0)
-                    <p>الخصم: {{ number_format($invoice->total_discount, 2) }} {!! $currencySymbol !!}</p>
-                @endif
-
-                @if (($invoice->advance_payment ?? 0) > 0)
-                    <p>الدفعة المقدمة: {{ number_format($invoice->advance_payment, 2) }} {!! $currencySymbol !!}</p>
-                @endif
-
-                @if (($invoice->due_value ?? 0) > 0)
-                    <p>المبلغ المستحق: {{ number_format($invoice->due_value, 2) }} {!! $currencySymbol !!}</p>
-                @endif
+                <div class="total-row">
+                    <span>المبلغ المستحق:</span>
+                    <span>{{ number_format($invoice->due_value, 2) }} ر.س</span>
+                </div>
             </div>
 
-            <div class="barcode" style="text-align: center; margin: 20px auto;">
-                 {!! $qrCodeSvg !!}
-               
+            <!-- الباركود والتوقيع -->
+            <div class="barcode">
+                {!! $qrCodeSvg !!}
+            </div>
 
-           
+            <div class="signature">
+                <p>الاسم: ________________</p>
+                <p>التوقيع: _______________</p>
+                <p class="thank-you">شكراً لتعاملكم معنا</p>
+            </div>
         </div>
     </div>
 
@@ -304,7 +280,7 @@
                 window.print();
             }, 500);
         };
-        
+
         // إعادة الطباعة عند محاولة الإغلاق
         window.onbeforeunload = function() {
             window.print();
