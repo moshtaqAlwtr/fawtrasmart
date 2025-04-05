@@ -700,16 +700,23 @@ class GeneralAccountsController extends Controller
             $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
             $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-            // Fetch necessary dropdown data
+            // Fetch necessary dropdown data with eager loading
             $branches = Branch::all();
             $treasuries = Treasury::all();
             $accounts = Account::all();
-            $employees = Employee::all();
+            $employees = Employee::with('user')->get(); // تحميل علاقة المستخدم مسبقاً
             $receiptsCategory = ReceiptCategory::all();
             $clients = Client::all();
 
-            // Base query for receipts
-            $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client'])->whereBetween('date', [$fromDate, $toDate]);
+            // Base query for receipts with eager loading
+            $query = Receipt::with([
+                'incomes_category',
+                'treasury',
+                'account',
+                'client',
+                'employee.user',
+                'branch'
+            ])->whereBetween('date', [$fromDate, $toDate]);
 
             // Apply filters
             if ($request->filled('branch')) {
@@ -732,21 +739,26 @@ class GeneralAccountsController extends Controller
                 $query->where('employee_id', $request->employee_id);
             }
 
-            // Fetch receipts
-            $receipts = $query->get();
+            // Fetch receipts ordered by employee and date
+            $receipts = $query->orderBy('employee_id')->orderBy('date')->get();
 
-            // Group receipts by
-            $groupedReceipts = $receipts->groupBy('employee');
+            // Group receipts by employee with totals
+            $groupedReceipts = $receipts->groupBy('employee_id')->map(function ($employeeReceipts) {
+                return [
+                    'receipts' => $employeeReceipts,
+                    'total_amount' => $employeeReceipts->sum('amount'),
+                    'total_tax' => $employeeReceipts->sum('tax1_amount') + $employeeReceipts->sum('tax2_amount'),
+                    'grand_total' => $employeeReceipts->sum('amount') + $employeeReceipts->sum('tax1_amount') + $employeeReceipts->sum('tax2_amount')
+                ];
+            });
 
             // Prepare chart data
             $chartData = [
-                'labels' => $groupedReceipts->keys()->toArray(),
-                'values' => $groupedReceipts
-                    ->map(function ($employeeReceipts) {
-                        return $employeeReceipts->sum('amount');
-                    })
-                    ->values()
-                    ->toArray(),
+                'labels' => $groupedReceipts->map(function ($item, $key) use ($employees) {
+                    $employee = $employees->find($key);
+                    return $employee ? $employee->full_name : 'غير معروف';
+                })->toArray(),
+                'values' => $groupedReceipts->pluck('total_amount')->toArray(),
             ];
 
             return view('reports.general_accounts.receipt_bonds.receipt_by_employee', [
@@ -756,20 +768,17 @@ class GeneralAccountsController extends Controller
                 'employees' => $employees,
                 'receiptsCategory' => $receiptsCategory,
                 'clients' => $clients,
-                'receipts' => $receipts,
                 'groupedReceipts' => $groupedReceipts,
                 'chartData' => $chartData,
                 'fromDate' => Carbon::parse($fromDate),
                 'toDate' => Carbon::parse($toDate),
             ]);
         } catch (\Exception $e) {
-            // Log the full error
-            Log::error('Error in receipts by seller report', [
+            Log::error('Error in receipts by employee report', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // Optionally, return an error view or redirect with a message
             return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
         }
     }
