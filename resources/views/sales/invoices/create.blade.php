@@ -15,6 +15,18 @@
                 white-space: nowrap;
             }
 
+            #clientSelect option[selected] {
+                font-weight: bold;
+                background-color: #f8f9fa;
+            }
+
+            select.form-control {
+                -webkit-appearance: menulist;
+                -moz-appearance: menulist;
+                appearance: menulist;
+                height: auto;
+            }
+
             #items-table thead,
             #items-table tbody,
             #items-table tfoot,
@@ -121,9 +133,9 @@
                             <a href="" class="btn btn-outline-danger">
                                 <i class="fa fa-ban"></i>الغاء
                             </a>
-                           <button type="button" id="saveInvoice" class="btn btn-outline-primary">
-    <i class="fa fa-save"></i> حفظ
-</button>
+                            <button type="button" id="saveInvoice" class="btn btn-outline-primary">
+                                <i class="fa fa-save"></i> حفظ
+                            </button>
                         </div>
 
                     </div>
@@ -142,7 +154,7 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control"  name="payment">
+                                                <select class="form-control" name="payment">
                                                     <option value="">اختر الطريقة </option>
                                                     <option value="1">ارسال عبر البريد</option>
                                                     <option value="2">طباعة </option>
@@ -159,17 +171,18 @@
                                             <div class="col-md-6">
                                                 <select class="form-control select2" id="clientSelect" name="client_id"
                                                     required>
-                                                    <option value="">اختر العميل </option>
-                                                    @foreach ($clients as $client)
-                                                        <option value="{{ $client->id }}">{{ $client->trade_name }}
+                                                    <option value="">اختر العميل</option>
+                                                    @foreach ($clients as $c)
+                                                        <option value="{{ $c->id }}"
+                                                            {{ (isset($client_id) && $client_id == $c->id) || (isset($client) && $client->id == $c->id) ? 'selected' : '' }}>
+                                                            {{ $c->trade_name }}
                                                         </option>
                                                     @endforeach
-
                                                 </select>
 
 
                                             </div>
-                                             <input type="hidden" id="client_id_hidden" name="client_id" value="">
+                                            <input type="hidden" id="client_id_hidden" name="client_id" value="">
                                             <div class="col-md-4">
                                                 <a href="{{ route('clients.create') }}" type="button"
                                                     class="btn btn-primary mr-1 mb-1 waves-effect waves-light">
@@ -187,7 +200,8 @@
                                                 <select class="form-control" id="price-list-select" name="price_list_id">
                                                     <option value="">اختر قائمة اسعار</option>
                                                     @foreach ($price_lists as $price_list)
-                                                        <option value="{{ $price_list->id }}">{{ $price_list->name ?? "" }}</option>
+                                                        <option value="{{ $price_list->id }}">{{ $price_list->name ?? '' }}
+                                                        </option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -326,61 +340,73 @@
                                             <select name="items[0][product_id]" class="form-control product-select">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
-                                                <option value="{{ $item->id }}" data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
+                                                    <option value="{{ $item->id }}"
+                                                        data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
                                         <td data-label="الوصف">
-                                            <input type="text" name="items[0][description]" class="form-control item-description">
+                                            <input type="text" name="items[0][description]"
+                                                class="form-control item-description">
                                         </td>
                                         <td data-label="الكمية">
-                                            <input type="number" name="items[0][quantity]" class="form-control quantity" value="1" min="1" required>
+                                            <input type="number" name="items[0][quantity]" class="form-control quantity"
+                                                value="1" min="1" required>
                                         </td>
                                         <td data-label="السعر">
-                                            <input type="number" name="items[0][unit_price]" class="form-control price" value="" step="0.01" required>
+                                            <input type="number" name="items[0][unit_price]" class="form-control price"
+                                                value="" step="0.01" required>
                                         </td>
                                         <td data-label="الخصم">
                                             <div class="input-group">
-                                                <input type="number" name="items[0][discount]" class="form-control discount-value" value="0" min="0" step="0.01">
+                                                <input type="number" name="items[0][discount]"
+                                                    class="form-control discount-value" value="0" min="0"
+                                                    step="0.01">
                                                 <select name="items[0][discount_type]" class="form-control discount-type">
                                                     <option value="amount">ريال</option>
                                                     <option value="percentage">نسبة %</option>
                                                 </select>
                                             </div>
                                         </td>
-                                                  <td data-label="الضريبة 1">
-    <div class="input-group">
-        <select name="items[0][tax_1]" class="form-control tax-select" data-target="tax_1"
-            style="width: 150px;" onchange="updateHiddenInput(this)">
-            <option value=""></option>
-            @foreach ($taxs as $tax)
-                <option value="{{ $tax->tax }}" data-id="{{ $tax->id }}" data-name="{{ $tax->name }}"
-                    data-type="{{ $tax->type }}">
-                    {{ $tax->name }}
-                </option>
-            @endforeach
-        </select>
-        <input type="hidden" name="items[0][tax_1_id]">
-    </div>
-</td>
+                                        <td data-label="الضريبة 1">
+                                            <div class="input-group">
+                                                <select name="items[0][tax_1]" class="form-control tax-select"
+                                                    data-target="tax_1" style="width: 150px;"
+                                                    onchange="updateHiddenInput(this)">
+                                                    <option value=""></option>
+                                                    @foreach ($taxs as $tax)
+                                                        <option value="{{ $tax->tax }}"
+                                                            data-id="{{ $tax->id }}"
+                                                            data-name="{{ $tax->name }}"
+                                                            data-type="{{ $tax->type }}">
+                                                            {{ $tax->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <input type="hidden" name="items[0][tax_1_id]">
+                                            </div>
+                                        </td>
 
 
 
-<td data-label="الضريبة 2">
-    <div class="input-group">
-        <select name="items[0][tax_2]" class="form-control tax-select" data-target="tax_2"
-            style="width: 150px;" onchange="updateHiddenInput(this)">
-            <option value=""></option>
-            @foreach ($taxs as $tax)
-                <option value="{{ $tax->tax }}" data-id="{{ $tax->id }}" data-name="{{ $tax->name }}"
-                    data-type="{{ $tax->type }}">
-                    {{ $tax->name }}
-                </option>
-            @endforeach
-        </select>
-        <input type="hidden" name="items[0][tax_2_id]">
-    </div>
-</td
+                                        <td data-label="الضريبة 2">
+                                            <div class="input-group">
+                                                <select name="items[0][tax_2]" class="form-control tax-select"
+                                                    data-target="tax_2" style="width: 150px;"
+                                                    onchange="updateHiddenInput(this)">
+                                                    <option value=""></option>
+                                                    @foreach ($taxs as $tax)
+                                                        <option value="{{ $tax->tax }}"
+                                                            data-id="{{ $tax->id }}"
+                                                            data-name="{{ $tax->name }}"
+                                                            data-type="{{ $tax->type }}">
+                                                            {{ $tax->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <input type="hidden" name="items[0][tax_2_id]">
+                                            </div>
+                                        </td>
 
 
                                         <input type="hidden" name="items[0][store_house_id]" value="">
@@ -397,13 +423,17 @@
 
 
                                 <tfoot id="tax-rows">
-                                     <tr>
+                                    <tr>
                                         <td colspan="9" class="text-left">
-                                            <button type="button" class="btn btn-primary add-row"> <i class="fa fa-prmary"></i>إضافة </button>
+                                            <button type="button" class="btn btn-primary add-row"> <i
+                                                    class="fa fa-prmary"></i>إضافة </button>
                                         </td>
                                     </tr>
                                     @php
-                                    $currencySymbol = '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">';
+                                        $currencySymbol =
+                                            '<img src="' .
+                                            asset('assets/images/Saudi_Riyal.svg') .
+                                            '" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">';
                                     @endphp
                                     <!-- Other rows -->
                                     <tr>
@@ -420,20 +450,20 @@
                                         </td>
                                         <td></td>
                                     </tr>
-                                <tr>
+                                    <tr>
 
-    <td>
+                                        <td>
 
-        <small id="tax-details"></small> <!-- مكان عرض تفاصيل الضرائب -->
-    </td>
+                                            <small id="tax-details"></small> <!-- مكان عرض تفاصيل الضرائب -->
+                                        </td>
 
-</tr>
- <tr>
-        <td colspan="7" class="text-right">المجموع الكلي</td>
-        <td>
-            <span id="grand-total">0.00</span>{!! $currencySymbol !!}
-        </td>
-    </tr>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="7" class="text-right">المجموع الكلي</td>
+                                        <td>
+                                            <span id="grand-total">0.00</span>{!! $currencySymbol !!}
+                                        </td>
+                                    </tr>
 
 
 
@@ -690,7 +720,7 @@
     </div>
 @endsection
 @section('scripts')
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="{{ asset('assets/js/invoice.js') }}"></script>
@@ -705,28 +735,25 @@
                 }
             });
         });
-
-
     </script>
 
-   <script>
-   function updateHiddenInput(selectElement) {
-    // البحث عن أقرب صف يحتوي على العنصر المحدد
-    var row = selectElement.closest('.item-row');
+    <script>
+        function updateHiddenInput(selectElement) {
+            // البحث عن أقرب صف يحتوي على العنصر المحدد
+            var row = selectElement.closest('.item-row');
 
-    // استخراج نوع الضريبة (tax_1 أو tax_2) من data-target
-    var taxType = selectElement.getAttribute('data-target');
+            // استخراج نوع الضريبة (tax_1 أو tax_2) من data-target
+            var taxType = selectElement.getAttribute('data-target');
 
-    // البحث عن الحقل المخفي داخل نفس الصف المرتبط بهذه الضريبة
-    var hiddenInput = row.querySelector('input[name^="items"][name$="[' + taxType + '_id]"]');
+            // البحث عن الحقل المخفي داخل نفس الصف المرتبط بهذه الضريبة
+            var hiddenInput = row.querySelector('input[name^="items"][name$="[' + taxType + '_id]"]');
 
-    // تحديث قيمة الحقل المخفي بناءً على الضريبة المختارة
-    if (hiddenInput) {
-        hiddenInput.value = selectElement.options[selectElement.selectedIndex].getAttribute('data-id');
-    }
-}
-
- </script>
+            // تحديث قيمة الحقل المخفي بناءً على الضريبة المختارة
+            if (hiddenInput) {
+                hiddenInput.value = selectElement.options[selectElement.selectedIndex].getAttribute('data-id');
+            }
+        }
+    </script>
 
 
     <script>
@@ -735,28 +762,28 @@
             initializeEvents();
 
             // إعادة تهيئة الأحداث عند إضافة صف جديد
-         $(document).on('click', '.add-row', function() {
-    var lastRow = $('.item-row').last(); // الحصول على آخر صف
-    var newRow = lastRow.clone(); // استنساخ آخر صف
-    var rowIndex = $('.item-row').length; // تحديد رقم الصف الجديد
+            $(document).on('click', '.add-row', function() {
+                var lastRow = $('.item-row').last(); // الحصول على آخر صف
+                var newRow = lastRow.clone(); // استنساخ آخر صف
+                var rowIndex = $('.item-row').length; // تحديد رقم الصف الجديد
 
-    // مسح القيم في الصف الجديد
-    newRow.find('input, select').val('');
-    newRow.find('.row-total').text('0.00');
+                // مسح القيم في الصف الجديد
+                newRow.find('input, select').val('');
+                newRow.find('.row-total').text('0.00');
 
-    // تحديث أسماء الحقول لتكون فريدة (حسب الصف الجديد)
-    newRow.find('input, select').each(function() {
-        var name = $(this).attr('name');
-        if (name) {
-            // تحديث الأرقام في أسماء الحقول
-            name = name.replace(/\[\d+\]/, '[' + rowIndex + ']');
-            $(this).attr('name', name);
-        }
-    });
+                // تحديث أسماء الحقول لتكون فريدة (حسب الصف الجديد)
+                newRow.find('input, select').each(function() {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        // تحديث الأرقام في أسماء الحقول
+                        name = name.replace(/\[\d+\]/, '[' + rowIndex + ']');
+                        $(this).attr('name', name);
+                    }
+                });
 
-    newRow.appendTo('tbody'); // إضافة الصف الجديد إلى الجدول
-    initializeEvents(); // إعادة تهيئة الأحداث للصف الجديد
-});
+                newRow.appendTo('tbody'); // إضافة الصف الجديد إلى الجدول
+                initializeEvents(); // إعادة تهيئة الأحداث للصف الجديد
+            });
 
 
 
@@ -764,7 +791,8 @@
                 // عند تغيير اختيار المنتج أو قائمة الأسعار
                 $('.product-select, #price-list-select').off('change').on('change', function() {
                     var priceListId = $('#price-list-select').val(); // قيمة قائمة الأسعار المختارة
-                    var productId = $(this).closest('tr').find('.product-select').val(); // قيمة المنتج المختار
+                    var productId = $(this).closest('tr').find('.product-select')
+                        .val(); // قيمة المنتج المختار
                     var priceInput = $(this).closest('tr').find('.price'); // حقل السعر
 
                     if (priceListId && productId) {
@@ -782,7 +810,8 @@
                                     priceInput.val(response.price);
                                 } else {
                                     // إذا لم يوجد السعر في قائمة الأسعار، استخدم سعر المنتج
-                                    var productPrice = $(this).closest('tr').find('.product-select option:selected').data('price');
+                                    var productPrice = $(this).closest('tr').find(
+                                        '.product-select option:selected').data('price');
                                     priceInput.val(productPrice);
                                 }
                             },
@@ -792,156 +821,158 @@
                         });
                     } else {
                         // إذا لم يتم اختيار قائمة الأسعار، استخدم سعر المنتج
-                        var productPrice = $(this).closest('tr').find('.product-select option:selected').data('price');
+                        var productPrice = $(this).closest('tr').find('.product-select option:selected')
+                            .data('price');
                         priceInput.val(productPrice);
                     }
                 });
             }
         });
-        $(document).ready(function () {
-    $('.product-select').change(function () {
-        var selectedOption = $(this).find(':selected'); // الحصول على الخيار المحدد
-        var price = selectedOption.data('price'); // استخراج سعر البيع من data-price
+        $(document).ready(function() {
+            $('.product-select').change(function() {
+                var selectedOption = $(this).find(':selected'); // الحصول على الخيار المحدد
+                var price = selectedOption.data('price'); // استخراج سعر البيع من data-price
 
-        if (price !== undefined) {
-            $(this).closest('tr').find('.price').val(price); // تعيين السعر في الحقل المناسب
-        }
-    });
-});
-
-
+                if (price !== undefined) {
+                    $(this).closest('tr').find('.price').val(price); // تعيين السعر في الحقل المناسب
+                }
+            });
+        });
     </script>
- <script>
+    <script>
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('tax-select')) {
+                let row = e.target.closest('tr');
 
+                // الحصول على الضريبة 1
+                let tax1Select = row.querySelector('[name^="items"][name$="[tax_1]"]');
+                let tax1Name = tax1Select.options[tax1Select.selectedIndex].dataset.name;
+                let tax1Value = parseFloat(tax1Select.value);
 
+                // الحصول على الضريبة 2
+                let tax2Select = row.querySelector('[name^="items"][name$="[tax_2]"]');
+                let tax2Name = tax2Select.options[tax2Select.selectedIndex].dataset.name;
+                let tax2Value = parseFloat(tax2Select.value);
 
-document.addEventListener('change', function (e) {
-    if (e.target && e.target.classList.contains('tax-select')) {
-        let row = e.target.closest('tr');
+                // إعداد النص لعرض الضرائب مع قيمتها
+                let taxDetails = [];
 
-        // الحصول على الضريبة 1
-        let tax1Select = row.querySelector('[name^="items"][name$="[tax_1]"]');
-        let tax1Name = tax1Select.options[tax1Select.selectedIndex].dataset.name;
-        let tax1Value = parseFloat(tax1Select.value);
+                if (tax1Value > 0) {
+                    taxDetails.push(`${tax1Name} ${tax1Value}%`);
+                }
 
-        // الحصول على الضريبة 2
-        let tax2Select = row.querySelector('[name^="items"][name$="[tax_2]"]');
-        let tax2Name = tax2Select.options[tax2Select.selectedIndex].dataset.name;
-        let tax2Value = parseFloat(tax2Select.value);
+                if (tax2Value > 0) {
+                    taxDetails.push(`${tax2Name} ${tax2Value}%`);
+                }
 
-        // إعداد النص لعرض الضرائب مع قيمتها
-        let taxDetails = [];
-
-        if (tax1Value > 0) {
-            taxDetails.push(`${tax1Name} ${tax1Value}%`);
-        }
-
-        if (tax2Value > 0) {
-            taxDetails.push(`${tax2Name} ${tax2Value}%`);
-        }
-
-        // إذا لم يتم اختيار أي ضريبة، عرض "الضريبة: 0"
-        if (taxDetails.length === 0) {
-            document.getElementById('tax-names-label').innerText = "الضريبة: 0";
-        } else {
-            document.getElementById('tax-names-label').innerText = taxDetails.join(" ، ");
-        }
-
-        // حساب إجمالي الضرائب بناءً على المجموع الفرعي
-        let subtotal = 0;
-        document.querySelectorAll(".item-row").forEach(function (row) {
-            let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
-            let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
-            let itemTotal = quantity * unitPrice;
-            subtotal += itemTotal;
-        });
-
-        let totalTax = 0;
-
-        // حساب الضريبة 1
-        if (tax1Value > 0) {
-            totalTax += (subtotal * tax1Value) / 100;
-        }
-
-        // حساب الضريبة 2
-        if (tax2Value > 0) {
-            totalTax += (subtotal * tax2Value) / 100;
-        }
-
-        // عرض إجمالي الضرائب
-        document.getElementById('total-tax').innerText = totalTax.toFixed(2);
-    }
-});
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    function calculateTotals() {
-        let subtotal = 0; // المجموع الفرعي (بدون ضريبة)
-        let grandTotal = 0; // المجموع الكلي
-        let taxDetails = {}; // تفاصيل الضرائب المختارة
-
-        // مسح صفوف الضرائب السابقة
-        document.querySelectorAll(".dynamic-tax-row").forEach(row => row.remove());
-
-        document.querySelectorAll(".item-row").forEach(function (row) {
-            let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
-            let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
-            let itemTotal = quantity * unitPrice; // هذا هو المجموع الكلي للعنصر
-            subtotal += itemTotal; // إضافة إلى المجموع الفرعي
-
-            // حساب الضرائب
-            let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']").value) || 0;
-            let tax1Type = row.querySelector("[name^='items'][name$='[tax_1]']").options[row.querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.type;
-            let tax1Name = row.querySelector("[name^='items'][name$='[tax_1]']").options[row.querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.name;
-
-            let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']").value) || 0;
-            let tax2Type = row.querySelector("[name^='items'][name$='[tax_2]']").options[row.querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.type;
-            let tax2Name = row.querySelector("[name^='items'][name$='[tax_2]']").options[row.querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.name;
-
-            // حساب الضريبة 1
-            if (tax1Value > 0) {
-                let itemTax = 0;
-                if (tax1Type === 'included') {
-                    // الضريبة متضمنة: نستخرجها من المجموع الكلي
-                    itemTax = itemTotal - (itemTotal / (1 + (tax1Value / 100)));
+                // إذا لم يتم اختيار أي ضريبة، عرض "الضريبة: 0"
+                if (taxDetails.length === 0) {
+                    document.getElementById('tax-names-label').innerText = "الضريبة: 0";
                 } else {
-                    // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
-                    itemTax = (itemTotal * tax1Value) / 100;
+                    document.getElementById('tax-names-label').innerText = taxDetails.join(" ، ");
                 }
 
-                if (!taxDetails[tax1Name]) {
-                    taxDetails[tax1Name] = 0;
-                }
-                taxDetails[tax1Name] += itemTax;
-            }
+                // حساب إجمالي الضرائب بناءً على المجموع الفرعي
+                let subtotal = 0;
+                document.querySelectorAll(".item-row").forEach(function(row) {
+                    let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+                    let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+                    let itemTotal = quantity * unitPrice;
+                    subtotal += itemTotal;
+                });
 
-            // حساب الضريبة 2
-            if (tax2Value > 0) {
-                let itemTax = 0;
-                if (tax2Type === 'included') {
-                    // الضريبة متضمنة: نستخرجها من المجموع الكلي
-                    itemTax = itemTotal - (itemTotal / (1 + (tax2Value / 100)));
-                } else {
-                    // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
-                    itemTax = (itemTotal * tax2Value) / 100;
+                let totalTax = 0;
+
+                // حساب الضريبة 1
+                if (tax1Value > 0) {
+                    totalTax += (subtotal * tax1Value) / 100;
                 }
 
-                if (!taxDetails[tax2Name]) {
-                    taxDetails[tax2Name] = 0;
+                // حساب الضريبة 2
+                if (tax2Value > 0) {
+                    totalTax += (subtotal * tax2Value) / 100;
                 }
-                taxDetails[tax2Name] += itemTax;
+
+                // عرض إجمالي الضرائب
+                document.getElementById('total-tax').innerText = totalTax.toFixed(2);
             }
         });
 
-        // إضافة صفوف الضرائب ديناميكيًا
-        let taxRowsContainer = document.getElementById("tax-rows");
-        for (let taxName in taxDetails) {
-            let taxRow = document.createElement("tr");
-            taxRow.classList.add("dynamic-tax-row");
 
-            taxRow.innerHTML = `
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            function calculateTotals() {
+                let subtotal = 0; // المجموع الفرعي (بدون ضريبة)
+                let grandTotal = 0; // المجموع الكلي
+                let taxDetails = {}; // تفاصيل الضرائب المختارة
+
+                // مسح صفوف الضرائب السابقة
+                document.querySelectorAll(".dynamic-tax-row").forEach(row => row.remove());
+
+                document.querySelectorAll(".item-row").forEach(function(row) {
+                    let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+                    let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+                    let itemTotal = quantity * unitPrice; // هذا هو المجموع الكلي للعنصر
+                    subtotal += itemTotal; // إضافة إلى المجموع الفرعي
+
+                    // حساب الضرائب
+                    let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']")
+                        .value) || 0;
+                    let tax1Type = row.querySelector("[name^='items'][name$='[tax_1]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.type;
+                    let tax1Name = row.querySelector("[name^='items'][name$='[tax_1]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.name;
+
+                    let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']")
+                        .value) || 0;
+                    let tax2Type = row.querySelector("[name^='items'][name$='[tax_2]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.type;
+                    let tax2Name = row.querySelector("[name^='items'][name$='[tax_2]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.name;
+
+                    // حساب الضريبة 1
+                    if (tax1Value > 0) {
+                        let itemTax = 0;
+                        if (tax1Type === 'included') {
+                            // الضريبة متضمنة: نستخرجها من المجموع الكلي
+                            itemTax = itemTotal - (itemTotal / (1 + (tax1Value / 100)));
+                        } else {
+                            // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
+                            itemTax = (itemTotal * tax1Value) / 100;
+                        }
+
+                        if (!taxDetails[tax1Name]) {
+                            taxDetails[tax1Name] = 0;
+                        }
+                        taxDetails[tax1Name] += itemTax;
+                    }
+
+                    // حساب الضريبة 2
+                    if (tax2Value > 0) {
+                        let itemTax = 0;
+                        if (tax2Type === 'included') {
+                            // الضريبة متضمنة: نستخرجها من المجموع الكلي
+                            itemTax = itemTotal - (itemTotal / (1 + (tax2Value / 100)));
+                        } else {
+                            // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
+                            itemTax = (itemTotal * tax2Value) / 100;
+                        }
+
+                        if (!taxDetails[tax2Name]) {
+                            taxDetails[tax2Name] = 0;
+                        }
+                        taxDetails[tax2Name] += itemTax;
+                    }
+                });
+
+                // إضافة صفوف الضرائب ديناميكيًا
+                let taxRowsContainer = document.getElementById("tax-rows");
+                for (let taxName in taxDetails) {
+                    let taxRow = document.createElement("tr");
+                    taxRow.classList.add("dynamic-tax-row");
+
+                    taxRow.innerHTML = `
                 <td colspan="7" class="text-right">
                     <span>${taxName}</span>
                 </td>
@@ -950,144 +981,154 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>
             `;
 
-            taxRowsContainer.insertBefore(taxRow, document.querySelector("#tax-rows tr:last-child"));
-        }
+                    taxRowsContainer.insertBefore(taxRow, document.querySelector("#tax-rows tr:last-child"));
+                }
 
-        // تحديث القيم في الواجهة
-        document.getElementById("subtotal").innerText = subtotal.toFixed(2);
-        document.getElementById("grand-total").innerText = (subtotal + Object.values(taxDetails).reduce((a, b) => a + b, 0)).toFixed(2);
+                // تحديث القيم في الواجهة
+                document.getElementById("subtotal").innerText = subtotal.toFixed(2);
+                document.getElementById("grand-total").innerText = (subtotal + Object.values(taxDetails).reduce((a,
+                    b) => a + b, 0)).toFixed(2);
 
-        // إرسال الضرائب إلى الكنترولر
-        let taxes = [];
-        for (let taxName in taxDetails) {
-            taxes.push({
-                name: taxName,
-                value: taxDetails[taxName],
+                // إرسال الضرائب إلى الكنترولر
+                let taxes = [];
+                for (let taxName in taxDetails) {
+                    taxes.push({
+                        name: taxName,
+                        value: taxDetails[taxName],
+                    });
+                }
+
+                // إضافة الضرائب إلى بيانات الفاتورة
+                document.querySelector("form").addEventListener("submit", function(e) {
+                    e.preventDefault();
+
+                    let formData = new FormData(this);
+
+                    // إضافة الضرائب إلى FormData
+                    let taxes = [];
+                    for (let taxName in taxDetails) {
+                        taxes.push({
+                            name: taxName,
+                            value: taxDetails[taxName],
+                        });
+                    }
+                    formData.append("taxes", JSON.stringify(taxes));
+
+                    // إرسال البيانات إلى الكنترولر
+                    fetch(this.action, {
+                            method: this.method,
+                            body: formData,
+                            headers: {
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute("content"),
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("تم حفظ البيانات بنجاح:", data);
+                        })
+                        .catch(error => {
+                            console.error("حدث خطأ أثناء حفظ البيانات:", error);
+                        });
+                });
+
+            }
+
+            // حساب القيم عند تغيير المدخلات
+            document.addEventListener("input", function(event) {
+                if (event.target.matches(".quantity, .price, .tax-select")) {
+                    calculateTotals();
+                }
             });
-        }
 
-        // إضافة الضرائب إلى بيانات الفاتورة
-     document.querySelector("form").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    let formData = new FormData(this);
-
-    // إضافة الضرائب إلى FormData
-    let taxes = [];
-    for (let taxName in taxDetails) {
-        taxes.push({
-            name: taxName,
-            value: taxDetails[taxName],
-        });
-    }
-    formData.append("taxes", JSON.stringify(taxes));
-
-    // إرسال البيانات إلى الكنترولر
-    fetch(this.action, {
-        method: this.method,
-        body: formData,
-        headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("تم حفظ البيانات بنجاح:", data);
-    })
-    .catch(error => {
-        console.error("حدث خطأ أثناء حفظ البيانات:", error);
-    });
-});
-
-    }
-
-    // حساب القيم عند تغيير المدخلات
-    document.addEventListener("input", function (event) {
-        if (event.target.matches(".quantity, .price, .tax-select")) {
+            // حساب القيم عند تحميل الصفحة
             calculateTotals();
-        }
-    });
+            const clientSelect = document.getElementById("clientSelect");
+            const clientIdHidden = document.getElementById("client_id_hidden");
+            const saveButton = document.getElementById("saveInvoice");
+            const invoiceForm = document.getElementById("invoiceForm");
 
-    // حساب القيم عند تحميل الصفحة
-    calculateTotals();
-  const clientSelect = document.getElementById("clientSelect");
-const clientIdHidden = document.getElementById("client_id_hidden");
-const saveButton = document.getElementById("saveInvoice");
-const invoiceForm = document.getElementById("invoiceForm");
+            // 1. تحديث الحقل المخفي عند تغيير العميل
+            clientSelect.addEventListener("change", function() {
+                clientIdHidden.value = this.value;
+                console.log("تم تحديث client_id إلى:", this.value);
+            });
 
-// 1. تحديث الحقل المخفي عند تغيير العميل
-clientSelect.addEventListener("change", function() {
-    clientIdHidden.value = this.value;
-    console.log("تم تحديث client_id إلى:", this.value);
-});
+            // 2. معالجة زر الحفظ
+            saveButton.addEventListener("click", function(event) {
+                event.preventDefault(); // منع الإرسال الافتراضي
 
-// 2. معالجة زر الحفظ
-saveButton.addEventListener("click", function(event) {
-    event.preventDefault(); // منع الإرسال الافتراضي
+                const clientId = clientSelect.value;
 
-    const clientId = clientSelect.value;
+                console.log("قيمة العميل المختار:", clientId);
+                console.log("قيمة الحقل المخفي قبل الإرسال:", clientIdHidden.value);
 
-    console.log("قيمة العميل المختار:", clientId);
-    console.log("قيمة الحقل المخفي قبل الإرسال:", clientIdHidden.value);
+                if (!clientId) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "خطأ",
+                        text: "الرجاء اختيار عميل من القائمة"
+                    });
+                    return;
+                }
 
-    if (!clientId) {
-        Swal.fire({
-            icon: "error",
-            title: "خطأ",
-            text: "الرجاء اختيار عميل من القائمة"
-        });
-        return;
-    }
-
-    // جلب بيانات العميل
-    fetch(`/sales/invoices/get-client/${clientId}`)
-    .then(response => {
-        if (!response.ok) throw new Error("فشل في جلب بيانات العميل");
-        return response.json();
-    })
-    .then(client => {
-        // عرض نافذة التحقق
-   Swal.fire({
-    title: "🔐 التحقق من الهوية",
-    html: `
+                // جلب بيانات العميل
+                fetch(`/sales/invoices/get-client/${clientId}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error("فشل في جلب بيانات العميل");
+                        return response.json();
+                    })
+                    .then(client => {
+                        // عرض نافذة التحقق
+                        Swal.fire({
+                            title: "🔐 التحقق من الهوية",
+                            html: `
         <div style="text-align: right; direction: rtl;">
             <p><strong>اسم العميل:</strong> ${client.trade_name}</p>
             <p><strong>رقم الهاتف:</strong> ${client.phone ?? "غير متوفر"}</p>
             <p>يرجى إدخال رمز التحقق لإكمال العملية.</p>
         </div>
     `,
-    input: "text",
-    inputPlaceholder: "أدخل الرمز المرسل (123)",
-    showCancelButton: true,
-    confirmButtonText: "✅ تحقق",
-    cancelButtonText: "❌ إلغاء",
-    icon: "info",
-    inputValidator: (value) => {
-        if (!value) return "⚠️ يجب إدخال رمز التحقق!";
-        if (value !== "123") return "❌ الرمز غير صحيح!";
-    }
-}).then((result) => {
-    if (result.isConfirmed) {
-        // تنفيذ العملية بعد التحقق
-        clientIdHidden.value = clientId;
-        console.log("تم تحديث client_id_hidden إلى:", clientIdHidden.value);
-        invoiceForm.submit();
-    }
-});
+                            input: "text",
+                            inputPlaceholder: "أدخل الرمز المرسل (123)",
+                            showCancelButton: true,
+                            confirmButtonText: "✅ تحقق",
+                            cancelButtonText: "❌ إلغاء",
+                            icon: "info",
+                            inputValidator: (value) => {
+                                if (!value) return "⚠️ يجب إدخال رمز التحقق!";
+                                if (value !== "123") return "❌ الرمز غير صحيح!";
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // تنفيذ العملية بعد التحقق
+                                clientIdHidden.value = clientId;
+                                console.log("تم تحديث client_id_hidden إلى:", clientIdHidden
+                                    .value);
+                                invoiceForm.submit();
+                            }
+                        });
 
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        Swal.fire("خطأ", "تعذر جلب بيانات العميل", "error");
-    });
-});
-
-
-});
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        Swal.fire("خطأ", "تعذر جلب بيانات العميل", "error");
+                    });
+            });
 
 
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            // إذا كان هناك عميل محدد، قم باختياره في القائمة
+            @if (isset($client_id))
+                $('#clientSelect').val('{{ $client_id }}').trigger('change');
+            @endif
+
+            // أو إذا كان هناك كائن عميل
+            @if (isset($client) && $client)
+                $('#clientSelect').val('{{ $client->id }}').trigger('change');
+            @endif
+        });
     </script>
-    <script>
-
-    </script>
+    <script></script>
 @endsection

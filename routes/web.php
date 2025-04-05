@@ -267,6 +267,7 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
                     Route::get('/show/{id}', [PaymentProcessController::class, 'show'])->name('paymentsClient.show');
                     Route::get('/edit/{id}', [PaymentProcessController::class, 'edit'])->name('paymentsClient.edit');
 
+                    Route::get('/rereceipt/{id}', [PaymentProcessController::class, 'rereceipt'])->name('paymentsClient.rereceipt');
                     Route::get('/receipt/pdf/{id}', [PaymentProcessController::class, 'pdfReceipt'])->name('paymentsClient.pdf');
 
                     Route::delete('/destroy/{id}', [PaymentProcessController::class, 'destroy'])->name('paymentsClient.destroy');
