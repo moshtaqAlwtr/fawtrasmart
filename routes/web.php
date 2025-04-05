@@ -74,6 +74,7 @@ Route::group(
                         Route::get('/get-price', [InvoicesController::class, 'getPrice'])->name('get-price');
                         Route::get('/notifications/unread', [InvoicesController::class, 'getUnreadNotifications'])->name('notifications.unread');
                         Route::post('/notifications/mark', [InvoicesController::class, 'markAsRead'])->name('notifications.markAsRead');
+
                         Route::get('/notifications/mark/show/{id}', [InvoicesController::class, 'markAsReadid'])->name('notifications.markAsReadid');
                         Route::get('/notifications', [InvoicesController::class, 'notifications'])->name('notifications.index');
                     });

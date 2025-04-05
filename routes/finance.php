@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Finance\ExpensesController;
+
 use App\Http\Controllers\Finance\FinanceSettingsController;
 use App\Http\Controllers\Finance\IncomesController;
 use App\Http\Controllers\Finance\TreasuryController;
@@ -56,6 +56,7 @@ Route::group(
                     Route::get('/edit/{id}', [IncomesController::class, 'edit'])->name('incomes.edit');
                     Route::post('/update/{id}', [IncomesController::class, 'update'])->name('incomes.update');
                     Route::get('/delete/{id}', [IncomesController::class, 'delete'])->name('incomes.delete');
+                    Route::get('/incomes/print/{id}/{type}', [IncomesController::class, 'print'])->name('incomes.print');
                 });
 
                 #treasury routes

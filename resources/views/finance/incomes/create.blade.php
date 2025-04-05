@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-ايرادات
+    ايرادات
 @stop
 
 @section('content')
@@ -54,24 +54,32 @@
                 <form id="incomes_form" action="{{ route('incomes.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
-                          @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
+                        @php
+                            $currency = $account_setting->currency ?? 'SAR';
+                            $currencySymbol =
+                                $currency == 'SAR' || empty($currency)
+                                    ? '<img src="' .
+                                        asset('assets/images/Saudi_Riyal.svg') .
+                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                    : htmlspecialchars($currency);
+                        @endphp
+
                         <div class="form-group col-md-3">
                             <label for="amount">المبلغ <span style="color: red">*</span></label>
-                            <input type="text" class="form-control form-control-lg py-3" id="amount" placeholder="{!! $currencySymbol !!} 0.00" name="">
+                            <input type="text" class="form-control form-control-lg py-3" id="amount"
+                                placeholder="{{ $currencySymbol }} 0.00" name="amount">
                             @error('amount')
-                            <span class="text-danger" id="basic-default-name-error" class="error">
-                                {{ $message }}
-                            </span>
+                                <span class="text-danger" id="basic-default-name-error">
+                                    {{ $message }}
+                                </span>
                             @enderror
                         </div>
+
                         <div class="form-group col-md-3">
-    <label for="total_amount">المبلغ الإجمالي بعد الضريبة</label>
-    <input type="text" class="form-control form-control-lg py-3" id="total_amount"
-        placeholder="{!! $currencySymbol !!} 0.00" name="amount" readonly>
-</div>
+                            <label for="total_amount">المبلغ الإجمالي بعد الضريبة</label>
+                            <input type="text" class="form-control form-control-lg py-3" id="total_amount"
+                                placeholder="{{ $currencySymbol }} 0.00" name="total_amount" readonly>
+                        </div>
 
                         <div class="form-group col-md-3">
                             <label for="description">الوصف</label>
@@ -80,7 +88,7 @@
 
                         <div class="form-group col-md-3">
                             <label for="attachments">المرفقات</label>
-                            <input type="file" name="attachments" id="attachments" class="d-none">
+                            <input type="file" name="attachments[]" id="attachments" class="d-none" multiple>
                             <div class="upload-area border rounded p-3 text-center position-relative"
                                 onclick="document.getElementById('attachments').click()">
                                 <div class="d-flex align-items-center justify-content-center gap-2">
@@ -95,11 +103,11 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="code-number">رقم الكود</label>
-                            <input type="text" class="form-control" id="code-number" name="code" value="{{ $nextCode }}" readonly>
+                            <input type="text" class="form-control" id="code-number" name="code"
+                                value="{{ $nextCode }}" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
@@ -112,8 +120,10 @@
                             <label for="category">التصنيف</label>
                             <select id="category" class="form-control" name="incomes_category_id">
                                 <option selected disabled>-- إضافة تصنيف --</option>
-                                @foreach($incomes_categories as $incomes_category)
-                                    <option value="{{ $incomes_category->id }}" {{ old('incomes_category_id') == $incomes_category->id ? 'selected' : '' }}>{{ $incomes_category->name }}</option>
+                                @foreach ($incomes_categories as $incomes_category)
+                                    <option value="{{ $incomes_category->id }}"
+                                        {{ old('incomes_category_id') == $incomes_category->id ? 'selected' : '' }}>
+                                        {{ $incomes_category->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -127,26 +137,32 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
-                          <input type="text"   class="form-control" placeholder=" "
-                            value="{{$MainTreasury->name ?? ""}}" readonly>
+                            <input type="text" class="form-control" placeholder=" "
+                                value="{{ $MainTreasury->name ?? '' }}" readonly>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="min-limit">الحساب الفرعي </label>
-                           <select class="form-control select2" name="account_id" id="">
-                               <option selected disabled>اختر حساب</option>
-                               @foreach ($accounts as $account  )
-                                   <option value="{{$account->id }}">{{ $account->name }}</option>
+                            <div class="form-group">
+                                <label for="account_id">الحساب</label>
+                                <select class="form-control select2" name="account_id" id="account_id" required>
+                                    <option value="" selected disabled>اختر حساب</option>
+                                    @foreach ($accounts as $account)
+                                        <option value="{{ $account->id }}">
+                                            {{ $account->customer->code??'' }} - {{ $account->name??'' }}
 
-                               @endforeach
-                           </select>
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         <div class="form-group col-md-4">
                             <label for="tax">الضرائب</label>
-                            <button type="button" class="btn btn-info btn-block" onclick="toggleTaxFields()">إضافة ضرائب</button>
+                            <button type="button" class="btn btn-info btn-block" onclick="toggleTaxFields()">إضافة
+                                ضرائب</button>
                         </div>
                     </div>
 
@@ -154,25 +170,23 @@
                     <div id="tax-fields" class="tax-fields">
                         <span class="remove-tax" onclick="removeTaxFields()">إزالة الضرائب ×</span>
                         <div class="form-row">
-                               <div class="form-group col-md-6">
+                            <div class="form-group col-md-6">
                                 <label for="tax1">الضريبة الأولى</label>
                                 <select id="tax1" class="form-control" name="tax1">
                                     <option>اختر الضريبة</option>
-                                    @foreach($taxs as $tax)
-                                    
-                                    <option value="{{$tax->tax}}">{{$tax->name ?? "" }}</option>
-                                @endforeach
+                                    @foreach ($taxs as $tax)
+                                        <option value="{{ $tax->tax }}">{{ $tax->name ?? '' }}</option>
+                                    @endforeach
                                 </select>
                                 <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax1_amount">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="tax2">الضريبة الثانية</label>
                                 <select id="tax2" class="form-control" name="tax2">
-                                 <option>اختر الضريبة</option>
-                                    @foreach($taxs as $tax)
-                                    
-                                    <option value="{{$tax->tax}}">{{$tax->name ?? "" }}</option>
-                                @endforeach
+                                    <option>اختر الضريبة</option>
+                                    @foreach ($taxs as $tax)
+                                        <option value="{{ $tax->tax }}">{{ $tax->name ?? '' }}</option>
+                                    @endforeach
                                 </select>
                                 <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax2_amount">
                             </div>
@@ -220,17 +234,17 @@
         </div>
 
     </div>
-<!-- JavaScript للتحكم في إظهار وإخفاء الخيارات -->
+    <!-- JavaScript للتحكم في إظهار وإخفاء الخيارات -->
     <script>
         document.getElementById('checkbox').addEventListener('change', function() {
             var duplicateOptionsContainer = document.getElementById('duplicate-options-container');
             var endDateContainer = document.getElementById('end-date-container');
             if (this.checked) {
-                duplicateOptionsContainer.style.display = 'block';  // إظهار خيارات التكرار
-                endDateContainer.style.display = 'block';           // إظهار حقل تاريخ الإنتهاء
+                duplicateOptionsContainer.style.display = 'block'; // إظهار خيارات التكرار
+                endDateContainer.style.display = 'block'; // إظهار حقل تاريخ الإنتهاء
             } else {
-                duplicateOptionsContainer.style.display = 'none';  // إخفاء خيارات التكرار
-                endDateContainer.style.display = 'none';           // إخفاء حقل تاريخ الإنتهاء
+                duplicateOptionsContainer.style.display = 'none'; // إخفاء خيارات التكرار
+                endDateContainer.style.display = 'none'; // إخفاء حقل تاريخ الإنتهاء
             }
         });
     </script>
@@ -243,33 +257,33 @@
             $("#tax-fields").slideUp();
         }
     </script>
-        <!-- إضافة مكتبة jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- إضافة مكتبة jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 
 
-<script>
-    $(document).ready(function () {
-        function calculateTax() {
-            let amount = parseFloat($("#amount").val()) || 0; // المبلغ الأساسي
-            let tax1Rate = parseFloat($("#tax1").val()) || 0; // نسبة الضريبة الأولى
-            let tax2Rate = parseFloat($("#tax2").val()) || 0; // نسبة الضريبة الثانية
+    <script>
+        $(document).ready(function() {
+            function calculateTax() {
+                let amount = parseFloat($("#amount").val()) || 0; // المبلغ الأساسي
+                let tax1Rate = parseFloat($("#tax1").val()) || 0; // نسبة الضريبة الأولى
+                let tax2Rate = parseFloat($("#tax2").val()) || 0; // نسبة الضريبة الثانية
 
-            // حساب قيمة الضرائب
-            let tax1Amount = (amount * tax1Rate) / 100;
-            let tax2Amount = (amount * tax2Rate) / 100;
+                // حساب قيمة الضرائب
+                let tax1Amount = (amount * tax1Rate) / 100;
+                let tax2Amount = (amount * tax2Rate) / 100;
 
-            // تحديث الحقول بقيم الضرائب
-            $("input[name='tax1_amount']").val(tax1Amount.toFixed(2));
-            $("input[name='tax2_amount']").val(tax2Amount.toFixed(2));
+                // تحديث الحقول بقيم الضرائب
+                $("input[name='tax1_amount']").val(tax1Amount.toFixed(2));
+                $("input[name='tax2_amount']").val(tax2Amount.toFixed(2));
 
-            // حساب المجموع النهائي مع الضرائب
-            let totalAmount = amount + tax1Amount + tax2Amount;
-            $("#total_amount").val(totalAmount.toFixed(2));
-        }
+                // حساب المجموع النهائي مع الضرائب
+                let totalAmount = amount + tax1Amount + tax2Amount;
+                $("#total_amount").val(totalAmount.toFixed(2));
+            }
 
-        // عند إدخال المبلغ أو تغيير الضريبة يتم تحديث الحساب
-        $("#amount, #tax1, #tax2").on("input change", calculateTax);
-    });
-</script>
+            // عند إدخال المبلغ أو تغيير الضريبة يتم تحديث الحساب
+            $("#amount, #tax1, #tax2").on("input change", calculateTax);
+        });
+    </script>
 @endsection

@@ -344,7 +344,7 @@
                     <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-danger col-md-auto">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
-                    <a href="{{ route('invoices.create') }}" class="btn btn-sm btn-dark col-md-auto">
+                    <a href="{{ route('invoices.create') }}?client_id={{ $client->id }}" class="btn btn-sm btn-dark col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
                     <a href="{{ route('Reservations.client', $client->id) }}" class="btn btn-sm btn-light text-dark col-md-auto">

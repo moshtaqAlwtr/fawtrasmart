@@ -161,42 +161,57 @@
                 </div>
             </div>
         </div>
-
         <div class="card">
             <div class="card-header">
-                <div class="card-body">
-                    @if (@isset($employees) && !@empty($employees) && count($employees) > 0)
-                        <table class="table table-striped mb-0">
-                            <thead>
+                <h4 class="card-title">قائمة الموظفين</h4>
+            </div>
+            <div class="card-body">
+                @if (@isset($employees) && !@empty($employees) && count($employees) > 0)
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover mb-0">
+                            <thead class="thead-light">
                                 <tr>
-                                    <td>الاسم</td>
-                                    <td>الدور الوظيفي</td>
-                                    <td>المسمى الوظيفي</td>
-                                    <td>قسم</td>
-                                    <td>فرع</td>
-                                    <th>الحاله</th>
-                                    <th style="width: 10%">اجراء</th>
+                                    <th width="20%">الاسم</th>
+                                    <th width="15%">الدور الوظيفي</th>
+                                    <th width="15%">المسمى الوظيفي</th>
+                                    <th width="15%">قسم</th>
+                                    <th width="15%">فرع</th>
+                                    <th width="10%">الحالة</th>
+                                    <th width="10%">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($employees as $employee)
                                     <tr>
                                         <td>
-                                            <p><strong>{{ $employee->full_name }}</strong></p>
-                                            <small>#{{ $employee->id }}</small>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar mr-1">
+                                                    @if($employee->photo)
+                                                        <img src="{{ asset('storage/'.$employee->photo) }}" alt="صورة الموظف" width="40" height="40" class="rounded-circle">
+                                                    @else
+                                                        <span class="avatar-content">{{ substr($employee->full_name, 0, 1) }}</span>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <p class="mb-0 font-weight-bold">{{ $employee->full_name }}</p>
+                                                    <small class="text-muted">#{{ $employee->id }}</small>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>
-                                            <p><strong>{{$employee->job_role->role_name ?? "غير محدد"}}</strong></p>
-                                            <small>@if ($employee->employee_type == 1) موظف @else مستخدم @endif</small>
+                                            <p class="mb-0 font-weight-bold">{{ $employee->job_role->role_name ?? "غير محدد" }}</p>
+                                            <small class="badge badge-light-{{ $employee->employee_type == 1 ? 'primary' : 'secondary' }}">
+                                                @if ($employee->employee_type == 1) موظف @else مستخدم @endif
+                                            </small>
                                         </td>
                                         <td>{{ optional($employee->job_title)->name ?? 'غير محدد' }}</td>
                                         <td>{{ optional($employee->department)->name ?? 'غير محدد' }}</td>
                                         <td>{{ optional($employee->branch)->name ?? 'غير محدد' }}</td>
                                         <td>
                                             @if ($employee->status == 1)
-                                                <span class="badge badge-pill badge badge-success">نشط</span>
+                                                <span class="badge badge-pill badge-success">نشط</span>
                                             @else
-                                                <span class="badge badge-pill badge badge-danger">غير نشط</span>
+                                                <span class="badge badge-pill badge-danger">غير نشط</span>
                                             @endif
                                         </td>
                                         <td>
@@ -224,106 +239,89 @@
                                                             <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $employee->id }}">
                                                                 <i class="fa fa-trash me-2"></i>حذف
                                                             </a>
-                                                            <li>    
+                                                            <li>
                                                                 <a class="dropdown-item text-primary" href="{{ route('employee.send_email',$employee->id) }}">
                                                                     <i class="fa fa-paper-plane me-2"></i> ارسال بيانات الدخول بالبريد
                                                                 </a>
-                                                                
+
                                                         </li>
                                                     </div>
                                                 </div>
                                             </div>
                                         </td>
 
-                                        <!-- Modal delete -->
-                                        <div class="modal fade text-left" id="modal_DELETE{{ $employee->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-scrollable" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header" style="background-color: #EA5455 !important;">
-                                                        <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف {{ $employee->full_name }}</h4>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true" style="color: #DC3545">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <strong>
-                                                            هل انت متاكد من انك تريد الحذف ؟
-                                                        </strong>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                                                        <a href="{{ route('employee.delete',$employee->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
-                                                    </div>
+
+                                    </tr>
+
+                                    <!-- Modal delete -->
+                                    <div class="modal fade" id="modal_DELETE{{ $employee->id }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title" id="deleteModalLabel">حذف الموظف</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <!--end delete-->
-
-                                        <!-- Modal change passwoard -->
-                                        <div class="modal fade text-left" id="ChangePassword" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-scrollable" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h4 class="modal-title" id="myModalLabel1">تغير  كلمة المرور</h4>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form class="form" action="{{ route('employee.updatePassword',$employee->id) }}" method="POST">
-                                                            @csrf
-                                                            <div class="form-body">
-                                                                <div class="row">
-                                                                    <div class="col-12">
-                                                                        <div class="form-label-group">
-                                                                            <input type="password" class="form-control" placeholder="كلمة المرور الجديدة" name="password" value="{{ old('password') }}">
-                                                                            <label for="password">كلمة المرور الجديدة</label>
-                                                                            @error('password')
-                                                                            <span class="text-danger" class="error">
-                                                                                {{ $message }}
-                                                                            </span>
-                                                                            @enderror
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="col-12">
-                                                                        <div class="form-label-group">
-                                                                            <input type="password" class="form-control" placeholder="تأكيد كلمة المرور" name="password_confirmation" value="{{ old('password_confirmation') }}">
-                                                                            <label for="password_confirmation">تأكيد كلمة المرور</label>
-                                                                            @error('password_confirmation')
-                                                                            <span class="text-danger" class="error">
-                                                                                {{ $message }}
-                                                                            </span>
-                                                                            @enderror
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="submit" class="btn btn-outline-primary btn-sm round mr-1 mb-1 waves-effect waves-light">حفظ</button>
-                                                            <button type="reset" class="btn btn-outline-warning btn-sm round mr-1 mb-1 waves-effect waves-light">تفريغ</button>
-                                                        </div>
+                                                <div class="modal-body">
+                                                    <p>هل أنت متأكد من حذف الموظف <strong>{{ $employee->full_name }}</strong>؟</p>
+                                                    <p class="text-danger">هذا الإجراء لا يمكن التراجع عنه!</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                    <form action="{{ route('employee.delete',$employee->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
-                                        <!--end Model change passwoard-->
+                                    </div>
+                                    <!--end delete-->
 
-                                    </tr>
+                                    <!-- Modal change password -->
+                                    <div class="modal fade" id="ChangePassword{{$employee->id}}" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary text-white">
+                                                    <h5 class="modal-title" id="changePasswordLabel">تغيير كلمة المرور</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form action="{{ route('employee.updatePassword',$employee->id) }}" method="POST">
+                                                    @csrf
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label for="password{{$employee->id}}" class="form-label">كلمة المرور الجديدة</label>
+                                                            <input type="password" class="form-control" id="password{{$employee->id}}" name="password" required>
+                                                            @error('password')
+                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="password_confirmation{{$employee->id}}" class="form-label">تأكيد كلمة المرور</label>
+                                                            <input type="password" class="form-control" id="password_confirmation{{$employee->id}}" name="password_confirmation" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                        <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!--end Model change password-->
                                 @endforeach
                             </tbody>
                         </table>
-                        {{-- {{ $employees->links('pagination::bootstrap-5') }} --}}
-                    @else
-                        <div class="alert alert-danger text-xl-center" role="alert">
-                            <p class="mb-0">
-                                لا يوجد موظفين حتى الان
-                            </p>
-                        </div>
-                    @endif
-                </div>
+                    </div>
+
+
+                @else
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        لا يوجد موظفين مسجلين حتى الآن
+                    </div>
+                @endif
             </div>
         </div>
 

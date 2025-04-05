@@ -232,6 +232,11 @@
                             <li class="empty-cart d-none p-2">Your Cart Is Empty.</li>
                         </ul>
                     </li>
+                    @php
+                    $userRole = Auth::user()->role;
+                @endphp
+
+                @if($userRole != 'employee')
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-bell"></i>
@@ -258,7 +263,7 @@
                         $(document).ready(function() {
                             function fetchNotifications() {
                                 $.ajax({
-                                    url: "{{ route('notifications.unread') }}", // جلب الإشعارات غير المقروءة
+                                    url: "{{ route('notifications.unread') }}",
                                     method: "GET",
                                     success: function(response) {
                                         let notifications = response.notifications;
@@ -272,28 +277,27 @@
                                         if (count > 0) {
                                             notifications.forEach(notification => {
                                                 let listItem = `
-                            <a class="d-flex justify-content-between notification-item"
-                                href="javascript:void(0)"
-                                data-id="${notification.id}">
-                                <div class="media d-flex align-items-start">
-                                    <div class="media-left">
-                                        <i class="feather icon-bell font-medium-5 primary"></i>
-                                    </div>
-                                    <div class="media-body">
-                                        <h6 class="primary media-heading">${notification.title}</h6>
-                                        <small class="notification-text">${notification.description}</small>
-                                    </div>
-                                    <small>
-                                        <time class="media-meta">${new Date(notification.created_at).toLocaleString()}</time>
-                                    </small>
-                                </div>
-                            </a>
-                        `;
+                                                    <a class="d-flex justify-content-between notification-item"
+                                                        href="javascript:void(0)"
+                                                        data-id="${notification.id}">
+                                                        <div class="media d-flex align-items-start">
+                                                            <div class="media-left">
+                                                                <i class="feather icon-bell font-medium-5 primary"></i>
+                                                            </div>
+                                                            <div class="media-body">
+                                                                <h6 class="primary media-heading">${notification.title}</h6>
+                                                                <small class="notification-text">${notification.description}</small>
+                                                            </div>
+                                                            <small>
+                                                                <time class="media-meta">${new Date(notification.created_at).toLocaleString()}</time>
+                                                            </small>
+                                                        </div>
+                                                    </a>
+                                                `;
                                                 notificationList.append(listItem);
                                             });
                                         } else {
-                                            notificationList.append(
-                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
+                                            notificationList.append('<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
                                         }
                                     }
                                 });
@@ -301,26 +305,25 @@
 
                             fetchNotifications();
 
-                            // تحديث الإشعار عند النقر عليه
                             $(document).on('click', '.notification-item', function() {
                                 let notificationId = $(this).data('id');
 
                                 $.ajax({
-                                    url: "{{ route('notifications.markAsRead') }}", // استدعاء API لتحديث حالة الإشعار
+                                    url: "{{ route('notifications.markAsRead') }}",
                                     method: "POST",
                                     data: {
                                         _token: "{{ csrf_token() }}",
                                         id: notificationId
                                     },
                                     success: function() {
-                                        fetchNotifications(); // تحديث قائمة الإشعارات بعد القراءة
+                                        fetchNotifications();
                                     }
                                 });
                             });
                         });
                     </script>
-
-                    <li class="dropdown dropdown-user nav-item">
+                @endif
+                                 <li class="dropdown dropdown-user nav-item">
                         <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
                             aria-expanded="false">
                             <div class="user-nav d-sm-flex d-none">

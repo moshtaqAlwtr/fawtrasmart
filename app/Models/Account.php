@@ -10,9 +10,7 @@ class Account extends Model
     use HasFactory;
 
     protected $table = 'accounts';
-    protected $fillable = [
-        'name', 'code', 'parent_id', 'type', 'category', 'balance', 'is_active', 'branch_id','client_id'
-    ];
+    protected $fillable = ['name', 'code', 'parent_id', 'type', 'category', 'balance', 'is_active', 'branch_id', 'client_id'];
 
     // العلاقة مع الحسابات الفرعية
     public function children()
@@ -67,20 +65,21 @@ class Account extends Model
 
     // العلاقة مع الحسابات التابعة للموظفين الذين يحصلون عليها صلاحية التصريح
 
-public function customer()
-{
-    return $this->belongsTo(Client::class);
-}
-public function journalEntries()
-{
-    return $this->hasMany(JournalEntryDetail::class, 'account_id');
-}
-public function childrenRecursive()
-{
-    return $this->children()->with('childrenRecursive');
-}
-public function treasury()
-{
-    return $this->hasOne(Treasury::class, 'account_id');
-}
+    // في موديل Account
+    public function customer()
+    {
+        return $this->belongsTo(Client::class, 'client_id');
+    }
+    public function journalEntries()
+    {
+        return $this->hasMany(JournalEntryDetail::class, 'account_id');
+    }
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
+    }
+    public function treasury()
+    {
+        return $this->hasOne(Treasury::class, 'account_id');
+    }
 }
