@@ -207,7 +207,7 @@ class PaymentProcessController extends Controller
         $treasury = Treasury::all();
         $employees = Employee::all();
         $payments = PaymentMethod::where('type','normal')->where('status','active')->get();
-        
+
           $mainTreasuryAccount = null;
         $user = Auth::user();
 
@@ -272,7 +272,7 @@ public function store(ClientPaymentRequest $request)
             $invoice->is_paid = false;
             $invoice->due_value = $invoice->grand_total - $newTotalPayments;
         }
-      
+
         // إذا تم تحديد حالة دفع معينة في الطلب
         if ($request->has('payment_status')) {
             switch ($request->payment_status) {
@@ -603,7 +603,7 @@ public function createPurchase($id)
     {
         $payment = PaymentsProcess::with(['invoice.client', 'invoice.payments_process', 'employee'])->findOrFail($id);
         $employees = Employee::all();
-        
+
   $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('sales.payment.show', compact('payment', 'employees','account_setting'));
     }
@@ -810,8 +810,7 @@ public function createPurchase($id)
         PaymentsProcess::destroy($id);
         return redirect()->route('paymentsClient.index')->with('success', 'تم حذف عملية الدفع بنجاح');
     }
-<<<<<<< HEAD
-=======
+
     public function rereceipt($id)
     {
         $receipt = PaymentsProcess::findOrFail($id);
@@ -839,6 +838,6 @@ public function createPurchase($id)
         //    أو إذا كنت تريد العرض في المتصفح مباشرة:
         return $pdf->stream('receipt_' . $id . '.pdf');
     }
->>>>>>> 3aa6d78d1dccb85899d584da5435470176d57b6f
+
 }
 

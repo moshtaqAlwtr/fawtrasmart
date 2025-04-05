@@ -332,85 +332,6 @@
                                         $statusText = '';
                                         $statusIcon = '';
 
-<<<<<<< HEAD
-                            @php
-                                $statusClass = '';
-                                $statusText = '';
-                                $statusIcon = '';
-
-                                if ($payment->payment_status == 2) {
-                                    $statusClass = 'badge-warning';
-                                    $statusText = 'غير مكتمل';
-                                    $statusIcon = 'fa-clock';
-                                } elseif ($payment->payment_status == 1) {
-                                    $statusClass = 'badge-success';
-                                    $statusText = 'مكتمل';
-                                    $statusIcon = 'fa-check-circle';
-                                } elseif ($payment->payment_status == 4) {
-                                    $statusClass = 'badge-info';
-                                    $statusText = 'تحت المراجعة';
-                                    $statusIcon = 'fa-sync';
-                                } elseif ($payment->payment_status == 5) {
-                                    $statusClass = 'badge-danger';
-                                    $statusText = 'فاشلة';
-                                    $statusIcon = 'fa-times-circle';
-                                } elseif ($payment->payment_status == 3) {
-                                    $statusClass = 'badge-secondary';
-                                    $statusText = 'مسودة';
-                                    $statusIcon = 'fa-file-alt';
-                                } else {
-                                    $statusClass = 'badge-light';
-                                    $statusText = 'غير معروف';
-                                    $statusIcon = 'fa-question-circle';
-                                }
-                            @endphp
-
-                            <span class="badge {{ $statusClass }}">
-                                <i class="fas {{ $statusIcon }} me-1"></i>
-                                {{ $statusText }}
-                            </span>
-                        </div>
-                        <div class="col-md-2 text-end">
-                            <div class="btn-group">
-                                <div class="dropdown">
-                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                        id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false">
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                        <li>
-                                            <a class="dropdown-item"
-                                                href="{{ route('paymentsClient.show', $payment->id) }}">
-                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item"
-                                                href="{{ route('paymentsClient.edit', $payment->id) }}">
-                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                            </a>
-                                        </li>
-                                        <form action="{{ route('paymentsClient.destroy', $payment->id) }}"
-                                            method="POST">
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="dropdown-item"
-                                                style="border: none; background: none;">
-                                                <i class="fa fa-trash me-2 text-danger"></i> حذف
-                                            </button>
-                                        </form>
-                                        <li>
-                                            <a class="dropdown-item" href="#">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="#">
-                                                <i class="fa fa-envelope me-2 text-warning"></i>ايصال مدفوعات حراري
-                                            </a>
-                                        </li>
-=======
                                         if ($payment->payment_status == 2) {
                                             $statusClass = 'badge-warning';
                                             $statusText = 'غير مكتمل';
@@ -443,49 +364,46 @@
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <div class="col-md-2 text-end">
-                                        <div class="btn-group">
-                                            <div class="dropdown">
-                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                                    id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
-                                                    aria-expanded="false">
-                                                </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('paymentsClient.show', $payment->id) }}">
-                                                    <i class="fas fa-eye me-2 text-primary"></i>عرض
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('paymentsClient.edit', $payment->id) }}">
-                                                    <i class="fas fa-edit me-2 text-success"></i>تعديل
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <form action="{{ route('paymentsClient.destroy', $payment->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="fas fa-trash me-2"></i>حذف
-                                                    </button>
-                                                </form>
-                                            </li>
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=a4">
-                                                    <i class="fas fa-file-pdf me-2 text-warning"></i>إيصال (A4)
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=thermal">
-                                                    <i class="fas fa-receipt me-2 text-warning"></i>إيصال (حراري)
-                                                </a>
-                                            </li>
-                                        </ul>
->>>>>>> 3aa6d78d1dccb85899d584da5435470176d57b6f
+                                    <div class="btn-group">
+                                        <div class="dropdown">
+                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
+                                                id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false">
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('paymentsClient.show', $payment->id) }}">
+                                                        <i class="fas fa-eye me-2 text-primary"></i>عرض
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('paymentsClient.edit', $payment->id) }}">
+                                                        <i class="fas fa-edit me-2 text-success"></i>تعديل
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <form action="{{ route('paymentsClient.destroy', $payment->id) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            <i class="fas fa-trash me-2"></i>حذف
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=a4">
+                                                        <i class="fas fa-file-pdf me-2 text-warning"></i>إيصال (A4)
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=thermal">
+                                                        <i class="fas fa-receipt me-2 text-warning"></i>إيصا (حراري)
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
                                 </td>
                             </tr>
                             @endforeach

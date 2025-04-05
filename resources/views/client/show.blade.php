@@ -344,7 +344,7 @@
                     <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-danger col-md-auto">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
-                    <a href="{{ route('invoices.create') }}?client_id={{ $client->id }}" class="btn btn-sm btn-dark col-md-auto">
+                    <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}" class="btn btn-sm btn-dark col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
                     <a href="{{ route('Reservations.client', $client->id) }}" class="btn btn-sm btn-light text-dark col-md-auto">
@@ -2291,6 +2291,17 @@
             document.getElementById("startRecording").classList.remove("d-none");
         });
     });
+document.addEventListener('DOMContentLoaded', function() {
+    // إذا كان هناك عميل محدد، قم باختياره في القائمة
+    @if(isset($client_id))
+        $('#clientSelect').val('{{ $client_id }}').trigger('change');
+    @endif
+
+    // أو إذا كان هناك كائن عميل
+    @if(isset($client) && $client)
+        $('#clientSelect').val('{{ $client->id }}').trigger('change');
+    @endif
+});
     </script>
 
 

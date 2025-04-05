@@ -214,20 +214,49 @@ class InvoicesController extends Controller
     }
     public function create(Request $request)
     {
+        // توليد رقم الفاتورة
         $invoice_number = $this->generateInvoiceNumber();
+
+        // جلب جميع البيانات المطلوبة
         $items = Product::all();
         $clients = Client::all();
         $users = User::all();
         $treasury = Treasury::all();
         $employees = Employee::all();
-
         $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
         $price_sales = PriceListItems::all();
-        $invoiceType = 'normal'; // نوع الفاتورة عادي
+
+        // تحديد نوع الفاتورة
+        $invoiceType = 'normal';
+
+        // جلب الإعدادات الضريبية
         $taxs = TaxSitting::all();
+
+        // إعدادات الحساب
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        $client = Client::find($request->client_id);
-        return view('sales.invoices.create', compact('clients', 'account_setting', 'price_lists', 'taxs', 'treasury', 'users', 'items', 'invoice_number', 'invoiceType', 'employees', 'client'));
+
+        // معالجة العميل
+        $client_id = $request->client_id;
+        $client = null;
+
+        if ($client_id) {
+            $client = Client::find($client_id);
+        }
+
+        return view('sales.invoices.create', [
+            'clients' => $clients,
+            'account_setting' => $account_setting,
+            'price_lists' => $price_lists,
+            'taxs' => $taxs,
+            'treasury' => $treasury,
+            'users' => $users,
+            'items' => $items,
+            'invoice_number' => $invoice_number,
+            'invoiceType' => $invoiceType,
+            'employees' => $employees,
+            'client' => $client,
+            'client_id' => $client_id
+        ]);
     }
     public function sendVerificationCode(Request $request)
     {
@@ -429,7 +458,7 @@ class InvoicesController extends Controller
                         // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، اختر الخزينة الرئيسية
                         $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
                     }
-                          
+
                     // حساب تفاصيل الكمية والأسعار
                     $quantity = floatval($item['quantity']);
                     $unit_price = floatval($item['unit_price']);
@@ -1043,7 +1072,7 @@ class InvoicesController extends Controller
                 // 'created_by_employee' => Auth::id(),
             ]);
 
-            
+
             // // إضافة تفاصيل القيد المحاسبي
             // // 1. حساب العميل (مدين)
             JournalEntryDetail::create([
@@ -1118,13 +1147,13 @@ class InvoicesController extends Controller
                 $assetsAccount->save();
             }
             // تحديث رصيد حساب الخزينة الرئيسية
-            
+
             // if ($MainTreasury) {
             //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
             //     $MainTreasury->save();
             // }
 
-           
+
                 if ($clientaccounts) {
                     $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                     $clientaccounts->save();
