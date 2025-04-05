@@ -223,7 +223,18 @@ class InvoicesController extends Controller
         $clients = Client::all();
         $users = User::all();
         $treasury = Treasury::all();
-        $employees = Employee::all();
+
+        $user = auth()->user();
+
+        if ($user->employee_id != null) {
+            $employees = Employee::where('id', $user->employee_id)->get(); // get بدل first
+        } else {
+            $employees = Employee::all();
+        }
+        
+        
+
+
         $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
         $price_sales = PriceListItems::all();
 
