@@ -28,9 +28,10 @@
             @csrf
             @method('PUT')
 
-            <!-- حقلين مخفيين لتخزين الإحداثيات -->
-            <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $client->latitude) }}">
-            <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $client->longitude) }}">
+
+          <!-- حقلين مخفيين لتخزين الإحداثيات -->
+<input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $client->latitude ?? ($location->latitude ?? '')) }}">
+<input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $client->longitude ?? ($location->longitude ?? '')) }}">
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -279,15 +280,35 @@
                                                 </div>
                                             </div>
                                         </div>
-   <div class="col-md-12 col-12 mb-3">
+   <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    <select class="form-control" id="printing_method" name="region_id">
+                                                <select class="form-control" id="printing_method" name="region_id">
     @foreach($Regions_groub as $Region_groub)
-        <option value="{{ $Region_groub->id }}">{{ $Region_groub->name }}</option>
+        <option value="{{ $Region_groub->id }}" {{ $Region_groub->id == $client->region_id ? 'selected' : '' }}>
+            {{ $Region_groub->name }}
+        </option>
     @endforeach
 </select>
+
+
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6 col-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="credit_period">المجموعة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    
+                                                     <select class="form-control" id="printing_method" name="visit_type">
+    <option value="am" {{ $client->visit_type == 'am' ? 'selected' : '' }}>صباحية</option>
+    <option value="pm" {{ $client->visit_type == 'pm' ? 'selected' : '' }}>مسائية</option>
+</select>
+
 
 
                                                     </div>
@@ -305,7 +326,7 @@
                                                 <div id="map" style="height: 100%;"></div>
                                             </div>
                                         </div>
-
+                                     
                                         <!-- قائمة الاتصال -->
                                         <div class="card">
                                             <div class="card-header">
@@ -515,6 +536,11 @@
     <!-- إضافة مكتبة Google Maps -->
     <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
     <script>
+        let savedLat = {{ $location->latitude ?? 'null' }};
+        let savedLng = {{ $location->longitude ?? 'null' }};
+    </script>
+    
+    <script>
         // دالة لعرض الخريطة
         function toggleMap() {
             const mapContainer = document.getElementById('map-container');
@@ -526,25 +552,33 @@
         }
 
         // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
-        function requestLocationPermission() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        // إذا وافق المستخدم، نعرض الخريطة
-                        toggleMap();
-                        initMap(position.coords.latitude, position.coords.longitude);
-                    },
-                    (error) => {
-                        // إذا رفض المستخدم أو حدث خطأ
-                        alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
-                        console.error('Error getting location:', error);
-                    }
-                );
-            } else {
-                // إذا كان المتصفح لا يدعم الـ Geolocation
-                alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
+    // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
+function requestLocationPermission() {
+    toggleMap(); // لعرض الخريطة
+
+    // إذا كان لدينا موقع محفوظ من السيرفر
+    if (savedLat && savedLng) {
+        initMap(savedLat, savedLng);
+        return;
+    }
+
+    // إذا لم يكن لدينا موقع محفوظ، نطلب موقع المستخدم
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                initMap(position.coords.latitude, position.coords.longitude);
+            },
+            (error) => {
+                alert('⚠️ سيتم الاحتفاظ بالموقع القديم. يرجى السماح بالوصول إلى الموقع لتحديثه.');
+                console.error('Error getting location:', error);
+                // هنا لا نقوم بأي شيء وسيتم الاحتفاظ بالقيم القديمة
             }
-        }
+        );
+    } else {
+        alert('⚠️ المتصفح لا يدعم تحديد الموقع. سيتم الاحتفاظ بالموقع القديم.');
+    }
+}
+
 
         // دالة لتهيئة الخريطة
         function initMap(lat, lng) {
@@ -644,14 +678,6 @@
         }
 
         // التأكد من وجود الإحداثيات قبل الإرسال
-        document.getElementById('clientForm').addEventListener('submit', function(e) {
-            const lat = document.getElementById('latitude').value;
-            const lon = document.getElementById('longitude').value;
-
-            if (!lat || !lon) {
-                e.preventDefault();
-                alert('⚠️ يرجى تحديد الموقع من الخريطة قبل الإرسال!');
-            }
-        });
+       
     </script>
 @endsection

@@ -282,7 +282,7 @@
                                         @endif
                                         @endif
                                         @endforeach
-                                          <div class="col-md-12 col-12 mb-3">
+                                          <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
@@ -296,6 +296,19 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6 col-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="credit_period">نوع الزيارة</label>
+                                                    <div class="position-relative has-icon-left">
+                                                        <select class="form-control" id="printing_method" name="visit_type">
+                                                             <option value="am">صباحية</option>
+                                                             <option value="pm">مسائية</option>
+                                                        </select>
+    
+    
+                                                        </div>
+                                                    </div>
+                                                </div>
 
                                         <!-- زر إظهار الخريطة -->
                                         @foreach ($GeneralClientSettings as $GeneralClientSetting)

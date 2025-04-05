@@ -39,6 +39,7 @@ use App\Models\notifications;
 use App\Mail\TestMail;
 use App\Models\Statuses;
 use App\Models\CreditLimit;
+use App\Models\Location;
 
 class ClientController extends Controller
 {
@@ -509,21 +510,19 @@ class ClientController extends Controller
 
     public function update(ClientRequest $request, $id)
     {
-        // التحقق من البيانات المطلوبة بما فيها الإحداثيات
-        $validated = $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            // بقية قواعد التحقق...
-        ]);
-        $rules = [
-            'region_id' => ['required'], // إلزامي فقط
-        ];
+      $rules = [
+    'region_id' => 'required',
+    'latitude' => 'required|numeric',
+    'longitude' => 'required|numeric',
+];
 
-        $messages = [
-            'region_id.required' => 'حقل المجموعة مطلوب.', //
-        ];
+$messages = [
+    'region_id.required' => 'حقل المجموعة مطلوب.',
+    'latitude.required' => 'العميل ليس لديه موقع مسجل الرجاء تحديد الموقع على الخريطة',
+    'longitude.required' => 'العميل ليس لديه موقع مسجل الرجاء تحديد الموقع على الخريطة',
+];
 
-        $request->validate($rules, $messages);
+$validated = $request->validate($rules, $messages);
         // بدء المعاملة لضمان سلامة البيانات
         DB::beginTransaction();
 
@@ -531,6 +530,13 @@ class ClientController extends Controller
             $data_request = $request->except('_token', 'contacts');
             $client = Client::findOrFail($id);
             $oldData = $client->getOriginal();
+            
+              $latitude = $request->latitude ?? $client->latitude;
+        $longitude = $request->longitude ?? $client->longitude;
+
+        $data_request = $request->except('_token', 'contacts', 'latitude', 'longitude');
+        $client->update($data_request);
+
 
             // 1. معالجة المرفقات
             if ($request->hasFile('attachments')) {
@@ -680,11 +686,12 @@ class ClientController extends Controller
     {
         $client = Client::findOrFail($id);
         $employees = Employee::all();
+        $location = Location::where('client_id',$id)->first();
 
         // جلب جميع المجموعات المتاحة
         $Regions_groub = Region_groub::all();
 
-        return view('client.edit', compact('client', 'employees', 'Regions_groub'));
+        return view('client.edit', compact('client', 'employees', 'Regions_groub','location'));
     }
     public function destroy($id)
     {

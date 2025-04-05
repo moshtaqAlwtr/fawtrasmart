@@ -309,7 +309,7 @@
                                     <th>المجموعة</th>
                                     <th>الحي</th>
                                      <th>الفرع</th>
-
+                                     <th>نوع الزيارة</th>
 
                                     <th>الكود</th>
                                     <th>رقم الهاتف</th>
@@ -353,7 +353,17 @@
 
 
                                            <td>{{ $client->branch->name ?? '' }}</td>
-
+                                           <td>
+                                            @if($client->visit_type == "am")
+                                                <span class="badge badge-success">
+                                                    ☀️ صباحية
+                                                </span>
+                                            @else
+                                                <span class="badge badge-primary">
+                                                    🌙 مسائية
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td>{{ $client->code ?? '' }}</td>
                                         <td>
                                             <strong class="text-primary">
@@ -726,6 +736,22 @@
                         <tr>
                             <td style="color: #666;">الموقع:</td>
                             <td>{{ $client->city }}, {{ $client->region }}</td>
+                        </tr>
+                         <tr>
+                            <td style="color: #666;">المجموعة:</td>
+                            <td>{{$client->Neighborhoodname->Region->name ?? 'لا يوجد'}}</td>
+                        </tr>
+                        <tr>
+                            <td style="color: #666;">نوع الزيارة:</td>
+                            <td>  @if($client->visit_type == "am")
+        <span class="badge badge-success">
+            ☀️ صباحية
+        </span>
+    @else
+        <span class="badge badge-primary">
+            🌙 مسائية
+        </span>
+    @endif</td>
                         </tr>
                         <tr>
                             <td style="color: #666;">الرصيد:</td>
