@@ -694,94 +694,104 @@ class GeneralAccountsController extends Controller
         }
     }
     public function ReceiptByEmployee(Request $request)
-    {
-        try {
-            // Default to current month if no date range specified
-            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-            $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+{
+    try {
+        // Default to current month if no date range specified
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-            // Fetch necessary dropdown data with eager loading
-            $branches = Branch::all();
-            $treasuries = Treasury::all();
-            $accounts = Account::all();
-            $employees = Employee::with('user')->get(); // تحميل علاقة المستخدم مسبقاً
-            $receiptsCategory = ReceiptCategory::all();
-            $clients = Client::all();
+        // Fetch necessary dropdown data with eager loading
+        $branches = Branch::all();
+        $treasuries = Treasury::all();
+        $accounts = Account::all();
+        $employees = Employee::with('user')->get(); // تحميل علاقة المستخدم مسبقاً
+        $receiptsCategory = ReceiptCategory::all();
+        $clients = Client::all();
 
-            // Base query for receipts with eager loading
-            $query = Receipt::with([
-                'incomes_category',
-                'treasury',
-                'account',
-                'client',
-                'employee.user',
-                'branch'
-            ])->whereBetween('date', [$fromDate, $toDate]);
+        // Base query for receipts with eager loading including user data
+        $query = Receipt::with([
+            'incomes_category',
+            'treasury',
+            'account',
+            'client',
+            'employee.user', // تحميل علاقة الموظف والمستخدم معاً
+            'branch',
+            'user' // تحميل علاقة المستخدم المسجل للسند مباشرة
+        ])->whereBetween('date', [$fromDate, $toDate]);
 
-            // Apply filters
-            if ($request->filled('branch')) {
-                $query->where('branch_id', $request->branch);
-            }
-
-            if ($request->filled('treasury')) {
-                $query->where('treasury_id', $request->treasury);
-            }
-
-            if ($request->filled('employee')) {
-                $query->where('employee_id', $request->employee);
-            }
-
-            if ($request->filled('client')) {
-                $query->where('client_id', $request->client);
-            }
-
-            if ($request->filled('employee_id')) {
-                $query->where('employee_id', $request->employee_id);
-            }
-
-            // Fetch receipts ordered by employee and date
-            $receipts = $query->orderBy('employee_id')->orderBy('date')->get();
-
-            // Group receipts by employee with totals
-            $groupedReceipts = $receipts->groupBy('employee_id')->map(function ($employeeReceipts) {
-                return [
-                    'receipts' => $employeeReceipts,
-                    'total_amount' => $employeeReceipts->sum('amount'),
-                    'total_tax' => $employeeReceipts->sum('tax1_amount') + $employeeReceipts->sum('tax2_amount'),
-                    'grand_total' => $employeeReceipts->sum('amount') + $employeeReceipts->sum('tax1_amount') + $employeeReceipts->sum('tax2_amount')
-                ];
-            });
-
-            // Prepare chart data
-            $chartData = [
-                'labels' => $groupedReceipts->map(function ($item, $key) use ($employees) {
-                    $employee = $employees->find($key);
-                    return $employee ? $employee->full_name : 'غير معروف';
-                })->toArray(),
-                'values' => $groupedReceipts->pluck('total_amount')->toArray(),
-            ];
-
-            return view('reports.general_accounts.receipt_bonds.receipt_by_employee', [
-                'branches' => $branches,
-                'treasuries' => $treasuries,
-                'accounts' => $accounts,
-                'employees' => $employees,
-                'receiptsCategory' => $receiptsCategory,
-                'clients' => $clients,
-                'groupedReceipts' => $groupedReceipts,
-                'chartData' => $chartData,
-                'fromDate' => Carbon::parse($fromDate),
-                'toDate' => Carbon::parse($toDate),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in receipts by employee report', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
+        // Apply filters
+        if ($request->filled('branch')) {
+            $query->where('branch_id', $request->branch);
         }
+
+        if ($request->filled('treasury')) {
+            $query->where('treasury_id', $request->treasury);
+        }
+
+        if ($request->filled('employee')) {
+            $query->where('employee_id', $request->employee);
+        }
+
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->client);
+        }
+
+        if ($request->filled('employee_id')) {
+            $query->where('employee_id', $request->employee_id);
+        }
+
+        // Fetch receipts ordered by employee and date
+        $receipts = $query->orderBy('employee_id')->orderBy('date')->get();
+
+        // Group receipts by employee with totals and user data
+        $groupedReceipts = $receipts->groupBy('created_by')->map(function ($userReceipts) {
+            $user = $userReceipts->first()->user;
+
+            return [
+                'user_id' => $user->id ?? null,
+                'user_name' => $user->name ?? 'غير معروف',
+                'receipts' => $userReceipts,
+                'total_amount' => $userReceipts->sum('amount'),
+                'total_tax' => $userReceipts->sum(function($receipt) {
+                    return $receipt->tax1_amount + $receipt->tax2_amount;
+                }),
+                'receipts_count' => $userReceipts->count(),
+                'first_receipt_date' => $userReceipts->min('date'),
+                'last_receipt_date' => $userReceipts->max('date')
+            ];
+        });
+
+
+        // Prepare chart data
+        $chartData = [
+            'labels' => $groupedReceipts->map(function ($item, $key) use ($employees) {
+                $employee = $employees->find($key);
+                return $employee ? $employee->full_name : 'غير معروف';
+            })->toArray(),
+            'values' => $groupedReceipts->pluck('total_amount')->toArray(),
+        ];
+
+        return view('reports.general_accounts.receipt_bonds.receipt_by_employee', [
+            'branches' => $branches,
+            'treasuries' => $treasuries,
+            'accounts' => $accounts,
+            'employees' => $employees,
+            'receiptsCategory' => $receiptsCategory,
+            'clients' => $clients,
+            'groupedReceipts' => $groupedReceipts,
+            'chartData' => $chartData,
+            'fromDate' => Carbon::parse($fromDate),
+            'toDate' => Carbon::parse($toDate),
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Error in receipts by employee report', [
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
     }
+}
     public function ReceiptByClient(Request $request)
     {
         // Default to current month if no date range specified

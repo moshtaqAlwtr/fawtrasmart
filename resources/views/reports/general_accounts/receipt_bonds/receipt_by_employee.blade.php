@@ -156,7 +156,7 @@
                             <th>التصنيف</th>
                             <th>البائع</th>
                             <th>الحساب الفرعي</th>
-                            <th>موظف</th>
+                            <th>اسم المستخدم</th>
                             <th>ملاحظة</th>
                             <th>فرع</th>
                             <th>المبلغ</th>
@@ -166,53 +166,66 @@
                     </thead>
                     <tbody>
                         @php
-                            // تجميع البيانات حسب الموظف
-                            $groupedReceipts = $receipts->groupBy('employee_id');
+                            // تجميع البيانات حسب المستخدم (created_by)
+                            $groupedReceipts = $receipts->groupBy('created_by');
                         @endphp
 
-                        @foreach ($groupedReceipts as $employeeId => $receiptsInEmployee)
+                        @foreach ($groupedReceipts as $userId => $receiptsInUser)
                             @php
-                                $employee = $employees->find($employeeId);
+                                $user = $receiptsInUser->first()->user;
                             @endphp
 
-                            <!-- عرض الموظف -->
+                            <!-- عرض المستخدم -->
                             <tr style="background-color: #f8f9fa;">
-                                <td colspan="12"><strong>{{ $receipt->user->name  }}</strong></td>
+                                <td colspan="12">
+                                    <strong>
+                                        <i class="fas fa-user me-2"></i>
+                                        {{ $user->name ?? 'غير معروف' }}
+                                        @if($user->employee)
+                                            ({{ $user->employee->full_name }})
+                                        @endif
+                                    </strong>
+                                </td>
                             </tr>
 
-                            <!-- عرض التفاصيل تحت الموظف -->
-                            @foreach ($receiptsInEmployee as $receipt)
+                            <!-- عرض التفاصيل تحت المستخدم -->
+                            @foreach ($receiptsInUser as $receipt)
                                 <tr>
                                     <td>{{ $receipt->code }}</td>
-                                    <td>{{ $receipt->date }}</td>
+                                    <td>{{ $receipt->date->format('Y-m-d') }}</td>
                                     <td>{{ $receipt->treasury->name ?? 'N/A' }}</td>
                                     <td>{{ $receipt->incomes_category->name ?? 'N/A' }}</td>
-                                    <td>{{ $receipt->seller }}</td>
-                                    <td>{{ $receipt->sup_account }}</td>
-                                    <td>{{ $receipt->employee->full_name ?? 'N/A' }}</td>
-                                    <td>{{ $receipt->description }}</td>
+                                    <td>{{ $receipt->seller ?? 'N/A' }}</td>
+                                    <td>{{ $receipt->sup_account ?? 'N/A' }}</td>
+                                    <td>{{ $receipt->user->name ?? 'N/A' }}</td>
+                                    <td>{{ Str::limit($receipt->description, 30) }}</td>
                                     <td>{{ $receipt->branch->name ?? 'N/A' }}</td>
-                                    <td>{{ number_format($receipt->amount, 2) }}</td>
-                                    <td>{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
-                                    <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}
-                                    </td>
+                                    <td class="text-end">{{ number_format($receipt->amount, 2) }}</td>
+                                    <td class="text-end">{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
+                                    <td class="text-end">{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
                                 </tr>
                             @endforeach
 
-                            <!-- عرض المجموع لكل موظف -->
+                            <!-- عرض المجموع لكل مستخدم -->
                             <tr style="background-color: #e9ecef;">
                                 <td colspan="9"><strong>المجموع</strong></td>
-                                <td><strong>{{ number_format($receiptsInEmployee->sum('amount'), 2) }}</strong></td>
-                                <td><strong>{{ number_format($receiptsInEmployee->sum('tax1_amount') + $receiptsInEmployee->sum('tax2_amount'), 2) }}</strong>
-                                </td>
-                                <td><strong>{{ number_format($receiptsInEmployee->sum('amount') + $receiptsInEmployee->sum('tax1_amount') + $receiptsInEmployee->sum('tax2_amount'), 2) }}</strong>
-                                </td>
+                                <td class="text-end"><strong>{{ number_format($receiptsInUser->sum('amount'), 2) }}</strong></td>
+                                <td class="text-end"><strong>{{ number_format($receiptsInUser->sum('tax1_amount') + $receiptsInUser->sum('tax2_amount'), 2) }}</strong></td>
+                                <td class="text-end"><strong>{{ number_format($receiptsInUser->sum('amount') + $receiptsInUser->sum('tax1_amount') + $receiptsInUser->sum('tax2_amount'), 2) }}</strong></td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
 
+            <style>
+                .text-end {
+                    text-align: end !important;
+                }
+                .table-header {
+                    background-color: #f5f5f5;
+                }
+            </style>
             <!-- Details Table -->
             <div id="detailsTable" class="hidden">
                 <table class="table table-bordered table-striped">
