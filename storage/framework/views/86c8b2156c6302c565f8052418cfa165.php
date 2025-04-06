@@ -13,6 +13,18 @@
                 white-space: nowrap;
             }
 
+            #clientSelect option[selected] {
+                font-weight: bold;
+                background-color: #f8f9fa;
+            }
+
+            select.form-control {
+                -webkit-appearance: menulist;
+                -moz-appearance: menulist;
+                appearance: menulist;
+                height: auto;
+            }
+
             #items-table thead,
             #items-table tbody,
             #items-table tfoot,
@@ -69,33 +81,6 @@
                 text-align: right;
             }
 
-            @media (max-width: 767.98px) {
-                /* أنماط الجدول للهواتف المحمولة */
-            }
-
-            .required-error {
-                border-color: #ff3e1d !important;
-                background-color: #fff4f2 !important;
-                animation: shake 0.5s;
-            }
-
-            @keyframes shake {
-
-                0%,
-                100% {
-                    transform: translateX(0);
-                }
-
-                20%,
-                60% {
-                    transform: translateX(-5px);
-                }
-
-                40%,
-                80% {
-                    transform: translateX(5px);
-                }
-            }
         }
     </style>
 <?php $__env->stopSection(); ?>
@@ -185,13 +170,14 @@
                                             <div class="col-md-6">
                                                 <select class="form-control select2" id="clientSelect" name="client_id"
                                                     required>
-                                                    <option value="">اختر العميل </option>
-                                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($client->id); ?>"><?php echo e($client->trade_name); ?>
+                                                    <option value="">اختر العميل</option>
+                                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($c->id); ?>"
+                                                            <?php echo e((isset($client_id) && $client_id == $c->id) || (isset($client) && $client->id == $c->id) ? 'selected' : ''); ?>>
+                                                            <?php echo e($c->trade_name); ?>
 
                                                         </option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
                                                 </select>
 
 
@@ -353,8 +339,7 @@
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">
-                                            <select name="items[0][product_id]" class="form-control product-select"
-                                                required>
+                                            <select name="items[0][product_id]" class="form-control product-select">
                                                 <option value="">اختر المنتج</option>
                                                 <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <option value="<?php echo e($item->id); ?>"
@@ -425,7 +410,10 @@
                                                 </select>
                                                 <input type="hidden" name="items[0][tax_2_id]">
                                             </div>
-                                        </td <input type="hidden" name="items[0][store_house_id]" value="">
+                                        </td>
+
+
+                                        <input type="hidden" name="items[0][store_house_id]" value="">
                                         <td data-label="المجموع">
                                             <span class="row-total">0.00</span>
                                         </td>
@@ -739,300 +727,416 @@
 <?php $__env->startSection('scripts'); ?>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script src="<?php echo e(asset('assets/js/invoice.js')); ?>"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // =============== المتغيرات الأساسية ===============
-            const clientSelect = document.getElementById("clientSelect");
-            const saveButton = document.getElementById("saveInvoice");
-            const invoiceForm = document.getElementById("invoiceForm");
-            const itemsTable = document.getElementById("items-table");
-            const clientIdHidden = document.getElementById("client_id_hidden");
-
-            // =============== الأحداث الأساسية ===============
-            saveButton.addEventListener("click", handleSaveInvoice);
-            itemsTable.addEventListener("input", calculateTotals);
-
-            // =============== معالجة الحفظ ===============
-            function handleSaveInvoice(event) {
-                event.preventDefault();
-                if (validateRequiredFields()) {
-                    const clientId = clientSelect.value;
-                    verifyClient(clientId);
+        document.querySelectorAll('.toggle-check').forEach((checkbox) => {
+            checkbox.addEventListener('change', function() {
+                const paymentFields = this.closest('.card-body').querySelector('.payment-fields');
+                if (this.checked) {
+                    paymentFields.style.display = 'block'; // إظهار الحقول
+                } else {
+                    paymentFields.style.display = 'none'; // إخفاء الحقول
                 }
+            });
+        });
+    </script>
+
+    <script>
+        function updateHiddenInput(selectElement) {
+            // البحث عن أقرب صف يحتوي على العنصر المحدد
+            var row = selectElement.closest('.item-row');
+
+            // استخراج نوع الضريبة (tax_1 أو tax_2) من data-target
+            var taxType = selectElement.getAttribute('data-target');
+
+            // البحث عن الحقل المخفي داخل نفس الصف المرتبط بهذه الضريبة
+            var hiddenInput = row.querySelector('input[name^="items"][name$="[' + taxType + '_id]"]');
+
+            // تحديث قيمة الحقل المخفي بناءً على الضريبة المختارة
+            if (hiddenInput) {
+                hiddenInput.value = selectElement.options[selectElement.selectedIndex].getAttribute('data-id');
             }
+        }
+    </script>
 
-            // =============== التحقق من الحقول الإلزامية ===============
-            function validateRequiredFields() {
-                clearErrorStyles();
-                let isValid = true;
 
-                // 1. التحقق من العميل
-                if (!clientSelect.value) {
-                    markFieldAsError(clientSelect);
-                    showErrorAlert("الرجاء اختيار عميل من القائمة");
-                    return false;
-                }
+    <script>
+        $(document).ready(function() {
+            // تهيئة الأحداث للصفوف الموجودة مسبقًا
+            initializeEvents();
 
-                // 2. التحقق من الصفوف
-                const rows = document.querySelectorAll(".item-row");
-                let hasValidRow = false;
+            // إعادة تهيئة الأحداث عند إضافة صف جديد
+            $(document).on('click', '.add-row', function() {
+                var lastRow = $('.item-row').last(); // الحصول على آخر صف
+                var newRow = lastRow.clone(); // استنساخ آخر صف
+                var rowIndex = $('.item-row').length; // تحديد رقم الصف الجديد
 
-                rows.forEach((row, index) => {
-                    const productSelect = row.querySelector(".product-select");
-                    const quantityInput = row.querySelector(".quantity");
-                    const priceInput = row.querySelector(".price");
+                // مسح القيم في الصف الجديد
+                newRow.find('input, select').val('');
+                newRow.find('.row-total').text('0.00');
 
-                    if (productSelect.value) {
-                        if (!validateField(quantityInput, `الرجاء إدخال كمية صحيحة للصف ${index + 1}`) ||
-                            !validateField(priceInput, `الرجاء إدخال سعر صحيح للصف ${index + 1}`)) {
-                            isValid = false;
-                        } else {
-                            hasValidRow = true;
-                        }
+                // تحديث أسماء الحقول لتكون فريدة (حسب الصف الجديد)
+                newRow.find('input, select').each(function() {
+                    var name = $(this).attr('name');
+                    if (name) {
+                        // تحديث الأرقام في أسماء الحقول
+                        name = name.replace(/\[\d+\]/, '[' + rowIndex + ']');
+                        $(this).attr('name', name);
                     }
                 });
 
-                if (!hasValidRow) {
-                    const firstProduct = document.querySelector(".item-row .product-select");
-                    markFieldAsError(firstProduct);
-                    showErrorAlert("الرجاء إدخال منتج واحد على الأقل مع الكمية والسعر");
-                    return false;
+                newRow.appendTo('tbody'); // إضافة الصف الجديد إلى الجدول
+                initializeEvents(); // إعادة تهيئة الأحداث للصف الجديد
+            });
+
+
+
+            function initializeEvents() {
+                // عند تغيير اختيار المنتج أو قائمة الأسعار
+                $('.product-select, #price-list-select').off('change').on('change', function() {
+                    var priceListId = $('#price-list-select').val(); // قيمة قائمة الأسعار المختارة
+                    var productId = $(this).closest('tr').find('.product-select')
+                        .val(); // قيمة المنتج المختار
+                    var priceInput = $(this).closest('tr').find('.price'); // حقل السعر
+
+                    if (priceListId && productId) {
+                        // جلب السعر من قائمة الأسعار إذا كان المنتج موجودًا فيها
+                        $.ajax({
+                            url: '/sales/invoices/get-price', // رابط API لجلب السعر
+                            method: 'GET',
+                            data: {
+                                price_list_id: priceListId,
+                                product_id: productId
+                            },
+                            success: function(response) {
+                                if (response.price) {
+                                    // إذا وجد السعر في قائمة الأسعار
+                                    priceInput.val(response.price);
+                                } else {
+                                    // إذا لم يوجد السعر في قائمة الأسعار، استخدم سعر المنتج
+                                    var productPrice = $(this).closest('tr').find(
+                                        '.product-select option:selected').data('price');
+                                    priceInput.val(productPrice);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("Error fetching price:", error);
+                            }
+                        });
+                    } else {
+                        // إذا لم يتم اختيار قائمة الأسعار، استخدم سعر المنتج
+                        var productPrice = $(this).closest('tr').find('.product-select option:selected')
+                            .data('price');
+                        priceInput.val(productPrice);
+                    }
+                });
+            }
+        });
+        $(document).ready(function() {
+            $('.product-select').change(function() {
+                var selectedOption = $(this).find(':selected'); // الحصول على الخيار المحدد
+                var price = selectedOption.data('price'); // استخراج سعر البيع من data-price
+
+                if (price !== undefined) {
+                    $(this).closest('tr').find('.price').val(price); // تعيين السعر في الحقل المناسب
+                }
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('tax-select')) {
+                let row = e.target.closest('tr');
+
+                // الحصول على الضريبة 1
+                let tax1Select = row.querySelector('[name^="items"][name$="[tax_1]"]');
+                let tax1Name = tax1Select.options[tax1Select.selectedIndex].dataset.name;
+                let tax1Value = parseFloat(tax1Select.value);
+
+                // الحصول على الضريبة 2
+                let tax2Select = row.querySelector('[name^="items"][name$="[tax_2]"]');
+                let tax2Name = tax2Select.options[tax2Select.selectedIndex].dataset.name;
+                let tax2Value = parseFloat(tax2Select.value);
+
+                // إعداد النص لعرض الضرائب مع قيمتها
+                let taxDetails = [];
+
+                if (tax1Value > 0) {
+                    taxDetails.push(`${tax1Name} ${tax1Value}%`);
                 }
 
-                return isValid;
-            }
-
-            function validateField(input, errorMessage) {
-                if (!input.value || input.value <= 0) {
-                    markFieldAsError(input);
-                    showErrorAlert(errorMessage);
-                    return false;
+                if (tax2Value > 0) {
+                    taxDetails.push(`${tax2Name} ${tax2Value}%`);
                 }
-                return true;
+
+                // إذا لم يتم اختيار أي ضريبة، عرض "الضريبة: 0"
+                if (taxDetails.length === 0) {
+                    document.getElementById('tax-names-label').innerText = "الضريبة: 0";
+                } else {
+                    document.getElementById('tax-names-label').innerText = taxDetails.join(" ، ");
+                }
+
+                // حساب إجمالي الضرائب بناءً على المجموع الفرعي
+                let subtotal = 0;
+                document.querySelectorAll(".item-row").forEach(function(row) {
+                    let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+                    let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+                    let itemTotal = quantity * unitPrice;
+                    subtotal += itemTotal;
+                });
+
+                let totalTax = 0;
+
+                // حساب الضريبة 1
+                if (tax1Value > 0) {
+                    totalTax += (subtotal * tax1Value) / 100;
+                }
+
+                // حساب الضريبة 2
+                if (tax2Value > 0) {
+                    totalTax += (subtotal * tax2Value) / 100;
+                }
+
+                // عرض إجمالي الضرائب
+                document.getElementById('total-tax').innerText = totalTax.toFixed(2);
+            }
+        });
+
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+
+            function calculateTotals() {
+                let subtotal = 0; // المجموع الفرعي (بدون ضريبة)
+                let grandTotal = 0; // المجموع الكلي
+                let taxDetails = {}; // تفاصيل الضرائب المختارة
+
+                // مسح صفوف الضرائب السابقة
+                document.querySelectorAll(".dynamic-tax-row").forEach(row => row.remove());
+
+                document.querySelectorAll(".item-row").forEach(function(row) {
+                    let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+                    let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+                    let itemTotal = quantity * unitPrice; // هذا هو المجموع الكلي للعنصر
+                    subtotal += itemTotal; // إضافة إلى المجموع الفرعي
+
+                    // حساب الضرائب
+                    let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']")
+                        .value) || 0;
+                    let tax1Type = row.querySelector("[name^='items'][name$='[tax_1]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.type;
+                    let tax1Name = row.querySelector("[name^='items'][name$='[tax_1]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.name;
+
+                    let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']")
+                        .value) || 0;
+                    let tax2Type = row.querySelector("[name^='items'][name$='[tax_2]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.type;
+                    let tax2Name = row.querySelector("[name^='items'][name$='[tax_2]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.name;
+
+                    // حساب الضريبة 1
+                    if (tax1Value > 0) {
+                        let itemTax = 0;
+                        if (tax1Type === 'included') {
+                            // الضريبة متضمنة: نستخرجها من المجموع الكلي
+                            itemTax = itemTotal - (itemTotal / (1 + (tax1Value / 100)));
+                        } else {
+                            // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
+                            itemTax = (itemTotal * tax1Value) / 100;
+                        }
+
+                        if (!taxDetails[tax1Name]) {
+                            taxDetails[tax1Name] = 0;
+                        }
+                        taxDetails[tax1Name] += itemTax;
+                    }
+
+                    // حساب الضريبة 2
+                    if (tax2Value > 0) {
+                        let itemTax = 0;
+                        if (tax2Type === 'included') {
+                            // الضريبة متضمنة: نستخرجها من المجموع الكلي
+                            itemTax = itemTotal - (itemTotal / (1 + (tax2Value / 100)));
+                        } else {
+                            // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
+                            itemTax = (itemTotal * tax2Value) / 100;
+                        }
+
+                        if (!taxDetails[tax2Name]) {
+                            taxDetails[tax2Name] = 0;
+                        }
+                        taxDetails[tax2Name] += itemTax;
+                    }
+                });
+
+                // إضافة صفوف الضرائب ديناميكيًا
+                let taxRowsContainer = document.getElementById("tax-rows");
+                for (let taxName in taxDetails) {
+                    let taxRow = document.createElement("tr");
+                    taxRow.classList.add("dynamic-tax-row");
+
+                    taxRow.innerHTML = `
+                <td colspan="7" class="text-right">
+                    <span>${taxName}</span>
+                </td>
+                <td>
+                    <span>${taxDetails[taxName].toFixed(2)}</span><?php echo $currencySymbol; ?>
+
+                </td>
+            `;
+
+                    taxRowsContainer.insertBefore(taxRow, document.querySelector("#tax-rows tr:last-child"));
+                }
+
+                // تحديث القيم في الواجهة
+                document.getElementById("subtotal").innerText = subtotal.toFixed(2);
+                document.getElementById("grand-total").innerText = (subtotal + Object.values(taxDetails).reduce((a,
+                    b) => a + b, 0)).toFixed(2);
+
+                // إرسال الضرائب إلى الكنترولر
+                let taxes = [];
+                for (let taxName in taxDetails) {
+                    taxes.push({
+                        name: taxName,
+                        value: taxDetails[taxName],
+                    });
+                }
+
+                // إضافة الضرائب إلى بيانات الفاتورة
+                document.querySelector("form").addEventListener("submit", function(e) {
+                    e.preventDefault();
+
+                    let formData = new FormData(this);
+
+                    // إضافة الضرائب إلى FormData
+                    let taxes = [];
+                    for (let taxName in taxDetails) {
+                        taxes.push({
+                            name: taxName,
+                            value: taxDetails[taxName],
+                        });
+                    }
+                    formData.append("taxes", JSON.stringify(taxes));
+
+                    // إرسال البيانات إلى الكنترولر
+                    fetch(this.action, {
+                            method: this.method,
+                            body: formData,
+                            headers: {
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute("content"),
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("تم حفظ البيانات بنجاح:", data);
+                        })
+                        .catch(error => {
+                            console.error("حدث خطأ أثناء حفظ البيانات:", error);
+                        });
+                });
+
             }
 
-            // =============== التحقق من العميل ===============
-            function verifyClient(clientId) {
+            // حساب القيم عند تغيير المدخلات
+            document.addEventListener("input", function(event) {
+                if (event.target.matches(".quantity, .price, .tax-select")) {
+                    calculateTotals();
+                }
+            });
+
+            // حساب القيم عند تحميل الصفحة
+            calculateTotals();
+            const clientSelect = document.getElementById("clientSelect");
+            const clientIdHidden = document.getElementById("client_id_hidden");
+            const saveButton = document.getElementById("saveInvoice");
+            const invoiceForm = document.getElementById("invoiceForm");
+
+            // 1. تحديث الحقل المخفي عند تغيير العميل
+            clientSelect.addEventListener("change", function() {
+                clientIdHidden.value = this.value;
+                console.log("تم تحديث client_id إلى:", this.value);
+            });
+
+            // 2. معالجة زر الحفظ
+            saveButton.addEventListener("click", function(event) {
+                event.preventDefault(); // منع الإرسال الافتراضي
+
+                const clientId = clientSelect.value;
+
+                console.log("قيمة العميل المختار:", clientId);
+                console.log("قيمة الحقل المخفي قبل الإرسال:", clientIdHidden.value);
+
+                if (!clientId) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "خطأ",
+                        text: "الرجاء اختيار عميل من القائمة"
+                    });
+                    return;
+                }
+
+                // جلب بيانات العميل
                 fetch(`/sales/invoices/get-client/${clientId}`)
                     .then(response => {
                         if (!response.ok) throw new Error("فشل في جلب بيانات العميل");
                         return response.json();
                     })
                     .then(client => {
-                        showVerificationDialog(client, clientId);
+                        // عرض نافذة التحقق
+                        Swal.fire({
+                            title: "🔐 التحقق من الهوية",
+                            html: `
+        <div style="text-align: right; direction: rtl;">
+            <p><strong>اسم العميل:</strong> ${client.trade_name}</p>
+            <p><strong>رقم الهاتف:</strong> ${client.phone ?? "غير متوفر"}</p>
+            <p>يرجى إدخال رمز التحقق لإكمال العملية.</p>
+        </div>
+    `,
+                            input: "text",
+                            inputPlaceholder: "أدخل الرمز المرسل (123)",
+                            showCancelButton: true,
+                            confirmButtonText: "✅ تحقق",
+                            cancelButtonText: "❌ إلغاء",
+                            icon: "info",
+                            inputValidator: (value) => {
+                                if (!value) return "⚠️ يجب إدخال رمز التحقق!";
+                                if (value !== "123") return "❌ الرمز غير صحيح!";
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // تنفيذ العملية بعد التحقق
+                                clientIdHidden.value = clientId;
+                                console.log("تم تحديث client_id_hidden إلى:", clientIdHidden
+                                    .value);
+                                invoiceForm.submit();
+                            }
+                        });
+
                     })
                     .catch(error => {
                         console.error("Error:", error);
-                        showErrorAlert("تعذر جلب بيانات العميل");
+                        Swal.fire("خطأ", "تعذر جلب بيانات العميل", "error");
                     });
-            }
-
-            function showVerificationDialog(client, clientId) {
-                Swal.fire({
-                    title: "🔐 التحقق من الهوية",
-                    html: `
-                        <div style="text-align: right; direction: rtl;">
-                            <p><strong>اسم العميل:</strong> ${client.trade_name}</p>
-                            <p><strong>رقم الهاتف:</strong> ${client.phone ?? "غير متوفر"}</p>
-                            <p>يرجى إدخال رمز التحقق لإكمال العملية.</p>
-                        </div>
-                    `,
-                    input: "text",
-                    inputPlaceholder: "أدخل الرمز المرسل (123)",
-                    showCancelButton: true,
-                    confirmButtonText: "✅ تحقق",
-                    cancelButtonText: "❌ إلغاء",
-                    icon: "info",
-                    inputValidator: (value) => {
-                        if (!value) return "يجب إدخال رمز التحقق!";
-                        if (value !== "123") return "الرمز غير صحيح!";
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        clientIdHidden.value = clientId;
-                        invoiceForm.submit();
-                    }
-                });
-            }
-
-            // =============== إدارة الصفوف ===============
-            $(document).ready(function() {
-                initializeEvents();
-
-                $(document).on('click', '.add-row', function() {
-                    const lastRow = $('.item-row').last();
-                    const newRow = lastRow.clone();
-                    const rowIndex = $('.item-row').length;
-
-                    resetRowValues(newRow);
-                    updateRowFieldNames(newRow, rowIndex);
-                    newRow.appendTo('tbody');
-                    initializeEvents();
-                });
             });
 
-            function resetRowValues(row) {
-                row.find('input, select').val('');
-                row.find('.row-total').text('0.00');
-            }
 
-            function updateRowFieldNames(row, index) {
-                row.find('[name]').each(function() {
-                    const name = $(this).attr('name').replace(/\[\d+\]/, '[' + index + ']');
-                    $(this).attr('name', name);
-                });
-            }
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            // إذا كان هناك عميل محدد، قم باختياره في القائمة
+            <?php if(isset($client_id)): ?>
+                $('#clientSelect').val('<?php echo e($client_id); ?>').trigger('change');
+            <?php endif; ?>
 
-            function initializeEvents() {
-                $('.product-select, #price-list-select').off('change').on('change', handleProductChange);
-                $('.tax-select').off('change').on('change', handleTaxChange);
-            }
-
-            // =============== معالجة التغييرات ===============
-            function handleProductChange() {
-                const priceListId = $('#price-list-select').val();
-                const productId = $(this).closest('tr').find('.product-select').val();
-                const priceInput = $(this).closest('tr').find('.price');
-
-                if (priceListId && productId) {
-                    fetchProductPrice(priceListId, productId, priceInput);
-                } else {
-                    const productPrice = $(this).find('option:selected').data('price');
-                    if (productPrice) {
-                        priceInput.val(productPrice);
-                    }
-                }
-                calculateTotals();
-            }
-
-            function handleTaxChange() {
-                updateHiddenTaxInput(this);
-                calculateTotals();
-            }
-
-            function fetchProductPrice(priceListId, productId, priceInput) {
-                $.ajax({
-                    url: '/sales/invoices/get-price',
-                    method: 'GET',
-                    data: { price_list_id: priceListId, product_id: productId },
-                    success: function(response) {
-                        if (response.price) {
-                            priceInput.val(response.price);
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error fetching price:", error);
-                    }
-                });
-            }
-
-            function updateHiddenTaxInput(selectElement) {
-                const row = $(selectElement).closest('.item-row');
-                const taxType = $(selectElement).data('target');
-                const hiddenInput = row.find(`input[name$="[${taxType}_id]"]`);
-                const selectedOption = selectElement.options[selectElement.selectedIndex];
-
-                if (hiddenInput.length && selectedOption) {
-                    hiddenInput.val(selectedOption.getAttribute('data-id'));
-                }
-            }
-
-            // =============== حساب المجاميع والضرائب ===============
-            function calculateTotals() {
-                let subtotal = 0, totalTax = 0, grandTotal = 0;
-                const taxDetails = {};
-
-                $('.item-row').each(function() {
-                    const row = $(this);
-                    const qty = parseFloat(row.find('.quantity').val()) || 0;
-                    const price = parseFloat(row.find('.price').val()) || 0;
-                    const discountValue = parseFloat(row.find('.discount-value').val()) || 0;
-                    const discountType = row.find('.discount-type').val();
-                    const tax1 = parseFloat(row.find('.tax-1').val()) || 0;
-                    const tax2 = parseFloat(row.find('.tax-2').val()) || 0;
-                    const tax1Name = row.find('.tax-1 option:selected').data('name') || '';
-                    const tax2Name = row.find('.tax-2 option:selected').data('name') || '';
-
-                    // الحسابات الأساسية
-                    let rowTotal = qty * price;
-                    let discount = discountType === "percentage" ?
-                        rowTotal * (discountValue / 100) : discountValue;
-
-                    rowTotal -= discount;
-
-                    // حساب الضرائب
-                    const taxAmount = (rowTotal * (tax1 + tax2) / 100);
-                    rowTotal += taxAmount;
-
-                    // تحديث واجهة الصف
-                    row.find('.row-total').text(rowTotal.toFixed(2));
-
-                    // تجميع القيم
-                    subtotal += (qty * price);
-                    totalTax += taxAmount;
-                    grandTotal += rowTotal;
-
-                    // تجميع تفاصيل الضرائب
-                    if (tax1 > 0) updateTaxDetails(taxDetails, tax1Name, tax1, qty * price);
-                    if (tax2 > 0) updateTaxDetails(taxDetails, tax2Name, tax2, qty * price);
-                });
-
-                updateTaxRows(taxDetails);
-                updateTotalsUI(subtotal, totalTax, grandTotal);
-            }
-
-            function updateTaxDetails(taxDetails, taxName, taxRate, amount) {
-                if (!taxDetails[taxName]) {
-                    taxDetails[taxName] = { rate: taxRate, amount: 0 };
-                }
-                taxDetails[taxName].amount += (amount * taxRate / 100);
-            }
-
-            function updateTaxRows(taxDetails) {
-                $('#tax-rows .dynamic-tax-row').remove();
-
-                for (const [taxName, taxInfo] of Object.entries(taxDetails)) {
-                    const taxRow = `
-                        <tr class="dynamic-tax-row">
-                            <td colspan="7" class="text-right">${taxName} (${taxInfo.rate}%)</td>
-                            <td>${taxInfo.amount.toFixed(2)}${currencySymbol}</td>
-                        </tr>
-                    `;
-                    $('#tax-rows tr:last').before(taxRow);
-                }
-            }
-
-            function updateTotalsUI(subtotal, totalTax, grandTotal) {
-                $('#subtotal').text(subtotal.toFixed(2));
-                $('#total-tax').text(totalTax.toFixed(2));
-                $('#grand-total').text(grandTotal.toFixed(2));
-            }
-
-            // =============== أدوات مساعدة ===============
-            function markFieldAsError(field) {
-                $(field).addClass('required-error');
-                field.focus();
-            }
-
-            function clearErrorStyles() {
-                $('.required-error').removeClass('required-error');
-            }
-
-            function showErrorAlert(message) {
-                Swal.fire({
-                    icon: "error",
-                    title: "خطأ",
-                    text: message,
-                    confirmButtonText: "حسناً",
-                    customClass: { confirmButton: "btn btn-danger" }
-                });
-            }
-
-            // =============== التهيئة الأولية ===============
-            calculateTotals();
+            // أو إذا كان هناك كائن عميل
+            <?php if(isset($client) && $client): ?>
+                $('#clientSelect').val('<?php echo e($client->id); ?>').trigger('change');
+            <?php endif; ?>
         });
     </script>
+    <script></script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/invoices/create.blade.php ENDPATH**/ ?>

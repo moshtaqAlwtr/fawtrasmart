@@ -103,7 +103,7 @@
                                                     <br><br>
                                                     <strong>خزينة </strong>: {{ $income->store_id }}
                                                     <br><br>
-                                                    <strong>الحساب الفرعي </strong>: {{ $income->sup_account }}
+                                                    <strong>الحساب الفرعي </strong>: {{ $income->account->name?? 'لا يوجد' }}
                                                 </td>
                                             </tr>
                                         </table>

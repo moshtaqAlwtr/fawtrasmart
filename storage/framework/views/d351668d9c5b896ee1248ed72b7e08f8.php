@@ -87,13 +87,13 @@
                             </i><span class="menu-title" data-i18n="Dashboard"><?php echo e(trans('main_trans.sales')); ?></span>
                         </a>
                         <ul class="menu-content">
-
+                           
                                 <li><a href="<?php echo e(route('invoices.index')); ?>"><i
                                             class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/invoices/index") ? 'active' : ''); ?>"></i><span
                                             class="menu-item"
                                             data-i18n="Analytics"><?php echo e(trans('main_trans.invoice_management')); ?></span></a>
                                 </li>
-
+                       
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sales_add_invoices')): ?>
                                 <li><a href="<?php echo e(route('invoices.create')); ?>"><i
@@ -127,7 +127,7 @@
                                 </li>
                             <?php endif; ?>
 
-
+                            
                                 <li><a href="<?php echo e(route('ReturnIInvoices.index')); ?>"><i
                                             class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/invoices/invoices_returned") ? 'active' : ''); ?>"></i><span
                                             class="menu-item"
@@ -140,7 +140,7 @@
                                             class="menu-item"
                                             data-i18n="Analytics"><?php echo e(trans('main_trans.Periodic_invoices')); ?></span></a>
                                 </li>
-
+                           
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sales_add_payments_all')): ?>
                                 <li><a href="<?php echo e(route('paymentsClient.index')); ?>"><i

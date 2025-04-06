@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Finance\ExpensesController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Finance\FinanceSettingsController;
