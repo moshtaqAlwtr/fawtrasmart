@@ -174,12 +174,12 @@
                                 class="text-muted">{!! $currencySymbol !!}</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
-                        @if ($invoices->isNotEmpty())
+                        {{-- @if ($invoices->isNotEmpty())
                             <div class="text-muted">
                                 <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted"></span>
                                 <span class="d-block text-warning">مفتوح</span>
                             </div>
-                        @endif
+                        @endif --}}
                     </div>
                     <div class="mt-4">
                         <h6>!</h6>
@@ -211,45 +211,88 @@
                     @endphp
 
 
-                    <form method="POST" action="{{ route('clients.updateStatusClient') }}">
-                        @csrf
-                        <input type="hidden" name="client_id" value="{{ $client->id }}">
-
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle text-start" type="button"
-                                id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
-                               color: #000;
-                               border: 1px solid #ccc;
-                               min-width: 150px;
-                               max-width: max-content;
-                               white-space: nowrap;">
-                                {{ $currentStatus->name ?? 'اختر الحالة' }}
+<div class="d-flex flex-wrap gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <!-- قائمة تغيير الحالة -->
+        <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1" style="min-width: 220px;">
+            @csrf
+            <input type="hidden" name="client_id" value="{{ $client->id }}">
+            <div class="dropdown w-100">
+                <button class="btn w-100 text-start dropdown-toggle"
+                    type="button"
+                    id="clientStatusDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }};
+                           color: #000;
+                           border: 1px solid #ccc;
+                           height: 42px;">
+                    {{ $currentStatus->name ?? 'اختر الحالة' }}
+                </button>
+    
+                <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown" style="border-radius: 8px;">
+                    @foreach ($statuses as $status)
+                        <li>
+                            <button type="submit"
+                                class="dropdown-item text-white d-flex align-items-center justify-content-between"
+                                name="status_id" value="{{ $status->id }}"
+                                style="background-color: {{ $status->color }};">
+                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
                             </button>
+                        </li>
+                    @endforeach
+                    <li>
+                        <a href="{{ route('SupplyOrders.edit_status') }}"
+                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                            style="border-top: 1px solid #ddd; padding: 8px;">
+                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </form>
+    
+        <!-- قائمة خيارات أخرى -->
+        <div class="dropdown flex-grow-1" style="min-width: 220px;">
+            <button class="btn w-100 text-start dropdown-toggle"
+                type="button"
+                id="otherOptionsDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style="background-color: #f0f0f0;
+                       color: #000;
+                       border: 1px solid #ccc;
+                       height: 42px;">
+                <i class="fas fa-ellipsis-v me-2"></i> خيارات أخرى
+            </button>
+    
+            <ul class="dropdown-menu w-100" aria-labelledby="otherOptionsDropdown" style="border-radius: 8px;">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
+                        <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="{{ route('SupplyOrders.create') }}">
+                        <i class="fas fa-truck me-2 text-info"></i> إضافة أمر توريد
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <i class="fas fa-user me-2 text-primary"></i> الدخول كعميل
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center text-danger" href="{{ route('clients.destroy', $client->id) }}">
+                        <i class="fas fa-trash-alt me-2"></i> حذف عميل
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+</div>
 
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientStatusDropdown"
-                                style="min-width: 150px; width: auto; max-width: max-content; white-space: nowrap; border-radius: 8px;">
-                                @foreach ($statuses as $status)
-                                    <li>
-                                        <button type="submit"
-                                            class="dropdown-item text-white d-flex align-items-center justify-content-between"
-                                            name="status_id" value="{{ $status->id }}"
-                                            style="background-color: {{ $status->color }};">
-                                            <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
-                                        </button>
-                                    </li>
-                                @endforeach
-
-                                <li>
-                                    <a href="{{ route('SupplyOrders.edit_status') }}"
-                                        class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                        style="border-top: 1px solid #ddd; padding: 8px;">
-                                        <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -275,27 +318,7 @@
                     </button>
                 </div>
 
-                <!-- زر القائمة المنسدلة - يظهر في الشاشات الصغيرة فقط -->
-                <div class="dropdown ms-auto">
-                    <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-
-                    <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
-                            <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
-                        </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('SupplyOrders.create') }}">
-                            <i class="fas fa-truck me-2 text-info"></i> إضافة أمر توريد
-                        </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#">
-                            <i class="fas fa-user me-2 text-primary"></i> الدخول كعميل
-                        </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center text-danger" href="{{ route('clients.destroy', $client->id) }}">
-                            <i class="fas fa-trash-alt me-2"></i> حذف عميل
-                        </a></li>
-                    </ul>
-                </div>
+               
 
                 <!-- القائمة الأصلية (تظهر فقط في الشاشات الكبيرة) -->
                 <div class="dropdown col-12 col-md-auto d-none d-md-block">
@@ -344,7 +367,11 @@
                     <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-danger col-md-auto">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
+
+                    <a href="{{ route('invoices.create') }}?client_id={{ $client->id }}" class="btn btn-sm btn-dark col-md-auto">
+
                     <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}" class="btn btn-sm btn-dark col-md-auto">
+
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
                     <a href="{{ route('Reservations.client', $client->id) }}" class="btn btn-sm btn-light text-dark col-md-auto">

@@ -54,7 +54,7 @@
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-select">
                                 <option value="">جميع الفروع</option>
-                                @foreach($branches as $branch)
+                                @foreach($clients->branch as $branch)
                                     <option value="{{ $branch->id }}"
                                         {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
@@ -194,7 +194,7 @@
                                     </td>
                                     <td>{{ $invoice->client->trade_name ?? 'عميل ' . $clientId }}</td>
                                     <td>{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</td>
-                                    <td>{{ $invoice->createdByUser->name ?? 'غير محدد' }}</td>
+                                    <td>{{ $invoice->employee->full_name ?? 'غير محدد' }}</td>
 
                                     @php
                                         // Calculate total paid amount

@@ -280,17 +280,20 @@
                                                 </div>
                                             </div>
                                         </div>
-   <div class="col-md-6 col-12 mb-3">
+                              <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
-                                                <select class="form-control" id="printing_method" name="region_id">
-    @foreach($Regions_groub as $Region_groub)
-        <option value="{{ $Region_groub->id }}" {{ $Region_groub->id == $client->region_id ? 'selected' : '' }}>
-            {{ $Region_groub->name }}
-        </option>
-    @endforeach
-</select>
+                                                    <select class="form-control" id="printing_method" name="region_id">
+                                                        @foreach($Regions_groub as $Region_groub)
+                                                        <option value="{{ $Region_groub->id }}" 
+                                                            {{ isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : '' }}>
+                                                            {{ $Region_groub->name }}
+                                                        </option>
+                                                        
+                                                        @endforeach
+                                                    </select>
+                                                    
 
 
 

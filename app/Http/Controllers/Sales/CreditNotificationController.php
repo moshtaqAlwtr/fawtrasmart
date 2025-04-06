@@ -172,6 +172,7 @@ class CreditNotificationController extends Controller
 
     public function store(Request $request)
     {
+    
         // التحقق من صحة البيانات باستخدام helper function
         $validated = validator($request->all(), [
             'client_id' => 'required|exists:clients,id',
@@ -408,7 +409,7 @@ class CreditNotificationController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $creditNot->client_id,
 
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
          
@@ -416,7 +417,7 @@ class CreditNotificationController extends Controller
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $retursalesnAccount->id, // حساب المبيعات
-                'description' => 'اشعار دائن',
+                'description' => 'اشعار  دائن  رقم ' . $creditNot->id,
                 'debit' => $creditNot->grand_total, // المبلغ بعد الخصم (مدين)
                 'credit' => 0,
                 'is_debit' => false,
@@ -426,7 +427,7 @@ class CreditNotificationController extends Controller
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $clientaccounts->id, // حساب المبيعات
-                'description' => 'اشعار دائن',
+                'description' => 'اشعار  دائن  رقم ' . $creditNot->id,
                 'debit' => 0,
                 'credit' => $creditNot->grand_total, // المبلغ بعد الخصم (دائن)
                 'is_debit' => false,
@@ -441,14 +442,14 @@ class CreditNotificationController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $creditNot->client_id,
 
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
             // // 2. حساب  المخزون (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $storeAccount->id, // حساب المبيعات
-                'description' => 'اشعار دائن',
+                'description' => 'اشعار  دائن  رقم ' . $creditNot->id,
                 'debit' => $creditNot->grand_total, // المبلغ بعد الخصم (مدين)
                 'credit' => 0,
                 'is_debit' => false,
@@ -458,7 +459,7 @@ class CreditNotificationController extends Controller
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $costAccount->id, // حساب المبيعات
-                'description' => 'اشعار دائن ',
+                'description' => 'اشعار  دائن  رقم ' . $creditNot->id,
                 'debit' => 0,
                 'credit' => $creditNot->grand_total, // المبلغ بعد الخصم (دائن)
                 'is_debit' => false,
@@ -466,20 +467,20 @@ class CreditNotificationController extends Controller
 
 
             if ($clientaccounts) {
-                $clientaccounts->balance -= $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $clientaccounts->balance -= $creditNot->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $clientaccounts->save();
             }
             if ($storeAccount) {
-                $storeAccount->balance += $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $storeAccount->balance += $creditNot->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $storeAccount->save();
             }
             if ($retursalesnAccount) {
-                $retursalesnAccount->balance += $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $retursalesnAccount->balance += $creditNot->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $retursalesnAccount->save();
             }
             
             if ($costAccount) {
-                $costAccount->balance -= $clientaccounts->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $costAccount->balance -= $creditNot->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $costAccount->save();
             } 
             DB::commit();

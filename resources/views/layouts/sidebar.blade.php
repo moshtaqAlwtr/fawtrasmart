@@ -87,13 +87,13 @@
                             </i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.sales') }}</span>
                         </a>
                         <ul class="menu-content">
-
+                           
                                 <li><a href="{{ route('invoices.index') }}"><i
                                             class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/index") ? 'active' : '' }}"></i><span
                                             class="menu-item"
                                             data-i18n="Analytics">{{ trans('main_trans.invoice_management') }}</span></a>
                                 </li>
-
+                       
 
                             @can('sales_add_invoices')
                                 <li><a href="{{ route('invoices.create') }}"><i
@@ -127,7 +127,7 @@
                                 </li>
                             @endcan
 
-
+                            
                                 <li><a href="{{ route('ReturnIInvoices.index') }}"><i
                                             class="feather icon-circle {{ request()->is("$getLocal/sales/invoices/invoices_returned") ? 'active' : '' }}"></i><span
                                             class="menu-item"
@@ -140,7 +140,7 @@
                                             class="menu-item"
                                             data-i18n="Analytics">{{ trans('main_trans.Periodic_invoices') }}</span></a>
                                 </li>
-
+                           
 
                             @can('sales_add_payments_all')
                                 <li><a href="{{ route('paymentsClient.index') }}"><i
