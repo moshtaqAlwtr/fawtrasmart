@@ -26,65 +26,87 @@ use Illuminate\Support\Facades\Log;
 class IncomesController extends Controller
 {
     public function index(Request $request)
-    {
-        // جلب البيانات مع تطبيق شروط البحث
-        $incomes = Receipt::orderBy('id', 'DESC')
-            ->when($request->keywords, function ($query, $keywords) {
-                return $query->where('code', 'like', '%' . $keywords . '%')->orWhere('description', 'like', '%' . $keywords . '%');
-            })
-            ->when($request->from_date, function ($query, $from_date) {
-                return $query->where('date', '>=', $from_date);
-            })
-            ->when($request->to_date, function ($query, $to_date) {
-                return $query->where('date', '<=', $to_date);
-            })
-            ->when($request->category, function ($query, $category) {
-                return $query->where('receipt_category_id', $category);
-            })
-            ->when($request->status, function ($query, $status) {
-                return $query->where('status', $status);
-            })
-            ->when($request->description, function ($query, $description) {
-                return $query->where('description', 'like', '%' . $description . '%');
-            })
-            ->when($request->vendor, function ($query, $vendor) {
-                return $query->where('supplier_id', $vendor);
-            })
-            ->when($request->amount_from, function ($query, $amount_from) {
-                return $query->where('amount', '>=', $amount_from);
-            })
-            ->when($request->amount_to, function ($query, $amount_to) {
-                return $query->where('amount', '<=', $amount_to);
-            })
-            ->when($request->created_at_from, function ($query, $created_at_from) {
-                return $query->where('created_at', '>=', $created_at_from);
-            })
-            ->when($request->created_at_to, function ($query, $created_at_to) {
-                return $query->where('created_at', '<=', $created_at_to);
-            })
-            ->when($request->sub_account, function ($query, $sub_account) {
-                return $query->where('account_id', $sub_account);
-            })
-            ->when($request->created_by, function ($query, $created_by) {
-                return $query->where('created_by', $created_by);
-            })
-            ->paginate(2000);
+{
+    // بدء بناء الاستعلام مع تطبيق شروط الصلاحيات
+    $query = Receipt::orderBy('id', 'DESC')
+        ->when(!auth()->user()->hasAnyPermission(['incomes_view_all']), function ($query) {
+            return $query->where('created_by', auth()->user()->id);
+        });
 
-        // حساب إجمالي الإيرادات لفترات مختلفة
-        $totalLast7Days = Receipt::where('date', '>=', now()->subDays(7))->sum('amount');
-        $totalLast30Days = Receipt::where('date', '>=', now()->subDays(30))->sum('amount');
-        $totalLast365Days = Receipt::where('date', '>=', now()->subDays(365))->sum('amount');
+    // تطبيق شروط البحث
+    $query->when($request->keywords, function ($query, $keywords) {
+            return $query->where('code', 'like', '%' . $keywords . '%')
+                        ->orWhere('description', 'like', '%' . $keywords . '%');
+        })
+        ->when($request->from_date, function ($query, $from_date) {
+            return $query->where('date', '>=', $from_date);
+        })
+        ->when($request->to_date, function ($query, $to_date) {
+            return $query->where('date', '<=', $to_date);
+        })
+        ->when($request->category, function ($query, $category) {
+            return $query->where('receipt_category_id', $category);
+        })
+        ->when($request->status, function ($query, $status) {
+            return $query->where('status', $status);
+        })
+        ->when($request->description, function ($query, $description) {
+            return $query->where('description', 'like', '%' . $description . '%');
+        })
+        ->when($request->vendor, function ($query, $vendor) {
+            return $query->where('supplier_id', $vendor);
+        })
+        ->when($request->amount_from, function ($query, $amount_from) {
+            return $query->where('amount', '>=', $amount_from);
+        })
+        ->when($request->amount_to, function ($query, $amount_to) {
+            return $query->where('amount', '<=', $amount_to);
+        })
+        ->when($request->created_at_from, function ($query, $created_at_from) {
+            return $query->where('created_at', '>=', $created_at_from);
+        })
+        ->when($request->created_at_to, function ($query, $created_at_to) {
+            return $query->where('created_at', '<=', $created_at_to);
+        })
+        ->when($request->sub_account, function ($query, $sub_account) {
+            return $query->where('account_id', $sub_account);
+        })
+        ->when($request->created_by, function ($query, $created_by) {
+            return $query->where('created_by', $created_by);
+        });
 
-        // جلب البيانات المرتبطة (مثل التصنيفات والبائعين)
-        $categories = ReceiptCategory::all(); // جلب جميع التصنيفات
-        $suppliers = Supplier::all(); // جلب جميع البائعين
-        $Accounts = Account::all(); // جلب جميع الحسابات الفرعية
-        $users = User::select('id', 'name')->where('role', 'employee') // الشرط هنا
-            ->get(); // جلب جميع الموظفين
+    // تنفيذ الاستعلام مع التقسيم
+    $incomes = $query->paginate(2000);
 
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        return view('finance.incomes.index', compact('incomes', 'categories', 'Accounts', 'users', 'account_setting', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
+    // حساب الإجماليات مع مراعاة الصلاحيات
+    $totalQuery = Receipt::query();
+    if (!auth()->user()->hasAnyPermission(['incomes_view_all'])) {
+        $totalQuery->where('created_by', auth()->user()->id);
     }
+
+    $totalLast7Days = $totalQuery->clone()->where('date', '>=', now()->subDays(7))->sum('amount');
+    $totalLast30Days = $totalQuery->clone()->where('date', '>=', now()->subDays(30))->sum('amount');
+    $totalLast365Days = $totalQuery->clone()->where('date', '>=', now()->subDays(365))->sum('amount');
+
+    // جلب البيانات المرتبطة
+    $categories = ReceiptCategory::all();
+    $suppliers = Supplier::all();
+    $Accounts = Account::all();
+    $users = User::select('id', 'name')->where('role', 'employee')->get();
+
+    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+
+    return view('finance.incomes.index', compact(
+        'incomes',
+        'categories',
+        'Accounts',
+        'users',
+        'account_setting',
+        'totalLast7Days',
+        'totalLast30Days',
+        'totalLast365Days'
+    ));
+}
 
     public function create()
     {

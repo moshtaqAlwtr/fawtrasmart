@@ -42,7 +42,6 @@ Route::group(
             Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الأسعار
             Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
-
         });
         Route::prefix('sales')
             ->middleware(['auth', 'check.branch'])
@@ -53,15 +52,15 @@ Route::group(
                     ->group(function () {
                         Route::get('/index', [InvoicesController::class, 'index'])->name('invoices.index');
                         Route::get('/create', [InvoicesController::class, 'create'])->name('invoices.create');
-                          Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
-                           Route::get('/get-client/{id}', function ($id) {
-                             $client = Client::find($id);
-                             return response()->json($client);
-                              });
+                        Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
+                        Route::get('/get-client/{id}', function ($id) {
+                            $client = Client::find($id);
+                            return response()->json($client);
+                        });
 
 
-                          Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
-                          Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
+                        Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
+                        Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
 
 
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
@@ -188,7 +187,7 @@ Route::group(
                 # Client routes
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
-Route::post('clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
+                    Route::post('clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');
                     Route::get('/notes/clients', [ClientController::class, 'notes'])->name('clients.notes');
@@ -205,7 +204,7 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
 
-                  Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
+                    Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
                     // صلاحيات العميل
                     Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
                     Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
@@ -215,14 +214,15 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
-                      Route::get('/group', [ClientController::class, 'group_client'])->name('clients.group_client');
-                          Route::get('/group/create', [ClientController::class, 'group_client_create'])->name('clients.group_client_create');
-                           Route::post('/group/store', [ClientController::class, 'group_client_store'])->name('clients.group_client_store');
+                    Route::get('/group', [ClientController::class, 'group_client'])->name('clients.group_client');
+                    Route::get('/group/create', [ClientController::class, 'group_client_create'])->name('clients.group_client_create');
+                    Route::post('/group/store', [ClientController::class, 'group_client_store'])->name('clients.group_client_store');
                     Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
                     Route::get('/edit/{id}', [ClientController::class, 'edit_question'])->name('clients.edit');
                     Route::get('/show/client/{id}', [ClientController::class, 'show'])->name('clients.show');
+                    Route::get('/statement/{id}', [ClientController::class, 'statement'])->name('clients.statement');
                     Route::put('/update/{id}', [ClientController::class, 'update'])->name('clients.update');
                     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
                     Route::post('/delete-multiple', [ClientController::class, 'deleteMultiple'])->name('clients.deleteMultiple');
@@ -238,7 +238,7 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
                         ->name('clients.remove-employee');
                     Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])
                         ->name('clients.get-assigned-employees');
-                        Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
+                    Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
                     Route::get('/clients/search', function (Request $request) {
 
@@ -308,7 +308,7 @@ Route::post('clients/update-credit-limit', [ClientController::class, 'updateCred
                 Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
-            Route::prefix('visits')
+        Route::prefix('visits')
             ->middleware(['auth'])
             ->group(function () {
 
