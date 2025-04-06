@@ -369,7 +369,7 @@ class ReturnInvoiceController extends Controller
                     'currency' => 'SAR',
                     'client_id' => $invoice->client_id,
                     'invoice_id' => $invoice->id,
-                    'created_by_employee' => Auth::id(),
+                    // 'created_by_employee' => Auth::id(),
                 ]);
                 
        
@@ -400,7 +400,7 @@ class ReturnInvoiceController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
              // // 2. حساب مردود المبيعات (مدين)
@@ -431,7 +431,7 @@ class ReturnInvoiceController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
              // // 2. حساب  المخزون (مدين)
@@ -484,7 +484,7 @@ class ReturnInvoiceController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
 
             ]);
 
@@ -530,7 +530,7 @@ class ReturnInvoiceController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
 
             ]);
 

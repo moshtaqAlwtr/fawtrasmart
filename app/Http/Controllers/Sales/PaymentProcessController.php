@@ -350,7 +350,7 @@ public function store(ClientPaymentRequest $request)
             'currency' => 'SAR',
             'client_id' => $invoice->client_id,
             'invoice_id' => $invoice->id,
-            'created_by_employee' => Auth::id(),
+            // 'created_by_employee' => Auth::id(),
         ]);
 
         // إضافة تفاصيل القيد المحاسبي للدفعة
@@ -421,7 +421,7 @@ public function store(ClientPaymentRequest $request)
             'currency' => 'SAR',
             'client_id' => $invoice->client_id,
             'invoice_id' => $invoice->id,
-            'created_by_employee' => Auth::id(),
+            // 'created_by_employee' => Auth::id(),
         ]);
 
         // إضافة تفاصيل القيد
