@@ -45,7 +45,7 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-
+        
          // جلب المستخدم الحالي
         $user = auth()->user();
 
@@ -58,7 +58,7 @@ class ClientController extends Controller
 
             // إذا كانت الصلاحية غير مفعلة، عرض العملاء التي أضافها المستخدمون من نفس الفرع فقط
             if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
-
+            
         $query = Client::where('branch_id', $branch->id)->with([
             'employee',
             'status' => function ($q) {
@@ -67,8 +67,8 @@ class ClientController extends Controller
             'locations',
         ]);
             } else {
-
-
+              
+               
         $query = Client::with([
             'employee',
             'status' => function ($q) {
@@ -78,8 +78,8 @@ class ClientController extends Controller
         ]);
             }
         } else {
-
-
+         
+          
         $query = Client::with([
             'employee',
             'status' => function ($q) {
@@ -88,7 +88,7 @@ class ClientController extends Controller
             'locations',
         ]);
         }
-
+      
 
         // تطبيق شروط البحث فقط
         if ($request->filled('client')) {
@@ -124,7 +124,19 @@ class ClientController extends Controller
         if ($request->filled('country')) {
             $query->where('country', $request->country);
         }
-
+        if ($request->filled('neighborhood')) {
+            $query->whereHas('Neighborhoodname', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
+            });
+        }
+        
+        if ($request->filled('region')) {
+            $query->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->region . '%')
+                  ->orWhere('id', $request->region);
+            });
+        }
+        
         if ($request->filled('tag')) {
             $query->where('tags', 'like', '%' . $request->tag . '%');
         }
@@ -151,8 +163,9 @@ class ClientController extends Controller
         $employees = Employee::all();
         $statuses = Statuses::select('id', 'name', 'color')->get();
         $creditLimit = CreditLimit::first();
-
-        return view('client.index', compact('clients', 'users', 'employees', 'creditLimit', 'statuses'));
+        $Region_groups = Region_groub::all();
+        $Neighborhoods = Neighborhood::all();
+        return view('client.index', compact('clients','Neighborhoods', 'users', 'employees', 'creditLimit', 'statuses','Region_groups'));
     }
     public function updateCreditLimit(Request $request)
     {
@@ -1048,121 +1061,19 @@ $validated = $request->validate($rules, $messages);
         ]);
 
         $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
+$user = User::find(auth()->user()->id);
 
-        notifications::create([
-            'type' => 'notes',
-            'title' => 'ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-        ]);
+notifications::create([
+    'type' => 'notes',
+    'title' => $user->name . ' أضاف ملاحظة لعميل',
+    'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
+]);
+
 
         return redirect()
             ->route('clients.show', ['id' => $ClientRelation->client_id])
             ->with('success', 'تم إضافة الملاحظة بنجاح');
     }
-
-    // public function addnotes(Request $request)
-    // {
-    //     $request->validate([
-    //         'client_id' => 'required|exists:clients,id',
-    //         'status' => 'required',
-    //         'process' => 'required',
-    //         'description' => 'required',
-    //         'attachments' => 'nullable|file'
-    //     ]);
-
-    //     // الحصول على موقع العميل
-    //     $client = Client::findOrFail($request->client_id);
-    //     $clientLocation = $client->locations()->latest()->first();
-
-    //     if (!$clientLocation) {
-    //         return redirect()
-    //             ->route('clients.show', ['id' => $request->client_id])
-    //             ->with('error', 'لا يمكن إضافة ملاحظة - العميل ليس لديه موقع مسجل');
-    //     }
-
-    //     // الحصول على موقع الموظف الحالي
-    //     $employeeLocation = Location::where('employee_id', auth()->id())->latest()->first();
-
-    //     if (!$employeeLocation) {
-    //         return redirect()
-    //             ->route('clients.show', ['id' => $request->client_id])
-    //             ->with('error', 'لا يمكن إضافة ملاحظة - لم يتم تحديد موقعك الحالي');
-    //     }
-
-    //     // حساب المسافة بين الموظف والعميل
-    //     $distance = $this->calculateDistance(
-    //         $clientLocation->latitude,
-    //         $clientLocation->longitude,
-    //         $employeeLocation->latitude,
-    //         $employeeLocation->longitude
-    //     );
-
-    //     if ($distance > 100) {
-    //         return redirect()
-    //             ->route('clients.show', ['id' => $request->client_id])
-    //             ->with('error', 'لا يمكن إضافة ملاحظة - يجب أن تكون ضمن نطاق 100 متر من العميل');
-    //     }
-
-    //     // إذا كانت جميع الشروط متحققة، يتم إنشاء الملاحظة
-    //     $ClientRelation = new ClientRelation();
-    //     $ClientRelation->status = $request->status;
-    //     $ClientRelation->client_id = $request->client_id;
-    //     $ClientRelation->process = $request->process;
-    //     $ClientRelation->description = $request->description;
-
-    //     // معالجة المرفقات إن وجدت
-    //     if ($request->hasFile('attachments')) {
-    //         $file = $request->file('attachments');
-    //         if ($file->isValid()) {
-    //             $filename = time() . '_' . $file->getClientOriginalName();
-    //             $file->move(public_path('assets/uploads/notes'), $filename);
-    //             $ClientRelation->attachments = $filename;
-    //         }
-    //     }
-
-    //     $ClientRelation->save();
-
-    //     // تسجيل اشعار نظام جديد
-    //     ModelsLog::create([
-    //         'type' => 'notes',
-    //         'type_log' => 'log',
-    //         'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-    //         'created_by' => auth()->id(),
-    //     ]);
-
-    //     $clientName = $client->trade_name;
-
-    //     notifications::create([
-    //         'type' => 'notes',
-    //         'title' => 'ملاحظة لعميل',
-    //         'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-    //     ]);
-
-    //     return redirect()
-    //         ->route('clients.show', ['id' => $ClientRelation->client_id])
-    //         ->with('success', 'تم إضافة الملاحظة بنجاح');
-    // }
-
-    // // دالة حساب المسافة (نفسها المستخدمة في VisitController)
-    // private function calculateDistance($lat1, $lon1, $lat2, $lon2)
-    // {
-    //     $earthRadius = 6371000; // نصف قطر الأرض بالمتر
-
-    //     $latFrom = deg2rad($lat1);
-    //     $lonFrom = deg2rad($lon1);
-    //     $latTo = deg2rad($lat2);
-    //     $lonTo = deg2rad($lon2);
-
-    //     $latDelta = $latTo - $latFrom;
-    //     $lonDelta = $lonTo - $lonFrom;
-
-    //     $angle = 2 * asin(sqrt(
-    //         pow(sin($latDelta / 2), 2) +
-    //         cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)
-    //     ));
-
-    //     return $angle * $earthRadius;
-    // }
 
     public function mang_client_details($id)
     {

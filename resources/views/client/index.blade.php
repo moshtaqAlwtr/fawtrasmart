@@ -181,31 +181,64 @@
             </div>
             <div class="card-body">
                 <form class="form" id="searchForm" method="GET" action="{{ route('clients.index') }}">
-                    <div class="row g-3">
-                        <div class="col-md-4 col-12">
-                            <select name="client" class="form-control select2">
-                                <option value="">اختر العميل</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}"
-                                        {{ request('client') == $client->id ? 'selected' : '' }}>
-                                        {{ $client->trade_name }} - {{ $client->id }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4 col-12">
-                            <input type="text" name="name" class="form-control" placeholder="الاسم"
-                                value="{{ request('end_date_to') }}">
-                        </div>
-                        <div class="col-md-4 col-12">
-                            <select name="status" class="form-control">
-                                <option value="">اختر الحالة</option>
-                                <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مديون</option>
-                                <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>دائن</option>
-                                <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>مميز</option>
-                            </select>
+                    <div class="card p-3 mb-4">
+                        <div class="row g-3 align-items-end">
+                            <!-- اسم العميل -->
+                            <div class="col-md-3 col-12">
+                                <label for="client" class="form-label">العميل</label>
+                                <select name="client" id="client" class="form-control select2">
+                                    <option value="">اختر العميل</option>
+                                    @foreach ($clients as $client)
+                                        <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
+                                            {{ $client->trade_name }} - {{ $client->id }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                    
+                            <!-- الاسم -->
+                            <div class="col-md-3 col-12">
+                                <label for="name" class="form-label">الاسم</label>
+                                <input type="text" name="name" id="name" class="form-control"
+                                    placeholder="الاسم" value="{{ request('name') }}">
+                            </div>
+                    
+                            <!-- الحالة -->
+                            <div class="col-md-3 col-12">
+                                <label for="status" class="form-label">الحالة</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">اختر الحالة</option>
+                                    @foreach ($statuses as $status)
+                                        <option value="{{ $status->id }}" {{ request('status') == $status->id ? 'selected' : '' }}>
+                                            {{ $status->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                    
+                            <!-- المجموعة -->
+                            <div class="col-md-3 col-12">
+                                <label for="region" class="form-label">المجموعة</label>
+                                <select name="region" id="region" class="form-control">
+                                    <option value="">اختر المجموعة</option>
+                                    @foreach ($Region_groups as $Region_group)
+                                        <option value="{{ $Region_group->id }}" {{ request('region') == $Region_group->id ? 'selected' : '' }}>
+                                            {{ $Region_group->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                    
+                            <!-- الحي -->
+                            <div class="col-md-12 col-12">
+                                <label for="neighborhood" class="form-label">الحي</label>
+                                <input type="text" name="neighborhood" id="neighborhood" class="form-control"
+                                    placeholder="الحي" value="{{ request('neighborhood') }}">
+                            </div>
                         </div>
                     </div>
+                    
+                    
 
                     <div class="collapse" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
@@ -310,7 +343,7 @@
                                     <th>الحي</th>
                                      <th>الفرع</th>
                                      <th>نوع الزيارة</th>
-
+                                     <th>الحالة</th>
                                     <th>الكود</th>
                                     <th>رقم الهاتف</th>
                                     <th style="width: 10%">الإجراءات</th>
@@ -364,6 +397,19 @@
                                                 </span>
                                             @endif
                                         </td>
+                                        <td>
+                                            @if($client->status_client)
+                                                <span style="background-color: {{ $client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                    {{ $client->status_client->name }}
+                                                </span>
+                                            @else
+                                                <span style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                    غير محدد
+                                                </span>
+                                            @endif
+                                        </td>
+                                        
+                                        
                                         <td>{{ $client->code ?? '' }}</td>
                                         <td>
                                             <strong class="text-primary">

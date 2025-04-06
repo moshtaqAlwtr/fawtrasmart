@@ -249,6 +249,11 @@ public function visits()
 {
     return $this->hasMany(Visit::class, 'client_id');
 }
+
+public function status_client()
+{
+    return $this->belongsTo(Statuses::class, 'status_id');
+}
 // في ملف app/Models/Client.php
 public function status()
 {

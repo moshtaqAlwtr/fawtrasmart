@@ -1116,7 +1116,7 @@ class InvoicesController extends Controller
                 }
             }
             $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
-            if ($invoice->payment_status == 3) {
+           
                 // استرجاع حساب القيمة المضافة المحصلة
                 $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
                 if (!$vatAccount) {
@@ -1144,7 +1144,7 @@ class InvoicesController extends Controller
                 JournalEntryDetail::create([
                     'journal_entry_id' => $journalEntry->id,
                     'account_id' => $clientaccounts->id, // حساب العميل
-                    'description' => 'فاتورة مبيعات',
+                    'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
                     'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
                     'credit' => 0,
                     'is_debit' => true,
@@ -1223,7 +1223,7 @@ class InvoicesController extends Controller
                     $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                     $clientaccounts->save();
                 }
-            }
+            
 
             // تحديث رصيد حساب الخزينة الرئيسية
 
@@ -1274,6 +1274,11 @@ class InvoicesController extends Controller
                     $MainTreasury->save();
                 }
 
+                if ($clientaccounts) {
+                    $clientaccounts->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                    $clientaccounts->save();
+                }
+
                 // إنشاء قيد محاسبي للدفعة
                 $paymentJournalEntry = JournalEntry::create([
                     'reference_number' => $payment->reference_number ?? $invoice->code,
@@ -1290,7 +1295,7 @@ class InvoicesController extends Controller
                 JournalEntryDetail::create([
                     'journal_entry_id' => $paymentJournalEntry->id,
                     'account_id' => $MainTreasury->id,
-                    'description' => 'استلام دفعة نقدية',
+                    'description' => 'دفعة للفاتورة رقم ' . $invoice->code,
                     'debit' => $payment_amount,
                     'credit' => 0,
                     'is_debit' => true,
@@ -1301,7 +1306,7 @@ class InvoicesController extends Controller
                 JournalEntryDetail::create([
                     'journal_entry_id' => $paymentJournalEntry->id,
                     'account_id' => $clientaccounts->id,
-                    'description' => 'دفعة من العميل',
+                    'description' => 'دفعة عميل  للفاتورة رقم ' . $invoice->code,
                     'debit' => 0,
                     'credit' => $payment_amount,
                     'is_debit' => false,
