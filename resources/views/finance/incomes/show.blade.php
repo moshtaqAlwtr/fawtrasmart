@@ -27,7 +27,7 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div>
-                        <strong>مصروف</strong> | <small>{{ $income->code }} #</small> | <span
+                        <strong> سند قبض </strong> | <small>{{ $income->code }} #</small> | <span
                             class="badge badge-pill badge badge-success">اصدر</span>
                     </div>
 

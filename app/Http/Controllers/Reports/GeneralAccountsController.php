@@ -694,250 +694,272 @@ class GeneralAccountsController extends Controller
         }
     }
     public function ReceiptByEmployee(Request $request)
-{
-    try {
-        // تحديد التاريخ الافتراضي إن لم يُحدّد
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+    {
+        try {
+            // تحديد التاريخ الافتراضي إن لم يُحدّد
+            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+            $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-        // جلب بيانات القوائم المنسدلة
-        $branches = Branch::all();
-        $treasuries = Treasury::all();
-        $accounts = Account::all();
-        $employees = Employee::all(); // ممكن لاحقاً نحذفها لو ما نحتاجها
-        $receiptsCategory = ReceiptCategory::all();
-        $clients = Client::all();
-        $users = User::all(); // المستخدمين
+            // جلب بيانات القوائم المنسدلة
+            $branches = Branch::all();
+            $treasuries = Treasury::all();
+            $accounts = Account::all();
+            $employees =  User::where('role', 'employee')->get();
+            $receiptsCategory = ReceiptCategory::all();
+            $clients = Client::all();
+            $users =  User::where('role', 'employee')->get();
 
-        // إنشاء الاستعلام الأساسي
-        $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client', 'user'])
-                        ->whereBetween('date', [$fromDate, $toDate]);
+            // إنشاء الاستعلام الأساسي
+            $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client', 'user'])
+                            ->whereBetween('date', [$fromDate, $toDate]);
 
-        // تطبيق الفلاتر حسب الاختيار
-        if ($request->filled('branch')) {
-            $query->where('branch_id', $request->branch);
+            // تطبيق الفلاتر بشرط ألا تكون القيمة "all"
+            if ($request->filled('branch') && $request->branch !== 'all') {
+                $query->where('branch_id', $request->branch);
+            }
+
+            if ($request->filled('treasury') && $request->treasury !== 'all') {
+                $query->where('treasury_id', $request->treasury);
+            }
+
+            if ($request->filled('employee') && $request->employee !== 'all') {
+                $query->where('created_by', $request->employee);
+            }
+
+            if ($request->filled('client') && $request->client !== 'all') {
+                $query->where('client_id', $request->client);
+            }
+
+            if ($request->filled('currency') && $request->currency !== 'all') {
+                $query->where('currency', $request->currency);
+            }
+
+            // تنفيذ الاستعلام
+            $receipts = $query->get();
+
+            // تجميع السندات حسب المستخدم (من أنشأ السند)
+            $groupedReceipts = $receipts->groupBy('created_by');
+
+            // إعداد بيانات المخطط البياني
+            $chartData = [
+                'labels' => $groupedReceipts->keys()->toArray(),
+                'values' => $groupedReceipts
+                    ->map(function ($userReceipts) {
+                        return $userReceipts->sum('amount');
+                    })
+                    ->values()
+                    ->toArray(),
+            ];
+
+            return view('reports.general_accounts.receipt_bonds.receipt_by_employee', [
+                'branches' => $branches,
+                'treasuries' => $treasuries,
+                'accounts' => $accounts,
+                'employees' => $employees,
+                'users' => $users,
+                'receiptsCategory' => $receiptsCategory,
+                'clients' => $clients,
+                'receipts' => $receipts,
+                'groupedReceipts' => $groupedReceipts,
+                'chartData' => $chartData,
+                'fromDate' => Carbon::parse($fromDate),
+                'toDate' => Carbon::parse($toDate),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in receipts by user report', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
         }
-
-        if ($request->filled('treasury')) {
-            $query->where('treasury_id', $request->treasury);
-        }
-
-        if ($request->filled('employee')) {
-            $query->where('employee_id', $request->employee);
-        }
-
-        if ($request->filled('client')) {
-            $query->where('client_id', $request->client);
-        }
-
-        if ($request->filled('employee_id')) {
-            $query->where('employee_id', $request->employee_id);
-        }
-
-        // تنفيذ الاستعلام
-        $receipts = $query->get();
-
-        // تجميع السندات حسب المستخدم (من أنشأ السند)
-        $groupedReceipts = $receipts->groupBy('created_by');
-
-        // إعداد بيانات المخطط البياني
-        $chartData = [
-            'labels' => $groupedReceipts->keys()->toArray(),
-            'values' => $groupedReceipts
-                ->map(function ($userReceipts) {
-                    return $userReceipts->sum('amount');
-                })
-                ->values()
-                ->toArray(),
-        ];
-
-        return view('reports.general_accounts.receipt_bonds.receipt_by_employee', [
-            'branches' => $branches,
-            'treasuries' => $treasuries,
-            'accounts' => $accounts,
-            'employees' => $employees,
-            'users' => $users,
-            'receiptsCategory' => $receiptsCategory,
-            'clients' => $clients,
-            'receipts' => $receipts,
-            'groupedReceipts' => $groupedReceipts,
-            'chartData' => $chartData,
-            'fromDate' => Carbon::parse($fromDate),
-            'toDate' => Carbon::parse($toDate),
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Error in receipts by user report', [
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ]);
-
-        return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
     }
-}
+
 
     public function ReceiptByClient(Request $request)
-    {
-        // Default to current month if no date range specified
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+{
+    $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+    $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-        // Fetch necessary dropdown data
-        $branches = Branch::all();
-        $treasuries = Treasury::all();
-        $accounts = Account::all();
-        $employees = Employee::all();
-        $receiptsCategory = ReceiptCategory::all();
-        $clients = Client::all();
+    $branches = Branch::all();
+    $treasuries = Treasury::all();
+    $accounts = Account::all(); // فيه أسماء العملاء
+    $employees = Employee::all();
+    $receiptsCategory = ReceiptCategory::all();
 
-        // Base query for receipts
-        $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client'])->whereBetween('date', [$fromDate, $toDate]);
+    $query = Receipt::with(['incomes_category', 'treasury', 'account', 'employee', 'branch'])
+                    ->whereBetween('date', [$fromDate, $toDate]);
 
-        // Apply filters
-        if ($request->filled('branch')) {
-            $query->where('branch_id', $request->branch);
-        }
-
-        if ($request->filled('treasury')) {
-            $query->where('treasury_id', $request->treasury);
-        }
-
-        if ($request->filled('employee')) {
-            $query->where('employee_id', $request->employee);
-        }
-
-        if ($request->filled('client')) {
-            $query->where('client_id', $request->client);
-        }
-
-        if ($request->filled('employee_id')) {
-            $query->where('employee_id', $request->employee_id);
-        }
-
-        // Fetch receipts
-        $receipts = $query->get();
-
-        // Group receipts by
-        $groupedReceipts = $receipts->groupBy('employee');
-
-        // Prepare chart data
-        $chartData = [
-            'labels' => $groupedReceipts->keys()->toArray(),
-            'values' => $groupedReceipts
-                ->map(function ($employeeReceipts) {
-                    return $employeeReceipts->sum('amount');
-                })
-                ->values()
-                ->toArray(),
-        ];
-
-        return view('reports.general_accounts.receipt_bonds.receipt_by_client', [
-            'branches' => $branches,
-            'treasuries' => $treasuries,
-            'accounts' => $accounts,
-            'employees' => $employees,
-            'receiptsCategory' => $receiptsCategory,
-            'clients' => $clients,
-            'receipts' => $receipts,
-            'groupedReceipts' => $groupedReceipts,
-            'chartData' => $chartData,
-            'fromDate' => Carbon::parse($fromDate),
-            'toDate' => Carbon::parse($toDate),
-        ]);
+    // الفلاتر
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->branch);
     }
-    public function ReceiptByTimePeriod(Request $request)
-    {
-        // Default to current month if no date range specified
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-        // Fetch necessary dropdown data
-        $branches = Branch::all();
-        $treasuries = Treasury::all();
-        $accounts = Account::all();
-        $employees = Employee::all();
-        $receiptsCategory = ReceiptCategory::all();
-        $clients = Client::all();
-
-        // Base query for receipts
-        $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client', 'employee'])->whereBetween('date', [$fromDate, $toDate]);
-
-        // Apply filters
-        if ($request->filled('branch')) {
-            $query->where('branch_id', $request->branch);
-        }
-
-        if ($request->filled('treasury')) {
-            $query->where('treasury_id', $request->treasury);
-        }
-
-        if ($request->filled('employee')) {
-            $query->where('employee_id', $request->employee);
-        }
-
-        if ($request->filled('client')) {
-            $query->where('client_id', $request->client);
-        }
-
-        if ($request->filled('incomes_category')) {
-            $query->where('incomes_category_id', $request->incomes_category);
-        }
-
-        $reportPeriod = $request->input('report_period', 'monthly');
-        // Fetch receipts
-        $receipts = $query->get();
-
-        // Group receipts by client
-        $groupedReceipts = $receipts->groupBy('client_id');
-
-        $groupedReceipts = $receipts->groupBy(function ($receipt) use ($reportPeriod) {
-            $date = Carbon::parse($receipt->date);
-
-            switch ($reportPeriod) {
-                case 'daily':
-                    return $date->format('Y-m-d');
-                case 'weekly':
-                    return $date->year . ' Week ' . $date->weekOfYear;
-                case 'monthly':
-                    return $date->format('Y-m');
-                case 'quarterly':
-                    return $date->year . ' Q' . ceil($date->month / 3);
-                case 'yearly':
-                    return $date->year;
-                default:
-                    return $date->format('Y-m-d');
-            }
-        });
-        // Prepare chart data
-        $chartData = [
-            'labels' => $groupedReceipts
-                ->keys()
-                ->map(function ($clientId) use ($clients) {
-                    return $clients->find($clientId)->name ?? 'غير معروف';
-                })
-                ->toArray(),
-            'values' => $groupedReceipts
-                ->map(function ($clientReceipts) {
-                    return $clientReceipts->sum('amount');
-                })
-                ->values()
-                ->toArray(),
-        ];
-
-        return view('reports.general_accounts.receipt_bonds.receipt_time_period', [
-            'branches' => $branches,
-            'treasuries' => $treasuries,
-            'accounts' => $accounts,
-            'employees' => $employees,
-            'receiptsCategory' => $receiptsCategory,
-            'clients' => $clients,
-            'receipts' => $receipts,
-            'groupedReceipts' => $groupedReceipts,
-            'chartData' => $chartData,
-            'fromDate' => Carbon::parse($fromDate),
-            'toDate' => Carbon::parse($toDate),
-            'reportPeriod' => $reportPeriod,
-        ]);
+    if ($request->filled('treasury')) {
+        $query->where('treasury_id', $request->treasury);
     }
+
+    if ($request->filled('employee')) {
+        $query->where('employee_id', $request->employee);
+    }
+
+    if ($request->filled('account')) {
+        $query->where('account_id', $request->account);
+    }
+
+    $receipts = $query->get();
+
+    // تجميع حسب الحساب (العميل)
+    $groupedReceipts = $receipts->groupBy('account_id');
+
+    // الإجماليات
+    $totalAmount = $receipts->sum('amount');
+    $totalTax = $receipts->sum('tax1_amount') + $receipts->sum('tax2_amount');
+    $totalWithTax = $totalAmount + $totalTax;
+    $chartData = [
+        'labels' => $groupedReceipts->keys()->toArray(),
+        'values' => $groupedReceipts
+            ->map(function ($userReceipts) {
+                return $userReceipts->sum('amount');
+            })
+            ->values()
+            ->toArray(),
+    ];
+
+    return view('reports.general_accounts.receipt_bonds.receipt_by_client', [
+        'branches' => $branches,
+        'treasuries' => $treasuries,
+        'accounts' => $accounts,
+        'employees' => $employees,
+        'receiptsCategory' => $receiptsCategory,
+        'receipts' => $receipts,
+        'groupedReceipts' => $groupedReceipts,
+        'totalAmount' => $totalAmount,
+        'chartData' => $chartData,
+        'totalTax' => $totalTax,
+        'totalWithTax' => $totalWithTax,
+        'fromDate' => Carbon::parse($fromDate),
+        'toDate' => Carbon::parse($toDate),
+    ]);
+}
+
+public function ReceiptByTimePeriod(Request $request)
+{
+    $reportPeriod = $request->input('reportPeriod', 'monthly');
+
+    // إعداد تاريخ البداية والنهاية حسب نوع التقرير إذا لم يُحدد
+    if ($request->filled('from_date') && $request->filled('to_date')) {
+        $fromDate = Carbon::parse($request->input('from_date'));
+        $toDate = Carbon::parse($request->input('to_date'));
+    } else {
+        switch ($reportPeriod) {
+            case 'daily':
+                $fromDate = Carbon::today();
+                $toDate = Carbon::today();
+                break;
+            case 'weekly':
+                $fromDate = Carbon::now()->startOfWeek();
+                $toDate = Carbon::now()->endOfWeek();
+                break;
+            case 'monthly':
+                $fromDate = Carbon::now()->startOfMonth();
+                $toDate = Carbon::now()->endOfMonth();
+                break;
+            case 'quarterly':
+                $fromDate = Carbon::now()->firstOfQuarter();
+                $toDate = Carbon::now()->lastOfQuarter();
+                break;
+            case 'yearly':
+                $fromDate = Carbon::now()->startOfYear();
+                $toDate = Carbon::now()->endOfYear();
+                break;
+            default:
+                $fromDate = Carbon::now()->startOfMonth();
+                $toDate = Carbon::now()->endOfMonth();
+                break;
+        }
+    }
+
+    // البيانات الثابتة
+    $branches = Branch::all();
+    $treasuries = Treasury::all();
+    $accounts = Account::all();
+    $employees = Employee::all();
+    $receiptsCategory = ReceiptCategory::all();
+    $clients = Client::all();
+
+    // الاستعلام الرئيسي
+    $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client', 'employee'])
+        ->whereBetween('date', [$fromDate, $toDate]);
+
+    // تطبيق الفلاتر
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->branch);
+    }
+
+    if ($request->filled('treasury')) {
+        $query->where('treasury_id', $request->treasury);
+    }
+
+    if ($request->filled('employee')) {
+        $query->where('employee_id', $request->employee);
+    }
+
+    if ($request->filled('client')) {
+        $query->where('client_id', $request->client);
+    }
+
+    if ($request->filled('incomes_category')) {
+        $query->where('incomes_category_id', $request->incomes_category);
+    }
+
+    // جلب السجلات
+    $receipts = $query->get();
+
+    // تجميع حسب المدة الزمنية
+    $groupedReceipts = $receipts->groupBy(function ($receipt) use ($reportPeriod) {
+        $date = Carbon::parse($receipt->date);
+
+        switch ($reportPeriod) {
+            case 'daily':
+                return $date->format('Y-m-d');
+            case 'weekly':
+                return $date->year . ' Week ' . $date->weekOfYear;
+            case 'monthly':
+                return $date->format('Y-m');
+            case 'quarterly':
+                return $date->year . ' Q' . ceil($date->month / 3);
+            case 'yearly':
+                return $date->year;
+            default:
+                return $date->format('Y-m-d');
+        }
+    });
+
+    // بيانات الرسم البياني
+    $chartData = [
+        'labels' => $groupedReceipts->keys()->toArray(),
+        'values' => $groupedReceipts->map(function ($group) {
+            return $group->sum('amount');
+        })->values()->toArray(),
+    ];
+
+    return view('reports.general_accounts.receipt_bonds.receipt_time_period', [
+        'branches' => $branches,
+        'treasuries' => $treasuries,
+        'accounts' => $accounts,
+        'employees' => $employees,
+        'receiptsCategory' => $receiptsCategory,
+        'clients' => $clients,
+        'receipts' => $receipts,
+        'groupedReceipts' => $groupedReceipts,
+        'chartData' => $chartData,
+        'fromDate' => $fromDate,
+        'toDate' => $toDate,
+        'reportPeriod' => $reportPeriod,
+    ]);
+}
+
     public function trialBalance(Request $request)
     {
         // 1. معالجة نوع التقرير

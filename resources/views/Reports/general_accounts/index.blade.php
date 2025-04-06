@@ -388,7 +388,7 @@
                                 <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
                                 سندات القبض حسب البائع
                             </div>
-                            <a href="{{ route('GeneralAccountReports.ReceiptBySeller') }}" class="view-button"><i
+                            <a href="{{ route('GeneralAccountReports.ReceiptByEmployee') }}" class="view-button"><i
                                     class="fas fa-eye"></i> عرض</a>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center"
@@ -419,43 +419,52 @@
                         تقرير سندات القبض المقسمة
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
+                                <div class="icon-box icon5 ml-2"><i class="fas fa-calendar-day"></i></div>
                                 سندات القبض اليومية
                             </div>
-                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'daily']) }}"
-                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['report_period' => 'daily']) }}"
+                               class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
-                                سندات القبض الاسبوعية
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-calendar-week"></i></div>
+                                سندات القبض الأسبوعية
                             </div>
-                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'weekly']) }}"
-                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['report_period' => 'weekly']) }}"
+                               class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-calendar-alt"></i></div>
                                 سندات القبض الشهرية
                             </div>
-                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'monthly']) }}"
-                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['report_period' => 'monthly']) }}"
+                               class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-calendar"></i></div>
+                                سندات القبض الربع سنوية
+                            </div>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['report_period' => 'quarterly']) }}"
+                               class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-box icon1 ml-2"><i class="fas fa-calendar-check"></i></div>
                                 سندات القبض السنوية
                             </div>
-                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['reportPeriod' => 'yearly']) }}"
-                                class="view-button"><i class="fas fa-eye"></i> عرض</a>
+                            <a href="{{ route('GeneralAccountReports.ReceiptByTimePeriod', ['report_period' => 'yearly']) }}"
+                               class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
+
                 </div>
             </div>
         </div>

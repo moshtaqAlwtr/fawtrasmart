@@ -72,16 +72,18 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label for="inputTaxType" class="form-label">الموظف :</label>
-                        <select class="form-control" id="inputTaxType" name="employee">
+                        <label for="inputUser" class="form-label">الموظف :</label>
+                        <select class="form-control" id="inputUser" name="employee">
                             <option value="">اختر الموظف</option>
-                            @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}"
-                                    {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                    {{ $employee->full_name }}</option>
+                            @foreach ($users as $user)
+                                <option value="{{ $user->id }}"
+                                    {{ request('employee') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
+
                     <div class="col-md-3">
                         <label for="inputDateFrom" class="form-label">الفترة من:</label>
                         <input type="date" class="form-control" id="inputDateFrom" name="from_date"
@@ -254,7 +256,7 @@
                     <tbody>
                         @foreach ($receipts as $receipt)
                             <tr>
-                                <td>{{ $receipt->employee->full_name ?? 'N/A' }}</td>
+                                <td>{{ $receipt->user->name ?? 'N/A' }}</td>
                                 <td>{{ number_format($receipt->amount, 2) }}</td>
                                 <td>{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
                                 <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}

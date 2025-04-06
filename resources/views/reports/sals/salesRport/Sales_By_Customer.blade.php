@@ -54,7 +54,7 @@
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-select">
                                 <option value="">جميع الفروع</option>
-                                @foreach($branches as $branch)
+                                @foreach($clients->branch as $branch)
                                     <option value="{{ $branch->id }}"
                                         {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
@@ -206,15 +206,17 @@
                                         <td>-</td>
                                         <td>-</td>
                                         <td class="text-return">
-                                            {{ number_format($invoice->grand_total, 2) }}
+                                            -{{ number_format($invoice->grand_total, 2) }}
                                         </td>
                                         <td class="text-return">
-                                            {{ number_format($invoice->grand_total, 2) }}
+                                            -{{ number_format($invoice->grand_total, 2) }}
                                         </td>
 
                                         @php
                                             $clientReturnedTotal += $invoice->grand_total;
                                             $grandReturnedTotal += $invoice->grand_total;
+                                            $clientOverallTotal -= $invoice->grand_total;
+                                            $grandOverallTotal -= $invoice->grand_total;
                                         @endphp
                                     @else
                                         <td>
@@ -243,8 +245,8 @@
                                 <td colspan="4">مجموع العميل</td>
                                 <td>{{ number_format($clientPaidTotal, 2) }}</td>
                                 <td>{{ number_format($clientUnpaidTotal, 2) }}</td>
-                                <td>{{ number_format($clientReturnedTotal, 2) }}</td>
-                                <td>{{ number_format($clientPaidTotal + $clientUnpaidTotal + $clientReturnedTotal, 2) }}</td>
+                                <td>-{{ number_format($clientReturnedTotal, 2) }}</td>
+                                <td>{{ number_format($clientPaidTotal + $clientUnpaidTotal - $clientReturnedTotal, 2) }}</td>
                             </tr>
                         @endforeach
 
@@ -253,8 +255,8 @@
                             <td colspan="4">المجموع الكلي</td>
                             <td>{{ number_format($grandPaidTotal, 2) }}</td>
                             <td>{{ number_format($grandUnpaidTotal, 2) }}</td>
-                            <td>{{ number_format($grandReturnedTotal, 2) }}</td>
-                            <td>{{ number_format($grandPaidTotal + $grandUnpaidTotal + $grandReturnedTotal, 2) }}</td>
+                            <td>-{{ number_format($grandReturnedTotal, 2) }}</td>
+                            <td>{{ number_format($grandPaidTotal + $grandUnpaidTotal - $grandReturnedTotal, 2) }}</td>
                         </tr>
                     </tbody>
                 </table>

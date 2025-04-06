@@ -214,7 +214,7 @@
                                     <td>{{ $receipt->incomes_category->name ?? 'N/A' }}</td>
                                     <td>{{ $receipt->seller }}</td>
                                     <td>{{ $receipt->sup_account }}</td>
-                                    <td>{{ $receipt->employee->full_name ?? 'N/A' }}</td>
+                                    <td>{{ $receipt->user->name ?? 'N/A' }}</td>
                                     <td>{{ $receipt->description }}</td>
                                     <td>{{ $receipt->branch->name ?? 'N/A' }}</td>
                                     <td>{{ number_format($receipt->amount, 2) }}</td>

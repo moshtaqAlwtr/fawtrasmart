@@ -94,9 +94,9 @@
                         <label for="inputGroupBy" class="form-label">العميل:</label>
                         <select class="form-control" id="inputGroupBy" name="client">
                             <option value="">اختر العميل</option>
-                            @foreach ($clients as $client)
-                                <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
-                                    {{ $client->name }}</option>
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account->id }}" {{ request('account') == $account->id ? 'selected' : '' }}>
+                                    {{ $account->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -158,70 +158,74 @@
             <!-- Summary Table -->
             <div id="summaryTable">
                 <table class="table table-bordered table-striped">
-                    <thead class="table-header">
+                    <thead class="table-header text-center">
                         <tr>
                             <th>الكود</th>
                             <th>التاريخ</th>
-                            <th>خزينة</th>
+                            <th>الخزينة</th>
                             <th>التصنيف</th>
                             <th>البائع</th>
                             <th>الحساب الفرعي</th>
-                            <th>موظف</th>
+                            <th>الموظف</th>
                             <th>ملاحظة</th>
-                            <th>فرع</th>
+                            <th>الفرع</th>
                             <th>المبلغ</th>
                             <th>الضرائب</th>
                             <th>الإجمالي مع الضريبة</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @php
-                            // تجميع البيانات حسب العميل
-                            $groupedReceipts = $receipts->groupBy('client_id');
-                        @endphp
-
-                        @foreach ($groupedReceipts as $clientId => $receiptsInClient)
+                        @foreach ($groupedReceipts as $accountId => $receiptsByAccount)
                             @php
-                                $client = $clients->find($clientId);
+                                $account = \App\Models\Account::find($accountId);
                             @endphp
 
-                            <!-- عرض العميل -->
-                            <tr style="background-color: #f8f9fa;">
-                                <td colspan="12"><strong>{{ $client->name ?? 'غير معروف' }}</strong></td>
+                            <!-- اسم الحساب الفرعي -->
+                            <tr style="background-color: #f0f0f0;">
+                                <td colspan="12"><strong>الحساب الفرعي: {{ $account->name ?? 'غير معروف' }}</strong></td>
                             </tr>
 
-                            <!-- عرض التفاصيل تحت العميل -->
-                            @foreach ($receiptsInClient as $receipt)
+                            <!-- تفاصيل السندات -->
+                            @foreach ($receiptsByAccount as $receipt)
                                 <tr>
                                     <td>{{ $receipt->code }}</td>
                                     <td>{{ $receipt->date }}</td>
                                     <td>{{ $receipt->treasury->name ?? 'N/A' }}</td>
                                     <td>{{ $receipt->incomes_category->name ?? 'N/A' }}</td>
-                                    <td>{{ $receipt->seller }}</td>
-                                    <td>{{ $receipt->sup_account }}</td>
-                                    <td>{{ $receipt->employee->full_name ?? 'N/A' }}</td>
-                                    <td>{{ $receipt->description }}</td>
+                                    <td>{{ $receipt->seller ?? 'N/A' }}</td>
+                                    <td>{{ $receipt->sup_account ?? 'N/A' }}</td>
+                                    <td>{{ $receipt->user->name ?? 'N/A' }}</td>
+                                    <td>{{ $receipt->description ?? '-' }}</td>
                                     <td>{{ $receipt->branch->name ?? 'N/A' }}</td>
                                     <td>{{ number_format($receipt->amount, 2) }}</td>
                                     <td>{{ number_format($receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
-                                    <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}
-                                    </td>
+                                    <td>{{ number_format($receipt->amount + $receipt->tax1_amount + $receipt->tax2_amount, 2) }}</td>
                                 </tr>
                             @endforeach
 
-                            <!-- عرض المجموع لكل عميل -->
+                            <!-- مجموع الحساب الفرعي -->
                             <tr style="background-color: #e9ecef;">
                                 <td colspan="9"><strong>المجموع</strong></td>
-                                <td><strong>{{ number_format($receiptsInClient->sum('amount'), 2) }}</strong></td>
-                                <td><strong>{{ number_format($receiptsInClient->sum('tax1_amount') + $receiptsInClient->sum('tax2_amount'), 2) }}</strong>
-                                </td>
-                                <td><strong>{{ number_format($receiptsInClient->sum('amount') + $receiptsInClient->sum('tax1_amount') + $receiptsInClient->sum('tax2_amount'), 2) }}</strong>
-                                </td>
+                                <td><strong>{{ number_format($receiptsByAccount->sum('amount'), 2) }}</strong></td>
+                                <td><strong>{{ number_format($receiptsByAccount->sum('tax1_amount') + $receiptsByAccount->sum('tax2_amount'), 2) }}</strong></td>
+                                <td><strong>{{ number_format($receiptsByAccount->sum('amount') + $receiptsByAccount->sum('tax1_amount') + $receiptsByAccount->sum('tax2_amount'), 2) }}</strong></td>
                             </tr>
                         @endforeach
                     </tbody>
+
+                    <!-- الإجمالي الكلي -->
+                    <tfoot>
+                        <tr style="background-color: #d1ecf1;">
+                            <td colspan="9" class="text-center"><strong>الإجمالي الكلي</strong></td>
+                            <td><strong>{{ number_format($totalAmount, 2) }}</strong></td>
+                            <td><strong>{{ number_format($totalTax, 2) }}</strong></td>
+                            <td><strong>{{ number_format($totalWithTax, 2) }}</strong></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
+
+
 
             <!-- Details Table -->
             <div id="detailsTable" class="hidden">
