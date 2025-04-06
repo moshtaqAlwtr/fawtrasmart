@@ -358,7 +358,7 @@
                     <a href="{{ route('appointments.create') }}" class="btn btn-sm btn-success col-md-auto">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-                    <a href="#" class="btn btn-sm btn-warning col-md-auto">
+                    <a href="{{ route('clients.statement', $client->id) }}" class="btn btn-sm btn-warning col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
                     <a href="{{ route('questions.create') }}" class="btn btn-sm btn-warning col-md-auto">
@@ -394,7 +394,7 @@
                         <li><a class="dropdown-item d-flex align-items-center" href="{{ route('appointments.create') }}">
                             <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
                         </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#">
+                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('clients.statement', $client->id) }}">
                             <i class="fas fa-file-invoice me-2 text-warning"></i> كشف حساب
                         </a></li>
                         <li><a class="dropdown-item d-flex align-items-center" href="{{ route('questions.create') }}">

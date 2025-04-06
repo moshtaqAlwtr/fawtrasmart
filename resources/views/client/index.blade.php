@@ -461,7 +461,7 @@
                                                         @endif
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="{{ route('clients.edit', $client->id) }}">
+                                                                href="{{ route('clients.statement', $client->id) }}">
                                                                 <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
                                                                 حساب
                                                             </a>

@@ -343,7 +343,7 @@ class ClientController extends Controller
             $customerAccount = new Account();
             $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
             $customerAccount->client_id = $client->id;
-            $customerAccount->balance = $client->opening_balance ?? 0;
+            $customerAccount->balance += $client->opening_balance ?? 0;
             // تعيين كود الحساب الفرعي بناءً على كود الحسابات
             $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
 
@@ -359,6 +359,32 @@ class ClientController extends Controller
             $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
             $customerAccount->is_active = false;
             $customerAccount->save();
+             
+            if($client->opening_balance > 0){
+                $journalEntry = JournalEntry::create([
+                    'reference_number' => $client->code,
+                    'date' => now(),
+                    'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                    'status' => 1,
+                    'currency' => 'SAR',
+                    'client_id' => $client->id,
+                    // 'invoice_id' => $$client->id,
+                    // 'created_by_employee' => Auth::id(),
+                ]);
+    
+              
+                // // 1. حساب العميل (مدين)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $customerAccount->id, // حساب العميل
+                    'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                    'debit' => $client->opening_balance ?? 0, // المبلغ الكلي للفاتورة (مدين)
+                    'credit' => 0,
+                    'is_debit' => true,
+                ]);
+            }
+               // إنشاء القيد المحاسبي للفاتورة
+            
         }
 
         // حفظ جهات الاتصال المرتبطة بالعميل
@@ -470,7 +496,7 @@ class ClientController extends Controller
                 $account->client_id = $client->id;
                 $account->name = $client->trade_name ?? 'عميل بدون اسم';
                 $account->parent_id = $parentAccount->id;
-                $account->balance = $client->opening_balance ?? 0;
+                $account->balance += $client->opening_balance ?? 0;
                 $account->balance_type = 'debit';
                 $account->is_active = true;
                 $account->code = $this->generateUniqueAccountCode($parentAccount->id, $parentAccount->code);
@@ -628,34 +654,33 @@ $validated = $request->validate($rules, $messages);
             // 5. تحديث الحساب المالي
             $customersAccount = Account::where('name', 'العملاء')->first();
 
+            
+            $customersAccount = Account::where('name', 'العملاء')->first();
+
             if ($customersAccount) {
-                $accountData = [
-                    'name' => $client->trade_name,
-                    'balance' => $client->opening_balance ?? 0,
-                    'parent_id' => $customersAccount->id,
-                    'balance_type' => 'debit',
-                    'is_active' => false,
-                ];
-
-                $clientAccount = Account::where('client_id', $client->id)->first();
-
-                if ($clientAccount) {
-                    $clientAccount->update($accountData);
+                // تحقق مما إذا كان الحساب موجود بنفس اسم العميل
+                $existingAccount = Account::where('name', $client->trade_name)->first();
+            
+                $openingBalance = $client->opening_balance ?? 0;
+            
+                if ($existingAccount) {
+                    // أضف الرصيد الافتتاحي إلى الرصيد الحالي
+                    $existingAccount->balance += $openingBalance;
+                    $existingAccount->save();
                 } else {
-                    $lastChild = Account::where('parent_id', $customersAccount->id)->orderBy('code', 'desc')->first();
-
-                    $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customersAccount->code . '1';
-
-                    while (Account::where('code', $newCode)->exists()) {
-                        $newCode = $this->generateNextCode($newCode);
-                    }
-
-                    $accountData['code'] = $newCode;
-                    $accountData['client_id'] = $client->id;
+                    // إنشاء حساب جديد وإضافة الرصيد الافتتاحي
+                    $accountData = [
+                        'name' => $client->trade_name,
+                        'balance' => $openingBalance,
+                        'parent_id' => $customersAccount->id,
+                        'balance_type' => 'debit',
+                        'is_active' => false,
+                    ];
+            
                     Account::create($accountData);
                 }
             }
-
+            
             // 6. معالجة جهات الاتصال
             if ($request->has('contacts')) {
                 $existingContacts = $client->contacts->keyBy('id');
@@ -930,8 +955,31 @@ $validated = $request->validate($rules, $messages);
 
         $Account = Account::where('client_id', $id)->first();
         if ($Account) {
-            $Account->balance = $client->opening_balance;
+            $Account->balance += $client->opening_balance;
             $Account->save(); // حفظ التعديل في قاعدة البيانات
+        }
+        if($client->opening_balance > 0){
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $client->code,
+                'date' => now(),
+                'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $client->id,
+                // 'invoice_id' => $$client->id,
+                // 'created_by_employee' => Auth::id(),
+            ]);
+
+          
+            // // 1. حساب العميل (مدين)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $Account->id, // حساب العميل
+                'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                'debit' => $client->opening_balance ?? 0, // المبلغ الكلي للفاتورة (مدين)
+                'credit' => 0,
+                'is_debit' => true,
+            ]);
         }
 
         return response()->json(['success' => true]);
@@ -1380,7 +1428,7 @@ notifications::create([
 
 
             $allOperations[] = [
-                'operation' => '  قبد رقم # ' . $transaction->journalEntry->id ,
+                'operation' =>  $transaction->description ,
                 'deposit' => $type === 'إيداع' ? $amount : 0,
                 'withdraw' => $type === 'سحب' ? $amount : 0,
                 'balance_after' => $currentBalance,
