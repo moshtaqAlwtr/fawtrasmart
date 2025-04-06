@@ -172,6 +172,7 @@ class CreditNotificationController extends Controller
 
     public function store(Request $request)
     {
+    
         // التحقق من صحة البيانات باستخدام helper function
         $validated = validator($request->all(), [
             'client_id' => 'required|exists:clients,id',
@@ -408,7 +409,7 @@ class CreditNotificationController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $creditNot->client_id,
 
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
          
@@ -441,7 +442,7 @@ class CreditNotificationController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $creditNot->client_id,
 
-                'created_by_employee' => Auth::id(),
+                // 'created_by_employee' => Auth::id(),
             ]);
 
             // // 2. حساب  المخزون (مدين)
