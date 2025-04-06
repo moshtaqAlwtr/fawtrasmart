@@ -174,9 +174,9 @@ class ReturnInvoiceController extends Controller
         $clients = Client::all();
         $users = User::all();
         $employees = Employee::all();
-         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
-        return view('sales.retend_invoice.index', compact('return','account_setting', 'clients', 'users', 'employees'));
+        return view('sales.retend_invoice.index', compact('return', 'account_setting', 'clients', 'users', 'employees'));
     }
     public function create($id)
     {
@@ -196,7 +196,7 @@ class ReturnInvoiceController extends Controller
         $taxs = TaxSitting::all();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         // تمرير البيانات إلى العرض
-        return view('sales.retend_invoice.create', compact('clients','account_setting','taxs', 'items', 'treasury',  'users', 'invoice'));
+        return view('sales.retend_invoice.create', compact('clients', 'account_setting', 'taxs', 'items', 'treasury', 'users', 'invoice'));
     }
     // private function generateInvoiceNumber()
     // {
@@ -207,7 +207,6 @@ class ReturnInvoiceController extends Controller
 
     public function store(Request $request)
     {
-        
         try {
             // التحقق من وجود invoice_id
             if (empty($request->invoice_id) || !is_numeric($request->invoice_id)) {
@@ -230,7 +229,6 @@ class ReturnInvoiceController extends Controller
 
             // جلب العناصر (items) الخاصة بالفاتورة
             $invoiceItems = $invoice->items;
-           
 
             // التكرار على كل عنصر (item) وإضافة الكمية المرتجعة إلى المخزون
             foreach ($invoiceItems as $item) {
@@ -249,9 +247,7 @@ class ReturnInvoiceController extends Controller
                 }
 
                 // إضافة الكمية المرتجعة إلى المخزون
-                $productDetails = ProductDetails::where('store_house_id', $item->store_house_id)
-                    ->where('product_id', $item->product_id)
-                    ->first();
+                $productDetails = ProductDetails::where('store_house_id', $item->store_house_id)->where('product_id', $item->product_id)->first();
 
                 if (!$productDetails) {
                     throw new \Exception('تفاصيل المنتج غير موجودة في المستودع.');
@@ -281,40 +277,40 @@ class ReturnInvoiceController extends Controller
                     'warehouse_permits_id' => $wareHousePermits->id,
                 ]);
             }
-  foreach ($invoiceItems as $item) {
-    // حساب الإجمالي لكل منتج (السعر × الكمية)
-    $item_subtotal = $item['unit_price'] * $item['quantity']; 
-    
-    // حساب قيمة الضريبة 1 إن وجدت
-    if (!empty($item['tax_1_id'])) {
-        $tax1 = TaxSitting::find($item['tax_1_id']);
-        if ($tax1) {
-            $tax_value1 = ($tax1->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
-            TaxInvoice::create([
-                'name' => $tax1->name,
-                'invoice_id' => $invoice->id,
-                'type' => $tax1->type,
-                'rate' => $tax1->tax,
-                'value' => $tax_value1,
-            ]);
-        }
-    }
+            foreach ($invoiceItems as $item) {
+                // حساب الإجمالي لكل منتج (السعر × الكمية)
+                $item_subtotal = $item['unit_price'] * $item['quantity'];
 
-    // حساب قيمة الضريبة 2 إن وجدت
-    if (!empty($item['tax_2_id'])) {
-        $tax2 = TaxSitting::find($item['tax_2_id']);
-        if ($tax2) {
-            $tax_value2 = ($tax2->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
-            TaxInvoice::create([
-                'name' => $tax2->name,
-                'invoice_id' => $invoice->id,
-                'type' => $tax2->type,
-                'rate' => $tax2->tax,
-                'value' => $tax_value2,
-            ]);
-        }
-    }
-}
+                // حساب قيمة الضريبة 1 إن وجدت
+                if (!empty($item['tax_1_id'])) {
+                    $tax1 = TaxSitting::find($item['tax_1_id']);
+                    if ($tax1) {
+                        $tax_value1 = ($tax1->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
+                        TaxInvoice::create([
+                            'name' => $tax1->name,
+                            'invoice_id' => $invoice->id,
+                            'type' => $tax1->type,
+                            'rate' => $tax1->tax,
+                            'value' => $tax_value1,
+                        ]);
+                    }
+                }
+
+                // حساب قيمة الضريبة 2 إن وجدت
+                if (!empty($item['tax_2_id'])) {
+                    $tax2 = TaxSitting::find($item['tax_2_id']);
+                    if ($tax2) {
+                        $tax_value2 = ($tax2->tax / 100) * $item_subtotal; // حساب قيمة الضريبة كنسبة مئوية من المجموع الجزئي للمنتج
+                        TaxInvoice::create([
+                            'name' => $tax2->name,
+                            'invoice_id' => $invoice->id,
+                            'type' => $tax2->type,
+                            'rate' => $tax2->tax,
+                            'value' => $tax_value2,
+                        ]);
+                    }
+                }
+            }
             // عكس القيود المحاسبية
             $journalEntries = JournalEntry::where('invoice_id', $invoice->id)->get();
 
@@ -360,7 +356,37 @@ class ReturnInvoiceController extends Controller
 
             $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
 
-            if($invoice->payment_status = 1){
+            if ($invoice->payment_status = 1) {
+                $journalEntry = JournalEntry::create([
+                    'reference_number' => $invoice->code,
+                    'date' => now(),
+                    'description' => 'مرتجع مبيعات لفاتورة رقم ' . $invoice->code,
+                    'status' => 1,
+                    'currency' => 'SAR',
+                    'client_id' => $invoice->client_id,
+                    'invoice_id' => $invoice->id,
+                     'created_by_employee' => Auth::id(),
+                ]);
+
+                // // 2. حساب العميل (مدين)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $clientaccounts->id, // حساب المبيعات
+                    'description' => 'العميل',
+                    'debit' => $invoice->grand_total, // المبلغ بعد الخصم (مدين)
+                    'credit' => 0,
+                    'is_debit' => false,
+                ]);
+
+                // // 2. حساب الخزينة (دائن)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $mainAccount->id, // حساب المبيعات
+                    'description' => 'مرتجع مبيعات',
+                    'debit' => 0,
+                    'credit' => $invoice->grand_total, // المبلغ بعد الخصم (دائن)
+                    'is_debit' => false,
+                ]);
                 $journalEntry = JournalEntry::create([
                     'reference_number' => $invoice->code,
                     'date' => now(),
@@ -371,109 +397,78 @@ class ReturnInvoiceController extends Controller
                     'invoice_id' => $invoice->id,
                     'created_by_employee' => Auth::id(),
                 ]);
-                
-       
-                 // // 2. حساب العميل (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $clientaccounts->id, // حساب المبيعات
-                'description' => 'العميل',
-                'debit' => $invoice->grand_total, // المبلغ بعد الخصم (مدين)
-                'credit' => 0, 
-                'is_debit' => false,
-            ]);
 
-               // // 2. حساب الخزينة (دائن)
-               JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $mainAccount->id, // حساب المبيعات
-                'description' => 'مرتجع مبيعات',
-                'debit' => 0,
-                'credit' => $invoice->grand_total, // المبلغ بعد الخصم (دائن)
-                'is_debit' => false,
-            ]);
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $invoice->code,
-                'date' => now(),
-                'description' => 'مرتجع مبيعات لفاتورة رقم ' . $invoice->code,
-                'status' => 1,
-                'currency' => 'SAR',
-                'client_id' => $invoice->client_id,
-                'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
-            ]);
+                // // 2. حساب مردود المبيعات (مدين)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $retursalesnAccount->id, // حساب المبيعات
+                    'description' => 'مردود المبيعات',
+                    'debit' => $invoice->grand_total, // المبلغ بعد الخصم (مدين)
+                    'credit' => 0,
+                    'is_debit' => false,
+                ]);
 
-             // // 2. حساب مردود المبيعات (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $retursalesnAccount->id, // حساب المبيعات
-                'description' => 'مردود المبيعات',
-                'debit' => $invoice->grand_total, // المبلغ بعد الخصم (مدين)
-                'credit' => 0, 
-                'is_debit' => false,
-            ]);
+                // // 2. حساب  العميل (دائن)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $clientaccounts->id, // حساب المبيعات
+                    'description' => 'مردود المبيعات',
+                    'debit' => 0,
+                    'credit' => $invoice->grand_total, // المبلغ بعد الخصم (دائن)
+                    'is_debit' => false,
+                ]);
 
-               // // 2. حساب  العميل (دائن)
-               JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $clientaccounts->id, // حساب المبيعات
-                'description' => 'مردود المبيعات',
-                'debit' => 0,
-                'credit' => $invoice->grand_total, // المبلغ بعد الخصم (دائن)
-                'is_debit' => false,
-            ]);
+                $journalEntry = JournalEntry::create([
+                    'reference_number' => $invoice->code,
+                    'date' => now(),
+                    'description' => 'مرتجع مبيعات لفاتورة رقم ' . $invoice->code,
+                    'status' => 1,
+                    'currency' => 'SAR',
+                    'client_id' => $invoice->client_id,
+                    'invoice_id' => $invoice->id,
+                     'created_by_employee' => Auth::id(),
+                ]);
 
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $invoice->code,
-                'date' => now(),
-                'description' => 'مرتجع مبيعات لفاتورة رقم ' . $invoice->code,
-                'status' => 1,
-                'currency' => 'SAR',
-                'client_id' => $invoice->client_id,
-                'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
-            ]);
+                // // 2. حساب  المخزون (مدين)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $storeAccount->id, // حساب المبيعات
+                    'description' => 'مردود المبيعات',
+                    'debit' => $invoice->grand_total, // المبلغ بعد الخصم (مدين)
+                    'credit' => 0,
+                    'is_debit' => true,
+                ]);
 
-             // // 2. حساب  المخزون (مدين)
-             JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $storeAccount->id, // حساب المبيعات
-                'description' => 'مردود المبيعات',
-                'debit' => $invoice->grand_total,  // المبلغ بعد الخصم (مدين)
-                'credit' => 0, 
-                'is_debit' => true,
-            ]);
-           
-             // // 2. حساب  تكلفة المبيعات (دائن)
-             JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $costAccount->id, // حساب المبيعات
-                'description' => 'مردود المبيعات',
-                'debit' => 0,
-                'credit' => $invoice->grand_total, // المبلغ بعد الخصم (دائن)
-                'is_debit' => false,
-            ]);
+                // // 2. حساب  تكلفة المبيعات (دائن)
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $costAccount->id, // حساب المبيعات
+                    'description' => 'مردود المبيعات',
+                    'debit' => 0,
+                    'credit' => $invoice->grand_total, // المبلغ بعد الخصم (دائن)
+                    'is_debit' => false,
+                ]);
 
-            if ($clientaccounts) {
-                $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                $clientaccounts->save();
-            }
-            if ($storeAccount) {
-                $storeAccount->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                $storeAccount->save();
-            }
-            if ($retursalesnAccount) {
-                $retursalesnAccount->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                $retursalesnAccount->save();
-            }
-            if ($mainAccount) {
-                $mainAccount->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                $mainAccount->save();
-            } 
-            if ($costAccount) {
-                $costAccount->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                $costAccount->save();
-            } 
+                if ($clientaccounts) {
+                    $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                    $clientaccounts->save();
+                }
+                if ($storeAccount) {
+                    $storeAccount->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                    $storeAccount->save();
+                }
+                if ($retursalesnAccount) {
+                    $retursalesnAccount->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                    $retursalesnAccount->save();
+                }
+                if ($mainAccount) {
+                    $mainAccount->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                    $mainAccount->save();
+                }
+                if ($costAccount) {
+                    $costAccount->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                    $costAccount->save();
+                }
             }
             //     // إنشاء القيد المحاسبي للفاتورة
             $journalEntry = JournalEntry::create([
@@ -484,13 +479,10 @@ class ReturnInvoiceController extends Controller
                 'currency' => 'SAR',
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
-                'created_by_employee' => Auth::id(),
-
+                 'created_by_employee' => Auth::id(),
             ]);
 
-           
             // // إضافة تفاصيل القيد المحاسبي
-
 
             // // 2. حساب المخزون (مدين)
             JournalEntryDetail::create([
@@ -507,8 +499,8 @@ class ReturnInvoiceController extends Controller
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $costAccount->id, // حساب تكلفة المبيعات
                 'description' => 'فاتورة مبيعات',
-                'debit' => 0, // 
-                'credit' => $invoice->grand_total, // دائن ف حساب العميل 
+                'debit' => 0, //
+                'credit' => $invoice->grand_total, // دائن ف حساب العميل
                 'is_debit' => false,
             ]);
 
@@ -518,7 +510,7 @@ class ReturnInvoiceController extends Controller
             //     'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
             //     'description' => 'ضريبة القيمة المضافة',
             //     'debit' => $invoice->tax_total, // قيمة الضريبة (مدين)
-            //     'credit' => 0, 
+            //     'credit' => 0,
             //     'is_debit' => false,
             // ]);
 
@@ -531,7 +523,6 @@ class ReturnInvoiceController extends Controller
                 'client_id' => $invoice->client_id,
                 'invoice_id' => $invoice->id,
                 'created_by_employee' => Auth::id(),
-
             ]);
 
             // // 2. حساب العميل (دائن)
@@ -566,7 +557,7 @@ class ReturnInvoiceController extends Controller
             //     $vatAccount->save();
             // }
 
-            //العميل 
+            //العميل
             if ($clientaccounts) {
                 $clientaccounts->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                 $clientaccounts->save();
@@ -584,7 +575,6 @@ class ReturnInvoiceController extends Controller
                 $costAccount->save();
             }
 
-
             // تحديث حالة الفاتورة
             $invoice->payment_status = 4; // حالة الإرجاع
             $invoice->save();
@@ -592,9 +582,7 @@ class ReturnInvoiceController extends Controller
             // إتمام المعاملة
             DB::commit();
 
-            return redirect()
-                ->route('ReturnIInvoices.show', $invoice->id)
-                ->with('success', 'تم إرجاع الفاتورة بنجاح.');
+            return redirect()->route('ReturnIInvoices.show', $invoice->id)->with('success', 'تم إرجاع الفاتورة بنجاح.');
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('خطأ في إرجاع الفاتورة: ' . $e->getMessage());
@@ -631,10 +619,10 @@ class ReturnInvoiceController extends Controller
     {
         $clients = Client::all();
         $employees = Employee::all();
-        $return_invoice = Invoice::find($id); 
-         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->get();
-         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        $return_invoice = Invoice::find($id);
+        $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->get();
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         // $invoice_number = $this->generateInvoiceNumber();
-        return view('sales.retend_invoice.show', compact('clients','TaxsInvoice', 'employees','account_setting', 'return_invoice'));
+        return view('sales.retend_invoice.show', compact('clients', 'TaxsInvoice', 'employees', 'account_setting', 'return_invoice'));
     }
 }

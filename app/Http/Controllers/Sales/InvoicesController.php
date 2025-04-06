@@ -84,7 +84,7 @@ class InvoicesController extends Controller
                         ->where('created_by', auth()->user()->id)
                         ->orderBy('created_at', 'desc');
         }
-        
+
         // 1. البحث حسب العميل
         if ($request->has('client_id') && $request->client_id) {
             $invoices->where('client_id', $request->client_id);
@@ -240,8 +240,8 @@ class InvoicesController extends Controller
         } else {
             $employees = Employee::all();
         }
-        
-        
+
+
 
 
         $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
@@ -404,13 +404,13 @@ class InvoicesController extends Controller
     {
         try {
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
-            $code = $request->code;
-            $client = Client::findOrFail($request->client_id);
-            $clientLocation = $client->locations()->latest()->first();
+            // $code = $request->code;
+            // $client = Client::findOrFail($request->client_id);
+            // $clientLocation = $client->locations()->latest()->first();
 
-            if (!$clientLocation) {
-                return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - العميل ليس لديه موقع مسجل');
-            }
+            // if (!$clientLocation) {
+            //     return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - العميل ليس لديه موقع مسجل');
+            // }
 
             // الحصول على موقع الموظف الحالي
             // $employeeLocation = Location::where('employee_id', auth()->id())->latest()->first();
@@ -1116,7 +1116,7 @@ class InvoicesController extends Controller
                 }
             }
             $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
-           
+
                 // استرجاع حساب القيمة المضافة المحصلة
                 $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
                 if (!$vatAccount) {
@@ -1223,7 +1223,7 @@ class InvoicesController extends Controller
                     $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                     $clientaccounts->save();
                 }
-            
+
 
             // تحديث رصيد حساب الخزينة الرئيسية
 
