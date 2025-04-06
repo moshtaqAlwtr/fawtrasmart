@@ -310,12 +310,12 @@
                                 <!-- 13. Added By -->
                                 <div class="col-md-4">
                                     <label for="added_by">أضيفت بواسطة</label>
-                                    <select name="added_by" class="form-control" id="added_by">
+                                    <select name="created_by" class="form-control" id="added_by">
                                         <option value="">أي موظف</option>
-                                        @foreach ($employees as $employee)
-                                            <option value="{{ $employee->id }}"
-                                                {{ request('added_by') == $employee->id ? 'selected' : '' }}>
-                                                {{ $employee->full_name }}</option>
+                                        @foreach ($users as $user)
+                                            <option value="{{ $user->id }}"
+                                                {{ request('created_by') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>

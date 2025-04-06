@@ -64,5 +64,8 @@ class Receipt extends Model
 public function employee(){
     return $this->belongsTo(Employee::class,'employee_id');
 }
+public function branch(){
+    return $this->belongsTo(Branch::class,'branch_id');
+}
 
 }
