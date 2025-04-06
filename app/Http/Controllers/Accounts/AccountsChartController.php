@@ -185,7 +185,7 @@ class AccountsChartController extends Controller
         $accounts = $accounts->get();
         $branches = Branch::all();
 
-        return view('Accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
+        return view('accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
     }
 
     public function search(Request $request)
@@ -257,30 +257,30 @@ private function calculateTotalBalance($account)
           // جلب بيانات الخزينة
           $treasury = $this->getTreasury($accountId);
           $branches = $this->getBranches();
-  
+
           // جلب العمليات المالية
           $transactions = $this->getTransactions($accountId);
           $transfers = $this->getTransfers($accountId);
           $expenses = $this->getExpenses($accountId);
           $revenues = $this->getRevenues($accountId);
-  
+
           // معالجة العمليات وحساب الرصيد
           $allOperations = $this->processOperations($transactions, $transfers, $expenses, $revenues, $treasury);
-  
+
           // ترتيب العمليات حسب التاريخ
           usort($allOperations, function ($a, $b) {
               return strtotime($b['date']) - strtotime($a['date']);
           });
-  
+
           // تقسيم العمليات إلى صفحات
           $operationsPaginator = $this->paginateOperations($allOperations);
-  
+
           // إرسال البيانات إلى الواجهة
-          return view('Accounts.accounts_chart.tree_details', compact('treasury', 'operationsPaginator', 'branches'));
+          return view('accounts.accounts_chart.tree_details', compact('treasury', 'operationsPaginator', 'branches'));
 
 
     }
-   
+
 
     private function getTreasury($id)
     {
