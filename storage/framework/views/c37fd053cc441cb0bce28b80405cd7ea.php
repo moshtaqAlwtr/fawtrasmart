@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     انشاء فاتورة مرتجعة
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -23,22 +21,23 @@
         </div>
     </div>
     <div class="content-body">
-        <form id="invoice-form" action="{{ route('ReturnIInvoices.store') }}" method="post">
-            @csrf
-            @if ($errors->any())
+        <form id="invoice-form" action="<?php echo e(route('ReturnIInvoices.store')); ?>" method="post">
+            <?php echo csrf_field(); ?>
+            <?php if($errors->any()): ?>
                 <div class="alert alert-danger">
                     <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
-            @if (session('error'))
+            <?php endif; ?>
+            <?php if(session('error')): ?>
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    <?php echo e(session('error')); ?>
+
                 </div>
-            @endif
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-body">
@@ -91,17 +90,18 @@
                                                 <select class="form-control select2" id="clientSelect" name="client_id"
                                                     required>
                                                     <option value="">اختر العميل</option>
-                                                    @foreach ($clients as $client)
-                                                        <option value="{{ $client->id }}"
-                                                            {{ $client->id == $invoice->client_id ? 'selected' : '' }}>
-                                                            {{ $client->trade_name }}
+                                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($client->id); ?>"
+                                                            <?php echo e($client->id == $invoice->client_id ? 'selected' : ''); ?>>
+                                                            <?php echo e($client->trade_name); ?>
+
                                                         </option>
-                                                    @endforeach
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
 
                                             </div>
                                             <div class="col-md-4">
-                                                <a href="{{ route('clients.create') }}" type="button"
+                                                <a href="<?php echo e(route('clients.create')); ?>" type="button"
                                                     class="btn btn-primary mr-1 mb-1 waves-effect waves-light">
                                                     <i class="fa fa-user-plus"></i>جديد
                                                 </a>
@@ -139,7 +139,7 @@
                                             </div>
                                             <div class="col-md-8">
                                                 <input class="form-control" type="date" name="invoice_date"
-                                                    value="{{ date('Y-m-d') }}">
+                                                    value="<?php echo e(date('Y-m-d')); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -151,9 +151,9 @@
                                             </div>
                                             <div class="col-md-9">
                                                 <select name="created_by" class="form-control" id="">
-                                                    @foreach ($users as $user)
-                                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                                    @endforeach
+                                                    <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?></option>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
                                             </div>
 
@@ -167,7 +167,7 @@
                                             </div>
                                             <div class="col-md-8">
                                                 <input class="form-control" type="date" name="issue_date"
-                                                    value="{{ date('Y-m-d') }}">
+                                                    value="<?php echo e(date('Y-m-d')); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -212,7 +212,7 @@
                         </div>
                     </div>
                 </div>
-                <input type="hidden" name="invoice_id" value="{{ $invoice->id }}">
+                <input type="hidden" name="invoice_id" value="<?php echo e($invoice->id); ?>">
             </div>
             <div class="card">
                 <div class="card-content">
@@ -234,47 +234,48 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($invoice->items as $index => $item)
+                                    <?php $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <tr class="item-row">
                                             <td style="width:18%">
-                                                <select name="items[{{ $index }}][product_id]"
+                                                <select name="items[<?php echo e($index); ?>][product_id]"
                                                     class="form-control product-select">
                                                     <option value="">اختر المنتج</option>
-                                                    @foreach ($items as $product)
-                                                        <option value="{{ $product->id }}"
-                                                            {{ $product->id == $item->product_id ? 'selected' : '' }}
-                                                            data-price="{{ $product->price }}">
-                                                            {{ $product->name }}</option>
-                                                    @endforeach
+                                                    <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($product->id); ?>"
+                                                            <?php echo e($product->id == $item->product_id ? 'selected' : ''); ?>
+
+                                                            data-price="<?php echo e($product->price); ?>">
+                                                            <?php echo e($product->name); ?></option>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
                                             </td>
                                             <td>
-                                                <input type="text" name="items[{{ $index }}][description]"
+                                                <input type="text" name="items[<?php echo e($index); ?>][description]"
                                                     class="form-control item-description"
-                                                    value="{{ $item->description }}">
+                                                    value="<?php echo e($item->description); ?>">
                                             </td>
                                             <td>
-                                                <input type="number" name="items[{{ $index }}][quantity]"
-                                                    class="form-control quantity" value="{{ $item->quantity }}"
+                                                <input type="number" name="items[<?php echo e($index); ?>][quantity]"
+                                                    class="form-control quantity" value="<?php echo e($item->quantity); ?>"
                                                     min="1" required>
                                             </td>
                                             <td>
-                                                <input type="number" name="items[{{ $index }}][unit_price]"
+                                                <input type="number" name="items[<?php echo e($index); ?>][unit_price]"
                                                     class="form-control price" step="0.01"
-                                                    value="{{ $invoice->items[$index]->unit_price }}" required>
+                                                    value="<?php echo e($invoice->items[$index]->unit_price); ?>" required>
                                             </td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input type="number" name="items[{{ $index }}][discount]"
-                                                        class="form-control discount-value" value="{{ $item->discount }}"
+                                                    <input type="number" name="items[<?php echo e($index); ?>][discount]"
+                                                        class="form-control discount-value" value="<?php echo e($item->discount); ?>"
                                                         min="0" step="0.01">
-                                                    <select name="items[{{ $index }}][discount_type]"
+                                                    <select name="items[<?php echo e($index); ?>][discount_type]"
                                                         class="form-control discount-type">
                                                         <option value="amount"
-                                                            {{ $item->discount_type == 'amount' ? 'selected' : '' }}>ريال
+                                                            <?php echo e($item->discount_type == 'amount' ? 'selected' : ''); ?>>ريال
                                                         </option>
                                                         <option value="percentage"
-                                                            {{ $item->discount_type == 'percentage' ? 'selected' : '' }}>
+                                                            <?php echo e($item->discount_type == 'percentage' ? 'selected' : ''); ?>>
                                                             نسبة %</option>
                                                     </select>
                                                 </div>
@@ -286,14 +287,15 @@
                                                         data-target="tax_1" style="width: 150px;"
                                                         onchange="updateHiddenInput(this, 'taxOne_0')">
                                                         <option value=""></option>
-                                                        @foreach ($taxs as $tax)
-                                                            <option value="{{ $tax->tax }}"
-                                                                data-id="{{ $tax->id }}"
-                                                                data-name="{{ $tax->name }}"
-                                                                data-type="{{ $tax->type }}">
-                                                                {{ $tax->name }}
+                                                        <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($tax->tax); ?>"
+                                                                data-id="<?php echo e($tax->id); ?>"
+                                                                data-name="<?php echo e($tax->name); ?>"
+                                                                data-type="<?php echo e($tax->type); ?>">
+                                                                <?php echo e($tax->name); ?>
+
                                                             </option>
-                                                        @endforeach
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
                                                     <input type="hidden" name="items[0][tax_1_id]" id="taxOne_0">
                                                 </div>
@@ -305,21 +307,22 @@
                                                         data-target="tax_2" style="width: 150px;"
                                                         onchange="updateHiddenInput(this, 'taxTwo_0')">
                                                         <option value=""></option>
-                                                        @foreach ($taxs as $tax)
-                                                            <option value="{{ $tax->tax }}"
-                                                                data-id="{{ $tax->id }}"
-                                                                data-name="{{ $tax->name }}"
-                                                                data-type="{{ $tax->type }}">
-                                                                {{ $tax->name }}
+                                                        <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($tax->tax); ?>"
+                                                                data-id="<?php echo e($tax->id); ?>"
+                                                                data-name="<?php echo e($tax->name); ?>"
+                                                                data-type="<?php echo e($tax->type); ?>">
+                                                                <?php echo e($tax->name); ?>
+
                                                             </option>
-                                                        @endforeach
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
                                                     <input type="hidden" name="items[0][tax_2_id]" id="taxTwo_0">
                                                 </div>
                                             </td>
 
                                             <td>
-                                                <span class="row-total">{{ $item->total }}</span>
+                                                <span class="row-total"><?php echo e($item->total); ?></span>
                                             </td>
                                             <td>
                                                 <button type="button" class="btn btn-danger btn-sm remove-row">
@@ -327,7 +330,7 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </tbody>
                                 <tfoot id="tax-rows">
                                     <tr>
@@ -337,7 +340,7 @@
                                             </button>
                                         </td>
                                     </tr>
-                                    @php
+                                    <?php
                                         $currency = $account_setting->currency ?? 'SAR';
                                         $currencySymbol =
                                             $currency == 'SAR' || empty($currency)
@@ -345,16 +348,17 @@
                                                     asset('assets/images/Saudi_Riyal.svg') .
                                                     '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
                                                 : $currency;
-                                    @endphp
+                                    ?>
                                     <tr>
                                         <td colspan="7" class="text-right">المجموع الفرعي</td>
-                                        <td><span id="subtotal">0.00</span> {!! $currencySymbol !!}</td>
+                                        <td><span id="subtotal">0.00</span> <?php echo $currencySymbol; ?></td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">مجموع الخصومات</td>
                                         <td>
-                                            <span id="total-discount">0.00</span>{!! $currencySymbol !!}
+                                            <span id="total-discount">0.00</span><?php echo $currencySymbol; ?>
+
                                             <span id="discount-type-label"></span>
                                         </td>
                                         <td></td>
@@ -368,17 +372,17 @@
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">تكلفة الشحن</td>
-                                        <td><span id="shipping-cost">0.00</span> {!! $currencySymbol !!}</td>
+                                        <td><span id="shipping-cost">0.00</span> <?php echo $currencySymbol; ?></td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">الدفعة القادمة</td>
-                                        <td><span id="next-payment">0.00</span> {!! $currencySymbol !!}</td>
+                                        <td><span id="next-payment">0.00</span> <?php echo $currencySymbol; ?></td>
                                         <td></td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">المجموع الكلي</td>
-                                        <td><span id="grand-total">0.00</span> {!! $currencySymbol !!}</td>
+                                        <td><span id="grand-total">0.00</span> <?php echo $currencySymbol; ?></td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -533,9 +537,9 @@
                             <div class="col-md-4">
                                 <label for="payment_method">الخزينة </label>
                                 <select class="form-control" name="">
-                                    @foreach ($treasury as $treasur)
-                                        <option value="{{ $treasur->id }}">{{ $treasur->name }}</option>
-                                    @endforeach
+                                    <?php $__currentLoopData = $treasury; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $treasur): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($treasur->id); ?>"><?php echo e($treasur->name); ?></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -611,11 +615,11 @@
         </form>
     </div>
     </div>
-@endsection
-@section('scripts')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('scripts'); ?>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{ asset('assets/js/invoice.js') }}"></script>
+    <script src="<?php echo e(asset('assets/js/invoice.js')); ?>"></script>
     <script>
         document.querySelectorAll('.toggle-check').forEach((checkbox) => {
             checkbox.addEventListener('change', function() {
@@ -771,7 +775,8 @@
                     <span>${taxName}</span>
                 </td>
                 <td>
-                    <span>${taxDetails[taxName].toFixed(2)}</span>{!! $currencySymbol !!}
+                    <span>${taxDetails[taxName].toFixed(2)}</span><?php echo $currencySymbol; ?>
+
                 </td>
             `;
 
@@ -839,4 +844,6 @@
             calculateTotals();
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/retend_invoice/create.blade.php ENDPATH**/ ?>

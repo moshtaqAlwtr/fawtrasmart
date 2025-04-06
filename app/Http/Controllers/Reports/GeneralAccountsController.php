@@ -843,123 +843,100 @@ class GeneralAccountsController extends Controller
     ]);
 }
 
-public function ReceiptByTimePeriod(Request $request)
-{
-    $reportPeriod = $request->input('reportPeriod', 'monthly');
+    public function ReceiptByTimePeriod(Request $request)
+    {
+        // Default to current month if no date range specified
+        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
+        $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
-    // إعداد تاريخ البداية والنهاية حسب نوع التقرير إذا لم يُحدد
-    if ($request->filled('from_date') && $request->filled('to_date')) {
-        $fromDate = Carbon::parse($request->input('from_date'));
-        $toDate = Carbon::parse($request->input('to_date'));
-    } else {
-        switch ($reportPeriod) {
-            case 'daily':
-                $fromDate = Carbon::today();
-                $toDate = Carbon::today();
-                break;
-            case 'weekly':
-                $fromDate = Carbon::now()->startOfWeek();
-                $toDate = Carbon::now()->endOfWeek();
-                break;
-            case 'monthly':
-                $fromDate = Carbon::now()->startOfMonth();
-                $toDate = Carbon::now()->endOfMonth();
-                break;
-            case 'quarterly':
-                $fromDate = Carbon::now()->firstOfQuarter();
-                $toDate = Carbon::now()->lastOfQuarter();
-                break;
-            case 'yearly':
-                $fromDate = Carbon::now()->startOfYear();
-                $toDate = Carbon::now()->endOfYear();
-                break;
-            default:
-                $fromDate = Carbon::now()->startOfMonth();
-                $toDate = Carbon::now()->endOfMonth();
-                break;
+        // Fetch necessary dropdown data
+        $branches = Branch::all();
+        $treasuries = Treasury::all();
+        $accounts = Account::all();
+        $employees = Employee::all();
+        $receiptsCategory = ReceiptCategory::all();
+        $clients = Client::all();
+
+        // Base query for receipts
+        $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client', 'employee'])->whereBetween('date', [$fromDate, $toDate]);
+
+        // Apply filters
+        if ($request->filled('branch')) {
+            $query->where('branch_id', $request->branch);
         }
-    }
 
-    // البيانات الثابتة
-    $branches = Branch::all();
-    $treasuries = Treasury::all();
-    $accounts = Account::all();
-    $employees = Employee::all();
-    $receiptsCategory = ReceiptCategory::all();
-    $clients = Client::all();
-
-    // الاستعلام الرئيسي
-    $query = Receipt::with(['incomes_category', 'treasury', 'account', 'client', 'employee'])
-        ->whereBetween('date', [$fromDate, $toDate]);
-
-    // تطبيق الفلاتر
-    if ($request->filled('branch')) {
-        $query->where('branch_id', $request->branch);
-    }
-
-    if ($request->filled('treasury')) {
-        $query->where('treasury_id', $request->treasury);
-    }
-
-    if ($request->filled('employee')) {
-        $query->where('employee_id', $request->employee);
-    }
-
-    if ($request->filled('client')) {
-        $query->where('client_id', $request->client);
-    }
-
-    if ($request->filled('incomes_category')) {
-        $query->where('incomes_category_id', $request->incomes_category);
-    }
-
-    // جلب السجلات
-    $receipts = $query->get();
-
-    // تجميع حسب المدة الزمنية
-    $groupedReceipts = $receipts->groupBy(function ($receipt) use ($reportPeriod) {
-        $date = Carbon::parse($receipt->date);
-
-        switch ($reportPeriod) {
-            case 'daily':
-                return $date->format('Y-m-d');
-            case 'weekly':
-                return $date->year . ' Week ' . $date->weekOfYear;
-            case 'monthly':
-                return $date->format('Y-m');
-            case 'quarterly':
-                return $date->year . ' Q' . ceil($date->month / 3);
-            case 'yearly':
-                return $date->year;
-            default:
-                return $date->format('Y-m-d');
+        if ($request->filled('treasury')) {
+            $query->where('treasury_id', $request->treasury);
         }
-    });
 
-    // بيانات الرسم البياني
-    $chartData = [
-        'labels' => $groupedReceipts->keys()->toArray(),
-        'values' => $groupedReceipts->map(function ($group) {
-            return $group->sum('amount');
-        })->values()->toArray(),
-    ];
+        if ($request->filled('employee')) {
+            $query->where('employee_id', $request->employee);
+        }
 
-    return view('reports.general_accounts.receipt_bonds.receipt_time_period', [
-        'branches' => $branches,
-        'treasuries' => $treasuries,
-        'accounts' => $accounts,
-        'employees' => $employees,
-        'receiptsCategory' => $receiptsCategory,
-        'clients' => $clients,
-        'receipts' => $receipts,
-        'groupedReceipts' => $groupedReceipts,
-        'chartData' => $chartData,
-        'fromDate' => $fromDate,
-        'toDate' => $toDate,
-        'reportPeriod' => $reportPeriod,
-    ]);
-}
+        if ($request->filled('client')) {
+            $query->where('client_id', $request->client);
+        }
 
+        if ($request->filled('incomes_category')) {
+            $query->where('incomes_category_id', $request->incomes_category);
+        }
+
+        $reportPeriod = $request->input('report_period', 'monthly');
+        // Fetch receipts
+        $receipts = $query->get();
+
+        // Group receipts by client
+        $groupedReceipts = $receipts->groupBy('client_id');
+
+        $groupedReceipts = $receipts->groupBy(function ($receipt) use ($reportPeriod) {
+            $date = Carbon::parse($receipt->date);
+
+            switch ($reportPeriod) {
+                case 'daily':
+                    return $date->format('Y-m-d');
+                case 'weekly':
+                    return $date->year . ' Week ' . $date->weekOfYear;
+                case 'monthly':
+                    return $date->format('Y-m');
+                case 'quarterly':
+                    return $date->year . ' Q' . ceil($date->month / 3);
+                case 'yearly':
+                    return $date->year;
+                default:
+                    return $date->format('Y-m-d');
+            }
+        });
+        // Prepare chart data
+        $chartData = [
+            'labels' => $groupedReceipts
+                ->keys()
+                ->map(function ($clientId) use ($clients) {
+                    return $clients->find($clientId)->name ?? 'غير معروف';
+                })
+                ->toArray(),
+            'values' => $groupedReceipts
+                ->map(function ($clientReceipts) {
+                    return $clientReceipts->sum('amount');
+                })
+                ->values()
+                ->toArray(),
+        ];
+
+        return view('reports.general_accounts.receipt_bonds.receipt_time_period', [
+            'branches' => $branches,
+            'treasuries' => $treasuries,
+            'accounts' => $accounts,
+            'employees' => $employees,
+            'receiptsCategory' => $receiptsCategory,
+            'clients' => $clients,
+            'receipts' => $receipts,
+            'groupedReceipts' => $groupedReceipts,
+            'chartData' => $chartData,
+            'fromDate' => Carbon::parse($fromDate),
+            'toDate' => Carbon::parse($toDate),
+            'reportPeriod' => $reportPeriod,
+        ]);
+    }
     public function trialBalance(Request $request)
     {
         // 1. معالجة نوع التقرير
