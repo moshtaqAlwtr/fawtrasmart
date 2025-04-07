@@ -29,9 +29,11 @@
             @method('PUT')
 
 
-          <!-- حقلين مخفيين لتخزين الإحداثيات -->
-<input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $client->latitude ?? ($location->latitude ?? '')) }}">
-<input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $client->longitude ?? ($location->longitude ?? '')) }}">
+            <!-- حقلين مخفيين لتخزين الإحداثيات -->
+            <input type="hidden" name="latitude" id="latitude"
+                value="{{ old('latitude', $client->latitude ?? ($location->latitude ?? '')) }}">
+            <input type="hidden" name="longitude" id="longitude"
+                value="{{ old('longitude', $client->longitude ?? ($location->longitude ?? '')) }}">
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -280,43 +282,46 @@
                                                 </div>
                                             </div>
                                         </div>
-                              <div class="col-md-6 col-12 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
                                                     <select class="form-control" id="printing_method" name="region_id">
-                                                        @foreach($Regions_groub as $Region_groub)
-                                                        <option value="{{ $Region_groub->id }}" 
-                                                            {{ isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : '' }}>
-                                                            {{ $Region_groub->name }}
-                                                        </option>
-                                                        
+                                                        @foreach ($Regions_groub as $Region_groub)
+                                                            <option value="{{ $Region_groub->id }}"
+                                                                {{ isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : '' }}>
+                                                                {{ $Region_groub->name }}
+                                                            </option>
                                                         @endforeach
                                                     </select>
-                                                    
 
 
 
 
-                                                    </div>
+
                                                 </div>
                                             </div>
-                                            
-                                            <div class="col-md-6 col-12 mb-3">
+                                        </div>
+
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    
-                                                     <select class="form-control" id="printing_method" name="visit_type">
-    <option value="am" {{ $client->visit_type == 'am' ? 'selected' : '' }}>صباحية</option>
-    <option value="pm" {{ $client->visit_type == 'pm' ? 'selected' : '' }}>مسائية</option>
-</select>
+
+                                                    <select class="form-control" id="printing_method" name="visit_type">
+                                                        <option value="am"
+                                                            {{ $client->visit_type == 'am' ? 'selected' : '' }}>صباحية
+                                                        </option>
+                                                        <option value="pm"
+                                                            {{ $client->visit_type == 'pm' ? 'selected' : '' }}>مسائية
+                                                        </option>
+                                                    </select>
 
 
 
-                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
                                         <!-- زر إظهار الخريطة -->
                                         <div class="col-12 mb-3">
                                             <button type="button" class="btn btn-outline-primary"
@@ -329,7 +334,7 @@
                                                 <div id="map" style="height: 100%;"></div>
                                             </div>
                                         </div>
-                                     
+
                                         <!-- قائمة الاتصال -->
                                         <div class="card">
                                             <div class="card-header">
@@ -409,7 +414,7 @@
                                                 <div class="position-relative has-icon-left">
                                                     <input type="number" step="0.01" name="opening_balance"
                                                         id="opening_balance" class="form-control"
-                                                        value="{{ old('opening_balance', $client->opening_balance) }}">
+                                                        value="{{ old('opening_balance', $client->opening_balance) }}" readonly>
                                                     <div class="form-control-position">
                                                         <i class="feather icon-dollar-sign"></i>
                                                     </div>
@@ -542,7 +547,7 @@
         let savedLat = {{ $location->latitude ?? 'null' }};
         let savedLng = {{ $location->longitude ?? 'null' }};
     </script>
-    
+
     <script>
         // دالة لعرض الخريطة
         function toggleMap() {
@@ -555,32 +560,32 @@
         }
 
         // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
-    // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
-function requestLocationPermission() {
-    toggleMap(); // لعرض الخريطة
+        // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
+        function requestLocationPermission() {
+            toggleMap(); // لعرض الخريطة
 
-    // إذا كان لدينا موقع محفوظ من السيرفر
-    if (savedLat && savedLng) {
-        initMap(savedLat, savedLng);
-        return;
-    }
-
-    // إذا لم يكن لدينا موقع محفوظ، نطلب موقع المستخدم
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                initMap(position.coords.latitude, position.coords.longitude);
-            },
-            (error) => {
-                alert('⚠️ سيتم الاحتفاظ بالموقع القديم. يرجى السماح بالوصول إلى الموقع لتحديثه.');
-                console.error('Error getting location:', error);
-                // هنا لا نقوم بأي شيء وسيتم الاحتفاظ بالقيم القديمة
+            // إذا كان لدينا موقع محفوظ من السيرفر
+            if (savedLat && savedLng) {
+                initMap(savedLat, savedLng);
+                return;
             }
-        );
-    } else {
-        alert('⚠️ المتصفح لا يدعم تحديد الموقع. سيتم الاحتفاظ بالموقع القديم.');
-    }
-}
+
+            // إذا لم يكن لدينا موقع محفوظ، نطلب موقع المستخدم
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        initMap(position.coords.latitude, position.coords.longitude);
+                    },
+                    (error) => {
+                        alert('⚠️ سيتم الاحتفاظ بالموقع القديم. يرجى السماح بالوصول إلى الموقع لتحديثه.');
+                        console.error('Error getting location:', error);
+                        // هنا لا نقوم بأي شيء وسيتم الاحتفاظ بالقيم القديمة
+                    }
+                );
+            } else {
+                alert('⚠️ المتصفح لا يدعم تحديد الموقع. سيتم الاحتفاظ بالموقع القديم.');
+            }
+        }
 
 
         // دالة لتهيئة الخريطة
@@ -653,7 +658,7 @@ function requestLocationPermission() {
 
                         // تعبئة الحقول بناءً على البيانات المسترجعة
                         document.getElementById('country').value = getAddressComponent(addressComponents,
-                        'country');
+                            'country');
                         document.getElementById('region').value = getAddressComponent(addressComponents,
                             'administrative_area_level_1');
                         document.getElementById('city').value = getAddressComponent(addressComponents,
@@ -662,9 +667,9 @@ function requestLocationPermission() {
                             'postal_code');
                         document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
                         document.getElementById('street2').value =
-    getAddressComponent(addressComponents, 'neighborhood') ||
-    getAddressComponent(addressComponents, 'sublocality') ||
-    getAddressComponent(addressComponents, 'sublocality_level_1');
+                            getAddressComponent(addressComponents, 'neighborhood') ||
+                            getAddressComponent(addressComponents, 'sublocality') ||
+                            getAddressComponent(addressComponents, 'sublocality_level_1');
                     } else {
                         console.error('لم يتم العثور على عنوان لهذه الإحداثيات.');
                     }
@@ -681,6 +686,5 @@ function requestLocationPermission() {
         }
 
         // التأكد من وجود الإحداثيات قبل الإرسال
-       
     </script>
 @endsection
