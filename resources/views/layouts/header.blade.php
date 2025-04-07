@@ -1,3 +1,4 @@
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
     <div class="navbar-wrapper">
         <div class="navbar-container content" style="background-color: {{ $backgroundColorr ?? '#ffffff' }};">
@@ -88,150 +89,68 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
-                    <li class="dropdown dropdown-notification nav-item"><a class="nav-link nav-link-label"
-                            href="#" data-toggle="dropdown"><i class="ficon feather icon-shopping-cart"></i><span
-                                class="badge badge-pill badge-primary badge-up cart-item-count">6</span></a>
-                        <ul class="dropdown-menu dropdown-menu-media dropdown-cart dropdown-menu-right">
+                    <li class="dropdown dropdown-notification nav-item">
+                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                            <i class="ficon feather icon-calendar"></i>
+                            <span class="badge badge-pill badge-primary badge-up">{{ $todayVisits->count() }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
                             <li class="dropdown-menu-header">
                                 <div class="dropdown-header m-0 p-2">
-                                    <h3 class="white"><span class="cart-item-count">6</span><span
-                                            class="mx-50">Items</span></h3><span class="notification-title">In Your
-                                        Cart</span>
+                                    <h3 class="white">{{ $todayVisits->count() }} زيارة</h3>
+                                    <span class="notification-title">زيارات اليوم</span>
                                 </div>
                             </li>
-                            <li class="scrollable-container media-list"><a class="cart-item"
-                                    href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                src="../../../app-assets/images/pages/eCommerce/4.png" width="75"
-                                                alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Apple -
-                                                Apple Watch Series 1 42mm Space Gray Aluminum Case Black Sport Band -
-                                                Space Gray Aluminum</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> Durable,
-                                                lightweight aluminum cases in silver, space gray,gold, and rose gold.
-                                                Sport Band in a variety of colors. All the features of the original
-                                                Apple Watch, plus a new dual-core processor for faster performance. All
-                                                models run watchOS 3. Requires an iPhone 5 or later to run this
-                                                device.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $299</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
+                            <li class="scrollable-container media-list">
+                                @forelse($todayVisits as $visit)
+                                    <div class="media d-flex align-items-start">
+                                        <div class="media-left">
+                                            <i class="feather icon-user font-medium-5 primary"></i>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="primary media-heading">{{ $visit->client->trade_name ?? 'غير معروف' }}</h6>
+                                            <p class="mb-0">
+                                                <small>الموظف: {{ $visit->employee->name ?? 'غير معروف' }}</small><br>
+                                                <small>
+                                                    الوصول: {{ $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--' }} |
+                                                    الانصراف: {{ $visit->departure_time ? $visit->departure_time->format('H:i') : '--:--' }}
+                                                </small>
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock"></i>
+                                                @php
+                                                    $now = now();
+                                                    $createdAt = $visit->created_at;
+                                                    $diffInSeconds = $now->diffInSeconds($createdAt);
+
+                                                    if ($diffInSeconds < 60) {
+                                                        echo 'الآن';
+                                                    } elseif ($diffInSeconds < 3600) {
+                                                        echo 'منذ '.floor($diffInSeconds / 60).' دقيقة';
+                                                    } elseif ($diffInSeconds < 86400) {
+                                                        echo 'منذ '.floor($diffInSeconds / 3600).' ساعة';
+                                                    } else {
+                                                        echo 'منذ '.floor($diffInSeconds / 86400).' يوم';
+                                                    }
+                                                @endphp
+                                            </small>
                                         </div>
                                     </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                class="mt-1 pl-50"
-                                                src="../../../app-assets/images/pages/eCommerce/dell-inspirion.jpg"
-                                                width="100" alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Apple -
-                                                Macbook® (Latest Model) - 12" Display - Intel Core M5 - 8GB Memory -
-                                                512GB Flash Storage - Space Gray</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> MacBook delivers
-                                                a full-size experience in the lightest and most compact Mac notebook
-                                                ever. With a full-size keyboard, force-sensing trackpad, 12-inch Retina
-                                                display,1 sixth-generation Intel Core M processor, multifunctional USB-C
-                                                port, and now up to 10 hours of battery life,2 MacBook features big
-                                                thinking in an impossibly compact form.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $1599.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                src="../../../app-assets/images/pages/eCommerce/7.png" width="88"
-                                                alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Sony -
-                                                PlayStation 4 Pro Console</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> PS4 Pro Dynamic
-                                                4K Gaming & 4K Entertainment* PS4 Pro gets you closer to your game.
-                                                Heighten your experiences. Enrich your adventures. Let the super-charged
-                                                PS4 Pro lead the way.** GREATNESS AWAITS</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $399.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                src="../../../app-assets/images/pages/eCommerce/10.png" width="75"
-                                                alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Beats by
-                                                Dr. Dre - Geek Squad Certified Refurbished Beats Studio Wireless On-Ear
-                                                Headphones - Red</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> Rock out to your
-                                                favorite songs with these Beats by Dr. Dre Beats Studio Wireless
-                                                GS-MH8K2AM/A headphones that feature a Beats Acoustic Engine and DSP
-                                                software for enhanced clarity. ANC (Adaptive Noise Cancellation) allows
-                                                you to focus on your tunes.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $379.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                class="mt-1 pl-50"
-                                                src="../../../app-assets/images/pages/eCommerce/sony-75class-tv.jpg"
-                                                width="100" alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Sony - 75"
-                                                Class (74.5" diag) - LED - 2160p - Smart - 3D - 4K Ultra HD TV with High
-                                                Dynamic Range - Black</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> This Sony 4K HDR
-                                                TV boasts 4K technology for vibrant hues. Its X940D series features a
-                                                bold 75-inch screen and slim design. Wires remain hidden, and the unit
-                                                is easily wall mounted. This television has a 4K Processor X1 and 4K
-                                                X-Reality PRO for crisp video. This Sony 4K HDR TV is easy to control
-                                                via voice commands.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $4499.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                class="mt-1 pl-50"
-                                                src="../../../app-assets/images/pages/eCommerce/canon-camera.jpg"
-                                                width="70" alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Nikon -
-                                                D810 DSLR Camera with AF-S NIKKOR 24-120mm f/4G ED VR Zoom Lens -
-                                                Black</span><span class="item-desc font-small-2 text-truncate d-block">
-                                                Shoot arresting photos and 1080p high-definition videos with this Nikon
-                                                D810 DSLR camera, which features a 36.3-megapixel CMOS sensor and a
-                                                powerful EXPEED 4 processor for clear, detailed images. The AF-S NIKKOR
-                                                24-120mm lens offers shooting versatility. Memory card sold
-                                                separately.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $4099.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a></li>
-                            <li class="dropdown-menu-footer"><a class="dropdown-item p-1 text-center text-primary"
-                                    href="app-ecommerce-checkout.html"><i
-                                        class="feather icon-shopping-cart align-middle"></i><span
-                                        class="align-middle text-bold-600">Checkout</span></a></li>
-                            <li class="empty-cart d-none p-2">Your Cart Is Empty.</li>
+                                    @if(!$loop->last)
+                                        <hr class="my-1">
+                                    @endif
+                                @empty
+                                    <p class="text-center p-2">لا توجد زيارات اليوم</p>
+                                @endforelse
+                            </li>
+                            <li class="dropdown-menu-footer">
+                                <a class="dropdown-item p-1 text-center" href="">عرض كل الزيارات</a>
+                            </li>
                         </ul>
                     </li>
+
+
+
                     @php
                         $userRole = Auth::user()->role;
                     @endphp
@@ -515,3 +434,72 @@
                     results found.</span></div>
         </a></li>
 </ul>
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            function formatVisitTime(dateTime) {
+                try {
+                    const now = new Date();
+                    const visitDate = new Date(dateTime);
+                    const diffInSeconds = Math.floor((now - visitDate) / 1000);
+
+                    if (diffInSeconds < 60) return 'الآن';
+                    if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
+                    if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
+                    return `منذ ${Math.floor(diffInSeconds / 86400)} يوم`;
+                } catch (e) {
+                    console.error('Error formatting time:', e);
+                    return '--';
+                }
+            }
+
+            function fetchTodayVisits() {
+                $.ajax({
+                    url: "{{ route('visits.today') }}",
+                    method: "GET",
+                    success: function(response) {
+                        let visits = response.visits || [];
+                        let count = response.count || 0;
+
+                        $('#visits-count').text(count);
+                        $('#visits-title').text(count + ' زيارة');
+
+                        let visitsList = $('#visits-list');
+                        visitsList.empty();
+
+                        if (count > 0) {
+                            visits.forEach(visit => {
+                                let timeAgo = formatVisitTime(visit.created_at);
+                                visitsList.append(`
+                                <div class="media d-flex align-items-start px-2 py-1">
+                                    <div class="media-left">
+                                        <i class="feather icon-user font-medium-5 primary"></i>
+                                    </div>
+                                    <div class="media-body">
+                                        <h6 class="primary media-heading mb-0">${visit.client_name}</h6>
+                                        <small class="text-muted d-block">الموظف: ${visit.employee_name}</small>
+                                        <small class="text-muted d-block">الوصول: ${visit.arrival_time} | الانصراف: ${visit.departure_time}</small>
+                                        <small class="text-muted"><i class="far fa-clock"></i> ${timeAgo}</small>
+                                    </div>
+                                </div>
+                                <hr class="my-1">
+                            `);
+                            });
+                        } else {
+                            visitsList.append('<p class="text-center p-2">لا توجد زيارات اليوم</p>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching visits:', error);
+                        $('#visits-list').html(
+                            '<p class="text-center p-2 text-danger">حدث خطأ أثناء جلب البيانات</p>');
+                    }
+                });
+            }
+
+            fetchTodayVisits(); // أول مرة عند التحميل
+            setInterval(fetchTodayVisits, 60000); // كل دقيقة
+        });
+    </script>
+@endsection

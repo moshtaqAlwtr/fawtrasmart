@@ -168,14 +168,12 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control select2" id="clientSelect" name="client_id"
-                                                    required>
+                                                <select class="form-control select2" id="clientSelect" name="client_id" required>
                                                     <option value="">اختر العميل</option>
                                                     <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                         <option value="<?php echo e($c->id); ?>"
                                                             <?php echo e((isset($client_id) && $client_id == $c->id) || (isset($client) && $client->id == $c->id) ? 'selected' : ''); ?>>
-                                                            <?php echo e($c->trade_name); ?>
-
+                                                            <?php echo e($c->trade_name); ?> - الرصيد الافتتاحي: <?php echo e(number_format($c->opening_balance, 2)); ?> ريال
                                                         </option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
@@ -1137,6 +1135,14 @@
         });
     </script>
     <script></script>
+    <script>
+        $(document).ready(function () {
+            $('#clientSelect').select2({
+                width: '100%' // يضمن العرض الكامل على الجوال
+            });
+        });
+    </script>
+
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/invoices/create.blade.php ENDPATH**/ ?>

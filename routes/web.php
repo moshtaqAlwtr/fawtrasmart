@@ -58,10 +58,8 @@ Route::group(
                             return response()->json($client);
                         });
 
-
                         Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
                         Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
-
 
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
                         Route::post('/invoices/import', [InvoicesController::class, 'import'])->name('invoices.import');
@@ -203,12 +201,10 @@ Route::group(
 
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
-
                     Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
                     // صلاحيات العميل
                     Route::get('/permission/settings', [ClientSettingController::class, 'permission'])->name('clients.permission');
                     Route::post('/permission/settings', [ClientSettingController::class, 'permission_store'])->name('clients.store_permission');
-
 
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
@@ -232,19 +228,16 @@ Route::group(
                     Route::get('/previous', [ClientController::class, 'getPreviousClient'])->name('clients.previous');
                     Route::post('/{id}/update-opening-balance', [ClientController::class, 'updateOpeningBalance']);
 
-                    Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])
-                        ->name('clients.assign-employees');
-                    Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])
-                        ->name('clients.remove-employee');
-                    Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])
-                        ->name('clients.get-assigned-employees');
+                    Route::post('/clients/{client}/assign-employees', [ClientController::class, 'assignEmployees'])->name('clients.assign-employees');
+                    Route::post('/clients/{client}/remove-employee', [ClientController::class, 'removeEmployee'])->name('clients.remove-employee');
+                    Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])->name('clients.get-assigned-employees');
                     Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
                     Route::get('/clients/search', function (Request $request) {
-
                         $query = $request->query('query');
 
-                        $clients = Client::with('latestStatus')->where('trade_name', 'LIKE', "%{$query}%")
+                        $clients = Client::with('latestStatus')
+                            ->where('trade_name', 'LIKE', "%{$query}%")
                             ->orWhere('first_name', 'LIKE', "%{$query}%")
                             ->orWhere('last_name', 'LIKE', "%{$query}%")
                             ->orWhere('phone', 'LIKE', "%{$query}%")
@@ -311,19 +304,17 @@ Route::group(
         Route::prefix('visits')
             ->middleware(['auth'])
             ->group(function () {
-
                 Route::post('/visits', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
-
+                Route::get('/visits/today', [VisitController::class, 'getTodayVisits'])
+                    ->middleware('auth')
+                    ->name('visits.today');
                 // Route::get('/my-visits', [VisitController::class, 'myVisits']);
 
                 // // تتبع الموقع
                 // Route::post('/track-employee', [VisitController::class, 'trackEmployee']);
 
                 // إدارة الزيارات
-
-
             });
-
 
         Route::prefix('commission')
             ->middleware(['auth'])
@@ -341,6 +332,4 @@ Route::group(
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
     },
-
-
 );
