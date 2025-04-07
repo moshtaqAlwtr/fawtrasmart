@@ -12,6 +12,7 @@ use App\Models\JournalEntryDetail;
 use App\Models\Receipt;
 
 use App\Models\Log as ModelsLog;
+use App\Models\notifications;
 use App\Models\ReceiptCategory;
 use App\Models\Supplier;
 use App\Models\TaxSitting;
@@ -163,6 +164,18 @@ class IncomesController extends Controller
 
             // حفظ سند القبض
             $income->save();
+
+          
+            $user = auth()->user();
+            $income_account_name = Account::find($income->account_id);
+            
+            notifications::create([
+                'type' => 'Receipt',
+                'title' => $user->name . ' أنشأ سند قبض',
+                'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
+            ]);
+            
+    
 
             // تسجيل النشاط في السجل
             ModelsLog::create([

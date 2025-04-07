@@ -1131,4 +1131,12 @@
         });
     </script>
     <script></script>
+    <script>
+        $(document).ready(function () {
+            $('#clientSelect').select2({
+                width: '100%' // يضمن العرض الكامل على الجوال
+            });
+        });
+    </script>
+    
 @endsection

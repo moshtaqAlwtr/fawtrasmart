@@ -437,88 +437,7 @@ class ClientController extends Controller
     {
         return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
-    public function testciddent()
-    {
-        $clients = Client::all();
-
-        foreach ($clients as $client) {
-            $customers = Account::where('name', 'العملاء')->first(); // الحصول على حساب العملاء الرئيسي
-            if ($customers) {
-                $customerAccount = new Account();
-                $customerAccount->name = $client->trade_name; // استخدام trade_name كاسم الحساب
-                $customerAccount->client_id = $client->id;
-
-                // تعيين كود الحساب الفرعي بناءً على كود الحسابات
-                $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-                $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1'; // استخدام نفس منطق توليد الكود
-                $customerAccount->code = $newCode; // تعيين الكود الجديد للحساب الفرعي
-
-                $customerAccount->balance_type = 'debit'; // أو 'credit' حسب الحاجة
-                $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
-                $customerAccount->is_active = false;
-                $customerAccount->save();
-            }
-        }
-    }
-    public function testcient()
-    {
-        // الحصول على العملاء بدون حسابات (بطريقة بديلة آمنة)
-        $missingClients = DB::table('clients')->leftJoin('accounts', 'clients.id', '=', 'accounts.client_id')->whereNull('accounts.id')->select('clients.*')->get();
-
-        if ($missingClients->isEmpty()) {
-            return [
-                'success' => true,
-                'message' => 'لا يوجد عملاء مفقودين في جدول الحسابات',
-                'added_count' => 0,
-                'total_missing' => 0,
-                'errors' => [],
-            ];
-        }
-
-        $parentAccount = Account::where('name', 'العملاء')->first();
-
-        if (!$parentAccount) {
-            return [
-                'success' => false,
-                'message' => 'حساب العملاء الرئيسي غير موجود',
-                'added_count' => 0,
-                'total_missing' => count($missingClients),
-                'errors' => ['حساب العملاء الرئيسي غير موجود'],
-            ];
-        }
-
-        $successCount = 0;
-        $errors = [];
-
-        foreach ($missingClients as $client) {
-            try {
-                $account = new Account();
-                $account->client_id = $client->id;
-                $account->name = $client->trade_name ?? 'عميل بدون اسم';
-                $account->parent_id = $parentAccount->id;
-                $account->balance += $client->opening_balance ?? 0;
-                $account->balance_type = 'debit';
-                $account->is_active = true;
-                $account->code = $this->generateUniqueAccountCode($parentAccount->id, $parentAccount->code);
-
-                if ($account->save()) {
-                    $successCount++;
-                } else {
-                    $errors[] = "فشل حفظ حساب العميل {$client->id}";
-                }
-            } catch (\Exception $e) {
-                $errors[] = "خطأ في العميل {$client->id}: " . $e->getMessage();
-            }
-        }
-
-        return [
-            'success' => $successCount == count($missingClients),
-            'message' => $successCount == count($missingClients) ? 'تمت إضافة جميع العملاء بنجاح' : "تمت إضافة {$successCount} من أصل " . count($missingClients),
-            'added_count' => $successCount,
-            'total_missing' => count($missingClients),
-            'errors' => $errors,
-        ];
-    }
+ 
 
     protected function generateUniqueAccountCode($parentId, $parentCode)
     {
@@ -675,7 +594,9 @@ $validated = $request->validate($rules, $messages);
                         'parent_id' => $customersAccount->id,
                         'balance_type' => 'debit',
                         'is_active' => false,
+                        'code' => 'ACC-' . uniqid(), // أو أي طريقة توليد مناسبة لك
                     ];
+                    
             
                     Account::create($accountData);
                 }
