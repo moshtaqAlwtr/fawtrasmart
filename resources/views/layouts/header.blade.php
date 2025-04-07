@@ -101,6 +101,11 @@
                                     <span class="notification-title">زيارات اليوم</span>
                                 </div>
                             </li>
+
+                    @php
+                    $userRole = Auth::user()->role;
+                @endphp
+                            @if ($userRole != 'employee')
                             <li class="scrollable-container media-list">
                                 @forelse($todayVisits as $visit)
                                     <div class="media d-flex align-items-start">
@@ -149,7 +154,7 @@
                         </ul>
                     </li>
 
-
+@endif
 
                     @php
                         $userRole = Auth::user()->role;

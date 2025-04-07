@@ -54,7 +54,7 @@
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-select">
                                 <option value="">جميع الفروع</option>
-                                @foreach($clients->branch as $branch)
+                                @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}"
                                         {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
