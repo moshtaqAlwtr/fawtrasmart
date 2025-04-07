@@ -753,8 +753,39 @@ $validated = $request->validate($rules, $messages);
         } while (Client::where('code', $newCode)->exists());
 
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        
+        $account = Account::where('client_id', $id)->first();
+    
+        if (!$account) {
+            return redirect()->back()->with('error', 'لا يوجد حساب مرتبط بهذا العميل.');
+        }
+    
+        $accountId = $account->id;
+         // جلب بيانات الخزينة
+         $treasury = $this->getTreasury($accountId);
+         $branches = $this->getBranches();
+ 
+         // جلب العمليات المالية
+         $transactions = $this->getTransactions($accountId);
+         $transfers = $this->getTransfers($accountId);
+         $expenses = $this->getExpenses($accountId);
+         $revenues = $this->getRevenues($accountId);
+ 
+         // معالجة العمليات وحساب الرصيد
+         $allOperations = $this->processOperations($transactions, $transfers, $expenses, $revenues, $treasury);
+ 
+         // ترتيب العمليات حسب التاريخ
+         usort($allOperations, function ($a, $b) {
+             return strtotime($b['date']) - strtotime($a['date']);
+         });
+ 
+         // تقسيم العمليات إلى صفحات
+         $operationsPaginator = $this->paginateOperations($allOperations);
+ 
+         // إرسال البيانات إلى الواجهة
+      
 
-        return view('client.show', compact('client', 'ClientRelations', 'visits', 'due', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes', 'account_setting'));
+        return view('client.show', compact('client','treasury','account','operationsPaginator','branches', 'ClientRelations', 'visits', 'due', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes', 'account_setting'));
     }
     public function updateStatus(Request $request, $id)
     {

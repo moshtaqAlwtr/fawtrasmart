@@ -86,11 +86,11 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control" id="clientSelect" name="client_id"
+                                                <select class="form-control select2" id="clientSelect" name="client_id"
                                                     required>
                                                     <option value="">اختر العميل </option>
                                                     @foreach ($clients as $client)
-                                                        <option value="{{ $client->id }}">{{ $client->trade_name }}
+                                                        <option value="{{ $client->id }}">{{ $client->trade_name }}-{{ $client->code ?? "" }}
                                                         </option>
                                                     @endforeach
 
