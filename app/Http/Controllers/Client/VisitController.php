@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Region_groub;
 use App\Models\Visit;
 use App\Models\Client;
 use App\Models\User;
@@ -364,4 +365,15 @@ class VisitController extends Controller
             'count' => $visits->count()
         ]);
     }
+
+
+    public function traffics(){
+        $groups = Region_groub::all();
+        $clients = Client::with('locations')->get();
+        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
+    }
 }
+
+
+
+
