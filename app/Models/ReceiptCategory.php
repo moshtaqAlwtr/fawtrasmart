@@ -11,3 +11,4 @@ class ReceiptCategory extends Model
     protected $table = 'receipt_categories';
     protected $fillable = ['id', 'name', 'status', 'description', 'created_at', 'updated_at'];
 }
+

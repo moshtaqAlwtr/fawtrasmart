@@ -29,8 +29,7 @@ class CategoriesClient extends Model
      * Relationship with Clients
      * One category can have many clients
      */
-    public function category()
-    {
-        return $this->hasMany(Client::class, 'classification_id');
+    public function clients(){
+        return $this->hasMany(Client::class);
     }
 }

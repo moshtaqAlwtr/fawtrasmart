@@ -37,7 +37,7 @@
                         
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="customer" class="form-select">
+                            <select name="customer" class="form-select select2">
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($client->id); ?>"

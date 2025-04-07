@@ -112,10 +112,10 @@ class Invoice extends Model
     }
     // في نموذج Invoice
     public function items()
-    {
-        return $this->hasMany(InvoiceItem::class);
-    }
-
+{
+    // استبدل 'invoice_id' باسم العمود الفعلي إذا كان مختلفاً
+    return $this->hasMany(InvoiceItem::class, 'invoice_id');
+}
     // في نموذج InvoiceItem
     public function invoice()
     {

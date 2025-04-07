@@ -38,4 +38,8 @@ public function categories()
 {
     return $this->belongsToMany(Category::class, 'product_details', 'store_houses_id', 'category_id');
 }
+public function invoices()
+{
+    return $this->hasMany(InvoiceItem::class);
+}
 }

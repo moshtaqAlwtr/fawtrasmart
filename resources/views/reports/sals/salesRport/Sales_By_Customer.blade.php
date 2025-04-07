@@ -39,7 +39,7 @@
                         {{-- فلتر العميل --}}
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="customer" class="form-select">
+                            <select name="customer" class="form-select select2">
                                 <option value="">جميع العملاء</option>
                                 @foreach($clients as $client)
                                     <option value="{{ $client->id }}"

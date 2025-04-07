@@ -21,64 +21,102 @@
         <div class="card-body">
             <h5 class="card-title">المدفوعات حسب الموظف</h5>
             <form class="row g-3" method="GET" action="{{ route('salesReports.employeePaymentReport') }}">
+                <!-- منشأ الفاتورة (الموظف المسؤول عن إنشاء الفاتورة) -->
                 <div class="col-md-3">
-                    <label for="customerCategory" class="form-label">منشأ الفاتورة:</label>
-                    <select name="employee" id="customerCategory" class="form-select">
+                    <label for="employee" class="form-label">منشأ الفاتورة:</label>
+                    <select name="employee" id="employee" class="form-select">
                         <option value="">الكل</option>
                         @foreach($employees as $employee)
-                            <option value="{{ $employee->id }}">{{ $employee->trade_name }}</option>
+                            <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                {{ $employee->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
+
+                <!-- الموظف المسؤول عن التحصيل -->
                 <div class="col-md-3">
                     <label for="collector" class="form-label">تم التحصيل بواسطة</label>
                     <select name="collector" id="collector" class="form-select">
                         <option value="">الكل</option>
                         @foreach($employees as $employee)
-                            <option value="{{ $employee->id }}">{{ $employee->name }}</option>
+                            <option value="{{ $employee->id }}" {{ request('collector') == $employee->id ? 'selected' : '' }}>
+                                {{ $employee->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
+
+                <!-- وسيلة الدفع -->
                 <div class="col-md-3">
                     <label for="payment_method" class="form-label">وسيلة الدفع</label>
                     <select name="payment_method" id="payment_method" class="form-select">
                         <option value="">الكل</option>
                         @foreach($paymentMethods as $method)
-                            <option value="{{ $method['id'] }}">{{ $method['name'] }}</option>
+                            <option value="{{ $method['id'] }}" {{ request('payment_method') == $method['id'] ? 'selected' : '' }}>
+                                {{ $method['name'] }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
+
+                <!-- العميل -->
                 <div class="col-md-3">
                     <label for="client" class="form-label">العميل:</label>
                     <select name="client" id="client" class="form-select">
                         <option value="">الكل</option>
                         @foreach($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->trade_name }}</option>
+                            <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
+                                {{ $client->trade_name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
+
+                <!-- التاريخ من -->
                 <div class="col-md-3">
                     <label for="fromDate" class="form-label">الفترة من:</label>
                     <input type="date" name="from_date" id="fromDate" class="form-control"
-                           value="{{ $fromDate->format('Y-m-d') }}">
+                           value="{{ request('from_date', $fromDate->format('Y-m-d')) }}">
                 </div>
+
+                <!-- التاريخ إلى -->
                 <div class="col-md-3">
                     <label for="toDate" class="form-label">إلى:</label>
                     <input type="date" name="to_date" id="toDate" class="form-control"
-                           value="{{ $toDate->format('Y-m-d') }}">
+                           value="{{ request('to_date', $toDate->format('Y-m-d')) }}">
                 </div>
+
+                <!-- الفرع -->
                 <div class="col-md-3">
                     <label for="branch" class="form-label">فرع:</label>
                     <select name="branch" id="branch" class="form-select">
                         <option value="">الكل</option>
                         @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                            <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                {{ $branch->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">عرض التقرير</button>
-                    <a  href="{{ route('salesReports.employeePaymentReport') }}" class="btn btn-primary w-100">الغاء الفلتر</a>
+
+                <!-- فئة العميل -->
+                <div class="col-md-3">
+                    <label for="customerCategory" class="form-label">فئة العميل:</label>
+                    <select name="customer_category" id="customerCategory" class="form-select">
+                        <option value="">الكل</option>
+                        @foreach($customerCategories as $category)
+                            <option value="{{ $category->id }}" {{ request('customer_category') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- أزرار الإجراء -->
+                <div class="col-md-6 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-50">عرض التقرير</button>
+                    <a href="{{ route('salesReports.employeePaymentReport') }}" class="btn btn-secondary w-50">إلغاء الفلتر</a>
                 </div>
             </form>
         </div>

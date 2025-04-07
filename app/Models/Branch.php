@@ -30,11 +30,14 @@ class Branch extends Model
         return $this->belongsToMany(BranchSetting::class, 'branch_setting_branch')
             ->withPivot('status');
     }
-    
+
     public function employees()
     {
         return $this->hasMany(Employee::class, 'branch_id');
     }
+    public function clients(){
+        return $this->hasMany(Client::class, 'branch_id');
+    }
 
-    
+
 }
