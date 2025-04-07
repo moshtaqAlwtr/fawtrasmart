@@ -570,37 +570,36 @@ $validated = $request->validate($rules, $messages);
                 }
             }
 
-            // 5. تحديث الحساب المالي
-            $customersAccount = Account::where('name', 'العملاء')->first();
+        
 
             
-            $customersAccount = Account::where('name', 'العملاء')->first();
+            // $customersAccount = Account::where('name', 'العملاء')->first();
 
-            if ($customersAccount) {
-                // تحقق مما إذا كان الحساب موجود بنفس اسم العميل
-                $existingAccount = Account::where('name', $client->trade_name)->first();
+            // if ($customersAccount) {
+            //     // تحقق مما إذا كان الحساب موجود بنفس اسم العميل
+            //     $existingAccount = Account::where('name', $client->trade_name)->first();
             
-                $openingBalance = $client->opening_balance ?? 0;
+            //     $openingBalance = $client->opening_balance ?? 0;
             
-                if ($existingAccount) {
-                    // أضف الرصيد الافتتاحي إلى الرصيد الحالي
-                    $existingAccount->balance += $openingBalance;
-                    $existingAccount->save();
-                } else {
-                    // إنشاء حساب جديد وإضافة الرصيد الافتتاحي
-                    $accountData = [
-                        'name' => $client->trade_name,
-                        'balance' => $openingBalance,
-                        'parent_id' => $customersAccount->id,
-                        'balance_type' => 'debit',
-                        'is_active' => false,
-                        'code' => 'ACC-' . uniqid(), // أو أي طريقة توليد مناسبة لك
-                    ];
+            //     if ($existingAccount) {
+            //         // أضف الرصيد الافتتاحي إلى الرصيد الحالي
+            //         $existingAccount->balance += $openingBalance;
+            //         $existingAccount->save();
+            //     } else {
+            //         // إنشاء حساب جديد وإضافة الرصيد الافتتاحي
+            //         $accountData = [
+            //             'name' => $client->trade_name,
+            //             'balance' => $openingBalance,
+            //             'parent_id' => $customersAccount->id,
+            //             'balance_type' => 'debit',
+            //             'is_active' => false,
+            //             'code' => 'ACC-' . uniqid(), // أو أي طريقة توليد مناسبة لك
+            //         ];
                     
             
-                    Account::create($accountData);
-                }
-            }
+            //         Account::create($accountData);
+            //     }
+            // }
             
             // 6. معالجة جهات الاتصال
             if ($request->has('contacts')) {

@@ -408,8 +408,9 @@
                                                 <label for="opening_balance">الرصيد الافتتاحي</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="number" step="0.01" name="opening_balance"
-                                                        id="opening_balance" class="form-control"
-                                                        value="{{ old('opening_balance', $client->opening_balance) }}">
+                                                    id="opening_balance" class="form-control"
+                                                    value="{{ old('opening_balance', $client->opening_balance) }}" disabled>
+                                             
                                                     <div class="form-control-position">
                                                         <i class="feather icon-dollar-sign"></i>
                                                     </div>
