@@ -175,7 +175,7 @@
                                                     @foreach ($clients as $c)
                                                         <option value="{{ $c->id }}"
                                                             {{ (isset($client_id) && $client_id == $c->id) || (isset($client) && $client->id == $c->id) ? 'selected' : '' }}>
-                                                            {{ $c->trade_name }}
+                                                            {{ $c->trade_name }}-{{ $c->code }}
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -1131,12 +1131,4 @@
         });
     </script>
     <script></script>
-    <script>
-        $(document).ready(function () {
-            $('#clientSelect').select2({
-                width: '100%' // يضمن العرض الكامل على الجوال
-            });
-        });
-    </script>
-    
 @endsection
