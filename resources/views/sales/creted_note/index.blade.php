@@ -166,7 +166,7 @@
                                 <option value="">اي العميل</option>
                                 @foreach ($clients as $client)
                                     <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                                        {{ $client->trade_name }}
+                                        {{ $client->trade_name }} - {{ $client->code }}
                                     </option>
                                 @endforeach
                             </select>

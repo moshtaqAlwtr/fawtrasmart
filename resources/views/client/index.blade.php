@@ -190,7 +190,7 @@
                                     <option value="">اختر العميل</option>
                                     @foreach ($clients as $client)
                                         <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
-                                            {{ $client->trade_name }} - {{ $client->id }}
+                                            {{ $client->trade_name }} - {{ $client->code }}
                                         </option>
                                     @endforeach
                                 </select>
