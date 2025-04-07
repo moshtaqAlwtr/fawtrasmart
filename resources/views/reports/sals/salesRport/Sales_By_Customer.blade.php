@@ -36,7 +36,7 @@
             <div class="filter-card">
                 <form action="{{ route('salesReports.byCustomer') }}" method="GET" id="reportForm">
                     <div class="row g-3">
-                        {{-- First Row of Filters --}}
+                        {{-- فلتر العميل --}}
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
                             <select name="customer" class="form-select">
@@ -50,6 +50,21 @@
                             </select>
                         </div>
 
+                        {{-- فلتر الموظف --}}
+                        <div class="col-md-3">
+                            <label class="form-label">أضيفت بواسطة</label>
+                            <select name="user" class="form-select">
+                                <option value="">جميع الموظفين</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}"
+                                        {{ request('user') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- فلتر الفرع --}}
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-select">
@@ -63,6 +78,7 @@
                             </select>
                         </div>
 
+                        {{-- فلتر حالة الدفع --}}
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
                             <select name="status" class="form-select">
@@ -73,6 +89,7 @@
                             </select>
                         </div>
 
+                        {{-- فلتر الفترة --}}
                         <div class="col-md-3">
                             <label class="form-label">الفترة</label>
                             <select name="report_period" class="form-select">
@@ -83,18 +100,21 @@
                             </select>
                         </div>
 
+                        {{-- فلتر من تاريخ --}}
                         <div class="col-md-3">
                             <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
                                 value="{{ $fromDate->format('Y-m-d') }}">
                         </div>
 
+                        {{-- فلتر إلى تاريخ --}}
                         <div class="col-md-3">
                             <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
                                 value="{{ $toDate->format('Y-m-d') }}">
                         </div>
 
+                        {{-- أزرار التحكم --}}
                         <div class="col-md-3 align-self-end">
                             <button type="button" id="exportExcel" class="btn btn-success">
                                 <i class="fas fa-file-excel me-1"></i> تصدير إكسل

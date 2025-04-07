@@ -59,33 +59,35 @@
         <div class="card-body">
             <form action="{{ route('salesReports.byEmployee') }}" method="GET" id="reportForm">
                 <div class="row g-3">
-                    {{-- First Row of Filters --}}
-                    <div class="col-md-3">
-                        <label class="form-label">تصنيف العميل</label>
-                        <select name="category" class="form-select">
-                            <option value="">جميع التصنيفات</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}"
-                                    {{ request('category') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
+                    {{-- فلتر العميل --}}
                     <div class="col-md-3">
                         <label class="form-label">العميل</label>
-                        <select name="client" class="form-select">
+                        <select name="customer" class="form-select">
                             <option value="">جميع العملاء</option>
                             @foreach($clients as $client)
                                 <option value="{{ $client->id }}"
-                                    {{ request('client') == $client->id ? 'selected' : '' }}>
-                                    {{ $client->name }}
+                                    {{ request('customer') == $client->id ? 'selected' : '' }}>
+                                    {{ $client->trade_name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
+                    {{-- فلتر الموظف --}}
+                    <div class="col-md-3">
+                        <label class="form-label">أضيفت بواسطة</label>
+                        <select name="user" class="form-select">
+                            <option value="">جميع الموظفين</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}"
+                                    {{ request('user') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- فلتر الفرع --}}
                     <div class="col-md-3">
                         <label class="form-label">الفرع</label>
                         <select name="branch" class="form-select">
@@ -99,6 +101,7 @@
                         </select>
                     </div>
 
+                    {{-- فلتر حالة الدفع --}}
                     <div class="col-md-3">
                         <label class="form-label">حالة الدفع</label>
                         <select name="status" class="form-select">
@@ -109,26 +112,25 @@
                         </select>
                     </div>
 
-                    {{-- Second Row of Filters --}}
+                    {{-- فلتر الفترة --}}
                     <div class="col-md-3">
-                        <label class="form-label">الموظف</label>
-                        <select name="order_origin" class="form-select">
-                            <option value="">جميع الموظفين</option>
-                            @foreach($employees as $employee)
-                                <option value="{{ $employee->id }}"
-                                    {{ request('order_origin') == $employee->id ? 'selected' : '' }}>
-                                    {{ $employee->full_name }}
-                                </option>
-                            @endforeach
+                        <label class="form-label">الفترة</label>
+                        <select name="report_period" class="form-select">
+                            <option value="daily" {{ $reportPeriod == 'daily' ? 'selected' : '' }}>يومي</option>
+                            <option value="weekly" {{ $reportPeriod == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                            <option value="monthly" {{ $reportPeriod == 'monthly' ? 'selected' : '' }}>شهري</option>
+                            <option value="yearly" {{ $reportPeriod == 'yearly' ? 'selected' : '' }}>سنوي</option>
                         </select>
                     </div>
 
+                    {{-- فلتر من تاريخ --}}
                     <div class="col-md-3">
                         <label class="form-label">من تاريخ</label>
                         <input type="date" name="from_date" class="form-control"
                             value="{{ $fromDate->format('Y-m-d') }}">
                     </div>
 
+                    {{-- فلتر إلى تاريخ --}}
                     <div class="col-md-3">
                         <label class="form-label">إلى تاريخ</label>
                         <input type="date" name="to_date" class="form-control"

@@ -94,6 +94,7 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
+                    <?php if(auth()->user()->role != 'employee'): ?>
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-calendar"></i>
@@ -108,52 +109,64 @@
                             </li>
                             <li class="scrollable-container media-list">
                                 <?php $__empty_1 = true; $__currentLoopData = $todayVisits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $visit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                    <div class="media d-flex align-items-start">
+                                    <div class="visit-item media p-1">
                                         <div class="media-left">
-                                            <i class="feather icon-user font-medium-5 primary"></i>
+                                            <div class="avatar bg-primary bg-lighten-4 rounded-circle">
+                                                <span class="avatar-content"><?php echo e(substr($visit->client->trade_name, 0, 1)); ?></span>
+                                            </div>
                                         </div>
                                         <div class="media-body">
-                                            <h6 class="primary media-heading"><?php echo e($visit->client->trade_name ?? 'غير معروف'); ?></h6>
-                                            <p class="mb-0">
-                                                <small>الموظف: <?php echo e($visit->employee->name ?? 'غير معروف'); ?></small><br>
-                                                <small>
-                                                    الوصول: <?php echo e($visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--'); ?> |
-                                                    الانصراف: <?php echo e($visit->departure_time ? $visit->departure_time->format('H:i') : '--:--'); ?>
-
-                                                </small>
+                                            <h6 class="media-heading text-bold-500"><?php echo e($visit->client->trade_name); ?></h6>
+                                            <p class="mb-1">
+                                                <i class="feather icon-user"></i>
+                                                <small class="text-muted">الموظف: <?php echo e($visit->employee->name ?? 'غير معروف'); ?></small>
                                             </p>
-                                            <small class="text-muted">
-                                                <i class="far fa-clock"></i>
-                                                <?php
-                                                    $now = now();
-                                                    $createdAt = $visit->created_at;
-                                                    $diffInSeconds = $now->diffInSeconds($createdAt);
+                                            <div class="visit-details">
+                                                <?php if($visit->arrival_time): ?>
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-clock text-success"></i>
+                                                        <span class="text-success">الوصول: </span>
+                                                        <?php echo e(\Carbon\Carbon::parse($visit->arrival_time)->format('h:i A')); ?>
 
-                                                    if ($diffInSeconds < 60) {
-                                                        echo 'الآن';
-                                                    } elseif ($diffInSeconds < 3600) {
-                                                        echo 'منذ '.floor($diffInSeconds / 60).' دقيقة';
-                                                    } elseif ($diffInSeconds < 86400) {
-                                                        echo 'منذ '.floor($diffInSeconds / 3600).' ساعة';
-                                                    } else {
-                                                        echo 'منذ '.floor($diffInSeconds / 86400).' يوم';
-                                                    }
-                                                ?>
-                                            </small>
+                                                    </p>
+                                                <?php endif; ?>
+                                                <?php if($visit->departure_time): ?>
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-clock text-danger"></i>
+                                                        <span class="text-danger">المغادرة: </span>
+                                                        <?php echo e(\Carbon\Carbon::parse($visit->departure_time)->format('h:i A')); ?>
+
+                                                    </p>
+                                                <?php else: ?>
+                                                    <p class="mb-0 text-warning">
+                                                        <i class="feather icon-clock"></i>
+                                                        <span>ما زال عند العميل</span>
+                                                    </p>
+                                                <?php endif; ?>
+                                                <?php if($visit->notes): ?>
+                                                    <p class="mb-0 text-muted small">
+                                                        <i class="feather icon-message-square"></i>
+                                                        <?php echo e(Str::limit($visit->notes, 50)); ?>
+
+                                                    </p>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
                                     </div>
-                                    <?php if(!$loop->last): ?>
-                                        <hr class="my-1">
-                                    <?php endif; ?>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <p class="text-center p-2">لا توجد زيارات اليوم</p>
+                                    <li class="empty-visits p-2 text-center">لا توجد زيارات اليوم</li>
                                 <?php endif; ?>
                             </li>
                             <li class="dropdown-menu-footer">
-                                <a class="dropdown-item p-1 text-center" href="">عرض كل الزيارات</a>
+                                <a class="dropdown-item p-1 text-center text-primary" href="">
+                                    <i class="feather icon-list align-middle"></i>
+                                    <span class="align-middle text-bold-600">عرض كل الزيارات</span>
+                                </a>
                             </li>
                         </ul>
                     </li>
+                    <?php endif; ?>
+
 
 
 
