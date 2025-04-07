@@ -16,6 +16,8 @@ use App\Models\PurchaseInvoice;
 use App\Models\Treasury;
 use App\Models\User;
 use App\Models\AccountSetting;
+use App\Models\Client;
+use App\Models\notifications;
 use App\Models\TreasuryEmployee;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -331,6 +333,15 @@ public function store(ClientPaymentRequest $request)
 
         // إنشاء سجل الدفع
         $payment = PaymentsProcess::create($data);
+
+        $client = Client::find($invoice->client_id); // تعديل هنا إن كان $invoice->id غير صحيح
+        $user = auth()->user(); // استخدمنا auth()->user() مباشرة
+        
+        notifications::create([
+            'type' => 'invoice_payment',
+            'title' => $user->name . ' أنشأ عملية دفع',
+            'description' => 'عملية دفع للفاتورة رقم ' . $invoice->id . ' للعميل ' . $client->trade_name . ' بقيمة ' . number_format($payment->amount, 2) . ' ر.س',
+        ]);
 
         // تحديث رصيد الخزينة
         $mainTreasuryAccount->balance += $data['amount'];
