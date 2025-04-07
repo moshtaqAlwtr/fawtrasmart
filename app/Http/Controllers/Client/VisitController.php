@@ -273,7 +273,7 @@ class VisitController extends Controller
         $employeeName = $visit->employee->name ?? 'غير معروف';
         $clientName = $visit->client->trade_name ?? 'غير معروف';
         $visitDate = \Carbon\Carbon::parse($visit->visit_date)->format('Y-m-d H:i');
-    
+
         // إعداد رسالة التليجرام
         $message = "✅ *تمت زيارة عميل*\n";
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
@@ -282,9 +282,9 @@ class VisitController extends Controller
         $message .= "📅 *التاريخ:* `$visitDate`\n";
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
                 $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
-    
-    
-    
+
+
+
     // إرسال الرسالة إلى التلقرام
     $response = Http::post($telegramApiUrl, [
         'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
@@ -339,5 +339,29 @@ class VisitController extends Controller
             ->get();
 
         return response()->json($visits);
+    }
+    public function getTodayVisits()
+    {
+        $today = now()->toDateString();
+
+        $visits = Visit::with(['employee', 'client'])
+            ->whereDate('visit_date', $today)
+            ->orderBy('visit_date', 'desc')
+            ->get()
+            ->map(function ($visit) {
+                return [
+                    'id' => $visit->id,
+                    'client_name' => $visit->client->trade_name ?? 'غير معروف',
+                    'employee_name' => $visit->employee->name ?? 'غير معروف',
+                    'arrival_time' => $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--',
+                    'departure_time' => $visit->departure_time ? $visit->departure_time->format('H:i') : '--:--',
+                    'created_at' => $visit->created_at->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'visits' => $visits,
+            'count' => $visits->count()
+        ]);
     }
 }

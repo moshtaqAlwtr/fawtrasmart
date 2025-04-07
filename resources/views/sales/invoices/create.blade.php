@@ -169,13 +169,12 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control select2" id="clientSelect" name="client_id"
-                                                    required>
+                                                <select class="form-control select2" id="clientSelect" name="client_id" required>
                                                     <option value="">اختر العميل</option>
                                                     @foreach ($clients as $c)
                                                         <option value="{{ $c->id }}"
                                                             {{ (isset($client_id) && $client_id == $c->id) || (isset($client) && $client->id == $c->id) ? 'selected' : '' }}>
-                                                            {{ $c->trade_name }}-{{ $c->code }}
+                                                            {{ $c->trade_name }} - الرصيد الافتتاحي: {{ number_format($c->opening_balance, 2) }} ريال
                                                         </option>
                                                     @endforeach
                                                 </select>
@@ -1131,4 +1130,12 @@
         });
     </script>
     <script></script>
+    <script>
+        $(document).ready(function () {
+            $('#clientSelect').select2({
+                width: '100%' // يضمن العرض الكامل على الجوال
+            });
+        });
+    </script>
+
 @endsection

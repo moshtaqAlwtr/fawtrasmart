@@ -1,3 +1,4 @@
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
     <div class="navbar-wrapper">
         <div class="navbar-container content" style="background-color: {{ $backgroundColorr ?? '#ffffff' }};">
@@ -88,23 +89,36 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
+
                     {{-- <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-calendar"></i>
                             <span class="badge badge-pill badge-primary badge-up today-visits-count">{{ $todayVisits->count() }}</span>
+
+                    <li class="dropdown dropdown-notification nav-item">
+                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                            <i class="ficon feather icon-calendar"></i>
+                            <span class="badge badge-pill badge-primary badge-up">{{ $todayVisits->count() }}</span>
+
                         </a>
                         <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
                             <li class="dropdown-menu-header">
                                 <div class="dropdown-header m-0 p-2">
+
                                     <h3 class="white">
                                         <span class="today-visits-count">{{ $todayVisits->count() }}</span>
                                         <span class="mx-50">Visits</span>
                                     </h3>
                                     <span class="notification-title">Today's Visits</span>
+
+                                    <h3 class="white">{{ $todayVisits->count() }} زيارة</h3>
+                                    <span class="notification-title">زيارات اليوم</span>
+
                                 </div>
                             </li>
                             <li class="scrollable-container media-list">
                                 @forelse($todayVisits as $visit)
+
                                     <div class="visit-item media p-1">
                                         <div class="media-left">
                                             <div class="avatar bg-primary bg-lighten-4 rounded-circle">
@@ -154,6 +168,55 @@
                             </li>
                         </ul>
                     </li> --}}
+
+                                    <div class="media d-flex align-items-start">
+                                        <div class="media-left">
+                                            <i class="feather icon-user font-medium-5 primary"></i>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="primary media-heading">{{ $visit->client->trade_name ?? 'غير معروف' }}</h6>
+                                            <p class="mb-0">
+                                                <small>الموظف: {{ $visit->employee->name ?? 'غير معروف' }}</small><br>
+                                                <small>
+                                                    الوصول: {{ $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--' }} |
+                                                    الانصراف: {{ $visit->departure_time ? $visit->departure_time->format('H:i') : '--:--' }}
+                                                </small>
+                                            </p>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock"></i>
+                                                @php
+                                                    $now = now();
+                                                    $createdAt = $visit->created_at;
+                                                    $diffInSeconds = $now->diffInSeconds($createdAt);
+
+                                                    if ($diffInSeconds < 60) {
+                                                        echo 'الآن';
+                                                    } elseif ($diffInSeconds < 3600) {
+                                                        echo 'منذ '.floor($diffInSeconds / 60).' دقيقة';
+                                                    } elseif ($diffInSeconds < 86400) {
+                                                        echo 'منذ '.floor($diffInSeconds / 3600).' ساعة';
+                                                    } else {
+                                                        echo 'منذ '.floor($diffInSeconds / 86400).' يوم';
+                                                    }
+                                                @endphp
+                                            </small>
+                                        </div>
+                                    </div>
+                                    @if(!$loop->last)
+                                        <hr class="my-1">
+                                    @endif
+                                @empty
+                                    <p class="text-center p-2">لا توجد زيارات اليوم</p>
+                                @endforelse
+                            </li>
+                            <li class="dropdown-menu-footer">
+                                <a class="dropdown-item p-1 text-center" href="">عرض كل الزيارات</a>
+                            </li>
+                        </ul>
+                    </li>
+
+
+
                     @php
                         $userRole = Auth::user()->role;
                     @endphp
@@ -437,3 +500,72 @@
                     results found.</span></div>
         </a></li>
 </ul>
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            function formatVisitTime(dateTime) {
+                try {
+                    const now = new Date();
+                    const visitDate = new Date(dateTime);
+                    const diffInSeconds = Math.floor((now - visitDate) / 1000);
+
+                    if (diffInSeconds < 60) return 'الآن';
+                    if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
+                    if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
+                    return `منذ ${Math.floor(diffInSeconds / 86400)} يوم`;
+                } catch (e) {
+                    console.error('Error formatting time:', e);
+                    return '--';
+                }
+            }
+
+            function fetchTodayVisits() {
+                $.ajax({
+                    url: "{{ route('visits.today') }}",
+                    method: "GET",
+                    success: function(response) {
+                        let visits = response.visits || [];
+                        let count = response.count || 0;
+
+                        $('#visits-count').text(count);
+                        $('#visits-title').text(count + ' زيارة');
+
+                        let visitsList = $('#visits-list');
+                        visitsList.empty();
+
+                        if (count > 0) {
+                            visits.forEach(visit => {
+                                let timeAgo = formatVisitTime(visit.created_at);
+                                visitsList.append(`
+                                <div class="media d-flex align-items-start px-2 py-1">
+                                    <div class="media-left">
+                                        <i class="feather icon-user font-medium-5 primary"></i>
+                                    </div>
+                                    <div class="media-body">
+                                        <h6 class="primary media-heading mb-0">${visit.client_name}</h6>
+                                        <small class="text-muted d-block">الموظف: ${visit.employee_name}</small>
+                                        <small class="text-muted d-block">الوصول: ${visit.arrival_time} | الانصراف: ${visit.departure_time}</small>
+                                        <small class="text-muted"><i class="far fa-clock"></i> ${timeAgo}</small>
+                                    </div>
+                                </div>
+                                <hr class="my-1">
+                            `);
+                            });
+                        } else {
+                            visitsList.append('<p class="text-center p-2">لا توجد زيارات اليوم</p>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching visits:', error);
+                        $('#visits-list').html(
+                            '<p class="text-center p-2 text-danger">حدث خطأ أثناء جلب البيانات</p>');
+                    }
+                });
+            }
+
+            fetchTodayVisits(); // أول مرة عند التحميل
+            setInterval(fetchTodayVisits, 60000); // كل دقيقة
+        });
+    </script>
+@endsection
