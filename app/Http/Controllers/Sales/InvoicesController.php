@@ -1023,8 +1023,13 @@ class InvoicesController extends Controller
                 'parse_mode' => 'Markdown',
                 'timeout' => 30,
             ]);
-
-            // التحقق مما إذا كان للمستخدم قاعدة عمولة
+            notifications::create([
+                'type' => 'invoice',
+                'title' => $user_name->name . ' أضاف فاتورة لعميل',
+                'description' => 'فاتورة للعميل ' . $client_name->trade_name . ' بقيمة ' . number_format($invoice->grand_total, 2) . ' ر.س',
+            ]);
+            
+       
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
 
