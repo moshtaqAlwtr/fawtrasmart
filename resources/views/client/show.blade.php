@@ -1023,56 +1023,31 @@
                                                 $total_due = 0;
                                             @endphp
 
-                                            @foreach ($invoices as $invoice)
+                                            @foreach ($operationsPaginator as $operation)
                                                 <tr>
-                                                    <td class="text-end">{{ $invoice->invoice_date }}</td>
-                                                    <td class="text-end">
-                                                        @if ($invoice->type == 'returned')
-                                                            مرتجع لفاتورة رقم {{ $invoice->code }}
-                                                        @else
-                                                            فاتورة {{ $invoice->code }}
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-start">{{ number_format($invoice->grand_total, 2) }}</td>
-                                                    <td class="text-start">{{ number_format($invoice->due_value, 2) }}</td>
+                                                    <td class="text-end">{{ \Carbon\Carbon::parse($operation['date'])->format('Y-m-d') }}</td>
+                                                    <td class="text-end">{{$operation['operation']}}</td>
+                                                    <td class="text-start"> @if($operation['deposit'])
+                                                        {{ number_format($operation['deposit'], 2) }}
+                                                    @elseif($operation['withdraw'])
+                                                        -{{ number_format($operation['withdraw'], 2) }}
+                                                    @else
+                                                        0
+                                                    @endif</td>
+                                                    <td class="text-start">{{ number_format($operation['balance_after'], 2) }}</td>
                                                 </tr>
 
-                                                @php
-                                                    $total_amount += $invoice->grand_total;
-                                                    $total_due += $invoice->due_value;
-                                                @endphp
-
-                                                @foreach ($invoice->payments as $payment)
-                                                    <tr>
-                                                        <td class="text-end">{{ $payment->payment_date }}</td>
-                                                        <td class="text-end">عملية دفع
-                                                            (@if ($payment->Payment_method == 1)
-                                                                نقدي
-                                                            @elseif ($payment->Payment_method == 2)
-                                                                شيك
-                                                            @else
-                                                                بطاقة ائتمان
-                                                            @endif)
-                                                        </td>
-                                                        <td class="text-start">
-                                                            @if ($invoice->advance_payment > 0)
-                                                                -{{ number_format($invoice->advance_payment, 2) }}
-                                                            @else
-                                                                {{ number_format($invoice->advance_payment, 2) }}
-                                                            @endif
-                                                        </td>
-                                                        <td class="text-start">{{ number_format($invoice->due_value, 2) }}</td>
-                                                    </tr>
-                                                @endforeach
+                                                
                                             @endforeach
                                         </tbody>
                                         <tfoot class="bg-light">
                                             <tr>
-                                                <th class="text-end" colspan="2">المجموع الكلي</th>
-                                                <th class="text-start">{{ number_format($total_amount, 2) }}</th>
-                                                <th class="text-start">{{ number_format($total_due, 2) }}</th>
+                                                <th class="text-end" colspan="2">المبلغ المستحق</th>
+                                                <th class="text-start">{{ number_format($account->balance ?? 0, 2) }}</th>
+                                                <th></th> {{-- عمود فاضي لتوازن الأعمدة --}}
                                             </tr>
                                         </tfoot>
+                                        
                                     </table>
                                 </div>
                             </div>
