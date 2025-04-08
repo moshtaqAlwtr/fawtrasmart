@@ -106,6 +106,11 @@
                                     <span class="notification-title">زيارات اليوم</span>
                                 </div>
                             </li>
+
+                    <?php
+                    $userRole = Auth::user()->role;
+                ?>
+                            <?php if($userRole != 'employee'): ?>
                             <li class="scrollable-container media-list">
                                 <?php $__empty_1 = true; $__currentLoopData = $todayVisits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $visit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                     <div class="media d-flex align-items-start">
@@ -155,7 +160,7 @@
                         </ul>
                     </li>
 
-
+<?php endif; ?>
 
                     <?php
                         $userRole = Auth::user()->role;
