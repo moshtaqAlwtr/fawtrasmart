@@ -310,7 +310,13 @@ Route::group(
                 Route::get('/visits/today', [VisitController::class, 'getTodayVisits'])
                     ->middleware('auth')
                     ->name('visits.today');
+
                 Route::get('/visits', [VisitController::class, 'traffics'])->name('visits.traffics');
+
+                    Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
+                    ->name('visits.storeLocationEnhanced');
+                    Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
+
                 // Route::get('/my-visits', [VisitController::class, 'myVisits']);
 
                 // // تتبع الموقع
