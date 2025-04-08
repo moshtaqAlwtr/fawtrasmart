@@ -58,6 +58,7 @@
             </div>
         </div>
 
+<<<<<<< HEAD
         {{-- Filters Card --}}
         <div class="card mb-3">
             <div class="card-body">
@@ -173,6 +174,94 @@
                         </button>
                         <button type="button" class="btn btn-outline-primary" id="detailViewBtn">
                             <i class="fas fa-list me-2"></i> تفاصيل
+=======
+    {{-- Filters Card --}}
+    <div class="card mb-3">
+        <div class="card-body">
+            <form action="{{ route('salesReports.byEmployee') }}" method="GET" id="reportForm">
+                <div class="row g-3">
+                    {{-- فلتر العميل --}}
+                    <div class="col-md-3">
+                        <label class="form-label">العميل</label>
+                        <select name="customer" class="form-select">
+                            <option value="">جميع العملاء</option>
+                            @foreach($clients as $client)
+                                <option value="{{ $client->id }}"
+                                    {{ request('customer') == $client->id ? 'selected' : '' }}>
+                                    {{ $client->trade_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- فلتر الموظف --}}
+                    <div class="col-md-3">
+                        <label class="form-label">أضيفت بواسطة</label>
+                        <select name="user" class="form-select">
+                            <option value="">جميع الموظفين</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}"
+                                    {{ request('user') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- فلتر الفرع --}}
+                    <div class="col-md-3">
+                        <label class="form-label">الفرع</label>
+                        <select name="branch" class="form-select">
+                            <option value="">جميع الفروع</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}"
+                                    {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                    {{ $branch->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- فلتر حالة الدفع --}}
+                    <div class="col-md-3">
+                        <label class="form-label">حالة الدفع</label>
+                        <select name="status" class="form-select">
+                            <option value="">الكل</option>
+                            <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مدفوعة</option>
+                            <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير مدفوعة</option>
+                            <option value="5" {{ request('status') == '5' ? 'selected' : '' }}>مرتجعة</option>
+                        </select>
+                    </div>
+
+                    {{-- فلتر الفترة --}}
+                    <div class="col-md-3">
+                        <label class="form-label">الفترة</label>
+                        <select name="report_period" class="form-select">
+                            <option value="daily" {{ $reportPeriod == 'daily' ? 'selected' : '' }}>يومي</option>
+                            <option value="weekly" {{ $reportPeriod == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                            <option value="monthly" {{ $reportPeriod == 'monthly' ? 'selected' : '' }}>شهري</option>
+                            <option value="yearly" {{ $reportPeriod == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                        </select>
+                    </div>
+
+                    {{-- فلتر من تاريخ --}}
+                    <div class="col-md-3">
+                        <label class="form-label">من تاريخ</label>
+                        <input type="date" name="from_date" class="form-control"
+                            value="{{ $fromDate->format('Y-m-d') }}">
+                    </div>
+
+                    {{-- فلتر إلى تاريخ --}}
+                    <div class="col-md-3">
+                        <label class="form-label">إلى تاريخ</label>
+                        <input type="date" name="to_date" class="form-control"
+                            value="{{ $toDate->format('Y-m-d') }}">
+                    </div>
+
+                    <div class="col-md-3 align-self-end">
+                        <button type="submit" class="btn btn-primary w-80">
+                            <i class="fas fa-filter me-2"></i> تصفية التقرير
+>>>>>>> 3e16afdaaf20ea6155d0ae78529aaf33ec788c98
                         </button>
                     </div>
                 </div>
@@ -215,6 +304,7 @@
             </div>
         </div>
 
+<<<<<<< HEAD
         {{-- Main Report Table --}}
         <div class="card mt-3" id="mainReportTable">
             <div class="card-header">
@@ -245,6 +335,43 @@
                                 $grandOverallTotal = 0;
                                 $currentEmployee = null;
                             @endphp
+=======
+    {{-- Totals Summary --}}
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5>إجمالي المبيعات</h5>
+                    <h3>{{ number_format($totals['total_sales'], 2) }} SAR</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h5>المبالغ المدفوعة</h5>
+                    <h3>{{ number_format($totals['paid_amount'], 2) }} SAR</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h5>المبالغ غير المدفوعة</h5>
+                    <h3>{{ number_format($totals['unpaid_amount'], 2) }} SAR</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h5>المبالغ المرتجعة</h5>
+                    <h3>{{ number_format($totals['total_returns'], 2) }} SAR</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+>>>>>>> 3e16afdaaf20ea6155d0ae78529aaf33ec788c98
 
                             @foreach ($groupedInvoices as $employeeId => $invoices)
                                 {{-- Employee Group Header --}}

@@ -37,6 +37,7 @@ use App\Mail\SendPasswordEmail;
 use Illuminate\Support\Facades\Mail;
 use App\Models\notifications;
 use App\Mail\TestMail;
+use App\Models\ClientEmployee;
 use App\Models\Statuses;
 use App\Models\CreditLimit;
 use App\Models\Expense;
@@ -50,48 +51,49 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         
-         // جلب المستخدم الحالي
         $user = auth()->user();
 
-        // التحقق مما إذا كان للمستخدم فرع أم لا
         if ($user->branch) {
             $branch = $user->branch;
-
-            // التحقق من صلاحية "مشاركة العملاء"
-            $shareProductsStatus = $branch->settings()->where('key', 'share_customers')->first();
-
-            // إذا كانت الصلاحية غير مفعلة، عرض العملاء التي أضافها المستخدمون من نفس الفرع فقط
-            if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
-            
-        $query = Client::where('branch_id', $branch->id)->with([
-            'employee',
-            'status' => function ($q) {
-                $q->select('id', 'name', 'color');
-            },
-            'locations',
-        ]);
+            $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+        
+            if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
+                // مشاركة العملاء غير مفعلة => نعرض فقط العملاء من نفس الفرع أو الذين الموظف مسؤول عنهم
+                $query = Client::where(function ($q) use ($branch, $user) {
+                    $q->where('branch_id', $branch->id)
+                      ->orWhereHas('employees', function ($q2) use ($user) {
+                          $q2->where('employees.id', $user->employee_id);
+                      });
+                })->with([
+                    'employee',
+                    'status' => function ($q) {
+                        $q->select('id', 'name', 'color');
+                    },
+                    'locations',
+                ]);
             } else {
-              
-               
-        $query = Client::with([
-            'employee',
-            'status' => function ($q) {
-                $q->select('id', 'name', 'color');
-            },
-            'locations',
-        ]);
+                // مشاركة العملاء مفعلة => عرض جميع العملاء
+                $query = Client::with([
+                    'employee',
+                    'status' => function ($q) {
+                        $q->select('id', 'name', 'color');
+                    },
+                    'locations',
+                ]);
             }
         } else {
-         
-          
-        $query = Client::with([
-            'employee',
-            'status' => function ($q) {
-                $q->select('id', 'name', 'color');
-            },
-            'locations',
-        ]);
+            // لا يوجد فرع => عرض جميع العملاء
+            $query = Client::with([
+                'employee',
+                'status' => function ($q) {
+                    $q->select('id', 'name', 'color');
+                },
+                'locations',
+            ]);
         }
+        
+        $clients = $query->get();
+        
       
 
         // تطبيق شروط البحث فقط
@@ -222,6 +224,7 @@ class ClientController extends Controller
         $employees = Employee::all();
         $categories = CategoriesClient::all();
         $Regions_groub = Region_groub::all();
+        $branches = Branch::all();
         $lastClient = Client::orderBy('code', 'desc')->first();
 
         $newCode = $lastClient ? $lastClient->code + 1 : 1;
@@ -235,7 +238,7 @@ class ClientController extends Controller
                 return (object) $item; // تحويل المصفوفة إلى كائن
             });
         }
-        return view('client.create', compact('employees', 'newCode', 'categories', 'GeneralClientSettings', 'Regions_groub'));
+        return view('client.create', compact('employees','branches', 'newCode', 'categories', 'GeneralClientSettings', 'Regions_groub'));
     }
     private function getNeighborhoodFromGoogle($latitude, $longitude)
     {
@@ -256,6 +259,7 @@ class ClientController extends Controller
     }
     public function store(ClientRequest $request)
     {
+      
         $data_request = $request->except('_token');
         $rules = [
             'region_id' => ['required'], // إلزامي فقط
@@ -294,8 +298,26 @@ class ClientController extends Controller
             }
         }
 
-        // حفظ العميل
-        $client->save();
+       // حفظ العميل أولاً
+$client->save();
+
+// حفظ الموظفين المرتبطين 
+if (auth()->user()->role === 'manager') {
+if ($request->has('employee_client_id')) {
+    foreach ($request->employee_client_id as $employee_id) {
+        $client_employee = new ClientEmployee();
+        $client_employee->client_id = $client->id;
+        $client_employee->employee_id = $employee_id;
+        $client_employee->save();
+    }
+}
+}elseif (auth()->user()->role === 'employee') {
+    // حفظ الموظف الحالي فقط
+    ClientEmployee::create([
+        'client_id' => $client->id,
+        'employee_id' => auth()->user()->employee_id,
+    ]);
+}
 
         // تسجيل الإحداثيات
         $client->locations()->create([
@@ -499,6 +521,35 @@ $validated = $request->validate($rules, $messages);
         $data_request = $request->except('_token', 'contacts', 'latitude', 'longitude');
         $client->update($data_request);
 
+        // حذف الموظفين السابقين فقط إذا كان المستخدم مدير
+        if (auth()->user()->role === 'manager') {
+            ClientEmployee::where('client_id', $client->id)->delete();
+        
+            if ($request->has('employee_client_id')) {
+                foreach ($request->employee_client_id as $employee_id) {
+                    ClientEmployee::create([
+                        'client_id' => $client->id,
+                        'employee_id' => $employee_id,
+                    ]);
+                }
+            }
+        } elseif (auth()->user()->role === 'employee') {
+            $employee_id = auth()->user()->employee_id;
+        
+            // التحقق إذا هو أصلاً مسؤول
+            $alreadyExists = ClientEmployee::where('client_id', $client->id)
+                ->where('employee_id', $employee_id)
+                ->exists();
+        
+            if (!$alreadyExists) {
+                ClientEmployee::create([
+                    'client_id' => $client->id,
+                    'employee_id' => $employee_id,
+                ]);
+            }
+        }
+        
+
 
             // 1. معالجة المرفقات
             if ($request->hasFile('attachments')) {
@@ -621,12 +672,13 @@ $validated = $request->validate($rules, $messages);
     {
         $client = Client::findOrFail($id);
         $employees = Employee::all();
+        $branches = Branch::all();
         $location = Location::where('client_id',$id)->first();
 
         // جلب جميع المجموعات المتاحة
         $Regions_groub = Region_groub::all();
 
-        return view('client.edit', compact('client', 'employees', 'Regions_groub','location'));
+        return view('client.edit', compact('client','branches', 'employees', 'Regions_groub','location'));
     }
     public function destroy($id)
     {

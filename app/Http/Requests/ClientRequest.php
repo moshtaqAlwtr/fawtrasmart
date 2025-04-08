@@ -49,7 +49,7 @@ class ClientRequest extends FormRequest
             'client_type' => 'nullable|integer|in:1,2',
             'notes' => 'nullable|string',
             'attachments' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'employee_id' => 'nullable',
+            // 'employee_id' => 'nullable',
             'contacts' => 'nullable|array',
             'contacts.*.first_name' => 'nullable|string|max:100',
             'contacts.*.last_name' => 'nullable|string|max:100',
