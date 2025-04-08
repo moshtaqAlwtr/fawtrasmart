@@ -3,7 +3,12 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+
 use App\Models\Region_groub;
+
+use App\Models\ClientRelation;
+use App\Models\Invoice;
+use App\Models\PaymentsProcess;
 use App\Models\Visit;
 use App\Models\Client;
 use App\Models\User;
@@ -499,18 +504,31 @@ class VisitController extends Controller
         } catch (\Exception $e) {
             Log::error('فشل إرسال إشعار التليجرام: ' . $e->getMessage());
         }
-    }
-    public function tracktaff(){
-        $groups = Region_groub::all();
-
-        // Generate dates for the last 7 days
-        $dates = [];
-        for ($i = 0; $i < 7; $i++) {
-            $dates[] = now()->subDays($i)->format('Y-m-d');
+    }public function tracktaff()
+    {
+        // جلب كل المجموعات مع العملاء
+        $groups = Region_groub::with('clients')->get();
+    
+        // أقدم تاريخ عملية موجودة (نحتاج ناخذه من أقدم فاتورة أو سند أو زيارة أو ملاحظة)
+        $minDate = $this->getMinOperationDate();
+    
+        // نحسب كم أسبوع من أول عملية إلى الآن
+        $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
+        $now = now()->endOfWeek();
+        $totalWeeks = $start->diffInWeeks($now) + 1;
+    
+        // نبني الأسابيع
+        $weeks = [];
+        for ($i = 0; $i < $totalWeeks; $i++) {
+            $weeks[] = [
+                'start' => $start->copy()->addWeeks($i)->format('Y-m-d'),
+                'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
+            ];
         }
-
-        return view('reports.sals.traffic_analytics', compact('groups', 'dates'));
+    
+        return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
+
 
 
     public function traffics(){
@@ -518,6 +536,20 @@ class VisitController extends Controller
         $clients = Client::with('locations')->get();
         return view('client.setting.traffic_analytics', compact('groups', 'clients'));
     }
+
+    private function getMinOperationDate()
+    {
+        $invoiceDate = Invoice::min('created_at');
+        $paymentDate = PaymentsProcess::min('created_at');
+        $noteDate = ClientRelation::min('created_at');
+        $visitDate = Visit::min('created_at');
+    
+        return collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
+            ->filter()
+            ->min();
+    }
+        
+
 }
 
 
