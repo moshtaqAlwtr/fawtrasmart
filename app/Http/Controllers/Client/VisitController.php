@@ -507,15 +507,35 @@ class VisitController extends Controller
     }
     public function tracktaff()
     {
-        // جلب البيانات مع جميع العلاقات المطلوبة
+        // جلب البيانات مع تحديد الجداول بشكل صريح
         $groups = Region_groub::with([
-            'neighborhoods.client.invoices',
-            'neighborhoods.client.payments',
-            'neighborhoods.client.latestStatus',
-            'neighborhoods.client.visits'
+            'neighborhoods.client' => function($query) {
+                $query->with([
+                    'invoices' => function($q) {
+                        $q->select('invoices.id', 'invoices.client_id', 'invoices.created_at')
+                          ->from('invoices');
+                    },
+                    'payments' => function($q) {
+                        $q->select('payments_process.id', 'payments_process.client_id', 'payments_process.created_at')
+                          ->from('payments_process');
+                    },
+                    'notes' => function($q) {
+                        $q->select('appointment_notes.id', 'appointment_notes.client_id', 'appointment_notes.created_at')
+                          ->from('appointment_notes');
+                    },
+                    'visits' => function($q) {
+                        $q->select('visits.id', 'visits.client_id', 'visits.created_at')
+                          ->from('visits');
+                    },
+                    'latestStatus' => function($q) {
+                        $q->select('client_relations.id', 'client_relations.client_id', 'client_relations.created_at')
+                          ->from('client_relations');
+                    }
+                ]);
+            }
         ])->get();
 
-        // حساب الأسابيع (كما هو في كودك الأصلي)
+        // حساب الأسابيع
         $minDate = $this->getMinOperationDate();
         $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
         $now = now()->endOfWeek();
@@ -526,12 +546,13 @@ class VisitController extends Controller
             $weeks[] = [
                 'start' => $start->copy()->addWeeks($i)->format('Y-m-d'),
                 'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
+                'week_number' => $i + 1,
+                'label' => 'الأسبوع ' . ($i + 1)
             ];
         }
 
-        return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+        return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalWeeks'));
     }
-
 
     private function getMinOperationDate()
     {

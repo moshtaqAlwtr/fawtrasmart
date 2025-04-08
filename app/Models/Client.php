@@ -25,6 +25,10 @@ public function latestStatus()
 {
     return $this->hasOne(ClientRelation::class, 'client_id')->latest();
 }
+public function note()
+{
+    return $this->hasMany(ClientRelation::class, 'client_id');
+}
 public function branch()
 {
     return $this->belongsTo(Branch::class);
@@ -69,7 +73,7 @@ public function Balance()
     // العلاقة مع ملاحظات المواعيد
     public function appointmentNotes()
     {
-        return $this->hasMany(AppointmentNote::class);
+        return $this->hasMany(ClientRelation::class);
     }
     public function neighborhood()
     {
