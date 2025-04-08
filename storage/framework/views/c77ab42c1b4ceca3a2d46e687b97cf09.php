@@ -9,72 +9,6 @@
             width: 100%;
             margin-bottom: 20px;
         }
-
-        .hover-effect:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .btn-indigo {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border: none;
-        }
-
-        .btn-violet {
-            background: linear-gradient(135deg, #9c27b0 0%, #e91e63 100%);
-            color: white;
-            border: none;
-        }
-
-        .btn-orange {
-            background: linear-gradient(135deg, #ff7b00 0%, #ff9a00 100%);
-            color: white;
-            border: none;
-        }
-
-        /* تأثيرات عند المرور */
-        .btn-hover-shine:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            opacity: 0.92;
-            transition: all 0.2s ease;
-        }
-
-        /* تأثير إضاءة خفيف */
-        .btn-hover-shine:after {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -60%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.15);
-            transform: rotate(30deg);
-            transition: all 0.3s ease;
-        }
-
-        .btn-hover-shine:hover:after {
-            left: 100%;
-        }
-
-        /* تكيف مع الشاشات الصغيرة */
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 0.75rem;
-            }
-
-            .btn-sm {
-                height: 32px !important;
-                font-size: 0.8rem;
-            }
-
-            .fs-6 {
-                font-size: 0.8rem !important;
-            }
-        }
     </style>
 <?php $__env->stopSection(); ?>
 
@@ -103,61 +37,43 @@
         <div id="map"></div>
 
         <!-- بطاقة الإجراءات -->
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-body p-3">
-                <div class="row align-items-center gy-2">
-                    <!-- زر إضافة عميل -->
-                    <div class="col-12 col-md-6 col-lg-3">
+        <div class="card shadow-lg border-0 rounded-3">
+            <div class="card-body">
+                <div class="row align-items-center gy-3">
+                    <!-- القسم الأيمن -->
+                    <div
+                        class="col-md-6 d-flex flex-wrap align-items-center gap-2 justify-content-center justify-content-md-start">
+                        <!-- زر إضافة عميل -->
                         <a href="<?php echo e(route('clients.create')); ?>"
-                            class="btn btn-hover-shine btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-user-plus me-2 fs-6"></i>
-                            <span class="fw-medium">إضافة عميل</span>
+                            class="btn btn-success btn-sm rounded-pill px-4 text-center">
+                            <i class="fas fa-plus-circle me-1"></i>
+                            إضافة عميل
                         </a>
-                    </div>
 
-                    <!-- زر تحميل ملف Excel -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="d-flex flex-column flex-md-row gap-2">
-                            <label
-                                class="btn btn-hover-shine btn-indigo btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
-                                <span class="fw-medium">تحميل</span>
+                        <!-- زر استيراد -->
+                        <form action="<?php echo e(route('clients.import')); ?>" method="POST" enctype="multipart/form-data"
+                            class="d-inline-flex align-items-center gap-2">
+                            <?php echo csrf_field(); ?>
+                            <label class="btn btn-outline-primary btn-sm rounded-pill px-3 mb-0 text-center">
+                                <i class="fas fa-upload"></i> تحميل ملف Excel
                                 <input type="file" name="file" class="d-none" required>
                             </label>
                             <button type="submit"
-                                class="btn btn-hover-shine btn-primary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-database me-2 fs-6"></i>
-                                <span class="fw-medium">استيراد</span>
-                            </button>
-                        </div>
+                                class="btn btn-primary btn-sm rounded-pill px-3 text-center">استيراد</button>
+                        </form>
                     </div>
 
-                    <!-- زر إضافة حد ائتماني -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="javascript:void(0);"
-                            class="btn btn-hover-shine btn-violet btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
-                            <i class="fas fa-credit-card me-2 fs-6"></i>
-                            <span class="fw-medium">حد ائتماني</span>
-                        </a>
-                    </div>
-
-                    <!-- زر التقارير -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="#"
-                            class="btn btn-hover-shine btn-orange btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-chart-pie me-2 fs-6"></i>
-                            <span class="fw-medium">تقارير</span>
+                    <!-- القسم الأيسر -->
+                    <div class="col-md-6 d-flex justify-content-center justify-content-md-end gap-2">
+                        <!-- زر إضافة حد ائتماني -->
+                        <a href="javascript:void(0);" class="btn btn-success btn-sm rounded-pill px-4 text-center"
+                            data-bs-toggle="modal" data-bs-target="#creditLimitModal">
+                            <i class="fas fa-plus-circle me-1"></i> إضافة حد ائتماني
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-
 
         <!-- بطاقة البحث -->
         <div class="card">
@@ -179,67 +95,32 @@
             </div>
             <div class="card-body">
                 <form class="form" id="searchForm" method="GET" action="<?php echo e(route('clients.index')); ?>">
-                    <div class="card p-3 mb-4">
-                        <div class="row g-3 align-items-end">
-                            <!-- اسم العميل -->
-                            <div class="col-md-3 col-12">
-                                <label for="client" class="form-label">العميل</label>
-                                <select name="client" id="client" class="form-control select2">
-                                    <option value="">اختر العميل</option>
-                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
-                                            <?php echo e($client->trade_name); ?> - <?php echo e($client->code); ?>
+                    <div class="row g-3">
+                        <div class="col-md-4 col-12">
+                            <select name="client" class="form-control select2">
+                                <option value="">اختر العميل</option>
+                                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($client->id); ?>"
+                                        <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                        <?php echo e($client->trade_name); ?> - <?php echo e($client->id); ?>
 
-                                        </option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
-                    
-                            <!-- الاسم -->
-                            <div class="col-md-3 col-12">
-                                <label for="name" class="form-label">الاسم</label>
-                                <input type="text" name="name" id="name" class="form-control"
-                                    placeholder="الاسم" value="<?php echo e(request('name')); ?>">
-                            </div>
-                    
-                            <!-- الحالة -->
-                            <div class="col-md-3 col-12">
-                                <label for="status" class="form-label">الحالة</label>
-                                <select name="status" id="status" class="form-control">
-                                    <option value="">اختر الحالة</option>
-                                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($status->id); ?>" <?php echo e(request('status') == $status->id ? 'selected' : ''); ?>>
-                                            <?php echo e($status->name); ?>
-
-                                        </option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
-                    
-                            <!-- المجموعة -->
-                            <div class="col-md-3 col-12">
-                                <label for="region" class="form-label">المجموعة</label>
-                                <select name="region" id="region" class="form-control">
-                                    <option value="">اختر المجموعة</option>
-                                    <?php $__currentLoopData = $Region_groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <option value="<?php echo e($Region_group->id); ?>" <?php echo e(request('region') == $Region_group->id ? 'selected' : ''); ?>>
-                                            <?php echo e($Region_group->name); ?>
-
-                                        </option>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </select>
-                            </div>
-                    
-                            <!-- الحي -->
-                            <div class="col-md-12 col-12">
-                                <label for="neighborhood" class="form-label">الحي</label>
-                                <input type="text" name="neighborhood" id="neighborhood" class="form-control"
-                                    placeholder="الحي" value="<?php echo e(request('neighborhood')); ?>">
-                            </div>
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <input type="text" name="name" class="form-control" placeholder="الاسم"
+                                value="<?php echo e(request('end_date_to')); ?>">
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <select name="status" class="form-control">
+                                <option value="">اختر الحالة</option>
+                                <option value="1" <?php echo e(request('status') == '1' ? 'selected' : ''); ?>>مديون</option>
+                                <option value="0" <?php echo e(request('status') == '0' ? 'selected' : ''); ?>>دائن</option>
+                                <option value="0" <?php echo e(request('status') == '0' ? 'selected' : ''); ?>>مميز</option>
+                            </select>
                         </div>
                     </div>
-                    
-                    
 
                     <div class="collapse" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
@@ -342,20 +223,13 @@
                                     <th width="50">#</th>
                                     <th>معلومات العميل</th>
                                     <th>العنوان</th>
-                                    <th>المجموعة</th>
-                                    <th>الحي</th>
-                                     <th>الفرع</th>
-                                     <th>نوع الزيارة</th>
-                                     <th>الحالة</th>
-                                    <th>الكود</th>
                                     <th>رقم الهاتف</th>
                                     <th style="width: 10%">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <tr onclick="handleRowClick(event, '<?php echo e(route('clients.show', $client->id)); ?>')"
-                                        style="cursor: pointer;" class="hover-effect">
+                                    <tr>
                                         <td>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox"
@@ -381,43 +255,12 @@
                                         <td>
                                             <p class="mb-0">
                                                 <i class="fas fa-map-marker-alt text-primary me-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="openMap(<?php echo e($client->locations->latitude ?? 0); ?>, <?php echo e($client->locations->longitude ?? 0); ?>, '<?php echo e($client->trade_name); ?>')"></i>
+                                                   style="cursor: pointer;"
+                                                   onclick="openMap(<?php echo e($client->locations->latitude ?? 0); ?>, <?php echo e($client->locations->longitude ?? 0); ?>, '<?php echo e($client->trade_name); ?>')"></i>
                                                 <?php echo e($client->city); ?>, <?php echo e($client->region); ?>
 
                                             </p>
                                         </td>
-                                        <td><?php echo e($client->Neighborhoodname->Region->name ?? ''); ?></td>
-                                        <td><?php echo e($client->Neighborhoodname->name ?? ''); ?></td>
-
-
-                                           <td><?php echo e($client->branch->name ?? ''); ?></td>
-                                           <td>
-                                            <?php if($client->visit_type == "am"): ?>
-                                                <span class="badge badge-success">
-                                                    ☀️ صباحية
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge badge-primary">
-                                                    🌙 مسائية
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if($client->status_client): ?>
-                                                <span style="background-color: <?php echo e($client->status_client->color); ?>; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    <?php echo e($client->status_client->name); ?>
-
-                                                </span>
-                                            <?php else: ?>
-                                                <span style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    غير محدد
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        
-                                        
-                                        <td><?php echo e($client->code ?? ''); ?></td>
                                         <td>
                                             <strong class="text-primary">
                                                 <i class="fas fa-phone me-2"></i><?php echo e($client->phone); ?>
@@ -452,6 +295,7 @@
                                                             الدخول
                                                         </a>
 
+
                                                         <li>
                                                             <a class="dropdown-item"
                                                                 href="<?php echo e(route('clients.edit', $client->id)); ?>">
@@ -469,7 +313,7 @@
                                                         <?php endif; ?>
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="<?php echo e(route('clients.statement', $client->id)); ?>">
+                                                                href="<?php echo e(route('clients.edit', $client->id)); ?>">
                                                                 <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
                                                                 حساب
                                                             </a>
@@ -478,6 +322,7 @@
                                                 </div>
                                             </div>
                                         </td>
+
 
                                         <!-- Modal Delete -->
                                         <div class="modal fade" id="modal_DELETE<?php echo e($client->id); ?>" tabindex="-1"
@@ -496,7 +341,8 @@
                                                         <?php echo csrf_field(); ?>
                                                         <?php echo method_field('DELETE'); ?>
                                                         <div class="modal-body">
-                                                            <p>هل أنت متأكد من الحذف "<?php echo e($client->trade_name); ?>"؟</p>
+                                                            <p>هل أنت متأكد من الحذف
+                                                                "<?php echo e($client->trade_name); ?>"؟</p>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary"
@@ -522,11 +368,7 @@
                     لا توجد عملاء !!
                 </p>
             </div>
-
-
         <?php endif; ?>
-        
-
     </div>
 
     <!-- Modal إضافة حد ائتماني -->
@@ -565,15 +407,14 @@
         src="https://maps.googleapis.com/maps/api/js?key=<?php echo e(env('GOOGLE_MAPS_API_KEY')); ?>&libraries=places&callback=initMap"
         async defer></script>
     <script>
-        function openMap(lat, lng, title = '') {
-            if (lat === 0 || lng === 0) {
-                alert('لا يوجد إحداثيات متاحة لهذا العميل');
-                return;
-            }
+  function openMap(lat, lng, title = '') {
+    if (lat === 0 || lng === 0) {
+        alert('لا يوجد إحداثيات متاحة لهذا العميل');
+        return;
+    }
 
-            window.location.href = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
-        }
-
+    window.location.href = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
+}
         function initMap() {
             // إنشاء الخريطة بنفس تصميم جوجل
             const map = new google.maps.Map(document.getElementById('map'), {
@@ -720,27 +561,10 @@
                             <td style="color: #666;">الموقع:</td>
                             <td><?php echo e($client->city); ?>, <?php echo e($client->region); ?></td>
                         </tr>
-                         <tr>
-                            <td style="color: #666;">المجموعة:</td>
-                            <td><?php echo e($client->Neighborhoodname->Region->name ?? 'لا يوجد'); ?></td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">نوع الزيارة:</td>
-                            <td>  <?php if($client->visit_type == "am"): ?>
-        <span class="badge badge-success">
-            ☀️ صباحية
-        </span>
-    <?php else: ?>
-        <span class="badge badge-primary">
-            🌙 مسائية
-        </span>
-    <?php endif; ?></td>
-                        </tr>
                         <tr>
                             <td style="color: #666;">الرصيد:</td>
-                            <td style="color: <?php echo e($client->Balance() < 0 ? '#EA4335' : '#34A853'); ?>; font-weight: bold;">
-                                <?php echo e($client->Balance()); ?> ر.س
-
+                            <td style="color: <?php echo e($client->Balance < 0 ? '#EA4335' : '#34A853'); ?>; font-weight: bold;">
+                                <?php echo e($client->Balance); ?> ر.س
                             </td>
                         </tr>
                     </table>
@@ -777,44 +601,6 @@
                 <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         }
-
-        function handleRowClick(event, url) {
-            let target = event.target;
-
-            // السماح بالنقر على العناصر التالية بدون تحويل
-            if (target.tagName.toLowerCase() === 'a' ||
-                target.closest('.dropdown-menu') ||
-                target.closest('.btn') ||
-                target.closest('.form-check-input')) {
-                return;
-            }
-
-            // تحويل المستخدم لصفحة العميل عند الضغط على الصف
-            window.location = url;
-        }
-
-        // إصلاح مشكلة عدم فتح الدروب داون
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll(".dropdown-toggle").forEach(function(dropdown) {
-                dropdown.addEventListener("click", function(event) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    let menu = this.nextElementSibling;
-                    if (menu) {
-                        menu.classList.toggle("show");
-                    }
-                });
-            });
-
-            // إغلاق الدروب داون عند النقر خارجها
-            document.addEventListener("click", function(event) {
-                document.querySelectorAll(".dropdown-menu").forEach(function(menu) {
-                    if (!menu.parentElement.contains(event.target)) {
-                        menu.classList.remove("show");
-                    }
-                });
-            });
-        });
     </script>
 <?php $__env->stopSection(); ?>
 

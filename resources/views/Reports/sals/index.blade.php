@@ -598,36 +598,5 @@
 
 
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fa-solid fa-chart-line"></i>
-                            تقارير تتبع الزيارات
-                        </h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                                <span class="list-icon gradient-blue">
-                                    <i class="fa-solid fa-calendar-day"></i>
-                                </span>
-                                تتبع الزيارات
-                                <div class="ms-auto">
-                                    <a href="{{ route('visits.tracktaff') }}" class="text-decoration-none">
-                                        <i class="fa-solid fa-file-lines"></i>عرض
-                                    </a>
-
-                                </div>
-                            </li>
-
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-
-
-        </div>
-
     </div>
 @endsection

@@ -61,21 +61,11 @@ class InvoicesController extends Controller
 
     public function getUnreadNotifications()
     {
-        $user = Auth::user();
+        $notifications = notifications::where('read', 0)
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
 
-        $query = notifications::with('user') // تحميل علاقة المستخدم
-                    ->where('read', false)
-                    ->orderBy('created_at', 'desc');
-
-        if ($user->role != 'manager') {
-            $query->where('user_id', $user->id);
-        }
-
-        $notifications = $query->get();
-
-        return response()->json([
-            'notifications' => $notifications
-        ]);
+        return response()->json(['notifications' => $notifications]);
     }
 
     /**
@@ -825,7 +815,6 @@ class InvoicesController extends Controller
                     if ($productDetails->quantity < $product['low_stock_alert']) {
                         // إنشاء إشعار للكمية
                         notifications::create([
-'user_id' => $product['user_id'],
                             'type' => 'Products',
                             'title' => 'تنبيه الكمية',
                             'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
@@ -1035,13 +1024,12 @@ class InvoicesController extends Controller
                 'timeout' => 30,
             ]);
             notifications::create([
-                'user_id' => auth()->user()->id,
                 'type' => 'invoice',
                 'title' => $user_name->name . ' أضاف فاتورة لعميل',
                 'description' => 'فاتورة للعميل ' . $client_name->trade_name . ' بقيمة ' . number_format($invoice->grand_total, 2) . ' ر.س',
             ]);
-
-
+            
+       
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
 

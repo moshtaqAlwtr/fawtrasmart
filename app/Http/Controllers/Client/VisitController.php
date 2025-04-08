@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+
+use App\Models\Region_groub;
+
 use App\Models\ClientRelation;
 use App\Models\Invoice;
 use App\Models\PaymentsProcess;
@@ -524,6 +527,15 @@ class VisitController extends Controller
 
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
+
+
+
+    public function traffics(){
+        $groups = Region_groub::all();
+        $clients = Client::with('locations')->get();
+        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
+    }
+
     private function getMinOperationDate()
     {
         $invoiceDate = Invoice::min('created_at');
@@ -537,3 +549,7 @@ class VisitController extends Controller
     }
 
 }
+
+
+
+

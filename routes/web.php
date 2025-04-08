@@ -198,6 +198,7 @@ Route::group(
                     Route::post('/general/settings', [ClientSettingController::class, 'store'])->name('clients.store_general');
                     Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
                     Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
+                    
 
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
@@ -270,6 +271,7 @@ Route::group(
                 });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingInvoiceController::class, 'index'])->name('SittingInvoice.index');
+
                 });
                 Route::prefix('offers')->group(function () {
                     Route::get('/index', [OffersController::class, 'index'])->name('Offers.index');
@@ -308,9 +310,13 @@ Route::group(
                 Route::get('/visits/today', [VisitController::class, 'getTodayVisits'])
                     ->middleware('auth')
                     ->name('visits.today');
+
+                Route::get('/visits', [VisitController::class, 'traffics'])->name('visits.traffics');
+
                     Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
                     ->name('visits.storeLocationEnhanced');
                     Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
+
                 // Route::get('/my-visits', [VisitController::class, 'myVisits']);
 
                 // // تتبع الموقع
@@ -334,5 +340,12 @@ Route::group(
             ->group(function () {
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
+
+
+
+
+
+
+
     },
 );

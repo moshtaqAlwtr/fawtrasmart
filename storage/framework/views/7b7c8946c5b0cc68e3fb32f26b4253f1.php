@@ -79,7 +79,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="col-lg-4 col-sm-6 col-12">
                     <div class="card hover-card">
                         <div class="card-content">
@@ -104,7 +103,6 @@
                         </div>
                     </div>
                 </div>
-
 
 
             </div>

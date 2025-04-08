@@ -76,7 +76,50 @@ Route::group(
                 ];
             });
 
-            return view('dashboard.sales.index', compact('ClientCount', 'Invoice', 'groups', 'Visit', 'chartData', 'TodayVisits'));
+            // 1. جلب بيانات الفواتير والمبيعات
+$groups = Neighborhood::with('Region')
+->leftJoin('invoices', 'neighborhoods.client_id', '=', 'invoices.client_id')
+->select('region_id', DB::raw('COALESCE(SUM(invoices.grand_total), 0) as total_sales'))
+->groupBy('region_id')
+->get();
+
+// 2. حساب المدفوعات لكل مجموعة
+$payments = Neighborhood::join('region_groubs', 'neighborhoods.region_id', '=', 'region_groubs.id')
+->join('clients', 'neighborhoods.client_id', '=', 'clients.id')
+->join('invoices', 'clients.id', '=', 'invoices.client_id')
+->join('payments_process', 'invoices.id', '=', 'payments_process.invoice_id')
+->select('neighborhoods.region_id', DB::raw('COALESCE(SUM(payments_process.amount), 0) as total_payments'))
+->groupBy('neighborhoods.region_id')
+->get()
+->keyBy('region_id');
+
+
+
+// 3. حساب سندات القبض لكل مجموعة
+$receipts = Neighborhood::join('region_groubs', 'neighborhoods.region_id', '=', 'region_groubs.id')
+->join('clients', 'neighborhoods.client_id', '=', 'clients.id')
+->join('accounts', 'clients.id', '=', 'accounts.client_id')
+->join('receipts', 'accounts.id', '=', 'receipts.account_id')
+->select('neighborhoods.region_id', DB::raw('COALESCE(SUM(receipts.amount), 0) as total_receipts'))
+->groupBy('neighborhoods.region_id')
+->get()
+->keyBy('region_id');
+
+
+// 4. دمج البيانات في groupChartData
+$groupChartData = $groups->map(function ($item) use ($payments, $receipts) {
+return [
+    'region'    => optional($item->region)->name ?? 'غير معروف',
+    'sales'     => (float) $item->total_sales,
+    'payments'  => (float) ($payments[$item->region_id]->total_payments ?? 0),
+    'receipts'  => (float) ($receipts[$item->region_id]->total_receipts ?? 0),
+];
+});
+
+$totalSales    = $groups->sum('total_sales');
+$totalPayments = $payments->sum('total_payments');
+$totalReceipts = $receipts->sum('total_receipts');
+            return view('dashboard.sales.index', compact('ClientCount','groupChartData','totalReceipts','totalSales','totalPayments','receipts', 'Invoice', 'groups', 'Visit', 'chartData', 'TodayVisits'));
         })->middleware(['auth']);
 
         Route::prefix('dashboard')->middleware(['auth'])->group(function () {
@@ -84,7 +127,6 @@ Route::group(
             Route::prefix('sales')->group(function () {
                 Route::get('/index', [DashboardSalesController::class, 'index'])->name('dashboard_sales.index');
             });
-
         });
     }
 );

@@ -17,6 +17,11 @@ class Account extends Model
     {
         return $this->hasMany(Account::class, 'parent_id');
     }
+    public function client()
+{
+    return $this->belongsTo(Client::class, 'client_id');
+}
+
     public function updateBalance($amount, $operation = 'add')
     {
         if ($operation === 'add') {

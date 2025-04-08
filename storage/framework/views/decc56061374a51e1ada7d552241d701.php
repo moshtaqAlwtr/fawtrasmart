@@ -370,46 +370,48 @@
                                     </span>
                                 </td>
                                 <td class="text-end">
-                                    <div class="btn-group">
-                                        <div class="dropdown">
-                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                                id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
-                                                aria-expanded="false">
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li>
-                                                    <a class="dropdown-item" href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
-                                                        <i class="fas fa-eye me-2 text-primary"></i>عرض
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
-                                                        <i class="fas fa-edit me-2 text-success"></i>تعديل
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <form action="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>" method="POST">
-                                                        <?php echo csrf_field(); ?>
-                                                        <?php echo method_field('DELETE'); ?>
-                                                        <button type="submit" class="dropdown-item text-danger">
-                                                            <i class="fas fa-trash me-2"></i>حذف
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=a4">
-                                                        <i class="fas fa-file-pdf me-2 text-warning"></i>إيصال (A4)
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=thermal">
-                                                        <i class="fas fa-receipt me-2 text-warning"></i>إيصا (حراري)
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
+                                    <div class="col-md-2 text-end">
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
+                                                    id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"
+                                                    aria-expanded="false">
+                                                </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
+                                                    <i class="fas fa-eye me-2 text-primary"></i>عرض
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
+                                                    <i class="fas fa-edit me-2 text-success"></i>تعديل
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form action="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>" method="POST">
+                                                    <?php echo csrf_field(); ?>
+                                                    <?php echo method_field('DELETE'); ?>
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="fas fa-trash me-2"></i>حذف
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=a4">
+                                                    <i class="fas fa-file-pdf me-2 text-warning"></i>إيصال (A4)
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=thermal">
+                                                    <i class="fas fa-receipt me-2 text-warning"></i>إيصال (حراري)
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
+                                </div>
+                            </div>
                                 </td>
                             </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

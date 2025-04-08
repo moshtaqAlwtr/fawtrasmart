@@ -95,6 +95,93 @@
                         </div>
                     </li>
                     <?php if(auth()->user()->role != 'employee'): ?>
+
+                    <li class="dropdown dropdown-notification nav-item">
+                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                            <i class="ficon feather icon-calendar"></i>
+                            <span class="badge badge-pill badge-primary badge-up"><?php echo e($todayVisits->count()); ?></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
+                            <li class="dropdown-menu-header">
+                                <div class="dropdown-header m-0 p-2">
+                                    <h3 class="white"><?php echo e($todayVisits->count()); ?> زيارة</h3>
+                                    <span class="notification-title">زيارات اليوم</span>
+                                </div>
+                            </li>
+
+                    <?php
+                    $userRole = Auth::user()->role;
+                ?>
+                            <?php if($userRole != 'employee'): ?>
+                            <li class="scrollable-container media-list">
+                                <?php $__empty_1 = true; $__currentLoopData = $todayVisits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $visit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <div class="visit-item media p-1">
+                                        <div class="media-left">
+                                            <div class="avatar bg-primary bg-lighten-4 rounded-circle">
+                                                <span class="avatar-content"><?php echo e(substr($visit->client->trade_name, 0, 1)); ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="media-heading text-bold-500"><?php echo e($visit->client->trade_name); ?></h6>
+                                            <p class="mb-1">
+                                                <i class="feather icon-user"></i>
+                                                <small class="text-muted">الموظف: <?php echo e($visit->employee->name ?? 'غير معروف'); ?></small>
+                                            </p>
+                                            <div class="visit-details">
+                                                <?php if($visit->arrival_time): ?>
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-clock text-success"></i>
+                                                        <span class="text-success">الوصول: </span>
+                                                        <?php echo e(\Carbon\Carbon::parse($visit->arrival_time)->format('h:i A')); ?>
+
+                                                    </p>
+                                                <?php endif; ?>
+                                                <?php if($visit->departure_time): ?>
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-clock text-danger"></i>
+                                                        <span class="text-danger">المغادرة: </span>
+                                                        <?php echo e(\Carbon\Carbon::parse($visit->departure_time)->format('h:i A')); ?>
+
+                                                    </p>
+                                                <?php else: ?>
+                                                    <p class="mb-0 text-warning">
+                                                        <i class="feather icon-clock"></i>
+                                                        <span>ما زال عند العميل</span>
+                                                    </p>
+                                                <?php endif; ?>
+                                                <?php if($visit->notes): ?>
+                                                    <p class="mb-0 text-muted small">
+                                                        <i class="feather icon-message-square"></i>
+                                                        <?php echo e(Str::limit($visit->notes, 50)); ?>
+
+                                                    </p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                    <li class="empty-visits p-2 text-center">لا توجد زيارات اليوم</li>
+                                <?php endif; ?>
+                            </li>
+                            <li class="dropdown-menu-footer">
+                                <a class="dropdown-item p-1 text-center text-primary" href="">
+                                    <i class="feather icon-list align-middle"></i>
+                                    <span class="align-middle text-bold-600">عرض كل الزيارات</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <?php endif; ?>
+
+
+<?php endif; ?>
+
+                    <?php
+                        $userRole = Auth::user()->role;
+                    ?>
+
+                    <?php if($userRole != 'employee'): ?>
+
                         <li class="dropdown dropdown-notification nav-item">
                             <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                                 <i class="ficon feather icon-calendar"></i>

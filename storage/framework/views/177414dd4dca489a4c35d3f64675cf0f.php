@@ -188,7 +188,11 @@
                                     <option value="">اختر العميل</option>
                                     <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+
+                                            <?php echo e($client->trade_name); ?> - <?php echo e($client->id); ?>
+
                                             <?php echo e($client->trade_name); ?> - <?php echo e($client->code); ?>
+
 
                                         </option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
