@@ -71,7 +71,11 @@ public function Balance()
     {
         return $this->hasMany(AppointmentNote::class);
     }
-
+    public function neighborhood()
+    {
+        return $this->belongsTo(Neighborhood::class);
+    }
+    
     // العلاقات
     public function invoices()
     {

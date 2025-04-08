@@ -17,6 +17,18 @@
                 width: 100%;
                 padding: 4px;
             }
+            .chart-container {
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 576px) {
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
     </style>
 @endsection
 
@@ -107,35 +119,105 @@
                 </div>
             </div>
                 <div class="row">
-              <div class="col-lg-4 col-12">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-end">
-            <h4>مبيعات المجموعات</h4>
-            <div class="dropdown chart-dropdown">
-               
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                    <a class="dropdown-item" href="#">العام الماضي</a>
-                </div>
+              <div class="col-md-12 col-12">
+                  <div class="accordion mb-3" id="summaryAccordion">
+    <div class="row mb-3">
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm border-success">
+            <div class="card-body">
+                <h5 class="text-success">إجمالي المبيعات</h5>
+                <h3 class="fw-bold">{{ number_format($totalSales, 2) }} ريال</h3>
             </div>
         </div>
-        <div class="card-content">
-            <div class="card-body pt-0">
-                <div id="sales-chart" class="mb-1"></div>
-                @foreach ($groups as $group)
-                    <div class="chart-info d-flex justify-content-between mb-1">
-                        <div class="series-info d-flex align-items-center">
-                            <i class="feather icon-layers font-medium-2 text-primary"></i>
-                            <span class="text-bold-600 mx-50">{{ $group->Region->name ?? "" }}</span>
-                            <span> - {{ number_format($group->total_sales, 2) }} ريال</span>
-                        </div>
-                    </div>
-                @endforeach
+    </div>
+
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm border-primary">
+            <div class="card-body">
+                <h5 class="text-primary">إجمالي المدفوعات</h5>
+                <h3 class="fw-bold">{{ number_format($totalPayments, 2) }} ريال</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm border-warning">
+            <div class="card-body">
+                <h5 class="text-warning">إجمالي سندات القبض</h5>
+                <h3 class="fw-bold">{{ number_format($totalReceipts, 2) }} ريال</h3>
             </div>
         </div>
     </div>
 </div>
+
+
+
+</div>
+ <div class="card">
+    <div class="card-header">
+        <h4 class="card-title">مبيعات المجموعات</h4>
+    </div>
+    <div class="card-body">
+        <div class="chart-container" style="position: relative; width: 100%;">
+            <canvas id="group-sales-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+</div>
+
+
+
+<!-- السكربت يوضع خارج البلوك -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('group-sales-chart').getContext('2d');
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($groupChartData->pluck('region')) !!},
+                datasets: [
+    {
+        label: 'المبيعات',
+        data: {!! json_encode($groupChartData->pluck('sales')) !!},
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+    },
+    {
+        label: 'المدفوعات',
+        data: {!! json_encode($groupChartData->pluck('payments')) !!},
+        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+    },
+    {
+        label: 'سندات القبض',
+        data: {!! json_encode($groupChartData->pluck('receipts')) !!},
+        backgroundColor: 'rgba(255, 159, 64, 0.7)',
+        borderColor: 'rgba(255, 159, 64, 1)',
+        borderWidth: 1
+    }
+]
+
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'المبلغ (ريال)'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
 
                 <!--<div class="col-lg-4 col-12">-->
                 <!--    <div class="card chat-application">-->
@@ -252,7 +334,7 @@
                 <!--        </div>-->
                 <!--    </div>-->
                 <!--</div>-->
-                <div class="col-lg-4 col-12">
+                <div class="col-md-12 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between pb-0">
                             <h4 class="card-title">مبيعات الموظفين</h4>
@@ -352,112 +434,18 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-4 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">إحصائيات المتصفحات</h4>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">جوجل كروم</p>
-                                        <h4>73%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>800 <i class="feather icon-arrow-up text-success"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="73" aria-valuemin="73" aria-valuemax="100" style="width:73%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">أوبرا</p>
-                                        <h4>8%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>-200 <i class="feather icon-arrow-down text-danger"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="8" aria-valuemin="8" aria-valuemax="100" style="width:8%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">فايرفوكس</p>
-                                        <h4>19%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>100 <i class="feather icon-arrow-up text-success"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="19" aria-valuemin="19" aria-valuemax="100" style="width:19%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">إنترنت إكسبلورر</p>
-                                        <h4>27%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>-450 <i class="feather icon-arrow-down text-danger"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-50">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="27" aria-valuemin="27" aria-valuemax="100" style="width:27%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-8 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">الاحتفاظ بالعملاء</h4>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div id="client-retention-chart">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+               
+                <div class="col-md-12 col-12">
+    
+</div>
+
+<!-- السكربت يوضع خارج البلوك -->
+
+
             </div>
             <div class="row">
               <div class="col-lg-4 col-12">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-end">
-            <h4>مبيعات المجموعات</h4>
-            <div class="dropdown chart-dropdown">
-               
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                    <a class="dropdown-item" href="#">العام الماضي</a>
-                </div>
-            </div>
-        </div>
-        <div class="card-content">
-            <div class="card-body pt-0">
-                <div id="sales-chart" class="mb-1"></div>
-                @foreach ($groups as $group)
-                    <div class="chart-info d-flex justify-content-between mb-1">
-                        <div class="series-info d-flex align-items-center">
-                            <i class="feather icon-layers font-medium-2 text-primary"></i>
-                            <span class="text-bold-600 mx-50">{{ $group->Region->name ?? "" }}</span>
-                            <span> - {{ number_format($group->total_sales, 2) }} ريال</span>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
+   
 </div>
 
                 <!--<div class="col-lg-4 col-12">-->
@@ -584,6 +572,7 @@
 
 @endsection
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -674,6 +663,7 @@
         }
     });
 </script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     var options = {
