@@ -308,6 +308,8 @@ Route::group(
                 Route::get('/visits/today', [VisitController::class, 'getTodayVisits'])
                     ->middleware('auth')
                     ->name('visits.today');
+                    Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
+                    ->name('visits.storeLocationEnhanced');
                 // Route::get('/my-visits', [VisitController::class, 'myVisits']);
 
                 // // تتبع الموقع

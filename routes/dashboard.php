@@ -84,6 +84,7 @@ Route::group(
             Route::prefix('sales')->group(function () {
                 Route::get('/index', [DashboardSalesController::class, 'index'])->name('dashboard_sales.index');
             });
+
         });
     }
 );
