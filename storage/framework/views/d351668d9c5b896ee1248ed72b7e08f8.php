@@ -557,6 +557,7 @@
                                         data-i18n="eCommerce">اعدادات المجموعات</span>
                                 </a>
                             </li>
+                            
                             <?php endif; ?>
 
                         </ul>
