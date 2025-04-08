@@ -501,20 +501,19 @@ class VisitController extends Controller
         } catch (\Exception $e) {
             Log::error('فشل إرسال إشعار التليجرام: ' . $e->getMessage());
         }
-    }public function tracktaff()
+    }
+    public function tracktaff()
     {
-        // جلب كل المجموعات مع العملاء
-        $groups = Region_groub::with('clients')->get();
-    
-        // أقدم تاريخ عملية موجودة (نحتاج ناخذه من أقدم فاتورة أو سند أو زيارة أو ملاحظة)
+        // جلب البيانات مع جميع العلاقات المطلوبة
+        $groups = Region_groub::with(['neighborhoods.client.invoices', 'neighborhoods.client.payments', 'neighborhoods.client.notes', 'neighborhoods.client.visits'])->get();
+
+
+        // حساب الأسابيع (كما هو في كودك الأصلي)
         $minDate = $this->getMinOperationDate();
-    
-        // نحسب كم أسبوع من أول عملية إلى الآن
         $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
         $now = now()->endOfWeek();
         $totalWeeks = $start->diffInWeeks($now) + 1;
-    
-        // نبني الأسابيع
+
         $weeks = [];
         for ($i = 0; $i < $totalWeeks; $i++) {
             $weeks[] = [
@@ -522,7 +521,7 @@ class VisitController extends Controller
                 'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
             ];
         }
-    
+
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
     private function getMinOperationDate()
@@ -531,10 +530,10 @@ class VisitController extends Controller
         $paymentDate = PaymentsProcess::min('created_at');
         $noteDate = ClientRelation::min('created_at');
         $visitDate = Visit::min('created_at');
-    
+
         return collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
             ->filter()
             ->min();
     }
-        
+
 }

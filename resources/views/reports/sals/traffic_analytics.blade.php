@@ -1,4 +1,3 @@
-
 @extends('master')
 
 @section('title')
@@ -10,11 +9,11 @@
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">تحليل الزيارات   </h2>
+                    <h2 class="content-header-title float-left mb-0">تحليل الزيارات</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
-                            <li class="breadcrumb-item active">عرض </li>
+                            <li class="breadcrumb-item active">عرض</li>
                         </ol>
                     </div>
                 </div>
@@ -23,65 +22,23 @@
     </div>
 
     @foreach ($groups as $group)
-    <h4>{{ $group->name }}</h4>
-    <table>
-        <thead>
-            <tr>
-                <th>العميل</th>
-                @foreach ($weeks as $week)
-                    <th>
-                        {{ \Carbon\Carbon::parse($week['start'])->format('d M') }} -
-                        {{ \Carbon\Carbon::parse($week['end'])->format('d M') }}
-                    </th>
+        <h4 class="mt-4">📍 {{ $group->name }}</h4>
+
+        @php
+            // جمع جميع العملاء من جميع أحياء هذه المجموعة
+            $clients = $group->neighborhoods->flatMap(function($neighborhood) {
+                return $neighborhood->clients;
+            })->unique('id');
+        @endphp
+
+        @if($clients->count() > 0)
+            <ul class="list-group mb-4">
+                @foreach ($clients as $client)
+                    <li class="list-group-item">{{ $client->name }}</li>
                 @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($group->clients as $client)
-                <tr>
-                    <td>{{ $client->name }}</td>
-                    @foreach ($weeks as $week)
-                        @php
-                            $hasInvoice = \App\Models\Invoice::where('client_id', $client->id)
-                                ->whereBetween('created_at', [$week['start'], $week['end']])
-                                ->exists();
-
-                            $hasPayment = \App\Models\Payment::where('client_id', $client->id)
-                                ->whereBetween('created_at', [$week['start'], $week['end']])
-                                ->exists();
-
-                            $hasNote = \App\Models\Note::where('client_id', $client->id)
-                                ->whereBetween('created_at', [$week['start'], $week['end']])
-                                ->exists();
-
-                            $hasVisit = \App\Models\Visit::where('client_id', $client->id)
-                                ->whereBetween('created_at', [$week['start'], $week['end']])
-                                ->exists();
-                        @endphp
-                        <td>
-                            @if ($hasInvoice)
-                                🧾
-                            @endif
-                            @if ($hasPayment)
-                                💵
-                            @endif
-                            @if ($hasNote)
-                                📝
-                            @endif
-                            @if ($hasVisit)
-                                👣
-                            @endif
-                            @if (!($hasInvoice || $hasPayment || $hasNote || $hasVisit))
-                                ❌
-                            @endif
-                        </td>
-                    @endforeach
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-@endforeach
-
-
-
+            </ul>
+        @else
+            <div class="alert alert-info">لا يوجد عملاء في هذه المجموعة</div>
+        @endif
+    @endforeach
 @endsection

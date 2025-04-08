@@ -31,7 +31,7 @@ public function branch()
 }
 public function Neighborhoodname()
 {
-    return $this->hasOne(Neighborhood::class, 'client_id');
+    return $this->hasMany(Neighborhood::class, 'client_id');
 }
 
 public function Balance()
@@ -115,6 +115,7 @@ public function Balance()
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
+
     // Accessors
     public function getBalanceAttribute()
     {
@@ -131,7 +132,9 @@ public function Balance()
     {
         return $this->invoices()->sum('grand_total') ?? 0;
     }
-
+public function region_groups(){
+    return $this->hasMany(Region_groub::class,'region_id');
+}
     public function getTotalPaymentsAttribute()
     {
         return $this->payments()->sum('amount') ?? 0;
@@ -148,7 +151,7 @@ public function Balance()
 {
     return $this->hasMany(AppointmentNote::class);
 }
- 
+
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {
