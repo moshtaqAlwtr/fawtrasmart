@@ -310,6 +310,7 @@ Route::group(
                     ->name('visits.today');
                     Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
                     ->name('visits.storeLocationEnhanced');
+                    Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
                 // Route::get('/my-visits', [VisitController::class, 'myVisits']);
 
                 // // تتبع الموقع

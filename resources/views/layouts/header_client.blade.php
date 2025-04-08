@@ -138,7 +138,7 @@
                             </li>
                         </ul>
                     </li>
-                    
+
                     <script>
                        $(document).ready(function () {
     function fetchNotifications() {
@@ -157,8 +157,8 @@
                 if (count > 0) {
                     notifications.forEach(notification => {
                         let listItem = `
-                            <a class="d-flex justify-content-between notification-item" 
-                                href="javascript:void(0)" 
+                            <a class="d-flex justify-content-between notification-item"
+                                href="javascript:void(0)"
                                 data-id="${notification.id}">
                                 <div class="media d-flex align-items-start">
                                     <div class="media-left">
@@ -188,7 +188,7 @@
     // تحديث الإشعار عند النقر عليه
     $(document).on('click', '.notification-item', function () {
         let notificationId = $(this).data('id');
-        
+
         $.ajax({
             url: "{{ route('notifications.markAsRead') }}", // استدعاء API التحديث
             method: "POST",
@@ -204,13 +204,13 @@
 });
 
                     </script>
-                    
+
                     <li class="dropdown dropdown-user nav-item">
                         <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown" aria-expanded="false">
                             <div class="user-nav d-sm-flex d-none">
                                 <span class="user-name text-bold-600">{{ auth()->user()->name ?? "" }}</span>
                                 <span class="user-status">
-                                    متصل 
+                                    متصل
                                     @if(auth()->user()->branch_id)
                                         - {{ auth()->user()->currentBranch()->name ?? 'بدون فرع' }}
                                     @endif
@@ -224,23 +224,23 @@
                             </span>
                             <i class="feather icon-chevron-down"></i> <!-- 🔽 رمز الدروب داون -->
                         </a>
-                    
+
                         <div class="dropdown-menu dropdown-menu-right">
-                    
+
                             <div class="dropdown-divider"></div>
-                    
-                           
+
+
                                 <span class="dropdown-item font-weight-bold">🔹 الفروع:</span>
-                             
-                                    <a class="dropdown-item branch-item" 
+
+                                    <a class="dropdown-item branch-item"
                                        href="{{ route('clients.profile') }}">
                                         <i class="feather icon-map-pin"></i> تعديل الملف الشخصي
-                                      
+
                                     </a>
-                            
-                    
+
+
                             <div class="dropdown-divider"></div>
-                    
+
                             <!-- زر تسجيل الخروج -->
                             <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                                 @csrf
@@ -248,8 +248,8 @@
                             </form>
                         </div>
                     </li>
-                    
-                    
+
+
                 </ul>
             </div>
         </div>
@@ -332,3 +332,265 @@
             <div class="d-flex justify-content-start"><span class="mr-75 feather icon-alert-circle"></span><span>No results found.</span></div>
         </a></li>
 </ul>
+@section('scripts')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // عناصر واجهة المستخدم
+            const statusElement = document.getElementById('location-status');
+            const lastUpdateElement = document.getElementById('last-update');
+            const nearbyClientsElement = document.getElementById('nearby-clients');
+            const startTrackingBtn = document.getElementById('start-tracking');
+            const stopTrackingBtn = document.getElementById('stop-tracking');
+
+            // متغيرات التتبع
+            let watchId = null;
+            let lastLocation = null;
+            let isTracking = false;
+            let trackingInterval = null;
+
+            // ========== دوال الواجهة ========== //
+
+            // تحديث حالة الواجهة
+            function updateUI(status, message) {
+                statusElement.textContent = message;
+                statusElement.className = `alert alert-${status}`;
+                lastUpdateElement.textContent = new Date().toLocaleTimeString();
+            }
+
+            // عرض العملاء القريبين
+            function displayNearbyClients(count) {
+                if (count > 0) {
+                    nearbyClientsElement.innerHTML = `
+                <div class="alert alert-info mt-3">
+                    <i class="feather icon-users mr-2"></i>
+                    يوجد ${count} عميل قريب من موقعك الحالي
+                </div>
+            `;
+                } else {
+                    nearbyClientsElement.innerHTML = '';
+                }
+            }
+
+            // ========== دوال التتبع ========== //
+
+            // إرسال بيانات الموقع إلى الخادم
+            async function sendLocationToServer(position) {
+                const {
+                    latitude,
+                    longitude,
+                    accuracy
+                } = position.coords;
+
+                try {
+                    const response = await fetch("{{ route('visits.storeLocationEnhanced') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        },
+                        body: JSON.stringify({
+                            latitude,
+                            longitude,
+                            accuracy: accuracy || null
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        updateUI('success', 'تم تحديث موقعك بنجاح');
+                        displayNearbyClients(data.nearby_clients || 0);
+                        return true;
+                    } else {
+                        throw new Error(data.message || 'خطأ في الخادم');
+                    }
+                } catch (error) {
+                    console.error('❌ خطأ في إرسال الموقع:', error);
+                    updateUI('danger', `خطأ في تحديث الموقع: ${error.message}`);
+                    return false;
+                }
+            }
+
+            // معالجة أخطاء الموقع
+            function handleGeolocationError(error) {
+                let errorMessage;
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = "تم رفض إذن الوصول إلى الموقع. يرجى تفعيله في إعدادات المتصفح.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = "معلومات الموقع غير متوفرة حالياً.";
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = "انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى.";
+                        break;
+                    case error.UNKNOWN_ERROR:
+                        errorMessage = "حدث خطأ غير معروف أثناء محاولة الحصول على الموقع.";
+                        break;
+                }
+
+                updateUI('danger', errorMessage);
+                if (isTracking) stopTracking();
+            }
+
+            // بدء تتبع الموقع
+            function startTracking() {
+                if (!navigator.geolocation) {
+                    updateUI('danger', 'المتصفح لا يدعم ميزة تحديد الموقع');
+                    return;
+                }
+
+                updateUI('info', 'جاري طلب إذن الموقع...');
+
+                // طلب الموقع الحالي أولاً
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                            const {
+                                latitude,
+                                longitude
+                            } = position.coords;
+                            lastLocation = {
+                                latitude,
+                                longitude
+                            };
+
+                            // إرسال الموقع الأولي
+                            await sendLocationToServer(position);
+
+                            // بدء التتبع المستمر
+                            watchId = navigator.geolocation.watchPosition(
+                                async (position) => {
+                                        const {
+                                            latitude,
+                                            longitude
+                                        } = position.coords;
+
+                                        // التحقق من تغير الموقع بشكل كافي (أكثر من 10 أمتار)
+                                        if (!lastLocation ||
+                                            getDistance(latitude, longitude, lastLocation.latitude,
+                                                lastLocation.longitude) > 10) {
+
+                                            lastLocation = {
+                                                latitude,
+                                                longitude
+                                            };
+                                            await sendLocationToServer(position);
+                                        }
+                                    },
+                                    (error) => {
+                                        console.error('❌ خطأ في تتبع الموقع:', error);
+                                        handleGeolocationError(error);
+                                    }, {
+                                        enableHighAccuracy: true,
+                                        timeout: 10000,
+                                        maximumAge: 0,
+                                        distanceFilter: 10 // تحديث عند التحرك أكثر من 10 أمتار
+                                    }
+                            );
+
+                            // بدء التتبع الدوري (كل دقيقة)
+                            trackingInterval = setInterval(async () => {
+                                if (lastLocation) {
+                                    const fakePosition = {
+                                        coords: {
+                                            latitude: lastLocation.latitude,
+                                            longitude: lastLocation.longitude,
+                                            accuracy: 20
+                                        }
+                                    };
+                                    await sendLocationToServer(fakePosition);
+                                }
+                            }, 60000);
+
+                            isTracking = true;
+                            updateUI('success', 'جاري تتبع موقعك...');
+                            if (startTrackingBtn) startTrackingBtn.disabled = true;
+                            if (stopTrackingBtn) stopTrackingBtn.disabled = false;
+                        },
+                        (error) => {
+                            console.error('❌ خطأ في الحصول على الموقع:', error);
+                            handleGeolocationError(error);
+                        }, {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 0
+                        }
+                );
+            }
+
+            // إيقاف تتبع الموقع
+            function stopTracking() {
+                if (watchId) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+
+                if (trackingInterval) {
+                    clearInterval(trackingInterval);
+                    trackingInterval = null;
+                }
+
+                isTracking = false;
+                updateUI('warning', 'تم إيقاف تتبع الموقع');
+                if (startTrackingBtn) startTrackingBtn.disabled = false;
+                if (stopTrackingBtn) stopTrackingBtn.disabled = true;
+                nearbyClientsElement.innerHTML = '';
+            }
+
+            // حساب المسافة بين موقعين (بالمتر)
+            function getDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371000; // نصف قطر الأرض بالمتر
+                const φ1 = lat1 * Math.PI / 180;
+                const φ2 = lat2 * Math.PI / 180;
+                const Δφ = (lat2 - lat1) * Math.PI / 180;
+                const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                return R * c;
+            }
+
+            // ========== تهيئة الأحداث ========== //
+
+            // أحداث الأزرار
+            if (startTrackingBtn) {
+                startTrackingBtn.addEventListener('click', startTracking);
+            }
+
+            if (stopTrackingBtn) {
+                stopTrackingBtn.addEventListener('click', stopTracking);
+            }
+
+            // بدء التتبع تلقائياً عند تحميل الصفحة
+            startTracking();
+
+            // إيقاف التتبع عند إغلاق الصفحة
+            window.addEventListener('beforeunload', function() {
+                if (isTracking) {
+                    // إرسال بيانات الإغلاق إلى الخادم إذا لزم الأمر
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const fakePosition = {
+                                coords: {
+                                    latitude: position.coords.latitude,
+                                    longitude: position.coords.longitude,
+                                    accuracy: position.coords.accuracy,
+                                    isExit: true
+                                }
+                            };
+                            sendLocationToServer(fakePosition);
+                        },
+                        () => {}, {
+                            enableHighAccuracy: true
+                        }
+                    );
+                    stopTracking();
+                }
+            });
+        });
+    </script>
+@endsection

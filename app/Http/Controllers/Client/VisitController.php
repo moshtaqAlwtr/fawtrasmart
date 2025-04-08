@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\User;
 use App\Models\Location;
 use App\Models\Notification;
+use App\Models\Region_groub;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -319,46 +320,43 @@ class VisitController extends Controller
      * تسجيل زيارة تلقائية عند الاقتراب من العميل
      */
     private function recordVisitAutomatically($employeeId, $clientId, $latitude, $longitude)
-    {
-        $today = now()->toDateString();
+{
+    $today = now()->toDateString();
+    $now = now();
 
-        $existingVisit = Visit::where('employee_id', $employeeId)
-            ->where('client_id', $clientId)
-            ->whereDate('visit_date', $today)
-            ->first();
+    $existingVisit = Visit::where('employee_id', $employeeId)
+        ->where('client_id', $clientId)
+        ->whereDate('visit_date', $today)
+        ->first();
 
-        if (!$existingVisit) {
-            // تسجيل زيارة جديدة
-            $visit = Visit::create([
-                'employee_id' => $employeeId,
-                'client_id' => $clientId,
-                'visit_date' => now(),
-                'status' => 'present',
-                'employee_latitude' => $latitude,
-                'employee_longitude' => $longitude,
-                'arrival_time' => now(),
-                'notes' => 'تم تسجيل الحضور تلقائياً عند الاقتراب من العميل',
-                'departure_notification_sent' => false,
-            ]);
+    if (!$existingVisit) {
+        $visit = Visit::create([
+            'employee_id' => $employeeId,
+            'client_id' => $clientId,
+            'visit_date' => $now,
+            'status' => 'present',
+            'employee_latitude' => $latitude,
+            'employee_longitude' => $longitude,
+            'arrival_time' => $now,
+            'notes' => 'زيارة تلقائية',
+            'departure_notification_sent' => false,
+        ]);
 
-            $this->sendVisitNotifications($visit, 'arrival');
-            return $visit;
-        }
-        elseif (is_null($existingVisit->arrival_time)) {
-            // تحديث وقت الحضور إذا لم يكن مسجلاً
-            $existingVisit->update([
-                'arrival_time' => now(),
-                'employee_latitude' => $latitude,
-                'employee_longitude' => $longitude,
-                'notes' => 'تم تحديث وقت الحضور تلقائياً',
-            ]);
-
-            $this->sendVisitNotifications($existingVisit, 'arrival');
-            return $existingVisit;
-        }
-
-        return null;
+        $this->sendVisitNotifications($visit, 'arrival');
+        return $visit;
     }
+    elseif (is_null($existingVisit->arrival_time)) {
+        $existingVisit->update([
+            'arrival_time' => $now,
+            'employee_latitude' => $latitude,
+            'employee_longitude' => $longitude,
+            'notes' => 'تحديث وقت الوصول',
+        ]);
+        return $existingVisit;
+    }
+
+    return null;
+}
 
     /**
      * التحقق من الانصراف عند الابتعاد عن العملاء
@@ -499,5 +497,16 @@ class VisitController extends Controller
         } catch (\Exception $e) {
             Log::error('فشل إرسال إشعار التليجرام: ' . $e->getMessage());
         }
+    }
+    public function tracktaff(){
+        $groups = Region_groub::all();
+
+        // Generate dates for the last 7 days
+        $dates = [];
+        for ($i = 0; $i < 7; $i++) {
+            $dates[] = now()->subDays($i)->format('Y-m-d');
+        }
+
+        return view('reports.sals.traffic_analytics', compact('groups', 'dates'));
     }
 }

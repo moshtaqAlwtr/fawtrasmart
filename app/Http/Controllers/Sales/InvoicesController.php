@@ -61,11 +61,24 @@ class InvoicesController extends Controller
 
     public function getUnreadNotifications()
     {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
+        $user = Auth::user();
 
-        return response()->json(['notifications' => $notifications]);
+        if ($user->role == 'manager') {
+            // المدير يرى جميع الإشعارات
+            $notifications = notifications::where('read', false)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            // الموظف يرى إشعاراته فقط
+            $notifications = notifications::where('user_id', $user->id)
+                ->where('read', false)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return response()->json([
+            'notifications' => $notifications
+        ]);
     }
 
     /**
@@ -1028,8 +1041,8 @@ class InvoicesController extends Controller
                 'title' => $user_name->name . ' أضاف فاتورة لعميل',
                 'description' => 'فاتورة للعميل ' . $client_name->trade_name . ' بقيمة ' . number_format($invoice->grand_total, 2) . ' ر.س',
             ]);
-            
-       
+
+
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
 
