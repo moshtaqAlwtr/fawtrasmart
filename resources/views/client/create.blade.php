@@ -527,30 +527,53 @@
 
                                                          </select>
                                                         <div class="form-control-position">
-
+                                     
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-12 col-12 mb-3">
                                                 <div class="form-group">
-                                                    <label for="employee_id" class="form-label">الموظف المسؤول</label>
-                                                    <select name="employee_id" id="employee_id"
-                                                        class="form-control @error('employee_id') is-invalid @enderror">
+                                                    <label for="category">الفرع</label>
+                                                   
+                                                   
+                                                    <select class="form-control" name="branch_id" id="client_type" required>
+                                                        <option value="">اختر الفرع</option>
+                                                        @foreach ($branches as $branche)
+                                                            <option value="{{ $branche->id }}">{{ $branche->name ?? "لا يوجد فروع" }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    
+                                                </div>
+                                            </div>
+                                            @if (auth()->user()->role === 'manager')
+                                            <div class="col-md-12 col-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="employee_client_id" class="form-label">الموظفين المسؤولين</label>
+                                                    <select id="employee_select" class="form-control">
                                                         <option value="">اختر الموظف</option>
                                                         @foreach ($employees as $employee)
-                                                            <option value="{{ $employee->id }}">
+                                                            <option value="{{ $employee->id }}" data-name="{{ $employee->full_name }}">
                                                                 {{ $employee->full_name }}
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    @error('employee_id')
+                                                    
+                                                    {{-- الحقل الحقيقي الذي سترسله للباك إند --}}
+                                                    <div id="selected_employees"></div>
+                                                    
+                                                    {{-- هنا سيظهر الموظفون المختارون --}}
+                                                    <ul id="employee_list" class="mt-2 list-group"></ul>
+                                                    
+                                                 
+                                                    
+                                                    
+                                                    @error('employee_client_id')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                 </div>
                                             </div>
-
+                                            @endif
                                         </div>
                                          @endif
                                          @endif
@@ -702,5 +725,56 @@
                 alert('⚠️ يرجى تحديد الموقع من الخريطة قبل الإرسال!');
             }
         });
+    </script>
+       <script>
+        const employeeSelect = document.getElementById('employee_select');
+        const employeeList = document.getElementById('employee_list');
+        const selectedEmployees = document.getElementById('selected_employees');
+    
+        let selectedEmployeeIds = [];
+    
+        employeeSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const employeeId = selectedOption.value;
+            const employeeName = selectedOption.dataset.name;
+    
+            // منع التكرار
+            if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
+                selectedEmployeeIds.push(employeeId);
+    
+                // عرض في القائمة
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.textContent = employeeName;
+    
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'حذف';
+                removeBtn.className = 'btn btn-sm btn-danger';
+                removeBtn.onclick = () => {
+                    li.remove();
+                    selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
+                    updateHiddenInputs();
+                };
+    
+                li.appendChild(removeBtn);
+                employeeList.appendChild(li);
+    
+                updateHiddenInputs();
+            }
+    
+            // إعادة تعيين السلكت
+            this.value = '';
+        });
+    
+        function updateHiddenInputs() {
+            selectedEmployees.innerHTML = '';
+            selectedEmployeeIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'employee_client_id[]';
+                input.value = id;
+                selectedEmployees.appendChild(input);
+            });
+        }
     </script>
 @endsection

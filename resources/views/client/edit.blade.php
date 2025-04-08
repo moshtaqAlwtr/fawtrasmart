@@ -523,6 +523,58 @@
                                                     </div>
                                                 @endif
                                             </div>
+                                            <div class="col-md-12 col-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="branch_id">الفرع</label>
+                                                    <select class="form-control" name="branch_id" id="branch_id" required>
+                                                        <option value="">اختر الفرع</option>
+                                                        @foreach ($branches as $branche)
+                                                            <option value="{{ $branche->id }}"
+                                                                @if (isset($client) && $client->branch_id == $branche->id) selected @endif>
+                                                                {{ $branche->name ?? 'لا يوجد فروع' }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    
+                                                    
+                                                </div>
+                                            </div>
+                                            @if (auth()->user()->role === 'manager')
+                                            <div class="col-md-12 col-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="employee_client_id" class="form-label">الموظفين المسؤولين</label>
+                                                    <select id="employee_select" class="form-control">
+                                                        <option value="">اختر الموظف</option>
+                                                        @foreach ($employees as $employee)
+                                                            <option value="{{ $employee->id }}" data-name="{{ $employee->full_name }}">
+                                                                {{ $employee->full_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                        
+                                                    {{-- الحقل الحقيقي الذي يتم إرساله --}}
+                                                    <div id="selected_employees">
+                                                        @foreach ($client->employees as $assigned)
+                                                            <input type="hidden" name="employee_client_id[]" value="{{ $assigned->id }}">
+                                                        @endforeach
+                                                    </div>
+                                        
+                                                    {{-- عرض الموظفين المسؤولين الحاليين --}}
+                                                    <ul id="employee_list" class="mt-2 list-group">
+                                                        @foreach ($client->employees as $assigned)
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                {{ $assigned->full_name }}
+                                                                <button type="button" class="btn btn-sm btn-danger remove-employee" data-id="{{ $assigned->id }}">حذف</button>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        
+                                        
+                                      
+                                        
                                         </div>
                                     </div>
                                 </div>
@@ -683,5 +735,55 @@ function requestLocationPermission() {
 
         // التأكد من وجود الإحداثيات قبل الإرسال
        
+    </script>
+      <script>
+        document.querySelectorAll('.remove-employee').forEach(button => {
+            button.addEventListener('click', function () {
+                const employeeId = this.dataset.id;
+                this.closest('li').remove();
+                const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
+                if (input) input.remove();
+            });
+        });
+    
+        const employeeSelect = document.getElementById('employee_select');
+        const employeeList = document.getElementById('employee_list');
+        const selectedEmployees = document.getElementById('selected_employees');
+        let selectedEmployeeIds = Array.from(document.querySelectorAll('input[name="employee_client_id[]"]')).map(i => i.value);
+    
+        employeeSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const employeeId = selectedOption.value;
+            const employeeName = selectedOption.dataset.name;
+    
+            if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
+                selectedEmployeeIds.push(employeeId);
+    
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.textContent = employeeName;
+    
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'حذف';
+                removeBtn.className = 'btn btn-sm btn-danger';
+                removeBtn.onclick = () => {
+                    li.remove();
+                    selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
+                    const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
+                    if (input) input.remove();
+                };
+    
+                li.appendChild(removeBtn);
+                employeeList.appendChild(li);
+    
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'employee_client_id[]';
+                input.value = employeeId;
+                selectedEmployees.appendChild(input);
+            }
+    
+            this.value = '';
+        });
     </script>
 @endsection

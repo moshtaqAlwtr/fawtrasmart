@@ -239,6 +239,12 @@ public function Balance()
 {
     return $this->hasManyThrough(PaymentsProcess::class, Invoice::class);
 }
+// في Client model
+public function clientEmployees()
+{
+    return $this->hasMany(ClientEmployee::class);
+}
+
 public function locations()
 {
     return $this->hasOne(Location::class, 'client_id');

@@ -181,6 +181,7 @@
                             </div>
                         @endif --}}
                     </div>
+                    @if (auth()->user()->role === 'manager')
                     <div class="mt-4">
                         <h6>!</h6>
                         <div class="d-flex flex-wrap gap-2" id="assignedEmployeesList">
@@ -205,6 +206,7 @@
                             @endif
                         </div>
                     </div>
+                    @endif
                     @php
                         // جلب الحالة الحالية للعميل من العلاقة
                         $currentStatus = $client->status;
