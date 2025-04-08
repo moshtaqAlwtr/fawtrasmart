@@ -31,7 +31,7 @@ public function branch()
 }
 public function Neighborhoodname()
 {
-    return $this->hasMany(Neighborhood::class, 'client_id');
+    return $this->hasOne(Neighborhood::class, 'client_id');
 }
 
 public function Balance()
@@ -75,7 +75,7 @@ public function Balance()
     {
         return $this->belongsTo(Neighborhood::class);
     }
-    
+
     // العلاقات
     public function invoices()
     {

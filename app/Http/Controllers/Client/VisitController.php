@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 
-use App\Models\Region_groub;
+
 
 use App\Models\ClientRelation;
 use App\Models\Invoice;
@@ -508,8 +508,12 @@ class VisitController extends Controller
     public function tracktaff()
     {
         // جلب البيانات مع جميع العلاقات المطلوبة
-        $groups = Region_groub::with(['neighborhoods.client.invoices', 'neighborhoods.client.payments', 'neighborhoods.client.notes', 'neighborhoods.client.visits'])->get();
-
+        $groups = Region_groub::with([
+            'neighborhoods.client.invoices',
+            'neighborhoods.client.payments',
+            'neighborhoods.client.latestStatus',
+            'neighborhoods.client.visits'
+        ])->get();
 
         // حساب الأسابيع (كما هو في كودك الأصلي)
         $minDate = $this->getMinOperationDate();
@@ -528,13 +532,6 @@ class VisitController extends Controller
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
 
-
-
-    public function traffics(){
-        $groups = Region_groub::all();
-        $clients = Client::with('locations')->get();
-        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
-    }
 
     private function getMinOperationDate()
     {
