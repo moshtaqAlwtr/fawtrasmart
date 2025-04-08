@@ -11,6 +11,7 @@ use App\Models\Client;
 use App\Models\User;
 use App\Models\Location;
 use App\Models\Notification;
+use App\Models\notifications;
 use App\Models\Region_groub;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -430,7 +431,7 @@ class VisitController extends Controller
         $visitDate = Carbon::parse($visit->visit_date)->format('Y-m-d H:i');
 
         // إرسال إشعار داخلي
-        Notification::create([
+        notifications::create([
             'user_id' => $visit->employee_id,
             'type' => 'visit',
             'title' => $type === 'arrival' ? 'وصول إلى عميل' : 'انصراف من عميل',
@@ -448,7 +449,7 @@ class VisitController extends Controller
         // إرسال إشعار إلى المدير
         $managers = User::role('manager')->get();
         foreach ($managers as $manager) {
-            Notification::create([
+            notifications::create([
                 'user_id' => $manager->id,
                 'type' => 'visit',
                 'title' => $type === 'arrival' ? 'وصول موظف إلى عميل' : 'انصراف موظف من عميل',
