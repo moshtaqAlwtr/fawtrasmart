@@ -89,86 +89,25 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
-
-                    {{-- <li class="dropdown dropdown-notification nav-item">
-                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
-                            <i class="ficon feather icon-calendar"></i>
-                            <span class="badge badge-pill badge-primary badge-up today-visits-count">{{ $todayVisits->count() }}</span>
-
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-calendar"></i>
                             <span class="badge badge-pill badge-primary badge-up">{{ $todayVisits->count() }}</span>
-
                         </a>
                         <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
                             <li class="dropdown-menu-header">
                                 <div class="dropdown-header m-0 p-2">
-
-                                    <h3 class="white">
-                                        <span class="today-visits-count">{{ $todayVisits->count() }}</span>
-                                        <span class="mx-50">Visits</span>
-                                    </h3>
-                                    <span class="notification-title">Today's Visits</span>
-
                                     <h3 class="white">{{ $todayVisits->count() }} زيارة</h3>
                                     <span class="notification-title">زيارات اليوم</span>
-
                                 </div>
                             </li>
+
+                    @php
+                    $userRole = Auth::user()->role;
+                @endphp
+                            @if ($userRole != 'employee')
                             <li class="scrollable-container media-list">
                                 @forelse($todayVisits as $visit)
-
-                                    <div class="visit-item media p-1">
-                                        <div class="media-left">
-                                            <div class="avatar bg-primary bg-lighten-4 rounded-circle">
-                                                <span class="avatar-content">{{ substr($visit->client->trade_name, 0, 1) }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="media-body">
-                                            <h6 class="media-heading text-bold-500">{{ $visit->client->trade_name }}</h6>
-                                            <div class="visit-details">
-                                                @if($visit->arrival_time)
-                                                    <p class="mb-0">
-                                                        <i class="feather icon-clock text-success"></i>
-                                                        <span class="text-success">Arrival: </span>
-                                                        {{ \Carbon\Carbon::parse($visit->arrival_time)->format('h:i A') }}
-                                                    </p>
-                                                @endif
-                                                @if($visit->departure_time)
-                                                    <p class="mb-0">
-                                                        <i class="feather icon-clock text-danger"></i>
-                                                        <span class="text-danger">Departure: </span>
-                                                        {{ \Carbon\Carbon::parse($visit->departure_time)->format('h:i A') }}
-                                                    </p>
-                                                @else
-                                                    <p class="mb-0 text-warning">
-                                                        <i class="feather icon-clock"></i>
-                                                        <span>Still at client</span>
-                                                    </p>
-                                                @endif
-                                                @if($visit->notes)
-                                                    <p class="mb-0 text-muted small">
-                                                        <i class="feather icon-message-square"></i>
-                                                        {{ Str::limit($visit->notes, 50) }}
-                                                    </p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <li class="empty-visits p-2 text-center">No visits today</li>
-                                @endforelse
-                            </li>
-                            <li class="dropdown-menu-footer">
-                                <a class="dropdown-item p-1 text-center text-primary" href="{{ route('visits.index') }}">
-                                    <i class="feather icon-list align-middle"></i>
-                                    <span class="align-middle text-bold-600">View All Visits</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li> --}}
-
                                     <div class="media d-flex align-items-start">
                                         <div class="media-left">
                                             <i class="feather icon-user font-medium-5 primary"></i>
@@ -215,7 +154,7 @@
                         </ul>
                     </li>
 
-
+@endif
 
                     @php
                         $userRole = Auth::user()->role;
