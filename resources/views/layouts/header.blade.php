@@ -89,6 +89,7 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
+                    @if(auth()->user()->role != 'employee')
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-calendar"></i>
@@ -101,60 +102,65 @@
                                     <span class="notification-title">زيارات اليوم</span>
                                 </div>
                             </li>
-
-                    @php
-                    $userRole = Auth::user()->role;
-                @endphp
-                            @if ($userRole != 'employee')
                             <li class="scrollable-container media-list">
                                 @forelse($todayVisits as $visit)
-                                    <div class="media d-flex align-items-start">
+                                    <div class="visit-item media p-1">
                                         <div class="media-left">
-                                            <i class="feather icon-user font-medium-5 primary"></i>
+                                            <div class="avatar bg-primary bg-lighten-4 rounded-circle">
+                                                <span class="avatar-content">{{ substr($visit->client->trade_name, 0, 1) }}</span>
+                                            </div>
                                         </div>
                                         <div class="media-body">
-                                            <h6 class="primary media-heading">{{ $visit->client->trade_name ?? 'غير معروف' }}</h6>
-                                            <p class="mb-0">
-                                                <small>الموظف: {{ $visit->employee->name ?? 'غير معروف' }}</small><br>
-                                                <small>
-                                                    الوصول: {{ $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--' }} |
-                                                    الانصراف: {{ $visit->departure_time ? $visit->departure_time->format('H:i') : '--:--' }}
-                                                </small>
+                                            <h6 class="media-heading text-bold-500">{{ $visit->client->trade_name }}</h6>
+                                            <p class="mb-1">
+                                                <i class="feather icon-user"></i>
+                                                <small class="text-muted">الموظف: {{ $visit->employee->name ?? 'غير معروف' }}</small>
                                             </p>
-                                            <small class="text-muted">
-                                                <i class="far fa-clock"></i>
-                                                @php
-                                                    $now = now();
-                                                    $createdAt = $visit->created_at;
-                                                    $diffInSeconds = $now->diffInSeconds($createdAt);
-
-                                                    if ($diffInSeconds < 60) {
-                                                        echo 'الآن';
-                                                    } elseif ($diffInSeconds < 3600) {
-                                                        echo 'منذ '.floor($diffInSeconds / 60).' دقيقة';
-                                                    } elseif ($diffInSeconds < 86400) {
-                                                        echo 'منذ '.floor($diffInSeconds / 3600).' ساعة';
-                                                    } else {
-                                                        echo 'منذ '.floor($diffInSeconds / 86400).' يوم';
-                                                    }
-                                                @endphp
-                                            </small>
+                                            <div class="visit-details">
+                                                @if($visit->arrival_time)
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-clock text-success"></i>
+                                                        <span class="text-success">الوصول: </span>
+                                                        {{ \Carbon\Carbon::parse($visit->arrival_time)->format('h:i A') }}
+                                                    </p>
+                                                @endif
+                                                @if($visit->departure_time)
+                                                    <p class="mb-0">
+                                                        <i class="feather icon-clock text-danger"></i>
+                                                        <span class="text-danger">المغادرة: </span>
+                                                        {{ \Carbon\Carbon::parse($visit->departure_time)->format('h:i A') }}
+                                                    </p>
+                                                @else
+                                                    <p class="mb-0 text-warning">
+                                                        <i class="feather icon-clock"></i>
+                                                        <span>ما زال عند العميل</span>
+                                                    </p>
+                                                @endif
+                                                @if($visit->notes)
+                                                    <p class="mb-0 text-muted small">
+                                                        <i class="feather icon-message-square"></i>
+                                                        {{ Str::limit($visit->notes, 50) }}
+                                                    </p>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
-                                    @if(!$loop->last)
-                                        <hr class="my-1">
-                                    @endif
                                 @empty
-                                    <p class="text-center p-2">لا توجد زيارات اليوم</p>
+                                    <li class="empty-visits p-2 text-center">لا توجد زيارات اليوم</li>
                                 @endforelse
                             </li>
                             <li class="dropdown-menu-footer">
-                                <a class="dropdown-item p-1 text-center" href="">عرض كل الزيارات</a>
+                                <a class="dropdown-item p-1 text-center text-primary" href="">
+                                    <i class="feather icon-list align-middle"></i>
+                                    <span class="align-middle text-bold-600">عرض كل الزيارات</span>
+                                </a>
                             </li>
                         </ul>
                     </li>
+                    @endif
 
-@endif
+
+
 
                     @php
                         $userRole = Auth::user()->role;
