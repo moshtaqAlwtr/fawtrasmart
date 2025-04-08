@@ -10,10 +10,12 @@ use App\Models\User;
 use App\Models\Location;
 use App\Models\Notification;
 use App\Models\notifications;
-use Illuminate\Support\Facades\Http;
+use App\Models\Region_groub;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 class VisitController extends Controller
 {
@@ -23,216 +25,380 @@ class VisitController extends Controller
         $visits = Visit::with(['employee', 'client'])
             ->orderBy('visit_date', 'desc')
             ->get();
-        return response()->json($visits);
+
+        return response()->json([
+            'success' => true,
+            'data' => $visits,
+            'count' => $visits->count()
+        ]);
     }
 
     // عرض تفاصيل زيارة معينة
     public function show($id)
     {
         $visit = Visit::with(['employee', 'client'])->find($id);
-        if ($visit) {
-            return response()->json($visit);
+
+        if (!$visit) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الزيارة غير موجودة'
+            ], 404);
         }
-        return response()->json(['message' => 'الزيارة غير موجودة'], 404);
+
+        return response()->json([
+            'success' => true,
+            'data' => $visit
+        ]);
     }
 
     // تسجيل زيارة جديدة يدويًا
     public function store(Request $request)
     {
         $request->validate([
-            'employee_id' => 'required|exists:users,id',
             'client_id' => 'required|exists:clients,id',
             'visit_date' => 'required|date',
             'status' => 'required|in:present,absent',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'notes' => 'nullable|string'
         ]);
 
-        $client = Client::find($request->client_id);
-        $clientLocation = $client->locations()->latest()->first();
+        $employeeId = Auth::id();
+        $client = Client::findOrFail($request->client_id);
 
-        if ($clientLocation) {
-            $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $request->latitude, $request->longitude);
+        // التحقق من قرب الموظف من العميل
+        $isNearby = $this->checkClientProximity(
+            $request->latitude,
+            $request->longitude,
+            $client->id
+        );
 
-            if ($distance < 100) {
-                $visit = Visit::create([
-                    'employee_id' => $request->employee_id,
-                    'client_id' => $request->client_id,
-                    'visit_date' => $request->visit_date,
-                    'status' => $request->status,
-                    'employee_latitude' => $request->latitude,
-                    'employee_longitude' => $request->longitude,
-                    'arrival_time' => now(),
-                    'notes' => 'تم تسجيل الزيارة يدوياً',
-                    'departure_notification_sent' => false,
-                ]);
-
-                $this->sendNotificationToManager($visit, 'visit_arrival');
-                return response()->json($visit, 201);
-            } else {
-                return response()->json(['message' => 'أنت لست قريبًا من العميل (يجب أن تكون ضمن 100 متر)'], 400);
-            }
+        if (!$isNearby) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يجب أن تكون ضمن 100 متر من العميل لتسجيل الزيارة'
+            ], 400);
         }
 
-        return response()->json(['message' => 'العميل ليس لديه موقع مسجل'], 400);
+        $visit = Visit::create([
+            'employee_id' => $employeeId,
+            'client_id' => $client->id,
+            'visit_date' => $request->visit_date,
+            'status' => $request->status,
+            'employee_latitude' => $request->latitude,
+            'employee_longitude' => $request->longitude,
+            'arrival_time' => now(),
+            'notes' => $request->notes ?? 'تم تسجيل الزيارة يدوياً',
+            'departure_notification_sent' => false,
+        ]);
+
+        $this->sendVisitNotifications($visit, 'arrival');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تسجيل الزيارة بنجاح',
+            'data' => $visit
+        ], 201);
     }
 
-    // تخزين موقع الموظف تلقائيًا والتحقق من الحضور/الانصراف
-    public function storeEmployeeLocation(Request $request)
+    // تخزين موقع الموظف تلقائيًا (الوظيفة المحسنة)
+    public function storeLocationEnhanced(Request $request)
     {
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'accuracy' => 'nullable|numeric'
         ]);
 
-        $employeeId = auth()->id();
+        $employeeId = Auth::id();
+        $now = now();
 
-        Log::info('Employee location update', [
-            'employee_id' => $employeeId,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'time' => now(),
-        ]);
+        try {
+            // تسجيل موقع الموظف
+            $location = Location::updateOrCreate(
+                ['employee_id' => $employeeId],
+                [
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                    'accuracy' => $request->accuracy,
+                    'recorded_at' => $now,
+                ]
+            );
 
-        // تحديث أو إنشاء موقع الموظف
-        $location = Location::updateOrCreate(
-            ['employee_id' => $employeeId],
-            [
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
-                'recorded_at' => now(),
-            ]
-        );
+            // البحث عن العملاء القريبين
+            $nearbyClients = $this->getNearbyClients(
+                $request->latitude,
+                $request->longitude
+            );
 
-        // التحقق من الحضور التلقائي
-        $this->checkDistanceAndLogVisit($employeeId, $request->latitude, $request->longitude);
+            // تسجيل الزيارات للعملاء القريبين
+            $recordedVisits = [];
+            foreach ($nearbyClients as $client) {
+                $visit = $this->recordVisitAutomatically(
+                    $employeeId,
+                    $client->id,
+                    $request->latitude,
+                    $request->longitude
+                );
 
-        // التحقق من الانصراف التلقائي
-        $this->checkExitAndLogDeparture($employeeId, $request->latitude, $request->longitude);
-
-        return response()->json([
-            'message' => 'تم تحديث الموقع بنجاح',
-            'location' => $location,
-        ], 200);
-    }
-
-    // التحقق من المسافة وتسجيل الزيارة تلقائيًا
-    private function checkDistanceAndLogVisit($employeeId, $latitude, $longitude)
-    {
-        Log::info('Checking distance for automatic visit logging', [
-            'employee_id' => $employeeId,
-            'latitude' => $latitude,
-            'longitude' => $longitude,
-        ]);
-
-        $clients = Client::has('locations')->get();
-
-        foreach ($clients as $client) {
-            $clientLocation = $client->locations()->latest()->first();
-
-            $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $latitude, $longitude);
-
-            Log::info('Distance calculation result', [
-                'client_id' => $client->id,
-                'distance' => $distance,
-                'threshold' => 100,
-            ]);
-
-            if ($distance < 100) {
-                $existingVisit = Visit::where('employee_id', $employeeId)
-                    ->where('client_id', $client->id)
-                    ->whereDate('visit_date', now()->toDateString())
-                    ->whereNull('departure_time')
-                    ->first();
-
-                if (!$existingVisit) {
-                    $visit = Visit::create([
-                        'employee_id' => $employeeId,
-                        'client_id' => $client->id,
-                        'visit_date' => now(),
-                        'status' => 'present',
-                        'employee_latitude' => $latitude,
-                        'employee_longitude' => $longitude,
-                        'arrival_time' => now(),
-                        'notes' => 'تم تسجيل الحضور تلقائياً عند الاقتراب من العميل',
-                        'departure_notification_sent' => false,
-                    ]);
-
-                    Log::info('New visit created automatically', [
-                        'visit_id' => $visit->id,
-                        'arrival_time' => $visit->arrival_time,
-                    ]);
-
-                    $this->sendNotificationToManager($visit, 'visit_arrival');
-                } else {
-                    if (is_null($existingVisit->arrival_time)) {
-                        $existingVisit->update([
-                            'arrival_time' => now(),
-                            'employee_latitude' => $latitude,
-                            'employee_longitude' => $longitude,
-                            'notes' => 'تم تحديث وقت الحضور تلقائياً',
-                        ]);
-
-                        Log::info('Existing visit updated with arrival time', [
-                            'visit_id' => $existingVisit->id,
-                            'arrival_time' => $existingVisit->arrival_time,
-                        ]);
-                    }
+                if ($visit) {
+                    $recordedVisits[] = $visit;
                 }
             }
+
+            // التحقق من الانصراف للزيارات القديمة
+            $this->checkForDepartures($employeeId, $request->latitude, $request->longitude);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديث الموقع بنجاح',
+                'nearby_clients' => count($nearbyClients),
+                'recorded_visits' => $recordedVisits,
+                'location' => $location
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('فشل في تحديث الموقع: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'حدث خطأ أثناء تحديث الموقع'
+            ], 500);
         }
     }
 
-    // التحقق من الخروج من نطاق العميل وتسجيل الانصراف (معدلة)
-    private function checkExitAndLogDeparture($employeeId, $latitude, $longitude)
+    // تحديث زيارة معينة
+    public function update(Request $request, $id)
     {
-        Log::info('Checking for automatic departure logging', ['employee_id' => $employeeId]);
+        $visit = Visit::find($id);
 
+        if (!$visit) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الزيارة غير موجودة'
+            ], 404);
+        }
+
+        $request->validate([
+            'status' => 'sometimes|in:present,absent',
+            'arrival_time' => 'sometimes|date',
+            'departure_time' => 'sometimes|date|after:arrival_time',
+            'notes' => 'sometimes|string',
+        ]);
+
+        // التحقق من صلاحية المستخدم لتعديل هذه الزيارة
+        if ($visit->employee_id != Auth::id() && !Auth::user()->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح لك بتعديل هذه الزيارة'
+            ], 403);
+        }
+
+        $visit->update($request->all());
+
+        if ($request->has('departure_time')) {
+            $this->sendVisitNotifications($visit, 'departure');
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تحديث الزيارة بنجاح',
+            'data' => $visit
+        ]);
+    }
+
+    // حذف زيارة معينة
+    public function destroy($id)
+    {
+        $visit = Visit::find($id);
+
+        if (!$visit) {
+            return response()->json([
+                'success' => false,
+                'message' => 'الزيارة غير موجودة'
+            ], 404);
+        }
+
+        // التحقق من صلاحية المستخدم لحذف هذه الزيارة
+        if ($visit->employee_id != Auth::id() && !Auth::user()->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'غير مصرح لك بحذف هذه الزيارة'
+            ], 403);
+        }
+
+        $visit->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم حذف الزيارة بنجاح'
+        ]);
+    }
+
+    // الحصول على زيارات الموظف الحالي
+    public function myVisits()
+    {
+        $visits = Visit::with('client')
+            ->where('employee_id', Auth::id())
+            ->orderBy('visit_date', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $visits,
+            'count' => $visits->count()
+        ]);
+    }
+
+    // الحصول على زيارات اليوم
+    public function getTodayVisits()
+    {
+        $today = now()->toDateString();
+
+        $visits = Visit::with(['employee', 'client'])
+            ->whereDate('visit_date', $today)
+            ->orderBy('visit_date', 'desc')
+            ->get()
+            ->map(function ($visit) {
+                return [
+                    'id' => $visit->id,
+                    'client_name' => $visit->client->trade_name ?? 'غير معروف',
+                    'employee_name' => $visit->employee->name ?? 'غير معروف',
+                    'arrival_time' => $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--',
+                    'departure_time' => $visit->departure_time ? $visit->departure_time->format('H:i') : '--:--',
+                    'status' => $visit->status,
+                    'created_at' => $visit->created_at->toDateTimeString(),
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'visits' => $visits,
+            'count' => $visits->count()
+        ]);
+    }
+
+    // ======== الدوال المساعدة ======== //
+
+    /**
+     * البحث عن العملاء القريبين من موقع الموظف
+     */
+    private function getNearbyClients($latitude, $longitude, $radius = 100)
+    {
+        return Client::with('locations')
+            ->whereHas('locations', function($query) use ($latitude, $longitude, $radius) {
+                $query->whereRaw("
+                    ST_Distance_Sphere(
+                        POINT(longitude, latitude),
+                        POINT(?, ?)
+                    ) <= ?
+                ", [$longitude, $latitude, $radius]);
+            })
+            ->get();
+    }
+
+    /**
+     * التحقق من قرب الموظف من عميل معين
+     */
+    private function checkClientProximity($latitude, $longitude, $clientId, $maxDistance = 100)
+    {
+        $client = Client::with('locations')->findOrFail($clientId);
+        $clientLocation = $client->locations()->latest()->first();
+
+        if (!$clientLocation) {
+            return false;
+        }
+
+        $distance = $this->calculateDistance(
+            $clientLocation->latitude,
+            $clientLocation->longitude,
+            $latitude,
+            $longitude
+        );
+
+        return $distance <= $maxDistance;
+    }
+
+    /**
+     * تسجيل زيارة تلقائية عند الاقتراب من العميل
+     */
+    private function recordVisitAutomatically($employeeId, $clientId, $latitude, $longitude)
+{
+    $today = now()->toDateString();
+    $now = now();
+
+    $existingVisit = Visit::where('employee_id', $employeeId)
+        ->where('client_id', $clientId)
+        ->whereDate('visit_date', $today)
+        ->first();
+
+    if (!$existingVisit) {
+        $visit = Visit::create([
+            'employee_id' => $employeeId,
+            'client_id' => $clientId,
+            'visit_date' => $now,
+            'status' => 'present',
+            'employee_latitude' => $latitude,
+            'employee_longitude' => $longitude,
+            'arrival_time' => $now,
+            'notes' => 'زيارة تلقائية',
+            'departure_notification_sent' => false,
+        ]);
+
+        $this->sendVisitNotifications($visit, 'arrival');
+        return $visit;
+    }
+    elseif (is_null($existingVisit->arrival_time)) {
+        $existingVisit->update([
+            'arrival_time' => $now,
+            'employee_latitude' => $latitude,
+            'employee_longitude' => $longitude,
+            'notes' => 'تحديث وقت الوصول',
+        ]);
+        return $existingVisit;
+    }
+
+    return null;
+}
+
+    /**
+     * التحقق من الانصراف عند الابتعاد عن العملاء
+     */
+    private function checkForDepartures($employeeId, $latitude, $longitude)
+    {
         $activeVisits = Visit::where('employee_id', $employeeId)
             ->whereDate('visit_date', now()->toDateString())
             ->whereNotNull('arrival_time')
             ->whereNull('departure_time')
+            ->with('client.locations')
             ->get();
-
-        Log::info('Active visits found', ['count' => $activeVisits->count()]);
 
         foreach ($activeVisits as $visit) {
             $clientLocation = $visit->client->locations()->latest()->first();
 
             if ($clientLocation) {
-                $currentDistance = $this->calculateDistance(
+                $distance = $this->calculateDistance(
                     $clientLocation->latitude,
                     $clientLocation->longitude,
                     $latitude,
                     $longitude
                 );
 
-                Log::info('Current distance from client', [
-                    'visit_id' => $visit->id,
-                    'client_id' => $visit->client_id,
-                    'distance' => $currentDistance,
-                    'threshold' => 100,
-                ]);
-
-                if ($currentDistance > 100) {
+                if ($distance > 100) { // إذا ابتعد أكثر من 100 متر
                     $visit->update([
                         'departure_time' => now(),
                         'departure_notification_sent' => true,
                         'notes' => ($visit->notes ?? '') . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل",
                     ]);
 
-                    Log::info('Departure time recorded', [
-                        'visit_id' => $visit->id,
-                        'departure_time' => $visit->departure_time,
-                    ]);
-
-                    $this->sendNotificationToManager($visit, 'visit_departure');
+                    $this->sendVisitNotifications($visit, 'departure');
                 }
             }
         }
     }
 
-    // حساب المسافة بين نقطتين (بالمتر)
+    /**
+     * حساب المسافة بين نقطتين (بالمتر)
+     */
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; // نصف قطر الأرض بالمتر
@@ -253,117 +419,97 @@ class VisitController extends Controller
         return $angle * $earthRadius;
     }
 
-    // إرسال إشعار للمدير (معدلة)
-    private function sendNotificationToManager($visit, $type = 'visit_arrival')
+    /**
+     * إرسال إشعارات الزيارة
+     */
+    private function sendVisitNotifications($visit, $type)
     {
-        $title = $type === 'visit_arrival'
-            ? 'وصول موظف إلى عميل'
-            : 'انصراف موظف من عميل';
-
-        $description = $type === 'visit_arrival'
-            ? "تم تسجيل وصول الموظف: {$visit->employee->name} إلى عميل: {$visit->client->trade_name}"
-            : "تم تسجيل انصراف الموظف: {$visit->employee->name} من عميل: {$visit->client->trade_name}";
-
-        notifications::create([
-            'type' => 'visit',
-            'title' => $title,
-            'description' => $description,
-            'read' => false,
-        ]);
-
         $employeeName = $visit->employee->name ?? 'غير معروف';
         $clientName = $visit->client->trade_name ?? 'غير معروف';
-        $visitDate = \Carbon\Carbon::parse($visit->visit_date)->format('Y-m-d H:i');
+        $visitDate = Carbon::parse($visit->visit_date)->format('Y-m-d H:i');
 
-        // إعداد رسالة التليجرام
-        $message = "✅ *تمت زيارة عميل*\n";
+        // إرسال إشعار داخلي
+        notifications::create([
+            'user_id' => $visit->employee_id,
+            'type' => 'visit',
+            'title' => $type === 'arrival' ? 'وصول إلى عميل' : 'انصراف من عميل',
+            'message' => $type === 'arrival'
+                ? "تم تسجيل وصولك إلى العميل: $clientName"
+                : "تم تسجيل انصرافك من العميل: $clientName",
+            'read' => false,
+            'data' => [
+                'visit_id' => $visit->id,
+                'client_id' => $visit->client_id,
+                'type' => $type
+            ]
+        ]);
+
+        // إرسال إشعار إلى المدير
+        $managers = User::role('manager')->get();
+        foreach ($managers as $manager) {
+            notifications::create([
+                'user_id' => $manager->id,
+                'type' => 'visit',
+                'title' => $type === 'arrival' ? 'وصول موظف إلى عميل' : 'انصراف موظف من عميل',
+                'message' => $type === 'arrival'
+                    ? "الموظف $employeeName وصل إلى العميل $clientName"
+                    : "الموظف $employeeName انصرف من العميل $clientName",
+                'read' => false,
+                'data' => [
+                    'visit_id' => $visit->id,
+                    'employee_id' => $visit->employee_id,
+                    'client_id' => $visit->client_id,
+                    'type' => $type
+                ]
+            ]);
+        }
+
+        // إرسال إشعار عبر التليجرام
+        $this->sendTelegramNotification($visit, $type);
+    }
+
+    /**
+     * إرسال إشعار التليجرام
+     */
+    private function sendTelegramNotification($visit, $type)
+    {
+        $employeeName = $visit->employee->name ?? 'غير معروف';
+        $clientName = $visit->client->trade_name ?? 'غير معروف';
+        $time = $type === 'arrival'
+            ? Carbon::parse($visit->arrival_time)->format('H:i')
+            : Carbon::parse($visit->departure_time)->format('H:i');
+
+        $message = "🔄 *حركة زيارة عملاء*\n";
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= $type === 'arrival' ? "✅ *وصول*" : "🛑 *انصراف*\n";
         $message .= "👤 *الموظف:* `$employeeName`\n";
         $message .= "🏢 *العميل:* `$clientName`\n";
-        $message .= "📅 *التاريخ:* `$visitDate`\n";
+        $message .= "⏱ *الوقت:* `$time`\n";
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
 
+        try {
+            $telegramApiUrl = 'https://api.telegram.org/bot' . env('TELEGRAM_BOT_TOKEN') . '/sendMessage';
 
-
-    // إرسال الرسالة إلى التلقرام
-    $response = Http::post($telegramApiUrl, [
-        'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
-        'text' => $message,
-        'parse_mode' => 'Markdown',
-        'timeout' => 60,
-    ]);
+            Http::post($telegramApiUrl, [
+                'chat_id' => env('TELEGRAM_CHANNEL_ID'),
+                'text' => $message,
+                'parse_mode' => 'Markdown',
+                'timeout' => 60,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('فشل إرسال إشعار التليجرام: ' . $e->getMessage());
+        }
     }
+    public function tracktaff(){
+        $groups = Region_groub::all();
 
-    // تحديث زيارة معينة
-    public function update(Request $request, $id)
-    {
-        $visit = Visit::find($id);
-        if (!$visit) {
-            return response()->json(['message' => 'الزيارة غير موجودة'], 404);
+        // Generate dates for the last 7 days
+        $dates = [];
+        for ($i = 0; $i < 7; $i++) {
+            $dates[] = now()->subDays($i)->format('Y-m-d');
         }
 
-        $request->validate([
-            'employee_id' => 'sometimes|exists:users,id',
-            'client_id' => 'sometimes|exists:clients,id',
-            'visit_date' => 'sometimes|date',
-            'status' => 'sometimes|in:present,absent',
-            'employee_latitude' => 'sometimes|numeric',
-            'employee_longitude' => 'sometimes|numeric',
-            'arrival_time' => 'sometimes|date',
-            'departure_time' => 'sometimes|date|after:arrival_time',
-            'notes' => 'sometimes|string',
-        ]);
-
-        $visit->update($request->all());
-        return response()->json($visit);
-    }
-
-    // حذف زيارة معينة
-    public function destroy($id)
-    {
-        $visit = Visit::find($id);
-        if (!$visit) {
-            return response()->json(['message' => 'الزيارة غير موجودة'], 404);
-        }
-
-        $visit->delete();
-        return response()->json(['message' => 'تم حذف الزيارة بنجاح']);
-    }
-
-    // الحصول على زيارات الموظف الحالي
-    public function myVisits()
-    {
-        $visits = Visit::with('client')
-            ->where('employee_id', auth()->id())
-            ->orderBy('visit_date', 'desc')
-            ->get();
-
-        return response()->json($visits);
-    }
-    public function getTodayVisits()
-    {
-        $today = now()->toDateString();
-
-        $visits = Visit::with(['employee', 'client'])
-            ->whereDate('visit_date', $today)
-            ->orderBy('visit_date', 'desc')
-            ->get()
-            ->map(function ($visit) {
-                return [
-                    'id' => $visit->id,
-                    'client_name' => $visit->client->trade_name ?? 'غير معروف',
-                    'employee_name' => $visit->employee->name ?? 'غير معروف',
-                    'arrival_time' => $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--:--',
-                    'departure_time' => $visit->departure_time ? $visit->departure_time->format('H:i') : '--:--',
-                    'created_at' => $visit->created_at->toDateTimeString(),
-                ];
-            });
-
-        return response()->json([
-            'visits' => $visits,
-            'count' => $visits->count()
-        ]);
+        return view('reports.sals.traffic_analytics', compact('groups', 'dates'));
     }
 
 
