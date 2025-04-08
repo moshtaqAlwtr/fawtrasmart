@@ -25,13 +25,17 @@ public function latestStatus()
 {
     return $this->hasOne(ClientRelation::class, 'client_id')->latest();
 }
+public function note()
+{
+    return $this->hasMany(ClientRelation::class, 'client_id');
+}
 public function branch()
 {
     return $this->belongsTo(Branch::class);
 }
 public function Neighborhoodname()
 {
-    return $this->hasMany(Neighborhood::class, 'client_id');
+    return $this->hasOne(Neighborhood::class, 'client_id');
 }
 
 public function Balance()
@@ -69,13 +73,13 @@ public function Balance()
     // العلاقة مع ملاحظات المواعيد
     public function appointmentNotes()
     {
-        return $this->hasMany(AppointmentNote::class);
+        return $this->hasMany(ClientRelation::class);
     }
     public function neighborhood()
     {
         return $this->belongsTo(Neighborhood::class);
     }
-    
+
     // العلاقات
     public function invoices()
     {
