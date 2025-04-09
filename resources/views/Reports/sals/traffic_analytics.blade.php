@@ -22,75 +22,66 @@
         </div>
     </div>
 
-@foreach($groups as $group)
-    <h4 class="mt-4">📍 {{ $group->name }}</h4>
-    <table class="table table-bordered text-center">
-        <thead class="table-light">
+    @foreach ($groups as $group)
+    <h4>{{ $group->name }}</h4>
+    <table>
+        <thead>
             <tr>
                 <th>العميل</th>
-                @foreach($dates as $date)
-                    <th>{{ \Carbon\Carbon::parse($date)->format('Y-m-d') }}</th>
+                @foreach ($weeks as $week)
+                    <th>
+                        {{ \Carbon\Carbon::parse($week['start'])->format('d M') }} -
+                        {{ \Carbon\Carbon::parse($week['end'])->format('d M') }}
+                    </th>
                 @endforeach
-                <th>💰 مجموع المدفوع</th>
             </tr>
         </thead>
         <tbody>
-            @if ($group->customers && count($group->customers) > 0)
-            @foreach($group->customers as $customer)
-                @php
-                    $totalPaid = 0;
-                    $debt = $customer->invoices->sum('total') - $customer->payments->sum('amount');
-                @endphp
+            @foreach ($group->clients as $client)
                 <tr>
-                    <td class="text-start">
-                        {{ $customer->name }}
-                        <br>
-                        @if($debt > 0)
-                            <span class="badge bg-danger">💰 {{ number_format($debt) }} ريال</span>
-                        @else
-                            <span class="badge bg-success">✅ مسدد</span>
-                        @endif
-                    </td>
-
-                    @foreach($dates as $date)
+                    <td>{{ $client->name }}</td>
+                    @foreach ($weeks as $week)
                         @php
-                            $visit = $customer->visits->firstWhere('visit_date', $date);
-                            $icons = '';
-                            $paidAmount = 0;
+                            $hasInvoice = \App\Models\Invoice::where('client_id', $client->id)
+                                ->whereBetween('created_at', [$week['start'], $week['end']])
+                                ->exists();
+
+                            $hasPayment = \App\Models\Payment::where('client_id', $client->id)
+                                ->whereBetween('created_at', [$week['start'], $week['end']])
+                                ->exists();
+
+                            $hasNote = \App\Models\Note::where('client_id', $client->id)
+                                ->whereBetween('created_at', [$week['start'], $week['end']])
+                                ->exists();
+
+                            $hasVisit = \App\Models\Visit::where('client_id', $client->id)
+                                ->whereBetween('created_at', [$week['start'], $week['end']])
+                                ->exists();
                         @endphp
-
-                        @if($visit)
-                            @php $icons .= '🚶‍♂️'; @endphp
-
-                            @if($visit->note)
-                                @php $icons .= ' 📝'; @endphp
+                        <td>
+                            @if ($hasInvoice)
+                                🧾
                             @endif
-
-                            @if($visit->invoice)
-                                @php $icons .= ' 🧾'; @endphp
+                            @if ($hasPayment)
+                                💵
                             @endif
-
-                            @if($visit->payment)
-                                @php
-                                    $paidAmount += $visit->payment->amount;
-                                    $icons .= ' 💵' . number_format($visit->payment->amount);
-                                @endphp
+                            @if ($hasNote)
+                                📝
                             @endif
-
-                            @php $totalPaid += $paidAmount; @endphp
-                            <td>{!! $icons !!}</td>
-                        @else
-                            <td>❌</td>
-                        @endif
+                            @if ($hasVisit)
+                                👣
+                            @endif
+                            @if (!($hasInvoice || $hasPayment || $hasNote || $hasVisit))
+                                ❌
+                            @endif
+                        </td>
                     @endforeach
-
-                    <td><strong>{{ number_format($totalPaid) }} ريال</strong></td>
                 </tr>
             @endforeach
-            @endif
         </tbody>
     </table>
 @endforeach
+
 
 
 @endsection

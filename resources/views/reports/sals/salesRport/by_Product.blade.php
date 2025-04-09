@@ -31,158 +31,158 @@
                             @break
                     @endswitch
                 </h5>
-                <form action="{{ route('salesReports.byProduct') }}" method="GET">
-                    <div class="row">
-                        {{-- Product Filter --}}
+                <form action="{{ route('salesReports.byProduct') }}" method="GET" class="mb-4">
+                    <div class="row g-3">
+                        <!-- فلتر المنتج -->
                         <div class="col-md-3">
-                            <label for="product">المنتج:</label>
-                            <select name="product" class="form-control">
-                                <option value="">الكل</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->id }}"
-                                        {{ request('product') == $product->id ? 'selected' : '' }}>
-                                        {{ $product->name }}
+                            <label class="form-label">المنتج</label>
+                            <select name="product" class="form-select">
+                                <option value="">جميع المنتجات</option>
+                                @foreach($products as $product)
+                                    <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>
+                                        {{ $product->name }} ({{ $product->code }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- Invoice Type Filter --}}
+                        <!-- فلتر التصنيف -->
                         <div class="col-md-3">
-                            <label for="invoice_type">نوع الفاتورة:</label>
-                            <select name="invoice_type" class="form-control">
-                                <option value="">الكل</option>
-                                <option value="1" {{ request('invoice_type') == '1' ? 'selected' : '' }}>مرتجع</option>
-                                <option value="2" {{ request('invoice_type') == '2' ? 'selected' : '' }}>اشعار مدين
-                                </option>
-                                <option value="3" {{ request('invoice_type') == '3' ? 'selected' : '' }}>اشعار دائن
-                                </option>
-                            </select>
-                        </div>
-
-                        {{-- Category Filter --}}
-                        <div class="col-md-3">
-                            <label for="status">التصنيف:</label>
-                            <select name="status" class="form-control">
-                                <option value="">اختر التصنيف</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}"
-                                        {{ request('status') == $category->id ? 'selected' : '' }}>
+                            <label class="form-label">تصنيف المنتج</label>
+                            <select name="category" class="form-select">
+                                <option value="">جميع التصنيفات</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- Storehouse Filter --}}
+                        <!-- فلتر نوع الفاتورة -->
                         <div class="col-md-3">
-                            <label for="storehouse">المخزن:</label>
-                            <select name="storehouse" class="form-control">
-                                <option value="">اختر المخزن</option>
-                                @foreach ($storehouses as $storehouse)
-                                    <option value="{{ $storehouse->id }}"
-                                        {{ request('storehouse') == $storehouse->id ? 'selected' : '' }}>
-                                        {{ $storehouse->name }}
-                                    </option>
-                                @endforeach
+                            <label class="form-label">نوع الفاتورة</label>
+                            <select name="invoice_type" class="form-select">
+                                <option value="">الكل</option>
+                                <option value="1" {{ request('invoice_type') == '1' ? 'selected' : '' }}>مرتجع</option>
+                                <option value="2" {{ request('invoice_type') == '2' ? 'selected' : '' }}>اشعار مدين</option>
+                                <option value="3" {{ request('invoice_type') == '3' ? 'selected' : '' }}>اشعار دائن</option>
                             </select>
                         </div>
 
-                        {{-- Branch Filter --}}
+                        <!-- فلتر الفرع -->
                         <div class="col-md-3">
-                            <label for="branch">الفرع:</label>
-                            <select name="branch" class="form-control">
-                                <option value="">الكل</option>
-                                @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}"
-                                        {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                            <label class="form-label">الفرع</label>
+                            <select name="branch" class="form-select">
+                                <option value="">جميع الفروع</option>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- Client Filter --}}
+                        <!-- فلتر العميل -->
                         <div class="col-md-3">
-                            <label for="client">العميل:</label>
-                            <select name="client" class="form-control">
-                                <option value="">اختر العميل</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}"
-                                        {{ request('client') == $client->id ? 'selected' : '' }}>
-                                        {{ $client->name }}
+                            <label class="form-label">العميل</label>
+                            <select name="client" class="form-select">
+                                <option value="">جميع العملاء</option>
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
+                                        {{ $client->trade_name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- Period Filter --}}
+                        <!-- فلتر فئة العميل -->
                         <div class="col-md-3">
-                            <label for="report_period">الفترة:</label>
-                            <select name="report_period" class="form-control">
-                                <option value="">اختر الفترة</option>
-                                <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي
-                                </option>
-                                <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي
-                                </option>
-                                <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري
-                                </option>
-                                <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي
-                                </option>
+                            <label class="form-label">فئة العميل</label>
+                            <select name="client_category" class="form-select">
+                                <option value="">جميع الفئات</option>
+                                @foreach($client_categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('client_category') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 
-                        {{-- Date Range --}}
+                        <!-- فلتر الموظف -->
                         <div class="col-md-3">
-                            <label for="from_date">من تاريخ:</label>
+                            <label class="form-label">الموظف</label>
+                            <select name="employee" class="form-select">
+                                <option value="">جميع الموظفين</option>
+                                @foreach($employees as $employee)
+                                    <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- فلتر المخزن -->
+                        <div class="col-md-3">
+                            <label class="form-label">المخزن</label>
+                            <select name="storehouse" class="form-select">
+                                <option value="">جميع المخازن</option>
+                                @foreach($storehouses as $storehouse)
+                                    <option value="{{ $storehouse->id }}" {{ request('storehouse') == $storehouse->id ? 'selected' : '' }}>
+                                        {{ $storehouse->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- فلتر الفترة -->
+                        <div class="col-md-3">
+                            <label class="form-label">الفترة</label>
+                            <select name="report_period" class="form-select">
+                                <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
+                                <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                                <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري</option>
+                                <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                            </select>
+                        </div>
+
+                        <!-- فلتر من تاريخ -->
+                        <div class="col-md-3">
+                            <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
-                                value="{{ $fromDate->format('Y-m-d') }}">
+                                   value="{{ request('from_date', now()->subMonth()->format('Y-m-d')) }}">
                         </div>
+
+                        <!-- فلتر إلى تاريخ -->
                         <div class="col-md-3">
-                            <label for="to_date">إلى تاريخ:</label>
+                            <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
-                                value="{{ $toDate->format('Y-m-d') }}">
+                                   value="{{ request('to_date', now()->format('Y-m-d')) }}">
                         </div>
 
-                        {{-- Draft Items Checkbox --}}
+                        <!-- خيار عرض المسودات -->
                         <div class="col-md-3 align-self-end">
-                            <div class="form-check">
-                                <input type="checkbox" name="add_draft" class="form-check-input" id="add_draft"
-                                    value="1" {{ request('add_draft') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="add_draft">
-                                    عرض المسودات
-                                </label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="add_draft" id="add_draft"
+                                       value="1" {{ request('add_draft') ? 'checked' : '' }}>
+                                <label class="form-check-label" for="add_draft">عرض المسودات</label>
                             </div>
                         </div>
 
-                        {{-- Search and Reset Buttons --}}
-                        <div class="col-md-12 mt-3">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> عرض التقرير
+                        <!-- أزرار التحكم -->
+                        <div class="col-md-12 text-end mt-3">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-1"></i> تطبيق الفلتر
                             </button>
-                            <a href="{{ route('reports.sals.by_Product') }}" class="btn btn-secondary">
-                                <i class="fas fa-reset"></i> إعادة تعيين
+                            <a href="{{ route('salesReports.byProduct') }}" class="btn btn-secondary me-2">
+                                <i class="fas fa-redo me-1"></i> إعادة تعيين
                             </a>
-                            <div class="d-flex justify-content-end mb-3">
-
-
-                                    <a href="" class="btn btn-success me-2" id="exportExcel">
-                                        <i class="fas fa-file-excel me-2"></i>تصدير اكسل
-                                    </a>
-                                </form>
-
-                                {{-- PDF Export (optional) --}}
-                                <form action="" method="GET">
-                                    {{-- Pass all current filter parameters --}}
-                                    @foreach(request()->all() as $key => $value)
-                                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                                    @endforeach
-
-                                    <button type="submit" class="btn btn-danger me-2">
-                                        <i class="fas fa-file-pdf me-2"></i>تصدير PDF
-                                    </button>
-                                </form>
-                            </div>
+                            <button type="submit" name="export" value="excel" class="btn btn-success me-2">
+                                <i class="fas fa-file-excel me-1"></i> تصدير إكسل
+                            </button>
+                            <button type="submit" name="export" value="pdf" class="btn btn-danger">
+                                <i class="fas fa-file-pdf me-1"></i> تصدير PDF
+                            </button>
                         </div>
                     </div>
                 </form>
