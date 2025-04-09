@@ -35,15 +35,13 @@
                 <form action="<?php echo e(route('salesReports.byCustomer')); ?>" method="GET" id="reportForm">
                     <div class="row g-3">
                         
-
-
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-select select2">
+                            <select name="customer" class="form-select select2">
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($client->id); ?>"
-                                        <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                        <?php echo e(request('customer') == $client->id ? 'selected' : ''); ?>>
                                         <?php echo e($client->trade_name); ?>
 
                                     </option>
@@ -51,6 +49,22 @@
                             </select>
                         </div>
 
+                        
+                        <div class="col-md-3">
+                            <label class="form-label">أضيفت بواسطة</label>
+                            <select name="user" class="form-select">
+                                <option value="">جميع الموظفين</option>
+                                <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($user->id); ?>"
+                                        <?php echo e(request('user') == $user->id ? 'selected' : ''); ?>>
+                                        <?php echo e($user->name); ?>
+
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </select>
+                        </div>
+
+                        
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-select">
@@ -65,6 +79,7 @@
                             </select>
                         </div>
 
+                        
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
                             <select name="status" class="form-select">
@@ -76,28 +91,24 @@
                         </div>
 
                         
-
-
-                        
                         <div class="col-md-3">
-                            <label class="form-label">تمت الإضافة بواسطة</label>
-                            <select name="added_by" class="form-select">
-                                <option value="">الكل</option>
-                                <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($user->id); ?>" <?php echo e(request('added_by') == $user->id ? 'selected' : ''); ?>>
-                                        <?php echo e($user->name); ?>
-
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            <label class="form-label">الفترة</label>
+                            <select name="report_period" class="form-select">
+                                <option value="daily" <?php echo e($reportPeriod == 'daily' ? 'selected' : ''); ?>>يومي</option>
+                                <option value="weekly" <?php echo e($reportPeriod == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
+                                <option value="monthly" <?php echo e($reportPeriod == 'monthly' ? 'selected' : ''); ?>>شهري</option>
+                                <option value="yearly" <?php echo e($reportPeriod == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
                             </select>
                         </div>
 
+                        
                         <div class="col-md-3">
                             <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
                                 value="<?php echo e($fromDate->format('Y-m-d')); ?>">
                         </div>
 
+                        
                         <div class="col-md-3">
                             <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
@@ -105,28 +116,10 @@
                         </div>
 
                         
-                        <div class="col-md-3">
-                            <label class="form-label">نوع التقرير</label>
-                            <select name="report_type" class="form-select">
-                                <option value="">الكل</option>
-                                <option value="daily" <?php echo e(request('report_type') == 'daily' ? 'selected' : ''); ?>>يومي
-                                </option>
-                                <option value="weekly" <?php echo e(request('report_type') == 'weekly' ? 'selected' : ''); ?>>أسبوعي
-                                </option>
-                                <option value="monthly" <?php echo e(request('report_type') == 'monthly' ? 'selected' : ''); ?>>شهري
-                                </option>
-                                <option value="yearly" <?php echo e(request('report_type') == 'yearly' ? 'selected' : ''); ?>>سنوي
-                                </option>
-                                <option value="sales_manager"
-                                    <?php echo e(request('report_type') == 'sales_manager' ? 'selected' : ''); ?>>مدير مبيعات</option>
-                                <option value="employee" <?php echo e(request('report_type') == 'employee' ? 'selected' : ''); ?>>
-                                    موظفين</option>
-                                <option value="returns" <?php echo e(request('report_type') == 'returns' ? 'selected' : ''); ?>>مرتجعات
-                                </option>
-                            </select>
-                        </div>
-
                         <div class="col-md-3 align-self-end">
+                            <button type="button" id="exportExcel" class="btn btn-success">
+                                <i class="fas fa-file-excel me-1"></i> تصدير إكسل
+                            </button>
                             <button type="submit" class="btn btn-primary w-80">
                                 <i class="fas fa-filter me-2"></i> تصفية التقرير
                             </button>

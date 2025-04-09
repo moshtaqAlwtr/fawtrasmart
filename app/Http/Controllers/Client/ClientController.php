@@ -50,13 +50,13 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-
+        
         $user = auth()->user();
 
         if ($user->branch) {
             $branch = $user->branch;
             $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
-
+        
             if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
                 // مشاركة العملاء غير مفعلة => نعرض فقط العملاء من نفس الفرع أو الذين الموظف مسؤول عنهم
                 $query = Client::where(function ($q) use ($branch, $user) {
@@ -91,10 +91,10 @@ class ClientController extends Controller
                 'locations',
             ]);
         }
-
+        
         $clients = $query->get();
-
-
+        
+      
 
         // تطبيق شروط البحث فقط
         if ($request->filled('client')) {
@@ -135,14 +135,14 @@ class ClientController extends Controller
                 $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
             });
         }
-
+        
         if ($request->filled('region')) {
             $query->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->region . '%')
                   ->orWhere('id', $request->region);
             });
         }
-
+        
         if ($request->filled('tag')) {
             $query->where('tags', 'like', '%' . $request->tag . '%');
         }
@@ -259,7 +259,7 @@ class ClientController extends Controller
     }
     public function store(ClientRequest $request)
     {
-
+      
         $data_request = $request->except('_token');
         $rules = [
             'region_id' => ['required'], // إلزامي فقط
@@ -301,7 +301,7 @@ class ClientController extends Controller
        // حفظ العميل أولاً
 $client->save();
 
-// حفظ الموظفين المرتبطين
+// حفظ الموظفين المرتبطين 
 if (auth()->user()->role === 'manager') {
 if ($request->has('employee_client_id')) {
     foreach ($request->employee_client_id as $employee_id) {
@@ -381,7 +381,7 @@ if ($request->has('employee_client_id')) {
             $customerAccount->parent_id = $customers->id; // ربط الحساب الفرعي بحساب العملاء
             $customerAccount->is_active = false;
             $customerAccount->save();
-
+             
             if($client->opening_balance > 0){
                 $journalEntry = JournalEntry::create([
                     'reference_number' => $client->code,
@@ -393,8 +393,8 @@ if ($request->has('employee_client_id')) {
                     // 'invoice_id' => $$client->id,
                     // 'created_by_employee' => Auth::id(),
                 ]);
-
-
+    
+              
                 // // 1. حساب العميل (مدين)
                 JournalEntryDetail::create([
                     'journal_entry_id' => $journalEntry->id,
@@ -406,7 +406,7 @@ if ($request->has('employee_client_id')) {
                 ]);
             }
                // إنشاء القيد المحاسبي للفاتورة
-
+            
         }
 
         // حفظ جهات الاتصال المرتبطة بالعميل
@@ -459,7 +459,7 @@ if ($request->has('employee_client_id')) {
     {
         return substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, $length);
     }
-
+ 
 
     protected function generateUniqueAccountCode($parentId, $parentCode)
     {
@@ -514,7 +514,7 @@ $validated = $request->validate($rules, $messages);
             $data_request = $request->except('_token', 'contacts');
             $client = Client::findOrFail($id);
             $oldData = $client->getOriginal();
-
+            
               $latitude = $request->latitude ?? $client->latitude;
         $longitude = $request->longitude ?? $client->longitude;
 
@@ -524,7 +524,7 @@ $validated = $request->validate($rules, $messages);
         // حذف الموظفين السابقين فقط إذا كان المستخدم مدير
         if (auth()->user()->role === 'manager') {
             ClientEmployee::where('client_id', $client->id)->delete();
-
+        
             if ($request->has('employee_client_id')) {
                 foreach ($request->employee_client_id as $employee_id) {
                     ClientEmployee::create([
@@ -535,12 +535,12 @@ $validated = $request->validate($rules, $messages);
             }
         } elseif (auth()->user()->role === 'employee') {
             $employee_id = auth()->user()->employee_id;
-
+        
             // التحقق إذا هو أصلاً مسؤول
             $alreadyExists = ClientEmployee::where('client_id', $client->id)
                 ->where('employee_id', $employee_id)
                 ->exists();
-
+        
             if (!$alreadyExists) {
                 ClientEmployee::create([
                     'client_id' => $client->id,
@@ -548,7 +548,7 @@ $validated = $request->validate($rules, $messages);
                 ]);
             }
         }
-
+        
 
 
             // 1. معالجة المرفقات
@@ -621,10 +621,10 @@ $validated = $request->validate($rules, $messages);
                 }
             }
 
+        
 
-
-
-
+            
+           
             // 6. معالجة جهات الاتصال
             if ($request->has('contacts')) {
                 $existingContacts = $client->contacts->keyBy('id');
@@ -777,37 +777,37 @@ $validated = $request->validate($rules, $messages);
         } while (Client::where('code', $newCode)->exists());
 
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
+        
         $account = Account::where('client_id', $id)->first();
-
+    
         if (!$account) {
             return redirect()->back()->with('error', 'لا يوجد حساب مرتبط بهذا العميل.');
         }
-
+    
         $accountId = $account->id;
          // جلب بيانات الخزينة
          $treasury = $this->getTreasury($accountId);
          $branches = $this->getBranches();
-
+ 
          // جلب العمليات المالية
          $transactions = $this->getTransactions($accountId);
          $transfers = $this->getTransfers($accountId);
          $expenses = $this->getExpenses($accountId);
          $revenues = $this->getRevenues($accountId);
-
+ 
          // معالجة العمليات وحساب الرصيد
          $allOperations = $this->processOperations($transactions, $transfers, $expenses, $revenues, $treasury);
-
+ 
          // ترتيب العمليات حسب التاريخ
          usort($allOperations, function ($a, $b) {
              return strtotime($b['date']) - strtotime($a['date']);
          });
-
+ 
          // تقسيم العمليات إلى صفحات
          $operationsPaginator = $this->paginateOperations($allOperations);
-
+ 
          // إرسال البيانات إلى الواجهة
-
+      
 
         return view('client.show', compact('client','treasury','account','operationsPaginator','branches', 'ClientRelations', 'visits', 'due', 'invoice_due', 'statuses', 'account', 'installment', 'employees', 'bookings', 'packages', 'memberships', 'invoices', 'payments', 'appointmentNotes', 'account_setting'));
     }
@@ -946,7 +946,7 @@ $validated = $request->validate($rules, $messages);
                 // 'created_by_employee' => Auth::id(),
             ]);
 
-
+          
             // // 1. حساب العميل (مدين)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
@@ -1308,39 +1308,39 @@ notifications::create([
     {
         $client = Client::find($id);
 
-
+        
 
         $account = Account::where('client_id', $id)->first();
-
+    
         if (!$account) {
             return redirect()->back()->with('error', 'لا يوجد حساب مرتبط بهذا العميل.');
         }
-
+    
         $accountId = $account->id;
          // جلب بيانات الخزينة
          $treasury = $this->getTreasury($accountId);
          $branches = $this->getBranches();
-
+ 
          // جلب العمليات المالية
          $transactions = $this->getTransactions($accountId);
          $transfers = $this->getTransfers($accountId);
          $expenses = $this->getExpenses($accountId);
          $revenues = $this->getRevenues($accountId);
-
+ 
          // معالجة العمليات وحساب الرصيد
          $allOperations = $this->processOperations($transactions, $transfers, $expenses, $revenues, $treasury);
-
+ 
          // ترتيب العمليات حسب التاريخ
          usort($allOperations, function ($a, $b) {
              return strtotime($b['date']) - strtotime($a['date']);
          });
-
+ 
          // تقسيم العمليات إلى صفحات
          $operationsPaginator = $this->paginateOperations($allOperations);
-
+ 
          // إرسال البيانات إلى الواجهة
          return view('client.statement', compact('treasury','account', 'operationsPaginator', 'branches','client'));
-
+        
     }
     private function getTreasury($id)
     {
@@ -1409,7 +1409,7 @@ notifications::create([
                 'deposit' => $type === 'إيداع' ? $amount : 0,
                 'withdraw' => $type === 'سحب' ? $amount : 0,
                 'balance_after' => $currentBalance,
-
+              
                 'journalEntry' => $transaction->journalEntry->id,
                 'date' => $transaction->journalEntry->date,
                 'invoice' => $transaction->journalEntry->invoice,

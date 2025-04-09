@@ -6,7 +6,7 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
 @endsection
 
@@ -36,7 +36,7 @@
                         <!-- فلتر المنتج -->
                         <div class="col-md-3">
                             <label class="form-label">المنتج</label>
-                            <select name="product" class="form-control">
+                            <select name="product" class="form-select">
                                 <option value="">جميع المنتجات</option>
                                 @foreach($products as $product)
                                     <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>
@@ -49,7 +49,7 @@
                         <!-- فلتر التصنيف -->
                         <div class="col-md-3">
                             <label class="form-label">تصنيف المنتج</label>
-                            <select name="category" class="form-control">
+                            <select name="category" class="form-select">
                                 <option value="">جميع التصنيفات</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
@@ -62,7 +62,7 @@
                         <!-- فلتر نوع الفاتورة -->
                         <div class="col-md-3">
                             <label class="form-label">نوع الفاتورة</label>
-                            <select name="invoice_type" class="form-control">
+                            <select name="invoice_type" class="form-select">
                                 <option value="">الكل</option>
                                 <option value="1" {{ request('invoice_type') == '1' ? 'selected' : '' }}>مرتجع</option>
                                 <option value="2" {{ request('invoice_type') == '2' ? 'selected' : '' }}>اشعار مدين</option>
@@ -73,7 +73,7 @@
                         <!-- فلتر الفرع -->
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
-                            <select name="branch" class="form-control">
+                            <select name="branch" class="form-select">
                                 <option value="">جميع الفروع</option>
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
@@ -86,7 +86,7 @@
                         <!-- فلتر العميل -->
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-control">
+                            <select name="client" class="form-select">
                                 <option value="">جميع العملاء</option>
                                 @foreach($clients as $client)
                                     <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
@@ -99,7 +99,7 @@
                         <!-- فلتر فئة العميل -->
                         <div class="col-md-3">
                             <label class="form-label">فئة العميل</label>
-                            <select name="client_category" class="form-control">
+                            <select name="client_category" class="form-select">
                                 <option value="">جميع الفئات</option>
                                 @foreach($client_categories as $category)
                                     <option value="{{ $category->id }}" {{ request('client_category') == $category->id ? 'selected' : '' }}>
@@ -112,20 +112,20 @@
                         <!-- فلتر الموظف -->
                         <div class="col-md-3">
                             <label class="form-label">الموظف</label>
-                            <select name="employee" class="form-control">
+                            <select name="employee" class="form-select">
                                 <option value="">جميع الموظفين</option>
-                                @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                    {{ $employee->name }}
-                                </option>
-                            @endforeach
+                                @foreach($employees as $employee)
+                                    <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 
                         <!-- فلتر المخزن -->
                         <div class="col-md-3">
                             <label class="form-label">المخزن</label>
-                            <select name="storehouse" class="form-control">
+                            <select name="storehouse" class="form-select">
                                 <option value="">جميع المخازن</option>
                                 @foreach($storehouses as $storehouse)
                                     <option value="{{ $storehouse->id }}" {{ request('storehouse') == $storehouse->id ? 'selected' : '' }}>
@@ -138,28 +138,26 @@
                         <!-- فلتر الفترة -->
                         <div class="col-md-3">
                             <label class="form-label">الفترة</label>
-                            <select name="report_period" class="form-control">
-                                <option value="">اختر الفترة</option>
+                            <select name="report_period" class="form-select">
                                 <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
                                 <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
                                 <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري</option>
                                 <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
-                                <option value="custom" {{ request('report_period') == 'custom' ? 'selected' : '' }}>مخصص</option>
                             </select>
                         </div>
 
-                        <!-- فلتر من تاريخ (يظهر فقط عند اختيار مخصص) -->
-
+                        <!-- فلتر من تاريخ -->
                         <div class="col-md-3">
                             <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
-                                value="{{ $fromDate->format('Y-m-d') }}">
+                                   value="{{ request('from_date', now()->subMonth()->format('Y-m-d')) }}">
                         </div>
 
+                        <!-- فلتر إلى تاريخ -->
                         <div class="col-md-3">
                             <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
-                                value="{{ $toDate->format('Y-m-d') }}">
+                                   value="{{ request('to_date', now()->format('Y-m-d')) }}">
                         </div>
 
                         <!-- خيار عرض المسودات -->
@@ -188,15 +186,6 @@
                         </div>
                     </div>
                 </form>
-
-                <script>
-                // عرض/إخفاء حقول التاريخ عند اختيار "مخصص"
-                document.querySelector('select[name="report_period"]').addEventListener('change', function() {
-                    const isCustom = this.value === 'custom';
-                    document.getElementById('from_date_container').style.display = isCustom ? 'block' : 'none';
-                    document.getElementById('to_date_container').style.display = isCustom ? 'block' : 'none';
-                });
-                </script>
             </div>
         </div>
 

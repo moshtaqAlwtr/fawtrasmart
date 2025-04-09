@@ -42,10 +42,16 @@ class InvoiceItem extends Model
         'total' => 'decimal:2',
     ];
 
+    // public function invoice()
+    // {
+    //     return $this->hasMany(Invoice::class, 'invoice_id');
+    // }
     public function invoice()
     {
+        // استبدل 'invoice_id' باسم العمود الفعلي إذا كان مختلفاً
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
+
     public function purchaseInvoice()
     {
         return $this->belongsTo(PurchaseInvoice::class, 'purchase_invoice_id');
