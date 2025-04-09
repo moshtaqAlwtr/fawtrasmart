@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     سند صرف
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -22,8 +20,8 @@
             </div>
         </div>
     </div>
-    @include('layouts.alerts.error')
-    @include('layouts.alerts.success')
+    <?php echo $__env->make('layouts.alerts.error', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('layouts.alerts.success', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="content-body">
         <div class="card">
@@ -34,7 +32,7 @@
                     </div>
 
                     <div>
-                        <a href="{{ route('expenses.index') }}" class="btn btn-outline-danger">
+                        <a href="<?php echo e(route('expenses.index')); ?>" class="btn btn-outline-danger">
                             <i class="fa fa-ban"></i> الغاء
                         </a>
 
@@ -49,11 +47,11 @@
 
         <div class="card">
             <div class="card-body">
-                <form id="expenses_form" action="{{ route('expenses.store') }}" method="POST"
+                <form id="expenses_form" action="<?php echo e(route('expenses.store')); ?>" method="POST"
                     enctype="multipart/form-data">
-                    @csrf
+                    <?php echo csrf_field(); ?>
                     <div class="row">
-                        @php
+                        <?php
                             $currency = $account_setting->currency ?? 'SAR';
                             $currencySymbol =
                                 $currency == 'SAR' || empty($currency)
@@ -61,23 +59,31 @@
                                         asset('assets/images/Saudi_Riyal.svg') .
                                         '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
                                     : htmlspecialchars($currency);
-                        @endphp
+                        ?>
 
                         <div class="form-group col-md-3">
                             <label for="amount">المبلغ <span style="color: red">*</span></label>
                             <input type="text" class="form-control form-control-lg py-3" id="amount"
-                                placeholder="{{ $currencySymbol }} 0.00" name="amount" required>
-                            @error('amount')
+                                placeholder="<?php echo e($currencySymbol); ?> 0.00" name="amount" required>
+                            <?php $__errorArgs = ['amount'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
                                 <span class="text-danger" id="basic-default-name-error">
-                                    {{ $message }}
+                                    <?php echo e($message); ?>
+
                                 </span>
-                            @enderror
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="form-group col-md-3">
                             <label for="total_amount">المبلغ الإجمالي بعد الضريبة</label>
                             <input type="text" class="form-control form-control-lg py-3" id="total_amount"
-                                placeholder="{{ $currencySymbol }} 0.00" name="total_amount" readonly>
+                                placeholder="<?php echo e($currencySymbol); ?> 0.00" name="total_amount" readonly>
                         </div>
 
                         <div class="form-group col-md-3">
@@ -106,12 +112,12 @@
                         <div class="form-group col-md-4">
                             <label for="code-number">رقم الكود</label>
                             <input type="text" class="form-control" id="code-number" name="code"
-                                value="{{ $code }}" readonly>
+                                value="<?php echo e($code); ?>" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
                             <input type="date" class="form-control" id="date" name="date"
-                                value="{{ date('Y-m-d') }}">
+                                value="<?php echo e(date('Y-m-d')); ?>">
                         </div>
                     </div>
 
@@ -120,11 +126,11 @@
                             <label for="category">التصنيف</label>
                             <select id="category" class="form-control" name="expenses_category_id" required>
                                 <option value="" selected disabled>-- إضافة تصنيف --</option>
-                                @foreach ($expenses_categories as $expenses_category)
-                                    <option value="{{ $expenses_category->id }}"
-                                        {{ old('expenses_category_id') == $expenses_category->id ? 'selected' : '' }}>
-                                        {{ $expenses_category->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $expenses_categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $expenses_category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($expenses_category->id); ?>"
+                                        <?php echo e(old('expenses_category_id') == $expenses_category->id ? 'selected' : ''); ?>>
+                                        <?php echo e($expenses_category->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
                         <div class="form-group col-md-4">
@@ -139,8 +145,8 @@
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
                             <input type="text" class="form-control" placeholder=" "
-                                value="{{ $MainTreasury->name ?? '' }}" readonly>
-                            <input type="hidden" name="treasury_id" value="{{ $MainTreasury->id ?? '' }}">
+                                value="<?php echo e($MainTreasury->name ?? ''); ?>" readonly>
+                            <input type="hidden" name="treasury_id" value="<?php echo e($MainTreasury->id ?? ''); ?>">
                         </div>
                     </div>
 
@@ -149,11 +155,12 @@
                             <label for="account_id">الحساب الفرعي</label>
                             <select class="form-control select2" name="account_id" id="account_id" required>
                                 <option value="" selected disabled>اختر حساب</option>
-                                @foreach ($accounts as $account)
-                                    <option value="{{ $account->id }}">
-                                        {{ $account->customer->code ?? '' }} - {{ $account->name ?? '' }}
+                                <?php $__currentLoopData = $accounts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $account): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($account->id); ?>">
+                                        <?php echo e($account->customer->code ?? ''); ?> - <?php echo e($account->name ?? ''); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -172,10 +179,11 @@
                                 <label for="tax1">الضريبة الأولى</label>
                                 <select id="tax1" class="form-control" name="tax1">
                                     <option value="0">اختر الضريبة</option>
-                                    @foreach ($taxs as $tax)
-                                        <option value="{{ $tax->tax }}">{{ $tax->name ?? '' }}
-                                            ({{ $tax->tax }}%)</option>
-                                    @endforeach
+                                    <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($tax->tax); ?>"><?php echo e($tax->name ?? ''); ?>
+
+                                            (<?php echo e($tax->tax); ?>%)</option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                                 <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax1_amount"
                                     readonly>
@@ -184,10 +192,11 @@
                                 <label for="tax2">الضريبة الثانية</label>
                                 <select id="tax2" class="form-control" name="tax2">
                                     <option value="0">اختر الضريبة</option>
-                                    @foreach ($taxs as $tax)
-                                        <option value="{{ $tax->tax }}">{{ $tax->name ?? '' }}
-                                            ({{ $tax->tax }}%)</option>
-                                    @endforeach
+                                    <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($tax->tax); ?>"><?php echo e($tax->name ?? ''); ?>
+
+                                            (<?php echo e($tax->tax); ?>%)</option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                                 <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax2_amount"
                                     readonly>
@@ -284,4 +293,6 @@
             $("#amount, #tax1, #tax2").on("input change", calculateTax);
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/finance/expenses/create.blade.php ENDPATH**/ ?>

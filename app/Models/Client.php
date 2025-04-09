@@ -72,9 +72,12 @@ public function Balance()
     }
     // العلاقة مع ملاحظات المواعيد
     public function appointmentNotes()
-    {
-        return $this->hasMany(ClientRelation::class);
-    }
+{
+    return $this->hasMany(ClientRelation::class, 'client_id')
+                ->whereNotNull('notes') // فقط السجلات التي تحتوي ملاحظات
+                ->select('id', 'client_id', 'notes as content', 'created_at')
+                ->orderBy('created_at', 'desc');
+}
     public function neighborhood()
     {
         return $this->belongsTo(Neighborhood::class);
