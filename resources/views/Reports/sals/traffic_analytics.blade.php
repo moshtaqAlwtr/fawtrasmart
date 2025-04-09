@@ -127,7 +127,7 @@
                                                             $hasActivity = true;
                                                         }
 
-                                                        if ($client->notes && $client->notes->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
+                                                        if ($client->appointmentNotes && $client->appointmentNotes->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
                                                             $activities[] = ['icon' => '📝', 'title' => 'ملاحظة'];
                                                             $hasActivity = true;
                                                         }
