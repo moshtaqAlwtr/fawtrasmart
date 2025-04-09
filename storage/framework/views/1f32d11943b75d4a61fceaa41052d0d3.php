@@ -208,229 +208,181 @@
 
 
             
-            <div class="card mt-3" id="mainReportTable">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        تقرير المبيعات من <?php echo e($fromDate->format('d/m/Y')); ?> إلى
-                        <?php echo e($toDate->format('d/m/Y')); ?>
+            
+<div class="card mt-3" id="mainReportTable">
+    <div class="card-header">
+        <h5 class="card-title">
+            تقرير المبيعات من <?php echo e($fromDate->format('d/m/Y')); ?> إلى
+            <?php echo e($toDate->format('d/m/Y')); ?>
 
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>الموظف</th>
-                                    <th>رقم الفاتورة</th>
-                                    <th>التاريخ</th>
-                                    <th>العميل</th>
-                                    <th>مدفوعة (SAR)</th>
-                                    <th>غير مدفوعة (SAR)</th>
-                                    <th>مرتجع (SAR)</th>
-                                    <th>الإجمالي (SAR)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                    $grandPaidTotal = 0;
-                                    $grandUnpaidTotal = 0;
-                                    $grandReturnedTotal = 0;
-                                    $grandOverallTotal = 0;
-                                    $currentEmployee = null;
-                                ?>
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>الموظف</th>
+                        <th>رقم الفاتورة</th>
+                        <th>التاريخ</th>
+                        <th>العميل</th>
+                        <th>مدفوعة (SAR)</th>
+                        <th>غير مدفوعة (SAR)</th>
+                        <th>مرتجع (SAR)</th>
+                        <th>الإجمالي (SAR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        $grandPaidTotal = 0;
+                        $grandUnpaidTotal = 0;
+                        $grandReturnedTotal = 0;
+                        $grandOverallTotal = 0;
+                        $currentEmployee = null;
+                    ?>
 
-                                
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <div class="card bg-primary text-white">
-                                            <div class="card-body text-center">
-                                                <h5>إجمالي المبيعات</h5>
-                                                <h3><?php echo e(number_format($totals['total_sales'], 2)); ?> SAR</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card bg-success text-white">
-                                            <div class="card-body text-center">
-                                                <h5>المبالغ المدفوعة</h5>
-                                                <h3><?php echo e(number_format($totals['paid_amount'], 2)); ?> SAR</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card bg-warning text-white">
-                                            <div class="card-body text-center">
-                                                <h5>المبالغ غير المدفوعة</h5>
-                                                <h3><?php echo e(number_format($totals['unpaid_amount'], 2)); ?> SAR
-                                                </h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card bg-danger text-white">
-                                            <div class="card-body text-center">
-                                                <h5>المبالغ المرتجعة</h5>
-                                                <h3><?php echo e(number_format($totals['total_returns'], 2)); ?> SAR
-                                                </h3>
-                                            </div>
-                                        </div>
-                                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5>إجمالي المبيعات</h5>
+                                    <h3><?php echo e(number_format($totals['total_sales'], 2)); ?> SAR</h3>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>المبالغ المدفوعة</h5>
+                                    <h3><?php echo e(number_format($totals['paid_amount'], 2)); ?> SAR</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>المبالغ غير المدفوعة</h5>
+                                    <h3><?php echo e(number_format($totals['unpaid_amount'], 2)); ?> SAR</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5>المبالغ المرتجعة</h5>
+                                    <h3><?php echo e(number_format($totals['total_returns'], 2)); ?> SAR</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <?php $__currentLoopData = $groupedInvoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employeeId => $invoices): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        
+                        <?php
+                            $currentEmployee = $invoices->first()->createdByUser->name ?? 'موظف ' . $employeeId;
+                        ?>
+                        <tr class="table-secondary">
+                            <td colspan="8">
+                                <?php echo e($currentEmployee); ?>
 
-                                <?php $__currentLoopData = $groupedInvoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employeeId => $invoices): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    
-                                    <?php
-                                        $currentEmployee =
-                                            $invoices->first()->createdByUser->name ?? 'موظف ' . $employeeId;
-                                    ?>
-                                    <tr class="table-secondary">
-                                        <td colspan="8">
-                                            <?php echo e($currentEmployee); ?>
+                            </td>
+                        </tr>
 
-                                        </td>
-                                    </tr>
+                        
+                        <?php
+                            $employeePaidTotal = 0;
+                            $employeeUnpaidTotal = 0;
+                            $employeeReturnedTotal = 0;
+                            $employeeOverallTotal = 0;
+                        ?>
 
-                                    
-                                    <?php
-                                        $employeePaidTotal = 0;
-                                        $employeeUnpaidTotal = 0;
-                                        $employeeReturnedTotal = 0;
-                                        $employeeOverallTotal = 0;
-                                    ?>
+                        
+                        <?php $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php
+                                $isReturn = in_array($invoice->type, ['return', 'returned']);
+                            ?>
+                            <tr class="<?php echo e($isReturn ? 'table-danger' : ''); ?>">
+                                <td><?php echo e($currentEmployee); ?></td>
+                                <td>
+                                    <?php if($isReturn): ?>
+                                        <span class="text-danger">مرتجع #<?php echo e(str_pad($invoice->code, 5, '0', STR_PAD_LEFT)); ?></span>
+                                    <?php else: ?>
+                                        <?php echo e(str_pad($invoice->code, 5, '0', STR_PAD_LEFT)); ?>
 
-                                    
-                                    <?php $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <tr
-                                            class="<?php echo e(in_array($invoice->type, ['return', 'returned']) ? 'table-return text-return' : ''); ?>">
-                                            <td><?php echo e($currentEmployee); ?></td>
-                                            <td><?php echo e(str_pad($invoice->code, 5, '0', STR_PAD_LEFT)); ?></td>
-                                            <td><?php echo e(\Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y')); ?>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo e(\Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y')); ?></td>
+                                <td><?php echo e($invoice->client->trade_name ?? 'غير محدد'); ?></td>
 
-                                            </td>
-                                            <td><?php echo e($invoice->client->trade_name ?? 'غير محدد'); ?></td>
-
-                                            <?php if(in_array($invoice->type, ['return', 'returned'])): ?>
-                                                <td>-</td>
-                                                <td>-</td>
-                                                <td class="text-return">
-                                                    <?php echo e(number_format($invoice->grand_total, 2)); ?>
-
-                                                </td>
-                                                <td class="text-return">
-                                                    <?php echo e(number_format($invoice->grand_total, 2)); ?>
-
-                                                </td>
-
-                                                <?php
-                                                    $employeeReturnedTotal += $invoice->grand_total;
-                                                    $grandReturnedTotal += $invoice->grand_total;
-                                                ?>
-                                            <?php else: ?>
-                                                <td>
-                                                    <?php echo e(number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2)); ?>
-
-                                                </td>
-                                                <td>
-                                                    <?php echo e(number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2)); ?>
-
-                                                </td>
-                                                <td>-</td>
-                                                <td><?php echo e(number_format($invoice->grand_total, 2)); ?></td>
-
-                                                <?php
-                                                    if ($invoice->payment_status == 1) {
-                                                        $employeePaidTotal += $invoice->grand_total;
-                                                        $grandPaidTotal += $invoice->grand_total;
-                                                    } else {
-                                                        $employeeUnpaidTotal += $invoice->due_value;
-                                                        $grandUnpaidTotal += $invoice->due_value;
-                                                    }
-                                                    $employeeOverallTotal += $invoice->grand_total;
-                                                    $grandOverallTotal += $invoice->grand_total;
-                                                ?>
-                                            <?php endif; ?>
-                                        </tr>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-                                    
-                                    <tr class="table-info">
-                                        <td colspan="4">مجموع الموظف</td>
-                                        <td><?php echo e(number_format($employeePaidTotal, 2)); ?></td>
-                                        <td><?php echo e(number_format($employeeUnpaidTotal, 2)); ?></td>
-                                        <td><?php echo e(number_format($employeeReturnedTotal, 2)); ?></td>
-                                        <td><?php echo e(number_format($employeePaidTotal + $employeeUnpaidTotal + $employeeReturnedTotal, 2)); ?>
-
-                                        </td>
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-                                
-                                <tr class="table-dark">
-                                    <td colspan="4">المجموع الكلي</td>
-                                    <td><?php echo e(number_format($grandPaidTotal, 2)); ?></td>
-                                    <td><?php echo e(number_format($grandUnpaidTotal, 2)); ?></td>
-                                    <td><?php echo e(number_format($grandReturnedTotal, 2)); ?></td>
-                                    <td><?php echo e(number_format($grandPaidTotal + $grandUnpaidTotal + $grandReturnedTotal, 2)); ?>
+                                <?php if($isReturn): ?>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td class="text-danger">
+                                        <?php echo e(number_format($invoice->grand_total, 2)); ?>
 
                                     </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                                    <td class="text-danger">
+                                        -<?php echo e(number_format($invoice->grand_total, 2)); ?>
 
-            
-            <div class="card mt-4" id="detailedReportTable" style="display: none;">
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2 text-muted">
-                        التفاصيل الكاملة للتقرير
-                    </h6>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>رقم الفاتورة</th>
-                                <th>التاريخ</th>
-                                <th>العميل</th>
-                                <th>الموظف</th>
-                                <th>مدفوعة (SAR)</th>
-                                <th>غير مدفوعة (SAR)</th>
-                                <th>مرتجع (SAR)</th>
-                                <th>الإجمالي (SAR)</th>
+                                    </td>
+
+                                    <?php
+                                        $employeeReturnedTotal += $invoice->grand_total;
+                                        $grandReturnedTotal += $invoice->grand_total;
+                                        $grandOverallTotal -= $invoice->grand_total;
+                                        $employeeOverallTotal -= $invoice->grand_total;
+                                    ?>
+                                <?php else: ?>
+                                    <td>
+                                        <?php echo e(number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2)); ?>
+
+                                    </td>
+                                    <td>
+                                        <?php echo e(number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2)); ?>
+
+                                    </td>
+                                    <td>-</td>
+                                    <td><?php echo e(number_format($invoice->grand_total, 2)); ?></td>
+
+                                    <?php
+                                        if ($invoice->payment_status == 1) {
+                                            $employeePaidTotal += $invoice->grand_total;
+                                            $grandPaidTotal += $invoice->grand_total;
+                                        } else {
+                                            $employeeUnpaidTotal += $invoice->due_value;
+                                            $grandUnpaidTotal += $invoice->due_value;
+                                        }
+                                        $employeeOverallTotal += $invoice->grand_total;
+                                        $grandOverallTotal += $invoice->grand_total;
+                                    ?>
+                                <?php endif; ?>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php $__currentLoopData = $groupedInvoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employeeId => $invoices): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <?php $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <tr>
-                                        <td><?php echo e(str_pad($invoice->code, 5, '0', STR_PAD_LEFT)); ?></td>
-                                        <td><?php echo e(\Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y')); ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                                        </td>
-                                        <td><?php echo e($invoice->client->trade_name ?? 'غير محدد'); ?></td>
-                                        <td><?php echo e($invoice->createdByUser->name ?? 'غير محدد'); ?></td>
-                                        <td>
-                                            <?php echo e(number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2)); ?>
+                        
+                        <tr class="table-info">
+                            <td colspan="4">مجموع الموظف</td>
+                            <td><?php echo e(number_format($employeePaidTotal, 2)); ?></td>
+                            <td><?php echo e(number_format($employeeUnpaidTotal, 2)); ?></td>
+                            <td><?php echo e(number_format($employeeReturnedTotal, 2)); ?></td>
+                            <td><?php echo e(number_format($employeeOverallTotal, 2)); ?></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                                        </td>
-                                        <td>
-                                            <?php echo e(number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2)); ?>
-
-                                        </td>
-                                        <td>
-                                            <?php echo e(number_format(in_array($invoice->type, ['return', 'returned']) ? $invoice->grand_total : 0, 2)); ?>
-
-                                        </td>
-                                        <td><?php echo e(number_format($invoice->grand_total, 2)); ?></td>
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                    
+                    <tr class="table-dark">
+                        <td colspan="4">المجموع الكلي</td>
+                        <td><?php echo e(number_format($grandPaidTotal, 2)); ?></td>
+                        <td><?php echo e(number_format($grandUnpaidTotal, 2)); ?></td>
+                        <td><?php echo e(number_format($grandReturnedTotal, 2)); ?></td>
+                        <td><?php echo e(number_format($grandOverallTotal, 2)); ?></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     <?php $__env->stopSection(); ?>
     <?php $__env->startSection('scripts'); ?>

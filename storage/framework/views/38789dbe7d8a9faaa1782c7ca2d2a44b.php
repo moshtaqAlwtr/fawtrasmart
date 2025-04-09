@@ -4,7 +4,7 @@
 
 <?php $__env->startSection('css'); ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/report.css')); ?>">
 <?php $__env->stopSection(); ?>
 
@@ -34,7 +34,7 @@
                         <!-- فلتر المنتج -->
                         <div class="col-md-3">
                             <label class="form-label">المنتج</label>
-                            <select name="product" class="form-select">
+                            <select name="product" class="form-control">
                                 <option value="">جميع المنتجات</option>
                                 <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($product->id); ?>" <?php echo e(request('product') == $product->id ? 'selected' : ''); ?>>
@@ -47,7 +47,7 @@
                         <!-- فلتر التصنيف -->
                         <div class="col-md-3">
                             <label class="form-label">تصنيف المنتج</label>
-                            <select name="category" class="form-select">
+                            <select name="category" class="form-control">
                                 <option value="">جميع التصنيفات</option>
                                 <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($category->id); ?>" <?php echo e(request('category') == $category->id ? 'selected' : ''); ?>>
@@ -61,7 +61,7 @@
                         <!-- فلتر نوع الفاتورة -->
                         <div class="col-md-3">
                             <label class="form-label">نوع الفاتورة</label>
-                            <select name="invoice_type" class="form-select">
+                            <select name="invoice_type" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" <?php echo e(request('invoice_type') == '1' ? 'selected' : ''); ?>>مرتجع</option>
                                 <option value="2" <?php echo e(request('invoice_type') == '2' ? 'selected' : ''); ?>>اشعار مدين</option>
@@ -72,7 +72,7 @@
                         <!-- فلتر الفرع -->
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
-                            <select name="branch" class="form-select">
+                            <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
                                 <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($branch->id); ?>" <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
@@ -86,7 +86,7 @@
                         <!-- فلتر العميل -->
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-select">
+                            <select name="client" class="form-control">
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
@@ -100,7 +100,7 @@
                         <!-- فلتر فئة العميل -->
                         <div class="col-md-3">
                             <label class="form-label">فئة العميل</label>
-                            <select name="client_category" class="form-select">
+                            <select name="client_category" class="form-control">
                                 <option value="">جميع الفئات</option>
                                 <?php $__currentLoopData = $client_categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($category->id); ?>" <?php echo e(request('client_category') == $category->id ? 'selected' : ''); ?>>
@@ -114,21 +114,21 @@
                         <!-- فلتر الموظف -->
                         <div class="col-md-3">
                             <label class="form-label">الموظف</label>
-                            <select name="employee" class="form-select">
+                            <select name="employee" class="form-control">
                                 <option value="">جميع الموظفين</option>
                                 <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($employee->id); ?>" <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
-                                        <?php echo e($employee->name); ?>
+                                <option value="<?php echo e($employee->id); ?>" <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
+                                    <?php echo e($employee->name); ?>
 
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
                         <!-- فلتر المخزن -->
                         <div class="col-md-3">
                             <label class="form-label">المخزن</label>
-                            <select name="storehouse" class="form-select">
+                            <select name="storehouse" class="form-control">
                                 <option value="">جميع المخازن</option>
                                 <?php $__currentLoopData = $storehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $storehouse): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($storehouse->id); ?>" <?php echo e(request('storehouse') == $storehouse->id ? 'selected' : ''); ?>>
@@ -142,26 +142,28 @@
                         <!-- فلتر الفترة -->
                         <div class="col-md-3">
                             <label class="form-label">الفترة</label>
-                            <select name="report_period" class="form-select">
+                            <select name="report_period" class="form-control">
+                                <option value="">اختر الفترة</option>
                                 <option value="daily" <?php echo e(request('report_period') == 'daily' ? 'selected' : ''); ?>>يومي</option>
                                 <option value="weekly" <?php echo e(request('report_period') == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
                                 <option value="monthly" <?php echo e(request('report_period') == 'monthly' ? 'selected' : ''); ?>>شهري</option>
                                 <option value="yearly" <?php echo e(request('report_period') == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
+                                <option value="custom" <?php echo e(request('report_period') == 'custom' ? 'selected' : ''); ?>>مخصص</option>
                             </select>
                         </div>
 
-                        <!-- فلتر من تاريخ -->
+                        <!-- فلتر من تاريخ (يظهر فقط عند اختيار مخصص) -->
+
                         <div class="col-md-3">
                             <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
-                                   value="<?php echo e(request('from_date', now()->subMonth()->format('Y-m-d'))); ?>">
+                                value="<?php echo e($fromDate->format('Y-m-d')); ?>">
                         </div>
 
-                        <!-- فلتر إلى تاريخ -->
                         <div class="col-md-3">
                             <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
-                                   value="<?php echo e(request('to_date', now()->format('Y-m-d'))); ?>">
+                                value="<?php echo e($toDate->format('Y-m-d')); ?>">
                         </div>
 
                         <!-- خيار عرض المسودات -->
@@ -190,6 +192,15 @@
                         </div>
                     </div>
                 </form>
+
+                <script>
+                // عرض/إخفاء حقول التاريخ عند اختيار "مخصص"
+                document.querySelector('select[name="report_period"]').addEventListener('change', function() {
+                    const isCustom = this.value === 'custom';
+                    document.getElementById('from_date_container').style.display = isCustom ? 'block' : 'none';
+                    document.getElementById('to_date_container').style.display = isCustom ? 'block' : 'none';
+                });
+                </script>
             </div>
         </div>
 

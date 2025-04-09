@@ -1,9 +1,8 @@
 <?php $__env->startSection('title'); ?>
-    تقرير المدفوعات حسب العميل
+    تقرير المدفوعات حسب الموظف
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('css'); ?>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -18,12 +17,7 @@
             margin-bottom: 20px;
             border: none;
         }
-        .card-header {
 
-            color: white;
-            border-radius: 10px 10px 0 0 !important;
-            padding: 15px 20px;
-        }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -91,30 +85,18 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="mb-0">تقرير المدفوعات حسب العميل</h4>
+                    <h4 class="mb-0">تقرير المدفوعات حسب الموظف</h4>
                 </div>
                 <div class="card-body">
                     <div class="filter-section">
-                        <form method="GET" action="<?php echo e(route('salesReports.clientPaymentReport')); ?>">
+                        <form method="GET" action="<?php echo e(route('salesReports.employeePaymentReport')); ?>">
                             <div class="row g-3">
                                 <div class="col-md-3">
-                                    <label for="customerCategory" class="form-label">فئة العميل</label>
-                                    <select name="customer_category" id="customerCategory" class="form-control">
-                                        <option value="">الكل</option>
-                                        <?php $__currentLoopData = $customerCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($category->id); ?>" <?php echo e(request('customer_category') == $category->id ? 'selected' : ''); ?>>
-                                                <?php echo e($category->name); ?>
-
-                                            </option>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="client" class="form-label">العميل</label>
-                                    <select name="client" id="client" class="form-control select2">
+                                    <label for="employee" class="form-label">العميل</label>
+                                    <select name="employee" id="employee" class="form-control select2">
                                         <option value="">الكل</option>
                                         <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                            <option value="<?php echo e($client->id); ?>" <?php echo e(request('client_id') == $client->id ? 'selected' : ''); ?>>
                                                 <?php echo e($client->trade_name); ?>
 
                                             </option>
@@ -123,7 +105,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label for="collector" class="form-label">تم التحصيل بواسطة</label>
-                                    <select name="collector" id="collector" class="form-control">
+                                    <select name="collector" id="collector" class="form-control select2">
                                         <option value="">الكل</option>
                                         <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <option value="<?php echo e($employee->id); ?>" <?php echo e(request('collector') == $employee->id ? 'selected' : ''); ?>>
@@ -140,6 +122,18 @@
                                         <?php $__currentLoopData = $paymentMethods; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $method): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <option value="<?php echo e($method['id']); ?>" <?php echo e(request('payment_method') == $method['id'] ? 'selected' : ''); ?>>
                                                 <?php echo e($method['name']); ?>
+
+                                            </option>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="client" class="form-label">العميل</label>
+                                    <select name="client" id="client" class="form-control">
+                                        <option value="">الكل</option>
+                                        <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                                <?php echo e($client->trade_name); ?>
 
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -171,10 +165,9 @@
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-filter me-2"></i>عرض التقرير
                                     </button>
-                                    <a href="<?php echo e(route('salesReports.clientPaymentReport')); ?>" type="submit" class="btn btn-primary w-100">
+                                    <a href="<?php echo e(route('salesReports.employeePaymentReport')); ?>" type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-filter me-2"></i>الغاء الفلتر
                                     </a>
-
                                 </div>
                             </div>
                         </form>
@@ -240,9 +233,9 @@
                             <thead class="table-primary">
                                 <tr>
                                     <th width="5%">#</th>
-                                    <th width="20%">العميل</th>
+                                    <th width="20%">الموظف</th>
                                     <th width="10%">التاريخ</th>
-                                    <th width="15%">الموظف</th>
+                                    <th width="15%">العميل</th>
                                     <th width="10%">وسيلة الدفع</th>
                                     <th width="10%">المبلغ</th>
                                     <th width="15%">المرجع</th>
@@ -250,19 +243,19 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $payments->groupBy(fn($p) => optional($p->invoice?->client)->id); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $clientId => $clientPayments): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <?php $__empty_1 = true; $__currentLoopData = $payments->groupBy(fn($p) => optional($p->invoice?->createdByUser)->id); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employeeId => $createdByUser): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                     <?php
-                                        $client = $clientPayments->first()?->invoice?->client;
+                                        $employee = $createdByUser->first()?->invoice?->createdByUser;
                                     ?>
 
-                                    <?php if($client): ?>
+                                    <?php if($employee): ?>
                                         
                                         <tr class="table-secondary fw-bold">
-                                            <td colspan="8"><?php echo e($client->trade_name); ?></td>
+                                            <td colspan="8"><?php echo e($employee->name); ?></td>
                                         </tr>
 
                                         
-                                        <?php $__currentLoopData = $clientPayments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php $__currentLoopData = $createdByUser; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <?php
                                                 $invoice = $payment->invoice;
                                             ?>
@@ -272,7 +265,7 @@
                                                     <td><?php echo e($loop->iteration); ?></td>
                                                     <td></td> 
                                                     <td><?php echo e(optional($payment->payment_date)->format('d/m/Y') ?? '--'); ?></td>
-                                                    <td><?php echo e($invoice->createdByUser->name ?? 'غير محدد'); ?></td>
+                                                    <td><?php echo e($invoice->client->trade_name ?? 'غير محدد'); ?></td>
                                                     <td>
                                                         <?php switch($payment->Payment_method):
                                                             case (1): ?> نقدي <?php break; ?>
@@ -297,7 +290,6 @@
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -320,7 +312,7 @@
         data: {
             labels: <?php echo json_encode($chartData['labels'], 15, 512) ?>,
             datasets: [{
-                label: 'المدفوعات (ر.س)',
+                label: 'المدفوعات حسب الموظف (ر.س)',
                 data: <?php echo json_encode($chartData['values'], 15, 512) ?>,
                 backgroundColor: 'rgba(74, 108, 247, 0.7)',
                 borderColor: 'rgba(74, 108, 247, 1)',
@@ -367,7 +359,7 @@
     // Export functions
     function exportTo(type) {
         const table = document.getElementById('paymentsTable');
-        const fileName = `تقرير_المدفوعات_${new Date().toLocaleDateString()}`;
+        const fileName = `تقرير_المدفوعات_حسب_الموظف_${new Date().toLocaleDateString()}`;
 
         if (type === 'excel' || type === 'csv') {
             const wb = XLSX.utils.table_to_book(table);
@@ -397,4 +389,4 @@
 </script>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/payments/client_report.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/payments/employee_report.blade.php ENDPATH**/ ?>

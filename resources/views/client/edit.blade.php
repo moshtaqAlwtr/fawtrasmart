@@ -286,14 +286,14 @@
                                                 <div class="position-relative has-icon-left">
                                                     <select class="form-control" id="printing_method" name="region_id">
                                                         @foreach($Regions_groub as $Region_groub)
-                                                        <option value="{{ $Region_groub->id }}" 
+                                                        <option value="{{ $Region_groub->id }}"
                                                             {{ isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : '' }}>
                                                             {{ $Region_groub->name }}
                                                         </option>
-                                                        
+
                                                         @endforeach
                                                     </select>
-                                                    
+
 
 
 
@@ -301,12 +301,12 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    
+
                                                      <select class="form-control" id="printing_method" name="visit_type">
     <option value="am" {{ $client->visit_type == 'am' ? 'selected' : '' }}>صباحية</option>
     <option value="pm" {{ $client->visit_type == 'pm' ? 'selected' : '' }}>مسائية</option>
@@ -329,7 +329,7 @@
                                                 <div id="map" style="height: 100%;"></div>
                                             </div>
                                         </div>
-                                     
+
                                         <!-- قائمة الاتصال -->
                                         <div class="card">
                                             <div class="card-header">
@@ -410,7 +410,7 @@
                                                     <input type="number" step="0.01" name="opening_balance"
                                                     id="opening_balance" class="form-control"
                                                     value="{{ old('opening_balance', $client->opening_balance) }}" disabled>
-                                             
+
                                                     <div class="form-control-position">
                                                         <i class="feather icon-dollar-sign"></i>
                                                     </div>
@@ -535,8 +535,8 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    
-                                                    
+
+
                                                 </div>
                                             </div>
                                             @if (auth()->user()->role === 'manager')
@@ -551,14 +551,14 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                        
+
                                                     {{-- الحقل الحقيقي الذي يتم إرساله --}}
                                                     <div id="selected_employees">
                                                         @foreach ($client->employees as $assigned)
                                                             <input type="hidden" name="employee_client_id[]" value="{{ $assigned->id }}">
                                                         @endforeach
                                                     </div>
-                                        
+
                                                     {{-- عرض الموظفين المسؤولين الحاليين --}}
                                                     <ul id="employee_list" class="mt-2 list-group">
                                                         @foreach ($client->employees as $assigned)
@@ -571,10 +571,10 @@
                                                 </div>
                                             </div>
                                         @endif
-                                        
-                                        
-                                      
-                                        
+
+
+
+
                                         </div>
                                     </div>
                                 </div>
@@ -595,7 +595,7 @@
         let savedLat = {{ $location->latitude ?? 'null' }};
         let savedLng = {{ $location->longitude ?? 'null' }};
     </script>
-    
+
     <script>
         // دالة لعرض الخريطة
         function toggleMap() {
@@ -734,7 +734,7 @@ function requestLocationPermission() {
         }
 
         // التأكد من وجود الإحداثيات قبل الإرسال
-       
+
     </script>
       <script>
         document.querySelectorAll('.remove-employee').forEach(button => {
@@ -745,24 +745,24 @@ function requestLocationPermission() {
                 if (input) input.remove();
             });
         });
-    
+
         const employeeSelect = document.getElementById('employee_select');
         const employeeList = document.getElementById('employee_list');
         const selectedEmployees = document.getElementById('selected_employees');
         let selectedEmployeeIds = Array.from(document.querySelectorAll('input[name="employee_client_id[]"]')).map(i => i.value);
-    
+
         employeeSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const employeeId = selectedOption.value;
             const employeeName = selectedOption.dataset.name;
-    
+
             if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
                 selectedEmployeeIds.push(employeeId);
-    
+
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center';
                 li.textContent = employeeName;
-    
+
                 const removeBtn = document.createElement('button');
                 removeBtn.textContent = 'حذف';
                 removeBtn.className = 'btn btn-sm btn-danger';
@@ -772,17 +772,17 @@ function requestLocationPermission() {
                     const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
                     if (input) input.remove();
                 };
-    
+
                 li.appendChild(removeBtn);
                 employeeList.appendChild(li);
-    
+
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'employee_client_id[]';
                 input.value = employeeId;
                 selectedEmployees.appendChild(input);
             }
-    
+
             this.value = '';
         });
     </script>

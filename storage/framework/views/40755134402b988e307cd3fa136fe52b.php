@@ -39,12 +39,12 @@
 
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-select">
+                            <select name="client" class="form-select select2">
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($client->id); ?>"
                                         <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
-                                        <?php echo e($client->name); ?>
+                                        <?php echo e($client->trade_name); ?>
 
                                     </option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -130,7 +130,7 @@
                             <button type="submit" class="btn btn-primary w-80">
                                 <i class="fas fa-filter me-2"></i> تصفية التقرير
                             </button>
-                            <a href="<?php echo e(route('salesReports.byEmployee')); ?>" class="btn btn-primary w-20">
+                            <a href="<?php echo e(route('salesReports.byCustomer')); ?>" class="btn btn-primary w-20">
                                 <i class="fas fa-filter me-2"></i> الغاء الفلتر
                             </a>
                         </div>

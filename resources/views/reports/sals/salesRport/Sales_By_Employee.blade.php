@@ -206,216 +206,174 @@
 
 
             {{-- Main Report Table --}}
-            <div class="card mt-3" id="mainReportTable">
-                <div class="card-header">
-                    <h5 class="card-title">
-                        تقرير المبيعات من {{ $fromDate->format('d/m/Y') }} إلى
-                        {{ $toDate->format('d/m/Y') }}
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead>
-                                <tr>
-                                    <th>الموظف</th>
-                                    <th>رقم الفاتورة</th>
-                                    <th>التاريخ</th>
-                                    <th>العميل</th>
-                                    <th>مدفوعة (SAR)</th>
-                                    <th>غير مدفوعة (SAR)</th>
-                                    <th>مرتجع (SAR)</th>
-                                    <th>الإجمالي (SAR)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php
-                                    $grandPaidTotal = 0;
-                                    $grandUnpaidTotal = 0;
-                                    $grandReturnedTotal = 0;
-                                    $grandOverallTotal = 0;
-                                    $currentEmployee = null;
-                                @endphp
+            {{-- Main Report Table --}}
+<div class="card mt-3" id="mainReportTable">
+    <div class="card-header">
+        <h5 class="card-title">
+            تقرير المبيعات من {{ $fromDate->format('d/m/Y') }} إلى
+            {{ $toDate->format('d/m/Y') }}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>الموظف</th>
+                        <th>رقم الفاتورة</th>
+                        <th>التاريخ</th>
+                        <th>العميل</th>
+                        <th>مدفوعة (SAR)</th>
+                        <th>غير مدفوعة (SAR)</th>
+                        <th>مرتجع (SAR)</th>
+                        <th>الإجمالي (SAR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $grandPaidTotal = 0;
+                        $grandUnpaidTotal = 0;
+                        $grandReturnedTotal = 0;
+                        $grandOverallTotal = 0;
+                        $currentEmployee = null;
+                    @endphp
 
-                                {{-- Totals Summary --}}
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        <div class="card bg-primary text-white">
-                                            <div class="card-body text-center">
-                                                <h5>إجمالي المبيعات</h5>
-                                                <h3>{{ number_format($totals['total_sales'], 2) }} SAR</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card bg-success text-white">
-                                            <div class="card-body text-center">
-                                                <h5>المبالغ المدفوعة</h5>
-                                                <h3>{{ number_format($totals['paid_amount'], 2) }} SAR</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card bg-warning text-white">
-                                            <div class="card-body text-center">
-                                                <h5>المبالغ غير المدفوعة</h5>
-                                                <h3>{{ number_format($totals['unpaid_amount'], 2) }} SAR
-                                                </h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card bg-danger text-white">
-                                            <div class="card-body text-center">
-                                                <h5>المبالغ المرتجعة</h5>
-                                                <h3>{{ number_format($totals['total_returns'], 2) }} SAR
-                                                </h3>
-                                            </div>
-                                        </div>
-                                    </div>
+                    {{-- Totals Summary --}}
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5>إجمالي المبيعات</h5>
+                                    <h3>{{ number_format($totals['total_sales'], 2) }} SAR</h3>
                                 </div>
-
-
-                                @foreach ($groupedInvoices as $employeeId => $invoices)
-                                    {{-- Employee Group Header --}}
-                                    @php
-                                        $currentEmployee =
-                                            $invoices->first()->createdByUser->name ?? 'موظف ' . $employeeId;
-                                    @endphp
-                                    <tr class="table-secondary">
-                                        <td colspan="8">
-                                            {{ $currentEmployee }}
-                                        </td>
-                                    </tr>
-
-                                    {{-- Initialize totals for each employee --}}
-                                    @php
-                                        $employeePaidTotal = 0;
-                                        $employeeUnpaidTotal = 0;
-                                        $employeeReturnedTotal = 0;
-                                        $employeeOverallTotal = 0;
-                                    @endphp
-
-                                    {{-- Invoices for this employee --}}
-                                    @foreach ($invoices as $invoice)
-                                        <tr
-                                            class="{{ in_array($invoice->type, ['return', 'returned']) ? 'table-return text-return' : '' }}">
-                                            <td>{{ $currentEmployee }}</td>
-                                            <td>{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}
-                                            </td>
-                                            <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
-
-                                            @if (in_array($invoice->type, ['return', 'returned']))
-                                                <td>-</td>
-                                                <td>-</td>
-                                                <td class="text-return">
-                                                    {{ number_format($invoice->grand_total, 2) }}
-                                                </td>
-                                                <td class="text-return">
-                                                    {{ number_format($invoice->grand_total, 2) }}
-                                                </td>
-
-                                                @php
-                                                    $employeeReturnedTotal += $invoice->grand_total;
-                                                    $grandReturnedTotal += $invoice->grand_total;
-                                                @endphp
-                                            @else
-                                                <td>
-                                                    {{ number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2) }}
-                                                </td>
-                                                <td>
-                                                    {{ number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2) }}
-                                                </td>
-                                                <td>-</td>
-                                                <td>{{ number_format($invoice->grand_total, 2) }}</td>
-
-                                                @php
-                                                    if ($invoice->payment_status == 1) {
-                                                        $employeePaidTotal += $invoice->grand_total;
-                                                        $grandPaidTotal += $invoice->grand_total;
-                                                    } else {
-                                                        $employeeUnpaidTotal += $invoice->due_value;
-                                                        $grandUnpaidTotal += $invoice->due_value;
-                                                    }
-                                                    $employeeOverallTotal += $invoice->grand_total;
-                                                    $grandOverallTotal += $invoice->grand_total;
-                                                @endphp
-                                            @endif
-                                        </tr>
-                                    @endforeach
-
-                                    {{-- Employee Total Summary Row --}}
-                                    <tr class="table-info">
-                                        <td colspan="4">مجموع الموظف</td>
-                                        <td>{{ number_format($employeePaidTotal, 2) }}</td>
-                                        <td>{{ number_format($employeeUnpaidTotal, 2) }}</td>
-                                        <td>{{ number_format($employeeReturnedTotal, 2) }}</td>
-                                        <td>{{ number_format($employeePaidTotal + $employeeUnpaidTotal + $employeeReturnedTotal, 2) }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-
-                                {{-- Grand Total Row --}}
-                                <tr class="table-dark">
-                                    <td colspan="4">المجموع الكلي</td>
-                                    <td>{{ number_format($grandPaidTotal, 2) }}</td>
-                                    <td>{{ number_format($grandUnpaidTotal, 2) }}</td>
-                                    <td>{{ number_format($grandReturnedTotal, 2) }}</td>
-                                    <td>{{ number_format($grandPaidTotal + $grandUnpaidTotal + $grandReturnedTotal, 2) }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>المبالغ المدفوعة</h5>
+                                    <h3>{{ number_format($totals['paid_amount'], 2) }} SAR</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>المبالغ غير المدفوعة</h5>
+                                    <h3>{{ number_format($totals['unpaid_amount'], 2) }} SAR</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5>المبالغ المرتجعة</h5>
+                                    <h3>{{ number_format($totals['total_returns'], 2) }} SAR</h3>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {{-- Detailed Report Table --}}
-            <div class="card mt-4" id="detailedReportTable" style="display: none;">
-                <div class="card-body">
-                    <h6 class="card-subtitle mb-2 text-muted">
-                        التفاصيل الكاملة للتقرير
-                    </h6>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>رقم الفاتورة</th>
-                                <th>التاريخ</th>
-                                <th>العميل</th>
-                                <th>الموظف</th>
-                                <th>مدفوعة (SAR)</th>
-                                <th>غير مدفوعة (SAR)</th>
-                                <th>مرتجع (SAR)</th>
-                                <th>الإجمالي (SAR)</th>
+                    @foreach ($groupedInvoices as $employeeId => $invoices)
+                        {{-- Employee Group Header --}}
+                        @php
+                            $currentEmployee = $invoices->first()->createdByUser->name ?? 'موظف ' . $employeeId;
+                        @endphp
+                        <tr class="table-secondary">
+                            <td colspan="8">
+                                {{ $currentEmployee }}
+                            </td>
+                        </tr>
+
+                        {{-- Initialize totals for each employee --}}
+                        @php
+                            $employeePaidTotal = 0;
+                            $employeeUnpaidTotal = 0;
+                            $employeeReturnedTotal = 0;
+                            $employeeOverallTotal = 0;
+                        @endphp
+
+                        {{-- Invoices for this employee --}}
+                        @foreach ($invoices as $invoice)
+                            @php
+                                $isReturn = in_array($invoice->type, ['return', 'returned']);
+                            @endphp
+                            <tr class="{{ $isReturn ? 'table-danger' : '' }}">
+                                <td>{{ $currentEmployee }}</td>
+                                <td>
+                                    @if($isReturn)
+                                        <span class="text-danger">مرتجع #{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</span>
+                                    @else
+                                        {{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}
+                                    @endif
+                                </td>
+                                <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}</td>
+                                <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
+
+                                @if ($isReturn)
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td class="text-danger">
+                                        {{ number_format($invoice->grand_total, 2) }}
+                                    </td>
+                                    <td class="text-danger">
+                                        -{{ number_format($invoice->grand_total, 2) }}
+                                    </td>
+
+                                    @php
+                                        $employeeReturnedTotal += $invoice->grand_total;
+                                        $grandReturnedTotal += $invoice->grand_total;
+                                        $grandOverallTotal -= $invoice->grand_total;
+                                        $employeeOverallTotal -= $invoice->grand_total;
+                                    @endphp
+                                @else
+                                    <td>
+                                        {{ number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2) }}
+                                    </td>
+                                    <td>
+                                        {{ number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2) }}
+                                    </td>
+                                    <td>-</td>
+                                    <td>{{ number_format($invoice->grand_total, 2) }}</td>
+
+                                    @php
+                                        if ($invoice->payment_status == 1) {
+                                            $employeePaidTotal += $invoice->grand_total;
+                                            $grandPaidTotal += $invoice->grand_total;
+                                        } else {
+                                            $employeeUnpaidTotal += $invoice->due_value;
+                                            $grandUnpaidTotal += $invoice->due_value;
+                                        }
+                                        $employeeOverallTotal += $invoice->grand_total;
+                                        $grandOverallTotal += $invoice->grand_total;
+                                    @endphp
+                                @endif
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($groupedInvoices as $employeeId => $invoices)
-                                @foreach ($invoices as $invoice)
-                                    <tr>
-                                        <td>{{ str_pad($invoice->code, 5, '0', STR_PAD_LEFT) }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y') }}
-                                        </td>
-                                        <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
-                                        <td>{{ $invoice->createdByUser->name ?? 'غير محدد' }}</td>
-                                        <td>
-                                            {{ number_format($invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount, 2) }}
-                                        </td>
-                                        <td>
-                                            {{ number_format($invoice->payment_status == 1 ? 0 : $invoice->due_value, 2) }}
-                                        </td>
-                                        <td>
-                                            {{ number_format(in_array($invoice->type, ['return', 'returned']) ? $invoice->grand_total : 0, 2) }}
-                                        </td>
-                                        <td>{{ number_format($invoice->grand_total, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        @endforeach
+
+                        {{-- Employee Total Summary Row --}}
+                        <tr class="table-info">
+                            <td colspan="4">مجموع الموظف</td>
+                            <td>{{ number_format($employeePaidTotal, 2) }}</td>
+                            <td>{{ number_format($employeeUnpaidTotal, 2) }}</td>
+                            <td>{{ number_format($employeeReturnedTotal, 2) }}</td>
+                            <td>{{ number_format($employeeOverallTotal, 2) }}</td>
+                        </tr>
+                    @endforeach
+
+                    {{-- Grand Total Row --}}
+                    <tr class="table-dark">
+                        <td colspan="4">المجموع الكلي</td>
+                        <td>{{ number_format($grandPaidTotal, 2) }}</td>
+                        <td>{{ number_format($grandUnpaidTotal, 2) }}</td>
+                        <td>{{ number_format($grandReturnedTotal, 2) }}</td>
+                        <td>{{ number_format($grandOverallTotal, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     @endsection
     @section('scripts')

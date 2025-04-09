@@ -41,12 +41,12 @@
 
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-select">
+                            <select name="client" class="form-select select2">
                                 <option value="">جميع العملاء</option>
                                 @foreach ($clients as $client)
                                     <option value="{{ $client->id }}"
                                         {{ request('client') == $client->id ? 'selected' : '' }}>
-                                        {{ $client->name }}
+                                        {{ $client->trade_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -129,7 +129,7 @@
                             <button type="submit" class="btn btn-primary w-80">
                                 <i class="fas fa-filter me-2"></i> تصفية التقرير
                             </button>
-                            <a href="{{ route('salesReports.byEmployee') }}" class="btn btn-primary w-20">
+                            <a href="{{ route('salesReports.byCustomer') }}" class="btn btn-primary w-20">
                                 <i class="fas fa-filter me-2"></i> الغاء الفلتر
                             </a>
                         </div>
