@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 
-
+use App\Models\Region_groub;
 
 use App\Models\ClientRelation;
 use App\Models\Invoice;
@@ -504,54 +504,37 @@ class VisitController extends Controller
         } catch (\Exception $e) {
             Log::error('فشل إرسال إشعار التليجرام: ' . $e->getMessage());
         }
-    }
-    public function tracktaff()
+    }public function tracktaff()
     {
-        // جلب البيانات مع تحديد الجداول بشكل صريح
-        $groups = Region_groub::with([
-            'neighborhoods.client' => function($query) {
-                $query->with([
-                    'invoices' => function($q) {
-                        $q->select('invoices.id', 'invoices.client_id', 'invoices.created_at')
-                          ->from('invoices');
-                    },
-                    'payments' => function($q) {
-                        $q->select('payments_process.id', 'payments_process.client_id', 'payments_process.created_at')
-                          ->from('payments_process');
-                    },
-                    'notes' => function($q) {
-                        $q->select('appointment_notes.id', 'appointment_notes.client_id', 'appointment_notes.created_at')
-                          ->from('appointment_notes');
-                    },
-                    'visits' => function($q) {
-                        $q->select('visits.id', 'visits.client_id', 'visits.created_at')
-                          ->from('visits');
-                    },
-                    'latestStatus' => function($q) {
-                        $q->select('client_relations.id', 'client_relations.client_id', 'client_relations.created_at')
-                          ->from('client_relations');
-                    }
-                ]);
-            }
-        ])->get();
-
-        // حساب الأسابيع
+        // جلب كل المجموعات مع العملاء
+        $groups = Region_groub::with('clients')->get();
+    
+        // أقدم تاريخ عملية موجودة (نحتاج ناخذه من أقدم فاتورة أو سند أو زيارة أو ملاحظة)
         $minDate = $this->getMinOperationDate();
+    
+        // نحسب كم أسبوع من أول عملية إلى الآن
         $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
         $now = now()->endOfWeek();
         $totalWeeks = $start->diffInWeeks($now) + 1;
-
+    
+        // نبني الأسابيع
         $weeks = [];
         for ($i = 0; $i < $totalWeeks; $i++) {
             $weeks[] = [
                 'start' => $start->copy()->addWeeks($i)->format('Y-m-d'),
                 'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
-                'week_number' => $i + 1,
-                'label' => 'الأسبوع ' . ($i + 1)
             ];
         }
+    
+        return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+    }
 
-        return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalWeeks'));
+
+
+    public function traffics(){
+        $groups = Region_groub::all();
+        $clients = Client::with('locations')->get();
+        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
     }
 
     private function getMinOperationDate()
@@ -560,11 +543,12 @@ class VisitController extends Controller
         $paymentDate = PaymentsProcess::min('created_at');
         $noteDate = ClientRelation::min('created_at');
         $visitDate = Visit::min('created_at');
-
+    
         return collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
             ->filter()
             ->min();
     }
+        
 
 }
 

@@ -208,6 +208,8 @@
         });
 
     </script>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // عناصر واجهة المستخدم
@@ -467,6 +469,8 @@
         });
     });
 </script>
+
+
 
     <?php echo $__env->yieldContent('scripts'); ?>
 

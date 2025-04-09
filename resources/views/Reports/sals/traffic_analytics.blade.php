@@ -38,7 +38,7 @@
                 <div class="col-md-4">
                     <select id="group-filter" class="form-control">
                         <option value="">جميع المجموعات</option>
-                        @foreach($groups as $group)
+                        @foreach ($groups as $group)
                             <option value="group-{{ $group->id }}">{{ $group->name }}</option>
                         @endforeach
                     </select>
@@ -59,116 +59,191 @@
             </div>
 
             <div class="accordion" id="groups-accordion">
-                @foreach($groups as $group)
-                <div class="card mb-2 group-section" id="group-{{ $group->id }}">
-                    <div class="card-header" id="heading-{{ $group->id }}">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-{{ $group->id }}" aria-expanded="true" aria-controls="collapse-{{ $group->id }}">
-                                <i class="fas fa-map-marker-alt text-danger"></i> {{ $group->name }}
-                                <span class="badge badge-primary badge-pill ml-2">{{ $group->neighborhoods->flatMap(fn($n) => $n->client ? [$n->client] : [])->filter()->unique('id')->count() }}</span>
-                            </button>
-                        </h5>
-                    </div>
+                @foreach ($groups as $group)
+                    <div class="card mb-2 group-section" id="group-{{ $group->id }}">
+                        <div class="card-header" id="heading-{{ $group->id }}">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" type="button" data-toggle="collapse"
+                                    data-target="#collapse-{{ $group->id }}" aria-expanded="true"
+                                    aria-controls="collapse-{{ $group->id }}">
+                                    <i class="fas fa-map-marker-alt text-danger"></i> {{ $group->name }}
+                                    <span
+                                        class="badge badge-primary badge-pill ml-2">{{ $group->neighborhoods->flatMap(fn($n) => $n->client ? [$n->client] : [])->filter()->unique('id')->count() }}</span>
+                                </button>
+                            </h5>
+                        </div>
 
-                    <div id="collapse-{{ $group->id }}" class="collapse show" aria-labelledby="heading-{{ $group->id }}" data-parent="#groups-accordion">
-                        <div class="card-body p-0">
-                            @php
-                                $clients = $group->neighborhoods->flatMap(function($neigh) {
-                                    return $neigh->client ? [$neigh->client] : [];
-                                })->filter()->unique('id');
-                            @endphp
+                        <div id="collapse-{{ $group->id }}" class="collapse show"
+                            aria-labelledby="heading-{{ $group->id }}" data-parent="#groups-accordion">
+                            <div class="card-body p-0">
+                                @php
+                                    $clients = $group->neighborhoods
+                                        ->flatMap(function ($neigh) {
+                                            return $neigh->client ? [$neigh->client] : [];
+                                        })
+                                        ->filter()
+                                        ->unique('id');
+                                @endphp
 
-                            @if($clients->count() > 0)
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-bordered text-center mb-0 client-table">
-                                        <thead class="thead-light">
-                                            <tr>
-                                                <th style="width: 20%; min-width: 200px;">العميل</th>
-                                                @foreach($weeks as $week)
-                                                <th class="week-header" style="min-width: 80px;">
-                                                    <div class="week-number">الأسبوع {{ $loop->iteration }}</div>
-                                                    <div class="week-dates">
-                                                        {{ \Carbon\Carbon::parse($week['start'])->format('d/m') }} -
-                                                        {{ \Carbon\Carbon::parse($week['end'])->format('d/m') }}
-                                                    </div>
-                                                </th>
-                                                @endforeach
-                                                <th>إجمالي النشاط</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($clients as $client)
-                                            <tr class="client-row" data-client="{{ $client->trade_name }}">
-                                                <td class="text-start align-middle">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="avatar mr-1">
-                                                            <span class="avatar-content bg-primary">{{ substr($client->trade_name, 0, 1) }}</span>
-                                                        </div>
-                                                        <div>
-                                                            <strong>{{ $client->trade_name }}</strong>
-                                                            <div class="small text-muted">{{ optional($client->neighborhood)->name }}</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                @php $totalActivities = 0; @endphp
-                                                @foreach($weeks as $week)
-                                                    @php
-                                                        $activities = [];
-                                                        $hasActivity = false;
-
-                                                        if ($client->invoices && $client->invoices->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
-                                                            $activities[] = ['icon' => '🧾', 'title' => 'فاتورة'];
-                                                            $hasActivity = true;
-                                                        }
-
-                                                        if ($client->payments && $client->payments->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
-                                                            $activities[] = ['icon' => '💵', 'title' => 'دفعة'];
-                                                            $hasActivity = true;
-                                                        }
-
-                                                        if ($client->notes && $client->notes->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
-                                                            $activities[] = ['icon' => '📝', 'title' => 'ملاحظة'];
-                                                            $hasActivity = true;
-                                                        }
-
-                                                        if ($client->visits && $client->visits->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
-                                                            $activities[] = ['icon' => '👣', 'title' => 'زيارة'];
-                                                            $hasActivity = true;
-                                                        }
-
-                                                        if ($hasActivity) $totalActivities++;
-                                                    @endphp
-                                                    <td class="align-middle activity-cell @if($hasActivity) bg-light-success @endif"
-                                                        data-has-activity="{{ $hasActivity ? '1' : '0' }}">
-                                                        @if($hasActivity)
-                                                            <div class="activity-icons">
-                                                                @foreach($activities as $activity)
-                                                                    <span title="{{ $activity['title'] }}">{{ $activity['icon'] }}</span>
-                                                                @endforeach
+                                @if ($clients->count() > 0)
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-bordered text-center mb-0 client-table">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th style="width: 20%; min-width: 200px;">العميل</th>
+                                                    @foreach ($weeks as $week)
+                                                        <th class="week-header" style="min-width: 80px;">
+                                                            <div class="week-number">الأسبوع {{ $loop->iteration }}</div>
+                                                            <div class="week-dates">
+                                                                {{ \Carbon\Carbon::parse($week['start'])->format('d/m') }}
+                                                                -
+                                                                {{ \Carbon\Carbon::parse($week['end'])->format('d/m') }}
                                                             </div>
-                                                        @else
-                                                            <span class="text-muted">—</span>
-                                                        @endif
-                                                    </td>
-                                                @endforeach
+                                                        </th>
+                                                    @endforeach
+                                                    <th>إجمالي النشاط</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($clients as $client)
+                                                    <tr class="client-row" data-client="{{ $client->trade_name }}">
+                                                        <td class="text-start align-middle">
+                                                            <div class="d-flex align-items-center">
+                                                                <div class="avatar mr-1">
+                                                                    <span
+                                                                        class="avatar-content bg-primary">{{ substr($client->trade_name, 0, 1) }}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <strong>{{ $client->trade_name }}</strong>
+                                                                    <div class="small text-muted">
+                                                                        {{ optional($client->neighborhood)->name }}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
 
-                                                <td class="align-middle">
-                                                    <span class="badge badge-pill @if($totalActivities > 0) badge-light-success @else badge-light-secondary @endif">
-                                                        {{ $totalActivities }} / {{ count($weeks) }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <div class="alert alert-info m-3">لا يوجد عملاء في هذه المجموعة</div>
-                            @endif
+                                                        @php $totalActivities = 0; @endphp
+                                                        @foreach ($weeks as $week)
+                                                            @php
+                                                                $activities = [];
+                                                                $hasActivity = false;
+
+                                                                if (
+                                                                    $client->invoices &&
+                                                                    $client->invoices
+                                                                        ->whereBetween('created_at', [
+                                                                            $week['start'],
+                                                                            $week['end'],
+                                                                        ])
+                                                                        ->count()
+                                                                ) {
+                                                                    $activities[] = [
+                                                                        'icon' => '🧾',
+                                                                        'title' => 'فاتورة',
+                                                                    ];
+                                                                    $hasActivity = true;
+                                                                }
+
+                                                                if (
+                                                                    $client->payments &&
+                                                                    $client->payments
+                                                                        ->whereBetween('created_at', [
+                                                                            $week['start'],
+                                                                            $week['end'],
+                                                                        ])
+                                                                        ->count()
+                                                                ) {
+                                                                    $activities[] = ['icon' => '💵', 'title' => 'دفعة'];
+                                                                    $hasActivity = true;
+                                                                }
+
+                                                                if (
+                                                                    $client->appointmentNotes &&
+                                                                    $client->appointmentNotes
+                                                                        ->whereBetween('created_at', [
+                                                                            $week['start'],
+                                                                            $week['end'],
+                                                                        ])
+                                                                        ->count()
+                                                                ) {
+                                                                    $activities[] = [
+                                                                        'icon' => '📝',
+                                                                        'title' => 'ملاحظة',
+                                                                    ];
+                                                                    $hasActivity = true;
+                                                                }
+
+                                                                if (
+                                                                    $client->visits &&
+                                                                    $client->visits
+                                                                        ->whereBetween('created_at', [
+                                                                            $week['start'],
+                                                                            $week['end'],
+                                                                        ])
+                                                                        ->count()
+                                                                ) {
+                                                                    $activities[] = [
+                                                                        'icon' => '👣',
+                                                                        'title' => 'زيارة',
+                                                                    ];
+                                                                    $hasActivity = true;
+                                                                }
+                                                                // التحقق من وجود سندات قبض مرتبطة بالعميل
+                                                                $accountIds = $client->accounts->pluck('id'); // جلب account_id المرتبطة بالعميل
+
+                                                                $receiptsCount = \App\Models\Receipt::whereIn(
+                                                                    'account_id',
+                                                                    $accountIds,
+                                                                )
+                                                                    ->whereBetween('created_at', [
+                                                                        $week['start'],
+                                                                        $week['end'],
+                                                                    ])
+                                                                    ->count();
+
+                                                                if ($receiptsCount > 0) {
+                                                                    $activities[] = [
+                                                                        'icon' => '💰',
+                                                                        'title' => 'سند قبض',
+                                                                    ];
+                                                                    $hasActivity = true;
+                                                                }
+
+                                                                if ($hasActivity) {
+                                                                    $totalActivities++;
+                                                                }
+                                                            @endphp
+                                                            <td class="align-middle activity-cell @if ($hasActivity) bg-light-success @endif"
+                                                                data-has-activity="{{ $hasActivity ? '1' : '0' }}">
+                                                                @if ($hasActivity)
+                                                                    <div class="activity-icons">
+                                                                        @foreach ($activities as $activity)
+                                                                            <span
+                                                                                title="{{ $activity['title'] }}">{{ $activity['icon'] }}</span>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @else
+                                                                    <span class="text-muted">—</span>
+                                                                @endif
+                                                            </td>
+                                                        @endforeach
+
+                                                        <td class="align-middle">
+                                                            <span
+                                                                class="badge badge-pill @if ($totalActivities > 0) badge-light-success @else badge-light-secondary @endif">
+                                                                {{ $totalActivities }} / {{ count($weeks) }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                @else
+                                    <div class="alert alert-info m-3">لا يوجد عملاء في هذه المجموعة</div>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                </div>
                 @endforeach
             </div>
         </div>
@@ -176,115 +251,117 @@
 @endsection
 
 @push('styles')
-<style>
-    .card-header h5 button {
-        font-weight: 600;
-        color: #5a5a5a;
-        text-decoration: none;
-        width: 100%;
-        text-align: right;
-    }
+    <style>
+        .card-header h5 button {
+            font-weight: 600;
+            color: #5a5a5a;
+            text-decoration: none;
+            width: 100%;
+            text-align: right;
+        }
 
-    .activity-icons span {
-        margin: 0 2px;
-        font-size: 1.2em;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
+        .activity-icons span {
+            margin: 0 2px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-    .activity-icons span:hover {
-        transform: scale(1.3);
-    }
+        .activity-icons span:hover {
+            transform: scale(1.3);
+        }
 
-    .week-header {
-        vertical-align: middle;
-        font-size: 0.85rem;
-    }
+        .week-header {
+            vertical-align: middle;
+            font-size: 0.85rem;
+        }
 
-    .week-number {
-        font-weight: bold;
-        margin-bottom: 3px;
-    }
+        .week-number {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
 
-    .week-dates {
-        color: #6c757d;
-        font-size: 0.75rem;
-    }
+        .week-dates {
+            color: #6c757d;
+            font-size: 0.75rem;
+        }
 
-    .client-table th {
-        white-space: nowrap;
-    }
+        .client-table th {
+            white-space: nowrap;
+        }
 
-    .avatar {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-    }
+        .avatar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
 
-    .avatar-content {
-        color: white;
-        font-weight: bold;
-    }
+        .avatar-content {
+            color: white;
+            font-weight: bold;
+        }
 
-    .toggle-week-dates {
-        font-size: 0.8rem;
-    }
-</style>
+        .toggle-week-dates {
+            font-size: 0.8rem;
+        }
+    </style>
 @endpush
 
 @push('scripts')
-<script>
-$(document).ready(function() {
-    // إظهار/إخفاء تواريخ الأسابيع
-    $('.toggle-week-dates').click(function() {
-        $('.week-dates').toggle();
-    });
+    <script>
+        $(document).ready(function() {
+            // إظهار/إخفاء تواريخ الأسابيع
+            $('.toggle-week-dates').click(function() {
+                $('.week-dates').toggle();
+            });
 
-    // فلترة حسب اسم العميل
-    $('#client-search').on('keyup', function() {
-        const searchText = $(this).val().toLowerCase();
-        $('.client-row').each(function() {
-            const clientName = $(this).data('client').toLowerCase();
-            $(this).toggle(clientName.includes(searchText));
+            // فلترة حسب اسم العميل
+            $('#client-search').on('keyup', function() {
+                const searchText = $(this).val().toLowerCase();
+                $('.client-row').each(function() {
+                    const clientName = $(this).data('client').toLowerCase();
+                    $(this).toggle(clientName.includes(searchText));
+                });
+            });
+
+            // فلترة حسب المجموعة
+            $('#group-filter').change(function() {
+                const groupId = $(this).val();
+                if (groupId) {
+                    $('.group-section').addClass('d-none');
+                    $(groupId).removeClass('d-none');
+                } else {
+                    $('.group-section').removeClass('d-none');
+                }
+            });
+
+            // فلترة حسب النشاط
+            $('input[name="activity"]').change(function() {
+                const filter = $(this).val();
+
+                $('.client-row').each(function() {
+                    const row = $(this);
+                    if (filter === 'all') {
+                        row.show();
+                    } else if (filter === 'has-activity') {
+                        const hasActivity = row.find('.activity-cell[data-has-activity="1"]')
+                            .length > 0;
+                        row.toggle(hasActivity);
+                    } else if (filter === 'no-activity') {
+                        const noActivity = row.find('.activity-cell[data-has-activity="1"]')
+                            .length === 0;
+                        row.toggle(noActivity);
+                    }
+                });
+            });
+
+            // توسيع/طي جميع الأقسام
+            $('#toggle-all').click(function() {
+                $('.collapse').collapse('toggle');
+            });
         });
-    });
-
-    // فلترة حسب المجموعة
-    $('#group-filter').change(function() {
-        const groupId = $(this).val();
-        if (groupId) {
-            $('.group-section').addClass('d-none');
-            $(groupId).removeClass('d-none');
-        } else {
-            $('.group-section').removeClass('d-none');
-        }
-    });
-
-    // فلترة حسب النشاط
-    $('input[name="activity"]').change(function() {
-        const filter = $(this).val();
-
-        $('.client-row').each(function() {
-            const row = $(this);
-            if (filter === 'all') {
-                row.show();
-            } else if (filter === 'has-activity') {
-                const hasActivity = row.find('.activity-cell[data-has-activity="1"]').length > 0;
-                row.toggle(hasActivity);
-            } else if (filter === 'no-activity') {
-                const noActivity = row.find('.activity-cell[data-has-activity="1"]').length === 0;
-                row.toggle(noActivity);
-            }
-        });
-    });
-
-    // توسيع/طي جميع الأقسام
-    $('#toggle-all').click(function() {
-        $('.collapse').collapse('toggle');
-    });
-});
-</script>
+    </script>
 @endpush

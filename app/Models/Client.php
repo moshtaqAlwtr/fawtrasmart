@@ -25,10 +25,6 @@ public function latestStatus()
 {
     return $this->hasOne(ClientRelation::class, 'client_id')->latest();
 }
-public function note()
-{
-    return $this->hasMany(ClientRelation::class, 'client_id');
-}
 public function branch()
 {
     return $this->belongsTo(Branch::class);
@@ -72,16 +68,26 @@ public function Balance()
     }
     // العلاقة مع ملاحظات المواعيد
     public function appointmentNotes()
+
 {
     return $this->hasMany(ClientRelation::class, 'client_id')
                 ->whereNotNull('notes') // فقط السجلات التي تحتوي ملاحظات
                 ->select('id', 'client_id', 'notes as content', 'created_at')
                 ->orderBy('created_at', 'desc');
 }
+
+    public function relations(){
+        return $this->hasMany(ClientRelation::class, 'client_id')
+        ->whereNotNull('description') // فقط السجلات التي تحتوي ملاحظات
+        ->select('id', 'client_id', 'description as content', 'created_at')
+        ->orderBy('created_at', 'desc');
+    }
+
     public function neighborhood()
     {
         return $this->belongsTo(Neighborhood::class);
     }
+
 
     // العلاقات
     public function invoices()
@@ -126,7 +132,6 @@ public function Balance()
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
-
     // Accessors
     public function getBalanceAttribute()
     {
@@ -143,9 +148,7 @@ public function Balance()
     {
         return $this->invoices()->sum('grand_total') ?? 0;
     }
-public function region_groups(){
-    return $this->hasMany(Region_groub::class,'region_id');
-}
+
     public function getTotalPaymentsAttribute()
     {
         return $this->payments()->sum('amount') ?? 0;
@@ -162,6 +165,7 @@ public function region_groups(){
 {
     return $this->hasMany(AppointmentNote::class);
 }
+
 
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()

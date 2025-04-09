@@ -35,43 +35,59 @@ class SalesReportsController extends Controller
     }
     public function byCustomer(Request $request)
     {
+        // Validate input parameters
+        $validatedData = $request->validate([
+            'customer' => 'nullable|exists:clients,id',
+            'user' => 'nullable|exists:users,id',
+            'branch' => 'nullable|exists:branches,id',
+            'status' => 'nullable|in:0,1,5',
+            'report_period' => 'nullable|in:daily,weekly,monthly,yearly',
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date',
+        ]);
+
         // Get base data for dropdowns
         $clients = Client::all();
         $branches = Branch::all();
+        $users = User::where('role', 'employee')->get();
 
-        // Default date range
-        $fromDate = $request->input('from_date', now()->startOfMonth());
-        $toDate = $request->input('to_date', now()->endOfMonth());
-
-        // Determine report period
+        // Parse dates or set defaults
+        $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->startOfMonth();
+        $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now()->endOfMonth();
         $reportPeriod = $request->input('report_period', 'monthly');
+
+        // Adjust dates based on report period if not manually set
+        if (!$request->filled('from_date') && !$request->filled('to_date')) {
+            switch ($reportPeriod) {
+                case 'daily':
+                    $fromDate = now()->startOfDay();
+                    $toDate = now()->endOfDay();
+                    break;
+                case 'weekly':
+                    $fromDate = now()->startOfWeek();
+                    $toDate = now()->endOfWeek();
+                    break;
+                case 'monthly':
+                    $fromDate = now()->startOfMonth();
+                    $toDate = now()->endOfMonth();
+                    break;
+                case 'yearly':
+                    $fromDate = now()->startOfYear();
+                    $toDate = now()->endOfYear();
+                    break;
+            }
+        }
 
         // Build the invoice query with relationships
         $query = Invoice::with(['client', 'createdByUser', 'branch']);
 
-        // Apply date filtering based on report period
-        switch ($reportPeriod) {
-            case 'daily':
-                $fromDate = now()->startOfDay();
-                $toDate = now()->endOfDay();
-                break;
-            case 'weekly':
-                $fromDate = now()->startOfWeek();
-                $toDate = now()->endOfWeek();
-                break;
-            case 'monthly':
-                $fromDate = now()->startOfMonth();
-                $toDate = now()->endOfMonth();
-                break;
-            case 'yearly':
-                $fromDate = now()->startOfYear();
-                $toDate = now()->endOfYear();
-                break;
-        }
-
-        // Apply additional filters
+        // Apply filters
         if ($request->filled('customer')) {
             $query->where('client_id', $request->customer);
+        }
+
+        if ($request->filled('user')) {
+            $query->where('created_by', $request->user);
         }
 
         if ($request->filled('branch')) {
@@ -103,16 +119,22 @@ class SalesReportsController extends Controller
 
         // Calculate totals
         $totals = [
-            'paid_amount' => $invoices->sum(function ($invoice) {
-                return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
-            }),
-            'unpaid_amount' => $invoices->sum(function ($invoice) {
-                return $invoice->payment_status == 0 ? $invoice->due_value : 0;
-            }),
-            'returned_amount' => $invoices->sum(function ($invoice) {
-                return $invoice->type == 'return' ? $invoice->grand_total : 0;
-            }),
-            'total_amount' => $invoices->sum('grand_total'),
+            'paid_amount' => $invoices->where('type', '!=', 'return')
+                ->sum(function ($invoice) {
+                    return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
+                }),
+            'unpaid_amount' => $invoices->where('type', '!=', 'return')
+                ->sum(function ($invoice) {
+                    return $invoice->payment_status == 0 ? $invoice->due_value : 0;
+                }),
+            'returned_amount' => $invoices->where('type', 'return')
+                ->sum('grand_total'),
+            'total_amount' => $invoices->where('type', '!=', 'return')
+                ->sum('grand_total'),
+            'total_sales' => $invoices->where('type', '!=', 'return')
+                ->sum('grand_total'),
+            'total_returns' => $invoices->where('type', 'return')
+                ->sum('grand_total'),
         ];
 
         // Prepare chart data
@@ -127,55 +149,88 @@ class SalesReportsController extends Controller
             $chartData['values'][] = $clientInvoices->sum('grand_total');
         }
 
-        return view('reports.sals.salesRport.Sales_By_Customer', compact('groupedInvoices', 'clients', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'reportPeriod'));
+        return view('reports.sals.salesRport.Sales_By_Customer', compact(
+            'groupedInvoices',
+            'clients',
+            'branches',
+            'users',
+            'totals',
+            'chartData',
+            'fromDate',
+            'toDate',
+            'reportPeriod'
+        ));
     }
     public function byEmployee(Request $request)
     {
-        // Get base data for dropdowns
+        // 1. التحقق من صحة البيانات المدخلة
+        $validatedData = $request->validate([
+            'category' => 'nullable|exists:categories_clients,id',
+            'client' => 'nullable|exists:clients,id',
+            'branch' => 'nullable|exists:branches,id',
+            'status' => 'nullable|in:0,1,5',
+            'order_origin' => 'nullable|exists:employees,id',
+            'added_by' => 'nullable|exists:users,id',
+            'from_date' => 'nullable|date',
+            'to_date' => 'nullable|date|after_or_equal:from_date',
+            'report_type' => 'nullable|in:daily,weekly,monthly,yearly,sales_manager,employee,returns'
+        ]);
+
+        // 2. الحصول على البيانات الأساسية للقوائم المنسدلة
         $employees = Employee::all();
         $branches = Branch::all();
         $categories = CategoriesClient::all();
-        $clients = Client::all();
+        $clients = Client::with('branch')->get();
+        $users = User::where('role', 'employee')->get();
 
-        // Build the invoice query with relationships
-        $invoices = Invoice::with(['client', 'createdByUser', 'branch']);
 
-        // Apply filters systematically
+        // 3. بناء استعلام الفواتير مع العلاقات
+        $invoices = Invoice::with(['client.branch', 'createdByUser', 'employee']);
 
-        // Client Category Filter
+        // 4. تطبيق الفلاتر
+        // فلتر فئة العميل
         if ($request->filled('category')) {
             $invoices->whereHas('client', function ($query) use ($request) {
                 $query->where('category_id', $request->category);
             });
         }
 
-        // Client Filter
+        // فلتر العميل
         if ($request->filled('client')) {
             $invoices->where('client_id', $request->client);
         }
 
-        // Branch Filter
+        // فلتر الفرع
         if ($request->filled('branch')) {
-            $invoices->where('branch_id', $request->branch);
+            $invoices->whereHas('client', function ($query) use ($request) {
+                $query->where('branch_id', $request->branch);
+            });
         }
 
-        // Payment Status Filter
+        // فلتر حالة الدفع
         if ($request->filled('status')) {
             $invoices->where('payment_status', $request->status);
         }
 
-        // Order Origin (Employee) Filter
+        // فلتر الموظف
         if ($request->filled('order_origin')) {
-            $invoices->where('employee_id', $request->order_origin);
+            $invoices->where(function($query) use ($request) {
+                $query->where('employee_id', $request->order_origin)
+                      ->orWhere('created_by', $request->order_origin);
+            });
         }
 
-        // Date range filter with Carbon parsing
+        // فلتر المضيف بواسطة
+        if ($request->filled('added_by')) {
+            $invoices->where('created_by', $request->added_by);
+        }
+
+        // فلتر نطاق التاريخ
         $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->subMonth();
         $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now();
-
         $invoices->whereBetween('invoice_date', [$fromDate, $toDate]);
 
-        // Report Type Filter
+        // فلتر نوع التقرير
         if ($request->filled('report_type')) {
             switch ($request->report_type) {
                 case 'yearly':
@@ -192,12 +247,16 @@ class SalesReportsController extends Controller
                     break;
                 case 'sales_manager':
                     $invoices->whereHas('createdByUser', function ($query) {
-                        $query->where('is_sales_manager', true);
+                        $query->whereHas('roles', function($q) {
+                            $q->where('name', 'sales_manager');
+                        });
                     });
                     break;
                 case 'employee':
                     $invoices->whereHas('createdByUser', function ($query) {
-                        $query->where('is_sales_manager', false);
+                        $query->whereHas('roles', function($q) {
+                            $q->where('name', 'employee');
+                        });
                     });
                     break;
                 case 'returns':
@@ -206,86 +265,100 @@ class SalesReportsController extends Controller
             }
         }
 
-        // Get results and handle empty result set
+        // 5. الحصول على النتائج
         $invoices = $invoices->get();
 
-        // Prepare default empty data structures
+        // 6. معالجة البيانات
         $groupedInvoices = collect();
         $employeeTotals = collect();
-        $chartData = [
-            'labels' => [],
-            'values' => [],
-        ];
+        $chartData = ['labels' => [], 'values' => []];
+
         $totals = [
             'paid_amount' => 0,
             'unpaid_amount' => 0,
             'returned_amount' => 0,
             'total_amount' => 0,
+            'total_sales' => 0, // تمت إضافتها لحل المشكلة
         ];
 
-        // Process invoices if not empty
         if ($invoices->isNotEmpty()) {
-            // Group invoices by employee
-            $groupedInvoices = $invoices->groupBy('created_by');
+            // تجميع الفواتير حسب الموظف
+            $groupedInvoices = $invoices->groupBy(function($invoice) {
+                return $invoice->employee_id ?? $invoice->created_by;
+            });
 
-            // Calculate totals for each employee group
+            // حساب الإجماليات لكل موظف
             $employeeTotals = $groupedInvoices->map(function ($employeeInvoices, $employeeId) {
-                // Find the employee name
-                $employee = $employeeInvoices->first()->createdByUser;
-                $employeeName = $employee ? $employee->name : 'موظف ' . $employeeId;
+                $employee = $employeeInvoices->first()->employee ?? $employeeInvoices->first()->createdByUser;
+                $employeeName = $employee ? $employee->name : 'موظف غير معروف';
 
-                // Calculate different types of amounts
-                $paidAmount = $employeeInvoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
-                    return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
-                });
+                $paidAmount = $employeeInvoices->where('type', '!=', ['return', 'returned'])
+                    ->sum(function ($invoice) {
+                        return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
+                    });
 
-                $unpaidAmount = $employeeInvoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
-                    return $invoice->payment_status == 1 ? 0 : $invoice->due_value;
-                });
+                $unpaidAmount = $employeeInvoices->where('type', '!=', ['return', 'returned'])
+                    ->sum(function ($invoice) {
+                        return $invoice->payment_status == 1 ? 0 : $invoice->due_value;
+                    });
 
-                $returnedAmount = $employeeInvoices->whereIn('type', ['return', 'returned'])->sum('grand_total');
+                $returnedAmount = $employeeInvoices->whereIn('type', ['return', 'returned'])
+                    ->sum('grand_total');
 
                 $totalAmount = $paidAmount + $unpaidAmount + $returnedAmount;
 
                 return [
+                    'employee_id' => $employeeId,
                     'employee_name' => $employeeName,
                     'paid_amount' => $paidAmount,
                     'unpaid_amount' => $unpaidAmount,
                     'returned_amount' => $returnedAmount,
                     'total_amount' => $totalAmount,
+                    'branch_name' => $employeeInvoices->first()->client->branch->name ?? 'N/A',
                 ];
             });
 
-            // Prepare data for charts
+            // إعداد بيانات الرسم البياني
             $chartData = [
                 'labels' => $employeeTotals->pluck('employee_name'),
                 'values' => $employeeTotals->pluck('total_amount'),
             ];
 
-            // Calculate overall totals
+            // حساب الإجماليات العامة
             $totals = [
-                'paid_amount' => $invoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
-                    return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
-                }),
-                'unpaid_amount' => $invoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
-                    return $invoice->payment_status == 1 ? 0 : $invoice->due_value;
-                }),
-                'returned_amount' => $invoices->whereIn('type', ['return', 'returned'])->sum('grand_total'),
-                'total_amount' => $invoices->where('type', '!=', ['return', 'returned'])->sum('grand_total') + $invoices->whereIn('type', ['return', 'returned'])->sum('grand_total'),
+                'paid_amount' => $invoices->where('type', '!=', ['return', 'returned'])
+                    ->sum(function ($invoice) {
+                        return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
+                    }),
+                'unpaid_amount' => $invoices->where('type', '!=', ['return', 'returned'])
+                    ->sum(function ($invoice) {
+                        return $invoice->payment_status == 1 ? 0 : $invoice->due_value;
+                    }),
+                'returned_amount' => $invoices->whereIn('type', ['return', 'returned'])
+                    ->sum('grand_total'),
+                'total_amount' => $invoices->sum('grand_total'),
+                'total_sales' => $invoices->where('type', '!=', ['return', 'returned'])
+                    ->sum('grand_total'),
+                'total_returns' => $invoices->whereIn('type', ['return', 'returned']) // أضف هذا السطر
+                    ->sum('grand_total'),
             ];
         }
 
-        // Log if no invoices found
-        if ($invoices->isEmpty()) {
-            Log::info('No invoices found for the selected criteria', [
-                'filters' => $request->all(),
-            ]);
-        }
-
-        return view('reports.sals.salesRport.Sales_By_Employee', compact('groupedInvoices', 'employees', 'clients', 'categories', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'employeeTotals'));
+        // 7. إرجاع النتائج للعرض
+        return view('reports.sals.salesRport.Sales_By_Employee', compact(
+            'groupedInvoices',
+            'employees',
+            'clients',
+            'categories',
+            'branches',
+            'totals',
+            'chartData',
+            'fromDate',
+            'toDate',
+            'employeeTotals',
+            'users'
+        ));
     }
-
-
     private function prepareChartData($invoices)
     {
         // Group invoices by type for charts
@@ -808,17 +881,7 @@ class SalesReportsController extends Controller
             $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
 
             // إعداد الاستعلام الأساسي
-            $query = InvoiceItem::select(
-                'products.id',
-                'products.name',
-                'products.purchase_price',
-                'products.sale_price',
-                'products.brand',
-                'categories.name as category_name',
-                DB::raw('SUM(invoice_items.quantity) as total_quantity'),
-                DB::raw('SUM(invoice_items.total) as total_value'),
-                DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
-            )
+            $query = InvoiceItem::select('products.id', 'products.name', 'products.purchase_price', 'products.sale_price', 'products.brand', 'categories.name as category_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
                 ->join('products', 'invoice_items.product_id', '=', 'products.id')
                 ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
                 ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
@@ -891,13 +954,7 @@ class SalesReportsController extends Controller
             $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
             // إعداد الاستعلام الأساسي
-            $query = InvoiceItem::select(
-                'users.id as employee_id',
-                'users.name as employee_name',
-                DB::raw('SUM(invoice_items.quantity) as total_quantity'),
-                DB::raw('SUM(invoice_items.total) as total_value'),
-                DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
-            )
+            $query = InvoiceItem::select('users.id as employee_id', 'users.name as employee_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
                 ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
                 ->join('users', 'invoices.created_by', '=', 'users.id')
                 ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
@@ -1136,8 +1193,7 @@ class SalesReportsController extends Controller
         $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
         // إعداد الاستعلام الأساسي لجلب بيانات الفواتير
-        $query = Invoice::with(['client', 'employee', 'items.product'])
-            ->whereBetween('invoice_date', [$fromDate, $toDate]);
+        $query = Invoice::with(['client', 'employee', 'items.product'])->whereBetween('invoice_date', [$fromDate, $toDate]);
 
         // تطبيق الفلاتر
         if ($request->has('customer_category') && $request->input('customer_category') != 'all') {
@@ -1198,7 +1254,7 @@ class SalesReportsController extends Controller
             $invoiceTotalSellingPrice = 0; // مجموع سعر البيع للفاتورة
 
             foreach ($invoice->items as $item) {
-                $totalSellingPrice = ($item->product->sale_price * $item->quantity) - $item->discount; // إجمالي سعر البيع
+                $totalSellingPrice = $item->product->sale_price * $item->quantity - $item->discount; // إجمالي سعر البيع
                 $totalCost = $item->product->purchase_price * $item->quantity; // إجمالي تكلفة الشراء
                 $profit = $totalSellingPrice - $totalCost; // الربح
 
@@ -1334,7 +1390,5 @@ class SalesReportsController extends Controller
             // 'brands' => $brands,
             'salesManagers' => $salesManagers,
         ]);
-    }   }
-
-
-
+    }
+}

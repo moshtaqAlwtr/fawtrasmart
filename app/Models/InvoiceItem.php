@@ -44,10 +44,8 @@ class InvoiceItem extends Model
 
     public function invoice()
     {
-        return $this->hasMany(Invoice::class, 'invoice_id');
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
-
-
     public function purchaseInvoice()
     {
         return $this->belongsTo(PurchaseInvoice::class, 'purchase_invoice_id');

@@ -170,6 +170,7 @@ class IncomesController extends Controller
             $income_account_name = Account::find($income->account_id);
             
             notifications::create([
+                'user_id' => auth()->user()->id,
                 'type' => 'Receipt',
                 'title' => $user->name . ' أنشأ سند قبض',
                 'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
