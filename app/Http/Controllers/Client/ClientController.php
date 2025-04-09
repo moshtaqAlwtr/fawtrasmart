@@ -1092,6 +1092,7 @@ $validated = $request->validate($rules, $messages);
 $user = User::find(auth()->user()->id);
 
 notifications::create([
+'user_id' => auth()->user()->id,
     'type' => 'notes',
     'title' => $user->name . ' أضاف ملاحظة لعميل',
     'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
