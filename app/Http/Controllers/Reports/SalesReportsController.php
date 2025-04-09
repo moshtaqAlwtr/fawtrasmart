@@ -951,6 +951,7 @@ $clients=Client::all();
         'invoice.branch'
     ])->whereBetween('payment_date', [$fromDate, $toDate]);
 
+
     // 5. تطبيق الفلاتر
     if ($request->filled('client')) {
         $query->whereHas('invoice', function($q) use ($request) {
@@ -1051,94 +1052,156 @@ $clients=Client::all();
     public function patyment(Request $request)
     {
         try {
-            // Default to current month if no date range specified
-            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth());
-            $toDate = $request->input('to_date', Carbon::now()->endOfMonth());
+            // 1. التحقق من صحة البيانات المدخلة
+            $validatedData = $request->validate([
+                'employee' => 'nullable|exists:users,id',
+                'branch' => 'nullable|exists:branches,id',
+                'client' => 'nullable|exists:clients,id',
+                'payment_method' => 'nullable|in:1,2,3,4',
+                'report_period' => 'required|in:daily,weekly,monthly,yearly',
+                'from_date' => 'nullable|date',
+                'to_date' => 'nullable|date|after_or_equal:from_date',
+            ]);
 
-            $employees = Employee::all();
-            $branches = Branch::all();
+            // 2. جلب البيانات الأساسية للقوائم المنسدلة
+            $employees = User::where('role', 'employee')->orderBy('name')->get();
+            $branches = Branch::orderBy('name')->get();
+            $clients = Client::orderBy('trade_name')->get();
 
-            // Default report period
+            // 3. تحديد نطاق التاريخ
             $reportPeriod = $request->input('report_period', 'monthly');
+            $fromDate = $request->input('from_date', now()->startOfMonth()->format('Y-m-d'));
+            $toDate = $request->input('to_date', now()->endOfMonth()->format('Y-m-d'));
 
-            // Base query for payments
-            $query = PaymentsProcess::with(['client'])->whereBetween('payment_date', [$fromDate, $toDate]);
+            $fromDate = Carbon::parse($fromDate)->startOfDay();
+            $toDate = Carbon::parse($toDate)->endOfDay();
 
-            // Apply filters
+            // 4. بناء الاستعلام الأساسي
+            $query = PaymentsProcess::with(['client', 'invoice.employee', 'invoice.branch'])
+                        ->whereBetween('payment_date', [$fromDate, $toDate]);
+
+            // 5. تطبيق الفلاتر
+            if ($request->filled('employee')) {
+                $query->whereHas('invoice', function($q) use ($request) {
+                    $q->where('created_by', $request->employee);
+                });
+            }
+
+            if ($request->filled('branch')) {
+                $query->whereHas('invoice.client', function($q) use ($request) {
+                    $q->where('branch_id', $request->branch);
+                });
+            }
+
             if ($request->filled('client')) {
-                $query->where('client_id', $request->input('client'));
+                $query->where('client_id', $request->client);
             }
 
             if ($request->filled('payment_method')) {
-                $query->where('payment_method', $request->input('payment_method'));
+                $query->where('payment_method', $request->payment_method);
             }
 
-            if ($request->filled('payment_status')) {
-                $query->where('payment_status', $request->input('payment_status'));
-            }
+            // 6. جلب النتائج
+            $payments = $query->orderBy('payment_date', 'desc')->get();
 
-            // Fetch payments
-            $payments = $query->get();
+            // 7. تجميع البيانات حسب الفترة المحددة
+            $groupedData = $this->groupPaymentsByPeriod($payments, $reportPeriod);
 
-            // Group payments based on report period
-            $groupedPayments = $payments->groupBy(function ($payment) use ($reportPeriod) {
-                switch ($reportPeriod) {
-                    case 'daily':
-                        return $payment->payment_date->format('Y-m-d');
-                    case 'weekly':
-                        return $payment->payment_date->format('Y-W');
-                    case 'monthly':
-                        return $payment->payment_date->format('Y-m');
-                    case 'yearly':
-                        return $payment->payment_date->format('Y');
-                    default:
-                        return $payment->payment_date->format('Y-m-d');
-                }
-            });
-
-            // Prepare chart data
+            // 8. إعداد بيانات الرسم البياني
             $chartData = [
-                'labels' => $groupedPayments->keys()->toArray(),
-                'values' => $groupedPayments
-                    ->map(function ($periodPayments) {
-                        return $periodPayments->sum('amount');
-                    })
-                    ->values()
-                    ->toArray(),
-                'paymentMethods' => [
-                    $payments->where('payment_method', 1)->count(), // Cash
-                    $payments->where('payment_method', 2)->count(), // Check
-                    $payments->where('payment_method', 3)->count(), // Bank Transfer
-                ],
-                'paymentStatuses' => [
-                    $payments->where('payment_status', 1)->count(), // Paid
-                    $payments->where('payment_status', 2)->count(), // Unpaid
-                ],
+                'labels' => array_keys($groupedData['grouped_data']),
+                'values' => array_column($groupedData['grouped_data'], 'total_amount')
             ];
 
-            // Fetch clients for filter dropdown
-            $clients = Client::all();
+            // 9. حساب الإجماليات
+            $summaryTotals = [
+                'total_paid' => $payments->sum('amount'),
+                'total_payments' => $payments->count(),
+                'average_payment' => $payments->avg('amount') ?? 0,
+            ];
 
+            // 10. إرجاع النتائج للعرض
             return view('reports.sals.payments.payment', [
                 'payments' => $payments,
-                'groupedPayments' => $groupedPayments,
+                'groupedPayments' => $groupedData['grouped_data'],
                 'chartData' => $chartData,
                 'clients' => $clients,
-                'fromDate' => Carbon::parse($fromDate),
-                'toDate' => Carbon::parse($toDate),
-                'reportPeriod' => $reportPeriod,
                 'employees' => $employees,
                 'branches' => $branches,
+                'fromDate' => $fromDate,
+                'toDate' => $toDate,
+                'reportPeriod' => $reportPeriod,
+                'summaryTotals' => $summaryTotals,
+                'totalPayments' => $summaryTotals['total_paid'], // إضافة هذا المتغير
+                'filters' => $request->all()
             ]);
         } catch (\Exception $e) {
-            // Log the full error
-            Log::error('Error in payments report', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            // Optionally, return an error view or redirect with a message
+            Log::error('Error in payment report: ' . $e->getMessage());
             return back()->with('error', 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage());
+        }
+    }
+
+    // دالة مساعدة لتجميع المدفوعات حسب الفترة
+    protected function groupPaymentsByPeriod($payments, $period)
+{
+    $grouped = [];
+
+    foreach ($payments as $payment) {
+        $periodKey = $this->getPeriodKey($payment->payment_date, $period);
+
+        if (!isset($grouped[$periodKey])) {
+            $grouped[$periodKey] = [
+                'period_name' => $this->getPeriodName($payment->payment_date, $period),
+                'items' => [],
+                'total_amount' => 0,
+                'count' => 0 // إضافة عداد للمدفوعات
+            ];
+        }
+
+        $grouped[$periodKey]['items'][] = $payment;
+        $grouped[$periodKey]['total_amount'] += $payment->amount;
+        $grouped[$periodKey]['count']++; // زيادة العداد
+    }
+
+    return [
+        'grouped_data' => $grouped,
+        'grand_total' => array_sum(array_column($grouped, 'total_amount'))
+    ];
+}
+
+    // دالة مساعدة للحصول على مفتاح الفترة
+    protected function getPeriodKey($date, $period)
+    {
+        switch ($period) {
+            case 'daily':
+                return $date->format('Y-m-d');
+            case 'weekly':
+                return $date->format('Y-W');
+            case 'monthly':
+                return $date->format('Y-m');
+            case 'yearly':
+                return $date->format('Y');
+            default:
+                return $date->format('Y-m-d');
+        }
+    }
+
+    // دالة مساعدة للحصول على اسم الفترة
+    protected function getPeriodName($date, $period)
+    {
+        switch ($period) {
+            case 'daily':
+                return $date->locale('ar')->isoFormat('dddd، LL');
+            case 'weekly':
+                return 'الأسبوع ' . $date->weekOfYear . ' (' .
+                       $date->startOfWeek()->format('Y-m-d') . ' إلى ' .
+                       $date->endOfWeek()->format('Y-m-d') . ')';
+            case 'monthly':
+                return $date->locale('ar')->isoFormat('MMMM YYYY');
+            case 'yearly':
+                return $date->format('Y');
+            default:
+                return $date->format('Y-m-d');
         }
     }
     public function profits(Request $request)
@@ -1215,69 +1278,127 @@ $clients=Client::all();
      * تقرير أرباح الموظفين
      */
     public function employeeProfits(Request $request)
-    {
-        try {
-            // نطاق التاريخ الافتراضي (الشهر الحالي)
-            $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-            $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+{
+    // الحصول على الفترة الزمنية
+    $reportPeriod = $request->input('report_period', 'monthly'); // الافتراضي هو شهري
+    $fromDate = $request->filled('from_date')
+        ? Carbon::parse($request->input('from_date'))->startOfDay()
+        : Carbon::now()->startOfMonth();
 
-            // إعداد الاستعلام الأساسي
-            $query = InvoiceItem::select('users.id as employee_id', 'users.name as employee_name', DB::raw('SUM(invoice_items.quantity) as total_quantity'), DB::raw('SUM(invoice_items.total) as total_value'), DB::raw('AVG(invoice_items.unit_price) as avg_selling_price'))
-                ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-                ->join('users', 'invoices.created_by', '=', 'users.id')
-                ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+    $toDate = $request->filled('to_date')
+        ? Carbon::parse($request->input('to_date'))->endOfDay()
+        : Carbon::now()->endOfMonth();
 
-            // تطبيق الفلاتر
-            $query = $this->applyFilters($query, $request, 'employees');
-
-            // تنفيذ الاستعلام
-            $employeeProfitsReport = $query
-                ->groupBy('users.id', 'users.name')
-                ->get()
-                ->map(function ($employee) {
-                    // حساب التكلفة والربح
-                    $totalCost = $employee->total_value / 1.3; // افتراض نسبة ربح 30%
-                    $profit = $employee->total_value - $totalCost;
-                    $profitPercentage = $employee->total_value > 0 ? ($profit / $employee->total_value) * 100 : 0;
-
-                    return [
-                        'employee_id' => $employee->employee_id,
-                        'name' => $employee->employee_name,
-                        'total_quantity' => $employee->total_quantity,
-                        'total_value' => $employee->total_value,
-                        'avg_selling_price' => $employee->avg_selling_price,
-                        'total_cost' => $totalCost,
-                        'profit' => $profit,
-                        'profit_percentage' => $profitPercentage,
-                    ];
-                })
-                ->filter(function ($employee) {
-                    return $employee['total_quantity'] > 0; // تصفية الموظفين بدون مبيعات
-                })
-                ->sortByDesc('profit'); // ترتيب حسب الربح
-
-            // حساب الإحصائيات
-            $insights = $this->calculateInsights($employeeProfitsReport);
-
-            // جلب البيانات للفلاتر
-            $filterData = $this->getFilterData();
-
-            return view('reports.sals.proudect_proifd.employee_profits', [
-                'employeeProfitsReport' => $employeeProfitsReport,
-                'insights' => $insights,
-                'fromDate' => $fromDate,
-                'toDate' => $toDate,
-                'employees' => User::select('id', 'name')->get(),
-                'products' => $filterData['products'],
-                'categories' => $filterData['categories'],
-                'brands' => $filterData['brands'],
-                'branches' => $filterData['branches'],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in employee profits report: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'حدث خطأ أثناء جلب التقرير.');
-        }
+    // إعداد نطاق التاريخ بناءً على الفترة الزمنية
+    if ($reportPeriod == 'daily') {
+        $fromDate = Carbon::now()->startOfDay()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfDay()->format('Y-m-d');
+    } elseif ($reportPeriod == 'weekly') {
+        $fromDate = Carbon::now()->startOfWeek()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfWeek()->format('Y-m-d');
+    } elseif ($reportPeriod == 'yearly') {
+        $fromDate = Carbon::now()->startOfYear()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfYear()->format('Y-m-d');
+    } else {
+        $fromDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfMonth()->format('Y-m-d');
     }
+
+    // Fetch filter options
+    $products = Product::select('id', 'name')->get();
+    $categories = Category::select('id', 'name')->get();
+    $branches = Branch::select('id', 'name')->get();
+    $brands = Product::distinct()->pluck('brand');
+    $employees = User::select('id', 'name')->get();
+
+    // Prepare the base query for invoice items with employee details
+    $query = InvoiceItem::select(
+            'users.id as employee_id',
+            'users.name as employee_name',
+            DB::raw('SUM(invoice_items.quantity) as total_quantity'),
+            DB::raw('SUM(invoice_items.total) as total_value'),
+            DB::raw('AVG(invoice_items.unit_price) as avg_selling_price')
+        )
+        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+        ->join('users', 'invoices.created_by', '=', 'users.id')
+        ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
+
+    // Apply filters
+    if ($request->filled('employee')) {
+        $query->where('users.id', $request->input('employee'));
+    }
+
+    if ($request->filled('product')) {
+        $query->where('invoice_items.product_id', $request->input('product'));
+    }
+
+    if ($request->filled('category')) {
+        $query->where('categories.id', $request->input('category'));
+    }
+
+    if ($request->filled('brand')) {
+        $query->where('products.brand', $request->input('brand'));
+    }
+
+    if ($request->filled('branch')) {
+        $query->where('invoices.branch_id', $request->input('branch'));
+    }
+
+    // Group the results by employee
+    $employeeProfitsReport = $query
+        ->groupBy('users.id', 'users.name')
+        ->get()
+        ->map(function ($employee) {
+            // Calculate total cost (assuming a standard markup or using product purchase prices)
+            $totalCost = $employee->total_value / 1.3; // Assuming 30% markup as an example
+            $profit = $employee->total_value - $totalCost;
+
+            // Calculate profit percentages
+            $profitPercentage = $employee->total_value > 0 ? ($profit / $employee->total_value) * 100 : 0;
+
+            return [
+                'employee_id' => $employee->employee_id,
+                'name' => $employee->employee_name,
+                'total_quantity' => $employee->total_quantity,
+                'total_value' => $employee->total_value,
+                'avg_selling_price' => $employee->avg_selling_price,
+                'total_cost' => $totalCost,
+                'profit' => $profit,
+                'profit_percentage' => $profitPercentage,
+            ];
+        })
+        // Filter out employees with zero sales
+        ->filter(function ($employee) {
+            return $employee['total_quantity'] > 0;
+        })
+        // Sort by profit in descending order
+        ->sortByDesc('profit');
+
+    // Calculate additional insights
+    $insights = [
+        'total_employees' => $employeeProfitsReport->count(),
+        'total_quantity_sold' => $employeeProfitsReport->sum('total_quantity'),
+        'total_revenue' => $employeeProfitsReport->sum('total_value'),
+        'total_cost' => $employeeProfitsReport->sum('total_cost'),
+        'total_profit' => $employeeProfitsReport->sum('profit'),
+        'avg_profit_per_employee' => $employeeProfitsReport->count() > 0 ? $employeeProfitsReport->sum('profit') / $employeeProfitsReport->count() : 0,
+        'avg_profit_margin' => $employeeProfitsReport->sum('total_value') > 0 ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100 : 0,
+        'top_performing_employee' => $employeeProfitsReport->first() ?: null,
+        'lowest_performing_employee' => $employeeProfitsReport->last() ?: null,
+    ];
+
+    return view('reports.sals.proudect_proifd.employee_profits', [
+        'employeeProfitsReport' => $employeeProfitsReport,
+        'insights' => $insights,
+        'employees' => $employees,
+        'products' => $products,
+        'categories' => $categories,
+        'brands' => $brands,
+        'branches' => $branches,
+        'fromDate' => $fromDate,
+        'toDate' => $toDate,
+    ]);
+}
 
     /**
      * تطبيق الفلاتر على الاستعلام
@@ -1294,8 +1415,10 @@ $clients=Client::all();
             if ($request->has('brands') && !empty($request->input('brands'))) {
                 $query->whereIn('products.brand', $request->input('brands'));
             }
-            if ($request->has('branches') && !empty($request->input('branches'))) {
-                $query->whereIn('invoices.branch_id', $request->input('branches'));
+            if ($request->filled('branches')) {
+                $query->whereHas('invoice.client', function($q) use ($request) {
+                    $q->whereIn('branch_id', (array)$request->input('branches'));
+                });
             }
         } elseif ($type === 'employees') {
             if ($request->has('employees') && !empty($request->input('employees'))) {
@@ -1340,7 +1463,13 @@ $clients=Client::all();
     {
         // الحصول على الفترة الزمنية
         $reportPeriod = $request->input('report_period', 'monthly'); // الافتراضي هو شهري
+        $fromDate = $request->filled('from_date')
+        ? Carbon::parse($request->input('from_date'))->startOfDay()
+        : Carbon::now()->startOfMonth();
 
+    $toDate = $request->filled('to_date')
+        ? Carbon::parse($request->input('to_date'))->endOfDay()
+        : Carbon::now()->endOfMonth();
         // إعداد نطاق التاريخ بناءً على الفترة الزمنية
         if ($reportPeriod == 'daily') {
             $fromDate = Carbon::now()->startOfDay()->format('Y-m-d');
@@ -1368,34 +1497,27 @@ $clients=Client::all();
             ->join('clients', 'invoices.client_id', '=', 'clients.id')
             ->whereBetween('invoices.invoice_date', [$fromDate, $toDate]);
 
-        // Apply filters
-        if ($request->has('clients') && is_array($request->input('clients')) && !empty($request->input('clients'))) {
-            $query->whereIn('clients.id', $request->input('clients'));
+           if ($request->filled('client')) {
+            $query->where('clients.id', $request->input('client'));
         }
 
-        // Apply product filter
-        if ($request->has('products') && is_array($request->input('products')) && !empty($request->input('products'))) {
-            $query->whereIn('invoice_items.product_id', $request->input('products'));
+        if ($request->filled('product')) {
+            $query->where('invoice_items.product_id', $request->input('product'));
         }
 
-        // Apply category filter
-        if ($request->has('categories') && is_array($request->input('categories')) && !empty($request->input('categories'))) {
-            $query->whereHas('product', function ($q) use ($request) {
-                $q->whereIn('category_id', $request->input('categories'));
-            });
+        if ($request->filled('category')) {
+            $query->where('categories.id', $request->input('category'));
         }
 
-        // Apply brand filter
-        if ($request->has('brands') && is_array($request->input('brands')) && !empty($request->input('brands'))) {
-            $query->whereHas('product', function ($q) use ($request) {
-                $q->whereIn('brand', $request->input('brands'));
-            });
+        if ($request->filled('brand')) {
+            $query->where('products.brand', $request->input('brand'));
         }
 
+        if ($request->filled('branch')) {
+            $query->where('clients.branch_id', $request->input('branch'));
+        }
         // Apply branch filter
-        if ($request->has('branches') && is_array($request->input('branches')) && !empty($request->input('branches'))) {
-            $query->whereIn('invoices.branch_id', $request->input('branches'));
-        }
+
 
         // Group the results by client
         $clientProfitsReport = $query
@@ -1428,16 +1550,18 @@ $clients=Client::all();
             ->sortByDesc('profit');
 
         // Calculate additional insights
-        $insights = [
-            'total_clients' => $clientProfitsReport->count(),
-            'total_quantity_sold' => $clientProfitsReport->sum('total_quantity'),
-            'total_revenue' => $clientProfitsReport->sum('total_value'),
-            'total_cost' => $clientProfitsReport->sum('total_cost'),
-            'total_profit' => $clientProfitsReport->sum('profit'),
-            'avg_profit_margin' => $clientProfitsReport->sum('total_value') > 0 ? ($clientProfitsReport->sum('profit') / $clientProfitsReport->sum('total_value')) * 100 : 0,
-            'top_performing_client' => $clientProfitsReport->first() ?: null,
-            'lowest_performing_client' => $clientProfitsReport->last() ?: null,
-        ];
+        // Calculate additional insights
+$insights = [
+    'total_clients' => $clientProfitsReport->count(),
+    'total_quantity_sold' => $clientProfitsReport->sum('total_quantity'),
+    'total_revenue' => $clientProfitsReport->sum('total_value'),
+    'total_cost' => $clientProfitsReport->sum('total_cost'),
+    'total_profit' => $clientProfitsReport->sum('profit'),
+    'avg_profit_per_client' => $clientProfitsReport->count() > 0 ? $clientProfitsReport->sum('profit') / $clientProfitsReport->count() : 0,
+    'avg_profit_margin' => $clientProfitsReport->sum('total_value') > 0 ? ($clientProfitsReport->sum('profit') / $clientProfitsReport->sum('total_value')) * 100 : 0,
+    'top_performing_client' => $clientProfitsReport->first() ?: null,
+    'lowest_performing_client' => $clientProfitsReport->last() ?: null,
+];
 
         // Fetch additional data for filters
         $clients = Client::select('id', 'trade_name as name')->get();
@@ -1445,124 +1569,172 @@ $clients=Client::all();
         return view('reports.sals.proudect_proifd.customer_profit', [
             'clientProfitsReport' => $clientProfitsReport,
             'insights' => $insights,
-            'fromDate' => $fromDate,
-            'toDate' => $toDate,
+
             'clients' => $clients,
             'products' => $products,
             'categories' => $categories,
             'brands' => $brands,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
             'branches' => $branches,
         ]);
     }
     public function ProfitReportTime(Request $request)
-    {
-        // إعداد نطاق التاريخ
-        $fromDate = $request->input('from_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
-        $toDate = $request->input('to_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+{
+    // الحصول على الفترة الزمنية
+    $reportPeriod = $request->input('report_period', 'monthly'); // الافتراضي هو شهري
+    $fromDate = $request->filled('from_date')
+        ? Carbon::parse($request->input('from_date'))->startOfDay()
+        : Carbon::now()->startOfMonth();
 
-        // إعداد الاستعلام الأساسي لجلب بيانات الفواتير
-        $query = Invoice::with(['client', 'employee', 'items.product'])->whereBetween('invoice_date', [$fromDate, $toDate]);
+    $toDate = $request->filled('to_date')
+        ? Carbon::parse($request->input('to_date'))->endOfDay()
+        : Carbon::now()->endOfMonth();
 
-        // تطبيق الفلاتر
-        if ($request->has('customer_category') && $request->input('customer_category') != 'all') {
-            $query->whereHas('client', function ($q) use ($request) {
-                $q->where('category_id', $request->input('customer_category'));
-            });
-        }
-
-        if ($request->has('customer') && $request->input('customer') != 'all') {
-            $query->where('client_id', $request->input('customer'));
-        }
-
-        if ($request->has('branch') && $request->input('branch') != 'none') {
-            $query->where('branch_id', $request->input('branch'));
-        }
-
-        if ($request->has('status') && $request->input('status') != 'all') {
-            $query->where('status', $request->input('status'));
-        }
-
-        if ($request->has('order_origin') && $request->input('order_origin') != 'all') {
-            $query->where('employee_id', $request->input('order_origin'));
-        }
-
-        if ($request->has('clients') && is_array($request->input('clients')) && !empty($request->input('clients'))) {
-            $query->whereIn('client_id', $request->input('clients'));
-        }
-
-        if ($request->has('products') && is_array($request->input('products')) && !empty($request->input('products'))) {
-            $query->whereHas('items', function ($q) use ($request) {
-                $q->whereIn('product_id', $request->input('products'));
-            });
-        }
-
-        if ($request->has('categories') && is_array($request->input('categories')) && !empty($request->input('categories'))) {
-            $query->whereHas('items.product', function ($q) use ($request) {
-                $q->whereIn('category_id', $request->input('categories'));
-            });
-        }
-
-        if ($request->has('brands') && is_array($request->input('brands')) && !empty($request->input('brands'))) {
-            $query->whereHas('items.product', function ($q) use ($request) {
-                $q->whereIn('brand', $request->input('brands'));
-            });
-        }
-
-        if ($request->has('branches') && is_array($request->input('branches')) && !empty($request->input('branches'))) {
-            $query->whereIn('branch_id', $request->input('branches'));
-        }
-
-        // تنفيذ الاستعلام
-        $invoices = $query->get();
-
-        // تجهيز البيانات للتقرير
-        $clientProfitsReport = [];
-        foreach ($invoices as $invoice) {
-            $invoiceTotalPurchasePrice = 0; // مجموع سعر الشراء للفاتورة
-            $invoiceTotalSellingPrice = 0; // مجموع سعر البيع للفاتورة
-
-            foreach ($invoice->items as $item) {
-                $totalSellingPrice = $item->product->sale_price * $item->quantity - $item->discount; // إجمالي سعر البيع
-                $totalCost = $item->product->purchase_price * $item->quantity; // إجمالي تكلفة الشراء
-                $profit = $totalSellingPrice - $totalCost; // الربح
-
-                // تحديث المجاميع للفاتورة
-                $invoiceTotalPurchasePrice += $totalCost;
-                $invoiceTotalSellingPrice += $totalSellingPrice;
-
-                $clientProfitsReport[] = [
-                    'client_id' => $invoice->client->id,
-                    'invoice_number' => $invoice->code,
-                    'name' => $invoice->client->trade_name,
-                    'employee' => $invoice->employee->full_name,
-                    'product_name' => $item->product->name,
-                    'total_quantity' => $item->quantity,
-                    'purchase_price' => $item->product->purchase_price,
-                    'selling_price' => $item->product->sale_price,
-                    'discount' => $item->discount,
-                    'profit' => $profit,
-                    'invoice_date' => $invoice->invoice_date, // تاريخ الفاتورة
-                    'invoice_total_purchase' => $invoiceTotalPurchasePrice, // مجموع سعر الشراء للفاتورة
-                    'invoice_total_selling' => $invoiceTotalSellingPrice, // مجموع سعر البيع للفاتورة
-                ];
-            }
-        }
-
-        // جلب بيانات العملاء
-        $clients = Client::select('id', 'trade_name as name')->get();
-
-        return view('reports.sals.proudect_proifd.profit_timeline', [
-            'clientProfitsReport' => $clientProfitsReport,
-            'fromDate' => $fromDate,
-            'toDate' => $toDate,
-            'clients' => $clients,
-            'customerCategories' => CategoriesClient::pluck('name', 'id'),
-            'customers' => Client::pluck('trade_name', 'id'),
-            'branches' => Branch::pluck('name', 'id'),
-            'reportPeriod' => $request->input('report_period', 'monthly'), // تمرير المتغير إلى العرض
-            'employees' => Employee::all(),
-        ]);
+    // إعداد نطاق التاريخ بناءً على الفترة الزمنية
+    if ($reportPeriod == 'daily') {
+        $fromDate = Carbon::now()->startOfDay()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfDay()->format('Y-m-d');
+    } elseif ($reportPeriod == 'weekly') {
+        $fromDate = Carbon::now()->startOfWeek()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfWeek()->format('Y-m-d');
+    } elseif ($reportPeriod == 'yearly') {
+        $fromDate = Carbon::now()->startOfYear()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfYear()->format('Y-m-d');
+    } else {
+        $fromDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+        $toDate = Carbon::now()->endOfMonth()->format('Y-m-d');
     }
+
+    // جلب بيانات الفلاتر
+    $products = Product::select('id', 'name')->get();
+    $categories = Category::select('id', 'name')->get();
+    $branches = Branch::select('id', 'name')->get();
+    $brands = Product::distinct()->pluck('brand');
+    $clients = Client::select('id', 'trade_name as name')->get();
+    $employees = User::where('role', 'employee')->get();
+    $customerCategories = CategoriesClient::select('id', 'name')->get();
+
+    // إعداد الاستعلام الأساسي
+    $query = Invoice::with(['client', 'employee', 'items.product'])
+        ->whereBetween('invoice_date', [$fromDate, $toDate]);
+
+    // تطبيق الفلاتر
+    if ($request->filled('customer_category') && $request->input('customer_category') != 'all') {
+        $query->whereHas('client', function ($q) use ($request) {
+            $q->where('category_id', $request->input('customer_category'));
+        });
+    }
+
+    if ($request->filled('customer')) {
+        $query->where('client_id', $request->input('customer'));
+    }
+
+    if ($request->filled('branch')) {
+        $query->where('branch_id', $request->input('branch'));
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->input('status'));
+    }
+
+    if ($request->filled('employee')) {
+        $query->where('employee_id', $request->input('employee'));
+    }
+
+    if ($request->filled('product')) {
+        $query->whereHas('items', function ($q) use ($request) {
+            $q->where('product_id', $request->input('product'));
+        });
+    }
+
+    if ($request->filled('category')) {
+        $query->whereHas('items.product', function ($q) use ($request) {
+            $q->where('category_id', $request->input('category'));
+        });
+    }
+
+    if ($request->filled('brand')) {
+        $query->whereHas('items.product', function ($q) use ($request) {
+            $q->where('brand', $request->input('brand'));
+        });
+    }
+
+    // تنفيذ الاستعلام
+    $invoices = $query->get();
+
+    // تجهيز البيانات للتقرير
+    $reportData = [];
+    $totalProfit = 0;
+    $totalRevenue = 0;
+    $totalCost = 0;
+
+    foreach ($invoices as $invoice) {
+        $invoiceTotalCost = 0;
+        $invoiceTotalRevenue = 0;
+        $invoiceTotalProfit = 0;
+
+        foreach ($invoice->items as $item) {
+            $itemCost = $item->product->purchase_price * $item->quantity;
+            $itemRevenue = ($item->product->sale_price * $item->quantity) - $item->discount;
+            $itemProfit = $itemRevenue - $itemCost;
+
+            $invoiceTotalCost += $itemCost;
+            $invoiceTotalRevenue += $itemRevenue;
+            $invoiceTotalProfit += $itemProfit;
+
+            $reportData[] = [
+                'client_id' => $invoice->client->id,
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->code,
+                'client_name' => $invoice->client->trade_name,
+                'employee_name' => $invoice->employee->full_name,
+                'product_id' => $item->product->id,
+                'product_name' => $item->product->name,
+                'quantity' => $item->quantity,
+                'purchase_price' => $item->product->purchase_price,
+                'selling_price' => $item->product->sale_price,
+                'discount' => $item->discount,
+                'cost' => $itemCost,
+                'revenue' => $itemRevenue,
+                'profit' => $itemProfit,
+                'profit_percentage' => $itemRevenue > 0 ? ($itemProfit / $itemRevenue) * 100 : 0,
+                'date' => $invoice->invoice_date,
+            ];
+        }
+
+        $totalCost += $invoiceTotalCost;
+        $totalRevenue += $invoiceTotalRevenue;
+        $totalProfit += $invoiceTotalProfit;
+    }
+
+    // حساب الإحصائيات
+    $insights = [
+        'total_invoices' => $invoices->count(),
+        'total_items' => count($reportData),
+        'total_quantity' => array_sum(array_column($reportData, 'quantity')),
+        'total_revenue' => $totalRevenue,
+        'total_cost' => $totalCost,
+        'total_profit' => $totalProfit,
+        'avg_profit_per_invoice' => $invoices->count() > 0 ? $totalProfit / $invoices->count() : 0,
+        'avg_profit_margin' => $totalRevenue > 0 ? ($totalProfit / $totalRevenue) * 100 : 0,
+    ];
+
+    return view('reports.sals.proudect_proifd.profit_timeline', [
+        'reportData' => $reportData,
+        'insights' => $insights,
+        'fromDate' => $fromDate,
+        'toDate' => $toDate,
+        'reportPeriod' => $reportPeriod,
+        'products' => $products,
+        'categories' => $categories,
+        'brands' => $brands,
+        'branches' => $branches,
+        'clients' => $clients,
+        'employees' => $employees,
+        'customerCategories' => $customerCategories,
+    ]);
+}
     public function byItem(Request $request)
     {
         // استرداد جميع البيانات المطلوبة للتصفية

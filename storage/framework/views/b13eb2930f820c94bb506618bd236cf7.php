@@ -1,9 +1,8 @@
 <?php $__env->startSection('title'); ?>
-    تقرير المدفوعات حسب العميل
+    تقرير المدفوعات حسب الفترة الزمنية
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('css'); ?>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,12 +16,6 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             border: none;
-        }
-        .card-header {
-
-            color: white;
-            border-radius: 10px 10px 0 0 !important;
-            padding: 15px 20px;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -73,6 +66,14 @@
             border-radius: 8px;
             margin-left: 10px;
         }
+        .period-header {
+            background-color: #f0f4f8;
+            font-weight: bold;
+        }
+        .period-total {
+            background-color: #e6f0ff;
+            font-weight: bold;
+        }
         @media print {
             .no-print {
                 display: none !important;
@@ -91,22 +92,31 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="mb-0">تقرير المدفوعات حسب العميل</h4>
+                    <h4 class="mb-0">تقرير المدفوعات حسب الفترة الزمنية</h4>
                 </div>
                 <div class="card-body">
                     <div class="filter-section">
-                        <form method="GET" action="<?php echo e(route('salesReports.clientPaymentReport')); ?>">
+                        <form method="GET" action="<?php echo e(route('salesReports.patyment')); ?>">
                             <div class="row g-3">
                                 <div class="col-md-3">
-                                    <label for="customerCategory" class="form-label">فئة العميل</label>
-                                    <select name="customer_category" id="customerCategory" class="form-control">
+                                    <label for="employee" class="form-label">الموظف</label>
+                                    <select name="employee" id="employee" class="form-control select2">
                                         <option value="">الكل</option>
-                                        <?php $__currentLoopData = $customerCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($category->id); ?>" <?php echo e(request('customer_category') == $category->id ? 'selected' : ''); ?>>
-                                                <?php echo e($category->name); ?>
+                                        <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($employee->id); ?>" <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
+                                                <?php echo e($employee->name); ?>
 
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="payment_method" class="form-label">وسيلة الدفع</label>
+                                    <select name="payment_method" id="payment_method" class="form-control select2">
+                                        <option value="">الكل</option>
+                                        <option value="1" <?php echo e(request('payment_method') == '1' ? 'selected' : ''); ?>>نقدي</option>
+                                        <option value="2" <?php echo e(request('payment_method') == '2' ? 'selected' : ''); ?>>شيك</option>
+                                        <option value="3" <?php echo e(request('payment_method') == '3' ? 'selected' : ''); ?>>تحويل بنكي</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
@@ -122,32 +132,8 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label for="collector" class="form-label">تم التحصيل بواسطة</label>
-                                    <select name="collector" id="collector" class="form-control">
-                                        <option value="">الكل</option>
-                                        <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($employee->id); ?>" <?php echo e(request('collector') == $employee->id ? 'selected' : ''); ?>>
-                                                <?php echo e($employee->name); ?>
-
-                                            </option>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="payment_method" class="form-label">وسيلة الدفع</label>
-                                    <select name="payment_method" id="payment_method" class="form-control">
-                                        <option value="">الكل</option>
-                                        <?php $__currentLoopData = $paymentMethods; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $method): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <option value="<?php echo e($method['id']); ?>" <?php echo e(request('payment_method') == $method['id'] ? 'selected' : ''); ?>>
-                                                <?php echo e($method['name']); ?>
-
-                                            </option>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
                                     <label for="branch" class="form-label">الفرع</label>
-                                    <select name="branch" id="branch" class="form-control">
+                                    <select name="branch" id="branch" class="form-control select2">
                                         <option value="">الكل</option>
                                         <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <option value="<?php echo e($branch->id); ?>" <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
@@ -155,6 +141,15 @@
 
                                             </option>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="report_period" class="form-label">نوع الفترة</label>
+                                    <select name="report_period" id="report_period" class="form-control">
+                                        <option value="daily" <?php echo e($reportPeriod == 'daily' ? 'selected' : ''); ?>>يومي</option>
+                                        <option value="weekly" <?php echo e($reportPeriod == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
+                                        <option value="monthly" <?php echo e($reportPeriod == 'monthly' ? 'selected' : ''); ?>>شهري</option>
+                                        <option value="yearly" <?php echo e($reportPeriod == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3">
@@ -168,13 +163,14 @@
                                            value="<?php echo e(request('to_date', $toDate->format('Y-m-d'))); ?>">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-filter me-2"></i>عرض التقرير
-                                    </button>
-                                    <a href="<?php echo e(route('salesReports.clientPaymentReport')); ?>" type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-filter me-2"></i>الغاء الفلتر
-                                    </a>
-
+                                    <div class="d-flex w-100 gap-2">
+                                        <button type="submit" class="btn btn-primary flex-grow-1">
+                                            <i class="fas fa-filter me-2"></i>عرض التقرير
+                                        </button>
+                                        <a href="<?php echo e(route('salesReports.patyment')); ?>" class="btn btn-secondary flex-grow-1">
+                                            <i class="fas fa-times me-2"></i>إلغاء
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </form>
@@ -214,19 +210,19 @@
                         <div class="col-md-4">
                             <div class="summary-card text-center">
                                 <h5>إجمالي المدفوعات</h5>
-                                <div class="amount text-success"><?php echo e(number_format($summaryTotals['total_paid'], 2)); ?> ر.س</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="summary-card text-center">
-                                <h5>إجمالي المتبقي</h5>
-                                <div class="amount text-danger"><?php echo e(number_format($summaryTotals['total_unpaid'], 2)); ?> ر.س</div>
+                                <div class="amount text-success"><?php echo e(number_format($totalPayments, 2)); ?> ر.س</div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="summary-card text-center">
                                 <h5>عدد المدفوعات</h5>
                                 <div class="amount text-primary"><?php echo e($payments->count()); ?></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="summary-card text-center">
+                                <h5>متوسط المدفوعات</h5>
+                                <div class="amount text-info"><?php echo e(number_format($payments->avg('amount') ?? 0, 2)); ?> ر.س</div>
                             </div>
                         </div>
                     </div>
@@ -239,10 +235,16 @@
                         <table class="table table-hover table-bordered" id="paymentsTable">
                             <thead class="table-primary">
                                 <tr>
-                                    <th width="5%">#</th>
-                                    <th width="20%">العميل</th>
-                                    <th width="10%">التاريخ</th>
+                                    <th width="20%">
+                                        <?php switch($reportPeriod):
+                                            case ('daily'): ?> اليوم <?php break; ?>
+                                            <?php case ('weekly'): ?> الأسبوع <?php break; ?>
+                                            <?php case ('monthly'): ?> الشهر <?php break; ?>
+                                            <?php case ('yearly'): ?> السنة <?php break; ?>
+                                        <?php endswitch; ?>
+                                    </th>
                                     <th width="15%">الموظف</th>
+                                    <th width="15%">العميل</th>
                                     <th width="10%">وسيلة الدفع</th>
                                     <th width="10%">المبلغ</th>
                                     <th width="15%">المرجع</th>
@@ -250,57 +252,65 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php $__empty_1 = true; $__currentLoopData = $payments->groupBy(fn($p) => optional($p->invoice?->client)->id); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $clientId => $clientPayments): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <?php $__empty_1 = true; $__currentLoopData = $groupedPayments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $periodKey => $periodData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                     <?php
-                                        $client = $clientPayments->first()?->invoice?->client;
-                                        $clientTotal = $clientPayments->sum('amount');
+                                        $periodDisplay = '';
+                                        $periodDate = \Carbon\Carbon::parse($periodKey);
+
+                                        switch($reportPeriod) {
+                                            case 'daily':
+                                                $periodDisplay = $periodDate->locale('ar')->isoFormat('dddd، LL');
+                                                break;
+                                            case 'weekly':
+                                                $periodDisplay = 'الأسبوع ' . $periodDate->weekOfYear . ' - ' . $periodDate->format('Y');
+                                                break;
+                                            case 'monthly':
+                                                $periodDisplay = $periodDate->locale('ar')->isoFormat('MMMM YYYY');
+                                                break;
+                                            case 'yearly':
+                                                $periodDisplay = $periodDate->format('Y');
+                                                break;
+                                        }
                                     ?>
 
-                                    <?php if($client): ?>
-                                        
-                                        <tr class="table-secondary fw-bold">
-                                            <td colspan="5"><?php echo e($client->trade_name); ?></td>
-                                            <td colspan="3" class="text-end">إجمالي المدفوعات: <strong><?php echo e(number_format($clientTotal, 2)); ?> ر.س</strong></td>
+                                    <tr class="period-header">
+                                        <td colspan="7" class="text-center">
+                                            <strong><?php echo e($periodDisplay); ?></strong>
+                                        </td>
+                                    </tr>
+
+                                    <?php $__currentLoopData = $periodData['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <tr>
+                                            <td><?php echo e($periodDisplay); ?></td>
+                                            <td><?php echo e(optional($payment->invoice->createdByUser)->name ?? 'غير محدد'); ?></td>
+                                            <td><?php echo e(optional($payment->invoice->client)->trade_name ?? 'غير محدد'); ?></td>
+                                            <td>
+                                                <?php switch($payment->Payment_method):
+                                                    case (1): ?> نقدي <?php break; ?>
+                                                    <?php case (2): ?> شيك <?php break; ?>
+                                                    <?php case (3): ?> تحويل بنكي <?php break; ?>
+                                                    <?php default: ?> غير محدد
+                                                <?php endswitch; ?>
+                                            </td>
+                                            <td class="text-end"><?php echo e(number_format($payment->amount, 2)); ?> ر.س</td>
+                                            <td><?php echo e($payment->reference_number ?? '--'); ?></td>
+                                            <td><?php echo e($payment->notes ?? '--'); ?></td>
                                         </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                                        
-                                        <?php $__currentLoopData = $clientPayments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <?php
-                                                $invoice = $payment->invoice;
-                                            ?>
-
-                                            <?php if($invoice): ?>
-                                                <tr>
-                                                    <td><?php echo e($loop->iteration); ?></td>
-                                                    <td></td> 
-                                                    <td><?php echo e(optional($payment->payment_date)->format('d/m/Y') ?? '--'); ?></td>
-                                                    <td><?php echo e($invoice->createdByUser->name ?? 'غير محدد'); ?></td>
-                                                    <td>
-                                                        <?php switch($payment->Payment_method):
-                                                            case (1): ?> نقدي <?php break; ?>
-                                                            <?php case (2): ?> شيك <?php break; ?>
-                                                            <?php case (3): ?> تحويل بنكي <?php break; ?>
-                                                            <?php case (4): ?> بطاقة ائتمان <?php break; ?>
-                                                            <?php default: ?> غير محدد
-                                                        <?php endswitch; ?>
-                                                    </td>
-                                                    <td class="text-end"><?php echo e(number_format($payment->amount, 2)); ?> ر.س</td>
-                                                    <td><?php echo e($payment->reference_number ?? '--'); ?></td>
-                                                    <td><?php echo e($payment->notes ?? '--'); ?></td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    <?php endif; ?>
+                                    <tr class="period-total">
+                                        <td colspan="4" class="text-end">المجموع:</td>
+                                        <td class="text-end"><?php echo e(number_format($periodData['total_amount'], 2)); ?> ر.س</td>
+                                        <td colspan="2">عدد المدفوعات: <?php echo e($periodData['count']); ?></td>
+                                    </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                     <tr>
-                                        <td colspan="8" class="text-center text-muted">لا توجد مدفوعات في الفترة المحددة</td>
+                                        <td colspan="7" class="text-center text-muted">لا توجد مدفوعات في الفترة المحددة</td>
                                     </tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-
-
                 </div>
             </div>
         </div>
@@ -323,7 +333,7 @@
         data: {
             labels: <?php echo json_encode($chartData['labels'], 15, 512) ?>,
             datasets: [{
-                label: 'المدفوعات (ر.س)',
+                label: 'المدفوعات حسب الفترة (ر.س)',
                 data: <?php echo json_encode($chartData['values'], 15, 512) ?>,
                 backgroundColor: 'rgba(74, 108, 247, 0.7)',
                 borderColor: 'rgba(74, 108, 247, 1)',
@@ -370,7 +380,7 @@
     // Export functions
     function exportTo(type) {
         const table = document.getElementById('paymentsTable');
-        const fileName = `تقرير_المدفوعات_${new Date().toLocaleDateString()}`;
+        const fileName = `تقرير_المدفوعات_حسب_الفترة_${new Date().toLocaleDateString()}`;
 
         if (type === 'excel' || type === 'csv') {
             const wb = XLSX.utils.table_to_book(table);
@@ -400,4 +410,4 @@
 </script>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/payments/client_report.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/payments/payment.blade.php ENDPATH**/ ?>

@@ -1,10 +1,8 @@
-@extends('master')
+<?php $__env->startSection('title'); ?>
+    تقرير أرباح العملاء
+<?php $__env->stopSection(); ?>
 
-@section('title')
-    تقرير أرباح الموظفين
-@endsection
-
-@section('css')
+<?php $__env->startSection('css'); ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
@@ -115,6 +113,7 @@
             font-weight: bold;
         }
 
+
         @media (max-width: 768px) {
             .card-header {
                 flex-direction: column;
@@ -127,22 +126,22 @@
             }
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h3 class="mb-0">
-                            <i class="fas fa-users-cog me-2"></i>
-                            تقرير أرباح الموظفين
+                            <i class="fas fa-chart-line me-2"></i>
+                            تقرير أرباح العملاء
                         </h3>
                         <div class="d-flex align-items-center">
                             <span class="badge bg-success me-2 insights-badge">
                                 <i class="fas fa-coins me-1"></i>
-                                إجمالي الربح: {{ number_format($insights['total_profit'], 2) }} ر.س
+                                إجمالي الربح: <?php echo e(number_format($insights['total_profit'], 2)); ?> ر.س
                             </span>
                             <button id="exportExcel" class="btn btn-success">
                                 <i class="fas fa-file-excel me-1"></i> تصدير إكسل
@@ -153,18 +152,25 @@
                     <div class="card-body">
                         <!-- فلترة البيانات -->
                         <div class="filter-card">
-                            <form method="GET" action="{{ route('salesReports.employeeProfits') }}" id="profitsFilterForm">
+                            <form method="GET" action="<?php echo e(route('salesReports.customerProfits')); ?>"
+                                id="profitsFilterForm">
                                 <div class="row g-3">
                                     <!-- فترة التقرير -->
                                     <div class="col-md-3">
                                         <label class="form-label filter-label">
                                             <i class="fas fa-calendar-alt me-2"></i>نوع التقرير
                                         </label>
-                                        <select name="report_period" class="form-control select2" onchange="updateDateRange(this)">
-                                            <option value="monthly" {{ request('report_period', 'monthly') == 'monthly' ? 'selected' : '' }}>شهري</option>
-                                            <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
-                                            <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
-                                            <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                                        <select name="report_period" class="form-control select2"
+                                            onchange="updateDateRange(this)">
+                                            <option value="monthly"
+                                                <?php echo e(request('report_period', 'monthly') == 'monthly' ? 'selected' : ''); ?>>
+                                                شهري</option>
+                                            <option value="weekly"
+                                                <?php echo e(request('report_period') == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
+                                            <option value="daily"
+                                                <?php echo e(request('report_period') == 'daily' ? 'selected' : ''); ?>>يومي</option>
+                                            <option value="yearly"
+                                                <?php echo e(request('report_period') == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
                                         </select>
                                     </div>
 
@@ -173,7 +179,8 @@
                                         <label class="form-label filter-label">
                                             <i class="fas fa-calendar-alt me-2"></i>من تاريخ
                                         </label>
-                                        <input type="date" name="from_date" class="form-control" value="{{ request('from_date', $fromDate) }}" id="fromDate">
+                                        <input type="date" name="from_date" class="form-control"
+                                            value="<?php echo e(request('from_date', $fromDate)); ?>" id="fromDate">
                                     </div>
 
                                     <!-- تاريخ النهاية -->
@@ -181,21 +188,24 @@
                                         <label class="form-label filter-label">
                                             <i class="fas fa-calendar-alt me-2"></i>إلى تاريخ
                                         </label>
-                                        <input type="date" name="to_date" class="form-control" value="{{ request('to_date', $toDate) }}" id="toDate">
+                                        <input type="date" name="to_date" class="form-control"
+                                            value="<?php echo e(request('to_date', $toDate)); ?>" id="toDate">
                                     </div>
 
-                                    <!-- فلترة الموظفين -->
+                                    <!-- فلترة العملاء -->
                                     <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-user-tie me-2"></i>الموظف
+                                            <i class="fas fa-users me-2"></i>العميل
                                         </label>
-                                        <select name="employee" class="form-control select2">
-                                            <option value="">اختر الموظف</option>
-                                            @foreach ($employees as $employee)
-                                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                                    {{ $employee->name }}
+                                        <select name="client" class="form-control select2">
+                                            <option value="">اختر العميل</option>
+                                            <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($client->id); ?>"
+                                                    <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($client->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
 
@@ -206,11 +216,13 @@
                                         </label>
                                         <select name="product" class="form-control select2">
                                             <option value="">اختر المنتج</option>
-                                            @foreach ($products as $product)
-                                                <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>
-                                                    {{ $product->name }}
+                                            <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($product->id); ?>"
+                                                    <?php echo e(request('product') == $product->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($product->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
 
@@ -221,11 +233,13 @@
                                         </label>
                                         <select name="category" class="form-control select2">
                                             <option value="">اختر التصنيف</option>
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                                    {{ $category->name }}
+                                            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($category->id); ?>"
+                                                    <?php echo e(request('category') == $category->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($category->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
 
@@ -236,11 +250,13 @@
                                         </label>
                                         <select name="brand" class="form-control select2">
                                             <option value="">اختر الماركة</option>
-                                            @foreach ($brands as $brand)
-                                                <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>
-                                                    {{ $brand }}
+                                            <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($brand); ?>"
+                                                    <?php echo e(request('brand') == $brand ? 'selected' : ''); ?>>
+                                                    <?php echo e($brand); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
 
@@ -251,21 +267,23 @@
                                         </label>
                                         <select name="branch" class="form-control select2">
                                             <option value="">اختر الفرع</option>
-                                            @foreach ($branches as $branch)
-                                                <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
-                                                    {{ $branch->name }}
+                                            <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($branch->id); ?>"
+                                                    <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
+                                                    <?php echo e($branch->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
-
                                     <div class="card">
                                         <div class="card-body">
                                             <div class="col-md-12 d-flex justify-content-end">
                                                 <button type="submit" class="btn btn-primary me-2">
                                                     <i class="fas fa-filter me-1"></i> تطبيق الفلتر
                                                 </button>
-                                                <a href="{{ route('salesReports.employeeProfits') }}" class="btn btn-outline-secondary">
+                                                <a href="<?php echo e(route('salesReports.customerProfits')); ?>"
+                                                    class="btn btn-outline-secondary">
                                                     <i class="fas fa-redo me-1"></i> إعادة تعيين
                                                 </a>
                                             </div>
@@ -283,19 +301,25 @@
                                         <i class="fas fa-trophy me-2"></i>
                                         أفضل أداء
                                     </h5>
-                                    @if ($insights['top_performing_employee'])
+                                    <?php if($insights['top_performing_client']): ?>
                                         <div class="text-center">
-                                            <h6>{{ $insights['top_performing_employee']['name'] }}</h6>
+                                            <h6><?php echo e($insights['top_performing_client']['name']); ?></h6>
                                             <p class="text-success">
-                                                <strong>الربح: {{ number_format($insights['top_performing_employee']['profit'], 2) }} ر.س</strong>
+                                                <strong>الربح:
+                                                    <?php echo e(number_format($insights['top_performing_client']['profit'], 2)); ?>
+
+                                                    ر.س</strong>
                                             </p>
                                             <small class="text-muted">
-                                                إجمالي المبيعات: {{ number_format($insights['top_performing_employee']['total_value'], 2) }} ر.س
+                                                إجمالي المبيعات:
+                                                <?php echo e(number_format($insights['top_performing_client']['total_value'], 2)); ?>
+
+                                                ر.س
                                             </small>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <p class="text-center text-muted">لا توجد بيانات</p>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -305,16 +329,16 @@
                                         ملخص الأداء
                                     </h5>
                                     <div class="d-flex justify-content-between mb-2">
-                                        <span>عدد الموظفين</span>
-                                        <strong>{{ $insights['total_employees'] }}</strong>
+                                        <span>عدد العملاء</span>
+                                        <strong><?php echo e($insights['total_clients']); ?></strong>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span>إجمالي الإيرادات</span>
-                                        <strong>{{ number_format($insights['total_revenue'], 2) }} ر.س</strong>
+                                        <strong><?php echo e(number_format($insights['total_revenue'], 2)); ?> ر.س</strong>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span>هامش الربح المتوسط</span>
-                                        <strong>{{ number_format($insights['avg_profit_margin'], 2) }}%</strong>
+                                        <strong><?php echo e(number_format($insights['avg_profit_margin'], 2)); ?>%</strong>
                                     </div>
                                 </div>
                             </div>
@@ -324,19 +348,25 @@
                                         <i class="fas fa-chart-line me-2"></i>
                                         الأداء الأقل
                                     </h5>
-                                    @if ($insights['lowest_performing_employee'])
+                                    <?php if($insights['lowest_performing_client']): ?>
                                         <div class="text-center">
-                                            <h6>{{ $insights['lowest_performing_employee']['name'] }}</h6>
+                                            <h6><?php echo e($insights['lowest_performing_client']['name']); ?></h6>
                                             <p class="text-danger">
-                                                <strong>الربح: {{ number_format($insights['lowest_performing_employee']['profit'], 2) }} ر.س</strong>
+                                                <strong>الربح:
+                                                    <?php echo e(number_format($insights['lowest_performing_client']['profit'], 2)); ?>
+
+                                                    ر.س</strong>
                                             </p>
                                             <small class="text-muted">
-                                                إجمالي المبيعات: {{ number_format($insights['lowest_performing_employee']['total_value'], 2) }} ر.س
+                                                إجمالي المبيعات:
+                                                <?php echo e(number_format($insights['lowest_performing_client']['total_value'], 2)); ?>
+
+                                                ر.س
                                             </small>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <p class="text-center text-muted">لا توجد بيانات</p>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -345,10 +375,10 @@
                         <div class="card">
                             <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-hover mb-0" id="employeeProfitsTable">
+                                    <table class="table table-striped table-hover mb-0" id="clientProfitsTable">
                                         <thead class="table-dark">
                                             <tr>
-                                                <th>اسم الموظف</th>
+                                                <th>اسم العميل</th>
                                                 <th class="text-end">الكمية المباعة</th>
                                                 <th class="text-end">القيمة الإجمالية</th>
                                                 <th class="text-end">متوسط سعر البيع</th>
@@ -358,21 +388,29 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($employeeProfitsReport as $employee)
+                                            <?php $__empty_1 = true; $__currentLoopData = $clientProfitsReport; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                                 <tr>
-                                                    <td>{{ $employee['name'] }}</td>
-                                                    <td class="text-end">{{ number_format($employee['total_quantity'], 2) }}</td>
-                                                    <td class="text-end">{{ number_format($employee['total_value'], 2) }} ر.س</td>
-                                                    <td class="text-end">{{ number_format($employee['avg_selling_price'], 2) }} ر.س</td>
-                                                    <td class="text-end">{{ number_format($employee['total_cost'], 2) }} ر.س</td>
-                                                    <td class="text-end {{ $employee['profit'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                                        {{ number_format($employee['profit'], 2) }} ر.س
+                                                    <td><?php echo e($client['name']); ?></td>
+                                                    <td class="text-end"><?php echo e(number_format($client['total_quantity'], 2)); ?>
+
                                                     </td>
-                                                    <td class="text-end {{ $employee['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                                        {{ number_format($employee['profit_percentage'], 2) }}%
+                                                    <td class="text-end"><?php echo e(number_format($client['total_value'], 2)); ?>
+
+                                                        ر.س</td>
+                                                    <td class="text-end">
+                                                        <?php echo e(number_format($client['avg_selling_price'], 2)); ?> ر.س</td>
+                                                    <td class="text-end"><?php echo e(number_format($client['total_cost'], 2)); ?> ر.س
+                                                    </td>
+                                                    <td
+                                                        class="text-end <?php echo e($client['profit'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                                        <?php echo e(number_format($client['profit'], 2)); ?> ر.س
+                                                    </td>
+                                                    <td
+                                                        class="text-end <?php echo e($client['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                                        <?php echo e(number_format($client['profit_percentage'], 2)); ?>%
                                                     </td>
                                                 </tr>
-                                            @empty
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                                 <tr>
                                                     <td colspan="7" class="text-center py-4">
                                                         <div class="alert alert-info mb-0">
@@ -381,23 +419,31 @@
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            @endforelse
+                                            <?php endif; ?>
                                         </tbody>
                                         <tfoot class="table-secondary">
                                             <tr>
                                                 <td class="text-end"><strong>الإجمالي</strong></td>
-                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('total_quantity'), 2) }}</td>
-                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('total_value'), 2) }} ر.س</td>
-                                                <td class="text-end">-</td>
-                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('total_cost'), 2) }} ر.س</td>
-                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('profit'), 2) }} ر.س</td>
                                                 <td class="text-end">
-                                                    {{ number_format(
-                                                        $employeeProfitsReport->sum('total_value') > 0
-                                                            ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100
+                                                    <?php echo e(number_format($clientProfitsReport->sum('total_quantity'), 2)); ?>
+
+                                                </td>
+                                                <td class="text-end">
+                                                    <?php echo e(number_format($clientProfitsReport->sum('total_value'), 2)); ?> ر.س
+                                                </td>
+                                                <td class="text-end">-</td>
+                                                <td class="text-end">
+                                                    <?php echo e(number_format($clientProfitsReport->sum('total_cost'), 2)); ?> ر.س
+                                                </td>
+                                                <td class="text-end">
+                                                    <?php echo e(number_format($clientProfitsReport->sum('profit'), 2)); ?> ر.س</td>
+                                                <td class="text-end">
+                                                    <?php echo e(number_format(
+                                                        $clientProfitsReport->sum('total_value') > 0
+                                                            ? ($clientProfitsReport->sum('profit') / $clientProfitsReport->sum('total_value')) * 100
                                                             : 0,
                                                         2,
-                                                    ) }}%
+                                                    )); ?>%
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -410,69 +456,33 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
             // Initialize Select2
-            $('.select2').select2({
-                placeholder: "اختر...",
-                allowClear: true
-            });
+
 
             // Excel Export
             $('#exportExcel').on('click', function() {
-                const table = document.getElementById('employeeProfitsTable');
+                const table = document.getElementById('clientProfitsTable');
                 const wb = XLSX.utils.table_to_book(table, {
                     raw: true,
                     cellDates: true
                 });
 
                 const today = new Date();
-                const fileName = `تقرير_أرباح_الموظفين_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+                const fileName =
+                    `تقرير_أرباح_العملاء_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
 
                 XLSX.writeFile(wb, fileName);
             });
-
-            // Update date range based on report period
-            function updateDateRange(select) {
-                const period = select.value;
-                const fromDateInput = document.getElementById('fromDate');
-                const toDateInput = document.getElementById('toDate');
-                const today = new Date();
-
-                let fromDate = new Date();
-
-                switch(period) {
-                    case 'daily':
-                        fromDate = today;
-                        break;
-                    case 'weekly':
-                        fromDate.setDate(today.getDate() - 7);
-                        break;
-                    case 'monthly':
-                        fromDate.setMonth(today.getMonth() - 1);
-                        break;
-                    case 'yearly':
-                        fromDate.setFullYear(today.getFullYear() - 1);
-                        break;
-                }
-
-                // Format dates as YYYY-MM-DD
-                const formatDate = (date) => {
-                    const year = date.getFullYear();
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const day = String(date.getDate()).padStart(2, '0');
-                    return `${year}-${month}-${day}`;
-                };
-
-                fromDateInput.value = formatDate(fromDate);
-                toDateInput.value = formatDate(today);
-            }
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/proudect_proifd/customer_profit.blade.php ENDPATH**/ ?>

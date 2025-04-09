@@ -1,15 +1,13 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     تقرير الأرباح حسب الفترة الزمنية
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/report.css')); ?>">
     <style>
         .profit-positive {
             color: #28a745;
@@ -45,40 +43,41 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container mt-5">
         <div class="card shadow-sm">
             <div class="card-body">
                 <h5 class="card-title text-center mb-4">
-                    @switch($reportPeriod)
-                        @case('daily')
+                    <?php switch($reportPeriod):
+                        case ('daily'): ?>
                             <i class="fas fa-calendar-day me-2"></i>تقرير الأرباح اليومي
-                        @break
-                        @case('weekly')
+                        <?php break; ?>
+                        <?php case ('weekly'): ?>
                             <i class="fas fa-calendar-week me-2"></i>تقرير الأرباح الأسبوعي
-                        @break
-                        @case('monthly')
+                        <?php break; ?>
+                        <?php case ('monthly'): ?>
                             <i class="fas fa-calendar-alt me-2"></i>تقرير الأرباح الشهري
-                        @break
-                        @case('yearly')
+                        <?php break; ?>
+                        <?php case ('yearly'): ?>
                             <i class="fas fa-calendar me-2"></i>تقرير الأرباح السنوي
-                        @break
-                    @endswitch
+                        <?php break; ?>
+                    <?php endswitch; ?>
                 </h5>
 
-                <form class="row g-3" method="GET" action="{{ route('salesReports.ProfitReportTime') }}">
+                <form class="row g-3" method="GET" action="<?php echo e(route('salesReports.ProfitReportTime')); ?>">
                     <!-- فلتر العميل -->
                     <div class="col-md-3">
                         <label for="client" class="form-label"><i class="fas fa-user me-2"></i>العميل</label>
                         <select id="client" name="client" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($clients as $client)
-                                <option value="{{ $client->id }}" {{ request()->input('client') == $client->id ? 'selected' : '' }}>
-                                    {{ $client->name }}
+                            <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($client->id); ?>" <?php echo e(request()->input('client') == $client->id ? 'selected' : ''); ?>>
+                                    <?php echo e($client->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -87,11 +86,12 @@
                         <label for="employee" class="form-label"><i class="fas fa-user-tie me-2"></i>الموظف</label>
                         <select id="employee" name="employee" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}" {{ request()->input('employee') == $employee->id ? 'selected' : '' }}>
-                                    {{ $employee->name }}
+                            <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($employee->id); ?>" <?php echo e(request()->input('employee') == $employee->id ? 'selected' : ''); ?>>
+                                    <?php echo e($employee->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -100,11 +100,12 @@
                         <label for="branch" class="form-label"><i class="fas fa-store me-2"></i>الفرع</label>
                         <select id="branch" name="branch" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($branches as $branch)
-                                <option value="{{ $branch->id }}" {{ request()->input('branch') == $branch->id ? 'selected' : '' }}>
-                                    {{ $branch->name }}
+                            <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($branch->id); ?>" <?php echo e(request()->input('branch') == $branch->id ? 'selected' : ''); ?>>
+                                    <?php echo e($branch->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -113,11 +114,12 @@
                         <label for="product" class="form-label"><i class="fas fa-box me-2"></i>المنتج</label>
                         <select id="product" name="product" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($products as $product)
-                                <option value="{{ $product->id }}" {{ request()->input('product') == $product->id ? 'selected' : '' }}>
-                                    {{ $product->name }}
+                            <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($product->id); ?>" <?php echo e(request()->input('product') == $product->id ? 'selected' : ''); ?>>
+                                    <?php echo e($product->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -126,11 +128,12 @@
                         <label for="category" class="form-label"><i class="fas fa-tags me-2"></i>التصنيف</label>
                         <select id="category" name="category" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}" {{ request()->input('category') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
+                            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($category->id); ?>" <?php echo e(request()->input('category') == $category->id ? 'selected' : ''); ?>>
+                                    <?php echo e($category->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -139,11 +142,12 @@
                         <label for="brand" class="form-label"><i class="fas fa-tag me-2"></i>العلامة التجارية</label>
                         <select id="brand" name="brand" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($brands as $brand)
-                                <option value="{{ $brand }}" {{ request()->input('brand') == $brand ? 'selected' : '' }}>
-                                    {{ $brand }}
+                            <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($brand); ?>" <?php echo e(request()->input('brand') == $brand ? 'selected' : ''); ?>>
+                                    <?php echo e($brand); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -152,11 +156,12 @@
                         <label for="customer_category" class="form-label"><i class="fas fa-users me-2"></i>فئة العميل</label>
                         <select id="customer_category" name="customer_category" class="form-select">
                             <option value="">الكل</option>
-                            @foreach ($customerCategories as $category)
-                                <option value="{{ $category->id }}" {{ request()->input('customer_category') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
+                            <?php $__currentLoopData = $customerCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($category->id); ?>" <?php echo e(request()->input('customer_category') == $category->id ? 'selected' : ''); ?>>
+                                    <?php echo e($category->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
 
@@ -165,32 +170,32 @@
                         <label for="status" class="form-label"><i class="fas fa-info-circle me-2"></i>حالة الفاتورة</label>
                         <select id="status" name="status" class="form-select">
                             <option value="">الكل</option>
-                            <option value="paid" {{ request()->input('status') == 'paid' ? 'selected' : '' }}>مدفوعة</option>
-                            <option value="unpaid" {{ request()->input('status') == 'unpaid' ? 'selected' : '' }}>غير مدفوعة</option>
-                            <option value="partially_paid" {{ request()->input('status') == 'partially_paid' ? 'selected' : '' }}>مدفوعة جزئياً</option>
+                            <option value="paid" <?php echo e(request()->input('status') == 'paid' ? 'selected' : ''); ?>>مدفوعة</option>
+                            <option value="unpaid" <?php echo e(request()->input('status') == 'unpaid' ? 'selected' : ''); ?>>غير مدفوعة</option>
+                            <option value="partially_paid" <?php echo e(request()->input('status') == 'partially_paid' ? 'selected' : ''); ?>>مدفوعة جزئياً</option>
                         </select>
                     </div>
 
                     <!-- فلتر التاريخ من -->
                     <div class="col-md-3">
                         <label for="from_date" class="form-label"><i class="fas fa-calendar me-2"></i>من تاريخ</label>
-                        <input type="date" id="from_date" name="from_date" class="form-control" value="{{ $fromDate }}">
+                        <input type="date" id="from_date" name="from_date" class="form-control" value="<?php echo e($fromDate); ?>">
                     </div>
 
                     <!-- فلتر التاريخ إلى -->
                     <div class="col-md-3">
                         <label for="to_date" class="form-label"><i class="fas fa-calendar me-2"></i>إلى تاريخ</label>
-                        <input type="date" id="to_date" name="to_date" class="form-control" value="{{ $toDate }}">
+                        <input type="date" id="to_date" name="to_date" class="form-control" value="<?php echo e($toDate); ?>">
                     </div>
 
                     <!-- فلتر نوع التقرير -->
                     <div class="col-md-3">
                         <label for="report_period" class="form-label"><i class="fas fa-chart-line me-2"></i>نوع التقرير</label>
                         <select id="report_period" name="report_period" class="form-select">
-                            <option value="daily" {{ $reportPeriod == 'daily' ? 'selected' : '' }}>يومي</option>
-                            <option value="weekly" {{ $reportPeriod == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
-                            <option value="monthly" {{ $reportPeriod == 'monthly' ? 'selected' : '' }}>شهري</option>
-                            <option value="yearly" {{ $reportPeriod == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                            <option value="daily" <?php echo e($reportPeriod == 'daily' ? 'selected' : ''); ?>>يومي</option>
+                            <option value="weekly" <?php echo e($reportPeriod == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
+                            <option value="monthly" <?php echo e($reportPeriod == 'monthly' ? 'selected' : ''); ?>>شهري</option>
+                            <option value="yearly" <?php echo e($reportPeriod == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
                         </select>
                     </div>
 
@@ -199,7 +204,7 @@
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-filter me-2"></i>عرض التقرير
                         </button>
-                        <a href="{{ route('salesReports.ProfitReportTime') }}" class="btn btn-danger w-100">
+                        <a href="<?php echo e(route('salesReports.ProfitReportTime')); ?>" class="btn btn-danger w-100">
                             <i class="fas fa-times me-2"></i>إلغاء الفلترة
                         </a>
                     </div>
@@ -264,7 +269,7 @@
                                     <h6 class="card-title text-primary">
                                         <i class="fas fa-money-bill-wave me-2"></i>إجمالي الإيرادات
                                     </h6>
-                                    <p class="card-text h4">{{ number_format($insights['total_revenue'], 2) }} <small>ر.س</small></p>
+                                    <p class="card-text h4"><?php echo e(number_format($insights['total_revenue'], 2)); ?> <small>ر.س</small></p>
                                 </div>
                             </div>
                         </div>
@@ -274,30 +279,30 @@
                                     <h6 class="card-title text-warning">
                                         <i class="fas fa-money-bill-alt me-2"></i>إجمالي التكاليف
                                     </h6>
-                                    <p class="card-text h4">{{ number_format($insights['total_cost'], 2) }} <small>ر.س</small></p>
+                                    <p class="card-text h4"><?php echo e(number_format($insights['total_cost'], 2)); ?> <small>ر.س</small></p>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card summary-card h-100 {{ $insights['total_profit'] >= 0 ? 'border-success' : 'border-danger' }}">
+                            <div class="card summary-card h-100 <?php echo e($insights['total_profit'] >= 0 ? 'border-success' : 'border-danger'); ?>">
                                 <div class="card-body text-center">
-                                    <h6 class="card-title {{ $insights['total_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                    <h6 class="card-title <?php echo e($insights['total_profit'] >= 0 ? 'text-success' : 'text-danger'); ?>">
                                         <i class="fas fa-coins me-2"></i>إجمالي الأرباح
                                     </h6>
-                                    <p class="card-text h4 {{ $insights['total_profit'] >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($insights['total_profit'], 2) }} <small>ر.س</small>
+                                    <p class="card-text h4 <?php echo e($insights['total_profit'] >= 0 ? 'text-success' : 'text-danger'); ?>">
+                                        <?php echo e(number_format($insights['total_profit'], 2)); ?> <small>ر.س</small>
                                     </p>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="card summary-card h-100 {{ $insights['avg_profit_margin'] >= 0 ? 'border-success' : 'border-danger' }}">
+                            <div class="card summary-card h-100 <?php echo e($insights['avg_profit_margin'] >= 0 ? 'border-success' : 'border-danger'); ?>">
                                 <div class="card-body text-center">
-                                    <h6 class="card-title {{ $insights['avg_profit_margin'] >= 0 ? 'text-success' : 'text-danger' }}">
+                                    <h6 class="card-title <?php echo e($insights['avg_profit_margin'] >= 0 ? 'text-success' : 'text-danger'); ?>">
                                         <i class="fas fa-percentage me-2"></i>متوسط هامش الربح
                                     </h6>
-                                    <p class="card-text h4 {{ $insights['avg_profit_margin'] >= 0 ? 'text-success' : 'text-danger' }}">
-                                        {{ number_format($insights['avg_profit_margin'], 2) }}%
+                                    <p class="card-text h4 <?php echo e($insights['avg_profit_margin'] >= 0 ? 'text-success' : 'text-danger'); ?>">
+                                        <?php echo e(number_format($insights['avg_profit_margin'], 2)); ?>%
                                     </p>
                                 </div>
                             </div>
@@ -326,28 +331,29 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($reportData as $index => $item)
+                                <?php $__empty_1 = true; $__currentLoopData = $reportData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $item['invoice_number'] }}</td>
-                                        <td>{{ \Carbon\Carbon::parse($item['date'])->format('Y-m-d') }}</td>
-                                        <td>{{ $item['client_name'] }}</td>
-                                        <td>{{ $item['employee_name'] }}</td>
-                                        <td>{{ $item['product_name'] }}</td>
-                                        <td>{{ $item['quantity'] }}</td>
-                                        <td>{{ number_format($item['purchase_price'], 2) }}</td>
-                                        <td>{{ number_format($item['selling_price'], 2) }}</td>
-                                        <td>{{ number_format($item['discount'], 2) }}</td>
-                                        <td>{{ number_format($item['cost'], 2) }}</td>
-                                        <td>{{ number_format($item['revenue'], 2) }}</td>
-                                        <td class="{{ $item['profit'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                            {{ number_format($item['profit'], 2) }}
+                                        <td><?php echo e($index + 1); ?></td>
+                                        <td><?php echo e($item['invoice_number']); ?></td>
+                                        <td><?php echo e(\Carbon\Carbon::parse($item['date'])->format('Y-m-d')); ?></td>
+                                        <td><?php echo e($item['client_name']); ?></td>
+                                        <td><?php echo e($item['employee_name']); ?></td>
+                                        <td><?php echo e($item['product_name']); ?></td>
+                                        <td><?php echo e($item['quantity']); ?></td>
+                                        <td><?php echo e(number_format($item['purchase_price'], 2)); ?></td>
+                                        <td><?php echo e(number_format($item['selling_price'], 2)); ?></td>
+                                        <td><?php echo e(number_format($item['discount'], 2)); ?></td>
+                                        <td><?php echo e(number_format($item['cost'], 2)); ?></td>
+                                        <td><?php echo e(number_format($item['revenue'], 2)); ?></td>
+                                        <td class="<?php echo e($item['profit'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                            <?php echo e(number_format($item['profit'], 2)); ?>
+
                                         </td>
-                                        <td class="{{ $item['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                            {{ number_format($item['profit_percentage'], 2) }}%
+                                        <td class="<?php echo e($item['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                            <?php echo e(number_format($item['profit_percentage'], 2)); ?>%
                                         </td>
                                     </tr>
-                                @empty
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                     <tr>
                                         <td colspan="14" class="text-center">
                                             <div class="alert alert-info">
@@ -356,36 +362,37 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endforelse
+                                <?php endif; ?>
                             </tbody>
-                            @if(count($reportData) > 0)
+                            <?php if(count($reportData) > 0): ?>
                                 <tfoot>
                                     <tr class="total-row">
                                         <td colspan="6" class="text-end"><strong>المجموع:</strong></td>
-                                        <td>{{ array_sum(array_column($reportData, 'quantity')) }}</td>
+                                        <td><?php echo e(array_sum(array_column($reportData, 'quantity'))); ?></td>
                                         <td></td>
                                         <td></td>
-                                        <td>{{ number_format(array_sum(array_column($reportData, 'discount')), 2) }}</td>
-                                        <td>{{ number_format($insights['total_cost'], 2) }}</td>
-                                        <td>{{ number_format($insights['total_revenue'], 2) }}</td>
-                                        <td class="{{ $insights['total_profit'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                            {{ number_format($insights['total_profit'], 2) }}
+                                        <td><?php echo e(number_format(array_sum(array_column($reportData, 'discount')), 2)); ?></td>
+                                        <td><?php echo e(number_format($insights['total_cost'], 2)); ?></td>
+                                        <td><?php echo e(number_format($insights['total_revenue'], 2)); ?></td>
+                                        <td class="<?php echo e($insights['total_profit'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                            <?php echo e(number_format($insights['total_profit'], 2)); ?>
+
                                         </td>
-                                        <td class="{{ $insights['avg_profit_margin'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                            {{ number_format($insights['avg_profit_margin'], 2) }}%
+                                        <td class="<?php echo e($insights['avg_profit_margin'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                            <?php echo e(number_format($insights['avg_profit_margin'], 2)); ?>%
                                         </td>
                                     </tr>
                                 </tfoot>
-                            @endif
+                            <?php endif; ?>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -436,7 +443,7 @@
             const ctx = document.getElementById('profitTrendChart').getContext('2d');
 
             // تجميع البيانات حسب التاريخ
-            const reportData = {!! json_encode($reportData) !!};
+            const reportData = <?php echo json_encode($reportData); ?>;
             const dates = [...new Set(reportData.map(item => item.date))].sort();
             const profitsByDate = dates.map(date => {
                 return reportData.filter(item => item.date === date)
@@ -493,7 +500,7 @@
             const ctx = document.getElementById('profitDistributionChart').getContext('2d');
 
             // تجميع البيانات حسب المنتج (أعلى 10 منتجات ربحاً)
-            const reportData = {!! json_encode($reportData) !!};
+            const reportData = <?php echo json_encode($reportData); ?>;
             const products = [...new Set(reportData.map(item => item.product_name))];
             const productProfits = products.map(product => {
                 return reportData.filter(item => item.product_name === product)
@@ -599,4 +606,6 @@
             setTimeout(() => $('.alert').alert('close'), 3000);
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/proudect_proifd/profit_timeline.blade.php ENDPATH**/ ?>

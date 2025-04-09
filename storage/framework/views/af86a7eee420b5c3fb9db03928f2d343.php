@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     تقرير أرباح المنتجات
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
@@ -163,9 +161,9 @@
             }
         }
     </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid py-4">
         <div class="report-container">
             <!-- Header Section -->
@@ -194,7 +192,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="summary-title">إجمالي الربح</div>
-                                <div class="summary-value text-success">{{ number_format($profitsReport->sum('profit'), 2) }} ر.س</div>
+                                <div class="summary-value text-success"><?php echo e(number_format($profitsReport->sum('profit'), 2)); ?> ر.س</div>
                             </div>
                             <i class="fas fa-coins summary-icon"></i>
                         </div>
@@ -205,7 +203,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="summary-title">إجمالي المبيعات</div>
-                                <div class="summary-value">{{ number_format($profitsReport->sum('total_value'), 2) }} ر.س</div>
+                                <div class="summary-value"><?php echo e(number_format($profitsReport->sum('total_value'), 2)); ?> ر.س</div>
                             </div>
                             <i class="fas fa-cash-register summary-icon"></i>
                         </div>
@@ -216,7 +214,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="summary-title">إجمالي الكمية</div>
-                                <div class="summary-value">{{ number_format($profitsReport->sum('total_quantity'), 2) }}</div>
+                                <div class="summary-value"><?php echo e(number_format($profitsReport->sum('total_quantity'), 2)); ?></div>
                             </div>
                             <i class="fas fa-boxes summary-icon"></i>
                         </div>
@@ -228,7 +226,7 @@
                             <div>
                                 <div class="summary-title">متوسط نسبة الربح</div>
                                 <div class="summary-value text-success">
-                                    {{ number_format($profitsReport->sum('total_value') > 0 ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100 : 0, 2) }}%
+                                    <?php echo e(number_format($profitsReport->sum('total_value') > 0 ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100 : 0, 2)); ?>%
                                 </div>
                             </div>
                             <i class="fas fa-percentage summary-icon"></i>
@@ -248,30 +246,31 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <form method="GET" action="{{ route('salesReports.profits') }}" id="profitsFilterForm">
+                            <form method="GET" action="<?php echo e(route('salesReports.profits')); ?>" id="profitsFilterForm">
                                 <div class="row">
                                     <div class="col-md-3 mb-3">
                                         <label class="form-label filter-label">
                                             <i class="fas fa-calendar-alt me-2"></i>الفترة من
                                         </label>
-                                        <input type="date" name="from_date" class="form-control" value="{{ $fromDate }}">
+                                        <input type="date" name="from_date" class="form-control" value="<?php echo e($fromDate); ?>">
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label class="form-label filter-label">
                                             <i class="fas fa-calendar-alt me-2"></i>الفترة إلى
                                         </label>
-                                        <input type="date" name="to_date" class="form-control" value="{{ $toDate }}">
+                                        <input type="date" name="to_date" class="form-control" value="<?php echo e($toDate); ?>">
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label class="form-label filter-label">
                                             <i class="fas fa-box me-2"></i>المنتجات
                                         </label>
                                         <select name="products[]" class="form-control select2" multiple>
-                                            @foreach ($products as $product)
-                                                <option value="{{ $product->id }}" {{ in_array($product->id, request('products', [])) ? 'selected' : '' }}>
-                                                    {{ $product->name }}
+                                            <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($product->id); ?>" <?php echo e(in_array($product->id, request('products', [])) ? 'selected' : ''); ?>>
+                                                    <?php echo e($product->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <div class="col-md-3 mb-3">
@@ -279,11 +278,12 @@
                                             <i class="fas fa-tags me-2"></i>التصنيفات
                                         </label>
                                         <select name="categories[]" class="form-control select2" multiple>
-                                            @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}" {{ in_array($category->id, request('categories', [])) ? 'selected' : '' }}>
-                                                    {{ $category->name }}
+                                            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($category->id); ?>" <?php echo e(in_array($category->id, request('categories', [])) ? 'selected' : ''); ?>>
+                                                    <?php echo e($category->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                 </div>
@@ -293,11 +293,12 @@
                                             <i class="fas fa-trademark me-2"></i>الماركات
                                         </label>
                                         <select name="brands[]" class="form-control select2" multiple>
-                                            @foreach ($brands as $brand)
-                                                <option value="{{ $brand }}" {{ in_array($brand, request('brands', [])) ? 'selected' : '' }}>
-                                                    {{ $brand }}
+                                            <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($brand); ?>" <?php echo e(in_array($brand, request('brands', [])) ? 'selected' : ''); ?>>
+                                                    <?php echo e($brand); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <div class="col-md-3 mb-3">
@@ -305,11 +306,12 @@
                                             <i class="fas fa-store me-2"></i>الفروع
                                         </label>
                                         <select name="branches[]" class="form-control select2" multiple>
-                                            @foreach ($branches as $branch)
-                                                <option value="{{ $branch->id }}" {{ in_array($branch->id, request('branches', [])) ? 'selected' : '' }}>
-                                                    {{ $branch->name }}
+                                            <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <option value="<?php echo e($branch->id); ?>" <?php echo e(in_array($branch->id, request('branches', [])) ? 'selected' : ''); ?>>
+                                                    <?php echo e($branch->name); ?>
+
                                                 </option>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <div class="col-md-6 d-flex align-items-end justify-content-end">
@@ -317,7 +319,7 @@
                                             <button type="submit" class="btn btn-success me-2">
                                                 <i class="fas fa-filter me-1"></i> تطبيق الفلتر
                                             </button>
-                                            <a href="{{ route('salesReports.profits') }}" class="btn btn-outline-secondary" id="resetFilters">
+                                            <a href="<?php echo e(route('salesReports.profits')); ?>" class="btn btn-outline-secondary" id="resetFilters">
                                                 <i class="fas fa-redo me-1"></i> إعادة تعيين
                                             </a>
                                         </div>
@@ -339,11 +341,11 @@
                                 النتائج
                             </h5>
                             <div class="badge bg-primary rounded-pill">
-                                {{ $profitsReport->count() }} منتج
+                                <?php echo e($profitsReport->count()); ?> منتج
                             </div>
                         </div>
                         <div class="card-body">
-                            @if($profitsReport->count() > 0)
+                            <?php if($profitsReport->count() > 0): ?>
                                 <div class="table-responsive">
                                     <table class="table table-profits" id="profitsTable">
                                         <thead>
@@ -362,52 +364,52 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($profitsReport as $index => $product)
+                                            <?php $__currentLoopData = $profitsReport; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <tr>
-                                                    <td>{{ $index + 1 }}</td>
+                                                    <td><?php echo e($index + 1); ?></td>
                                                     <td>
-                                                        <span class="fw-semibold">{{ $product['name'] }}</span>
+                                                        <span class="fw-semibold"><?php echo e($product['name']); ?></span>
                                                     </td>
-                                                    <td>{{ $product['category_name'] ?? 'غير محدد' }}</td>
-                                                    <td>{{ $product['brand'] ?? 'غير محدد' }}</td>
-                                                    <td>{{ number_format($product['total_quantity'], 2) }}</td>
-                                                    <td>{{ number_format($product['total_value'], 2) }} ر.س</td>
-                                                    <td>{{ number_format($product['purchase_price'], 2) }} ر.س</td>
-                                                    <td>{{ number_format($product['sale_price'], 2) }} ر.س</td>
-                                                    <td>{{ number_format($product['total_cost'], 2) }} ر.س</td>
-                                                    <td class="{{ $product['profit'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                                        {{ number_format($product['profit'], 2) }} ر.س
+                                                    <td><?php echo e($product['category_name'] ?? 'غير محدد'); ?></td>
+                                                    <td><?php echo e($product['brand'] ?? 'غير محدد'); ?></td>
+                                                    <td><?php echo e(number_format($product['total_quantity'], 2)); ?></td>
+                                                    <td><?php echo e(number_format($product['total_value'], 2)); ?> ر.س</td>
+                                                    <td><?php echo e(number_format($product['purchase_price'], 2)); ?> ر.س</td>
+                                                    <td><?php echo e(number_format($product['sale_price'], 2)); ?> ر.س</td>
+                                                    <td><?php echo e(number_format($product['total_cost'], 2)); ?> ر.س</td>
+                                                    <td class="<?php echo e($product['profit'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                                        <?php echo e(number_format($product['profit'], 2)); ?> ر.س
                                                     </td>
-                                                    <td class="{{ $product['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                                        {{ number_format($product['profit_percentage'], 2) }}%
+                                                    <td class="<?php echo e($product['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                                        <?php echo e(number_format($product['profit_percentage'], 2)); ?>%
                                                     </td>
                                                 </tr>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </tbody>
                                         <tfoot class="table-group-divider">
                                             <tr>
                                                 <th colspan="4" class="text-end">الإجمالي</th>
-                                                <th>{{ number_format($profitsReport->sum('total_quantity'), 2) }}</th>
-                                                <th>{{ number_format($profitsReport->sum('total_value'), 2) }} ر.س</th>
+                                                <th><?php echo e(number_format($profitsReport->sum('total_quantity'), 2)); ?></th>
+                                                <th><?php echo e(number_format($profitsReport->sum('total_value'), 2)); ?> ر.س</th>
                                                 <th colspan="2"></th>
-                                                <th>{{ number_format($profitsReport->sum('total_cost'), 2) }} ر.س</th>
-                                                <th class="{{ $profitsReport->sum('profit') >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                                    {{ number_format($profitsReport->sum('profit'), 2) }} ر.س
+                                                <th><?php echo e(number_format($profitsReport->sum('total_cost'), 2)); ?> ر.س</th>
+                                                <th class="<?php echo e($profitsReport->sum('profit') >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                                    <?php echo e(number_format($profitsReport->sum('profit'), 2)); ?> ر.س
                                                 </th>
-                                                <th class="{{ $profitsReport->sum('profit') >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                                                    {{ number_format($profitsReport->sum('total_value') > 0 ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100 : 0, 2) }}%
+                                                <th class="<?php echo e($profitsReport->sum('profit') >= 0 ? 'profit-positive' : 'profit-negative'); ?>">
+                                                    <?php echo e(number_format($profitsReport->sum('total_value') > 0 ? ($profitsReport->sum('profit') / $profitsReport->sum('total_value')) * 100 : 0, 2)); ?>%
                                                 </th>
                                             </tr>
                                         </tfoot>
                                     </table>
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <div class="no-data">
                                     <i class="fas fa-database"></i>
                                     <h5>لا توجد بيانات متاحة</h5>
                                     <p class="text-muted">لم يتم العثور على أي بيانات تتناسب مع معايير الفلترة المحددة</p>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -416,9 +418,9 @@
     </div>
 
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -428,21 +430,21 @@
             // Initialize Select2
 
             // Set selected values for filters
-            @if(request('products'))
-                $('select[name="products[]"]').val(@json(request('products'))).trigger('change');
-            @endif
+            <?php if(request('products')): ?>
+                $('select[name="products[]"]').val(<?php echo json_encode(request('products'), 15, 512) ?>).trigger('change');
+            <?php endif; ?>
 
-            @if(request('categories'))
-                $('select[name="categories[]"]').val(@json(request('categories'))).trigger('change');
-            @endif
+            <?php if(request('categories')): ?>
+                $('select[name="categories[]"]').val(<?php echo json_encode(request('categories'), 15, 512) ?>).trigger('change');
+            <?php endif; ?>
 
-            @if(request('brands'))
-                $('select[name="brands[]"]').val(@json(request('brands'))).trigger('change');
-            @endif
+            <?php if(request('brands')): ?>
+                $('select[name="brands[]"]').val(<?php echo json_encode(request('brands'), 15, 512) ?>).trigger('change');
+            <?php endif; ?>
 
-            @if(request('branches'))
-                $('select[name="branches[]"]').val(@json(request('branches'))).trigger('change');
-            @endif
+            <?php if(request('branches')): ?>
+                $('select[name="branches[]"]').val(<?php echo json_encode(request('branches'), 15, 512) ?>).trigger('change');
+            <?php endif; ?>
 
             // Excel Export
             $('#exportExcel').on('click', function() {
@@ -468,4 +470,6 @@
             $('[data-bs-toggle="tooltip"]').tooltip();
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/proudect_proifd/proudect_proifd.blade.php ENDPATH**/ ?>

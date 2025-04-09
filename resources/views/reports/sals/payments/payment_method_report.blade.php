@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-    تقرير المدفوعات حسب طريقة الدفع
+    تقرير المدفوعات حسب الفترة
 @endsection
 
 @section('css')
@@ -19,7 +19,12 @@
             margin-bottom: 20px;
             border: none;
         }
-
+        .card-header {
+            background: linear-gradient(135deg, #4a6cf7 0%, #2541b2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
@@ -78,6 +83,14 @@
                 border: 1px solid #ddd;
             }
         }
+        .period-header {
+            background-color: #f8f9fa !important;
+            font-weight: bold;
+        }
+        .period-total {
+            background-color: #e9ecef !important;
+            font-weight: bold;
+        }
     </style>
 @endsection
 
@@ -87,30 +100,25 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="mb-0">تقرير المدفوعات حسب طريقة الدفع</h4>
+                    <h4 class="mb-0">
+                        @switch($reportPeriod)
+                            @case('daily') المدفوعات اليومية @break
+                            @case('weekly') المدفوعات الأسبوعية @break
+                            @case('monthly') المدفوعات الشهرية @break
+                            @case('yearly') المدفوعات السنوية @break
+                        @endswitch
+                    </h4>
                 </div>
                 <div class="card-body">
                     <div class="filter-section">
-                        <form method="GET" action="{{ route('salesReports.paymentMethodReport') }}">
+                        <form method="GET" action="{{ route('salesReports.patyment') }}">
                             <div class="row g-3">
-
                                 <div class="col-md-3">
-                                    <label for="client" class="form-label">العميل</label>
-                                    <select name="client" id="client" class="form-control select2">
-                                        <option value="">الكل</option>
-                                        @foreach($clients as $client)
-                                            <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
-                                                {{ $client->trade_name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="collector" class="form-label">تم التحصيل بواسطة</label>
-                                    <select name="collector" id="collector" class="form-control select2">
+                                    <label for="employee" class="form-label">الموظف</label>
+                                    <select name="employee" id="employee" class="form-control">
                                         <option value="">الكل</option>
                                         @foreach($employees as $employee)
-                                            <option value="{{ $employee->id }}" {{ request('collector') == $employee->id ? 'selected' : '' }}>
+                                            <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
                                                 {{ $employee->name }}
                                             </option>
                                         @endforeach
@@ -120,12 +128,40 @@
                                     <label for="payment_method" class="form-label">وسيلة الدفع</label>
                                     <select name="payment_method" id="payment_method" class="form-control">
                                         <option value="">الكل</option>
-                                        @foreach($paymentMethods as $method)
-                                            <option value="{{ $method['id'] }}" {{ request('payment_method') == $method['id'] ? 'selected' : '' }}>
-                                                {{ $method['name'] }}
+                                        <option value="1" {{ request('payment_method') == '1' ? 'selected' : '' }}>نقدي</option>
+                                        <option value="2" {{ request('payment_method') == '2' ? 'selected' : '' }}>شيك</option>
+                                        <option value="3" {{ request('payment_method') == '3' ? 'selected' : '' }}>تحويل بنكي</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="client" class="form-label">العميل</label>
+                                    <select name="client" id="client" class="form-control">
+                                        <option value="">الكل</option>
+                                        @foreach($clients as $client)
+                                            <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
+                                                {{ $client->trade_name }}
                                             </option>
                                         @endforeach
                                     </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="report_period" class="form-label">الفترة</label>
+                                    <select name="report_period" id="report_period" class="form-control">
+                                        <option value="daily" {{ $reportPeriod == 'daily' ? 'selected' : '' }}>يومي</option>
+                                        <option value="weekly" {{ $reportPeriod == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                                        <option value="monthly" {{ $reportPeriod == 'monthly' ? 'selected' : '' }}>شهري</option>
+                                        <option value="yearly" {{ $reportPeriod == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="fromDate" class="form-label">من تاريخ</label>
+                                    <input type="date" name="from_date" id="fromDate" class="form-control"
+                                           value="{{ $fromDate->format('Y-m-d') }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="toDate" class="form-label">إلى تاريخ</label>
+                                    <input type="date" name="to_date" id="toDate" class="form-control"
+                                           value="{{ $toDate->format('Y-m-d') }}">
                                 </div>
                                 <div class="col-md-3">
                                     <label for="branch" class="form-label">الفرع</label>
@@ -138,22 +174,12 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <label for="fromDate" class="form-label">من تاريخ</label>
-                                    <input type="date" name="from_date" id="fromDate" class="form-control"
-                                           value="{{ request('from_date', $fromDate->format('Y-m-d')) }}">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="toDate" class="form-label">إلى تاريخ</label>
-                                    <input type="date" name="to_date" id="toDate" class="form-control"
-                                           value="{{ request('to_date', $toDate->format('Y-m-d')) }}">
-                                </div>
                                 <div class="col-md-3 d-flex align-items-end">
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-filter me-2"></i>عرض التقرير
                                     </button>
-                                    <a href="{{route('salesReports.paymentMethodReport')}}" type="submit" class="btn btn-primary w-100">
-                                        <i class="fas fa-filter me-2"></i>الغاء الفلتر
+                                    <a href="{{route('salesReports.patyment')}}" class="btn btn-primary w-100 ms-2">
+                                        <i class="fas fa-times me-2"></i>إلغاء الفلتر
                                     </a>
                                 </div>
                             </div>
@@ -169,7 +195,6 @@
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="exportDropdown">
                                         <li><a class="dropdown-item" href="#" onclick="exportTo('excel')"><i class="fas fa-file-excel me-2"></i>Excel</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="exportTo('csv')"><i class="fas fa-file-csv me-2"></i>CSV</a></li>
                                         <li><a class="dropdown-item" href="#" onclick="exportTo('pdf')"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
                                     </ul>
                                 </div>
@@ -190,84 +215,122 @@
                         </div>
                     </div>
 
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="summary-card text-center">
-                                <h5>إجمالي المدفوعات</h5>
-                                <div class="amount text-success">{{ number_format($summaryTotals['total_paid'], 2) }} ر.س</div>
+                    @if($payments->isNotEmpty())
+                        <div class="row mb-4" id="summaryView">
+                            <div class="col-md-4">
+                                <div class="summary-card text-center">
+                                    <h5>إجمالي المدفوعات</h5>
+                                    <div class="amount text-success">{{ number_format($summaryTotals['total_paid'], 2) }} ر.س</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="summary-card text-center">
+                                    <h5>عدد المدفوعات</h5>
+                                    <div class="amount text-primary">{{ $payments->count() }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="summary-card text-center">
+                                    <h5>متوسط المدفوعات</h5>
+                                    <div class="amount text-info">{{ number_format($summaryTotals['average_payment'], 2) }} ر.س</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="summary-card text-center">
-                                <h5>إجمالي المتبقي</h5>
-                                <div class="amount text-danger">{{ number_format($summaryTotals['total_unpaid'], 2) }} ر.س</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="summary-card text-center">
-                                <h5>عدد المدفوعات</h5>
-                                <div class="amount text-primary">{{ $payments->count() }}</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="chart-container">
-                        <canvas id="paymentChart"></canvas>
-                    </div>
+                        <div class="chart-container" id="chartView">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
 
-                    <div class="table-responsive">
-                        <table class="table table-hover table-bordered" id="paymentsTable">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th width="5%">#</th>
-                                    <th width="15%">طريقة الدفع</th>
-                                    <th width="15%">العميل</th>
-                                    <th width="10%">التاريخ</th>
-                                    <th width="15%">الموظف</th>
-                                    <th width="10%">المبلغ</th>
-                                    <th width="15%">المرجع</th>
-                                    <th width="15%">ملاحظات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($payments->groupBy('Payment_method') as $methodId => $methodPayments)
+                        <div class="table-responsive" id="detailsView" style="display: none;">
+                            <table class="table table-hover table-bordered" id="paymentsTable">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th width="15%">
+                                            @switch($reportPeriod)
+                                                @case('daily') التاريخ @break
+                                                @case('weekly') الأسبوع @break
+                                                @case('monthly') الشهر @break
+                                                @case('yearly') السنة @break
+                                            @endswitch
+                                        </th>
+                                        <th width="20%">العميل</th>
+                                        <th width="15%">طريقة الدفع</th>
+                                        <th width="10%">المبلغ (ر.س)</th>
+                                        <th width="15%">المرجع</th>
+                                        <th width="15%">الموظف</th>
+                                        <th width="10%">التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($unifiedData['grouped_data'] as $period => $groupData)
                                     @php
-                                        $methodName = collect($paymentMethods)
-                                            ->firstWhere('id', $methodId)['name'] ?? 'غير محدد';
+                                        $periodPayments = $groupData['items'];
+                                        $periodTotalAmount = 0;
                                     @endphp
 
-                                    {{-- صف طريقة الدفع --}}
-                                    <tr class="table-secondary fw-bold">
-                                        <td colspan="8">{{ $methodName }}</td>
+                                    <tr class="period-header">
+                                        <td colspan="7" class="text-center">
+                                            <strong>
+                                                @switch($reportPeriod)
+                                                    @case('daily')
+                                                        {{ \Carbon\Carbon::parse($period)->locale('ar')->isoFormat('LL') }}
+                                                        @break
+                                                    @case('weekly')
+                                                        الأسبوع {{ \Carbon\Carbon::parse($period . '-1')->weekOfYear }}
+                                                        ({{ \Carbon\Carbon::parse($period . '-1')->startOfWeek()->format('Y-m-d') }}
+                                                        إلى
+                                                        {{ \Carbon\Carbon::parse($period . '-1')->endOfWeek()->format('Y-m-d') }})
+                                                        @break
+                                                    @case('monthly')
+                                                        {{ \Carbon\Carbon::parse($period . '-01')->locale('ar')->isoFormat('MMMM YYYY') }}
+                                                        @break
+                                                    @case('yearly')
+                                                        {{ $period }}
+                                                        @break
+                                                @endswitch
+                                            </strong>
+                                        </td>
                                     </tr>
 
-                                    {{-- صفوف المدفوعات لهذه الطريقة --}}
-                                    @foreach ($methodPayments as $payment)
+                                    @foreach($periodPayments as $payment)
+                                        <tr>
+                                            <td>{{ $period }}</td>
+                                            <td>{{ optional($payment->invoice->client)->trade_name ?? 'غير محدد' }}</td>
+                                            <td>
+                                                @switch($payment->Payment_method)
+                                                    @case(1) نقدي @break
+                                                    @case(2) شيك @break
+                                                    @case(3) تحويل بنكي @break
+                                                    @case(4) بطاقة ائتمان @break
+                                                    @default غير محدد
+                                                @endswitch
+                                            </td>
+                                            <td class="text-end">{{ number_format($payment->amount, 2) }}</td>
+                                            <td>{{ $payment->reference_number ?? '--' }}</td>
+                                            <td>{{ optional($payment->invoice->employee)->name ?? 'غير محدد' }}</td>
+                                            <td>{{ $payment->payment_date->format('Y-m-d') }}</td>
+                                        </tr>
+
                                         @php
-                                            $invoice = $payment->invoice;
+                                            $periodTotalAmount += $payment->amount;
                                         @endphp
-
-                                        @if ($invoice)
-                                            <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td></td> {{-- طريقة الدفع تم عرضها مسبقاً --}}
-                                                <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
-                                                <td>{{ optional($payment->payment_date)->format('d/m/Y') ?? '--' }}</td>
-                                                <td>{{ $invoice->createdByUser->name ?? 'غير محدد' }}</td>
-                                                <td class="text-end">{{ number_format($payment->amount, 2) }} ر.س</td>
-                                                <td>{{ $payment->reference_number ?? '--' }}</td>
-                                                <td>{{ $payment->notes ?? '--' }}</td>
-                                            </tr>
-                                        @endif
                                     @endforeach
-                                @empty
-                                    <tr>
-                                        <td colspan="8" class="text-center text-muted">لا توجد مدفوعات في الفترة المحددة</td>
+
+                                    <tr class="period-total">
+                                        <td colspan="3" class="text-end"><strong>مجموع الفترة</strong></td>
+                                        <td class="text-end"><strong>{{ number_format($periodTotalAmount, 2) }}</strong></td>
+                                        <td colspan="3"></td>
                                     </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                                @endforeach
+
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="alert alert-info mt-4">
+                            لا توجد مدفوعات متاحة للعرض
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -337,14 +400,34 @@
     // Export functions
     function exportTo(type) {
         const table = document.getElementById('paymentsTable');
-        const fileName = `تقرير_المدفوعات_حسب_طريقة_الدفع_${new Date().toLocaleDateString()}`;
+        const fileName = `تقرير_المدفوعات_حسب_الفترة_${new Date().toLocaleDateString()}`;
 
-        if (type === 'excel' || type === 'csv') {
+        if (type === 'excel') {
             const wb = XLSX.utils.table_to_book(table);
-            XLSX.writeFile(wb, `${fileName}.${type}`, { bookType: type });
+            XLSX.writeFile(wb, `${fileName}.xlsx`);
         } else if (type === 'pdf') {
-            // PDF export implementation
-            alert('سيتم تطبيق تصدير PDF في الإصدارات القادمة');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Add title
+            doc.setFont('tajawal', 'normal');
+            doc.setFontSize(18);
+            doc.text('تقرير المدفوعات حسب الفترة', 105, 15, { align: 'center' });
+
+            // Add filters info
+            doc.setFontSize(12);
+            doc.text(`الفترة: ${document.getElementById('report_period').options[document.getElementById('report_period').selectedIndex].text}`, 14, 25);
+            doc.text(`من: ${document.getElementById('fromDate').value} إلى: ${document.getElementById('toDate').value}`, 14, 35);
+
+            // Add table
+            doc.autoTable({
+                html: '#paymentsTable',
+                startY: 45,
+                styles: { font: 'tajawal', halign: 'right' },
+                headStyles: { fillColor: [74, 108, 247], textColor: 255 }
+            });
+
+            doc.save(`${fileName}.pdf`);
         }
     }
 
@@ -355,13 +438,13 @@
 
         const view = $(this).data('view');
         if (view === 'summary') {
-            $('.chart-container').show();
-            $('.summary-card').parent().show();
-            $('#paymentsTable').hide();
+            $('#summaryView').show();
+            $('#chartView').show();
+            $('#detailsView').hide();
         } else {
-            $('.chart-container').hide();
-            $('.summary-card').parent().hide();
-            $('#paymentsTable').show();
+            $('#summaryView').hide();
+            $('#chartView').hide();
+            $('#detailsView').show();
         }
     });
 </script>
