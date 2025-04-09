@@ -826,7 +826,9 @@ $clients=Client::all();
             $query->whereHas('invoice', function($q) use ($request) {
                 $q->where('created_by', $request->collector);
             });
+
         }
+
         if ($request->filled('client')) {
             $query->where('client_id', $request->client);
         }
@@ -910,47 +912,119 @@ $clients=Client::all();
     }
 
     public function paymentMethodReport(Request $request)
-    {
-        // Fetch dropdown data
-        $clients = Client::all();
-        $branches = Branch::all();
-        $employees = Employee::all();
-        $paymentMethods = [['id' => 1, 'name' => 'نقدي'], ['id' => 2, 'name' => 'شيك'], ['id' => 3, 'name' => 'تحويل بنكي'], ['id' => 4, 'name' => 'بطاقة ائتمان']];
+{
+    // 1. التحقق من صحة البيانات المدخلة
+    $validatedData = $request->validate([
+        'client' => 'nullable|exists:clients,id',
+        'branch' => 'nullable|exists:branches,id',
+        'collector' => 'nullable|exists:employees,id',
+        'payment_method' => 'nullable|in:1,2,3,4',
+        'customer_category' => 'nullable|exists:customer_categories,id',
+        'from_date' => 'nullable|date',
+        'to_date' => 'nullable|date|after_or_equal:from_date',
+    ]);
 
-        // Default date range with Carbon conversion
-        $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->startOfMonth();
-        $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now()->endOfMonth();
+    // 2. جلب البيانات الأساسية للقوائم المنسدلة
+    $clients = Client::all();
+    $branches = Branch::orderBy('name')->get();
+    $employees = User::where('role','employee')->get();
 
-        // Build the query with all necessary relationships
-        $query = PaymentsProcess::with(['client', 'invoice', 'invoice.employee']);
 
-        // Apply filters based on request parameters
-        if ($request->filled('client')) {
-            $query->where('client_id', $request->input('client'));
-        }
+    $paymentMethods = [
+        ['id' => 1, 'name' => 'نقدي'],
+        ['id' => 2, 'name' => 'شيك'],
+        ['id' => 3, 'name' => 'تحويل بنكي'],
+        ['id' => 4, 'name' => 'بطاقة ائتمان']
+    ];
 
-        if ($request->filled('payment_method')) {
-            $query->where('payment_method', $request->input('payment_method'));
-        }
+    // 3. تحديد نطاق التاريخ
+    $fromDate = $request->input('from_date', now()->startOfMonth()->format('Y-m-d'));
+    $toDate = $request->input('to_date', now()->endOfMonth()->format('Y-m-d'));
 
-        // Date range filter
-        $query->whereBetween('payment_date', [$fromDate, $toDate]);
+    $fromDate = Carbon::parse($fromDate)->startOfDay();
+    $toDate = Carbon::parse($toDate)->endOfDay();
 
-        // Fetch payments
-        $payments = $query->get();
+    // 4. بناء الاستعلام الأساسي مع العلاقات
+    $query = PaymentsProcess::with([
 
-        // Prepare chart data for payment methods
-        $chartData = $this->preparePaymentMethodChartData($payments, $paymentMethods);
+        'invoice.employee',
+        'invoice.branch'
+    ])->whereBetween('payment_date', [$fromDate, $toDate]);
 
-        // Calculate summary totals
-        $summaryTotals = [
-            'total_paid' => $payments->sum('amount'),
-            'total_payments_count' => $payments->count(),
-            'average_payment' => $payments->avg('amount'),
-        ];
-
-        return view('reports.sals.payments.payment_method_report', compact('payments', 'clients', 'branches', 'paymentMethods', 'chartData', 'employees', 'summaryTotals', 'fromDate', 'toDate'));
+    // 5. تطبيق الفلاتر
+    if ($request->filled('client')) {
+        $query->whereHas('invoice', function($q) use ($request) {
+            $q->where('client_id', $request->client);
+        });
     }
+
+    if ($request->filled('collector')) {
+        $query->whereHas('invoice', function($q) use ($request) {
+            $q->where('created_by', $request->collector);
+        });
+    }
+
+    if ($request->filled('payment_method')) {
+        $query->where('payment_method', $request->payment_method);
+    }
+
+    if ($request->filled('branch')) {
+        $query->whereHas('invoice.client', function($q) use ($request) {
+            $q->where('branch_id', $request->branch);
+        });
+    }
+
+    if ($request->filled('customer_category')) {
+        $query->whereHas('invoice.client', function($q) use ($request) {
+            $q->where('customer_category_id', $request->customer_category);
+        });
+    }
+
+    // 6. جلب النتائج مع الترحيم
+    $payments = $query->orderBy('payment_date', 'desc')->get();
+
+    // 7. إعداد بيانات الرسم البياني لطرق الدفع
+    $groupedForChart = $payments->groupBy('payment_method');
+
+    $chartLabels = [];
+    $chartValues = [];
+
+    foreach ($paymentMethods as $method) {
+        $total = $groupedForChart->has($method['id']) ? $groupedForChart->get($method['id'])->sum('amount') : 0;
+        $chartLabels[] = $method['name'];
+        $chartValues[] = $total;
+    }
+
+    $chartData = [
+        'labels' => $chartLabels,
+        'values' => $chartValues
+    ];
+
+    // 8. حساب الإجماليات
+    $summaryTotals = [
+        'total_paid' => $payments->sum('amount'),
+        'total_unpaid' => $payments->sum(function($payment) {
+            return $payment->invoice ? $payment->invoice->due_value : 0;
+        }),
+        'total_payments' => $payments->count(),
+        'average_payment' => $payments->avg('amount')
+    ];
+
+    // 9. إرجاع النتائج للعرض
+    return view('reports.sals.payments.payment_method_report', [
+        'payments' => $payments,
+        'clients' => $clients,
+        'branches' => $branches,
+        'employees' => $employees,
+
+        'paymentMethods' => $paymentMethods,
+        'chartData' => $chartData,
+        'summaryTotals' => $summaryTotals,
+        'fromDate' => $fromDate,
+        'toDate' => $toDate,
+        'filters' => $request->all() // لحفظ حالة الفلاتر
+    ]);
+}
 
     // Helper method to prepare chart data for payment methods
     protected function preparePaymentMethodChartData($payments, $paymentMethodsConfig)

@@ -250,12 +250,14 @@
                                 @forelse ($payments->groupBy(fn($p) => optional($p->invoice?->client)->id) as $clientId => $clientPayments)
                                     @php
                                         $client = $clientPayments->first()?->invoice?->client;
+                                        $clientTotal = $clientPayments->sum('amount');
                                     @endphp
 
                                     @if ($client)
                                         {{-- صف العميل --}}
                                         <tr class="table-secondary fw-bold">
-                                            <td colspan="8">{{ $client->trade_name }}</td>
+                                            <td colspan="5">{{ $client->trade_name }}</td>
+                                            <td colspan="3" class="text-end">إجمالي المدفوعات: <strong>{{ number_format($clientTotal, 2) }} ر.س</strong></td>
                                         </tr>
 
                                         {{-- صفوف المدفوعات لهذا العميل --}}
@@ -294,6 +296,7 @@
                             </tbody>
                         </table>
                     </div>
+
 
                 </div>
             </div>
