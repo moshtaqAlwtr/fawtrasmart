@@ -230,6 +230,12 @@ class ExpensesController extends Controller
             'is_debit' => true,
         ]);
 
+        $expense_account = Account::find($expense->account_id);
+
+        if ($expense_account) {
+            $expense_account->balance += $expense->amount; // المبلغ الكلي (المبيعات + الضريبة)
+            $expense_account->save();
+        }
         DB::commit();
 
         return redirect()->route('expenses.index')->with('success', 'تم إضافة سند صرف بنجاح!');
