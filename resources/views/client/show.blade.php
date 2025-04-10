@@ -156,7 +156,7 @@
                                 حساب الأستاذ:
                                 @if ($client->account_client && $client->account_client->client_id == $client->id)
                                     <a href="{{ route('journal.generalLedger', ['account_id' => $client->account_client->id]) }}">
-                                        {{ $client->account_client->name }} #{{ $client->account_client->code }}
+                                        {{ $client->account_client->name ?? "" }} #{{ $client->account_client->code ?? "" }}
                                     </a>
                                 @else
                                     <span>لا يوجد حساب مرتبط</span>
