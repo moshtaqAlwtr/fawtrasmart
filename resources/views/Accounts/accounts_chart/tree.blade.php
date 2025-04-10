@@ -172,6 +172,54 @@
         .btn {
             border-radius: 5px;
         }
+        /* تحسين نتائج البحث */
+#search-results-dropdown {
+    position: absolute;
+    width: calc(100% - 30px);
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    right: 15px;
+    top: 100%;
+    margin-top: 5px;
+}
+
+.search-result-item {
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-result-item:hover {
+    background: #f8f9fa;
+}
+
+.search-result-item strong {
+    color: #7367F0;
+}
+
+.search-result-item small {
+    font-size: 0.8em;
+    color: #6c757d;
+}
+
+/* تحسين حقل البحث */
+#searchInput {
+    padding-right: 40px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    transition: border 0.3s;
+}
+
+#searchInput:focus {
+    border-color: #7367F0;
+    box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.25);
+}
     </style>
 
 </head>
@@ -225,7 +273,7 @@
                             <div class="d-flex align-items-center">
                                 <fieldset class="form-group position-relative has-icon-left mx-1 my-0 w-50">
                                     <input type="text" id="searchInput" class="form-control"
-                                        placeholder="بحث بالاسم أو الكود"
+                                        placeholder="بحث بالاسم"
                                         onkeyup="performSearch(this.value, $('#branchFilter').val())">
                                     <div class="form-control-position">
                                         <i class="feather icon-search"></i>
@@ -366,7 +414,7 @@
                                                                             </option>
                                                                             @foreach ($accounts as $account)
                                                                                 <option value="{{ $account->id }}">
-                                                                                    {{ $account->name }}</option>
+                                                                                    {{ $account->name }} - {{ $account->code }}</option>
                                                                             @endforeach
                                                                         </select>
                                                                     </div>
@@ -474,7 +522,7 @@
                                                                             </option>
                                                                             @foreach ($accounts as $account)
                                                                                 <option value="{{ $account->id }}">
-                                                                                    {{ $account->name }}</option>
+                                                                                    {{ $account->name }} {{ $account->code }}</option>
                                                                             @endforeach
                                                                         </select>
                                                                     </div>
@@ -1174,155 +1222,107 @@
             });
         });
 
-        $(document).ready(function() {
-            // إرسال النموذج تلقائيًا عند تغيير البحث
-            $('#searchInput').on('keyup', function() {
-                const searchText = $(this).val().trim();
-                const branchId = $('#branchFilter').val();
+     // متغير لتأخير البحث (Debounce)
+let searchTimer;
 
-                if (searchText.length >= 2 || branchId !== 'all') {
-                    performSearch(searchText, branchId);
-                } else {
-                    // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
-                    loadInitialData();
-                }
-            });
+function performSearch(searchText, branchId) {
+    // إلغاء البحث السابق إذا كان لا يزال قيد التنفيذ
+    clearTimeout(searchTimer);
+    
+    // إظهار مؤشر التحميل
+    $('#loading-spinner').show();
+    $('#search-results-dropdown').hide();
 
-            // حدث تغيير الفرع
-            $('#branchFilter').on('change', function() {
-                const searchText = $('#searchInput').val().trim();
-                const branchId = $(this).val();
+    // البحث فقط إذا كان النص أكثر من حرفين أو تم اختيار فرع
+    if (searchText.length < 2 && branchId === 'all') {
+        $('#loading-spinner').hide();
+        return;
+    }
 
-                if (searchText.length >= 2 || branchId !== 'all') {
-                    performSearch(searchText, branchId);
-                } else {
-                    // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
-                    loadInitialData();
-                }
-            });
+    // تأخير البحث 300 مللي ثانية بعد آخر كتابة
+    searchTimer = setTimeout(() => {
+        $.ajax({
+            url: '/Accounts/accounts_chart/accounts/search',
+            type: 'GET',
+            data: {
+                search: searchText,
+                branch_id: branchId
+            },
+            success: function(response) {
+                const resultsContainer = $('#search-results-dropdown');
+                resultsContainer.empty();
 
-
-            // دالة لتنفيذ البحث
-            $(document).ready(function() {
-                // إرسال النموذج تلقائيًا عند تغيير البحث
-                $('#searchInput, #branchFilter').on('keyup change', function() {
-                    const searchText = $('#searchInput').val().trim();
-                    const branchId = $('#branchFilter').val();
-
-                    if (searchText.length >= 2 || branchId !== 'all') {
-                        performSearch(searchText, branchId);
-                    } else {
-                        // إعادة تحميل البيانات الأصلية إذا كان البحث فارغًا
-                        loadInitialData();
-                    }
-                });
-
-                // دالة لتنفيذ البحث
-                function performSearch(searchText, branchId) {
-                    $('#loading-spinner').show();
-                    $('#results-container').hide();
-
-                    console.log("Searching for:", searchText, "in branch:", branchId);
-
-                    $.ajax({
-                        url: '/accounts/search',
-                        type: 'GET',
-                        data: {
-                            search: searchText,
-                            branch_id: branchId
-                        },
-                        success: function(response) {
-                            console.log("Response:", response);
-                            const resultsContainer = $('#results-container');
-                            resultsContainer.empty();
-
-                            if (response.length > 0) {
-                                response.forEach(account => {
-                                    resultsContainer.append(`
-                        <div class="search-result-item">
-                            <strong>${account.name}</strong> - <span class="text-muted">${account.code}</span>
-                        </div>
-                    `);
-                                });
-                            } else {
-                                resultsContainer.append(
-                                    '<div class="text-center text-muted">لا توجد نتائج مطابقة.</div>'
-                                    );
-                            }
-
-                            $('#loading-spinner').hide();
-                            resultsContainer.show();
-                        },
-                        error: function() {
-                            Swal.fire({
-                                title: 'خطأ!',
-                                text: 'حدث خطأ أثناء البحث.',
-                                icon: 'error',
-                            });
-                            $('#loading-spinner').hide();
-                        }
+                if (response.length > 0) {
+                    response.forEach(account => {
+                        resultsContainer.append(`
+                            <div class="search-result-item" 
+                                 onclick="selectAccount(${account.id}, '${account.name}', '${account.code}')">
+                                <strong>${account.name}</strong> 
+                                <span class="text-muted">(${account.code})</span>
+                                <small class="d-block">${account.balance_type === 'debit' ? 'مدين' : 'دائن'}: ${account.balance}</small>
+                            </div>
+                        `);
                     });
+                } else {
+                    resultsContainer.append(
+                        '<div class="search-result-item text-muted">لا توجد نتائج مطابقة</div>'
+                    );
                 }
 
-
-                // دالة لتحميل البيانات الأصلية
-                function loadInitialData() {
-                    // إظهار أيقونة التحميل
-                    $('#loading-spinner').show();
-                    $('#table-container').hide();
-
-                    $.ajax({
-                        url: '/accounts/parents', // رابط لجلب الحسابات الرئيسية
-                        type: 'GET',
-                        success: function(parents) {
-                            const tableBody = $('#table-body');
-                            tableBody.empty(); // تفريغ الجدول
-
-                            parents.forEach(parent => {
-                                tableBody.append(`
-                        <tr data-node-id="${parent.id}" class="table-active">
-                            <td style="width: 3%">
-                                <i class="feather icon-folder" style="font-size: 30px"></i>
-                            </td>
-                            <td>
-                                <strong>${parent.name}</strong><br>
-                                <small>${parent.code} #</small>
-                            </td>
-                            <td style="width: 5%">
-                                <strong>${parent.balance}</strong><br>
-                                <small>${parent.balance_type === 'debit' ? 'مدين' : 'دائن'}</small>
-                            </td>
-                            <td style="width: 10%">
-                                <div class="operation">
-                                    <a id="edit" href="#" class="edit-button"><i class="fa fa-edit mr-1"></i></a>
-                                    <a id="delete" href="#" class="text-danger" onclick="confirmDelete('${parent.id}')">
-                                        <i class="fa fa-trash mr-1"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    `);
-                            });
-
-                            // إخفاء أيقونة التحميل وإظهار الجدول
-                            $('#loading-spinner').hide();
-                            $('#table-container').show();
-                        },
-                        error: function() {
-                            Swal.fire({
-                                title: 'خطأ!',
-                                text: 'حدث خطأ أثناء جلب البيانات.',
-                                icon: 'error',
-                            });
-
-                            // إخفاء أيقونة التحميل في حالة الخطأ
-                            $('#loading-spinner').hide();
-                        }
-                    });
-                }
-            }); // دالة لتحميل البيانات الأصلية
-
+                $('#loading-spinner').hide();
+                resultsContainer.show();
+            },
+            error: function() {
+                $('#loading-spinner').hide();
+                $('#search-results-dropdown').html('<div class="search-result-item text-danger">حدث خطأ أثناء البحث</div>').show();
+            }
         });
+    }, 300);
+}
+
+// دالة عند اختيار نتيجة بحث
+function selectAccount(accountId, accountName, accountCode) {
+    // إخفاء نتائج البحث
+    $('#search-results-dropdown').hide();
+    
+    // تحديث حقل البحث
+    $('#searchInput').val(`${accountName} (${accountCode})`);
+    
+    // تحديد الحساب في الشجرة
+    $('#tree').jstree('deselect_all');
+    $('#tree').jstree('select_node', accountId);
+    $('#tree').jstree('open_node', accountId);
+    
+    // جلب تفاصيل الحساب
+    loadAccountDetails(accountId);
+}
+
+// تهيئة البحث عند تحميل الصفحة
+$(document).ready(function() {
+    // أحداث البحث
+    $('#searchInput').on('keyup', function() {
+        const searchText = $(this).val().trim();
+        const branchId = $('#branchFilter').val();
+        performSearch(searchText, branchId);
+    });
+
+    $('#branchFilter').on('change', function() {
+        const searchText = $('#searchInput').val().trim();
+        const branchId = $(this).val();
+        performSearch(searchText, branchId);
+    });
+
+    // إخفاء نتائج البحث عند النقر خارجها
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#search-results-dropdown, #searchInput').length) {
+            $('#search-results-dropdown').hide();
+        }
+    });
+});
+// عند تحميل الصفحة، عرض بعض الحسابات الشائعة
+$(document).ready(function() {
+    performSearch('', 'all');
+});
     </script>
 
 </body>
