@@ -6,7 +6,7 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
     <style>
         .table-return {
@@ -67,7 +67,7 @@
                         {{-- First Row of Filters --}}
                         <div class="col-md-3">
                             <label class="form-label">تصنيف العميل</label>
-                            <select name="category" class="form-select">
+                            <select name="category" class="form-control">
                                 <option value="">جميع التصنيفات</option>
                                 @foreach ($categories as $category)
                                     <option value="{{ $category->id }}"
@@ -80,7 +80,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-select">
+                            <select name="client" class="form-control">
                                 <option value="">جميع العملاء</option>
                                 @foreach ($clients as $client)
                                     <option value="{{ $client->id }}"
@@ -93,7 +93,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
-                            <select name="branch" class="form-select">
+                            <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
                                 @foreach ($branches as $branch)
                                     <option value="{{ $branch->id }}"
@@ -106,7 +106,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
-                            <select name="status" class="form-select">
+                            <select name="status" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مدفوعة</option>
                                 <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير مدفوعة</option>
@@ -120,7 +120,11 @@
                         {{-- New Field: Added By --}}
                         <div class="col-md-3">
                             <label class="form-label">تمت الإضافة بواسطة</label>
+
                             <select name="added_by" class="form-select">
+
+                            <select name="added_by" class="form-control">
+
                                 <option value="">الكل</option>
                                 @foreach ($users as $user)
                                     <option value="{{ $user->id }}" {{ request('added_by') == $user->id ? 'selected' : '' }}>
@@ -145,7 +149,12 @@
                         {{-- Third Row of Filters --}}
                         <div class="col-md-3">
                             <label class="form-label">نوع التقرير</label>
+
                             <select name="report_type" class="form-select">
+
+                            <select name="report_type" class="form-control">
+
+
                                 <option value="">الكل</option>
                                 <option value="daily" {{ request('report_type') == 'daily' ? 'selected' : '' }}>يومي
                                 </option>
@@ -171,7 +180,19 @@
                             <a href="{{ route('salesReports.byEmployee') }}" class="btn btn-primary w-20">
                                 <i class="fas fa-filter me-2"></i> الغاء الفلتر
                             </a>
+
                         </div>
+                        <div class="col-md-3 align-self-end">
+                            <div class="d-flex justify-content-between gap-2">
+                                <button type="submit" class="btn btn-primary ">
+                                    <i class="fas fa-filter me-2"></i> تصفية التقرير
+                                </button>
+                                <a href="{{ route('salesReports.byEmployee') }}" class="btn btn-danger ">
+                                    <i class="fas fa-times me-2"></i> إلغاء الفلتر
+                                </a>
+                            </div>
+                        </div>
+
                     </div>
                 </form>
             </div>
