@@ -377,6 +377,7 @@ class SalesReportsController extends Controller
                     'branch_name' => $employeeInvoices->first()->client->branch->name ?? 'N/A',
                 ];
             });
+            $employeeTotals = $employeeTotals->sortByDesc('total_amount');
 
             // إعداد بيانات الرسم البياني
             $chartData = [

@@ -95,93 +95,6 @@
                         </div>
                     </li>
                     <?php if(auth()->user()->role != 'employee'): ?>
-
-                    <li class="dropdown dropdown-notification nav-item">
-                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
-                            <i class="ficon feather icon-calendar"></i>
-                            <span class="badge badge-pill badge-primary badge-up"><?php echo e($todayVisits->count()); ?></span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
-                            <li class="dropdown-menu-header">
-                                <div class="dropdown-header m-0 p-2">
-                                    <h3 class="white"><?php echo e($todayVisits->count()); ?> زيارة</h3>
-                                    <span class="notification-title">زيارات اليوم</span>
-                                </div>
-                            </li>
-
-                    <?php
-                    $userRole = Auth::user()->role;
-                ?>
-                            <?php if($userRole != 'employee'): ?>
-                            <li class="scrollable-container media-list">
-                                <?php $__empty_1 = true; $__currentLoopData = $todayVisits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $visit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                                    <div class="visit-item media p-1">
-                                        <div class="media-left">
-                                            <div class="avatar bg-primary bg-lighten-4 rounded-circle">
-                                                <span class="avatar-content"><?php echo e(substr($visit->client->trade_name, 0, 1)); ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="media-body">
-                                            <h6 class="media-heading text-bold-500"><?php echo e($visit->client->trade_name); ?></h6>
-                                            <p class="mb-1">
-                                                <i class="feather icon-user"></i>
-                                                <small class="text-muted">الموظف: <?php echo e($visit->employee->name ?? 'غير معروف'); ?></small>
-                                            </p>
-                                            <div class="visit-details">
-                                                <?php if($visit->arrival_time): ?>
-                                                    <p class="mb-0">
-                                                        <i class="feather icon-clock text-success"></i>
-                                                        <span class="text-success">الوصول: </span>
-                                                        <?php echo e(\Carbon\Carbon::parse($visit->arrival_time)->format('h:i A')); ?>
-
-                                                    </p>
-                                                <?php endif; ?>
-                                                <?php if($visit->departure_time): ?>
-                                                    <p class="mb-0">
-                                                        <i class="feather icon-clock text-danger"></i>
-                                                        <span class="text-danger">المغادرة: </span>
-                                                        <?php echo e(\Carbon\Carbon::parse($visit->departure_time)->format('h:i A')); ?>
-
-                                                    </p>
-                                                <?php else: ?>
-                                                    <p class="mb-0 text-warning">
-                                                        <i class="feather icon-clock"></i>
-                                                        <span>ما زال عند العميل</span>
-                                                    </p>
-                                                <?php endif; ?>
-                                                <?php if($visit->notes): ?>
-                                                    <p class="mb-0 text-muted small">
-                                                        <i class="feather icon-message-square"></i>
-                                                        <?php echo e(Str::limit($visit->notes, 50)); ?>
-
-                                                    </p>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                                    <li class="empty-visits p-2 text-center">لا توجد زيارات اليوم</li>
-                                <?php endif; ?>
-                            </li>
-                            <li class="dropdown-menu-footer">
-                                <a class="dropdown-item p-1 text-center text-primary" href="">
-                                    <i class="feather icon-list align-middle"></i>
-                                    <span class="align-middle text-bold-600">عرض كل الزيارات</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <?php endif; ?>
-
-
-<?php endif; ?>
-
-                    <?php
-                        $userRole = Auth::user()->role;
-                    ?>
-
-                    <?php if($userRole != 'employee'): ?>
-
                         <li class="dropdown dropdown-notification nav-item">
                             <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                                 <i class="ficon feather icon-calendar"></i>
@@ -383,8 +296,132 @@
                                 });
                             });
                         });
+
                     </script>
+
                 <?php endif; ?>
+
+
+                <?php if($userRole == 'employee'): ?>
+                <li class="dropdown dropdown-notification nav-item">
+                    <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                        <i class="ficon feather icon-bell"></i>
+                        <span class="badge badge-pill badge-primary badge-up" id="notification-count">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
+                        <li class="dropdown-menu-header">
+                            <div class="dropdown-header m-0 p-2">
+                                <h3 class="white" id="notification-title">إشعارات جديدة</h3>
+                                <span class="notification-title">التنبيهات</span>
+                            </div>
+                        </li>
+                        <li class="scrollable-container media-list" id="notification-list">
+                            <p class="text-center p-2">لا يوجد إشعارات جديدة</p>
+                        </li>
+                        <li class="dropdown-menu-footer">
+                            <a class="dropdown-item p-1 text-center"
+                                href="<?php echo e(route('notifications.index')); ?>">عرض كل الإشعارات</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <script>
+                    $(document).ready(function() {
+                        function formatNotificationTime(dateTime) {
+                            const now = new Date();
+                            const notificationDate = new Date(dateTime);
+                            const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+
+                            if (diffInSeconds < 60) {
+                                return 'منذ لحظات';
+                            } else if (diffInSeconds < 3600) {
+                                const minutes = Math.floor(diffInSeconds / 60);
+                                return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
+                            } else if (diffInSeconds < 86400) {
+                                const hours = Math.floor(diffInSeconds / 3600);
+                                return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
+                            } else if (diffInSeconds < 604800) {
+                                const days = Math.floor(diffInSeconds / 86400);
+                                return `منذ ${days} يوم${days > 1 ? '' : ''}`;
+                            } else {
+                                return notificationDate.toLocaleDateString('ar-SA', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+                            }
+                        }
+
+                        function fetchNotifications() {
+                            $.ajax({
+                                url: "<?php echo e(route('notifications.unread')); ?>",
+                                method: "GET",
+                                success: function(response) {
+                                    let notifications = response.notifications;
+                                    let count = notifications.length;
+                                    $('#notification-count').text(count);
+                                    $('#notification-title').text(count + " إشعارات جديدة");
+
+                                    let notificationList = $('#notification-list');
+                                    notificationList.empty();
+
+                                    if (count > 0) {
+                                        notifications.forEach(notification => {
+                                            let timeAgo = formatNotificationTime(notification.created_at);
+                                            let listItem = `
+                            <a class="d-flex justify-content-between notification-item"
+                                href="javascript:void(0)"
+                                data-id="${notification.id}">
+                                <div class="media d-flex align-items-start">
+                                    <div class="media-left">
+                                        <i class="feather icon-bell font-medium-5 primary"></i>
+                                    </div>
+                                    <div class="media-body">
+                                        <h6 class="primary media-heading">${notification.title}</h6>
+                                        <p class="notification-text mb-0">${notification.description}</p>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock"></i> ${timeAgo}
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                            <hr class="my-1">
+                        `;
+                                            notificationList.append(listItem);
+                                        });
+                                    } else {
+                                        notificationList.append(
+                                            '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
+                                    }
+                                }
+                            });
+                        }
+
+                        fetchNotifications();
+
+                        // تحديث الإشعارات كل دقيقة
+                        setInterval(fetchNotifications, 60000);
+
+                        $(document).on('click', '.notification-item', function() {
+                            let notificationId = $(this).data('id');
+
+                            $.ajax({
+                                url: "<?php echo e(route('notifications.markAsRead')); ?>",
+                                method: "POST",
+                                data: {
+                                    _token: "<?php echo e(csrf_token()); ?>",
+                                    id: notificationId
+                                },
+                                success: function() {
+                                    fetchNotifications();
+                                }
+                            });
+                        });
+                    });
+                </script>
+            <?php endif; ?>
                 <li class="dropdown dropdown-user nav-item">
                     <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
                         aria-expanded="false">

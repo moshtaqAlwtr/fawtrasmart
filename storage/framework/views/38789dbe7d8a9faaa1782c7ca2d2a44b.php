@@ -1,48 +1,46 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     تقرير مبيعات المنتجات اليومية
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
-@endsection
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/report.css')); ?>">
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid mt-4">
         <div class="card shadow">
 
             <div class="card-body">
                 <h5 class="card-title">
-                    @switch($reportPeriod)
-                        @case('daily')
+                    <?php switch($reportPeriod):
+                        case ('daily'): ?>
                             تقرير المبيعات اليومية للمنتجات
-                            @break
-                        @case('weekly')
+                            <?php break; ?>
+                        <?php case ('weekly'): ?>
                             تقرير المبيعات الأسبوعية للمنتجات
-                            @break
-                        @case('monthly')
+                            <?php break; ?>
+                        <?php case ('monthly'): ?>
                             تقرير المبيعات الشهرية للمنتجات
-                            @break
-                        @case('yearly')
+                            <?php break; ?>
+                        <?php case ('yearly'): ?>
                             تقرير المبيعات السنوية للمنتجات
-                            @break
-                    @endswitch
+                            <?php break; ?>
+                    <?php endswitch; ?>
                 </h5>
-                <form action="{{ route('salesReports.byProduct') }}" method="GET" class="mb-4">
+                <form action="<?php echo e(route('salesReports.byProduct')); ?>" method="GET" class="mb-4">
                     <div class="row g-3">
                         <!-- فلتر المنتج -->
                         <div class="col-md-3">
                             <label class="form-label">المنتج</label>
                             <select name="product" class="form-control">
                                 <option value="">جميع المنتجات</option>
-                                @foreach($products as $product)
-                                    <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>
-                                        {{ $product->name }} ({{ $product->code }})
+                                <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($product->id); ?>" <?php echo e(request('product') == $product->id ? 'selected' : ''); ?>>
+                                        <?php echo e($product->name); ?> (<?php echo e($product->code); ?>)
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -51,11 +49,12 @@
                             <label class="form-label">تصنيف المنتج</label>
                             <select name="category" class="form-control">
                                 <option value="">جميع التصنيفات</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
+                                <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($category->id); ?>" <?php echo e(request('category') == $category->id ? 'selected' : ''); ?>>
+                                        <?php echo e($category->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -64,9 +63,9 @@
                             <label class="form-label">نوع الفاتورة</label>
                             <select name="invoice_type" class="form-control">
                                 <option value="">الكل</option>
-                                <option value="1" {{ request('invoice_type') == '1' ? 'selected' : '' }}>مرتجع</option>
-                                <option value="2" {{ request('invoice_type') == '2' ? 'selected' : '' }}>اشعار مدين</option>
-                                <option value="3" {{ request('invoice_type') == '3' ? 'selected' : '' }}>اشعار دائن</option>
+                                <option value="1" <?php echo e(request('invoice_type') == '1' ? 'selected' : ''); ?>>مرتجع</option>
+                                <option value="2" <?php echo e(request('invoice_type') == '2' ? 'selected' : ''); ?>>اشعار مدين</option>
+                                <option value="3" <?php echo e(request('invoice_type') == '3' ? 'selected' : ''); ?>>اشعار دائن</option>
                             </select>
                         </div>
 
@@ -75,11 +74,12 @@
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
-                                @foreach($branches as $branch)
-                                    <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
-                                        {{ $branch->name }}
+                                <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($branch->id); ?>" <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
+                                        <?php echo e($branch->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -88,11 +88,12 @@
                             <label class="form-label">العميل</label>
                             <select name="client" class="form-control">
                                 <option value="">جميع العملاء</option>
-                                @foreach($clients as $client)
-                                    <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
-                                        {{ $client->trade_name }}
+                                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                        <?php echo e($client->trade_name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -101,11 +102,12 @@
                             <label class="form-label">فئة العميل</label>
                             <select name="client_category" class="form-control">
                                 <option value="">جميع الفئات</option>
-                                @foreach($client_categories as $category)
-                                    <option value="{{ $category->id }}" {{ request('client_category') == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
+                                <?php $__currentLoopData = $client_categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($category->id); ?>" <?php echo e(request('client_category') == $category->id ? 'selected' : ''); ?>>
+                                        <?php echo e($category->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -114,11 +116,12 @@
                             <label class="form-label">الموظف</label>
                             <select name="employee" class="form-control">
                                 <option value="">جميع الموظفين</option>
-                                @foreach ($employees as $employee)
-                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                    {{ $employee->name }}
+                                <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($employee->id); ?>" <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
+                                    <?php echo e($employee->name); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -127,11 +130,12 @@
                             <label class="form-label">المخزن</label>
                             <select name="storehouse" class="form-control">
                                 <option value="">جميع المخازن</option>
-                                @foreach($storehouses as $storehouse)
-                                    <option value="{{ $storehouse->id }}" {{ request('storehouse') == $storehouse->id ? 'selected' : '' }}>
-                                        {{ $storehouse->name }}
+                                <?php $__currentLoopData = $storehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $storehouse): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($storehouse->id); ?>" <?php echo e(request('storehouse') == $storehouse->id ? 'selected' : ''); ?>>
+                                        <?php echo e($storehouse->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -140,11 +144,11 @@
                             <label class="form-label">الفترة</label>
                             <select name="report_period" class="form-control">
                                 <option value="">اختر الفترة</option>
-                                <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
-                                <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
-                                <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري</option>
-                                <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
-                                <option value="custom" {{ request('report_period') == 'custom' ? 'selected' : '' }}>مخصص</option>
+                                <option value="daily" <?php echo e(request('report_period') == 'daily' ? 'selected' : ''); ?>>يومي</option>
+                                <option value="weekly" <?php echo e(request('report_period') == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
+                                <option value="monthly" <?php echo e(request('report_period') == 'monthly' ? 'selected' : ''); ?>>شهري</option>
+                                <option value="yearly" <?php echo e(request('report_period') == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
+                                <option value="custom" <?php echo e(request('report_period') == 'custom' ? 'selected' : ''); ?>>مخصص</option>
                             </select>
                         </div>
 
@@ -153,20 +157,20 @@
                         <div class="col-md-3">
                             <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
-                                value="{{ $fromDate->format('Y-m-d') }}">
+                                value="<?php echo e($fromDate->format('Y-m-d')); ?>">
                         </div>
 
                         <div class="col-md-3">
                             <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
-                                value="{{ $toDate->format('Y-m-d') }}">
+                                value="<?php echo e($toDate->format('Y-m-d')); ?>">
                         </div>
 
                         <!-- خيار عرض المسودات -->
                         <div class="col-md-3 align-self-end">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="add_draft" id="add_draft"
-                                       value="1" {{ request('add_draft') ? 'checked' : '' }}>
+                                       value="1" <?php echo e(request('add_draft') ? 'checked' : ''); ?>>
                                 <label class="form-check-label" for="add_draft">عرض المسودات</label>
                             </div>
                         </div>
@@ -176,7 +180,7 @@
                             <button type="submit" class="btn btn-primary me-2">
                                 <i class="fas fa-filter me-1"></i> تطبيق الفلتر
                             </button>
-                            <a href="{{ route('salesReports.byProduct') }}" class="btn btn-secondary me-2">
+                            <a href="<?php echo e(route('salesReports.byProduct')); ?>" class="btn btn-secondary me-2">
                                 <i class="fas fa-redo me-1"></i> إعادة تعيين
                             </a>
                             <button type="submit" name="export" value="excel" class="btn btn-success me-2">
@@ -200,11 +204,11 @@
             </div>
         </div>
 
-        {{-- Results Section --}}
-        @if ($productSales->count() > 0)
+        
+        <?php if($productSales->count() > 0): ?>
             <div class="card mt-4">
                 <div class="card-body">
-                    {{-- Tabs for Summary and Details --}}
+                    
                     <ul class="nav nav-tabs" id="reportTabs">
                         <li class="nav-item">
                             <a class="nav-link active" data-bs-toggle="tab" href="#summary">الملخص</a>
@@ -229,7 +233,7 @@
                     </ul>
 
                     <div class="tab-content mt-3">
-                        {{-- Summary Tab --}}
+                        
                         <div class="tab-pane fade show active" id="summary">
                             <div class="row">
                                 <div class="col-md-6">
@@ -240,19 +244,19 @@
                                 </div>
                             </div>
 
-                            {{-- Summary Table --}}
+                            
                             <table class="table table-bordered mt-3">
                                 <thead>
                                     <tr>
-                                        @if ($reportPeriod == 'daily')
+                                        <?php if($reportPeriod == 'daily'): ?>
                                             <th>التاريخ (يومي)</th>
-                                        @elseif($reportPeriod == 'weekly')
+                                        <?php elseif($reportPeriod == 'weekly'): ?>
                                             <th>الأسبوع</th>
-                                        @elseif($reportPeriod == 'monthly')
+                                        <?php elseif($reportPeriod == 'monthly'): ?>
                                             <th>الشهر</th>
-                                        @elseif($reportPeriod == 'yearly')
+                                        <?php elseif($reportPeriod == 'yearly'): ?>
                                             <th>السنة</th>
-                                        @endif
+                                        <?php endif; ?>
                                         <th>رقم الفاتورة</th>
                                         <th>المعرف</th>
                                         <th>الاسم</th>
@@ -266,7 +270,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @php
+                                    <?php
                                         // Adjust quantities and amounts for return invoices
                                         $adjustedSales = $productSales->map(function ($sale) {
                                             $sale->adjusted_quantity =
@@ -291,120 +295,124 @@
                                                     return $sale->invoice->invoice_date->format('Y-m-d');
                                             }
                                         });
-                                    @endphp
+                                    ?>
 
-                                    @foreach ($groupedSales as $period => $periodSales)
-                                        @php
+                                    <?php $__currentLoopData = $groupedSales; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $period => $periodSales): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
                                             $periodTotalQuantity = $periodSales->sum('adjusted_quantity');
                                             $periodTotalDiscount = $periodSales->sum('discount_amount');
                                             $periodTotalAmount = $periodSales->sum('adjusted_amount');
-                                        @endphp
+                                        ?>
 
-                                        {{-- Period Header Row --}}
+                                        
                                         <tr class="table-secondary">
                                             <td colspan="11" class="text-center">
-                                                @if ($reportPeriod == 'daily')
-                                                    <strong>{{ Carbon\Carbon::parse($period)->locale('ar')->isoFormat('LL') }}</strong>
-                                                @elseif($reportPeriod == 'weekly')
+                                                <?php if($reportPeriod == 'daily'): ?>
+                                                    <strong><?php echo e(Carbon\Carbon::parse($period)->locale('ar')->isoFormat('LL')); ?></strong>
+                                                <?php elseif($reportPeriod == 'weekly'): ?>
                                                     <strong>الأسبوع
-                                                        {{ Carbon\Carbon::parse($period . '-1')->locale('ar')->weekOfYear }}
-                                                        ({{ Carbon\Carbon::parse($period . '-1')->startOfWeek()->format('Y-m-d') }}
+                                                        <?php echo e(Carbon\Carbon::parse($period . '-1')->locale('ar')->weekOfYear); ?>
+
+                                                        (<?php echo e(Carbon\Carbon::parse($period . '-1')->startOfWeek()->format('Y-m-d')); ?>
+
                                                         إلى
-                                                        {{ Carbon\Carbon::parse($period . '-1')->endOfWeek()->format('Y-m-d') }})
+                                                        <?php echo e(Carbon\Carbon::parse($period . '-1')->endOfWeek()->format('Y-m-d')); ?>)
                                                     </strong>
-                                                @elseif($reportPeriod == 'monthly')
-                                                    <strong>{{ Carbon\Carbon::parse($period . '-01')->locale('ar')->isoFormat('MMMM YYYY') }}</strong>
-                                                @elseif($reportPeriod == 'yearly')
-                                                    <strong>{{ $period }}</strong>
-                                                @endif
+                                                <?php elseif($reportPeriod == 'monthly'): ?>
+                                                    <strong><?php echo e(Carbon\Carbon::parse($period . '-01')->locale('ar')->isoFormat('MMMM YYYY')); ?></strong>
+                                                <?php elseif($reportPeriod == 'yearly'): ?>
+                                                    <strong><?php echo e($period); ?></strong>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
 
-                                        {{-- Individual Invoice Rows --}}
-                                        @foreach ($periodSales->groupBy('invoice_id') as $invoiceId => $invoiceSales)
-                                            @php
+                                        
+                                        <?php $__currentLoopData = $periodSales->groupBy('invoice_id'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoiceId => $invoiceSales): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php
                                                 $firstSale = $invoiceSales->first();
                                                 $invoiceTotalQuantity = $invoiceSales->sum('adjusted_quantity');
                                                 $invoiceTotalDiscount = $invoiceSales->sum('discount_amount');
                                                 $invoiceTotalAmount = $invoiceSales->sum('adjusted_amount');
-                                            @endphp
+                                            ?>
 
-                                            {{-- Invoice Header Row --}}
+                                            
                                             <tr class="table-info">
                                                 <td colspan="11" class="text-center">
                                                     <strong>
-                                                        رقم الفاتورة: {{ $firstSale->invoice->code }} |
+                                                        رقم الفاتورة: <?php echo e($firstSale->invoice->code); ?> |
                                                         تاريخ الفاتورة:
-                                                        {{ $firstSale->invoice->invoice_date->format('Y-m-d') }}
+                                                        <?php echo e($firstSale->invoice->invoice_date->format('Y-m-d')); ?>
+
                                                     </strong>
                                                 </td>
                                             </tr>
 
-                                            {{-- Product Rows for this Invoice --}}
-                                            @foreach ($invoiceSales as $sale)
-                                                <tr @if ($sale->invoice->type === 'return') class="table-danger" @endif>
-                                                    @if ($reportPeriod == 'daily')
-                                                        <td>{{ Carbon\Carbon::parse($period)->format('Y-m-d') }}</td>
-                                                    @elseif($reportPeriod == 'weekly')
-                                                        <td>الأسبوع {{ Carbon\Carbon::parse($period . '-1')->weekOfYear }}
-                                                        </td>
-                                                    @elseif($reportPeriod == 'monthly')
-                                                        <td>{{ Carbon\Carbon::parse($period . '-01')->format('Y-m') }}</td>
-                                                    @elseif($reportPeriod == 'yearly')
-                                                        <td>{{ $period }}</td>
-                                                    @endif
-                                                    <td>{{ $sale->invoice->code }}</td>
-                                                    <td>{{ $sale->product->id }}</td>
-                                                    <td>{{ $sale->product->name }}</td>
-                                                    <td>{{ $sale->product->code }}</td>
-                                                    <td>{{ $sale->invoice->client->trade_name }}</td>
-                                                    <td>
-                                                        @if ($sale->invoice->type === 'normal')
-                                                            فاتورة
-                                                        @elseif($sale->invoice->type === 'returned')
-                                                            مرتجع
-                                                        @elseif($sale->invoice->type === 'debit_note')
-                                                            اشعار مدين
-                                                        @elseif($sale->invoice->type === 'credit_note')
-                                                            اشعار دائن
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ number_format($sale->unit_price, 2) }}</td>
-                                                    <td>{{ $sale->adjusted_quantity }}</td>
-                                                    <td>{{ number_format($sale->discount_amount ?? 0, 2) }}</td>
-                                                    <td>{{ number_format($sale->adjusted_amount, 2) }}</td>
-                                                </tr>
-                                            @endforeach
+                                            
+                                            <?php $__currentLoopData = $invoiceSales; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sale): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <tr <?php if($sale->invoice->type === 'return'): ?> class="table-danger" <?php endif; ?>>
+                                                    <?php if($reportPeriod == 'daily'): ?>
+                                                        <td><?php echo e(Carbon\Carbon::parse($period)->format('Y-m-d')); ?></td>
+                                                    <?php elseif($reportPeriod == 'weekly'): ?>
+                                                        <td>الأسبوع <?php echo e(Carbon\Carbon::parse($period . '-1')->weekOfYear); ?>
 
-                                            {{-- Invoice Total Row --}}
+                                                        </td>
+                                                    <?php elseif($reportPeriod == 'monthly'): ?>
+                                                        <td><?php echo e(Carbon\Carbon::parse($period . '-01')->format('Y-m')); ?></td>
+                                                    <?php elseif($reportPeriod == 'yearly'): ?>
+                                                        <td><?php echo e($period); ?></td>
+                                                    <?php endif; ?>
+                                                    <td><?php echo e($sale->invoice->code); ?></td>
+                                                    <td><?php echo e($sale->product->id); ?></td>
+                                                    <td><?php echo e($sale->product->name); ?></td>
+                                                    <td><?php echo e($sale->product->code); ?></td>
+                                                    <td><?php echo e($sale->invoice->client->trade_name); ?></td>
+                                                    <td>
+                                                        <?php if($sale->invoice->type === 'normal'): ?>
+                                                            فاتورة
+                                                        <?php elseif($sale->invoice->type === 'returned'): ?>
+                                                            مرتجع
+                                                        <?php elseif($sale->invoice->type === 'debit_note'): ?>
+                                                            اشعار مدين
+                                                        <?php elseif($sale->invoice->type === 'credit_note'): ?>
+                                                            اشعار دائن
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td><?php echo e(number_format($sale->unit_price, 2)); ?></td>
+                                                    <td><?php echo e($sale->adjusted_quantity); ?></td>
+                                                    <td><?php echo e(number_format($sale->discount_amount ?? 0, 2)); ?></td>
+                                                    <td><?php echo e(number_format($sale->adjusted_amount, 2)); ?></td>
+                                                </tr>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                                            
                                             <tr class="table-warning">
                                                 <td colspan="7" class="text-end"><strong>مجموع الفاتورة</strong></td>
-                                                <td>{{ number_format($invoiceTotalQuantity, 2) }}</td>
-                                                <td>{{ number_format($invoiceTotalDiscount, 2) }}</td>
-                                                <td>{{ number_format($invoiceTotalAmount, 2) }}</td>
+                                                <td><?php echo e(number_format($invoiceTotalQuantity, 2)); ?></td>
+                                                <td><?php echo e(number_format($invoiceTotalDiscount, 2)); ?></td>
+                                                <td><?php echo e(number_format($invoiceTotalAmount, 2)); ?></td>
                                             </tr>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                                        {{-- Period Total Row --}}
+                                        
                                         <tr class="table-success">
                                             <td colspan="7" class="text-end"><strong>مجموع الفترة</strong></td>
-                                            <td>{{ number_format($periodTotalQuantity, 2) }}</td>
-                                            <td>{{ number_format($periodTotalDiscount, 2) }}</td>
-                                            <td>{{ number_format($periodTotalAmount, 2) }}</td>
+                                            <td><?php echo e(number_format($periodTotalQuantity, 2)); ?></td>
+                                            <td><?php echo e(number_format($periodTotalDiscount, 2)); ?></td>
+                                            <td><?php echo e(number_format($periodTotalAmount, 2)); ?></td>
                                         </tr>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </tbody>
                                 <tfoot>
-                                    @php
+                                    <?php
                                         $grandTotalQuantity = $adjustedSales->sum('adjusted_quantity');
                                         $grandTotalDiscount = $adjustedSales->sum('discount_amount');
                                         $grandTotalAmount = $adjustedSales->sum('adjusted_amount');
-                                    @endphp
+                                    ?>
                                     <tr class="table-primary">
                                         <td colspan="7" class="text-end"><strong>المجموع الكلي</strong></td>
-                                        <td>{{ number_format($grandTotalQuantity, 2) }}</td>
-                                        <td>{{ number_format($grandTotalDiscount, 2) }}</td>
-                                        <td>{{ number_format($grandTotalAmount, 2) }}</td>
+                                        <td><?php echo e(number_format($grandTotalQuantity, 2)); ?></td>
+                                        <td><?php echo e(number_format($grandTotalDiscount, 2)); ?></td>
+                                        <td><?php echo e(number_format($grandTotalAmount, 2)); ?></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -412,15 +420,15 @@
                     </div>
                 </div>
             </div>
-        @else
+        <?php else: ?>
             <div class="alert alert-info mt-4">
                 لا توجد بيانات متاحة للعرض
             </div>
-        @endif
+        <?php endif; ?>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
     <script>
@@ -429,10 +437,10 @@
         new Chart(quantityCtx, {
             type: 'bar',
             data: {
-                labels: @json($chartData['labels']),
+                labels: <?php echo json_encode($chartData['labels'], 15, 512) ?>,
                 datasets: [{
                     label: 'الكمية',
-                    data: @json($chartData['quantities']),
+                    data: <?php echo json_encode($chartData['quantities'], 15, 512) ?>,
                     backgroundColor: 'rgba(54, 162, 235, 0.6)'
                 }]
             },
@@ -451,10 +459,10 @@
         new Chart(amountCtx, {
             type: 'pie',
             data: {
-                labels: @json($chartData['labels']),
+                labels: <?php echo json_encode($chartData['labels'], 15, 512) ?>,
                 datasets: [{
                     label: 'المبلغ',
-                    data: @json($chartData['amounts']),
+                    data: <?php echo json_encode($chartData['amounts'], 15, 512) ?>,
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.6)',
                         'rgba(54, 162, 235, 0.6)',
@@ -498,4 +506,6 @@
             window.print(); // طباعة الصفحة كـ PDF
         });
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/salesRport/by_Product.blade.php ENDPATH**/ ?>

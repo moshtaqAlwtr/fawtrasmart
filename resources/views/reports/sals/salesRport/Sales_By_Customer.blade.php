@@ -6,7 +6,7 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .table-return {
@@ -36,40 +36,27 @@
             <div class="filter-card">
                 <form action="{{ route('salesReports.byCustomer') }}" method="GET" id="reportForm">
                     <div class="row g-3">
-                        {{-- فلتر العميل --}}
+                        {{-- First Row of Filters --}}
+
+
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="customer" class="form-select select2">
+                            <select name="client" class="form-control select2">
                                 <option value="">جميع العملاء</option>
-                                @foreach($clients as $client)
+                                @foreach ($clients as $client)
                                     <option value="{{ $client->id }}"
-                                        {{ request('customer') == $client->id ? 'selected' : '' }}>
+                                        {{ request('client') == $client->id ? 'selected' : '' }}>
                                         {{ $client->trade_name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        {{-- فلتر الموظف --}}
-                        <div class="col-md-3">
-                            <label class="form-label">أضيفت بواسطة</label>
-                            <select name="user" class="form-select">
-                                <option value="">جميع الموظفين</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}"
-                                        {{ request('user') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        {{-- فلتر الفرع --}}
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
-                            <select name="branch" class="form-select">
+                            <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
-                                @foreach($branches as $branch)
+                                @foreach ($branches as $branch)
                                     <option value="{{ $branch->id }}"
                                         {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
@@ -78,10 +65,9 @@
                             </select>
                         </div>
 
-                        {{-- فلتر حالة الدفع --}}
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
-                            <select name="status" class="form-select">
+                            <select name="status" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مدفوعة</option>
                                 <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير مدفوعة</option>
@@ -89,40 +75,61 @@
                             </select>
                         </div>
 
-                        {{-- فلتر الفترة --}}
+                        {{-- Second Row of Filters --}}
+
+
+                        {{-- New Field: Added By --}}
                         <div class="col-md-3">
-                            <label class="form-label">الفترة</label>
-                            <select name="report_period" class="form-select">
-                                <option value="daily" {{ $reportPeriod == 'daily' ? 'selected' : '' }}>يومي</option>
-                                <option value="weekly" {{ $reportPeriod == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
-                                <option value="monthly" {{ $reportPeriod == 'monthly' ? 'selected' : '' }}>شهري</option>
-                                <option value="yearly" {{ $reportPeriod == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                            <label class="form-label">تمت الإضافة بواسطة</label>
+                            <select name="added_by" class="form-control">
+                                <option value="">الكل</option>
+                                @foreach ($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('added_by') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
 
-                        {{-- فلتر من تاريخ --}}
                         <div class="col-md-3">
                             <label class="form-label">من تاريخ</label>
                             <input type="date" name="from_date" class="form-control"
                                 value="{{ $fromDate->format('Y-m-d') }}">
                         </div>
 
-                        {{-- فلتر إلى تاريخ --}}
                         <div class="col-md-3">
                             <label class="form-label">إلى تاريخ</label>
                             <input type="date" name="to_date" class="form-control"
                                 value="{{ $toDate->format('Y-m-d') }}">
                         </div>
 
-                        {{-- أزرار التحكم --}}
+                        {{-- Third Row of Filters --}}
+                        <div class="col-md-3">
+                            <label class="form-label">نوع التقرير</label>
+                            <select name="report_type" class="form-control">
+                                <option value="">الكل</option>
+                                <option value="daily" {{ request('report_type') == 'daily' ? 'selected' : '' }}>يومي
+                                </option>
+                                <option value="weekly" {{ request('report_type') == 'weekly' ? 'selected' : '' }}>أسبوعي
+                                </option>
+                                <option value="monthly" {{ request('report_type') == 'monthly' ? 'selected' : '' }}>شهري
+                                </option>
+                                <option value="yearly" {{ request('report_type') == 'yearly' ? 'selected' : '' }}>سنوي
+                                </option>
+                                <option value="sales_manager"
+                                    {{ request('report_type') == 'sales_manager' ? 'selected' : '' }}>مدير مبيعات</option>
+                                <option value="employee" {{ request('report_type') == 'employee' ? 'selected' : '' }}>
+                                    موظفين</option>
+                                <option value="returns" {{ request('report_type') == 'returns' ? 'selected' : '' }}>مرتجعات
+                                </option>
+                            </select>
+                        </div>
+
                         <div class="col-md-3 align-self-end">
-                            <button type="button" id="exportExcel" class="btn btn-success">
-                                <i class="fas fa-file-excel me-1"></i> تصدير إكسل
-                            </button>
-                            <button type="submit" class="btn btn-primary w-80">
+                            <button type="submit" class="btn btn-primary ">
                                 <i class="fas fa-filter me-2"></i> تصفية التقرير
                             </button>
-                            <a href="{{ route('salesReports.byCustomer') }}" class="btn btn-primary w-20">
+                            <a href="{{ route('salesReports.byCustomer') }}" class="btn btn-primary">
                                 <i class="fas fa-filter me-2"></i> الغاء الفلتر
                             </a>
                         </div>

@@ -288,10 +288,12 @@
                                 });
                             });
                         });
+
                     </script>
+
                 @endif
 
-                
+
                 @if ($userRole == 'employee')
                 <li class="dropdown dropdown-notification nav-item">
                     <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
