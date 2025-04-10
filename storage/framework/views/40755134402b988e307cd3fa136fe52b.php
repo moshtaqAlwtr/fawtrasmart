@@ -127,10 +127,10 @@
                         </div>
 
                         <div class="col-md-3 align-self-end">
-                            <button type="submit" class="btn btn-primary w-80">
+                            <button type="submit" class="btn btn-primary ">
                                 <i class="fas fa-filter me-2"></i> تصفية التقرير
                             </button>
-                            <a href="<?php echo e(route('salesReports.byCustomer')); ?>" class="btn btn-primary w-20">
+                            <a href="<?php echo e(route('salesReports.byCustomer')); ?>" class="btn btn-primary">
                                 <i class="fas fa-filter me-2"></i> الغاء الفلتر
                             </a>
                         </div>

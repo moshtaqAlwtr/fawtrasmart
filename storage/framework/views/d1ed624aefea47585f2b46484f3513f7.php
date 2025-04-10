@@ -246,22 +246,15 @@
                                 <?php $__empty_1 = true; $__currentLoopData = $payments->groupBy(fn($p) => optional($p->invoice?->createdByUser)->id); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employeeId => $createdByUser): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                     <?php
                                         $employee = $createdByUser->first()?->invoice?->createdByUser;
-
-
                                         $totalAmount = $createdByUser->sum('amount');
                                         $operationsCount = $createdByUser->count();
-
                                     ?>
 
                                     <?php if($employee): ?>
                                         
                                         <tr class="table-secondary fw-bold">
-
-                                            <td colspan="8"><?php echo e($employee->name); ?></td>
-
                                             <td colspan="5"><?php echo e($employee->name); ?> - عدد العمليات: <?php echo e($operationsCount); ?></td>
                                             <td colspan="3" class="text-end">إجمالي المدفوعات: <strong><?php echo e(number_format($totalAmount, 2)); ?> ر.س</strong></td>
-
                                         </tr>
 
                                         
@@ -300,8 +293,6 @@
                             </tbody>
                         </table>
                     </div>
-
-
 
                 </div>
             </div>
