@@ -838,4 +838,38 @@ try {
             ]);
         }
     }
+ public function generalLedger(Request $request)
+{
+    $fromDate = $request->input('fromDate');
+    $toDate = $request->input('toDate');
+    $accountId = $request->input('account_id');
+
+    $query = JournalEntryDetail::with('journalEntry', 'account');
+
+    if ($fromDate && $toDate) {
+        $query->whereHas('journalEntry', function ($q) use ($fromDate, $toDate) {
+            $q->whereBetween('date', [$fromDate, $toDate]);
+        });
+    }
+
+    if ($accountId) {
+        $query->where('account_id', $accountId);
+    }
+
+    $entries = $query->orderBy('journal_entry_id')->get();
+    $accounts = Account::all();
+
+    // الحساب المحدد لعرض اسمه
+    $account = $accountId ? Account::find($accountId) : null;
+
+    return view('Accounts.generalLedger', [
+        'entries' => $entries,
+        'accounts' => $accounts,
+        'account' => $account,
+        'from_date' => $fromDate,
+        'to_date' => $toDate,
+    ]);
+}
+
+
 }

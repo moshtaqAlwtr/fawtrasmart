@@ -67,6 +67,12 @@ Route::group(
                     Route::get('/edit/{id}', [JournalEntryController::class, 'edit'])->name('journal.edit');
                     Route::put('/update/{id}', [JournalEntryController::class, 'update'])->name('journal.update');
                     Route::delete('/destroy/{id}', [JournalEntryController::class, 'destroy'])->name('journal.destroy');
+                    Route::get('/generalLedger', [AccountsChartController::class, 'generalLedger'])->name('journal.generalLedger');
+                   
+                    
+
+
+                    
                 });
 
                 Route::prefix('cost_centers')->group(function () {

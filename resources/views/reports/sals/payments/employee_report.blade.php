@@ -243,15 +243,12 @@
                                 @forelse ($payments->groupBy(fn($p) => optional($p->invoice?->createdByUser)->id) as $employeeId => $createdByUser)
                                     @php
                                         $employee = $createdByUser->first()?->invoice?->createdByUser;
-                                        $totalAmount = $createdByUser->sum('amount');
-                                        $operationsCount = $createdByUser->count();
                                     @endphp
 
                                     @if ($employee)
                                         {{-- صف الموظف --}}
                                         <tr class="table-secondary fw-bold">
-                                            <td colspan="5">{{ $employee->name }} - عدد العمليات: {{ $operationsCount }}</td>
-                                            <td colspan="3" class="text-end">إجمالي المدفوعات: <strong>{{ number_format($totalAmount, 2) }} ر.س</strong></td>
+                                            <td colspan="8">{{ $employee->name }}</td>
                                         </tr>
 
                                         {{-- صفوف المدفوعات لهذا الموظف --}}
@@ -290,7 +287,6 @@
                             </tbody>
                         </table>
                     </div>
-
                 </div>
             </div>
         </div>
