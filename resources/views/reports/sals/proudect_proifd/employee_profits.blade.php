@@ -6,67 +6,131 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
+        :root {
+            --primary-color: #2E7D32;
+            --secondary-color: #4CAF50;
+            --accent-color: #2196F3;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --light-bg: #F5F5F5;
+        }
+
         body {
-            background-color: #f4f6f9;
-        }
-        .report-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-top: 30px;
-        }
-        .filter-card {
             background-color: #f8f9fa;
+        }
+
+        .card {
+            border: none;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
         }
-        .profit-positive {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .profit-negative {
-            color: #dc3545;
-            font-weight: bold;
-        }
+
         .card-header {
-            background: linear-gradient(to left, #2c3e50, #3498db);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1.25rem 1.5rem;
         }
+
         .insights-badge {
             font-size: 0.9rem;
-            margin-right: 5px;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
         }
+
+        .filter-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
         .filter-label {
             font-weight: 600;
+            margin-bottom: 0.5rem;
             color: #495057;
         }
+
         .btn-filter {
-            background-color: #3498db;
+            background-color: var(--primary-color);
             color: white;
-            transition: all 0.3s ease;
+            border-radius: 6px;
+            padding: 0.5rem 1.25rem;
         }
+
         .btn-filter:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
+            background-color: #1B5E20;
+            color: white;
         }
+
         .employee-performance-card {
-            background-color: #f1f4f8;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.25rem;
+            height: 100%;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: transform 0.3s ease;
+        }
+
+        .employee-performance-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 1rem;
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .table tfoot td {
+            font-weight: bold;
+            background-color: #e8f5e9;
+        }
+
+        .profit-positive {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .profit-negative {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start !important;
+            }
+
+            .insights-badge {
+                margin-top: 0.5rem;
+                margin-left: 0 !important;
+            }
         }
     </style>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="report-container">
+    <div class="container-fluid py-4">
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -85,95 +149,147 @@
                             </button>
                         </div>
                     </div>
+
                     <div class="card-body">
+                        <!-- فلترة البيانات -->
                         <div class="filter-card">
                             <form method="GET" action="{{ route('salesReports.employeeProfits') }}" id="profitsFilterForm">
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
+                                <div class="row g-3">
+                                    <!-- فترة التقرير -->
+                                    <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-calendar-alt me-2"></i>الفترة من
+                                            <i class="fas fa-calendar-alt me-2"></i>نوع التقرير
                                         </label>
-                                        <input type="date" name="from_date" class="form-control"
-                                            value="{{ $fromDate }}">
+                                        <select name="report_period" class="form-control select2" onchange="updateDateRange(this)">
+                                            <option value="monthly" {{ request('report_period', 'monthly') == 'monthly' ? 'selected' : '' }}>شهري</option>
+                                            <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                                            <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
+                                            <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                                        </select>
                                     </div>
-                                    <div class="col-md-3 mb-3">
+
+                                    <!-- تاريخ البداية -->
+                                    <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-calendar-alt me-2"></i>الفترة إلى
+                                            <i class="fas fa-calendar-alt me-2"></i>من تاريخ
                                         </label>
-                                        <input type="date" name="to_date" class="form-control"
-                                            value="{{ $toDate }}">
+                                        <input type="date" name="from_date" class="form-control" value="{{ request('from_date', $fromDate) }}" id="fromDate">
                                     </div>
-                                    <div class="col-md-3 mb-3">
+
+                                    <!-- تاريخ النهاية -->
+                                    <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-box me-2"></i>المنتجات
+                                            <i class="fas fa-calendar-alt me-2"></i>إلى تاريخ
                                         </label>
-                                        <select name="products[]" class="form-control select2" multiple>
+                                        <input type="date" name="to_date" class="form-control" value="{{ request('to_date', $toDate) }}" id="toDate">
+                                    </div>
+
+                                    <!-- فلترة الموظفين -->
+                                    <div class="col-md-3">
+                                        <label class="form-label filter-label">
+                                            <i class="fas fa-user-tie me-2"></i>الموظف
+                                        </label>
+                                        <select name="employee" class="form-control select2">
+                                            <option value="">اختر الموظف</option>
+                                            @foreach ($employees as $employee)
+                                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                                    {{ $employee->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <!-- فلترة المنتجات -->
+                                    <div class="col-md-3">
+                                        <label class="form-label filter-label">
+                                            <i class="fas fa-box me-2"></i>المنتج
+                                        </label>
+                                        <select name="product" class="form-control select2">
+                                            <option value="">اختر المنتج</option>
                                             @foreach ($products as $product)
-                                                <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                                <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>
+                                                    {{ $product->name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-3 mb-3">
+
+                                    <!-- فلترة التصنيفات -->
+                                    <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-tags me-2"></i>التصنيفات
+                                            <i class="fas fa-tags me-2"></i>التصنيف
                                         </label>
-                                        <select name="categories[]" class="form-control select2" multiple>
+                                        <select name="category" class="form-control select2">
+                                            <option value="">اختر التصنيف</option>
                                             @foreach ($categories as $category)
-                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                                    {{ $category->name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3 mb-3">
+
+                                    <!-- فلترة الماركات -->
+                                    <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-trademark me-2"></i>الماركات
+                                            <i class="fas fa-trademark me-2"></i>الماركة
                                         </label>
-                                        <select name="brands[]" class="form-control select2" multiple>
+                                        <select name="brand" class="form-control select2">
+                                            <option value="">اختر الماركة</option>
                                             @foreach ($brands as $brand)
-                                                <option value="{{ $brand }}">{{ $brand }}</option>
+                                                <option value="{{ $brand }}" {{ request('brand') == $brand ? 'selected' : '' }}>
+                                                    {{ $brand }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-3 mb-3">
+
+                                    <!-- فلترة الفروع -->
+                                    <div class="col-md-3">
                                         <label class="form-label filter-label">
-                                            <i class="fas fa-store me-2"></i>الفروع
+                                            <i class="fas fa-store me-2"></i>الفرع
                                         </label>
-                                        <select name="branches[]" class="form-control select2" multiple>
+                                        <select name="branch" class="form-control select2">
+                                            <option value="">اختر الفرع</option>
                                             @foreach ($branches as $branch)
-                                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                                <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                                    {{ $branch->name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-6 d-flex align-items-end">
-                                        <div>
-                                            <button type="submit" class="btn btn-filter me-2">
-                                                <i class="fas fa-filter me-1"></i> تصفية
-                                            </button>
-                                            <a href="{{ route('salesReports.employeeProfits') }}" class="btn btn-secondary"
-                                                id="resetFilters">
-                                                <i class="fas fa-redo me-1"></i> إعادة تعيين
-                                            </a>
+
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="col-md-12 d-flex justify-content-end">
+                                                <button type="submit" class="btn btn-primary me-2">
+                                                    <i class="fas fa-filter me-1"></i> تطبيق الفلتر
+                                                </button>
+                                                <a href="{{ route('salesReports.employeeProfits') }}" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-redo me-1"></i> إعادة تعيين
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </form>
                         </div>
 
-                        <div class="row mb-4">
+                        <!-- بطاقات الأداء -->
+                        <div class="row mb-4 g-3">
                             <div class="col-md-4">
                                 <div class="employee-performance-card">
-                                    <h5 class="text-center mb-3">
-                                        <i class="fas fa-trophy text-warning me-2"></i>
+                                    <h5 class="text-center mb-3 text-warning">
+                                        <i class="fas fa-trophy me-2"></i>
                                         أفضل أداء
                                     </h5>
-                                    @if($insights['top_performing_employee'])
+                                    @if ($insights['top_performing_employee'])
                                         <div class="text-center">
                                             <h6>{{ $insights['top_performing_employee']['name'] }}</h6>
                                             <p class="text-success">
                                                 <strong>الربح: {{ number_format($insights['top_performing_employee']['profit'], 2) }} ر.س</strong>
                                             </p>
-                                            <small>
+                                            <small class="text-muted">
                                                 إجمالي المبيعات: {{ number_format($insights['top_performing_employee']['total_value'], 2) }} ر.س
                                             </small>
                                         </div>
@@ -184,8 +300,8 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="employee-performance-card">
-                                    <h5 class="text-center mb-3">
-                                        <i class="fas fa-chart-pie text-info me-2"></i>
+                                    <h5 class="text-center mb-3 text-info">
+                                        <i class="fas fa-chart-pie me-2"></i>
                                         ملخص الأداء
                                     </h5>
                                     <div class="d-flex justify-content-between mb-2">
@@ -204,17 +320,17 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="employee-performance-card">
-                                    <h5 class="text-center mb-3">
-                                        <i class="fas fa-chart-line text-danger me-2"></i>
+                                    <h5 class="text-center mb-3 text-danger">
+                                        <i class="fas fa-chart-line me-2"></i>
                                         الأداء الأقل
                                     </h5>
-                                    @if($insights['lowest_performing_employee'])
+                                    @if ($insights['lowest_performing_employee'])
                                         <div class="text-center">
                                             <h6>{{ $insights['lowest_performing_employee']['name'] }}</h6>
                                             <p class="text-danger">
                                                 <strong>الربح: {{ number_format($insights['lowest_performing_employee']['profit'], 2) }} ر.س</strong>
                                             </p>
-                                            <small>
+                                            <small class="text-muted">
                                                 إجمالي المبيعات: {{ number_format($insights['lowest_performing_employee']['total_value'], 2) }} ر.س
                                             </small>
                                         </div>
@@ -225,40 +341,41 @@
                             </div>
                         </div>
 
+                        <!-- جدول البيانات -->
                         <div class="card">
-                            <div class="card-body">
+                            <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-hover" id="employeeProfitsTable">
+                                    <table class="table table-striped table-hover mb-0" id="employeeProfitsTable">
                                         <thead class="table-dark">
                                             <tr>
                                                 <th>اسم الموظف</th>
-                                                <th>الكمية المباعة</th>
-                                                <th>القيمة الإجمالية</th>
-                                                <th>متوسط سعر البيع</th>
-                                                <th>التكلفة الإجمالية</th>
-                                                <th>صافي الربح</th>
-                                                <th>نسبة الربح</th>
+                                                <th class="text-end">الكمية المباعة</th>
+                                                <th class="text-end">القيمة الإجمالية</th>
+                                                <th class="text-end">متوسط سعر البيع</th>
+                                                <th class="text-end">التكلفة الإجمالية</th>
+                                                <th class="text-end">صافي الربح</th>
+                                                <th class="text-end">نسبة الربح</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse($employeeProfitsReport as $employee)
                                                 <tr>
                                                     <td>{{ $employee['name'] }}</td>
-                                                    <td>{{ number_format($employee['total_quantity'], 2) }}</td>
-                                                    <td>{{ number_format($employee['total_value'], 2) }} ر.س</td>
-                                                    <td>{{ number_format($employee['avg_selling_price'], 2) }} ر.س</td>
-                                                    <td>{{ number_format($employee['total_cost'], 2) }} ر.س</td>
-                                                    <td class="{{ $employee['profit'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
+                                                    <td class="text-end">{{ number_format($employee['total_quantity'], 2) }}</td>
+                                                    <td class="text-end">{{ number_format($employee['total_value'], 2) }} ر.س</td>
+                                                    <td class="text-end">{{ number_format($employee['avg_selling_price'], 2) }} ر.س</td>
+                                                    <td class="text-end">{{ number_format($employee['total_cost'], 2) }} ر.س</td>
+                                                    <td class="text-end {{ $employee['profit'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
                                                         {{ number_format($employee['profit'], 2) }} ر.س
                                                     </td>
-                                                    <td class="{{ $employee['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
+                                                    <td class="text-end {{ $employee['profit_percentage'] >= 0 ? 'profit-positive' : 'profit-negative' }}">
                                                         {{ number_format($employee['profit_percentage'], 2) }}%
                                                     </td>
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="7" class="text-center">
-                                                        <div class="alert alert-info">
+                                                    <td colspan="7" class="text-center py-4">
+                                                        <div class="alert alert-info mb-0">
                                                             <i class="fas fa-info-circle me-2"></i>
                                                             لا توجد بيانات للعرض في الفترة المحددة
                                                         </div>
@@ -266,20 +383,21 @@
                                                 </tr>
                                             @endforelse
                                         </tbody>
-                                        <tfoot>
-                                            <tr class="table-secondary">
+                                        <tfoot class="table-secondary">
+                                            <tr>
                                                 <td class="text-end"><strong>الإجمالي</strong></td>
-                                                <td>{{ number_format($employeeProfitsReport->sum('total_quantity'), 2) }}</td>
-                                                <td>{{ number_format($employeeProfitsReport->sum('total_value'), 2) }} ر.س</td>
-                                                <td>-</td>
-                                                <td>{{ number_format($employeeProfitsReport->sum('total_cost'), 2) }} ر.س</td>
-                                                <td>{{ number_format($employeeProfitsReport->sum('profit'), 2) }} ر.س</td>
-                                                <td>
+                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('total_quantity'), 2) }}</td>
+                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('total_value'), 2) }} ر.س</td>
+                                                <td class="text-end">-</td>
+                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('total_cost'), 2) }} ر.س</td>
+                                                <td class="text-end">{{ number_format($employeeProfitsReport->sum('profit'), 2) }} ر.س</td>
+                                                <td class="text-end">
                                                     {{ number_format(
                                                         $employeeProfitsReport->sum('total_value') > 0
-                                                        ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100
-                                                        : 0,
-                                                    2) }}%
+                                                            ? ($employeeProfitsReport->sum('profit') / $employeeProfitsReport->sum('total_value')) * 100
+                                                            : 0,
+                                                        2,
+                                                    ) }}%
                                                 </td>
                                             </tr>
                                         </tfoot>
@@ -292,40 +410,69 @@
             </div>
         </div>
     </div>
-</div>
 @endsection
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // Initialize Select2
-
-        // Reset filters
-        $('#resetFilters').on('click', function() {
-            $('.select2').val(null).trigger('change');
-            $('input[type="date"]').val('');
-        });
-
-        // Excel Export
-        $('#exportExcel').on('click', function() {
-            // Prepare data for export
-            const table = document.getElementById('employeeProfitsTable');
-            const wb = XLSX.utils.table_to_book(table, {
-                raw: true,
-                cellDates: true
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2
+            $('.select2').select2({
+                placeholder: "اختر...",
+                allowClear: true
             });
 
-            // Generate file name with current date
-            const today = new Date();
-            const fileName = `تقرير_أرباح_الموظفين_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+            // Excel Export
+            $('#exportExcel').on('click', function() {
+                const table = document.getElementById('employeeProfitsTable');
+                const wb = XLSX.utils.table_to_book(table, {
+                    raw: true,
+                    cellDates: true
+                });
 
-            // Export the workbook
-            XLSX.writeFile(wb, fileName);
+                const today = new Date();
+                const fileName = `تقرير_أرباح_الموظفين_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+
+                XLSX.writeFile(wb, fileName);
+            });
+
+            // Update date range based on report period
+            function updateDateRange(select) {
+                const period = select.value;
+                const fromDateInput = document.getElementById('fromDate');
+                const toDateInput = document.getElementById('toDate');
+                const today = new Date();
+
+                let fromDate = new Date();
+
+                switch(period) {
+                    case 'daily':
+                        fromDate = today;
+                        break;
+                    case 'weekly':
+                        fromDate.setDate(today.getDate() - 7);
+                        break;
+                    case 'monthly':
+                        fromDate.setMonth(today.getMonth() - 1);
+                        break;
+                    case 'yearly':
+                        fromDate.setFullYear(today.getFullYear() - 1);
+                        break;
+                }
+
+                // Format dates as YYYY-MM-DD
+                const formatDate = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+
+                fromDateInput.value = formatDate(fromDate);
+                toDateInput.value = formatDate(today);
+            }
         });
-    });
-</script>
+    </script>
 @endsection
