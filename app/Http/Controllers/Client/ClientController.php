@@ -45,7 +45,6 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Location;
 use App\Models\Revenue;
-use App\Models\Visit;
 
 class ClientController extends Controller
 {
@@ -1062,6 +1061,7 @@ $validated = $request->validate($rules, $messages);
     }
 
     public function addnotes(Request $request)
+<<<<<<< HEAD
 {
     $request->validate([
         'client_id' => 'required|exists:clients,id',
@@ -1069,18 +1069,52 @@ $validated = $request->validate($rules, $messages);
         'description' => 'required|string',
 
     ]);
+=======
+    {
+        $ClientRelation = new ClientRelation();
+        $ClientRelation->status = $request->status;
+        $ClientRelation->client_id = $request->client_id;
+        $ClientRelation->process = $request->process;
+        $ClientRelation->description = $request->description;
 
-    $client = Client::with('locations')->findOrFail($request->client_id);
-    $employeeId = auth()->id();
+        // معالجة المرفقات إن وجدت
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/notes'), $filename);
+                $ClientRelation->attachments = $filename;
+            }
+        }
 
-    // التحقق من وجود موقع للعميل
-    $clientLocation = $client->locations()->latest()->first();
-    if (!$clientLocation) {
+        $ClientRelation->save();
+
+        // تسجيل اشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'notes',
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
+
+        $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
+$user = User::find(auth()->user()->id);
+
+notifications::create([
+'user_id' => auth()->user()->id,
+    'type' => 'notes',
+    'title' => $user->name . ' أضاف ملاحظة لعميل',
+    'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
+]);
+>>>>>>> 2c893f78ffa8a4ba618f2d3c37741f7586933bd9
+
+
         return redirect()
-            ->route('clients.show', ['id' => $request->client_id])
-            ->with('error', 'لا يوجد موقع مسجل للعميل، لا يمكن إضافة ملاحظة');
+            ->route('clients.show', ['id' => $ClientRelation->client_id])
+            ->with('success', 'تم إضافة الملاحظة بنجاح');
     }
 
+<<<<<<< HEAD
     // حساب المسافة بين الموظف والعميل (بالمتر)
     $earthRadius = 6371000;
     $latFrom = deg2rad($clientLocation->latitude);
@@ -1178,6 +1212,8 @@ $validated = $request->validate($rules, $messages);
         ->with('success', 'تم إضافة الملاحظة وتسجيل الزيارة بنجاح');
 }
 
+=======
+>>>>>>> 2c893f78ffa8a4ba618f2d3c37741f7586933bd9
     public function mang_client_details($id)
     {
         try {

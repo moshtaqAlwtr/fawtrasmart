@@ -85,20 +85,12 @@
                         <br>
                         <small class="text-muted">
                             حساب الأستاذ:
-                            <small class="text-muted">
-                                حساب الأستاذ:
-                                <?php if($client->account_client && $client->account_client->client_id == $client->id): ?>
-                                    <a href="<?php echo e(route('journal.generalLedger', ['account_id' => $client->account_client->id])); ?>">
-                                        <?php echo e($client->account_client->name ?? ""); ?> #<?php echo e($client->account_client->code ?? ""); ?>
-
-                                    </a>
-                                <?php else: ?>
-                                    <span>لا يوجد حساب مرتبط</span>
-                                <?php endif; ?>
-                            </small>
-                            
+                            <?php if($client->account): ?>
+                                <a href="#"><?php echo e($client->account->name); ?> #<?php echo e($client->account->code); ?></a>
+                            <?php else: ?>
+                                <span>No account associated</span>
+                            <?php endif; ?>
                         </small>
-                        
                     </div>
                     <?php
                         $currency = $account_setting->currency ?? 'SAR';

@@ -1039,12 +1039,6 @@
                                             class="menu-item"
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Cost_Centers')); ?></span></a>
                                 </li>
-                                 <li><a href="<?php echo e(route('journal.generalLedger')); ?>"><i
-                                            class="feather icon-circle <?php echo e(request()->is("$getLocal/finance/expenses/*") ? 'active' : ''); ?>"></i><span
-                                            class="menu-item"
-                                            data-i18n="Analytics">حساب الاستاذ</span></a>
-                                </li>
-
                             <?php endif; ?>
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('g_a_d_r_add_new_assets')): ?>

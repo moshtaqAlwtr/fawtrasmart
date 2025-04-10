@@ -185,7 +185,7 @@ class AccountsChartController extends Controller
         $accounts = $accounts->get();
         $branches = Branch::all();
 
-        return view('accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
+        return view('Accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
     }
 
     public function search(Request $request)
@@ -210,7 +210,47 @@ class AccountsChartController extends Controller
 
     return response()->json($results);
 }
+// public function search(Request $request)
+// {
+//     $searchText = $request->input('search');
+//     $branchId = $request->input('branch_id');
 
+//     $query = Account::query()
+//                 ->with(['client' => function($q) {
+//                     $q->select('id', 'code', 'name');
+//                 }]);
+
+//     if ($searchText) {
+//         $query->where(function($q) use ($searchText) {
+//             $q->where('accounts.name', 'like', "%$searchText%")
+//               ->orWhere('accounts.code', 'like', "%$searchText%")
+//               ->orWhereHas('client', function($q) use ($searchText) {
+//                   $q->where('code', 'like', "%$searchText%");
+//               });
+//         });
+//     }
+
+//     if ($branchId && $branchId !== 'all') {
+//         $query->where('branch_id', $branchId);
+//     }
+
+//     return $query->select(['accounts.*'])
+//                 ->orderBy('accounts.name')
+//                 ->limit(50)
+//                 ->get()
+//                 ->map(function($account) {
+//                     return [
+//                         'id' => $account->id,
+//                         'name' => $account->name,
+//                         'code' => $account->code,
+//                         'client_code' => $account->client->code ?? null,
+//                         'client_name' => $account->client->name ?? null,
+//                         'balance' => $account->balance,
+//                         'balance_type' => $account->balance_type,
+//                         'is_client' => !is_null($account->client)
+//                     ];
+//                 });
+// }
     public function getAccountWithBalance($accountId)
 {
     // جلب الحساب مع الفروع الفرعية
@@ -276,7 +316,7 @@ private function calculateTotalBalance($account)
           $operationsPaginator = $this->paginateOperations($allOperations);
 
           // إرسال البيانات إلى الواجهة
-          return view('accounts.accounts_chart.tree_details', compact('treasury', 'operationsPaginator', 'branches'));
+          return view('Accounts.accounts_chart.tree_details', compact('treasury', 'operationsPaginator', 'branches'));
 
 
     }

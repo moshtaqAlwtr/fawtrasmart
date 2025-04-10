@@ -120,7 +120,11 @@
                         {{-- New Field: Added By --}}
                         <div class="col-md-3">
                             <label class="form-label">تمت الإضافة بواسطة</label>
+
+                            <select name="added_by" class="form-select">
+
                             <select name="added_by" class="form-control">
+
                                 <option value="">الكل</option>
                                 @foreach ($users as $user)
                                     <option value="{{ $user->id }}" {{ request('added_by') == $user->id ? 'selected' : '' }}>
@@ -145,7 +149,12 @@
                         {{-- Third Row of Filters --}}
                         <div class="col-md-3">
                             <label class="form-label">نوع التقرير</label>
+
+                            <select name="report_type" class="form-select">
+
                             <select name="report_type" class="form-control">
+
+
                                 <option value="">الكل</option>
                                 <option value="daily" {{ request('report_type') == 'daily' ? 'selected' : '' }}>يومي
                                 </option>
@@ -162,6 +171,16 @@
                                 <option value="returns" {{ request('report_type') == 'returns' ? 'selected' : '' }}>مرتجعات
                                 </option>
                             </select>
+                        </div>
+
+                        <div class="col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-primary w-80">
+                                <i class="fas fa-filter me-2"></i> تصفية التقرير
+                            </button>
+                            <a href="{{ route('salesReports.byEmployee') }}" class="btn btn-primary w-20">
+                                <i class="fas fa-filter me-2"></i> الغاء الفلتر
+                            </a>
+
                         </div>
                         <div class="col-md-3 align-self-end">
                             <div class="d-flex justify-content-between gap-2">

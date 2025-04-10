@@ -17,19 +17,16 @@
                     <?php switch($reportPeriod):
                         case ('daily'): ?>
                             تقرير المبيعات اليومية للمنتجات
-                        <?php break; ?>
-
+                            <?php break; ?>
                         <?php case ('weekly'): ?>
                             تقرير المبيعات الأسبوعية للمنتجات
-                        <?php break; ?>
-
+                            <?php break; ?>
                         <?php case ('monthly'): ?>
                             تقرير المبيعات الشهرية للمنتجات
-                        <?php break; ?>
-
+                            <?php break; ?>
                         <?php case ('yearly'): ?>
                             تقرير المبيعات السنوية للمنتجات
-                        <?php break; ?>
+                            <?php break; ?>
                     <?php endswitch; ?>
                 </h5>
                 <form action="<?php echo e(route('salesReports.byProduct')); ?>" method="GET" class="mb-4">
@@ -40,8 +37,7 @@
                             <select name="product" class="form-control">
                                 <option value="">جميع المنتجات</option>
                                 <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($product->id); ?>"
-                                        <?php echo e(request('product') == $product->id ? 'selected' : ''); ?>>
+                                    <option value="<?php echo e($product->id); ?>" <?php echo e(request('product') == $product->id ? 'selected' : ''); ?>>
                                         <?php echo e($product->name); ?> (<?php echo e($product->code); ?>)
                                     </option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -54,8 +50,7 @@
                             <select name="category" class="form-control">
                                 <option value="">جميع التصنيفات</option>
                                 <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($category->id); ?>"
-                                        <?php echo e(request('category') == $category->id ? 'selected' : ''); ?>>
+                                    <option value="<?php echo e($category->id); ?>" <?php echo e(request('category') == $category->id ? 'selected' : ''); ?>>
                                         <?php echo e($category->name); ?>
 
                                     </option>
@@ -69,10 +64,8 @@
                             <select name="invoice_type" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" <?php echo e(request('invoice_type') == '1' ? 'selected' : ''); ?>>مرتجع</option>
-                                <option value="2" <?php echo e(request('invoice_type') == '2' ? 'selected' : ''); ?>>اشعار مدين
-                                </option>
-                                <option value="3" <?php echo e(request('invoice_type') == '3' ? 'selected' : ''); ?>>اشعار دائن
-                                </option>
+                                <option value="2" <?php echo e(request('invoice_type') == '2' ? 'selected' : ''); ?>>اشعار مدين</option>
+                                <option value="3" <?php echo e(request('invoice_type') == '3' ? 'selected' : ''); ?>>اشعار دائن</option>
                             </select>
                         </div>
 
@@ -82,8 +75,7 @@
                             <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
                                 <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($branch->id); ?>"
-                                        <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
+                                    <option value="<?php echo e($branch->id); ?>" <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
                                         <?php echo e($branch->name); ?>
 
                                     </option>
@@ -97,8 +89,7 @@
                             <select name="client" class="form-control">
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($client->id); ?>"
-                                        <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                    <option value="<?php echo e($client->id); ?>" <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
                                         <?php echo e($client->trade_name); ?>
 
                                     </option>
@@ -112,8 +103,7 @@
                             <select name="client_category" class="form-control">
                                 <option value="">جميع الفئات</option>
                                 <?php $__currentLoopData = $client_categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($category->id); ?>"
-                                        <?php echo e(request('client_category') == $category->id ? 'selected' : ''); ?>>
+                                    <option value="<?php echo e($category->id); ?>" <?php echo e(request('client_category') == $category->id ? 'selected' : ''); ?>>
                                         <?php echo e($category->name); ?>
 
                                     </option>
@@ -127,12 +117,11 @@
                             <select name="employee" class="form-control">
                                 <option value="">جميع الموظفين</option>
                                 <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($employee->id); ?>"
-                                        <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
-                                        <?php echo e($employee->name); ?>
+                                <option value="<?php echo e($employee->id); ?>" <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
+                                    <?php echo e($employee->name); ?>
 
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -142,8 +131,7 @@
                             <select name="storehouse" class="form-control">
                                 <option value="">جميع المخازن</option>
                                 <?php $__currentLoopData = $storehouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $storehouse): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($storehouse->id); ?>"
-                                        <?php echo e(request('storehouse') == $storehouse->id ? 'selected' : ''); ?>>
+                                    <option value="<?php echo e($storehouse->id); ?>" <?php echo e(request('storehouse') == $storehouse->id ? 'selected' : ''); ?>>
                                         <?php echo e($storehouse->name); ?>
 
                                     </option>
@@ -156,16 +144,11 @@
                             <label class="form-label">الفترة</label>
                             <select name="report_period" class="form-control">
                                 <option value="">اختر الفترة</option>
-                                <option value="daily" <?php echo e(request('report_period') == 'daily' ? 'selected' : ''); ?>>يومي
-                                </option>
-                                <option value="weekly" <?php echo e(request('report_period') == 'weekly' ? 'selected' : ''); ?>>أسبوعي
-                                </option>
-                                <option value="monthly" <?php echo e(request('report_period') == 'monthly' ? 'selected' : ''); ?>>شهري
-                                </option>
-                                <option value="yearly" <?php echo e(request('report_period') == 'yearly' ? 'selected' : ''); ?>>سنوي
-                                </option>
-                                <option value="custom" <?php echo e(request('report_period') == 'custom' ? 'selected' : ''); ?>>مخصص
-                                </option>
+                                <option value="daily" <?php echo e(request('report_period') == 'daily' ? 'selected' : ''); ?>>يومي</option>
+                                <option value="weekly" <?php echo e(request('report_period') == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
+                                <option value="monthly" <?php echo e(request('report_period') == 'monthly' ? 'selected' : ''); ?>>شهري</option>
+                                <option value="yearly" <?php echo e(request('report_period') == 'yearly' ? 'selected' : ''); ?>>سنوي</option>
+                                <option value="custom" <?php echo e(request('report_period') == 'custom' ? 'selected' : ''); ?>>مخصص</option>
                             </select>
                         </div>
 
@@ -187,7 +170,7 @@
                         <div class="col-md-3 align-self-end">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="add_draft" id="add_draft"
-                                    value="1" <?php echo e(request('add_draft') ? 'checked' : ''); ?>>
+                                       value="1" <?php echo e(request('add_draft') ? 'checked' : ''); ?>>
                                 <label class="form-check-label" for="add_draft">عرض المسودات</label>
                             </div>
                         </div>
@@ -211,12 +194,12 @@
                 </form>
 
                 <script>
-                    // عرض/إخفاء حقول التاريخ عند اختيار "مخصص"
-                    document.querySelector('select[name="report_period"]').addEventListener('change', function() {
-                        const isCustom = this.value === 'custom';
-                        document.getElementById('from_date_container').style.display = isCustom ? 'block' : 'none';
-                        document.getElementById('to_date_container').style.display = isCustom ? 'block' : 'none';
-                    });
+                // عرض/إخفاء حقول التاريخ عند اختيار "مخصص"
+                document.querySelector('select[name="report_period"]').addEventListener('change', function() {
+                    const isCustom = this.value === 'custom';
+                    document.getElementById('from_date_container').style.display = isCustom ? 'block' : 'none';
+                    document.getElementById('to_date_container').style.display = isCustom ? 'block' : 'none';
+                });
                 </script>
             </div>
         </div>
@@ -328,16 +311,12 @@
                                                     <strong><?php echo e(Carbon\Carbon::parse($period)->locale('ar')->isoFormat('LL')); ?></strong>
                                                 <?php elseif($reportPeriod == 'weekly'): ?>
                                                     <strong>الأسبوع
+                                                        <?php echo e(Carbon\Carbon::parse($period . '-1')->locale('ar')->weekOfYear); ?>
 
-                                                        <?php echo e($weekNumber = explode('-', $period)[1]); ?>
-
-
-                                                        (<?php echo e(Carbon\Carbon::now()->setISODate(explode('-', $period)[0], $weekNumber)->startOfWeek()->format('Y-m-d')); ?>
-
+                                                        (<?php echo e(Carbon\Carbon::parse($period . '-1')->startOfWeek()->format('Y-m-d')); ?>
 
                                                         إلى
-
-                                                        <?php echo e(Carbon\Carbon::now()->setISODate(explode('-', $period)[0], $weekNumber)->endOfWeek()->format('Y-m-d')); ?>)
+                                                        <?php echo e(Carbon\Carbon::parse($period . '-1')->endOfWeek()->format('Y-m-d')); ?>)
                                                     </strong>
                                                 <?php elseif($reportPeriod == 'monthly'): ?>
                                                     <strong><?php echo e(Carbon\Carbon::parse($period . '-01')->locale('ar')->isoFormat('MMMM YYYY')); ?></strong>
@@ -374,16 +353,9 @@
                                                     <?php if($reportPeriod == 'daily'): ?>
                                                         <td><?php echo e(Carbon\Carbon::parse($period)->format('Y-m-d')); ?></td>
                                                     <?php elseif($reportPeriod == 'weekly'): ?>
-                                                    <?php
-                                                    [$year, $week] = explode('-', $period);
-                                                    $date = \Carbon\Carbon::now()->setISODate($year, $week);
-                                                ?>
+                                                        <td>الأسبوع <?php echo e(Carbon\Carbon::parse($period . '-1')->weekOfYear); ?>
 
-                                                <td>
-                                                    الأسبوع <?php echo e($date->weekOfYear); ?>
-
-                                                </td>
-
+                                                        </td>
                                                     <?php elseif($reportPeriod == 'monthly'): ?>
                                                         <td><?php echo e(Carbon\Carbon::parse($period . '-01')->format('Y-m')); ?></td>
                                                     <?php elseif($reportPeriod == 'yearly'): ?>
@@ -523,8 +495,7 @@
 
             // توليد اسم الملف مع التاريخ الحالي
             const today = new Date();
-            const fileName =
-                `تقرير_مبيعات_المنتجات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+            const fileName = `تقرير_مبيعات_المنتجات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
 
             // تصدير الكتاب
             XLSX.writeFile(wb, fileName);

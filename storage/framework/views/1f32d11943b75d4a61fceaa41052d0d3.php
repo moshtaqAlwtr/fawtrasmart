@@ -4,7 +4,7 @@
 
 <?php $__env->startSection('css'); ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/report.css')); ?>">
     <style>
         .table-return {
@@ -65,7 +65,7 @@
                         
                         <div class="col-md-3">
                             <label class="form-label">تصنيف العميل</label>
-                            <select name="category" class="form-control">
+                            <select name="category" class="form-select">
                                 <option value="">جميع التصنيفات</option>
                                 <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($category->id); ?>"
@@ -79,7 +79,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
-                            <select name="client" class="form-control">
+                            <select name="client" class="form-select">
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($client->id); ?>"
@@ -93,7 +93,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
-                            <select name="branch" class="form-control">
+                            <select name="branch" class="form-select">
                                 <option value="">جميع الفروع</option>
                                 <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($branch->id); ?>"
@@ -107,7 +107,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
-                            <select name="status" class="form-control">
+                            <select name="status" class="form-select">
                                 <option value="">الكل</option>
                                 <option value="1" <?php echo e(request('status') == '1' ? 'selected' : ''); ?>>مدفوعة</option>
                                 <option value="0" <?php echo e(request('status') == '0' ? 'selected' : ''); ?>>غير مدفوعة</option>
@@ -121,7 +121,7 @@
                         
                         <div class="col-md-3">
                             <label class="form-label">تمت الإضافة بواسطة</label>
-                            <select name="added_by" class="form-control">
+                            <select name="added_by" class="form-select">
                                 <option value="">الكل</option>
                                 <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($user->id); ?>" <?php echo e(request('added_by') == $user->id ? 'selected' : ''); ?>>
@@ -147,7 +147,7 @@
                         
                         <div class="col-md-3">
                             <label class="form-label">نوع التقرير</label>
-                            <select name="report_type" class="form-control">
+                            <select name="report_type" class="form-select">
                                 <option value="">الكل</option>
                                 <option value="daily" <?php echo e(request('report_type') == 'daily' ? 'selected' : ''); ?>>يومي
                                 </option>
@@ -165,17 +165,15 @@
                                 </option>
                             </select>
                         </div>
-                        <div class="col-md-3 align-self-end">
-                            <div class="d-flex justify-content-between gap-2">
-                                <button type="submit" class="btn btn-primary ">
-                                    <i class="fas fa-filter me-2"></i> تصفية التقرير
-                                </button>
-                                <a href="<?php echo e(route('salesReports.byEmployee')); ?>" class="btn btn-danger ">
-                                    <i class="fas fa-times me-2"></i> إلغاء الفلتر
-                                </a>
-                            </div>
-                        </div>
 
+                        <div class="col-md-3 align-self-end">
+                            <button type="submit" class="btn btn-primary w-80">
+                                <i class="fas fa-filter me-2"></i> تصفية التقرير
+                            </button>
+                            <a href="<?php echo e(route('salesReports.byEmployee')); ?>" class="btn btn-primary w-20">
+                                <i class="fas fa-filter me-2"></i> الغاء الفلتر
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>

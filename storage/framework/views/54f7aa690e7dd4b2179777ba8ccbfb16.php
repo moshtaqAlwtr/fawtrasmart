@@ -7,6 +7,7 @@
     <style>
         .ficon {
 
+
                 font-size: 16px;
                 margin-left: 8px;
             }
@@ -28,6 +29,7 @@
     }
 }
 
+
             font-size: 16px;
             margin-left: 8px;
         }
@@ -38,7 +40,6 @@
             width: 100%;
             padding: 4px;
         }
-
     </style>
 <?php $__env->stopSection(); ?>
 
@@ -130,6 +131,40 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-lg-4 col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-end">
+                            <h4>مبيعات المجموعات</h4>
+                            <div class="dropdown chart-dropdown">
+
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
+                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                                    <a class="dropdown-item" href="#">العام الماضي</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body pt-0">
+                                <div id="sales-chart" class="mb-1"></div>
+                                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="chart-info d-flex justify-content-between mb-1">
+                                        <div class="series-info d-flex align-items-center">
+                                            <i class="feather icon-layers font-medium-2 text-primary"></i>
+                                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name ?? ''); ?></span>
+                                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
 
                 <div class="row">
               <div class="col-md-12 col-12">
@@ -350,6 +385,7 @@
                 <div class="col-md-12 col-12">
 
             <div class="row">
+
                 <div class="col-lg-4 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
@@ -622,7 +658,6 @@
                             جاري تهيئة نظام التتبع...
                         </div>
 
-
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div class="d-flex align-items-center">
                                 <i class="feather icon-clock location-icon"></i>
@@ -776,5 +811,6 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <?php $__env->stopSection(); ?>
+
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/dashboard/sales/index.blade.php ENDPATH**/ ?>

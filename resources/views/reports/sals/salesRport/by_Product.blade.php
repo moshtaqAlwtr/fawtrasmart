@@ -19,19 +19,16 @@
                     @switch($reportPeriod)
                         @case('daily')
                             تقرير المبيعات اليومية للمنتجات
-                        @break
-
+                            @break
                         @case('weekly')
                             تقرير المبيعات الأسبوعية للمنتجات
-                        @break
-
+                            @break
                         @case('monthly')
                             تقرير المبيعات الشهرية للمنتجات
-                        @break
-
+                            @break
                         @case('yearly')
                             تقرير المبيعات السنوية للمنتجات
-                        @break
+                            @break
                     @endswitch
                 </h5>
                 <form action="{{ route('salesReports.byProduct') }}" method="GET" class="mb-4">
@@ -41,9 +38,8 @@
                             <label class="form-label">المنتج</label>
                             <select name="product" class="form-control">
                                 <option value="">جميع المنتجات</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->id }}"
-                                        {{ request('product') == $product->id ? 'selected' : '' }}>
+                                @foreach($products as $product)
+                                    <option value="{{ $product->id }}" {{ request('product') == $product->id ? 'selected' : '' }}>
                                         {{ $product->name }} ({{ $product->code }})
                                     </option>
                                 @endforeach
@@ -55,9 +51,8 @@
                             <label class="form-label">تصنيف المنتج</label>
                             <select name="category" class="form-control">
                                 <option value="">جميع التصنيفات</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}"
-                                        {{ request('category') == $category->id ? 'selected' : '' }}>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
@@ -70,10 +65,8 @@
                             <select name="invoice_type" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" {{ request('invoice_type') == '1' ? 'selected' : '' }}>مرتجع</option>
-                                <option value="2" {{ request('invoice_type') == '2' ? 'selected' : '' }}>اشعار مدين
-                                </option>
-                                <option value="3" {{ request('invoice_type') == '3' ? 'selected' : '' }}>اشعار دائن
-                                </option>
+                                <option value="2" {{ request('invoice_type') == '2' ? 'selected' : '' }}>اشعار مدين</option>
+                                <option value="3" {{ request('invoice_type') == '3' ? 'selected' : '' }}>اشعار دائن</option>
                             </select>
                         </div>
 
@@ -82,9 +75,8 @@
                             <label class="form-label">الفرع</label>
                             <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
-                                @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}"
-                                        {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
                                         {{ $branch->name }}
                                     </option>
                                 @endforeach
@@ -96,9 +88,8 @@
                             <label class="form-label">العميل</label>
                             <select name="client" class="form-control">
                                 <option value="">جميع العملاء</option>
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}"
-                                        {{ request('client') == $client->id ? 'selected' : '' }}>
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
                                         {{ $client->trade_name }}
                                     </option>
                                 @endforeach
@@ -110,9 +101,8 @@
                             <label class="form-label">فئة العميل</label>
                             <select name="client_category" class="form-control">
                                 <option value="">جميع الفئات</option>
-                                @foreach ($client_categories as $category)
-                                    <option value="{{ $category->id }}"
-                                        {{ request('client_category') == $category->id ? 'selected' : '' }}>
+                                @foreach($client_categories as $category)
+                                    <option value="{{ $category->id }}" {{ request('client_category') == $category->id ? 'selected' : '' }}>
                                         {{ $category->name }}
                                     </option>
                                 @endforeach
@@ -125,11 +115,10 @@
                             <select name="employee" class="form-control">
                                 <option value="">جميع الموظفين</option>
                                 @foreach ($employees as $employee)
-                                    <option value="{{ $employee->id }}"
-                                        {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                        {{ $employee->name }}
-                                    </option>
-                                @endforeach
+                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                                    {{ $employee->name }}
+                                </option>
+                            @endforeach
                             </select>
                         </div>
 
@@ -138,9 +127,8 @@
                             <label class="form-label">المخزن</label>
                             <select name="storehouse" class="form-control">
                                 <option value="">جميع المخازن</option>
-                                @foreach ($storehouses as $storehouse)
-                                    <option value="{{ $storehouse->id }}"
-                                        {{ request('storehouse') == $storehouse->id ? 'selected' : '' }}>
+                                @foreach($storehouses as $storehouse)
+                                    <option value="{{ $storehouse->id }}" {{ request('storehouse') == $storehouse->id ? 'selected' : '' }}>
                                         {{ $storehouse->name }}
                                     </option>
                                 @endforeach
@@ -152,16 +140,11 @@
                             <label class="form-label">الفترة</label>
                             <select name="report_period" class="form-control">
                                 <option value="">اختر الفترة</option>
-                                <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي
-                                </option>
-                                <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي
-                                </option>
-                                <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري
-                                </option>
-                                <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي
-                                </option>
-                                <option value="custom" {{ request('report_period') == 'custom' ? 'selected' : '' }}>مخصص
-                                </option>
+                                <option value="daily" {{ request('report_period') == 'daily' ? 'selected' : '' }}>يومي</option>
+                                <option value="weekly" {{ request('report_period') == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
+                                <option value="monthly" {{ request('report_period') == 'monthly' ? 'selected' : '' }}>شهري</option>
+                                <option value="yearly" {{ request('report_period') == 'yearly' ? 'selected' : '' }}>سنوي</option>
+                                <option value="custom" {{ request('report_period') == 'custom' ? 'selected' : '' }}>مخصص</option>
                             </select>
                         </div>
 
@@ -183,7 +166,7 @@
                         <div class="col-md-3 align-self-end">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="add_draft" id="add_draft"
-                                    value="1" {{ request('add_draft') ? 'checked' : '' }}>
+                                       value="1" {{ request('add_draft') ? 'checked' : '' }}>
                                 <label class="form-check-label" for="add_draft">عرض المسودات</label>
                             </div>
                         </div>
@@ -207,12 +190,12 @@
                 </form>
 
                 <script>
-                    // عرض/إخفاء حقول التاريخ عند اختيار "مخصص"
-                    document.querySelector('select[name="report_period"]').addEventListener('change', function() {
-                        const isCustom = this.value === 'custom';
-                        document.getElementById('from_date_container').style.display = isCustom ? 'block' : 'none';
-                        document.getElementById('to_date_container').style.display = isCustom ? 'block' : 'none';
-                    });
+                // عرض/إخفاء حقول التاريخ عند اختيار "مخصص"
+                document.querySelector('select[name="report_period"]').addEventListener('change', function() {
+                    const isCustom = this.value === 'custom';
+                    document.getElementById('from_date_container').style.display = isCustom ? 'block' : 'none';
+                    document.getElementById('to_date_container').style.display = isCustom ? 'block' : 'none';
+                });
                 </script>
             </div>
         </div>
@@ -324,14 +307,10 @@
                                                     <strong>{{ Carbon\Carbon::parse($period)->locale('ar')->isoFormat('LL') }}</strong>
                                                 @elseif($reportPeriod == 'weekly')
                                                     <strong>الأسبوع
-
-                                                        {{ $weekNumber = explode('-', $period)[1] }}
-
-                                                        ({{ Carbon\Carbon::now()->setISODate(explode('-', $period)[0], $weekNumber)->startOfWeek()->format('Y-m-d') }}
-
+                                                        {{ Carbon\Carbon::parse($period . '-1')->locale('ar')->weekOfYear }}
+                                                        ({{ Carbon\Carbon::parse($period . '-1')->startOfWeek()->format('Y-m-d') }}
                                                         إلى
-
-                                                        {{ Carbon\Carbon::now()->setISODate(explode('-', $period)[0], $weekNumber)->endOfWeek()->format('Y-m-d') }})
+                                                        {{ Carbon\Carbon::parse($period . '-1')->endOfWeek()->format('Y-m-d') }})
                                                     </strong>
                                                 @elseif($reportPeriod == 'monthly')
                                                     <strong>{{ Carbon\Carbon::parse($period . '-01')->locale('ar')->isoFormat('MMMM YYYY') }}</strong>
@@ -367,15 +346,8 @@
                                                     @if ($reportPeriod == 'daily')
                                                         <td>{{ Carbon\Carbon::parse($period)->format('Y-m-d') }}</td>
                                                     @elseif($reportPeriod == 'weekly')
-                                                    @php
-                                                    [$year, $week] = explode('-', $period);
-                                                    $date = \Carbon\Carbon::now()->setISODate($year, $week);
-                                                @endphp
-
-                                                <td>
-                                                    الأسبوع {{ $date->weekOfYear }}
-                                                </td>
-
+                                                        <td>الأسبوع {{ Carbon\Carbon::parse($period . '-1')->weekOfYear }}
+                                                        </td>
                                                     @elseif($reportPeriod == 'monthly')
                                                         <td>{{ Carbon\Carbon::parse($period . '-01')->format('Y-m') }}</td>
                                                     @elseif($reportPeriod == 'yearly')
@@ -515,8 +487,7 @@
 
             // توليد اسم الملف مع التاريخ الحالي
             const today = new Date();
-            const fileName =
-                `تقرير_مبيعات_المنتجات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
+            const fileName = `تقرير_مبيعات_المنتجات_${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}.xlsx`;
 
             // تصدير الكتاب
             XLSX.writeFile(wb, fileName);

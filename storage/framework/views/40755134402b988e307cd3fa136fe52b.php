@@ -39,7 +39,11 @@
 
                         <div class="col-md-3">
                             <label class="form-label">العميل</label>
+
+                            <select name="client" class="form-select select2">
+
                             <select name="client" class="form-control select2">
+
                                 <option value="">جميع العملاء</option>
                                 <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($client->id); ?>"
@@ -81,7 +85,11 @@
                         
                         <div class="col-md-3">
                             <label class="form-label">تمت الإضافة بواسطة</label>
+
+                            <select name="added_by" class="form-select">
+
                             <select name="added_by" class="form-control">
+
                                 <option value="">الكل</option>
                                 <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <option value="<?php echo e($user->id); ?>" <?php echo e(request('added_by') == $user->id ? 'selected' : ''); ?>>
@@ -107,7 +115,10 @@
                         
                         <div class="col-md-3">
                             <label class="form-label">نوع التقرير</label>
+                            <select name="report_type" class="form-select">
+
                             <select name="report_type" class="form-control">
+
                                 <option value="">الكل</option>
                                 <option value="daily" <?php echo e(request('report_type') == 'daily' ? 'selected' : ''); ?>>يومي
                                 </option>
@@ -127,7 +138,11 @@
                         </div>
 
                         <div class="col-md-3 align-self-end">
+
+                            <button type="submit" class="btn btn-primary w-80">
+
                             <button type="submit" class="btn btn-primary ">
+
                                 <i class="fas fa-filter me-2"></i> تصفية التقرير
                             </button>
                             <a href="<?php echo e(route('salesReports.byCustomer')); ?>" class="btn btn-primary">

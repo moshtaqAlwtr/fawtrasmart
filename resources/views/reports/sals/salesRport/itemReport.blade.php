@@ -6,6 +6,7 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
     <style>
         body {
@@ -68,27 +69,6 @@
         .text-muted {
             color: #6c757d !important;
         }
-
-        .report-link {
-            padding: 5px 10px;
-            border-radius: 5px;
-            margin-left: 5px;
-            text-decoration: none;
-        }
-
-        .report-link.details {
-            background-color: #1e90ff;
-            color: white;
-        }
-
-        .report-link.summary {
-            background-color: #28a745;
-            color: white;
-        }
-
-        .report-link:hover {
-            opacity: 0.8;
-        }
     </style>
 @endsection
 
@@ -96,28 +76,8 @@
 <div class="container-fluid mt-4">
     <div class="card shadow">
         <div class="card-body">
-            <h5 class="card-title">
-                @if($isSummary)
-                    <i class="fas fa-clipboard-list"></i> ملخص تقرير مبيعات البنود حسب
-                @else
-                    <i class="fas fa-file-alt"></i> تفاصيل تقرير مبيعات البنود حسب
-                @endif
-                {{ match($filter) {
-                    'item' => 'البند',
-                    'category' => 'التصنيف',
-                    'employee' => 'الموظف',
-                    'sales_manager' => 'مندوب المبيعات',
-                    'client' => 'العميل',
-                    default => 'البند'
-                } }}
-            </h5>
-
+            <h5 class="card-title">تقرير مبيعات البنود</h5>
             <form action="{{ route('salesReports.byItem') }}" method="GET">
-                <input type="hidden" name="filter" value="{{ $filter }}">
-                @if($isSummary)
-                    <input type="hidden" name="summary" value="1">
-                @endif
-
                 <div class="row g-3">
                     <!-- حالة الفاتورة -->
                     <div class="col-md-3">
@@ -146,7 +106,7 @@
                         <select name="employee" class="form-control">
                             <option value="">الكل</option>
                             @foreach($employees as $employee)
-                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>{{ $employee->name }}</option>
+                                <option value="{{ $employee->id }}" {{ request('employee') == $employee->id ? 'selected' : '' }}>{{ $employee->full_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -184,6 +144,8 @@
                         </select>
                     </div>
 
+
+
                     <!-- المخزن -->
                     <div class="col-md-3">
                         <label for="storehouse"><i class="fas fa-warehouse"></i> المخزن</label>
@@ -215,7 +177,6 @@
                         <label for="to_date"><i class="fas fa-calendar-alt"></i> إلى تاريخ</label>
                         <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
                     </div>
-
                     <!-- زر البحث -->
                     <div class="col-md-12 text-center mt-4">
                         <div class="row g-3 align-items-center">
@@ -228,8 +189,8 @@
 
                             <!-- زر إعادة التعيين -->
                             <div class="col-md-3">
-                                <a href="{{ route('salesReports.byItem', ['filter' => $filter, 'summary' => $isSummary ? '1' : null]) }}" class="btn btn-warning w-100">
-                                    <i class="fas fa-sync-alt"></i> إعادة تعيين
+                                <a href="{{ route('salesReports.byItem') }}" class="btn btn-warning w-100">
+                                    <i class="fas fa-reset"></i> إعادة تعيين
                                 </a>
                             </div>
 
@@ -280,6 +241,7 @@
                 <thead class="thead-dark">
                     <tr>
                         <th>المعرف</th>
+                        <th>الاسم</th>
                         <th>كود المنتج</th>
                         <th>التاريخ</th>
                         <th>الموظف</th>
@@ -293,76 +255,104 @@
                 </thead>
                 <tbody>
                     @php
-                        // تجميع البيانات حسب الاسم أولاً
-                        $groupedData = [];
-                        foreach($reportData as $data) {
-                            $groupedData[$data['name']][] = $data;
-                        }
-
+                        $currentItem = null;
+                        $totalQuantity = 0;
+                        $totalDiscount = 0;
+                        $totalAmount = 0;
                         $grandTotalQuantity = 0;
                         $grandTotalDiscount = 0;
                         $grandTotalAmount = 0;
                     @endphp
+                    @forelse($reportData as $data)
+                        @if ($currentItem != $data['name'])
+                            @if ($currentItem)
 
-                    @forelse($groupedData as $name => $items)
-                        @php
-                            $groupTotalQuantity = 0;
-                            $groupTotalDiscount = 0;
-                            $groupTotalAmount = 0;
-                        @endphp
+                                <tr class="table-warning">
+                                    <td colspan="8" class="text-end"><strong>مجموع البند: {{ $currentItem }}</strong></td>
+                                    <td>{{ number_format($totalQuantity, 2) }}</td>
+                                    <td>{{ number_format($totalDiscount, 2) }}</td>
+                                    <td>{{ number_format($totalAmount, 2) }}</td>
+                                </tr>
+                                @php
+                                    // إعادة تعيين المجاميع للبند الجديد
+                                    $totalQuantity = 0;
+                                    $totalDiscount = 0;
+                                    $totalAmount = 0;
+                                @endphp
+                            @endif
+                            <!-- عرض اسم البند الجديد مع الفترة -->
+                            <tr class="table-info">
+                                <td colspan="11" class="text-center">
+                                    @if (request('filter') == 'item')
+                                        <strong>البند: {{ $data['name'] }}</strong>
+                                    @elseif (request('filter') == 'category')
+                                        <strong>التصنيف: {{ $data['name'] }}</strong>
+                                    @elseif (request('filter') == 'brand')
+                                        <strong>الماركة: {{ $data['name'] }}</strong>
+                                    @elseif (request('filter') == 'employee')
+                                        <strong>الموظف: {{ $data['name'] }}</strong>
+                                    @elseif (request('filter') == 'sales_manager')
+                                        <strong>مندوب المبيعات: {{ $data['name'] }}</strong>
+                                    @elseif (request('filter') == 'client')
+                                        <strong>العميل: {{ $data['name'] }}</strong>
+                                    @endif
 
-                        <tr class="table-primary">
-                            <td colspan="10" class="text-center font-weight-bold">
-                                {{ match($filter) {
-                                    'item' => 'البند: ',
-                                    'category' => 'التصنيف: ',
-                                    'employee' => 'الموظف: ',
-                                    'sales_manager' => 'مندوب المبيعات: ',
-                                    'client' => 'العميل: ',
-                                    default => ''
-                                } }}{{ $name }}
-                            </td>
-                        </tr>
-
-                        @foreach($items as $data)
-                            <tr>
-                                <td>{{ $data['id'] }}</td>
-                                <td>{{ $data['product_code'] }}</td>
-                                <td>{{ $data['date'] }}</td>
-                                <td>{{ $data['employee'] }}</td>
-                                <td>{{ $data['invoice'] }}</td>
-                                <td>{{ $data['client'] }}</td>
-                                <td>{{ number_format($data['unit_price'], 2) }}</td>
-                                <td>{{ $data['quantity'] }}</td>
-                                <td>{{ number_format($data['discount'], 2) }}</td>
-                                <td>{{ number_format($data['total'], 2) }}</td>
+                                    @if (request('period') == 'daily')
+                                        <br><span class="text-muted">(تاريخ اليوم: {{ Carbon\Carbon::now()->format('Y-m-d') }})</span>
+                                    @elseif (request('period') == 'weekly')
+                                        <br><span class="text-muted">(الأسبوع الحالي: من {{ Carbon\Carbon::now()->startOfWeek()->format('Y-m-d') }} إلى {{ Carbon\Carbon::now()->endOfWeek()->format('Y-m-d') }})</span>
+                                    @elseif (request('period') == 'monthly')
+                                        <br><span class="text-muted">(الشهر الحالي: {{ Carbon\Carbon::now()->format('Y-m') }})</span>
+                                    @elseif (request('period') == 'yearly')
+                                        <br><span class="text-muted">(السنة الحالية: {{ Carbon\Carbon::now()->format('Y') }})</span>
+                                    @endif
+                                </td>
                             </tr>
-
                             @php
-                                $groupTotalQuantity += $data['quantity'];
-                                $groupTotalDiscount += $data['discount'];
-                                $groupTotalAmount += $data['total'];
-
-                                $grandTotalQuantity += $data['quantity'];
-                                $grandTotalDiscount += $data['discount'];
-                                $grandTotalAmount += $data['total'];
+                                $currentItem = $data['name'];
                             @endphp
-                        @endforeach
-
-                        <tr class="table-secondary">
-                            <td colspan="7" class="text-end font-weight-bold">مجموع {{ $name }}</td>
-                            <td>{{ number_format($groupTotalQuantity, 2) }}</td>
-                            <td>{{ number_format($groupTotalDiscount, 2) }}</td>
-                            <td>{{ number_format($groupTotalAmount, 2) }}</td>
+                        @endif
+                        <!-- عرض تفاصيل البند -->
+                        <tr>
+                            <td>{{ $data['id'] }}</td>
+                            <td>{{ $data['name'] }}</td>
+                            <td>{{ $data['product_code'] }}</td>
+                            <td>{{ $data['date'] }}</td>
+                            <td>{{ $data['employee'] }}</td>
+                            <td>{{ $data['invoice'] }}</td>
+                            <td>{{ $data['client'] }}</td>
+                            <td>{{ number_format($data['unit_price'], 2) }}</td>
+                            <td>{{ $data['quantity'] }}</td>
+                            <td>{{ number_format($data['discount'], 2) }}</td>
+                            <td>{{ number_format($data['total'], 2) }}</td>
                         </tr>
+                        @php
+                            // حساب المجاميع للبند الحالي
+                            $totalQuantity += $data['quantity'];
+                            $totalDiscount += $data['discount'];
+                            $totalAmount += $data['total'];
+                            // حساب المجاميع العامة
+                            $grandTotalQuantity += $data['quantity'];
+                            $grandTotalDiscount += $data['discount'];
+                            $grandTotalAmount += $data['total'];
+                        @endphp
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center text-muted">لا توجد بيانات لعرضها</td>
+                            <td colspan="11" class="text-center text-muted">لا توجد بيانات لعرضها</td>
                         </tr>
                     @endforelse
-
+                    <!-- عرض المجموع الكلي للبند الأخير -->
+                    @if ($currentItem)
+                        <tr class="table-warning">
+                            <td colspan="8" class="text-end"><strong>مجموع البند: {{ $currentItem }}</strong></td>
+                            <td>{{ number_format($totalQuantity, 2) }}</td>
+                            <td>{{ number_format($totalDiscount, 2) }}</td>
+                            <td>{{ number_format($totalAmount, 2) }}</td>
+                        </tr>
+                    @endif
+                    <!-- عرض المجموع العام -->
                     <tr class="table-success">
-                        <td colspan="7" class="text-end font-weight-bold">المجموع العام</td>
+                        <td colspan="8" class="text-end"><strong>المجموع العام</strong></td>
                         <td>{{ number_format($grandTotalQuantity, 2) }}</td>
                         <td>{{ number_format($grandTotalDiscount, 2) }}</td>
                         <td>{{ number_format($grandTotalAmount, 2) }}</td>
@@ -371,9 +361,9 @@
             </table>
         </div>
     </div>
+
 </div>
 @endsection
-
 @section('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
     <script>
