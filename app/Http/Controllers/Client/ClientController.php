@@ -1067,10 +1067,7 @@ $validated = $request->validate($rules, $messages);
         'client_id' => 'required|exists:clients,id',
         'process' => 'required|string',
         'description' => 'required|string',
-        'status' => 'required|string',
-        'latitude' => 'required|numeric',
-        'longitude' => 'required|numeric',
-        'attachments' => 'nullable|file'
+
     ]);
 
     $client = Client::with('locations')->findOrFail($request->client_id);
@@ -1085,7 +1082,7 @@ $validated = $request->validate($rules, $messages);
     }
 
     // حساب المسافة بين الموظف والعميل (بالمتر)
-    $earthRadius = 6371000; // نصف قطر الأرض بالمتر
+    $earthRadius = 6371000;
     $latFrom = deg2rad($clientLocation->latitude);
     $lonFrom = deg2rad($clientLocation->longitude);
     $latTo = deg2rad($request->latitude);
@@ -1102,28 +1099,27 @@ $validated = $request->validate($rules, $messages);
             ->with('error', 'يجب أن تكون ضمن 100 متر من العميل لإضافة ملاحظة');
     }
 
-    // تسجيل زيارة تلقائية للعميل
-    $visit = Visit::create([
-        'employee_id' => $employeeId,
-        'client_id' => $client->id,
-        'visit_date' => now(),
-        'status' => 'present',
-        'employee_latitude' => $request->latitude,
-        'employee_longitude' => $request->longitude,
-        'arrival_time' => now(),
-        'notes' => 'زيارة تلقائية عبر إضافة ملاحظة: ' . $request->description,
-        'departure_notification_sent' => false,
-    ]);
+    // إنشاء زيارة جديدة كما في كنترولر الزيارات
+    $visit = new Visit();
+    $visit->employee_id = $employeeId;
+    $visit->client_id = $client->id;
+    $visit->visit_date = now();
+    $visit->status = 'present';
+    $visit->employee_latitude = $request->latitude;
+    $visit->employee_longitude = $request->longitude;
+    $visit->arrival_time = now();
+    $visit->notes = 'زيارة تلقائية عبر إضافة ملاحظة: ' . $request->description;
+    $visit->departure_notification_sent = false;
+    $visit->save();
 
-    // إضافة الملاحظة
+    // إضافة الملاحظة وربطها بالزيارة
     $ClientRelation = new ClientRelation();
     $ClientRelation->status = $request->status;
     $ClientRelation->client_id = $request->client_id;
     $ClientRelation->process = $request->process;
     $ClientRelation->description = $request->description;
-    $ClientRelation->visit_id = $visit->id; // ربط الملاحظة بالزيارة
+    $ClientRelation->visit_id = $visit->id;
 
-    // معالجة المرفقات إن وجدت
     if ($request->hasFile('attachments') && $request->file('attachments')->isValid()) {
         $file = $request->file('attachments');
         $filename = time() . '_' . $file->getClientOriginalName();
@@ -1133,28 +1129,53 @@ $validated = $request->validate($rules, $messages);
 
     $ClientRelation->save();
 
-    // تسجيل اشعار نظام جديد
+    // إرسال الإشعارات كما في كنترولر الزيارات
+    $employeeName = auth()->user()->name;
+    $clientName = $client->trade_name;
+
+    // إشعار للموظف
+    notifications::create([
+        'user_id' => $employeeId,
+        'type' => 'visit',
+        'title' => 'وصول إلى عميل',
+        'message' => "تم تسجيل وصولك إلى العميل: $clientName",
+        'read' => false,
+        'data' => [
+            'visit_id' => $visit->id,
+            'client_id' => $client->id,
+            'type' => 'arrival'
+        ]
+    ]);
+
+    // إشعار للمديرين
+    $managers = User::role('manager')->get();
+    foreach ($managers as $manager) {
+        notifications::create([
+            'user_id' => $manager->id,
+            'type' => 'visit',
+            'title' => 'وصول موظف إلى عميل',
+            'message' => "الموظف $employeeName وصل إلى العميل $clientName",
+            'read' => false,
+            'data' => [
+                'visit_id' => $visit->id,
+                'employee_id' => $employeeId,
+                'client_id' => $client->id,
+                'type' => 'arrival'
+            ]
+        ]);
+    }
+
+    // إشعار النظام
     ModelsLog::create([
         'type' => 'notes',
         'type_log' => 'log',
-        'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+        'description' => 'تم اضافة ملاحظة **' . $request->description . '** مع تسجيل زيارة',
         'created_by' => $employeeId,
     ]);
 
-    // إرسال الإشعار
-    $clientName = $client->trade_name;
-    $user = User::find($employeeId);
-
-    notifications::create([
-        'user_id' => $employeeId,
-        'type' => 'notes',
-        'title' => $user->name . ' أضاف ملاحظة لعميل',
-        'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-    ]);
-
     return redirect()
-        ->route('clients.show', ['id' => $ClientRelation->client_id])
-        ->with('success', 'تم إضافة الملاحظة بنجاح وتسجيل الزيارة');
+        ->route('clients.show', ['id' => $client->id])
+        ->with('success', 'تم إضافة الملاحظة وتسجيل الزيارة بنجاح');
 }
 
     public function mang_client_details($id)

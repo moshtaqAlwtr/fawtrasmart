@@ -3,7 +3,7 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('css'); ?>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -70,7 +70,7 @@
                     <!-- فلتر العميل -->
                     <div class="col-md-3">
                         <label for="client" class="form-label"><i class="fas fa-user me-2"></i>العميل</label>
-                        <select id="client" name="client" class="form-select">
+                        <select id="client" name="client" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($client->id); ?>" <?php echo e(request()->input('client') == $client->id ? 'selected' : ''); ?>>
@@ -84,7 +84,7 @@
                     <!-- فلتر الموظف -->
                     <div class="col-md-3">
                         <label for="employee" class="form-label"><i class="fas fa-user-tie me-2"></i>الموظف</label>
-                        <select id="employee" name="employee" class="form-select">
+                        <select id="employee" name="employee" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($employee->id); ?>" <?php echo e(request()->input('employee') == $employee->id ? 'selected' : ''); ?>>
@@ -98,7 +98,7 @@
                     <!-- فلتر الفرع -->
                     <div class="col-md-3">
                         <label for="branch" class="form-label"><i class="fas fa-store me-2"></i>الفرع</label>
-                        <select id="branch" name="branch" class="form-select">
+                        <select id="branch" name="branch" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($branch->id); ?>" <?php echo e(request()->input('branch') == $branch->id ? 'selected' : ''); ?>>
@@ -112,7 +112,7 @@
                     <!-- فلتر المنتج -->
                     <div class="col-md-3">
                         <label for="product" class="form-label"><i class="fas fa-box me-2"></i>المنتج</label>
-                        <select id="product" name="product" class="form-select">
+                        <select id="product" name="product" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($product->id); ?>" <?php echo e(request()->input('product') == $product->id ? 'selected' : ''); ?>>
@@ -126,7 +126,7 @@
                     <!-- فلتر التصنيف -->
                     <div class="col-md-3">
                         <label for="category" class="form-label"><i class="fas fa-tags me-2"></i>التصنيف</label>
-                        <select id="category" name="category" class="form-select">
+                        <select id="category" name="category" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($category->id); ?>" <?php echo e(request()->input('category') == $category->id ? 'selected' : ''); ?>>
@@ -140,7 +140,7 @@
                     <!-- فلتر العلامة التجارية -->
                     <div class="col-md-3">
                         <label for="brand" class="form-label"><i class="fas fa-tag me-2"></i>العلامة التجارية</label>
-                        <select id="brand" name="brand" class="form-select">
+                        <select id="brand" name="brand" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $brands; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $brand): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($brand); ?>" <?php echo e(request()->input('brand') == $brand ? 'selected' : ''); ?>>
@@ -154,7 +154,7 @@
                     <!-- فلتر فئة العميل -->
                     <div class="col-md-3">
                         <label for="customer_category" class="form-label"><i class="fas fa-users me-2"></i>فئة العميل</label>
-                        <select id="customer_category" name="customer_category" class="form-select">
+                        <select id="customer_category" name="customer_category" class="form-control">
                             <option value="">الكل</option>
                             <?php $__currentLoopData = $customerCategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($category->id); ?>" <?php echo e(request()->input('customer_category') == $category->id ? 'selected' : ''); ?>>
@@ -168,7 +168,7 @@
                     <!-- فلتر حالة الفاتورة -->
                     <div class="col-md-3">
                         <label for="status" class="form-label"><i class="fas fa-info-circle me-2"></i>حالة الفاتورة</label>
-                        <select id="status" name="status" class="form-select">
+                        <select id="status" name="status" class="form-control">
                             <option value="">الكل</option>
                             <option value="paid" <?php echo e(request()->input('status') == 'paid' ? 'selected' : ''); ?>>مدفوعة</option>
                             <option value="unpaid" <?php echo e(request()->input('status') == 'unpaid' ? 'selected' : ''); ?>>غير مدفوعة</option>
@@ -191,7 +191,7 @@
                     <!-- فلتر نوع التقرير -->
                     <div class="col-md-3">
                         <label for="report_period" class="form-label"><i class="fas fa-chart-line me-2"></i>نوع التقرير</label>
-                        <select id="report_period" name="report_period" class="form-select">
+                        <select id="report_period" name="report_period" class="form-control">
                             <option value="daily" <?php echo e($reportPeriod == 'daily' ? 'selected' : ''); ?>>يومي</option>
                             <option value="weekly" <?php echo e($reportPeriod == 'weekly' ? 'selected' : ''); ?>>أسبوعي</option>
                             <option value="monthly" <?php echo e($reportPeriod == 'monthly' ? 'selected' : ''); ?>>شهري</option>

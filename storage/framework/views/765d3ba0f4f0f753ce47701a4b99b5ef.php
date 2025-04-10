@@ -292,67 +292,69 @@
                 </thead>
                 <tbody>
                     <?php
-                        $currentGroup = null;
+                        // تجميع البيانات حسب الاسم أولاً
+                        $groupedData = [];
+                        foreach($reportData as $data) {
+                            $groupedData[$data['name']][] = $data;
+                        }
+
                         $grandTotalQuantity = 0;
                         $grandTotalDiscount = 0;
                         $grandTotalAmount = 0;
                     ?>
 
-                    <?php $__empty_1 = true; $__currentLoopData = $reportData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <?php if($currentGroup != $data['name']): ?>
-                            <?php
-                                $currentGroup = $data['name'];
-                                $groupTotalQuantity = 0;
-                                $groupTotalDiscount = 0;
-                                $groupTotalAmount = 0;
-                            ?>
-
-                            <tr class="table-primary">
-                                <td colspan="10" class="text-center font-weight-bold">
-                                    <?php echo e(match($filter) {
-                                        'item' => 'البند: ',
-                                        'category' => 'التصنيف: ',
-                                        'employee' => 'الموظف: ',
-                                        'sales_manager' => 'مندوب المبيعات: ',
-                                        'client' => 'العميل: ',
-                                        default => ''
-                                    }); ?><?php echo e($data['name']); ?>
-
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-
-                        <tr>
-                            <td><?php echo e($data['id']); ?></td>
-                            <td><?php echo e($data['product_code']); ?></td>
-                            <td><?php echo e($data['date']); ?></td>
-                            <td><?php echo e($data['employee']); ?></td>
-                            <td><?php echo e($data['invoice']); ?></td>
-                            <td><?php echo e($data['client']); ?></td>
-                            <td><?php echo e(number_format($data['unit_price'], 2)); ?></td>
-                            <td><?php echo e($data['quantity']); ?></td>
-                            <td><?php echo e(number_format($data['discount'], 2)); ?></td>
-                            <td><?php echo e(number_format($data['total'], 2)); ?></td>
-                        </tr>
-
+                    <?php $__empty_1 = true; $__currentLoopData = $groupedData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name => $items): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <?php
-                            $groupTotalQuantity += $data['quantity'];
-                            $groupTotalDiscount += $data['discount'];
-                            $groupTotalAmount += $data['total'];
-
-                            $grandTotalQuantity += $data['quantity'];
-                            $grandTotalDiscount += $data['discount'];
-                            $grandTotalAmount += $data['total'];
+                            $groupTotalQuantity = 0;
+                            $groupTotalDiscount = 0;
+                            $groupTotalAmount = 0;
                         ?>
 
-                        <?php if($loop->last || $reportData[$loop->index + 1]['name'] != $currentGroup): ?>
-                            <tr class="table-secondary">
-                                <td colspan="7" class="text-end font-weight-bold">المجموع الفرعي</td>
-                                <td><?php echo e(number_format($groupTotalQuantity, 2)); ?></td>
-                                <td><?php echo e(number_format($groupTotalDiscount, 2)); ?></td>
-                                <td><?php echo e(number_format($groupTotalAmount, 2)); ?></td>
+                        <tr class="table-primary">
+                            <td colspan="10" class="text-center font-weight-bold">
+                                <?php echo e(match($filter) {
+                                    'item' => 'البند: ',
+                                    'category' => 'التصنيف: ',
+                                    'employee' => 'الموظف: ',
+                                    'sales_manager' => 'مندوب المبيعات: ',
+                                    'client' => 'العميل: ',
+                                    default => ''
+                                }); ?><?php echo e($name); ?>
+
+                            </td>
+                        </tr>
+
+                        <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr>
+                                <td><?php echo e($data['id']); ?></td>
+                                <td><?php echo e($data['product_code']); ?></td>
+                                <td><?php echo e($data['date']); ?></td>
+                                <td><?php echo e($data['employee']); ?></td>
+                                <td><?php echo e($data['invoice']); ?></td>
+                                <td><?php echo e($data['client']); ?></td>
+                                <td><?php echo e(number_format($data['unit_price'], 2)); ?></td>
+                                <td><?php echo e($data['quantity']); ?></td>
+                                <td><?php echo e(number_format($data['discount'], 2)); ?></td>
+                                <td><?php echo e(number_format($data['total'], 2)); ?></td>
                             </tr>
-                        <?php endif; ?>
+
+                            <?php
+                                $groupTotalQuantity += $data['quantity'];
+                                $groupTotalDiscount += $data['discount'];
+                                $groupTotalAmount += $data['total'];
+
+                                $grandTotalQuantity += $data['quantity'];
+                                $grandTotalDiscount += $data['discount'];
+                                $grandTotalAmount += $data['total'];
+                            ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+
+                        <tr class="table-secondary">
+                            <td colspan="7" class="text-end font-weight-bold">مجموع <?php echo e($name); ?></td>
+                            <td><?php echo e(number_format($groupTotalQuantity, 2)); ?></td>
+                            <td><?php echo e(number_format($groupTotalDiscount, 2)); ?></td>
+                            <td><?php echo e(number_format($groupTotalAmount, 2)); ?></td>
+                        </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="10" class="text-center text-muted">لا توجد بيانات لعرضها</td>

@@ -1653,7 +1653,7 @@ $insights = [
     }
 
     if ($request->filled('employee')) {
-        $query->where('employee_id', $request->input('employee'));
+        $query->where('created_by', $request->input('employee'));
     }
 
     if ($request->filled('product')) {
@@ -1675,7 +1675,7 @@ $insights = [
     }
 
     // تنفيذ الاستعلام
-    $invoices = $query->get();
+    $invoices = $query->orderBy('invoice_date', 'desc')->get();
 
     // تجهيز البيانات للتقرير
     $reportData = [];
@@ -1702,7 +1702,7 @@ $insights = [
                 'invoice_id' => $invoice->id,
                 'invoice_number' => $invoice->code,
                 'client_name' => $invoice->client->trade_name,
-                'employee_name' => $invoice->employee->full_name,
+                'employee_name' => $invoice->createdByUser->name,
                 'product_id' => $item->product->id,
                 'product_name' => $item->product->name,
                 'quantity' => $item->quantity,
