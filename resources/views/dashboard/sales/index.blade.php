@@ -487,9 +487,9 @@
             </div>
             <div class="row">
 
-               
+
                 <div class="col-md-12 col-12">
-    
+
 </div>
 
 <!-- السكربت يوضع خارج البلوك -->
@@ -498,7 +498,7 @@
             </div>
             <div class="row">
               <div class="col-lg-4 col-12">
-   
+
 </div>
 
                 <div class="col-md-4 col-12">
@@ -620,9 +620,6 @@
                         </h4>
                     </div>
                     <div class="card-body">
-                        <div id="location-status" class="tracking-status alert alert-info">
-                            جاري تهيئة نظام التتبع...
-                        </div>
 
 
                         <div class="d-flex justify-content-between align-items-center mb-3">

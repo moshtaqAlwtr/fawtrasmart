@@ -3,9 +3,6 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-
-use App\Models\Region_groub;
-
 use App\Models\ClientRelation;
 use App\Models\Invoice;
 use App\Models\PaymentsProcess;
@@ -15,12 +12,12 @@ use App\Models\User;
 use App\Models\Location;
 use App\Models\Notification;
 use App\Models\notifications;
-use App\Models\Region_groub;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use App\Models\Region_groub;
 
 class VisitController extends Controller
 {
@@ -81,7 +78,7 @@ class VisitController extends Controller
         if (!$isNearby) {
             return response()->json([
                 'success' => false,
-                'message' => 'يجب أن تكون ضمن 100 متر من العميل لتسجيل الزيارة'
+                'message' => 'يجب أن تكون ضمن 300 متر من العميل لتسجيل الزيارة'
             ], 400);
         }
 
@@ -98,6 +95,7 @@ class VisitController extends Controller
         ]);
 
         $this->sendVisitNotifications($visit, 'arrival');
+        $this->sendEmployeeNotification($employeeId, 'تم تسجيل وصولك للعميل ' . $client->trade_name, 'وصول يدوي');
 
         return response()->json([
             'success' => true,
@@ -105,14 +103,122 @@ class VisitController extends Controller
             'data' => $visit
         ], 201);
     }
+    private function recordVisitAutomatically($employeeId, $clientId, $latitude, $longitude)
+    {
+        $now = now();
+        $today = $now->toDateString();
 
-    // تخزين موقع الموظف تلقائيًا (الوظيفة المحسنة)
+        // البحث عن آخر زيارة لنفس الموظف والعميل اليوم
+        $lastVisit = Visit::where('employee_id', $employeeId)
+            ->where('client_id', $clientId)
+            ->whereDate('visit_date', $today)
+            ->orderBy('visit_date', 'desc')
+            ->first();
+
+        // إذا لا يوجد زيارة سابقة
+        if (!$lastVisit) {
+            return $this->createNewVisit($employeeId, $clientId, $latitude, $longitude, 'زيارة تلقائية - أول زيارة اليوم');
+        }
+
+        // إذا كانت هناك زيارة سابقة بدون انصراف
+        if (!$lastVisit->departure_time) {
+            return null; // لا تسجل زيارة جديدة
+        }
+
+        // إذا كانت هناك زيارة سابقة مع انصراف
+        $minutesSinceDeparture = $now->diffInMinutes($lastVisit->departure_time);
+
+        // تسجيل زيارة جديدة فقط إذا مر أكثر من 30 دقيقة منذ الانصراف
+        if ($minutesSinceDeparture > 30) {
+            return $this->createNewVisit($employeeId, $clientId, $latitude, $longitude, 'زيارة تلقائية - عودة بعد انصراف');
+        }
+
+        return null;
+    }
+
+    /**
+     * إنشاء زيارة جديدة
+     */
+    private function createNewVisit($employeeId, $clientId, $latitude, $longitude, $notes)
+    {
+        $client = Client::find($clientId);
+
+        $visit = Visit::create([
+            'employee_id' => $employeeId,
+            'client_id' => $clientId,
+            'visit_date' => now(),
+            'status' => 'present',
+            'employee_latitude' => $latitude,
+            'employee_longitude' => $longitude,
+            'arrival_time' => now(),
+            'notes' => $notes,
+            'departure_notification_sent' => false,
+        ]);
+
+        $this->sendVisitNotifications($visit, 'arrival');
+        $this->sendEmployeeNotification(
+            $employeeId,
+            'تم تسجيل وصولك للعميل ' . $client->trade_name,
+            'وصول تلقائي'
+        );
+
+        return $visit;
+    }
+
+    /**
+     * التحقق من الانصراف عند الابتعاد عن العملاء
+     */
+    private function checkForDepartures($employeeId, $latitude, $longitude)
+    {
+        $activeVisits = Visit::where('employee_id', $employeeId)
+            ->whereDate('visit_date', now()->toDateString())
+            ->whereNotNull('arrival_time')
+            ->whereNull('departure_time')
+            ->with('client.locations')
+            ->get();
+
+        foreach ($activeVisits as $visit) {
+            $clientLocation = $visit->client->locations()->latest()->first();
+
+            if ($clientLocation) {
+                $distance = $this->calculateDistance(
+                    $clientLocation->latitude,
+                    $clientLocation->longitude,
+                    $latitude,
+                    $longitude
+                );
+
+                // إذا ابتعد أكثر من 300 متر ولمدة تزيد عن 5 دقائق
+                if ($distance > 300) {
+                    $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
+
+                    if ($minutesSinceArrival > 5) {
+                        $visit->update([
+                            'departure_time' => now(),
+                            'departure_notification_sent' => true,
+                            'notes' => ($visit->notes ?? '') . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل بمسافة 300 متر",
+                        ]);
+
+                        $this->sendVisitNotifications($visit, 'departure');
+                        $this->sendEmployeeNotification(
+                            $employeeId,
+                            'تم تسجيل انصرافك من العميل ' . $visit->client->trade_name,
+                            'انصراف تلقائي'
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    // تخزين موقع الموظف تلقائيًا
     public function storeLocationEnhanced(Request $request)
     {
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'accuracy' => 'nullable|numeric'
+            'accuracy' => 'nullable|numeric',
+            'isExit' => 'nullable|boolean'
         ]);
 
         $employeeId = Auth::id();
@@ -130,10 +236,21 @@ class VisitController extends Controller
                 ]
             );
 
-            // البحث عن العملاء القريبين
+            // إذا كانت هذه نقاط خروج نهائية
+            if ($request->isExit) {
+                $this->checkForDepartures($employeeId, $request->latitude, $request->longitude);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'تم تسجيل موقع الخروج بنجاح',
+                    'location' => $location
+                ]);
+            }
+
+            // البحث عن العملاء القريبين (في نطاق 300 متر)
             $nearbyClients = $this->getNearbyClients(
                 $request->latitude,
-                $request->longitude
+                $request->longitude,
+                300
             );
 
             // تسجيل الزيارات للعملاء القريبين
@@ -190,7 +307,6 @@ class VisitController extends Controller
             'notes' => 'sometimes|string',
         ]);
 
-        // التحقق من صلاحية المستخدم لتعديل هذه الزيارة
         if ($visit->employee_id != Auth::id() && !Auth::user()->hasRole('admin')) {
             return response()->json([
                 'success' => false,
@@ -202,6 +318,11 @@ class VisitController extends Controller
 
         if ($request->has('departure_time')) {
             $this->sendVisitNotifications($visit, 'departure');
+            $this->sendEmployeeNotification(
+                $visit->employee_id,
+                'تم تحديث وقت انصرافك من العميل ' . $visit->client->trade_name,
+                'تحديث انصراف'
+            );
         }
 
         return response()->json([
@@ -223,7 +344,6 @@ class VisitController extends Controller
             ], 404);
         }
 
-        // التحقق من صلاحية المستخدم لحذف هذه الزيارة
         if ($visit->employee_id != Auth::id() && !Auth::user()->hasRole('admin')) {
             return response()->json([
                 'success' => false,
@@ -282,12 +402,40 @@ class VisitController extends Controller
         ]);
     }
 
+    // تحليلات حركة الزيارات
+    public function tracktaff()
+    {
+        $groups = Region_groub::with('clients')->get();
+        $minDate = $this->getMinOperationDate();
+        $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
+        $now = now()->endOfWeek();
+        $totalWeeks = $start->diffInWeeks($now) + 1;
+
+        $weeks = [];
+        for ($i = 0; $i < $totalWeeks; $i++) {
+            $weeks[] = [
+                'start' => $start->copy()->addWeeks($i)->format('Y-m-d'),
+                'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
+            ];
+        }
+
+        return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+    }
+
+    // عرض تحليلات الحركة
+    public function traffics()
+    {
+        $groups = Region_groub::all();
+        $clients = Client::with('locations')->get();
+        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
+    }
+
     // ======== الدوال المساعدة ======== //
 
     /**
      * البحث عن العملاء القريبين من موقع الموظف
      */
-    private function getNearbyClients($latitude, $longitude, $radius = 100)
+    private function getNearbyClients($latitude, $longitude, $radius = 300)
     {
         return Client::with('locations')
             ->whereHas('locations', function($query) use ($latitude, $longitude, $radius) {
@@ -304,7 +452,7 @@ class VisitController extends Controller
     /**
      * التحقق من قرب الموظف من عميل معين
      */
-    private function checkClientProximity($latitude, $longitude, $clientId, $maxDistance = 100)
+    private function checkClientProximity($latitude, $longitude, $clientId, $maxDistance = 300)
     {
         $client = Client::with('locations')->findOrFail($clientId);
         $clientLocation = $client->locations()->latest()->first();
@@ -326,87 +474,17 @@ class VisitController extends Controller
     /**
      * تسجيل زيارة تلقائية عند الاقتراب من العميل
      */
-    private function recordVisitAutomatically($employeeId, $clientId, $latitude, $longitude)
-{
-    $today = now()->toDateString();
-    $now = now();
-
-    $existingVisit = Visit::where('employee_id', $employeeId)
-        ->where('client_id', $clientId)
-        ->whereDate('visit_date', $today)
-        ->first();
-
-    if (!$existingVisit) {
-        $visit = Visit::create([
-            'employee_id' => $employeeId,
-            'client_id' => $clientId,
-            'visit_date' => $now,
-            'status' => 'present',
-            'employee_latitude' => $latitude,
-            'employee_longitude' => $longitude,
-            'arrival_time' => $now,
-            'notes' => 'زيارة تلقائية',
-            'departure_notification_sent' => false,
-        ]);
-
-        $this->sendVisitNotifications($visit, 'arrival');
-        return $visit;
-    }
-    elseif (is_null($existingVisit->arrival_time)) {
-        $existingVisit->update([
-            'arrival_time' => $now,
-            'employee_latitude' => $latitude,
-            'employee_longitude' => $longitude,
-            'notes' => 'تحديث وقت الوصول',
-        ]);
-        return $existingVisit;
-    }
-
-    return null;
-}
 
     /**
      * التحقق من الانصراف عند الابتعاد عن العملاء
      */
-    private function checkForDepartures($employeeId, $latitude, $longitude)
-    {
-        $activeVisits = Visit::where('employee_id', $employeeId)
-            ->whereDate('visit_date', now()->toDateString())
-            ->whereNotNull('arrival_time')
-            ->whereNull('departure_time')
-            ->with('client.locations')
-            ->get();
-
-        foreach ($activeVisits as $visit) {
-            $clientLocation = $visit->client->locations()->latest()->first();
-
-            if ($clientLocation) {
-                $distance = $this->calculateDistance(
-                    $clientLocation->latitude,
-                    $clientLocation->longitude,
-                    $latitude,
-                    $longitude
-                );
-
-                if ($distance > 100) { // إذا ابتعد أكثر من 100 متر
-                    $visit->update([
-                        'departure_time' => now(),
-                        'departure_notification_sent' => true,
-                        'notes' => ($visit->notes ?? '') . "\nتم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل",
-                    ]);
-
-                    $this->sendVisitNotifications($visit, 'departure');
-                }
-            }
-        }
-    }
 
     /**
      * حساب المسافة بين نقطتين (بالمتر)
      */
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371000; // نصف قطر الأرض بالمتر
+        $earthRadius = 6371000;
 
         $latFrom = deg2rad($lat1);
         $lonFrom = deg2rad($lon1);
@@ -474,6 +552,23 @@ class VisitController extends Controller
     }
 
     /**
+     * إرسال إشعار للموظف
+     */
+    private function sendEmployeeNotification($employeeId, $message, $title)
+    {
+        notifications::create([
+            'user_id' => $employeeId,
+            'type' => 'visit_notification',
+            'title' => $title,
+            'message' => $message,
+            'read' => false,
+            'data' => [
+                'type' => 'visit_update'
+            ]
+        ]);
+    }
+
+    /**
      * إرسال إشعار التليجرام
      */
     private function sendTelegramNotification($visit, $type)
@@ -504,54 +599,20 @@ class VisitController extends Controller
         } catch (\Exception $e) {
             Log::error('فشل إرسال إشعار التليجرام: ' . $e->getMessage());
         }
-    }public function tracktaff()
-    {
-        // جلب كل المجموعات مع العملاء
-        $groups = Region_groub::with('clients')->get();
-    
-        // أقدم تاريخ عملية موجودة (نحتاج ناخذه من أقدم فاتورة أو سند أو زيارة أو ملاحظة)
-        $minDate = $this->getMinOperationDate();
-    
-        // نحسب كم أسبوع من أول عملية إلى الآن
-        $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
-        $now = now()->endOfWeek();
-        $totalWeeks = $start->diffInWeeks($now) + 1;
-    
-        // نبني الأسابيع
-        $weeks = [];
-        for ($i = 0; $i < $totalWeeks; $i++) {
-            $weeks[] = [
-                'start' => $start->copy()->addWeeks($i)->format('Y-m-d'),
-                'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
-            ];
-        }
-    
-        return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
 
-
-
-    public function traffics(){
-        $groups = Region_groub::all();
-        $clients = Client::with('locations')->get();
-        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
-    }
-
+    /**
+     * الحصول على أقدم تاريخ عملية في النظام
+     */
     private function getMinOperationDate()
     {
         $invoiceDate = Invoice::min('created_at');
         $paymentDate = PaymentsProcess::min('created_at');
         $noteDate = ClientRelation::min('created_at');
         $visitDate = Visit::min('created_at');
-    
+
         return collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
             ->filter()
             ->min();
     }
-        
-
 }
-
-
-
-

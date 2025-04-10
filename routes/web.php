@@ -36,7 +36,7 @@ Route::group(
         'prefix' => LaravelLocalization::setLocale(),
         'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'check.branch'],
     ],
-    
+
     function () {
         Route::middleware(['auth', 'client.access'])->group(function () {
             Route::get('/personal', [ClientSettingController::class, 'personal'])->name('clients.personal');
@@ -45,7 +45,7 @@ Route::group(
             Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client'); // أوامر الشغل
             Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الأسعار
             Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
-            
+
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
         });
         Route::prefix('sales')
@@ -203,7 +203,7 @@ Route::group(
                     Route::post('/general/settings', [ClientSettingController::class, 'store'])->name('clients.store_general');
                     Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
                     Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
-                    
+
 
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 

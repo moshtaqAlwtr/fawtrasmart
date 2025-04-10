@@ -85,11 +85,11 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control" id="clientSelect" name="client_id"
+                                                <select class="form-control select2" id="clientSelect" name="client_id"
                                                     required>
                                                     <option value="">اختر العميل </option>
                                                     <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($client->id); ?>"><?php echo e($client->trade_name); ?>
+                                                        <option value="<?php echo e($client->id); ?>"><?php echo e($client->trade_name); ?>-<?php echo e($client->code ?? ""); ?>
 
                                                         </option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
