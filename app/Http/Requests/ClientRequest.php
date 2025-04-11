@@ -25,7 +25,8 @@ class ClientRequest extends FormRequest
         return [
             'trade_name' => 'required|string|max:255',
             // 'code' => 'required|string|unique_without:id:clients,code,' . $id, // تعديل القاعدة هنا
-            'code' => ['required',Rule::unique('clients','code')->ignore($this->id)], // تعديل القاعدة هنا
+      'code' => ['required', Rule::unique('clients','code')->ignore($this->id)],
+ // تعديل القاعدة هنا
             'currency' => 'nullable|string|max:50',
             'first_name' => 'nullable|string|max:100',
             'last_name' => 'nullable|string|max:100',

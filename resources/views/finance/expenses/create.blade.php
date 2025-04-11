@@ -25,57 +25,45 @@
     @include('layouts.alerts.error')
     @include('layouts.alerts.success')
 
-
-
     <div class="content-body">
-
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <div>
-                        <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
-                    </div>
-
-                    <div>
-                        <a href="{{ route('expenses.index') }}" class="btn btn-outline-danger">
-                            <i class="fa fa-ban"></i>الغاء
-                        </a>
-
-                        <button type="submit" form="expenses_form" class="btn btn-outline-primary">
-                            <i class="fa fa-save"></i>حفظ
-                        </button>
-                    </div>
-
-
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-body">
-                <form id="expenses_form" action="{{ route('expenses.store') }}" method="POST"
-                    enctype="multipart/form-data">
+                <form id="expenses_form" action="{{ route('expenses.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="row">
-                         @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
-                        <div class="form-group col-md-3">
-                            <label for="amount">المبلغ <span style="color: red">*</span></label>
-                            <input type="text" class="form-control form-control-lg py-3" id="amount"
-                                placeholder="{!! $currencySymbol !!} 0.00" name="">
-                            @error('amount')
-                                <span class="text-danger" id="basic-default-name-error" class="error">
-                                    {{ $message }}
-                                </span>
-                            @enderror
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                <div>
+                                    <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                                </div>
+
+                                <div>
+                                    <a href="{{ route('expenses.index') }}" class="btn btn-outline-danger">
+                                        <i class="fa fa-ban"></i>الغاء
+                                    </a>
+
+                                    <button type="submit" form="expenses_form" class="btn btn-outline-primary">
+                                        <i class="fa fa-save"></i>حفظ
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-<div class="form-group col-md-3">
-    <label for="total_amount">المبلغ الإجمالي بعد الضريبة</label>
-    <input type="text" class="form-control form-control-lg py-3" id="total_amount"
-        placeholder="{!! $currencySymbol !!} 0.00" name="amount" readonly>
-</div>
+                    </div>
+
+                    <input type="hidden" name="created_by" value="{{ auth()->id() }}">
+
+                    <div class="row">
+
+
+                        <div class="form-group col-md-3">
+                            <label for="amount_input">المبلغ <span style="color: red">*</span></label>
+                            <input type="text" class="form-control form-control-lg py-3" id="amount_input" name="amount" >
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="total_amount">المبلغ الإجمالي بعد الضريبة</label>
+                            <input type="text" class="form-control form-control-lg py-3" name="total_amount" id="total_amount"  readonly>
+                        </div>
 
                         <div class="form-group col-md-3">
                             <label for="description">الوصف</label>
@@ -85,8 +73,7 @@
                         <div class="form-group col-md-3">
                             <label for="attachments">المرفقات</label>
                             <input type="file" name="attachments" id="attachments" class="d-none">
-                            <div class="upload-area border rounded p-3 text-center position-relative"
-                                onclick="document.getElementById('attachments').click()">
+                            <div class="upload-area border rounded p-3 text-center position-relative" onclick="document.getElementById('attachments').click()">
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     <i class="fas fa-cloud-upload-alt text-primary"></i>
                                     <span class="text-primary">اضغط هنا</span>
@@ -103,13 +90,11 @@
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="code-number">رقم الكود</label>
-                            <input type="text" class="form-control" id="code-number" name="code"
-                                value="{{ $code }}" readonly>
+                            <input type="text" class="form-control" id="code-number" name="code" value="{{ $code }}" readonly>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
-                            <input type="date" class="form-control" id="date" name="date"
-                                value="{{ date('Y-m-d') }}">
+                            <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="form-group col-md-4">
                             <label for="unit">الوحدة</label>
@@ -127,9 +112,9 @@
                             <select id="category" class="form-control" name="expenses_category_id">
                                 <option selected value="">-- اضافه تصنيف --</option>
                                 @foreach ($expenses_categories as $expenses_category)
-                                    <option value="{{ $expenses_category->id }}"
-                                        {{ old('expenses_category_id') == $expenses_category->id ? 'selected' : '' }}>
-                                        {{ $expenses_category->name }}</option>
+                                    <option value="{{ $expenses_category->id }}" {{ old('expenses_category_id') == $expenses_category->id ? 'selected' : '' }}>
+                                        {{ $expenses_category->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -139,18 +124,16 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="warehouse">خزينة</label>
-                              <input type="text"   class="form-control" placeholder="رقم المعرف"
-                            value="{{$MainTreasury->name ?? ""}}" readonly>
-                        </div>
+                            <input type="text" class="form-control" placeholder="رقم المعرف" value="{{ $MainTreasury->name ?? '' }}" readonly>
+                            <input type="hidden" name="treasury_id" value="{{ $MainTreasury->id ?? '' }}">
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="form-group col-md-4">
                             <label for="min-limit"> الحساب </label>
-                            <select id="" class="form-control select2" name="account_id">
-                                <option>اختر الحساب</option>
-
+                            <select class="form-control select2" name="account_id">
+                                <option value="">اختر الحساب</option>
                                 @foreach ($accounts as $account)
                                     <option value="{{ $account->id }}">{{ $account->name }}</option>
                                 @endforeach
@@ -167,36 +150,33 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="tax">الضرائب</label>
-                            <button type="button" class="btn btn-info btn-block" onclick="toggleTaxFields()">إضافة
-                                ضرائب</button>
+                            <button type="button" class="btn btn-info btn-block" onclick="toggleTaxFields()">إضافة ضرائب</button>
                         </div>
                     </div>
 
                     <!-- حقول الضرائب -->
-                    <div id="tax-fields" class="tax-fields">
+                    <div id="tax-fields" class="tax-fields" style="display: none;">
                         <span class="remove-tax" onclick="removeTaxFields()">إزالة الضرائب ×</span>
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label for="tax1">الضريبة الأولى</label>
                                 <select id="tax1" class="form-control" name="tax1">
-                                    <option>اختر الضريبة</option>
-                                    @foreach($taxs as $tax)
-                                    
-                                    <option value="{{$tax->tax}}">{{$tax->name ?? "" }}</option>
-                                @endforeach
+                                    <option value="">اختر الضريبة</option>
+                                    @foreach ($taxs as $tax)
+                                        <option value="{{ $tax->tax }}">{{ $tax->name ?? '' }}</option>
+                                    @endforeach
                                 </select>
-                                <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax1_amount">
+                                <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax1_amount" id="tax1_amount">
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="tax2">الضريبة الثانية</label>
                                 <select id="tax2" class="form-control" name="tax2">
-                                 <option>اختر الضريبة</option>
-                                    @foreach($taxs as $tax)
-                                    
-                                    <option value="{{$tax->tax}}">{{$tax->name ?? "" }}</option>
-                                @endforeach
+                                    <option value="">اختر الضريبة</option>
+                                    @foreach ($taxs as $tax)
+                                        <option value="{{ $tax->tax }}">{{ $tax->name ?? '' }}</option>
+                                    @endforeach
                                 </select>
-                                <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax2_amount">
+                                <input type="text" class="form-control mt-2" placeholder="المبلغ" name="tax2_amount" id="tax2_amount">
                             </div>
                         </div>
                     </div>
@@ -210,12 +190,12 @@
                                         <input type="checkbox" id="checkbox" name="is_recurring">
                                     </div>
                                 </div>
-                                <!-- حقل التكرار و تاريخ الإنتهاء يظهر عند تحديد الـ checkbox -->
+
                                 <div class="row" id="duplicate-options-container" style="display: none;">
                                     <div class="form-group col-md-4">
                                         <label for="duplicate-options">التكرار</label>
-                                        <select id="duplicate-options" class="form-control">
-                                            <option selected>حدد التكرار</option>
+                                        <select id="duplicate-options" class="form-control" name="recurring_frequency">
+                                            <option value="">حدد التكرار</option>
                                             <option value="weekly">إسبوعي</option>
                                             <option value="bi-weekly">كل أسبوعين</option>
                                             <option value="monthly">شهري</option>
@@ -225,39 +205,38 @@
                                     </div>
                                 </div>
 
-                                <!-- حقل تاريخ الإنتهاء -->
                                 <div class="row" id="end-date-container" style="display: none;">
                                     <div class="form-group col-md-4">
                                         <label for="end-date">تاريخ الإنتهاء</label>
-                                        <input type="date" class="form-control" id="end-date"
-                                            value="{{ date('Y-m-d') }}" name="end_date">
+                                        <input type="date" class="form-control" id="end-date" value="{{ date('Y-m-d') }}" name="end_date">
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
-
                 </form>
             </div>
         </div>
-
     </div>
-    <!-- JavaScript للتحكم في إظهار وإخفاء الخيارات -->
+@endsection
+
+@section('scripts')
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // إظهار/إخفاء خيارات التكرار
         document.getElementById('checkbox').addEventListener('change', function() {
             var duplicateOptionsContainer = document.getElementById('duplicate-options-container');
             var endDateContainer = document.getElementById('end-date-container');
             if (this.checked) {
-                duplicateOptionsContainer.style.display = 'block'; // إظهار خيارات التكرار
-                endDateContainer.style.display = 'block'; // إظهار حقل تاريخ الإنتهاء
+                duplicateOptionsContainer.style.display = 'block';
+                endDateContainer.style.display = 'block';
             } else {
-                duplicateOptionsContainer.style.display = 'none'; // إخفاء خيارات التكرار
-                endDateContainer.style.display = 'none'; // إخفاء حقل تاريخ الإنتهاء
+                duplicateOptionsContainer.style.display = 'none';
+                endDateContainer.style.display = 'none';
             }
         });
-    </script>
-    <script>
+
+        // إظهار/إخفاء حقول الضرائب
         function toggleTaxFields() {
             $("#tax-fields").slideToggle();
         }
@@ -265,36 +244,27 @@
         function removeTaxFields() {
             $("#tax-fields").slideUp();
         }
+
+        // حساب الضرائب والمبلغ الإجمالي
+        $(document).ready(function() {
+            function calculateTax() {
+                let amount = parseFloat($("#amount_input").val()) || 0;
+                $("#amount").val(amount); // تحديث الحقل المخفي
+
+                let tax1Rate = parseFloat($("#tax1").val()) || 0;
+                let tax2Rate = parseFloat($("#tax2").val()) || 0;
+
+                let tax1Amount = (amount * tax1Rate) / 100;
+                let tax2Amount = (amount * tax2Rate) / 100;
+
+                $("#tax1_amount").val(tax1Amount.toFixed(2));
+                $("#tax2_amount").val(tax2Amount.toFixed(2));
+
+                let totalAmount = amount + tax1Amount + tax2Amount;
+                $("#total_amount").val(totalAmount.toFixed(2));
+            }
+
+            $("#amount_input, #tax1, #tax2").on("input change", calculateTax);
+        });
     </script>
-    <!-- إضافة مكتبة jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-
-
-<script>
-    $(document).ready(function () {
-        function calculateTax() {
-            let amount = parseFloat($("#amount").val()) || 0; // المبلغ الأساسي
-            let tax1Rate = parseFloat($("#tax1").val()) || 0; // نسبة الضريبة الأولى
-            let tax2Rate = parseFloat($("#tax2").val()) || 0; // نسبة الضريبة الثانية
-
-            // حساب قيمة الضرائب
-            let tax1Amount = (amount * tax1Rate) / 100;
-            let tax2Amount = (amount * tax2Rate) / 100;
-
-            // تحديث الحقول بقيم الضرائب
-            $("input[name='tax1_amount']").val(tax1Amount.toFixed(2));
-            $("input[name='tax2_amount']").val(tax2Amount.toFixed(2));
-
-            // حساب المجموع النهائي مع الضرائب
-            let totalAmount = amount + tax1Amount + tax2Amount;
-            $("#total_amount").val(totalAmount.toFixed(2));
-        }
-
-        // عند إدخال المبلغ أو تغيير الضريبة يتم تحديث الحساب
-        $("#amount, #tax1, #tax2").on("input change", calculateTax);
-    });
-</script>
-
-
 @endsection

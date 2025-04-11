@@ -610,46 +610,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card tracking-card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="card-title mb-0">
-                            <i class="feather icon-navigation mr-2"></i>
-                            نظام تتبع الموقع
-                        </h4>
-                    </div>
-                    <div class="card-body">
 
-
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="d-flex align-items-center">
-                                <i class="feather icon-clock location-icon"></i>
-                                <div>
-                                    <div class="text-muted small">آخر تحديث</div>
-                                    <div id="last-update" class="font-weight-bold">--:--:--</div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <button id="start-tracking" class="btn btn-primary btn-tracking">
-                                    <i class="feather icon-play"></i> بدء التتبع
-                                </button>
-                                <?php if(Auth::user()->role != 'employee'): ?>
-                                    <button id="stop-tracking" class="btn btn-danger btn-tracking">
-                                        <i class="feather icon-stop-circle"></i> إيقاف
-                                    </button>
-                                <?php endif; ?>
-
-                            </div>
-                        </div>
-
-                        <div id="nearby-clients"></div>
-
-                        <div class="mt-3 text-center text-muted small">
-                            <i class="feather icon-info"></i>
-                            سيتم تتبع موقعك تلقائياً عند فتح هذه الصفحة
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
 

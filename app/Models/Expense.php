@@ -13,7 +13,7 @@ class Expense extends Model
     protected $table = 'expenses';
 
     // الحقول القابلة للتعبئة
-    protected $fillable = ['id', 'code', 'amount', 'description', 'date', 'unit_id', 'expenses_category_id',
+    protected $fillable = ['id', 'code', 'amount', 'description', 'date', 'unit_id','created_by', 'expenses_category_id',
         'supplier_id', 'seller', 'treasury_id', 'account_id','is_recurring', 'recurring_frequency', 'end_date',
         'tax1', 'tax2', 'tax1_amount','treasury_id', 'tax2_amount', 'attachments', 'cost_centers_enabled', 'created_at', 'updated_at'];
 
@@ -46,9 +46,9 @@ class Expense extends Model
         return $this->belongsTo(Treasury::class, 'treasury_id');
     }
 
-    public function employee(){
-        return $this->belongsTo(Employee::class, 'employee_id');
-    }
+    // public function employee(){
+    //     return $this->belongsTo(Employee::class, 'employee_id');
+    // }
     public function branch(){
         return $this->belongsTo(Branch::class, 'branch_id');
     }
@@ -61,5 +61,7 @@ class Expense extends Model
     public function Supplier(){
         return $this->belongsTo(Supplier::class,'supplier_id');
     }
-
+public function createdBy(){
+    return $this->belongsTo(User::class, 'created_by');
+}
 }

@@ -222,7 +222,8 @@ class ClientController extends Controller
         $branches = Branch::all();
         $lastClient = Client::orderBy('code', 'desc')->first();
 
-        $newCode = $lastClient ? $lastClient->code + 1 : 1;
+        $newCode = $lastClient ? $lastClient->code + 1 : 3000;
+
         $GeneralClientSettings = GeneralClientSetting::all();
         // إذا كان الجدول فارغًا، قم بإنشاء قيم افتراضية (مفعلة بالكامل)
         if ($GeneralClientSettings->isEmpty()) {
@@ -1046,7 +1047,7 @@ class ClientController extends Controller
         // التحقق من صحة البيانات
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
-           // 'status' => 'required|string',
+            //'status' => 'required|string',
             'process' => 'required|string',
             'description' => 'required|string',
             'attachments' => 'nullable|file',
@@ -1054,8 +1055,8 @@ class ClientController extends Controller
 
         // الحصول على أحدث موقع للموظف
         $employeeLocation = Location::where('employee_id', auth()->id())
-                                  ->latest()
-                                  ->first();
+                                    ->latest()
+                                    ->first();
 
         if (!$employeeLocation) {
             return redirect()
@@ -1065,8 +1066,8 @@ class ClientController extends Controller
 
         // الحصول على موقع العميل
         $clientLocation = Location::where('client_id', $request->client_id)
-                                ->latest()
-                                ->first();
+                                  ->latest()
+                                  ->first();
 
         if (!$clientLocation) {
             return redirect()
@@ -1074,7 +1075,7 @@ class ClientController extends Controller
                 ->with('error', 'لا يوجد موقع مسجل لهذا العميل!');
         }
 
-        // حساب المسافة بين الموظف والعميل (Haversine formula)
+        // حساب المسافة بين الموظف والعميل (Haversine formula) بالكيلومتر
         $lat1 = deg2rad($employeeLocation->latitude);
         $lon1 = deg2rad($employeeLocation->longitude);
         $lat2 = deg2rad($clientLocation->latitude);
@@ -1085,13 +1086,13 @@ class ClientController extends Controller
 
         $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
         $c = 2 * asin(sqrt($a));
-        $distance = 6371000 * $c; // نصف قطر الأرض بالمتر
+        $distance = (6371000 * $c) / 1000; // المسافة بالكيلومتر
 
-        // التحقق من أن الموظف ضمن النطاق المسموح (300 متر)
-        if ($distance > 300) {
+        // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
+        if ($distance > 0.3) {
             return redirect()
                 ->route('clients.show', $request->client_id)
-                ->with('error', 'يجب أن تكون ضمن نطاق 300 متر من العميل! المسافة الحالية: ' . round($distance) . ' متر');
+                ->with('error', 'يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
         }
 
         // بدء معاملة قاعدة البيانات
@@ -1162,7 +1163,7 @@ class ClientController extends Controller
                 ->with('error', 'حدث خطأ أثناء إضافة الملاحظة!');
         }
     }
-    /**
+        /**
      * حساب المسافة باستخدام Haversine formula
      */
     private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2)

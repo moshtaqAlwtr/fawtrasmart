@@ -7,5 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 class notifications extends Model
 {
     protected $table = 'notifications';
-    protected $fillable = ['title','description','read','type' ];
+    protected $fillable = [
+        'user_id',       // يجب إضافته
+        'title',
+        'description',
+        'message',      // يجب إضافته
+        'read',
+        'type',
+        'data'          // يجب إضافته لاحتواء البيانات الإضافية
+    ];
+
+    protected $casts = [
+        'data' => 'array' // لتحويل حقل البيانات إلى array تلقائياً
+    ];
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
 }
