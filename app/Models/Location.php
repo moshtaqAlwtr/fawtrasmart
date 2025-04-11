@@ -8,22 +8,36 @@ class Location extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['employee_id', 'client_id','branch_id', 'latitude', 'longitude'];
+    protected $fillable = [
+        'employee_id',
+        'client_id',
+        'branch_id',
+        'latitude',
+        'longitude',
+        'client_relation_id' // أضفنا هذا الحقل
+    ];
 
-    // علاقة كثير إلى واحد مع جدول الموظفين (employees)
+    // علاقة مع الموظف
     public function employee()
     {
         return $this->belongsTo(User::class);
     }
-public function branch()
-{
-    return $this->belongsTo(Branch::class, 'branch_id');
-}
 
-    // علاقة كثير إلى واحد مع جدول العملاء (clients)
+    // علاقة مع الفرع
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
+    // علاقة مع العميل
     public function client()
     {
         return $this->belongsTo(Client::class, 'client_id');
     }
 
+    // علاقة جديدة مع الملاحظة (Note)
+    public function note()
+    {
+        return $this->belongsTo(ClientRelation::class, 'client_relation_id');
+    }
 }

@@ -22,4 +22,13 @@ class ClientRelation extends Model
     {
         return $this->belongsTo(Client::class);
     }
+
+// داخل ClientRelation.php
+public function location()
+{
+    return $this->hasOne(Location::class, 'client_relation_id');
+}
+public function employee(){
+    return $this->belongsTo(User::class);
+}
 }

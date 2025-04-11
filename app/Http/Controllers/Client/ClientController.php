@@ -1043,45 +1043,146 @@ class ClientController extends Controller
 
     public function addnotes(Request $request)
     {
-        $ClientRelation = new ClientRelation();
-        $ClientRelation->status = $request->status;
-        $ClientRelation->client_id = $request->client_id;
-        $ClientRelation->process = $request->process;
-        $ClientRelation->description = $request->description;
+        // التحقق من صحة البيانات
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+           // 'status' => 'required|string',
+            'process' => 'required|string',
+            'description' => 'required|string',
+            'attachments' => 'nullable|file',
+        ]);
 
-        // معالجة المرفقات إن وجدت
-        if ($request->hasFile('attachments')) {
-            $file = $request->file('attachments');
-            if ($file->isValid()) {
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('assets/uploads/notes'), $filename);
-                $ClientRelation->attachments = $filename;
-            }
+        // الحصول على أحدث موقع للموظف
+        $employeeLocation = Location::where('employee_id', auth()->id())
+                                  ->latest()
+                                  ->first();
+
+        if (!$employeeLocation) {
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'لم يتم تحديد موقعك الجغرافي! يرجى تفعيل خدمة الموقع.');
         }
 
-        $ClientRelation->save();
+        // الحصول على موقع العميل
+        $clientLocation = Location::where('client_id', $request->client_id)
+                                ->latest()
+                                ->first();
 
-        // تسجيل اشعار نظام جديد
-        ModelsLog::create([
-            'type' => 'notes',
-            'type_log' => 'log', // نوع النشاط
-            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
+        if (!$clientLocation) {
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'لا يوجد موقع مسجل لهذا العميل!');
+        }
 
-        $clientName = Client::where('id', $ClientRelation->client_id)->value('trade_name');
-        $user = User::find(auth()->user()->id);
+        // حساب المسافة بين الموظف والعميل (Haversine formula)
+        $lat1 = deg2rad($employeeLocation->latitude);
+        $lon1 = deg2rad($employeeLocation->longitude);
+        $lat2 = deg2rad($clientLocation->latitude);
+        $lon2 = deg2rad($clientLocation->longitude);
 
-        notifications::create([
-            'user_id' => auth()->user()->id,
-            'type' => 'notes',
-            'title' => $user->name . ' أضاف ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $ClientRelation->description,
-        ]);
+        $dlat = $lat2 - $lat1;
+        $dlon = $lon2 - $lon1;
 
-        return redirect()
-            ->route('clients.show', ['id' => $ClientRelation->client_id])
-            ->with('success', 'تم إضافة الملاحظة بنجاح');
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
+        $c = 2 * asin(sqrt($a));
+        $distance = 6371000 * $c; // نصف قطر الأرض بالمتر
+
+        // التحقق من أن الموظف ضمن النطاق المسموح (300 متر)
+        if ($distance > 300) {
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'يجب أن تكون ضمن نطاق 300 متر من العميل! المسافة الحالية: ' . round($distance) . ' متر');
+        }
+
+        // بدء معاملة قاعدة البيانات
+        DB::beginTransaction();
+        try {
+            // إنشاء الملاحظة
+            $clientRelation = ClientRelation::create([
+                'employee_id' => auth()->id(),
+                'client_id' => $request->client_id,
+                'status' => $request->status,
+                'process' => $request->process,
+                'description' => $request->description,
+                'location_id' => $employeeLocation->id
+            ]);
+
+            // معالجة المرفقات إن وجدت
+            if ($request->hasFile('attachments')) {
+                $file = $request->file('attachments');
+                if ($file->isValid()) {
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('assets/uploads/notes'), $filename);
+                    $clientRelation->attachments = $filename;
+                    $clientRelation->save();
+                }
+            }
+
+            // ربط الموقع بالملاحظة
+            $employeeLocation->update([
+                'client_relation_id' => $clientRelation->id,
+                'client_id' => $request->client_id
+            ]);
+
+            // تسجيل اشعار نظام
+            ModelsLog::create([
+                'type' => 'notes',
+                'type_log' => 'log',
+                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+                'created_by' => auth()->id(),
+            ]);
+
+            // إرسال الإشعارات
+            $clientName = Client::find($request->client_id)->trade_name ?? 'عميل غير معروف';
+            $userName = auth()->user()->name;
+
+            notifications::create([
+                'user_id' => auth()->id(),
+                'type' => 'notes',
+                'title' => $userName . ' أضاف ملاحظة لعميل',
+                'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
+                'data' => [
+                    'client_id' => $request->client_id,
+                    'note_id' => $clientRelation->id
+                ]
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('success', 'تم إضافة الملاحظة بنجاح!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('فشل إضافة ملاحظة: ' . $e->getMessage());
+
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'حدث خطأ أثناء إضافة الملاحظة!');
+        }
+    }
+    /**
+     * حساب المسافة باستخدام Haversine formula
+     */
+    private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // نصف قطر الأرض بالمتر
+
+        $latFrom = deg2rad($lat1);
+        $lonFrom = deg2rad($lon1);
+        $latTo = deg2rad($lat2);
+        $lonTo = deg2rad($lon2);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(
+            pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)
+        ));
+
+        return $angle * $earthRadius;
     }
 
     public function mang_client_details($id)
