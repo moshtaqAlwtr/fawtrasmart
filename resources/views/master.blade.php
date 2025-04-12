@@ -875,7 +875,7 @@
                 if (trackingState.isTracking && !isTracking && !trackingPaused) {
                     resumeTracking();
                 }
-            }, 60000);
+            }, 600000);
         });
     </script>
 
