@@ -48,7 +48,7 @@
                             إضافة عميل
                         </a>
                     </div>
-    
+
                     <!-- القسم الأوسط: التنقل بين الصفحات -->
                     <div class="col-auto">
                         <nav aria-label="Page navigation">
@@ -59,21 +59,21 @@
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </li>
-    
+
                                 <!-- زر الانتقال إلى الصفحة السابقة -->
                                 <li class="page-item">
                                     <a class="page-link border-0" href="#" aria-label="Previous">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
                                 </li>
-    
+
                                 <!-- عرض رقم الصفحة الحالية -->
                                 <li class="page-item">
                                     <span class="page-link border-0 bg-light rounded-pill px-3">
                                         صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
                                     </span>
                                 </li>
-    
+
                                 <!-- زر الانتقال إلى الصفحة التالية -->
                                 @if ($clients->hasMorePages())
                                     <li class="page-item">
@@ -88,7 +88,7 @@
                                         </span>
                                     </li>
                                 @endif
-    
+
                                 <!-- زر الانتقال إلى الصفحة الأخيرة -->
                                 <li class="page-item">
                                     <a class="page-link border-0 rounded-end" href="#" aria-label="Last">
@@ -98,7 +98,7 @@
                             </ul>
                         </nav>
                     </div>
-    
+
                     <!-- القسم الأيمن: زر تصدير إلى Excel -->
                     {{-- <div class="col-auto">
                         <a href="" class="btn btn-primary px-4">
@@ -108,7 +108,7 @@
                     </div> --}}
                 </div>
             </div>
-    
+
             <!-- محتوى الجدول -->
             <div class="card-body">
                 <!-- محتوى الجدول هنا -->
@@ -118,7 +118,7 @@
 
         <div class="card">
             <div class="card-content">
-               
+
     <div class="card-body">
         <form class="form" method="GET" action="{{ route('clients.contacts') }}">
             <!-- البحث الأساسي -->
@@ -145,7 +145,7 @@
                 <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse" href="#advancedSearchForm" aria-expanded="false" aria-controls="advancedSearchForm">
                     <i class="bi bi-sliders"></i> بحث متقدم
                 </a>
-                <button type="reset" class="btn btn-outline-warning waves-effect waves-light">إلغاء</button>
+                <a href="{{ route('clients.contacts') }}" class="btn btn-outline-warning waves-effect waves-light">إلغاء</a>
             </div>
         </form>
     </div>
@@ -216,7 +216,7 @@
 </div>
 </div>
 @endsection
-                   
+
 
 @section('scripts')
     <script>
@@ -225,7 +225,7 @@
             const advancedSearchForm = document.getElementById('advancedSearchForm');
 
             advancedSearchButton.addEventListener('click', function () {
-               
+
             });
         });
     </script>
