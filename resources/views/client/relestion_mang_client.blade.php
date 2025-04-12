@@ -5,11 +5,11 @@
     .client-item {
         transition: background-color 0.3s ease;
     }
-    
+
     .client-item:hover {
         background-color: #f8f9fa; /* لون فاتح عند تمرير الماوس */
     }
-    
+
     .client-item.selected {
         background-color: #cce5ff; /* لون أزرق فاتح عند التحديد */
         border-left: 4px solid #007bff; /* شريط جانبي أزرق */
@@ -29,7 +29,7 @@
                         </button>
                         <div class="input-group">
                             <input type="text" class="form-control border-end-0" id="searchInput"
-                                placeholder="البحث عن عميل بالاسم او البريد او الكود او رقم الهاتف..."> 
+                                placeholder="البحث عن عميل بالاسم او البريد او الكود او رقم الهاتف...">
                             <span class="input-group-text bg-white border-start-0">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
@@ -41,10 +41,10 @@
                         <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#addCustomerModal">
                             <i class="fas fa-plus"></i>
                         </button>
-                       
+
                     </div>
-                   
-                     
+
+
                     <!-- Advanced Search Options -->
                     <div class="collapse" id="advancedSearch">
                         <div class="card card-body p-3 border-0">
@@ -142,14 +142,14 @@
                                 </div>
                                 @endif
                             </div>
-                            <div class="status-badge px-2 py-1 rounded 
-                          @if(optional($client->latestStatus)->status == 'مديون') 
+                            <div class="status-badge px-2 py-1 rounded
+                          @if(optional($client->latestStatus)->status == 'مديون')
     bg-warning
-@elseif(optional($client->latestStatus)->status == 'دائن') 
+@elseif(optional($client->latestStatus)->status == 'دائن')
     bg-danger
-@elseif(optional($client->latestStatus)->status == 'مميز') 
+@elseif(optional($client->latestStatus)->status == 'مميز')
     bg-primary
-@else 
+@else
     bg-secondary
 @endif text-white">
 {{ optional($client->latestStatus)->status ?? 'غير محدد' }}
@@ -175,7 +175,7 @@
                                 التالي <i class="fas fa-chevron-left"></i>
                             </button>
                         </div>
-                        
+
                         <div class="d-flex gap-2">
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printClientDetails()">
                                 <i class="fas fa-print"></i>
@@ -183,7 +183,7 @@
                             <a href="#" id="editClientButton" class="btn btn-outline-primary btn-sm disabled">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            
+
                         </div>
                     </div>
 
@@ -204,7 +204,7 @@
                                     <span id="notes-count-badge" class="badge bg-primary rounded-pill ms-1">{{ $ClientRelations->count() }}</span>
                                 </a>
                             </li>
-                            
+
                             {{-- <li class="nav-item">
                                 <a class="nav-link" id="balance-tab" data-bs-toggle="tab" href="#balance" role="tab">
                                     <i class="fas fa-wallet me-1"></i>
@@ -216,7 +216,7 @@
                         <div class="tab-content mt-3">
                             <!-- تبويب المتابعة -->
                             <div class="tab-pane fade show active" id="details" role="tabpanel">
-                            
+
                                 <!-- نموذج إضافة ملاحظة -->
                                 <form id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
@@ -256,22 +256,22 @@
                                         </div>
                                     </div>
                                 </form>
-                                <div id="notesTimeline">  
+                                <div id="notesTimeline">
                                 <div class="notes-timeline">
                                     @foreach ($ClientRelations as $ClientRelation)
-                                   
-                                                  
-                           
+
+
+
                                    <div class="note-item mb-3">
     <div class="d-flex align-items-center text-muted small mb-1">
         <i class="far fa-clock me-1"></i> {{$ClientRelation->created_at}}
         <span class="mx-2">•</span>
-        
+
         <i class="far fa-user me-1"></i> {{$ClientRelation->process}}
         <span class="mx-2">•</span>
 
-        <i class="fas fa-info-circle me-1"></i> 
-        <span class="badge 
+        <i class="fas fa-info-circle me-1"></i>
+        <span class="badge
             @if($ClientRelation->status == 'مميز') bg-primary
             @elseif($ClientRelation->status == 'مديون') bg-warning text-dark
             @elseif($ClientRelation->status == 'دائن') bg-danger
@@ -293,7 +293,7 @@
                             <!-- تبويب النقاط والأرصدة -->
                             <div class="tab-pane fade" id="balance" role="tabpanel">
                                 <div class="text-end mb-3">
-                                    
+
                                     <a href="{{ route('MangRechargeBalances.create') }}" type="button" class="btn btn-primary btn-sm">
                                         <i class="fas fa-plus me-1"></i>
                                         إضافة رصيد
@@ -308,8 +308,8 @@
                                     </div>
                                 </div>
                             </div>
-                          
-                            
+
+
 
                         </div>
                     </div>
@@ -327,7 +327,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-          
+
             <div class="row">
 
                 <div class="col-md-6 col-12">
@@ -536,9 +536,9 @@
                                             </div>
                                         </div>
 
-                                    
 
-                                      
+
+
                                     </div>
                                 </div>
                             </div>
@@ -865,7 +865,7 @@ document.getElementById("searchInput").addEventListener("input", function () {
                     clientsListContainer.innerHTML = `<p class="text-muted">لا توجد نتائج مطابقة</p>`;
                 } else {
                     data.forEach(client => {
-                        let status = client.latest_status ? client.latest_status.status : 'غير محدد';
+                        let status = client.status->name ? client.status->name : 'غير محدد';
                         let statusColor = getStatusColor(status);
 
                         clientsListContainer.innerHTML += `
