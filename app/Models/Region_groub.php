@@ -12,5 +12,9 @@ class Region_groub extends Model
          return $this->hasMany(Neighborhood::class, 'region_id');
      }
 
+public function clients()
+{
+    return $this->belongsTo(Client::class);
 
+}
 }

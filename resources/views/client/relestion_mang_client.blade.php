@@ -2,63 +2,17 @@
 
 @section('content')
 <style>
-    /* تحسينات التصميم */
     .client-item {
-        transition: all 0.3s ease;
-        cursor: pointer;
-        border-left: 3px solid transparent;
+        transition: background-color 0.3s ease;
     }
 
     .client-item:hover {
-        background-color: #f5f7fa;
+        background-color: #f8f9fa; /* لون فاتح عند تمرير الماوس */
     }
 
     .client-item.selected {
-        background-color: #e0f0ff;
-        border-left: 3px solid #3f6ad8;
-    }
-
-    .notes-timeline {
-        max-height: 450px;
-        overflow-y: auto;
-        padding-right: 5px;
-    }
-
-    .note-item {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        margin-bottom: 15px;
-        padding: 12px;
-    }
-
-    .clients-list {
-        max-height: calc(100vh - 120px);
-        overflow-y: auto;
-    }
-
-    .search-bar {
-        position: sticky;
-        top: 0;
-        z-index: 1020;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    .note-content {
-        background-color: #f8f9fa;
-        border-radius: 6px;
-        padding: 10px;
-        margin-top: 5px;
-    }
-
-    .badge.bg-warning {
-        color: #212529 !important;
-    }
-
-    .client-info-card {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        background-color: #cce5ff; /* لون أزرق فاتح عند التحديد */
+        border-left: 4px solid #007bff; /* شريط جانبي أزرق */
     }
 </style>
 
@@ -68,7 +22,7 @@
         <div class="col-md-4 border-end vh-100 overflow-hidden">
             <div class="d-flex flex-column h-100">
                 <!-- شريط البحث -->
-                <div class="search-bar p-3 border-bottom bg-white">
+                <div class="search-bar p-3 border-bottom bg-white sticky-top">
                     <div class="d-flex gap-2 mb-2">
                         <button class="btn btn-light border" type="button">
                             <i class="fas fa-bars"></i>
@@ -79,17 +33,94 @@
                             <span class="input-group-text bg-white border-start-0">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
+                            {{-- <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#advancedSearch" aria-expanded="false">
+                                <i class="fas fa-filter"></i>
+                            </button> --}}
                         </div>
                         <button class="btn btn-primary" type="button" data-toggle="modal" data-target="#addCustomerModal">
                             <i class="fas fa-plus"></i>
                         </button>
+
+                    </div>
+
+
+                    <!-- Advanced Search Options -->
+                    <div class="collapse" id="advancedSearch">
+                        <div class="card card-body p-3 border-0">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkMerf">
+                                        <label class="form-check-label" for="checkMerf">المعرف</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkStatus">
+                                        <label class="form-check-label" for="checkStatus">الحالة</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkCountry">
+                                        <label class="form-check-label" for="checkCountry">رمز البلد</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkEmail">
+                                        <label class="form-check-label" for="checkEmail">البريد الإلكتروني</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkPhone">
+                                        <label class="form-check-label" for="checkPhone">رقم الهاتف</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkCode">
+                                        <label class="form-check-label" for="checkCode">كود العميل</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkLink">
+                                        <label class="form-check-label" for="checkLink">الرابط</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkTradeName">
+                                        <label class="form-check-label" for="checkTradeName">الاسم التجاري</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="checkClientStatus">
+                                        <label class="form-check-label" for="checkClientStatus">حالات متابعة العميل</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-sm btn-primary" type="button">بحث</button>
+                                    <button class="btn btn-sm btn-secondary" type="button">إعادة البحث</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- قائمة العملاء -->
-                <div class="clients-list overflow-auto flex-grow-1" id="clientsList">
+                <div id="clientsList" class="mt-3">
+                <div class="clients-list overflow-auto flex-grow-1">
                     @foreach ($clients as $client)
-                    <div class="client-item p-3 border-bottom" data-client-id="{{ $client->id }}" onclick="selectClient({{ $client->id }})">
+                    <div class="client-item p-3 border-bottom hover-bg-light cursor-pointer"
+     data-client-id="{{ $client->id }}"
+     onclick="selectClient({{ $client->id }})">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="d-flex align-items-center gap-2">
@@ -122,6 +153,7 @@
     bg-secondary
 @endif text-white">
 {{ optional($client->latestStatus)->status ?? 'غير محدد' }}
+
                         </div>
                         </div>
                     </div>
@@ -129,12 +161,12 @@
                 </div>
             </div>
         </div>
-
+    </div>
         <!-- تفاصيل العميل -->
         <div class="col-md-8 bg-light">
             <div class="client-details h-100">
                 <div class="card border-0 h-100">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-0 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-0">
                         <div class="btn-group" role="group">
                             <button type="button" class="btn btn-outline-primary btn-sm" id="prevButton" onclick="loadPreviousClient()">
                                 <i class="fas fa-chevron-right"></i> السابق
@@ -148,45 +180,19 @@
                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printClientDetails()">
                                 <i class="fas fa-print"></i>
                             </button>
-                            <a href="#" id="editClientButton" class="btn btn-outline-primary btn-sm">
+                            <a href="#" id="editClientButton" class="btn btn-outline-primary btn-sm disabled">
                                 <i class="fas fa-edit"></i>
                             </a>
+
                         </div>
                     </div>
 
                     <div class="card-body">
+                        <div class="row g-3">
                             <!-- معلومات العميل -->
-                        <div class="client-info-card mb-4">
-                            <div class="card shadow-sm">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted me-2"><i class="fas fa-user"></i></span>
-                                                <span class="fw-bold" id="clientName">--</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted me-2"><i class="fas fa-phone"></i></span>
-                                                <span id="clientPhone">--</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted me-2"><i class="fas fa-map-marker-alt"></i></span>
-                                                <span id="clientCity">--</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 mb-2">
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted me-2"><i class="fas fa-hashtag"></i></span>
-                                                <span id="clientCode">--</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+
+
+
                         </div>
 
                         <!-- Tabs -->
@@ -198,25 +204,33 @@
                                     <span id="notes-count-badge" class="badge bg-primary rounded-pill ms-1">{{ $ClientRelations->count() }}</span>
                                 </a>
                             </li>
+
+                            {{-- <li class="nav-item">
+                                <a class="nav-link" id="balance-tab" data-bs-toggle="tab" href="#balance" role="tab">
+                                    <i class="fas fa-wallet me-1"></i>
+                                    النقاط والأرصدة
+                                </a>
+                            </li> --}}
                         </ul>
 
                         <div class="tab-content mt-3">
                             <!-- تبويب المتابعة -->
                             <div class="tab-pane fade show active" id="details" role="tabpanel">
+
                                 <!-- نموذج إضافة ملاحظة -->
-                                <form id="clientNoteForm" action="{{ route('clients.addnotes') }}" method="POST">
+                                <form id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     <input type="hidden" name="client_id" id="client_id">
-                                    <div class="card shadow-sm mb-4">
+                                    <div class="card shadow-sm">
                                         <div class="card-body">
                                             <h6 class="card-title mb-3">إضافة ملاحظة جديدة</h6>
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <select class="form-select" name="status" required>
                                                         <option value="">اختر الحالة</option>
-                                                        <option value="مديون">مديون</option>
-                                                        <option value="دائن">دائن</option>
-                                                        <option value="مميز">مميز</option>
+                                                        <option class="btn btn-warning" value="مديون">مديون</option>
+                                                        <option class="btn btn-danger" value="دائن">دائن</option>
+                                                        <option class="btn btn-primary" value="مميز">مميز</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6">
@@ -242,16 +256,20 @@
                                         </div>
                                     </div>
                                 </form>
-
-                                <!-- سجل الملاحظات -->
-                                <div class="notes-timeline" id="notesTimeline">
+                                <div id="notesTimeline">
+                                <div class="notes-timeline">
                                     @foreach ($ClientRelations as $ClientRelation)
-                                    <div class="note-item">
+
+
+
+                                   <div class="note-item mb-3">
     <div class="d-flex align-items-center text-muted small mb-1">
         <i class="far fa-clock me-1"></i> {{$ClientRelation->created_at}}
         <span class="mx-2">•</span>
+
         <i class="far fa-user me-1"></i> {{$ClientRelation->process}}
         <span class="mx-2">•</span>
+
         <i class="fas fa-info-circle me-1"></i>
         <span class="badge
             @if($ClientRelation->status == 'مميز') bg-primary
@@ -261,22 +279,45 @@
             {{$ClientRelation->status}}
         </span>
     </div>
-                                        <div class="note-content">
+                                   </div>
+
+    <div class="note-content p-3 bg-white rounded shadow-sm">
         <i class="far fa-comment-dots text-muted me-1"></i> {{$ClientRelation->description}}
     </div>
 </div>
+
                                     @endforeach
                                 </div>
                             </div>
+
+                            <!-- تبويب النقاط والأرصدة -->
+                            <div class="tab-pane fade" id="balance" role="tabpanel">
+                                <div class="text-end mb-3">
+
+                                    <a href="{{ route('MangRechargeBalances.create') }}" type="button" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-plus me-1"></i>
+                                        إضافة رصيد
+                                    </a>
                                 </div>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center py-5 text-muted">
+                                            <i class="fas fa-wallet fa-3x mb-3"></i>
+                                            <p>لا توجد أرصدة مضافة حتى الآن</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+
+
                         </div>
                     </div>
-
-<!-- Modal إضافة عميل جديد -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="addCustomerModal" tabindex="-1" aria-labelledby="addCustomerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -286,139 +327,505 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form id="addClientForm" action="{{ route('clients.mang_client_store') }}" method="POST" enctype="multipart/form-data">
+
+            <div class="row">
+
+                <div class="col-md-6 col-12">
+                    <form id="clientForm" action="{{ route('clients.mang_client_store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">بيانات العميل</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-body">
                                     <div class="row">
-                        <!-- ... (محتوى النموذج نفسه) ... -->
+                                        <!-- الاسم التجاري -->
+                                        <div class="col-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="trade_name">الاسم التجاري <span
+                                                        class="text-danger">*</span></label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="trade_name" id="trade_name"
+                                                        class="form-control" value="{{ old('trade_name') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-briefcase"></i>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الاسم الأول والأخير -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="first_name">الاسم الأول</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="first_name" id="first_name"
+                                                        class="form-control" value="{{ old('first_name') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-user"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="last_name">الاسم الأخير</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="last_name" id="last_name"
+                                                        class="form-control" value="{{ old('last_name') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-user"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الهاتف والجوال -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="phone">الهاتف</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="phone" id="phone" class="form-control"
+                                                        value="{{ old('phone') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-phone"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="mobile">جوال</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="mobile" id="mobile" class="form-control"
+                                                        value="{{ old('mobile') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-smartphone"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- عنوان الشارع -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="street1">عنوان الشارع 1</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="street1" id="street1" class="form-control"
+                                                        value="{{ old('street1') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-map-pin"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="street2">عنوان الشارع 2</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="street2" id="street2"
+                                                        class="form-control" value="{{ old('street2') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-map-pin"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- المدينة والمنطقة والرمز البريدي -->
+                                        <div class="col-md-4 mb-3">
+                                            <div class="form-group">
+                                                <label for="city">المدينة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="city" id="city"
+                                                        class="form-control" value="{{ old('city') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-map"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="form-group">
+                                                <label for="region">المنطقة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="region" id="region"
+                                                        class="form-control" value="{{ old('region') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-map"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <div class="form-group">
+                                                <label for="postal_code">الرمز البريدي</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="postal_code" id="postal_code"
+                                                        class="form-control" value="{{ old('postal_code') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-mail"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- البلد -->
+                                        <div class="col-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="country">البلد</label>
+                                                <select name="country" id="country" class="form-control">
+                                                    <option value="SA" {{ old('country') == 'SA' ? 'selected' : '' }}>
+                                                        المملكة العربية السعودية (SA)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <!-- الرقم الضريبي والسجل التجاري -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="tax_number">الرقم الضريبي (اختياري)</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="tax_number" id="tax_number"
+                                                        class="form-control" value="{{ old('tax_number') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-file-text"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="commercial_registration">سجل تجاري (اختياري)</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" name="commercial_registration"
+                                                        id="commercial_registration" class="form-control"
+                                                        value="{{ old('commercial_registration') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-file"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الحد الائتماني والمدة الائتمانية -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="credit_limit">الحد الائتماني</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="number" name="credit_limit" id="credit_limit"
+                                                        class="form-control" value="{{ old('credit_limit', 0) }}">
+                                                    <div class="form-control-position">
+                                                        <span>SAR</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="credit_period">المدة الائتمانية</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="number" name="credit_period" id="credit_period"
+                                                        class="form-control" value="{{ old('credit_period', 0) }}">
+                                                    <div class="form-control-position">
+                                                        <span>أيام</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">بيانات الحساب</h4>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body">
+                                <div class="form-body">
+                                    <div class="row">
+                                        <!-- رقم الكود -->
+                                        <div class="col-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="code">رقم الكود <span class="text-danger">*</span></label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="text" id="code" class="form-control"
+                                                        name="code" value="{{ old('code', $newCode) }}" readonly>
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-hash"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <!-- طريقة الفاتورة -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="printing_method">طريقة الفاتورة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <select class="form-control" id="printing_method"
+                                                        name="printing_method">
+                                                        <option value="1"
+                                                            {{ old('printing_method') == 1 ? 'selected' : '' }}>الطباعة
+                                                        </option>
+                                                        <option value="2"
+                                                            {{ old('printing_method') == 2 ? 'selected' : '' }}>ارسل عبر
+                                                            البريد</option>
+                                                    </select>
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-file-text"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- الرصيد الافتتاحي -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="opening_balance">الرصيد الافتتاحي</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="number" id="opening_balance" class="form-control"
+                                                        name="opening_balance" value="{{ old('opening_balance') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-dollar-sign"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- تاريخ الرصيد الاستحقاق -->
+                                        <div class="col-md-6 mb-3">
+                                            <div class="form-group">
+                                                <label for="opening_balance_date">تاريخ الرصيد الاستحقاق</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="date" id="opening_balance_date" class="form-control"
+                                                        name="opening_balance_date"
+                                                        value="{{ old('opening_balance_date', date('Y-m-d')) }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-calendar"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- العملة -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="currency">العملة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <select class="form-control" id="currency" name="currency">
+                                                        <option value="SAR"
+                                                            {{ old('currency') == 'SAR' ? 'selected' : '' }}>SAR</option>
+                                                        <option value="USD"
+                                                            {{ old('currency') == 'USD' ? 'selected' : '' }}>USD</option>
+                                                        <option value="EUR"
+                                                            {{ old('currency') == 'EUR' ? 'selected' : '' }}>EUR</option>
+                                                    </select>
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-credit-card"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- البريد الإلكتروني -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="email">البريد الإلكتروني</label>
+                                                <div class="position-relative has-icon-left">
+                                                    <input type="email" id="email" class="form-control"
+                                                        name="email" value="{{ old('email') }}">
+                                                    <div class="form-control-position">
+                                                        <i class="feather icon-mail"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- التصنيف -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="category">التصنيف</label>
+                                                <input list="classifications" class="form-control" id="client_type"
+                                                    name="category" placeholder="اكتب التصنيف"
+                                                    value="{{ old('category') }}">
+                                                <datalist id="classifications">
+                                                    @foreach ($categories as $category)
+                                                        <option value="{{ $category->id }}">{{ $category->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </datalist>
+                                            </div>
+                                        </div>
+
+                                        <!-- الملاحظات -->
+                                        <div class="col-md-12 mb-3">
+                                            <label for="notes">الملاحظات</label>
+                                            <textarea class="form-control" id="notes" name="notes" rows="5" style="resize: none;">{{ old('notes') }}</textarea>
+                                        </div>
+
+                                        <!-- المرفقات -->
+                                        <div class="col-md-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="attachments">المرفقات</label>
+                                                <input type="file" name="attachments" id="attachments"
+                                                    class="d-none">
+                                                <div class="upload-area border rounded p-3 text-center position-relative"
+                                                    onclick="document.getElementById('attachments').click()">
+                                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                                                        <span class="text-primary">اضغط هنا</span>
+                                                        <span>أو</span>
+                                                        <span class="text-primary">اختر من جهازك</span>
+                                                    </div>
+                                                    <div class="position-absolute end-0 top-50 translate-middle-y me-3">
+                                                        <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label for="language">نوع العميل </label>
+                                                    <div class="position-relative has-icon-left">
+                                                        <select class="form-control" name="client_type" id="client_type">
+                                                            <option value="1"
+                                                                {{ old('client_type') == 1 ? 'selected' : '' }}>عميل VIP
+                                                            </option>
+                                                            <option value="2"
+                                                                {{ old('client_type') == 2 ? 'selected' : '' }}>عميل عادي
+                                                                عادي</option>
+                                                            {{-- --}}
+
+                                                        </select>
+                                                        <div class="form-control-position">
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="employee_id" class="form-label">الموظف المسؤول</label>
+                                                    <select name="employee_id" id="employee_id"
+                                                        class="form-control @error('employee_id') is-invalid @enderror">
+                                                        <option value="">اختر الموظف</option>
+                                                        @foreach ($employees as $employee)
+                                                            <option value="{{ $employee->id }}">
+                                                                {{ $employee->full_name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                    @error('employee_id')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- لغة العرض -->
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">إغلاق</button>
-                    <button type="submit" class="btn btn-primary">حفظ</button>
+                <button type="submit" class="btn btn-primary" onclick="saveCustomer()">حفظ</button>
             </div>
         </form>
         </div>
     </div>
 </div>
-
-<!-- تضمين JavaScript -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-
 <script>
-// متغيرات عامة
-let clientsList = [];
-let currentClientId = null;
+let clientsList = []; // قائمة العملاء
+let currentIndex = 0; // مؤشر العميل الحالي
 
-// تهيئة الصفحة وتحميل البيانات
-document.addEventListener("DOMContentLoaded", function() {
-    // جلب قائمة العملاء
-    fetch('/clients/clients_management/clients/all')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('فشل في جلب قائمة العملاء');
-            }
-            return response.json();
-        })
+// تحميل قائمة العملاء عند بدء الصفحة
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("/clients/list") // تأكد من صحة الرابط
+        .then(response => response.json())
         .then(data => {
             clientsList = data;
             if (clientsList.length > 0) {
-                // تحديد العميل الأول تلقائياً
-                selectClient(clientsList[0].id);
+                selectClient(clientsList[currentIndex].id);
             }
-            updateNavigationButtons();
         })
-        .catch(error => {
-            console.error("خطأ:", error);
-            toastr.error("حدث خطأ أثناء جلب قائمة العملاء");
-        });
-
-    // إعداد البحث
-    document.getElementById("searchInput").addEventListener("input", function() {
-        const searchValue = this.value.trim();
-        if (searchValue.length > 0) {
-            searchClients(searchValue);
-        } else {
-            displayAllClients();
-        }
-    });
-
-    // إعداد نموذج الملاحظات
-    document.getElementById("clientNoteForm").addEventListener("submit", function(e) {
-        if (!currentClientId) {
-            e.preventDefault();
-            toastr.warning("الرجاء تحديد عميل أولاً");
-        }
-    });
+        .catch(error => console.error("❌ خطأ أثناء تحميل قائمة العملاء:", error));
 });
 
-// تحديد عميل
-function selectClient(clientId) {
-    currentClientId = clientId;
+// تحميل العميل التالي
+function loadNextClient() {
+    if (currentIndex < clientsList.length - 1) {
+        currentIndex++;
+        selectClient(clientsList[currentIndex].id); // تأكد من أن هذه الدالة موجودة لديك
+    }
+}
 
-    // حفظ معرف العميل في النموذج
+// تحميل العميل السابق
+function loadPreviousClient() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        selectClient(clientsList[currentIndex].id); // تأكد من أن هذه الدالة موجودة لديك
+    }
+}
+
+// عند تحديد عميل، تحديث المعلومات
+function selectClient(clientId) {
     document.getElementById("client_id").value = clientId;
 
-    // تحديث تصميم العنصر المحدد في القائمة
     document.querySelectorAll(".client-item").forEach(item => {
-        item.classList.remove("selected");
+        item.classList.remove("selected", "bg-light");
     });
+    document.querySelector(`[data-client-id="${clientId}"]`)?.classList.add("selected", "bg-light");
 
-    const selectedItem = document.querySelector(`[data-client-id="${clientId}"]`);
-    if (selectedItem) {
-        selectedItem.classList.add("selected");
-        // تمرير إلى العنصر المحدد
-        selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-
-    // تفعيل زر التعديل
-    document.getElementById("editClientButton").classList.remove("disabled");
-
-    // جلب تفاصيل العميل
-    fetch(`/clients/clients_management/clients/${clientId}`)
-        .then(response => response.json())
-        .then(client => {
-            // تحديث واجهة المستخدم ببيانات العميل
-            document.getElementById("clientName").textContent = client.trade_name || "غير محدد";
-            document.getElementById("clientPhone").textContent = client.phone || client.mobile || "غير محدد";
-            document.getElementById("clientCity").textContent = client.city ? `${client.city}, ${client.region || ''}` : "غير محدد";
-            document.getElementById("clientCode").textContent = client.code || "غير محدد";
-        })
-        .catch(error => {
-            console.error("خطأ:", error);
-            toastr.error("حدث خطأ أثناء جلب تفاصيل العميل");
-        });
-
-    // جلب ملاحظات العميل
     fetch(`/clients/clients_management/clients/${clientId}/notes`)
         .then(response => response.json())
         .then(data => {
-            let notesContainer = document.getElementById("notesTimeline");
-            let notesCountBadge = document.getElementById("notes-count-badge");
+            let notesContainer = document.querySelector(".notes-timeline");
+            let notesCountBadge = document.querySelector("#notes-count-badge");
             notesContainer.innerHTML = "";
 
             if (data.message) {
-                notesContainer.innerHTML = `<p class="text-center text-muted py-3">${data.message}</p>`;
+                notesContainer.innerHTML = `<p class="text-muted">${data.message}</p>`;
                 notesCountBadge.textContent = "0";
             } else {
                 notesCountBadge.textContent = data.length;
 
                 data.forEach(note => {
-                    // تنسيق التاريخ
-                    const formattedDate = new Date(note.created_at).toLocaleString("ar-EG");
+                    let formattedDate = new Date(note.created_at).toLocaleString("ar-EG", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: false
+                    });
 
-                    // تحديد لون الحالة
                     let statusClass = "bg-secondary";
                     if (note.status === "مميز") statusClass = "bg-primary";
                     else if (note.status === "مديون") statusClass = "bg-warning text-dark";
                     else if (note.status === "دائن") statusClass = "bg-danger";
 
                     notesContainer.innerHTML += `
-                        <div class="note-item">
+                        <div class="note-item mb-3 border rounded p-2">
                             <div class="d-flex align-items-center text-muted small mb-1">
                                 <i class="far fa-calendar-alt me-1 text-primary"></i> ${formattedDate}
                                 <span class="mx-2">•</span>
@@ -427,61 +834,94 @@ function selectClient(clientId) {
                                 <i class="fas fa-info-circle me-1"></i>
                                 <span class="badge ${statusClass}">${note.status}</span>
                             </div>
-                            <div class="note-content">
+                            <div class="note-content p-3 bg-white rounded shadow-sm">
                                 <i class="far fa-comment-dots text-muted me-1"></i> ${note.description}
                             </div>
                         </div>
                     `;
                 });
             }
-
-            // تحديث أزرار التنقل بعد اختيار العميل
-            updateNavigationButtons();
         })
-        .catch(error => {
-            console.error("خطأ:", error);
-            toastr.error("حدث خطأ أثناء جلب ملاحظات العميل");
-        });
+        .catch(error => console.error("❌ خطأ أثناء تحميل الملاحظات:", error));
 }
 
-// البحث عن العملاء
-function searchClients(searchValue) {
+</script>
+
+<script>
+let searchTimeout;
+
+document.getElementById("searchInput").addEventListener("input", function () {
+    let searchValue = this.value.trim();
+    let clientsListContainer = document.getElementById("clientsList");
+
+    if (searchValue.length > 0) {
+        // إذا كان هناك نص في حقل البحث، قم بالبحث
         fetch(`/clients/clients_management/clients/search?query=${encodeURIComponent(searchValue)}`)
             .then(response => response.json())
             .then(data => {
-            updateClientsList(data);
+                clientsListContainer.innerHTML = "";
+
+                if (data.length === 0) {
+                    clientsListContainer.innerHTML = `<p class="text-muted">لا توجد نتائج مطابقة</p>`;
+                } else {
+                    data.forEach(client => {
+                        let status = client.status->name ? client.latest_status.status : 'غير محدد';
+                        let statusColor = getStatusColor(status);
+
+                        clientsListContainer.innerHTML += `
+                            <div class="client-item p-3 border-bottom hover-bg-light cursor-pointer" data-client-id="${client.id}" onclick="selectClient(${client.id})">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-success country-badge">
+                                                ${client.country_code || 'SA'}
+                                            </span>
+                                            <span class="client-number text-muted">#${client.code}</span>
+                                            <span class="client-name text-primary fw-medium">${client.trade_name}</span>
+                                        </div>
+                                        <div class="client-info small text-muted mt-1">
+                                            <i class="far fa-clock me-1"></i>
+                                            ${new Date(client.created_at).toLocaleTimeString()} |
+                                            ${new Date(client.created_at).toLocaleDateString()}
+                                        </div>
+                                        ${client.phone ? `
+                                        <div class="client-contact small text-muted mt-1">
+                                            <i class="fas fa-phone-alt me-1"></i>
+                                            ${client.phone}
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="status-badge px-2 py-1 rounded ${statusColor} text-white">
+                                        ${status}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
             })
             .catch(error => {
-            console.error("خطأ:", error);
-            toastr.error("حدث خطأ أثناء البحث");
+                console.error("❌ خطأ أثناء البحث عن العميل:", error);
+                clientsListContainer.innerHTML = `<p class="text-danger">حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.</p>`;
             });
+    } else {
+        // إذا كان حقل البحث فارغًا، قم بعرض جميع العملاء
+        displayAllClients();
     }
-
-// عرض جميع العملاء
+});
 function displayAllClients() {
-    updateClientsList(clientsList);
-}
-
-// تحديث قائمة العملاء في واجهة المستخدم
-function updateClientsList(clients) {
-    const clientsListContainer = document.getElementById("clientsList");
+    fetch('/clients/clients_management/clients/all')
+        .then(response => response.json())
+        .then(data => {
+            let clientsListContainer = document.getElementById("clientsList");
             clientsListContainer.innerHTML = "";
 
-    if (clients.length === 0) {
-        clientsListContainer.innerHTML = `<p class="text-center text-muted py-3">لا توجد نتائج</p>`;
-        return;
-    }
-
-    clients.forEach(client => {
+            data.forEach(client => {
                 let status = client.latest_status ? client.latest_status.status : 'غير محدد';
                 let statusColor = getStatusColor(status);
 
-        const clientCreatedDate = new Date(client.created_at);
-        const formattedTime = clientCreatedDate.toLocaleTimeString("ar-EG", { hour: '2-digit', minute: '2-digit' });
-        const formattedDate = clientCreatedDate.toLocaleDateString("ar-EG", { year: 'numeric', month: 'short', day: 'numeric' });
-
                 clientsListContainer.innerHTML += `
-            <div class="client-item p-3 border-bottom" data-client-id="${client.id}" onclick="selectClient(${client.id})">
+                    <div class="client-item p-3 border-bottom hover-bg-light cursor-pointer" data-client-id="${client.id}" onclick="selectClient(${client.id})">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="d-flex align-items-center gap-2">
@@ -493,7 +933,8 @@ function updateClientsList(clients) {
                                 </div>
                                 <div class="client-info small text-muted mt-1">
                                     <i class="far fa-clock me-1"></i>
-                            ${formattedTime} | ${formattedDate}
+                                    ${new Date(client.created_at).toLocaleTimeString()} |
+                                    ${new Date(client.created_at).toLocaleDateString()}
                                 </div>
                                 ${client.phone ? `
                                 <div class="client-contact small text-muted mt-1">
@@ -508,119 +949,100 @@ function updateClientsList(clients) {
                         </div>
                     </div>
                 `;
-    });
-}
-
-// تحميل العميل التالي
-function loadNextClient() {
-    const currentIndex = clientsList.findIndex(client => client.id == currentClientId);
-    if (currentIndex < clientsList.length - 1) {
-        selectClient(clientsList[currentIndex + 1].id);
-    } else {
-        toastr.info("لا يوجد المزيد من العملاء");
-    }
-}
-
-// تحميل العميل السابق
-function loadPreviousClient() {
-    const currentIndex = clientsList.findIndex(client => client.id == currentClientId);
-    if (currentIndex > 0) {
-        selectClient(clientsList[currentIndex - 1].id);
-    } else {
-        toastr.info("أنت في بداية قائمة العملاء");
-    }
-}
-
-// تحديث حالة أزرار التنقل
-function updateNavigationButtons() {
-    const currentIndex = clientsList.findIndex(client => client.id == currentClientId);
-    const prevButton = document.getElementById("prevButton");
-    const nextButton = document.getElementById("nextButton");
-
-    if (prevButton) {
-        prevButton.disabled = currentIndex <= 0;
-    }
-
-    if (nextButton) {
-        nextButton.disabled = currentIndex >= clientsList.length - 1 || currentIndex === -1;
-    }
-}
-
-// طباعة تفاصيل العميل
-function printClientDetails() {
-    if (!currentClientId) {
-        toastr.warning("الرجاء تحديد عميل أولاً");
-        return;
-    }
-
-    const printWindow = window.open('', '_blank');
-
-    if (!printWindow) {
-        toastr.error("تم منع فتح نافذة الطباعة. يرجى السماح بالنوافذ المنبثقة.");
-        return;
-    }
-
-    const client = clientsList.find(c => c.id == currentClientId);
-    if (!client) return;
-
-    const clientName = document.getElementById("clientName").textContent;
-    const clientPhone = document.getElementById("clientPhone").textContent;
-    const clientCity = document.getElementById("clientCity").textContent;
-    const clientCode = document.getElementById("clientCode").textContent;
-    const notesHTML = document.getElementById("notesTimeline").innerHTML;
-
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html dir="rtl">
-        <head>
-            <title>تفاصيل العميل: ${clientName}</title>
-            <meta charset="UTF-8">
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                .header { text-align: center; margin-bottom: 20px; }
-                .client-info { margin-bottom: 20px; }
-                .client-info div { margin-bottom: 5px; }
-                .notes-title { margin: 20px 0 10px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
-                .note-item { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 5px; }
-                .note-meta { color: #666; font-size: 0.9em; margin-bottom: 5px; }
-                .badge { display: inline-block; padding: 3px 6px; border-radius: 3px; font-size: 0.8em; }
-                .bg-primary { background-color: #007bff; color: white; }
-                .bg-warning { background-color: #ffc107; color: black; }
-                .bg-danger { background-color: #dc3545; color: white; }
-                .bg-secondary { background-color: #6c757d; color: white; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>تفاصيل العميل</h1>
-                <p>تاريخ الطباعة: ${new Date().toLocaleString("ar-EG")}</p>
-                </div>
-
-            <div class="client-info">
-                <h2>${clientName}</h2>
-                <div><strong>رقم الكود:</strong> ${clientCode}</div>
-                <div><strong>رقم الهاتف:</strong> ${clientPhone}</div>
-                <div><strong>العنوان:</strong> ${clientCity}</div>
-                </div>
-
-            <h3 class="notes-title">سجل المتابعة</h3>
-            <div class="notes-list">
-                ${notesHTML}
-            </div>
-        </body>
-        </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(function() { printWindow.print(); }, 500);
+            });
+        })
+        .catch(error => {
+            console.error("❌ خطأ أثناء جلب قائمة العملاء:", error);
+            clientsListContainer.innerHTML = `<p class="text-danger">حدث خطأ أثناء جلب قائمة العملاء. يرجى المحاولة مرة أخرى.</p>`;
+        });
 }
 
 // دالة لتحديد لون الحالة بناءً على القيمة
 function getStatusColor(status) {
     switch (status) {
         case 'مديون':
-            return 'bg-warning';
+            return 'bg-warning'; // لون أصفر
+        case 'دائن':
+            return 'bg-danger';  // لون أحمر
+        case 'مميز':
+            return 'bg-primary'; // لون أزرق
+        default:
+            return 'bg-secondary'; // لون رمادي (حالة افتراضية)
+    }
+}
+
+
+</script>
+
+<script>
+let currentClientId = null; // لتخزين معرف العميل الحالي
+
+// دالة لتحميل العميل التالي
+function loadNextClient() {
+    fetch(`/clients/clients_management/clients/next?currentClientId=${currentClientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.client) {
+                currentClientId = data.client.id; // تحديث معرف العميل الحالي
+                updateClientDetails(data.client); // تحديث واجهة المستخدم ببيانات العميل الجديد
+            } else {
+                alert("لا يوجد عملاء آخرين.");
+            }
+        })
+        .catch(error => console.error("❌ خطأ أثناء جلب العميل التالي:", error));
+}
+
+// دالة لتحميل العميل السابق
+function loadPreviousClient() {
+    fetch(`/clients_management/clients/previous?currentClientId=${currentClientId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.client) {
+                currentClientId = data.client.id; // تحديث معرف العميل الحالي
+                updateClientDetails(data.client); // تحديث واجهة المستخدم ببيانات العميل الجديد
+            } else {
+                alert("لا يوجد عملاء سابقين.");
+            }
+        })
+        .catch(error => console.error("❌ خطأ أثناء جلب العميل السابق:", error));
+}
+
+// دالة لتحديث واجهة المستخدم ببيانات العميل
+function updateClientDetails(client) {
+    document.getElementById("clientName").innerText = client.trade_name || "بدون اسم تجاري";
+    document.getElementById("clientPhone").innerText = client.phone || client.mobile || "غير متوفر";
+    document.getElementById("clientCity").innerText = `${client.city}, ${client.region}`;
+
+    // تحديث الملاحظات
+    let notesTimeline = document.getElementById("notesTimeline");
+    notesTimeline.innerHTML = ""; // تفريغ الملاحظات القديمة
+
+    client.notes.forEach(note => {
+        notesTimeline.innerHTML += `
+            <div class="note-item mb-3">
+                <div class="d-flex align-items-center text-muted small mb-1">
+                    <i class="far fa-clock me-1"></i> ${new Date(note.created_at).toLocaleString()}
+                    <span class="mx-2">•</span>
+                    <i class="far fa-user me-1"></i> ${note.process}
+                    <span class="mx-2">•</span>
+                    <i class="fas fa-info-circle me-1"></i>
+                    <span class="badge ${getStatusColor(note.status)}">
+                        ${note.status}
+                    </span>
+                </div>
+                <div class="note-description">
+                    ${note.description}
+                </div>
+            </div>
+        `;
+    });
+}
+
+// دالة لتحديد لون الحالة
+function getStatusColor(status) {
+    switch (status) {
+        case 'مديون':
+            return 'bg-warning text-dark';
         case 'دائن':
             return 'bg-danger';
         case 'مميز':
@@ -629,7 +1051,90 @@ function getStatusColor(status) {
             return 'bg-secondary';
     }
 }
+
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    fetch('/clients_management/clients/first')
+        .then(response => response.json())
+        .then(data => {
+            if (data.client) {
+                currentClientId = data.client.id;
+                updateClientDetails(data.client);
+            }
+        })
+        .catch(error => console.error("❌ خطأ أثناء جلب العميل الأول:", error));
+});
+
+</script>
+
+
+
+    <script>
+        let currentClientId = null;
+
+        function loadPreviousClient() {
+            const clientItems = Array.from(document.querySelectorAll('.client-item'));
+            const currentIndex = clientItems.findIndex(item => item.dataset.clientId == currentClientId);
+
+            if (currentIndex > 0) {
+                const prevClientId = clientItems[currentIndex - 1].dataset.clientId;
+                loadClientDetails(prevClientId);
+            }
+        }
+
+        function loadNextClient() {
+            const clientItems = Array.from(document.querySelectorAll('.client-item'));
+            const currentIndex = clientItems.findIndex(item => item.dataset.clientId == currentClientId);
+
+            if (currentIndex < clientItems.length - 1) {
+                const nextClientId = clientItems[currentIndex + 1].dataset.clientId;
+                loadClientDetails(nextClientId);
+            }
+        }
+
+        function updateNavigationButtons() {
+            const clientItems = Array.from(document.querySelectorAll('.client-item'));
+            const currentIndex = clientItems.findIndex(item => item.dataset.clientId == currentClientId);
+
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
+
+            if (prevButton) {
+                prevButton.disabled = currentIndex <= 0;
+            }
+
+            if (nextButton) {
+                nextButton.disabled = currentIndex >= clientItems.length - 1;
+            }
+        }
+
+        // Load initial client data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstClient = document.querySelector('.client-item');
+            if (firstClient) {
+                const clientId = firstClient.dataset.clientId;
+                loadClientDetails(clientId);
+            }
+
+            // If we have a client ID in the URL, load that client
+            const urlParts = window.location.pathname.split('/');
+            const clientIdFromUrl = urlParts[urlParts.length - 1];
+            if (clientIdFromUrl && !isNaN(clientIdFromUrl)) {
+                loadClientDetails(clientIdFromUrl);
+            }
+        });
+    </script>
+    <script src="{{ asset('assets/js/applmintion.js') }}"></script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 @endsection
 
 

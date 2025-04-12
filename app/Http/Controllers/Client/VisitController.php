@@ -670,7 +670,18 @@ class VisitController extends Controller
     public function tracktaff()
     {
         $groups = Region_groub::with('clients')->get();
-        $minDate = $this->getMinOperationDate();
+
+        // بداية جزء حساب التاريخ الأدنى
+        $invoiceDate = Invoice::min('created_at');
+        $paymentDate = PaymentsProcess::min('created_at');
+        $noteDate = ClientRelation::min('created_at');
+        $visitDate = Visit::min('created_at');
+
+        $minDate = collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
+            ->filter()
+            ->min();
+        // نهاية جزء حساب التاريخ الأدنى
+
         $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
         $now = now()->endOfWeek();
         $totalWeeks = $start->diffInWeeks($now) + 1;
@@ -686,24 +697,4 @@ class VisitController extends Controller
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
 
-    // تحليلات الحركة
-    public function traffics()
-    {
-        $groups = Region_groub::all();
-        $clients = Client::with('locations')->get();
-        return view('client.setting.traffic_analytics', compact('groups', 'clients'));
-    }
-
-    // الحصول على أقدم تاريخ عملية
-    private function getMinOperationDate()
-    {
-        $invoiceDate = Invoice::min('created_at');
-        $paymentDate = PaymentsProcess::min('created_at');
-        $noteDate = ClientRelation::min('created_at');
-        $visitDate = Visit::min('created_at');
-
-        return collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
-            ->filter()
-            ->min();
-    }
 }
