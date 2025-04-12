@@ -160,7 +160,7 @@ class ClientController extends Controller
         $clients = $query->orderBy('created_at', 'desc')->get();
 
         // جلب البيانات الإضافية للعرض
-        $users = User::all();
+        $users = User::where('role', 'employee')->get();
         $employees = Employee::all();
         $statuses = Statuses::select('id', 'name', 'color')->get();
         $creditLimit = CreditLimit::first();
