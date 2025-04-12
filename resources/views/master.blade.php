@@ -385,12 +385,10 @@
                     clearInterval(pageRefreshInterval);
                 }
 
-                // تعيين مؤقت جديد لتحديث الصفحة كل دقيقة (60000 مللي ثانية)
-                pageRefreshInterval = setInterval(() => {
-                    location.reload();
-                }, 60000); // 60 ثانية
-            }
-
+// تعيين مؤقت جديد لتحديث الصفحة كل 10 دقائق (600000 مللي ثانية)
+pageRefreshInterval = setInterval(() => {
+    location.reload();
+}, 600000); // 600 ثانية (10 دقائق)
             // دالة لعرض Toast Notification
             function showToastNotification(title, text, type) {
                 const toast = document.createElement('div');
