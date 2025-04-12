@@ -10,5 +10,8 @@ class Neighborhood extends Model
 {
     return $this->belongsTo(Region_groub::class, 'region_id');
 }
+public function clients(){
+    return $this->belongsTo(Client::class);
 
+}
 }
