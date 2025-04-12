@@ -30,7 +30,7 @@ use App\Models\Client;
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
 require __DIR__ . '/auth.php';
 
-
+Route::get('/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
@@ -65,14 +65,16 @@ Route::group(
 
                         Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
                         Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
-
+                        Route::get('/invoices/{id}/label', [InvoicesController::class, 'label'])->name('invoices.label');
+                        Route::get('/invoices/{id}/picklist', [InvoicesController::class, 'picklist'])->name('invoices.picklist');
+                        Route::get('/invoices/{id}/shipping_label', [InvoicesController::class, 'shipping_label'])->name('invoices.shipping_label');
                         Route::get('/show/{id}', [InvoicesController::class, 'show'])->name('invoices.show');
                         Route::post('/invoices/import', [InvoicesController::class, 'import'])->name('invoices.import');
                         Route::get('/edit/{id}', [InvoicesController::class, 'edit'])->name('invoices.edit');
                         Route::post('/store', [InvoicesController::class, 'store'])->name('invoices.store');
                         Route::delete('/delete/{id}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
                         Route::get('/{id}/generatePdf', [InvoicesController::class, 'generatePdf'])->name('invoices.generatePdf');
-                        Route::get('/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
+                       
                         Route::get('/get-price', [InvoicesController::class, 'getPrice'])->name('get-price');
                         Route::get('/notifications/unread', [InvoicesController::class, 'getUnreadNotifications'])->name('notifications.unread');
                         Route::post('/notifications/mark', [InvoicesController::class, 'markAsRead'])->name('notifications.markAsRead');
@@ -85,6 +87,7 @@ Route::group(
                     Route::get('/index', [ReturnInvoiceController::class, 'index'])->name('ReturnIInvoices.index');
                     Route::get('/create/{id}', [ReturnInvoiceController::class, 'create'])->name('ReturnIInvoices.create');
                     Route::get('/show/{id}', [ReturnInvoiceController::class, 'show'])->name('ReturnIInvoices.show');
+                    Route::get('/{id}/print', [ReturnInvoiceController::class, 'print'])->name('return.print');
                     Route::get('/edit/{id}', [ReturnInvoiceController::class, 'edit_brand'])->name('ReturnIInvoices.edit');
                     Route::post('/store', [ReturnInvoiceController::class, 'store'])->name('ReturnIInvoices.store');
                     Route::put('/update/{id}', [ReturnInvoiceController::class, 'update'])->name('ReturnIInvoices.update');

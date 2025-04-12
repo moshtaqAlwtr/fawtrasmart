@@ -160,7 +160,7 @@ class ClientController extends Controller
         $clients = $query->orderBy('created_at', 'desc')->get();
 
         // جلب البيانات الإضافية للعرض
-        $users = User::where('role', 'employee')->get();
+        $users = User::all();
         $employees = Employee::all();
         $statuses = Statuses::select('id', 'name', 'color')->get();
         $creditLimit = CreditLimit::first();
@@ -1044,118 +1044,85 @@ class ClientController extends Controller
 
     public function addnotes(Request $request)
     {
-        // تسجيل بيانات الطلب لأغراض التصحيح
-        Log::info('طلب إضافة ملاحظة:', $request->all());
-
         // التحقق من صحة البيانات
-        try {
-            $validated = $request->validate([
-                'client_id' => 'required|exists:clients,id',
-                'process' => 'required|string|max:255',
-                'description' => 'required|string',
-                'attachments' => 'nullable|file|max:10240', // 10MB كحد أقصى
-            ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('خطأ في التحقق من الصحة:', $e->errors());
-            return redirect()->back()->withErrors($e->errors())->withInput();
-        }
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            //'status' => 'required|string',
+            'process' => 'required|string',
+            'description' => 'required|string',
+            'attachments' => 'nullable|file',
+        ]);
 
         // الحصول على أحدث موقع للموظف
-        try {
-            $employeeLocation = Location::where('employee_id', auth()->id())
-                ->latest()
-                ->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Log::error('لم يتم العثور على موقع الموظف:', ['user_id' => auth()->id()]);
-            return redirect()->route('clients.show', $request->client_id)
-                   ->with('error', 'لم يتم تحديد موقعك الجغرافي! يرجى تفعيل خدمة الموقع.');
+        $employeeLocation = Location::where('employee_id', auth()->id())
+                                    ->latest()
+                                    ->first();
+
+        if (!$employeeLocation) {
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'لم يتم تحديد موقعك الجغرافي! يرجى تفعيل خدمة الموقع.');
         }
 
         // الحصول على موقع العميل
-        try {
-            $clientLocation = Location::where('client_id', $request->client_id)
-                ->latest()
-                ->firstOrFail();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Log::error('لم يتم العثور على موقع العميل:', ['client_id' => $request->client_id]);
-            return redirect()->route('clients.show', $request->client_id)
-                   ->with('error', 'لا يوجد موقع مسجل لهذا العميل!');
+        $clientLocation = Location::where('client_id', $request->client_id)
+                                  ->latest()
+                                  ->first();
+
+        if (!$clientLocation) {
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'لا يوجد موقع مسجل لهذا العميل!');
         }
 
-        // حساب المسافة بين الموظف والعميل باستخدام الدالة الجديدة
-        try {
-            $distance = $this->calculateHaversineDistance(
-                $employeeLocation->latitude,
-                $employeeLocation->longitude,
-                $clientLocation->latitude,
-                $clientLocation->longitude
-            ) / 1000; // التحويل من متر إلى كيلومتر
+        // حساب المسافة بين الموظف والعميل (Haversine formula) بالكيلومتر
+        $lat1 = deg2rad($employeeLocation->latitude);
+        $lon1 = deg2rad($employeeLocation->longitude);
+        $lat2 = deg2rad($clientLocation->latitude);
+        $lon2 = deg2rad($clientLocation->longitude);
 
-            Log::debug('حساب المسافة:', [
-                'employee_location' => $employeeLocation->toArray(),
-                'client_location' => $clientLocation->toArray(),
-                'distance_km' => $distance
-            ]);
+        $dlat = $lat2 - $lat1;
+        $dlon = $lon2 - $lon1;
 
-            if ($distance > 0.3) {
-                $errorMsg = 'يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم';
-                Log::warning('المسافة خارج النطاق المسموح:', ['distance' => $distance]);
-                return redirect()->route('clients.show', $request->client_id)->with('error', $errorMsg);
-            }
-        } catch (\Exception $e) {
-            Log::error('خطأ في حساب المسافة:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return redirect()->route('clients.show', $request->client_id)
-                   ->with('error', 'حدث خطأ في حساب المسافة الجغرافية!');
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
+        $c = 2 * asin(sqrt($a));
+        $distance = (6371000 * $c) / 1000; // المسافة بالكيلومتر
+
+        // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
+        if ($distance > 0.3) {
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
         }
 
         // بدء معاملة قاعدة البيانات
         DB::beginTransaction();
-
         try {
             // إنشاء الملاحظة
             $clientRelation = ClientRelation::create([
                 'employee_id' => auth()->id(),
                 'client_id' => $request->client_id,
-                'status' => $request->status ?? 'pending',
+                'status' => $request->status,
                 'process' => $request->process,
                 'description' => $request->description,
-                'location_id' => $employeeLocation->id,
+                'location_id' => $employeeLocation->id
             ]);
-
-            Log::info('تم إنشاء سجل الملاحظة:', $clientRelation->toArray());
 
             // معالجة المرفقات إن وجدت
             if ($request->hasFile('attachments')) {
-                try {
-                    $file = $request->file('attachments');
+                $file = $request->file('attachments');
+                if ($file->isValid()) {
                     $filename = time() . '_' . $file->getClientOriginalName();
-
-                    // استخدم Storage بدلاً من move مباشرة
-                    $path = $file->storeAs('public/uploads/notes', $filename);
-
-                    $clientRelation->attachments = str_replace('public/', '', $path);
+                    $file->move(public_path('assets/uploads/notes'), $filename);
+                    $clientRelation->attachments = $filename;
                     $clientRelation->save();
-
-                    Log::info('تم رفع المرفق:', [
-                        'file_name' => $filename,
-                        'path' => $path
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('خطأ في رفع الملف:', [
-                        'error' => $e->getMessage(),
-                        'file' => $request->file('attachments')->getClientOriginalName()
-                    ]);
-                    throw $e;
                 }
             }
 
             // ربط الموقع بالملاحظة
             $employeeLocation->update([
                 'client_relation_id' => $clientRelation->id,
-                'client_id' => $request->client_id,
+                'client_id' => $request->client_id
             ]);
 
             // تسجيل اشعار نظام
@@ -1167,51 +1134,37 @@ class ClientController extends Controller
             ]);
 
             // إرسال الإشعارات
-            $clientName = Client::findOrFail($request->client_id)->trade_name ?? 'عميل غير معروف';
+            $clientName = Client::find($request->client_id)->trade_name ?? 'عميل غير معروف';
             $userName = auth()->user()->name;
 
-            Notifications::create([
+            notifications::create([
                 'user_id' => auth()->id(),
                 'type' => 'notes',
                 'title' => $userName . ' أضاف ملاحظة لعميل',
                 'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
-
+                'data' => [
+                    'client_id' => $request->client_id,
+                    'note_id' => $clientRelation->id
+                ]
             ]);
 
             DB::commit();
 
-            Log::info('تمت إضافة الملاحظة بنجاح:', [
-                'client_id' => $request->client_id,
-                'note_id' => $clientRelation->id
-            ]);
-
-            return redirect()->route('clients.show', $request->client_id)
-                   ->with('success', 'تم إضافة الملاحظة بنجاح!');
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('success', 'تم إضافة الملاحظة بنجاح!');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('فشل إضافة ملاحظة: ' . $e->getMessage());
 
-            Log::error('فشل إضافة ملاحظة:', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'request_data' => $request->all()
-            ]);
-
-            return redirect()->route('clients.show', $request->client_id)
-                   ->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('error', 'حدث خطأ أثناء إضافة الملاحظة!');
         }
     }
-
-    /**
-     * حساب المسافة بين نقطتين باستخدام Haversine formula
-     *
-     * @param float $lat1 خط العرض للنقطة الأولى
-     * @param float $lon1 خط الطول للنقطة الأولى
-     * @param float $lat2 خط العرض للنقطة الثانية
-     * @param float $lon2 خط الطول للنقطة الثانية
-     * @return float المسافة بالمتر
+        /**
+     * حساب المسافة باستخدام Haversine formula
      */
     private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2)
     {
@@ -1232,7 +1185,8 @@ class ClientController extends Controller
 
         return $angle * $earthRadius;
     }
-        public function mang_client_details($id)
+
+    public function mang_client_details($id)
     {
         try {
             // Find the client

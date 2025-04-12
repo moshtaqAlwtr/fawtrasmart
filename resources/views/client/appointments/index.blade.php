@@ -53,83 +53,82 @@
     <div class="content-body">
         <div class="card shadow-lg border-0 rounded-lg mb-4">
             <div class="card-header bg-white py-3">
-                <div class="row align-items-center g-3">
-                    <!-- القسم الأيمن - أدوات التحديد والتصفية -->
-                    <div class="col-md-6">
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <!-- تحديد الكل -->
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="selectAll">
-                            </div>
+                <div class="row justify-content-between align-items-center mx-2">
+                    <!-- القسم الأيمن -->
+                    <div class="col-auto d-flex align-items-center gap-5">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll">
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle px-4" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-filter me-2"></i>
+                            </button>
+                            <ul class="dropdown-menu shadow-sm">
+                                <li><a class="dropdown-item py-2" href="#"><i
+                                            class="fas fa-sort-alpha-down me-2"></i>ترتيب حسب الاسم</a></li>
+                                <li><a class="dropdown-item py-2" href="#"><i
+                                            class="fas fa-sort-numeric-down me-2"></i>ترتيب حسب الرقم</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-sync me-2"></i>تحديث</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="dropdown">
 
-                            <!-- قائمة التصفية -->
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-filter me-2"></i> تصفية
-                                </button>
-                                <ul class="dropdown-menu shadow-sm">
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-sort-alpha-down me-2"></i>ترتيب حسب الاسم</a></li>
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-sort-numeric-down me-2"></i>ترتيب حسب الرقم</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-sync me-2"></i>تحديث</a></li>
-                                </ul>
-                            </div>
-
-                            <!-- قائمة الإجراءات -->
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v me-2"></i> إجراءات
-                                </button>
-                                <ul class="dropdown-menu shadow-sm">
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-edit me-2"></i>تعديل المحدد</a></li>
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-trash me-2"></i>حذف المحدد</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item py-2" href="#"><i class="fas fa-file-export me-2"></i>تصدير</a></li>
-                                </ul>
-                            </div>
+                            <ul class="dropdown-menu shadow-sm">
+                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-edit me-2"></i>تعديل
+                                        المحدد</a></li>
+                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-trash me-2"></i>حذف
+                                        المحدد</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item py-2" href="#"><i
+                                            class="fas fa-file-export me-2"></i>تصدير</a></li>
+                            </ul>
                         </div>
                     </div>
 
-                    <!-- القسم الأيسر - التنقل والإعدادات -->
-                    <div class="col-md-6">
-                        <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-3">
-                            <!-- تنقل الصفحات -->
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-start" href="#" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link border-0" href="#" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                    <li class="page-item"><span class="page-link border-0">صفحة 1 من 10</span></li>
-                                    <li class="page-item">
-                                        <a class="page-link border-0" href="#" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-end" href="#" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
+                    <!-- القسم الأيسر -->
+                    <div class="col-auto d-flex align-items-center gap-5">
+                        <!-- التنقل بين الصفحات -->
+                        <nav aria-label="Page navigation" class="d-flex align-items-center">
+                            <ul class="pagination mb-0 pagination-sm">
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-start" href="#" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link border-0" href="#" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item"><span class="page-link border-0">صفحة 1 من 10</span></li>
+                                <li class="page-item">
+                                    <a class="page-link border-0" href="#" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link border-0 rounded-end" href="#" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
 
-                            <!-- زر الإعدادات -->
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="dropdown"
+                        <div class="d-flex gap-4">
+
+                            <button class="btn btn-outline-secondary sitting px-4" type="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                                <i class="fas fa-cog"></i>
+                                <i class="fas fa-cog me-2"></i>
                             </button>
-
-                            <!-- زر إضافة جديد -->
-                            <a href="{{ route('appointments.create') }}" class="btn btn-success">
+                            <!-- زر إضافة عميل -->
+                            <a href="{{ route('appointments.create') }}" class="btn btn-success px-4">
                                 <i class="fas fa-plus-circle me-2"></i>
                                 موعد جديد
                             </a>
@@ -137,6 +136,9 @@
                     </div>
                 </div>
             </div>
+
+            <!-- محتوى الجدول -->
+
         </div>
 
         <div class="card">

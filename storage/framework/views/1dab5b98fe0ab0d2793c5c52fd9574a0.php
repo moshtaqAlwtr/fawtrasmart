@@ -1,3 +1,4 @@
+<meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 <nav class="header-navbar navbar-expand-lg navbar navbar-with-menu floating-nav navbar-light navbar-shadow">
     <div class="navbar-wrapper">
         <div class="navbar-container content" style="background-color: <?php echo e($backgroundColorr ?? '#ffffff'); ?>;">
@@ -93,150 +94,91 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
-                    <li class="dropdown dropdown-notification nav-item"><a class="nav-link nav-link-label"
-                            href="#" data-toggle="dropdown"><i class="ficon feather icon-shopping-cart"></i><span
-                                class="badge badge-pill badge-primary badge-up cart-item-count">6</span></a>
-                        <ul class="dropdown-menu dropdown-menu-media dropdown-cart dropdown-menu-right">
-                            <li class="dropdown-menu-header">
-                                <div class="dropdown-header m-0 p-2">
-                                    <h3 class="white"><span class="cart-item-count">6</span><span
-                                            class="mx-50">Items</span></h3><span class="notification-title">In Your
-                                        Cart</span>
-                                </div>
-                            </li>
-                            <li class="scrollable-container media-list"><a class="cart-item"
-                                    href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                src="../../../app-assets/images/pages/eCommerce/4.png" width="75"
-                                                alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Apple -
-                                                Apple Watch Series 1 42mm Space Gray Aluminum Case Black Sport Band -
-                                                Space Gray Aluminum</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> Durable,
-                                                lightweight aluminum cases in silver, space gray,gold, and rose gold.
-                                                Sport Band in a variety of colors. All the features of the original
-                                                Apple Watch, plus a new dual-core processor for faster performance. All
-                                                models run watchOS 3. Requires an iPhone 5 or later to run this
-                                                device.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $299</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
+                    <?php if(auth()->user()->role != 'employee'): ?>
+                        <li class="dropdown dropdown-notification nav-item">
+                            <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                                <i class="ficon feather icon-calendar"></i>
+                                <span
+                                    class="badge badge-pill badge-primary badge-up"><?php echo e($todayVisits->count()); ?></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
+                                <li class="dropdown-menu-header">
+                                    <div class="dropdown-header m-0 p-2">
+                                        <h3 class="white"><?php echo e($todayVisits->count()); ?> زيارة</h3>
+                                        <span class="notification-title">زيارات اليوم</span>
+                                    </div>
+                                </li>
+                                <li class="scrollable-container media-list">
+                                    <?php $__empty_1 = true; $__currentLoopData = $todayVisits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $visit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <div class="visit-item media p-1">
+                                            <div class="media-left">
+                                                <div class="avatar bg-primary bg-lighten-4 rounded-circle">
+                                                    <span
+                                                        class="avatar-content"><?php echo e(substr($visit->client->trade_name, 0, 1)); ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="media-body">
+                                                <h6 class="media-heading text-bold-500">
+                                                    <?php echo e($visit->client->trade_name); ?></h6>
+                                                <p class="mb-1">
+                                                    <i class="feather icon-user"></i>
+                                                    <small class="text-muted">الموظف:
+                                                        <?php echo e($visit->employee->name ?? 'غير معروف'); ?></small>
+                                                </p>
+                                                <div class="visit-details">
+                                                    <?php if($visit->arrival_time): ?>
+                                                        <p class="mb-0">
+                                                            <i class="feather icon-clock text-success"></i>
+                                                            <span class="text-success">الوصول: </span>
+                                                            <?php echo e(\Carbon\Carbon::parse($visit->arrival_time)->format('h:i A')); ?>
+
+                                                        </p>
+                                                    <?php endif; ?>
+                                                    <?php if($visit->departure_time): ?>
+                                                        <p class="mb-0">
+                                                            <i class="feather icon-clock text-danger"></i>
+                                                            <span class="text-danger">المغادرة: </span>
+                                                            <?php echo e(\Carbon\Carbon::parse($visit->departure_time)->format('h:i A')); ?>
+
+                                                        </p>
+                                                    <?php else: ?>
+                                                        <p class="mb-0 text-warning">
+                                                            <i class="feather icon-clock"></i>
+                                                            <span>ما زال عند العميل</span>
+                                                        </p>
+                                                    <?php endif; ?>
+                                                    <?php if($visit->notes): ?>
+                                                        <p class="mb-0 text-muted small">
+                                                            <i class="feather icon-message-square"></i>
+                                                            <?php echo e(Str::limit($visit->notes, 50)); ?>
+
+                                                        </p>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                class="mt-1 pl-50"
-                                                src="../../../app-assets/images/pages/eCommerce/dell-inspirion.jpg"
-                                                width="100" alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Apple -
-                                                Macbook® (Latest Model) - 12" Display - Intel Core M5 - 8GB Memory -
-                                                512GB Flash Storage - Space Gray</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> MacBook delivers
-                                                a full-size experience in the lightest and most compact Mac notebook
-                                                ever. With a full-size keyboard, force-sensing trackpad, 12-inch Retina
-                                                display,1 sixth-generation Intel Core M processor, multifunctional USB-C
-                                                port, and now up to 10 hours of battery life,2 MacBook features big
-                                                thinking in an impossibly compact form.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $1599.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                src="../../../app-assets/images/pages/eCommerce/7.png" width="88"
-                                                alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Sony -
-                                                PlayStation 4 Pro Console</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> PS4 Pro Dynamic
-                                                4K Gaming & 4K Entertainment* PS4 Pro gets you closer to your game.
-                                                Heighten your experiences. Enrich your adventures. Let the super-charged
-                                                PS4 Pro lead the way.** GREATNESS AWAITS</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $399.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                src="../../../app-assets/images/pages/eCommerce/10.png" width="75"
-                                                alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Beats by
-                                                Dr. Dre - Geek Squad Certified Refurbished Beats Studio Wireless On-Ear
-                                                Headphones - Red</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> Rock out to your
-                                                favorite songs with these Beats by Dr. Dre Beats Studio Wireless
-                                                GS-MH8K2AM/A headphones that feature a Beats Acoustic Engine and DSP
-                                                software for enhanced clarity. ANC (Adaptive Noise Cancellation) allows
-                                                you to focus on your tunes.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $379.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                class="mt-1 pl-50"
-                                                src="../../../app-assets/images/pages/eCommerce/sony-75class-tv.jpg"
-                                                width="100" alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Sony - 75"
-                                                Class (74.5" diag) - LED - 2160p - Smart - 3D - 4K Ultra HD TV with High
-                                                Dynamic Range - Black</span><span
-                                                class="item-desc font-small-2 text-truncate d-block"> This Sony 4K HDR
-                                                TV boasts 4K technology for vibrant hues. Its X940D series features a
-                                                bold 75-inch screen and slim design. Wires remain hidden, and the unit
-                                                is easily wall mounted. This television has a 4K Processor X1 and 4K
-                                                X-Reality PRO for crisp video. This Sony 4K HDR TV is easy to control
-                                                via voice commands.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $4499.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a><a class="cart-item" href="app-ecommerce-details.html">
-                                    <div class="media">
-                                        <div class="media-left d-flex justify-content-center align-items-center"><img
-                                                class="mt-1 pl-50"
-                                                src="../../../app-assets/images/pages/eCommerce/canon-camera.jpg"
-                                                width="70" alt="Cart Item"></div>
-                                        <div class="media-body"><span
-                                                class="item-title text-truncate text-bold-500 d-block mb-50">Nikon -
-                                                D810 DSLR Camera with AF-S NIKKOR 24-120mm f/4G ED VR Zoom Lens -
-                                                Black</span><span class="item-desc font-small-2 text-truncate d-block">
-                                                Shoot arresting photos and 1080p high-definition videos with this Nikon
-                                                D810 DSLR camera, which features a 36.3-megapixel CMOS sensor and a
-                                                powerful EXPEED 4 processor for clear, detailed images. The AF-S NIKKOR
-                                                24-120mm lens offers shooting versatility. Memory card sold
-                                                separately.</span>
-                                            <div class="d-flex justify-content-between align-items-center mt-1"><span
-                                                    class="align-middle d-block">1 x $4099.99</span><i
-                                                    class="remove-cart-item feather icon-x danger font-medium-1"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </a></li>
-                            <li class="dropdown-menu-footer"><a class="dropdown-item p-1 text-center text-primary"
-                                    href="app-ecommerce-checkout.html"><i
-                                        class="feather icon-shopping-cart align-middle"></i><span
-                                        class="align-middle text-bold-600">Checkout</span></a></li>
-                            <li class="empty-cart d-none p-2">Your Cart Is Empty.</li>
-                        </ul>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                <li class="empty-visits p-2 text-center">لا توجد زيارات اليوم</li>
+                    <?php endif; ?>
                     </li>
+                    <li class="dropdown-menu-footer">
+                        <a class="dropdown-item p-1 text-center text-primary" href="">
+                            <i class="feather icon-list align-middle"></i>
+                            <span class="align-middle text-bold-600">عرض كل الزيارات</span>
+                        </a>
+                    </li>
+                </ul>
+                </li>
+                <?php endif; ?>
+
+
+
+
+                <?php
+                    $userRole = Auth::user()->role;
+                ?>
+
+                <?php if($userRole != 'employee'): ?>
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-bell"></i>
@@ -261,9 +203,36 @@
 
                     <script>
                         $(document).ready(function() {
+                            function formatNotificationTime(dateTime) {
+                                const now = new Date();
+                                const notificationDate = new Date(dateTime);
+                                const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+
+                                if (diffInSeconds < 60) {
+                                    return 'منذ لحظات';
+                                } else if (diffInSeconds < 3600) {
+                                    const minutes = Math.floor(diffInSeconds / 60);
+                                    return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
+                                } else if (diffInSeconds < 86400) {
+                                    const hours = Math.floor(diffInSeconds / 3600);
+                                    return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
+                                } else if (diffInSeconds < 604800) {
+                                    const days = Math.floor(diffInSeconds / 86400);
+                                    return `منذ ${days} يوم${days > 1 ? '' : ''}`;
+                                } else {
+                                    return notificationDate.toLocaleDateString('ar-SA', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+                                }
+                            }
+
                             function fetchNotifications() {
                                 $.ajax({
-                                    url: "<?php echo e(route('notifications.unread')); ?>", // جلب الإشعارات غير المقروءة
+                                    url: "<?php echo e(route('notifications.unread')); ?>",
                                     method: "GET",
                                     success: function(response) {
                                         let notifications = response.notifications;
@@ -276,24 +245,26 @@
 
                                         if (count > 0) {
                                             notifications.forEach(notification => {
+                                                let timeAgo = formatNotificationTime(notification.created_at);
                                                 let listItem = `
-                            <a class="d-flex justify-content-between notification-item"
-                                href="javascript:void(0)"
-                                data-id="${notification.id}">
-                                <div class="media d-flex align-items-start">
-                                    <div class="media-left">
-                                        <i class="feather icon-bell font-medium-5 primary"></i>
+                                <a class="d-flex justify-content-between notification-item"
+                                    href="javascript:void(0)"
+                                    data-id="${notification.id}">
+                                    <div class="media d-flex align-items-start">
+                                        <div class="media-left">
+                                            <i class="feather icon-bell font-medium-5 primary"></i>
+                                        </div>
+                                        <div class="media-body">
+                                            <h6 class="primary media-heading">${notification.title}</h6>
+                                            <p class="notification-text mb-0">${notification.description}</p>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock"></i> ${timeAgo}
+                                            </small>
+                                        </div>
                                     </div>
-                                    <div class="media-body">
-                                        <h6 class="primary media-heading">${notification.title}</h6>
-                                        <small class="notification-text">${notification.description}</small>
-                                    </div>
-                                    <small>
-                                        <time class="media-meta">${new Date(notification.created_at).toLocaleString()}</time>
-                                    </small>
-                                </div>
-                            </a>
-                        `;
+                                </a>
+                                <hr class="my-1">
+                            `;
                                                 notificationList.append(listItem);
                                             });
                                         } else {
@@ -306,77 +277,185 @@
 
                             fetchNotifications();
 
-                            // تحديث الإشعار عند النقر عليه
+                            // تحديث الإشعارات كل دقيقة
+                            setInterval(fetchNotifications, 60000);
+
                             $(document).on('click', '.notification-item', function() {
                                 let notificationId = $(this).data('id');
 
                                 $.ajax({
-                                    url: "<?php echo e(route('notifications.markAsRead')); ?>", // استدعاء API لتحديث حالة الإشعار
+                                    url: "<?php echo e(route('notifications.markAsRead')); ?>",
                                     method: "POST",
                                     data: {
                                         _token: "<?php echo e(csrf_token()); ?>",
                                         id: notificationId
                                     },
                                     success: function() {
-                                        fetchNotifications(); // تحديث قائمة الإشعارات بعد القراءة
+                                        fetchNotifications();
                                     }
                                 });
                             });
                         });
                     </script>
 
-                    <li class="dropdown dropdown-user nav-item">
-                        <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
-                            aria-expanded="false">
-                            <div class="user-nav d-sm-flex d-none">
-                                <span class="user-name text-bold-600"><?php echo e(auth()->user()->name ?? ''); ?></span>
-                                <span class="user-status">
-                                    متصل
-                                    <?php if(auth()->user()->branch_id): ?>
-                                        - <?php echo e(auth()->user()->currentBranch()->name ?? 'بدون فرع'); ?>
+<script>
 
-                                    <?php endif; ?>
-                                </span>
-                            </div>
-                            <span>
-                                <?php
-                                    $firstLetter = mb_substr(auth()->user()->name, 0, 1, 'UTF-8');
-                                ?>
-                                <div class="profile-picture-header"><?php echo e($firstLetter); ?></div>
+                $(document).ready(function() {
+                    function formatNotificationTime(dateTime) {
+                        const now = new Date();
+                        const notificationDate = new Date(dateTime);
+                        const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+
+                        // إذا مر أكثر من 24 ساعة (86400 ثانية) لا تعرض الإشعار
+                        if (diffInSeconds > 86400) {
+                            return null;
+                        }
+
+                        if (diffInSeconds < 60) {
+                            return 'منذ لحظات';
+                        } else if (diffInSeconds < 3600) {
+                            const minutes = Math.floor(diffInSeconds / 60);
+                            return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
+                        } else if (diffInSeconds < 86400) {
+                            const hours = Math.floor(diffInSeconds / 3600);
+                            return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
+                        }
+                    }
+
+                    function fetchNotifications() {
+                        $.ajax({
+                            url: "<?php echo e(route('notifications.unread')); ?>",
+                            method: "GET",
+                            success: function(response) {
+                                let notifications = response.notifications;
+                                let validNotifications = [];
+                                let currentTime = new Date();
+
+                                // تصفية الإشعارات لليوم الحالي فقط
+                                notifications.forEach(notification => {
+                                    let notificationTime = new Date(notification.created_at);
+                                    let diffInHours = (currentTime - notificationTime) / (1000 * 60 * 60);
+
+                                    if (diffInHours <= 24) {
+                                        validNotifications.push(notification);
+                                    }
+                                });
+
+                                let count = validNotifications.length;
+                                $('#notification-count').text(count);
+                                $('#notification-title').text(count + " إشعارات جديدة");
+
+                                let notificationList = $('#notification-list');
+                                notificationList.empty();
+
+                                if (count > 0) {
+                                    validNotifications.forEach(notification => {
+                                        let timeAgo = formatNotificationTime(notification.created_at);
+                                        if (timeAgo !== null) { // فقط إذا كان الوقت ضمن 24 ساعة
+                                            let listItem = `
+                                                <a class="d-flex justify-content-between notification-item"
+                                                    href="javascript:void(0)"
+                                                    data-id="${notification.id}">
+                                                    <div class="media d-flex align-items-start">
+                                                        <div class="media-left">
+                                                            <i class="feather icon-bell font-medium-5 primary"></i>
+                                                        </div>
+                                                        <div class="media-body">
+                                                            <h6 class="primary media-heading">${notification.title}</h6>
+                                                            <p class="notification-text mb-0">${notification.description}</p>
+                                                            <small class="text-muted">
+                                                                <i class="far fa-clock"></i> ${timeAgo}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                                <hr class="my-1">
+                                            `;
+                                            notificationList.append(listItem);
+                                        }
+                                    });
+                                } else {
+                                    notificationList.append('<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
+                                }
+                            }
+                        });
+                    }
+
+                    fetchNotifications();
+
+                    // تحديث الإشعارات كل دقيقة
+                    setInterval(fetchNotifications, 60000);
+
+                    $(document).on('click', '.notification-item', function() {
+                        let notificationId = $(this).data('id');
+
+                        $.ajax({
+                            url: "<?php echo e(route('notifications.markAsRead')); ?>",
+                            method: "POST",
+                            data: {
+                                _token: "<?php echo e(csrf_token()); ?>",
+                                id: notificationId
+                            },
+                            success: function() {
+                                fetchNotifications();
+                            }
+                        });
+                    });
+                });
+            </script>
+            <?php endif; ?>
+                <li class="dropdown dropdown-user nav-item">
+                    <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
+                        aria-expanded="false">
+                        <div class="user-nav d-sm-flex d-none">
+                            <span class="user-name text-bold-600"><?php echo e(auth()->user()->name ?? ''); ?></span>
+                            <span class="user-status">
+                                متصل
+                                <?php if(auth()->user()->branch_id): ?>
+                                    - <?php echo e(auth()->user()->currentBranch()->name ?? 'بدون فرع'); ?>
+
+                                <?php endif; ?>
                             </span>
-                            <i class="feather icon-chevron-down"></i> <!-- 🔽 رمز الدروب داون -->
-                        </a>
-
-                        <div class="dropdown-menu dropdown-menu-right">
-
-                            <div class="dropdown-divider"></div>
-
-                            <!-- 🔹 قائمة الفروع (إذا لم يكن الموظف) -->
-                            <?php if(auth()->user()->role !== 'employee'): ?>
-                                <span class="dropdown-item font-weight-bold">🔹 الفروع:</span>
-                                <?php $__currentLoopData = App\Models\Branch::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <a class="dropdown-item branch-item <?php echo e(auth()->user()->branch_id == $branch->id ? 'active' : ''); ?>"
-                                        href="<?php echo e(route('branch.switch', $branch->id)); ?>">
-                                        <i class="feather icon-map-pin"></i> <?php echo e($branch->name); ?>
-
-                                        <?php if(auth()->user()->branch_id == $branch->id): ?>
-                                            <i class="feather icon-check text-success"></i>
-                                            <!-- ✅ علامة عند تحديد الفرع -->
-                                        <?php endif; ?>
-                                    </a>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            <?php endif; ?>
-
-                            <div class="dropdown-divider"></div>
-
-                            <!-- زر تسجيل الخروج -->
-                            <form action="<?php echo e(route('logout')); ?>" method="POST" style="display: inline;">
-                                <?php echo csrf_field(); ?>
-                                <button type="submit" class="dropdown-item"><i class="feather icon-power"></i> تسجيل
-                                    خروج</button>
-                            </form>
                         </div>
-                    </li>
+                        <span>
+                            <?php
+                                $firstLetter = mb_substr(auth()->user()->name, 0, 1, 'UTF-8');
+                            ?>
+                            <div class="profile-picture-header"><?php echo e($firstLetter); ?></div>
+                        </span>
+                        <i class="feather icon-chevron-down"></i> <!-- 🔽 رمز الدروب داون -->
+                    </a>
+
+                    <div class="dropdown-menu dropdown-menu-right">
+
+                        <div class="dropdown-divider"></div>
+
+                        <!-- 🔹 قائمة الفروع (إذا لم يكن الموظف) -->
+                        <?php if(auth()->user()->role !== 'employee'): ?>
+                            <span class="dropdown-item font-weight-bold">🔹 الفروع:</span>
+                            <?php $__currentLoopData = App\Models\Branch::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <a class="dropdown-item branch-item <?php echo e(auth()->user()->branch_id == $branch->id ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('branch.switch', $branch->id)); ?>">
+                                    <i class="feather icon-map-pin"></i> <?php echo e($branch->name); ?>
+
+                                    <?php if(auth()->user()->branch_id == $branch->id): ?>
+                                        <i class="feather icon-check text-success"></i>
+                                        <!-- ✅ علامة عند تحديد الفرع -->
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php endif; ?>
+
+                        <div class="dropdown-divider"></div>
+
+                        <!-- زر تسجيل الخروج -->
+                        <form action="<?php echo e(route('logout')); ?>" method="POST" style="display: inline;">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="dropdown-item"><i class="feather icon-power"></i> تسجيل
+                                خروج</button>
+                        </form>
+                    </div>
+                </li>
 
 
                 </ul>
@@ -486,4 +565,73 @@
                     results found.</span></div>
         </a></li>
 </ul>
+
+<?php $__env->startSection('scripts'); ?>
+    <script>
+        $(document).ready(function() {
+            function formatVisitTime(dateTime) {
+                try {
+                    const now = new Date();
+                    const visitDate = new Date(dateTime);
+                    const diffInSeconds = Math.floor((now - visitDate) / 1000);
+
+                    if (diffInSeconds < 60) return 'الآن';
+                    if (diffInSeconds < 3600) return `منذ ${Math.floor(diffInSeconds / 60)} دقيقة`;
+                    if (diffInSeconds < 86400) return `منذ ${Math.floor(diffInSeconds / 3600)} ساعة`;
+                    return `منذ ${Math.floor(diffInSeconds / 86400)} يوم`;
+                } catch (e) {
+                    console.error('Error formatting time:', e);
+                    return '--';
+                }
+            }
+
+            function fetchTodayVisits() {
+                $.ajax({
+                    url: "<?php echo e(route('visits.today')); ?>",
+                    method: "GET",
+                    success: function(response) {
+                        let visits = response.visits || [];
+                        let count = response.count || 0;
+
+                        $('#visits-count').text(count);
+                        $('#visits-title').text(count + ' زيارة');
+
+                        let visitsList = $('#visits-list');
+                        visitsList.empty();
+
+                        if (count > 0) {
+                            visits.forEach(visit => {
+                                let timeAgo = formatVisitTime(visit.created_at);
+                                visitsList.append(`
+                                <div class="media d-flex align-items-start px-2 py-1">
+                                    <div class="media-left">
+                                        <i class="feather icon-user font-medium-5 primary"></i>
+                                    </div>
+                                    <div class="media-body">
+                                        <h6 class="primary media-heading mb-0">${visit.client_name}</h6>
+                                        <small class="text-muted d-block">الموظف: ${visit.employee_name}</small>
+                                        <small class="text-muted d-block">الوصول: ${visit.arrival_time} | الانصراف: ${visit.departure_time}</small>
+                                        <small class="text-muted"><i class="far fa-clock"></i> ${timeAgo}</small>
+                                    </div>
+                                </div>
+                                <hr class="my-1">
+                            `);
+                            });
+                        } else {
+                            visitsList.append('<p class="text-center p-2">لا توجد زيارات اليوم</p>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching visits:', error);
+                        $('#visits-list').html(
+                            '<p class="text-center p-2 text-danger">حدث خطأ أثناء جلب البيانات</p>');
+                    }
+                });
+            }
+
+            fetchTodayVisits(); // أول مرة عند التحميل
+            setInterval(fetchTodayVisits, 60000); // كل دقيقة
+        });
+    </script>
+<?php $__env->stopSection(); ?>
 <?php /**PATH /home/sehohoqm/hitstest.sehoool.com/resources/views/layouts/header.blade.php ENDPATH**/ ?>

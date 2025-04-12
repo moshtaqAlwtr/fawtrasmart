@@ -669,7 +669,7 @@ class VisitController extends Controller
     // تحليلات حركة الزيارات
     public function tracktaff()
     {
-        $groups = Region_groub::all();
+        $groups = Region_groub::with('clients')->get();
         $minDate = $this->getMinOperationDate();
         $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
         $now = now()->endOfWeek();
@@ -686,7 +686,7 @@ class VisitController extends Controller
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
 
-    // عرض تحليلات الحركة
+    // تحليلات الحركة
     public function traffics()
     {
         $groups = Region_groub::all();

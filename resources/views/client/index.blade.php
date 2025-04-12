@@ -195,14 +195,14 @@
                                     @endforeach
                                 </select>
                             </div>
-
+                    
                             <!-- الاسم -->
                             <div class="col-md-3 col-12">
                                 <label for="name" class="form-label">الاسم</label>
                                 <input type="text" name="name" id="name" class="form-control"
                                     placeholder="الاسم" value="{{ request('name') }}">
                             </div>
-
+                    
                             <!-- الحالة -->
                             <div class="col-md-3 col-12">
                                 <label for="status" class="form-label">الحالة</label>
@@ -215,7 +215,7 @@
                                     @endforeach
                                 </select>
                             </div>
-
+                    
                             <!-- المجموعة -->
                             <div class="col-md-3 col-12">
                                 <label for="region" class="form-label">المجموعة</label>
@@ -228,7 +228,7 @@
                                     @endforeach
                                 </select>
                             </div>
-
+                    
                             <!-- الحي -->
                             <div class="col-md-12 col-12">
                                 <label for="neighborhood" class="form-label">الحي</label>
@@ -237,8 +237,8 @@
                             </div>
                         </div>
                     </div>
-
-
+                    
+                    
 
                     <div class="collapse" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
@@ -408,8 +408,8 @@
                                                 </span>
                                             @endif
                                         </td>
-
-
+                                        
+                                        
                                         <td>{{ $client->code ?? '' }}</td>
                                         <td>
                                             <strong class="text-primary">

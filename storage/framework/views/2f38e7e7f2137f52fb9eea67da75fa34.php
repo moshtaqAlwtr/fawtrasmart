@@ -1,11 +1,12 @@
 <?php $__env->startSection('title'); ?>
-لوحة التحكم
+    لوحة التحكم
 <?php $__env->stopSection(); ?>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <?php $__env->startSection('css'); ?>
     <style>
         .ficon {
+
                 font-size: 16px;
                 margin-left: 8px;
             }
@@ -15,6 +16,29 @@
                 width: 100%;
                 padding: 4px;
             }
+            .chart-container {
+    width: 100%;
+    height: auto;
+}
+
+@media (max-width: 576px) {
+    canvas {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+}
+
+            font-size: 16px;
+            margin-left: 8px;
+        }
+
+        .ml-auto a {
+            display: inline-block;
+            margin: 7px 10px;
+            width: 100%;
+            padding: 4px;
+        }
+
     </style>
 <?php $__env->stopSection(); ?>
 
@@ -26,10 +50,12 @@
             <div class="d-flex justify-between align-items-center mb-1">
                 <div class="mr-1">
                     <p><span><?php echo e(\Carbon\Carbon::now()->translatedFormat('l، d F Y')); ?></span></p>
-                    <h4 class="content-header-title float-left mb-0"> أهلاً <strong style="color: #2C2C2C"><?php echo e(auth()->user()->name); ?> ، </strong> مرحباً بعودتك!</h4>
+                    <h4 class="content-header-title float-left mb-0"> أهلاً <strong
+                            style="color: #2C2C2C"><?php echo e(auth()->user()->name); ?> ، </strong> مرحباً بعودتك!</h4>
                 </div>
                 <div class="ml-auto bg-rgba-success">
-                    <a href="" class="text-success"><i class="ficon feather icon-globe"></i> <span>الذهاب إلى الموقع</span></a>
+                    <a href="" class="text-success"><i class="ficon feather icon-globe"></i> <span>الذهاب إلى
+                            الموقع</span></a>
                 </div>
             </div>
         </div>
@@ -104,36 +130,107 @@
                     </div>
                 </div>
             </div>
+
                 <div class="row">
-              <div class="col-lg-4 col-12">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-end">
-            <h4>مبيعات المجموعات</h4>
-            <div class="dropdown chart-dropdown">
-               
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                    <a class="dropdown-item" href="#">العام الماضي</a>
-                </div>
+              <div class="col-md-12 col-12">
+                  <div class="accordion mb-3" id="summaryAccordion">
+    <div class="row mb-3">
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm border-success">
+            <div class="card-body">
+                <h5 class="text-success">إجمالي المبيعات</h5>
+                <h3 class="fw-bold"><?php echo e(number_format($totalSales, 2)); ?> ريال</h3>
             </div>
         </div>
-        <div class="card-content">
-            <div class="card-body pt-0">
-                <div id="sales-chart" class="mb-1"></div>
-                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="chart-info d-flex justify-content-between mb-1">
-                        <div class="series-info d-flex align-items-center">
-                            <i class="feather icon-layers font-medium-2 text-primary"></i>
-                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name); ?></span>
-                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
-                        </div>
-                    </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm border-primary">
+            <div class="card-body">
+                <h5 class="text-primary">إجمالي المدفوعات</h5>
+                <h3 class="fw-bold"><?php echo e(number_format($totalPayments, 2)); ?> ريال</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 col-12">
+        <div class="card text-center shadow-sm border-warning">
+            <div class="card-body">
+                <h5 class="text-warning">إجمالي سندات القبض</h5>
+                <h3 class="fw-bold"><?php echo e(number_format($totalReceipts, 2)); ?> ريال</h3>
             </div>
         </div>
     </div>
 </div>
+
+
+
+</div>
+ <div class="card">
+    <div class="card-header">
+        <h4 class="card-title">مبيعات المجموعات</h4>
+    </div>
+    <div class="card-body">
+        <div class="chart-container" style="position: relative; width: 100%;">
+            <canvas id="group-sales-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+</div>
+
+
+
+<!-- السكربت يوضع خارج البلوك -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('group-sales-chart').getContext('2d');
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($groupChartData->pluck('region')); ?>,
+                datasets: [
+    {
+        label: 'المبيعات',
+        data: <?php echo json_encode($groupChartData->pluck('sales')); ?>,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+    },
+    {
+        label: 'المدفوعات',
+        data: <?php echo json_encode($groupChartData->pluck('payments')); ?>,
+        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+    },
+    {
+        label: 'سندات القبض',
+        data: <?php echo json_encode($groupChartData->pluck('receipts')); ?>,
+        backgroundColor: 'rgba(255, 159, 64, 0.7)',
+        borderColor: 'rgba(255, 159, 64, 1)',
+        borderWidth: 1
+    }
+]
+
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'المبلغ (ريال)'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
 
                 <!--<div class="col-lg-4 col-12">-->
                 <!--    <div class="card chat-application">-->
@@ -250,46 +347,81 @@
                 <!--        </div>-->
                 <!--    </div>-->
                 <!--</div>-->
+                <div class="col-md-12 col-12">
+
+            <div class="row">
                 <div class="col-lg-4 col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-end">
+                            <h4>مبيعات المجموعات</h4>
+                            <div class="dropdown chart-dropdown">
+
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
+                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                                    <a class="dropdown-item" href="#">العام الماضي</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body pt-0">
+                                <div id="sales-chart" class="mb-1"></div>
+                                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="chart-info d-flex justify-content-between mb-1">
+                                        <div class="series-info d-flex align-items-center">
+                                            <i class="feather icon-layers font-medium-2 text-primary"></i>
+                                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name ?? ''); ?></span>
+                                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-4 col-12">
+
                     <div class="card">
                         <div class="card-header d-flex justify-content-between pb-0">
                             <h4 class="card-title">مبيعات الموظفين</h4>
                             <div class="dropdown chart-dropdown">
-                               
+
                             </div>
                         </div>
                         <div class="card-content">
                             <div class="card-body py-0">
                                 <div id="customer-charts">
                                     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var options = {
-            series: <?php echo json_encode($chartData->pluck('percentage'), 15, 512) ?>,
-            chart: {
-                type: 'donut',
-                height: 300
-            },
-            labels: <?php echo json_encode($chartData->pluck('name'), 15, 512) ?>,
-            colors: ['#007bff', '#ffc107', '#dc3545', '#28a745'],
-            legend: {
-                position: 'bottom'
-            },
-            dataLabels: {
-                formatter: function (val) {
-                    return val.toFixed(2) + "%";
-                }
-            }
-        };
+                                        document.addEventListener("DOMContentLoaded", function() {
+                                            var options = {
+                                                series: <?php echo json_encode($chartData->pluck('percentage'), 15, 512) ?>,
+                                                chart: {
+                                                    type: 'donut',
+                                                    height: 300
+                                                },
+                                                labels: <?php echo json_encode($chartData->pluck('name'), 15, 512) ?>,
+                                                colors: ['#007bff', '#ffc107', '#dc3545', '#28a745'],
+                                                legend: {
+                                                    position: 'bottom'
+                                                },
+                                                dataLabels: {
+                                                    formatter: function(val) {
+                                                        return val.toFixed(2) + "%";
+                                                    }
+                                                }
+                                            };
 
-        var chart = new ApexCharts(document.querySelector("#customer-charts"), options);
-        chart.render();
-    });
-</script>
+                                            var chart = new ApexCharts(document.querySelector("#customer-charts"), options);
+                                            chart.render();
+                                        });
+                                    </script>
 
-                                    
+
                                 </div>
                             </div>
-                         
+
                         </div>
                     </div>
                 </div>
@@ -299,7 +431,8 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
                             <h4 class="card-title">الإيرادات</h4>
-                            <p class="font-medium-5 mb-0"><i class="feather icon-settings text-muted cursor-pointer"></i></p>
+                            <p class="font-medium-5 mb-0"><i class="feather icon-settings text-muted cursor-pointer"></i>
+                            </p>
                         </div>
                         <div class="card-content">
                             <div class="card-body pb-0">
@@ -329,7 +462,8 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
                             <h4 class="mb-0">نظرة عامة على الأهداف</h4>
-                            <p class="font-medium-5 mb-0"><i class="feather icon-help-circle text-muted cursor-pointer"></i></p>
+                            <p class="font-medium-5 mb-0"><i
+                                    class="feather icon-help-circle text-muted cursor-pointer"></i></p>
                         </div>
                         <div class="card-content">
                             <div class="card-body px-0 pb-0">
@@ -350,6 +484,21 @@
                 </div>
             </div>
             <div class="row">
+
+
+                <div class="col-md-12 col-12">
+
+</div>
+
+<!-- السكربت يوضع خارج البلوك -->
+
+
+            </div>
+            <div class="row">
+              <div class="col-lg-4 col-12">
+
+</div>
+
                 <div class="col-md-4 col-12">
                     <div class="card">
                         <div class="card-header">
@@ -368,7 +517,8 @@
                                     </div>
                                 </div>
                                 <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="73" aria-valuemin="73" aria-valuemax="100" style="width:73%"></div>
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="73" aria-valuemin="73"
+                                        aria-valuemax="100" style="width:73%"></div>
                                 </div>
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
@@ -381,7 +531,8 @@
                                     </div>
                                 </div>
                                 <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="8" aria-valuemin="8" aria-valuemax="100" style="width:8%"></div>
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="8" aria-valuemin="8"
+                                        aria-valuemax="100" style="width:8%"></div>
                                 </div>
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
@@ -394,7 +545,8 @@
                                     </div>
                                 </div>
                                 <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="19" aria-valuemin="19" aria-valuemax="100" style="width:19%"></div>
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="19" aria-valuemin="19"
+                                        aria-valuemax="100" style="width:19%"></div>
                                 </div>
                                 <div class="d-flex justify-content-between mb-25">
                                     <div class="browser-info">
@@ -407,7 +559,8 @@
                                     </div>
                                 </div>
                                 <div class="progress progress-bar-primary mb-50">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="27" aria-valuemin="27" aria-valuemax="100" style="width:27%"></div>
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="27" aria-valuemin="27"
+                                        aria-valuemax="100" style="width:27%"></div>
                                 </div>
                             </div>
                         </div>
@@ -428,152 +581,36 @@
                 </div>
             </div>
             <div class="row">
-              <div class="col-lg-4 col-12">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-end">
-            <h4>مبيعات المجموعات</h4>
-            <div class="dropdown chart-dropdown">
-               
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                    <a class="dropdown-item" href="#">العام الماضي</a>
-                </div>
-            </div>
-        </div>
-        <div class="card-content">
-            <div class="card-body pt-0">
-                <div id="sales-chart" class="mb-1"></div>
-                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="chart-info d-flex justify-content-between mb-1">
-                        <div class="series-info d-flex align-items-center">
-                            <i class="feather icon-layers font-medium-2 text-primary"></i>
-                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name); ?></span>
-                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
+                <div class="col-lg-4 col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-end">
+                            <h4>مبيعات المجموعات</h4>
+                            <div class="dropdown chart-dropdown">
+
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
+                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
+                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
+                                    <a class="dropdown-item" href="#">العام الماضي</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-body pt-0">
+                                <div id="sales-chart" class="mb-1"></div>
+                                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="chart-info d-flex justify-content-between mb-1">
+                                        <div class="series-info d-flex align-items-center">
+                                            <i class="feather icon-layers font-medium-2 text-primary"></i>
+                                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name ?? ''); ?></span>
+                                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
                         </div>
                     </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </div>
-        </div>
-    </div>
-</div>
+                </div>
 
-                <!--<div class="col-lg-4 col-12">-->
-                <!--    <div class="card chat-application">-->
-                <!--        <div class="card-header">-->
-                <!--            <h4 class="card-title">الدردشة</h4>-->
-                <!--        </div>-->
-                <!--        <div class="chat-app-window">-->
-                <!--            <div class="user-chats">-->
-                <!--                <div class="chats">-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>كعكة السمسم</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>فطيرة التفاح</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>كعكة الشوكولاتة</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>دونات</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>حلوى عرق السوس</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>حلوى التوفي</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>فطيرة التفاح</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>كعكة البسكويت</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                </div>-->
-                <!--            </div>-->
-                <!--            <div class="chat-footer">-->
-                <!--                <div class="card-body d-flex justify-content-around pt-0">-->
-                <!--                    <input type="text" class="form-control mr-50" placeholder="اكتب رسالتك">-->
-                <!--                    <button type="button" class="btn btn-icon btn-primary"><i class="feather icon-navigation"></i></button>-->
-                <!--                </div>-->
-                <!--            </div>-->
-                <!--        </div>-->
-                <!--    </div>-->
-                <!--</div>-->
-              
             </div>
         </section>
 
@@ -581,7 +618,9 @@
     </div>
 
 <?php $__env->stopSection(); ?>
+
 <?php $__env->startSection('scripts'); ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -672,6 +711,7 @@
         }
     });
 </script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     var options = {

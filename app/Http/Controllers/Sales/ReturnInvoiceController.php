@@ -554,6 +554,16 @@ class ReturnInvoiceController extends Controller
          $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->get();
          $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         // $invoice_number = $this->generateInvoiceNumber();
-        return view('sales.retend_invoice.show', compact('clients','TaxsInvoice', 'employees','account_setting', 'return_invoice'));
+        return view('sales.retend_invoice.show', compact('clients','TaxsInvoice','id', 'employees','account_setting', 'return_invoice'));
+    }
+    public function print($id)
+    {
+        $clients = Client::all();
+        $employees = Employee::all();
+        $return_invoice = Invoice::find($id);
+         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->get();
+         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        // $invoice_number = $this->generateInvoiceNumber();
+        return view('sales.retend_invoice.pdf', compact('clients','id','TaxsInvoice', 'employees','account_setting', 'return_invoice'));
     }
 }

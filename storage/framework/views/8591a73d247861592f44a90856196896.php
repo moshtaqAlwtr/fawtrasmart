@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title'); ?>
     العملاء
 <?php $__env->stopSection(); ?>
@@ -87,12 +85,20 @@
                         <br>
                         <small class="text-muted">
                             حساب الأستاذ:
-                            <?php if($client->account): ?>
-                                <a href="#"><?php echo e($client->account->name); ?> #<?php echo e($client->account->code); ?></a>
-                            <?php else: ?>
-                                <span>No account associated</span>
-                            <?php endif; ?>
+                            <small class="text-muted">
+                                حساب الأستاذ:
+                                <?php if($client->account_client && $client->account_client->client_id == $client->id): ?>
+                                    <a href="<?php echo e(route('journal.generalLedger', ['account_id' => $client->account_client->id])); ?>">
+                                        <?php echo e($client->account_client->name ?? ""); ?> #<?php echo e($client->account_client->code ?? ""); ?>
+
+                                    </a>
+                                <?php else: ?>
+                                    <span>لا يوجد حساب مرتبط</span>
+                                <?php endif; ?>
+                            </small>
+                            
                         </small>
+                        
                     </div>
                     <?php
                         $currency = $account_setting->currency ?? 'SAR';
@@ -109,13 +115,9 @@
                                 class="text-muted"><?php echo $currencySymbol; ?></span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
-                        <?php if($invoices->isNotEmpty()): ?>
-                            <div class="text-muted">
-                                <strong class="text-dark"><?php echo e($invoice_due ?? 0); ?></strong> <span class="text-muted"></span>
-                                <span class="d-block text-warning">مفتوح</span>
-                            </div>
-                        <?php endif; ?>
+                        
                     </div>
+                    <?php if(auth()->user()->role === 'manager'): ?>
                     <div class="mt-4">
                         <h6>!</h6>
                         <div class="d-flex flex-wrap gap-2" id="assignedEmployeesList">
@@ -141,52 +143,96 @@
                             <?php endif; ?>
                         </div>
                     </div>
+                    <?php endif; ?>
                     <?php
                         // جلب الحالة الحالية للعميل من العلاقة
                         $currentStatus = $client->status;
                     ?>
 
 
-                    <form method="POST" action="<?php echo e(route('clients.updateStatusClient')); ?>">
-                        <?php echo csrf_field(); ?>
-                        <input type="hidden" name="client_id" value="<?php echo e($client->id); ?>">
+<div class="d-flex flex-wrap gap-2">
+    <div class="d-flex flex-wrap gap-2">
+        <!-- قائمة تغيير الحالة -->
+        <form method="POST" action="<?php echo e(route('clients.updateStatusClient')); ?>" class="flex-grow-1" style="min-width: 220px;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="client_id" value="<?php echo e($client->id); ?>">
+            <div class="dropdown w-100">
+                <button class="btn w-100 text-start dropdown-toggle"
+                    type="button"
+                    id="clientStatusDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    style="background-color: <?php echo e($currentStatus->color ?? '#e0f7fa'); ?>;
+                           color: #000;
+                           border: 1px solid #ccc;
+                           height: 42px;">
+                    <?php echo e($currentStatus->name ?? 'اختر الحالة'); ?>
 
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle text-start" type="button"
-                                id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                style="background-color: <?php echo e($currentStatus->color ?? '#ffffff'); ?>;
-                               color: #000;
-                               border: 1px solid #ccc;
-                               min-width: 150px;
-                               max-width: max-content;
-                               white-space: nowrap;">
-                                <?php echo e($currentStatus->name ?? 'اختر الحالة'); ?>
-
+                </button>
+    
+                <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown" style="border-radius: 8px;">
+                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li>
+                            <button type="submit"
+                                class="dropdown-item text-white d-flex align-items-center justify-content-between"
+                                name="status_id" value="<?php echo e($status->id); ?>"
+                                style="background-color: <?php echo e($status->color); ?>;">
+                                <span><i class="fas fa-thumbtack me-1"></i> <?php echo e($status->name); ?></span>
                             </button>
+                        </li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <li>
+                        <a href="<?php echo e(route('SupplyOrders.edit_status')); ?>"
+                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                            style="border-top: 1px solid #ddd; padding: 8px;">
+                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </form>
+    
+        <!-- قائمة خيارات أخرى -->
+        <div class="dropdown flex-grow-1" style="min-width: 220px;">
+            <button class="btn w-100 text-start dropdown-toggle"
+                type="button"
+                id="otherOptionsDropdown"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style="background-color: #f0f0f0;
+                       color: #000;
+                       border: 1px solid #ccc;
+                       height: 42px;">
+                <i class="fas fa-ellipsis-v me-2"></i> خيارات أخرى
+            </button>
+    
+            <ul class="dropdown-menu w-100" aria-labelledby="otherOptionsDropdown" style="border-radius: 8px;">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
+                        <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('SupplyOrders.create')); ?>">
+                        <i class="fas fa-truck me-2 text-info"></i> إضافة أمر توريد
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <i class="fas fa-user me-2 text-primary"></i> الدخول كعميل
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center text-danger" href="<?php echo e(route('clients.destroy', $client->id)); ?>">
+                        <i class="fas fa-trash-alt me-2"></i> حذف عميل
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+</div>
 
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientStatusDropdown"
-                                style="min-width: 150px; width: auto; max-width: max-content; white-space: nowrap; border-radius: 8px;">
-                                <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <li>
-                                        <button type="submit"
-                                            class="dropdown-item text-white d-flex align-items-center justify-content-between"
-                                            name="status_id" value="<?php echo e($status->id); ?>"
-                                            style="background-color: <?php echo e($status->color); ?>;">
-                                            <span><i class="fas fa-thumbtack me-1"></i> <?php echo e($status->name); ?></span>
-                                        </button>
-                                    </li>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-                                <li>
-                                    <a href="<?php echo e(route('SupplyOrders.edit_status')); ?>"
-                                        class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                        style="border-top: 1px solid #ddd; padding: 8px;">
-                                        <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -213,27 +259,7 @@
                     </button>
                 </div>
 
-                <!-- زر القائمة المنسدلة - يظهر في الشاشات الصغيرة فقط -->
-                <div class="dropdown ms-auto">
-                    <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-
-                    <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
-                            <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
-                        </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('SupplyOrders.create')); ?>">
-                            <i class="fas fa-truck me-2 text-info"></i> إضافة أمر توريد
-                        </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#">
-                            <i class="fas fa-user me-2 text-primary"></i> الدخول كعميل
-                        </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center text-danger" href="<?php echo e(route('clients.destroy', $client->id)); ?>">
-                            <i class="fas fa-trash-alt me-2"></i> حذف عميل
-                        </a></li>
-                    </ul>
-                </div>
+               
 
                 <!-- القائمة الأصلية (تظهر فقط في الشاشات الكبيرة) -->
                 <div class="dropdown col-12 col-md-auto d-none d-md-block">
@@ -273,7 +299,7 @@
                     <a href="<?php echo e(route('appointments.create')); ?>" class="btn btn-sm btn-success col-md-auto">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-                    <a href="#" class="btn btn-sm btn-warning col-md-auto">
+                    <a href="<?php echo e(route('clients.statement', $client->id)); ?>" class="btn btn-sm btn-warning col-md-auto">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
                     <a href="<?php echo e(route('questions.create')); ?>" class="btn btn-sm btn-warning col-md-auto">
@@ -282,7 +308,11 @@
                     <a href="<?php echo e(route('CreditNotes.create')); ?>" class="btn btn-sm btn-danger col-md-auto">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
-                    <a href="<?php echo e(route('invoices.create')); ?>" class="btn btn-sm btn-dark col-md-auto">
+
+                    <a href="<?php echo e(route('invoices.create')); ?>?client_id=<?php echo e($client->id); ?>" class="btn btn-sm btn-dark col-md-auto">
+
+                    <a href="<?php echo e(route('invoices.create', ['client_id' => $client->id])); ?>" class="btn btn-sm btn-dark col-md-auto">
+
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
                     <a href="<?php echo e(route('Reservations.client', $client->id)); ?>" class="btn btn-sm btn-light text-dark col-md-auto">
@@ -305,7 +335,7 @@
                         <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('appointments.create')); ?>">
                             <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
                         </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#">
+                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('clients.statement', $client->id)); ?>">
                             <i class="fas fa-file-invoice me-2 text-warning"></i> كشف حساب
                         </a></li>
                         <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('questions.create')); ?>">
@@ -939,60 +969,33 @@
                                                 $total_due = 0;
                                             ?>
 
-                                            <?php $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php $__currentLoopData = $operationsPaginator; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $operation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <tr>
-                                                    <td class="text-end"><?php echo e($invoice->invoice_date); ?></td>
-                                                    <td class="text-end">
-                                                        <?php if($invoice->type == 'returned'): ?>
-                                                            مرتجع لفاتورة رقم <?php echo e($invoice->code); ?>
+                                                    <td class="text-end"><?php echo e(\Carbon\Carbon::parse($operation['date'])->format('Y-m-d')); ?></td>
+                                                    <td class="text-end"><?php echo e($operation['operation']); ?></td>
+                                                    <td class="text-start"> <?php if($operation['deposit']): ?>
+                                                        <?php echo e(number_format($operation['deposit'], 2)); ?>
 
-                                                        <?php else: ?>
-                                                            فاتورة <?php echo e($invoice->code); ?>
+                                                    <?php elseif($operation['withdraw']): ?>
+                                                        -<?php echo e(number_format($operation['withdraw'], 2)); ?>
 
-                                                        <?php endif; ?>
-                                                    </td>
-                                                    <td class="text-start"><?php echo e(number_format($invoice->grand_total, 2)); ?></td>
-                                                    <td class="text-start"><?php echo e(number_format($invoice->due_value, 2)); ?></td>
+                                                    <?php else: ?>
+                                                        0
+                                                    <?php endif; ?></td>
+                                                    <td class="text-start"><?php echo e(number_format($operation['balance_after'], 2)); ?></td>
                                                 </tr>
 
-                                                <?php
-                                                    $total_amount += $invoice->grand_total;
-                                                    $total_due += $invoice->due_value;
-                                                ?>
-
-                                                <?php $__currentLoopData = $invoice->payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                    <tr>
-                                                        <td class="text-end"><?php echo e($payment->payment_date); ?></td>
-                                                        <td class="text-end">عملية دفع
-                                                            (<?php if($payment->Payment_method == 1): ?>
-                                                                نقدي
-                                                            <?php elseif($payment->Payment_method == 2): ?>
-                                                                شيك
-                                                            <?php else: ?>
-                                                                بطاقة ائتمان
-                                                            <?php endif; ?>)
-                                                        </td>
-                                                        <td class="text-start">
-                                                            <?php if($invoice->advance_payment > 0): ?>
-                                                                -<?php echo e(number_format($invoice->advance_payment, 2)); ?>
-
-                                                            <?php else: ?>
-                                                                <?php echo e(number_format($invoice->advance_payment, 2)); ?>
-
-                                                            <?php endif; ?>
-                                                        </td>
-                                                        <td class="text-start"><?php echo e(number_format($invoice->due_value, 2)); ?></td>
-                                                    </tr>
-                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </tbody>
                                         <tfoot class="bg-light">
                                             <tr>
-                                                <th class="text-end" colspan="2">المجموع الكلي</th>
-                                                <th class="text-start"><?php echo e(number_format($total_amount, 2)); ?></th>
-                                                <th class="text-start"><?php echo e(number_format($total_due, 2)); ?></th>
+                                                <th class="text-end" colspan="2">المبلغ المستحق</th>
+                                                <th class="text-start"><?php echo e(number_format($account->balance ?? 0, 2)); ?></th>
+                                                <th></th> 
                                             </tr>
                                         </tfoot>
+                                        
                                     </table>
                                 </div>
                             </div>
@@ -1386,6 +1389,17 @@
             document.getElementById("startRecording").classList.remove("d-none");
         });
     });
+document.addEventListener('DOMContentLoaded', function() {
+    // إذا كان هناك عميل محدد، قم باختياره في القائمة
+    <?php if(isset($client_id)): ?>
+        $('#clientSelect').val('<?php echo e($client_id); ?>').trigger('change');
+    <?php endif; ?>
+
+    // أو إذا كان هناك كائن عميل
+    <?php if(isset($client) && $client): ?>
+        $('#clientSelect').val('<?php echo e($client->id); ?>').trigger('change');
+    <?php endif; ?>
+});
     </script>
 
 

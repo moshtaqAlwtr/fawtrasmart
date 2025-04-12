@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title'); ?>
     انشاء فاتورة مرتجعة
 <?php $__env->stopSection(); ?>
@@ -73,8 +71,7 @@
                                                 <span>العميل :</span>
                                             </div>
                                             <div class="col-md-6">
-                                                <select class="form-control" id="clientSelect" name="payment"
-                                                    >
+                                                <select class="form-control" id="clientSelect" name="payment">
                                                     <option value="">اختر الطريقة </option>
                                                     <option value="1">ارسال عبر البريد</option>
                                                     <option value="2">طباعة </option>
@@ -90,15 +87,17 @@
                                             </div>
                                             <div class="col-md-6">
 
-                                                    <select class="form-control select2" id="clientSelect" name="client_id" required>
-                                                        <option value="">اختر العميل</option>
-                                                        <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                            <option value="<?php echo e($client->id); ?>" <?php echo e($client->id == $invoice->client_id ? 'selected' : ''); ?>>
-                                                                <?php echo e($client->trade_name); ?>
+                                                <select class="form-control select2" id="clientSelect" name="client_id"
+                                                    required>
+                                                    <option value="">اختر العميل</option>
+                                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($client->id); ?>"
+                                                            <?php echo e($client->id == $invoice->client_id ? 'selected' : ''); ?>>
+                                                            <?php echo e($client->trade_name); ?>
 
-                                                            </option>
-                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                                    </select>
+                                                        </option>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                </select>
 
                                             </div>
                                             <div class="col-md-4">
@@ -139,7 +138,8 @@
                                                 <span>تاريخ الفاتورة :</span>
                                             </div>
                                             <div class="col-md-8">
-                                                <input class="form-control" type="date" name="invoice_date" value="<?php echo e(date('Y-m-d')); ?>">
+                                                <input class="form-control" type="date" name="invoice_date"
+                                                    value="<?php echo e(date('Y-m-d')); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -166,7 +166,8 @@
                                                 <span>تاريخ الاصدار :</span>
                                             </div>
                                             <div class="col-md-8">
-                                                <input class="form-control" type="date" name="issue_date" value="<?php echo e(date('Y-m-d')); ?>">
+                                                <input class="form-control" type="date" name="issue_date"
+                                                    value="<?php echo e(date('Y-m-d')); ?>">
                                             </div>
                                         </div>
                                     </div>
@@ -236,63 +237,90 @@
                                     <?php $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <tr class="item-row">
                                             <td style="width:18%">
-                                                <select name="items[<?php echo e($index); ?>][product_id]" class="form-control product-select">
+                                                <select name="items[<?php echo e($index); ?>][product_id]"
+                                                    class="form-control product-select">
                                                     <option value="">اختر المنتج</option>
                                                     <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($product->id); ?>" <?php echo e($product->id == $item->product_id ? 'selected' : ''); ?> data-price="<?php echo e($product->price); ?>">
+                                                        <option value="<?php echo e($product->id); ?>"
+                                                            <?php echo e($product->id == $item->product_id ? 'selected' : ''); ?>
+
+                                                            data-price="<?php echo e($product->price); ?>">
                                                             <?php echo e($product->name); ?></option>
                                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
                                             </td>
                                             <td>
-                                                <input type="text" name="items[<?php echo e($index); ?>][description]" class="form-control item-description" value="<?php echo e($item->description); ?>">
+                                                <input type="text" name="items[<?php echo e($index); ?>][description]"
+                                                    class="form-control item-description"
+                                                    value="<?php echo e($item->description); ?>">
                                             </td>
                                             <td>
-                                                <input type="number" name="items[<?php echo e($index); ?>][quantity]" class="form-control quantity" value="<?php echo e($item->quantity); ?>" min="1" required>
+                                                <input type="number" name="items[<?php echo e($index); ?>][quantity]"
+                                                    class="form-control quantity" value="<?php echo e($item->quantity); ?>"
+                                                    min="1" required>
                                             </td>
                                             <td>
-                                                <input type="number" name="items[<?php echo e($index); ?>][unit_price]" class="form-control price" step="0.01" value="<?php echo e($invoice->due_value); ?>" required>
+                                                <input type="number" name="items[<?php echo e($index); ?>][unit_price]"
+                                                    class="form-control price" step="0.01"
+                                                    value="<?php echo e($invoice->items[$index]->unit_price); ?>" required>
                                             </td>
                                             <td>
                                                 <div class="input-group">
-                                                    <input type="number" name="items[<?php echo e($index); ?>][discount]" class="form-control discount-value" value="<?php echo e($item->discount); ?>" min="0" step="0.01">
-                                                    <select name="items[<?php echo e($index); ?>][discount_type]" class="form-control discount-type">
-                                                        <option value="amount" <?php echo e($item->discount_type == 'amount' ? 'selected' : ''); ?>>ريال</option>
-                                                        <option value="percentage" <?php echo e($item->discount_type == 'percentage' ? 'selected' : ''); ?>>نسبة %</option>
+                                                    <input type="number" name="items[<?php echo e($index); ?>][discount]"
+                                                        class="form-control discount-value" value="<?php echo e($item->discount); ?>"
+                                                        min="0" step="0.01">
+                                                    <select name="items[<?php echo e($index); ?>][discount_type]"
+                                                        class="form-control discount-type">
+                                                        <option value="amount"
+                                                            <?php echo e($item->discount_type == 'amount' ? 'selected' : ''); ?>>ريال
+                                                        </option>
+                                                        <option value="percentage"
+                                                            <?php echo e($item->discount_type == 'percentage' ? 'selected' : ''); ?>>
+                                                            نسبة %</option>
                                                     </select>
                                                 </div>
                                             </td>
-                                        </td>
-        <td data-label="الضريبة 1">
-        <div class="input-group">
-            <select name="items[0][tax_1]" class="form-control tax-select" data-target="tax_1" style="width: 150px;" onchange="updateHiddenInput(this, 'taxOne_0')">
-                <option value=""></option>
-                <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <option value="<?php echo e($tax->tax); ?>" data-id="<?php echo e($tax->id); ?>" data-name="<?php echo e($tax->name); ?>" data-type="<?php echo e($tax->type); ?>">
-                        <?php echo e($tax->name); ?>
+                                            </td>
+                                            <td data-label="الضريبة 1">
+                                                <div class="input-group">
+                                                    <select name="items[0][tax_1]" class="form-control tax-select"
+                                                        data-target="tax_1" style="width: 150px;"
+                                                        onchange="updateHiddenInput(this, 'taxOne_0')">
+                                                        <option value=""></option>
+                                                        <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($tax->tax); ?>"
+                                                                data-id="<?php echo e($tax->id); ?>"
+                                                                data-name="<?php echo e($tax->name); ?>"
+                                                                data-type="<?php echo e($tax->type); ?>">
+                                                                <?php echo e($tax->name); ?>
 
-                    </option>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </select>
-            <input type="hidden" name="items[0][tax_1_id]" id="taxOne_0">
-        </div>
-    </td>
-    
-    <td data-label="الضريبة 2">
-        <div class="input-group">
-            <select name="items[0][tax_2]" class="form-control tax-select" data-target="tax_2" style="width: 150px;" onchange="updateHiddenInput(this, 'taxTwo_0')">
-                <option value=""></option>
-                <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <option value="<?php echo e($tax->tax); ?>" data-id="<?php echo e($tax->id); ?>" data-name="<?php echo e($tax->name); ?>" data-type="<?php echo e($tax->type); ?>">
-                        <?php echo e($tax->name); ?>
+                                                            </option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
+                                                    <input type="hidden" name="items[0][tax_1_id]" id="taxOne_0">
+                                                </div>
+                                            </td>
 
-                    </option>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </select>
-            <input type="hidden" name="items[0][tax_2_id]" id="taxTwo_0">
-        </div>
-    </td>
-    
+                                            <td data-label="الضريبة 2">
+                                                <div class="input-group">
+                                                    <select name="items[0][tax_2]" class="form-control tax-select"
+                                                        data-target="tax_2" style="width: 150px;"
+                                                        onchange="updateHiddenInput(this, 'taxTwo_0')">
+                                                        <option value=""></option>
+                                                        <?php $__currentLoopData = $taxs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tax): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($tax->tax); ?>"
+                                                                data-id="<?php echo e($tax->id); ?>"
+                                                                data-name="<?php echo e($tax->name); ?>"
+                                                                data-type="<?php echo e($tax->type); ?>">
+                                                                <?php echo e($tax->name); ?>
+
+                                                            </option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
+                                                    <input type="hidden" name="items[0][tax_2_id]" id="taxTwo_0">
+                                                </div>
+                                            </td>
+
                                             <td>
                                                 <span class="row-total"><?php echo e($item->total); ?></span>
                                             </td>
@@ -313,9 +341,14 @@
                                         </td>
                                     </tr>
                                     <?php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        ?>
+                                        $currency = $account_setting->currency ?? 'SAR';
+                                        $currencySymbol =
+                                            $currency == 'SAR' || empty($currency)
+                                                ? '<img src="' .
+                                                    asset('assets/images/Saudi_Riyal.svg') .
+                                                    '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                : $currency;
+                                    ?>
                                     <tr>
                                         <td colspan="7" class="text-right">المجموع الفرعي</td>
                                         <td><span id="subtotal">0.00</span> <?php echo $currencySymbol; ?></td>
@@ -330,12 +363,12 @@
                                         </td>
                                         <td></td>
                                     </tr>
-                                    
+
                                     <tr>
-                                         <td>
-    
-        <small id="tax-details"></small> <!-- مكان عرض تفاصيل الضرائب -->
-    </td>
+                                        <td>
+
+                                            <small id="tax-details"></small> <!-- مكان عرض تفاصيل الضرائب -->
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td colspan="7" class="text-right">تكلفة الشحن</td>
@@ -599,143 +632,145 @@
             });
         });
     </script>
-     <script>
-     function updateHiddenInput(selectElement, hiddenInputId) {
-    var selectedOption = selectElement.options[selectElement.selectedIndex];
-    document.getElementById(hiddenInputId).value = selectedOption.getAttribute('data-id');
-}
-
- </script>
- <script>
-
-
-
-document.addEventListener('change', function (e) {
-    if (e.target && e.target.classList.contains('tax-select')) {
-        let row = e.target.closest('tr');
-
-        // الحصول على الضريبة 1
-        let tax1Select = row.querySelector('[name^="items"][name$="[tax_1]"]');
-        let tax1Name = tax1Select.options[tax1Select.selectedIndex].dataset.name;
-        let tax1Value = parseFloat(tax1Select.value);
-        
-        // الحصول على الضريبة 2
-        let tax2Select = row.querySelector('[name^="items"][name$="[tax_2]"]');
-        let tax2Name = tax2Select.options[tax2Select.selectedIndex].dataset.name;
-        let tax2Value = parseFloat(tax2Select.value);
-
-        // إعداد النص لعرض الضرائب مع قيمتها
-        let taxDetails = [];
-
-        if (tax1Value > 0) {
-            taxDetails.push(`${tax1Name} ${tax1Value}%`);
+    <script>
+        function updateHiddenInput(selectElement, hiddenInputId) {
+            var selectedOption = selectElement.options[selectElement.selectedIndex];
+            document.getElementById(hiddenInputId).value = selectedOption.getAttribute('data-id');
         }
+    </script>
+    <script>
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('tax-select')) {
+                let row = e.target.closest('tr');
 
-        if (tax2Value > 0) {
-            taxDetails.push(`${tax2Name} ${tax2Value}%`);
-        }
+                // الحصول على الضريبة 1
+                let tax1Select = row.querySelector('[name^="items"][name$="[tax_1]"]');
+                let tax1Name = tax1Select.options[tax1Select.selectedIndex].dataset.name;
+                let tax1Value = parseFloat(tax1Select.value);
 
-        // إذا لم يتم اختيار أي ضريبة، عرض "الضريبة: 0"
-        if (taxDetails.length === 0) {
-            document.getElementById('tax-names-label').innerText = "الضريبة: 0";
-        } else {
-            document.getElementById('tax-names-label').innerText = taxDetails.join(" ، ");
-        }
+                // الحصول على الضريبة 2
+                let tax2Select = row.querySelector('[name^="items"][name$="[tax_2]"]');
+                let tax2Name = tax2Select.options[tax2Select.selectedIndex].dataset.name;
+                let tax2Value = parseFloat(tax2Select.value);
 
-        // حساب إجمالي الضرائب بناءً على المجموع الفرعي
-        let subtotal = 0;
-        document.querySelectorAll(".item-row").forEach(function (row) {
-            let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
-            let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
-            let itemTotal = quantity * unitPrice;
-            subtotal += itemTotal;
-        });
+                // إعداد النص لعرض الضرائب مع قيمتها
+                let taxDetails = [];
 
-        let totalTax = 0;
+                if (tax1Value > 0) {
+                    taxDetails.push(`${tax1Name} ${tax1Value}%`);
+                }
 
-        // حساب الضريبة 1
-        if (tax1Value > 0) {
-            totalTax += (subtotal * tax1Value) / 100;
-        }
+                if (tax2Value > 0) {
+                    taxDetails.push(`${tax2Name} ${tax2Value}%`);
+                }
 
-        // حساب الضريبة 2
-        if (tax2Value > 0) {
-            totalTax += (subtotal * tax2Value) / 100;
-        }
-
-        // عرض إجمالي الضرائب
-        document.getElementById('total-tax').innerText = totalTax.toFixed(2);
-    }
-});
-
-
-
-document.addEventListener("DOMContentLoaded", function () {
-    function calculateTotals() {
-        let subtotal = 0; // المجموع الفرعي (بدون ضريبة)
-        let grandTotal = 0; // المجموع الكلي
-        let taxDetails = {}; // تفاصيل الضرائب المختارة
-
-        // مسح صفوف الضرائب السابقة
-        document.querySelectorAll(".dynamic-tax-row").forEach(row => row.remove());
-
-        document.querySelectorAll(".item-row").forEach(function (row) {
-            let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
-            let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
-            let itemTotal = quantity * unitPrice; // هذا هو المجموع الكلي للعنصر
-            subtotal += itemTotal; // إضافة إلى المجموع الفرعي
-
-            // حساب الضرائب
-            let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']").value) || 0;
-            let tax1Type = row.querySelector("[name^='items'][name$='[tax_1]']").options[row.querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.type;
-            let tax1Name = row.querySelector("[name^='items'][name$='[tax_1]']").options[row.querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.name;
-
-            let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']").value) || 0;
-            let tax2Type = row.querySelector("[name^='items'][name$='[tax_2]']").options[row.querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.type;
-            let tax2Name = row.querySelector("[name^='items'][name$='[tax_2]']").options[row.querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.name;
-
-            // حساب الضريبة 1
-            if (tax1Value > 0) {
-                let itemTax = 0;
-                if (tax1Type === 'included') {
-                    // الضريبة متضمنة: نستخرجها من المجموع الكلي
-                    itemTax = itemTotal - (itemTotal / (1 + (tax1Value / 100)));
+                // إذا لم يتم اختيار أي ضريبة، عرض "الضريبة: 0"
+                if (taxDetails.length === 0) {
+                    document.getElementById('tax-names-label').innerText = "الضريبة: 0";
                 } else {
-                    // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
-                    itemTax = (itemTotal * tax1Value) / 100;
+                    document.getElementById('tax-names-label').innerText = taxDetails.join(" ، ");
                 }
 
-                if (!taxDetails[tax1Name]) {
-                    taxDetails[tax1Name] = 0;
-                }
-                taxDetails[tax1Name] += itemTax;
-            }
+                // حساب إجمالي الضرائب بناءً على المجموع الفرعي
+                let subtotal = 0;
+                document.querySelectorAll(".item-row").forEach(function(row) {
+                    let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+                    let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+                    let itemTotal = quantity * unitPrice;
+                    subtotal += itemTotal;
+                });
 
-            // حساب الضريبة 2
-            if (tax2Value > 0) {
-                let itemTax = 0;
-                if (tax2Type === 'included') {
-                    // الضريبة متضمنة: نستخرجها من المجموع الكلي
-                    itemTax = itemTotal - (itemTotal / (1 + (tax2Value / 100)));
-                } else {
-                    // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
-                    itemTax = (itemTotal * tax2Value) / 100;
+                let totalTax = 0;
+
+                // حساب الضريبة 1
+                if (tax1Value > 0) {
+                    totalTax += (subtotal * tax1Value) / 100;
                 }
 
-                if (!taxDetails[tax2Name]) {
-                    taxDetails[tax2Name] = 0;
+                // حساب الضريبة 2
+                if (tax2Value > 0) {
+                    totalTax += (subtotal * tax2Value) / 100;
                 }
-                taxDetails[tax2Name] += itemTax;
+
+                // عرض إجمالي الضرائب
+                document.getElementById('total-tax').innerText = totalTax.toFixed(2);
             }
         });
 
-        // إضافة صفوف الضرائب ديناميكيًا
-        let taxRowsContainer = document.getElementById("tax-rows");
-        for (let taxName in taxDetails) {
-            let taxRow = document.createElement("tr");
-            taxRow.classList.add("dynamic-tax-row");
 
-            taxRow.innerHTML = `
+
+        document.addEventListener("DOMContentLoaded", function() {
+            function calculateTotals() {
+                let subtotal = 0; // المجموع الفرعي (بدون ضريبة)
+                let grandTotal = 0; // المجموع الكلي
+                let taxDetails = {}; // تفاصيل الضرائب المختارة
+
+                // مسح صفوف الضرائب السابقة
+                document.querySelectorAll(".dynamic-tax-row").forEach(row => row.remove());
+
+                document.querySelectorAll(".item-row").forEach(function(row) {
+                    let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+                    let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+                    let itemTotal = quantity * unitPrice; // هذا هو المجموع الكلي للعنصر
+                    subtotal += itemTotal; // إضافة إلى المجموع الفرعي
+
+                    // حساب الضرائب
+                    let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']")
+                        .value) || 0;
+                    let tax1Type = row.querySelector("[name^='items'][name$='[tax_1]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.type;
+                    let tax1Name = row.querySelector("[name^='items'][name$='[tax_1]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_1]']").selectedIndex].dataset.name;
+
+                    let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']")
+                        .value) || 0;
+                    let tax2Type = row.querySelector("[name^='items'][name$='[tax_2]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.type;
+                    let tax2Name = row.querySelector("[name^='items'][name$='[tax_2]']").options[row
+                        .querySelector("[name^='items'][name$='[tax_2]']").selectedIndex].dataset.name;
+
+                    // حساب الضريبة 1
+                    if (tax1Value > 0) {
+                        let itemTax = 0;
+                        if (tax1Type === 'included') {
+                            // الضريبة متضمنة: نستخرجها من المجموع الكلي
+                            itemTax = itemTotal - (itemTotal / (1 + (tax1Value / 100)));
+                        } else {
+                            // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
+                            itemTax = (itemTotal * tax1Value) / 100;
+                        }
+
+                        if (!taxDetails[tax1Name]) {
+                            taxDetails[tax1Name] = 0;
+                        }
+                        taxDetails[tax1Name] += itemTax;
+                    }
+
+                    // حساب الضريبة 2
+                    if (tax2Value > 0) {
+                        let itemTax = 0;
+                        if (tax2Type === 'included') {
+                            // الضريبة متضمنة: نستخرجها من المجموع الكلي
+                            itemTax = itemTotal - (itemTotal / (1 + (tax2Value / 100)));
+                        } else {
+                            // الضريبة غير متضمنة: نضيفها إلى المجموع الفرعي
+                            itemTax = (itemTotal * tax2Value) / 100;
+                        }
+
+                        if (!taxDetails[tax2Name]) {
+                            taxDetails[tax2Name] = 0;
+                        }
+                        taxDetails[tax2Name] += itemTax;
+                    }
+                });
+
+                // إضافة صفوف الضرائب ديناميكيًا
+                let taxRowsContainer = document.getElementById("tax-rows");
+                for (let taxName in taxDetails) {
+                    let taxRow = document.createElement("tr");
+                    taxRow.classList.add("dynamic-tax-row");
+
+                    taxRow.innerHTML = `
                 <td colspan="7" class="text-right">
                     <span>${taxName}</span>
                 </td>
@@ -745,69 +780,69 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>
             `;
 
-            taxRowsContainer.insertBefore(taxRow, document.querySelector("#tax-rows tr:last-child"));
-        }
+                    taxRowsContainer.insertBefore(taxRow, document.querySelector("#tax-rows tr:last-child"));
+                }
 
-        // تحديث القيم في الواجهة
-        document.getElementById("subtotal").innerText = subtotal.toFixed(2);
-        document.getElementById("grand-total").innerText = (subtotal + Object.values(taxDetails).reduce((a, b) => a + b, 0)).toFixed(2);
+                // تحديث القيم في الواجهة
+                document.getElementById("subtotal").innerText = subtotal.toFixed(2);
+                document.getElementById("grand-total").innerText = (subtotal + Object.values(taxDetails).reduce((a,
+                    b) => a + b, 0)).toFixed(2);
 
-        // إرسال الضرائب إلى الكنترولر
-        let taxes = [];
-        for (let taxName in taxDetails) {
-            taxes.push({
-                name: taxName,
-                value: taxDetails[taxName],
+                // إرسال الضرائب إلى الكنترولر
+                let taxes = [];
+                for (let taxName in taxDetails) {
+                    taxes.push({
+                        name: taxName,
+                        value: taxDetails[taxName],
+                    });
+                }
+
+                // إضافة الضرائب إلى بيانات الفاتورة
+                document.querySelector("form").addEventListener("submit", function(e) {
+                    e.preventDefault();
+
+                    let formData = new FormData(this);
+
+                    // إضافة الضرائب إلى FormData
+                    let taxes = [];
+                    for (let taxName in taxDetails) {
+                        taxes.push({
+                            name: taxName,
+                            value: taxDetails[taxName],
+                        });
+                    }
+                    formData.append("taxes", JSON.stringify(taxes));
+
+                    // إرسال البيانات إلى الكنترولر
+                    fetch(this.action, {
+                            method: this.method,
+                            body: formData,
+                            headers: {
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute("content"),
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("تم حفظ البيانات بنجاح:", data);
+                        })
+                        .catch(error => {
+                            console.error("حدث خطأ أثناء حفظ البيانات:", error);
+                        });
+                });
+
+            }
+
+            // حساب القيم عند تغيير المدخلات
+            document.addEventListener("input", function(event) {
+                if (event.target.matches(".quantity, .price, .tax-select")) {
+                    calculateTotals();
+                }
             });
-        }
 
-        // إضافة الضرائب إلى بيانات الفاتورة
-     document.querySelector("form").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    let formData = new FormData(this);
-
-    // إضافة الضرائب إلى FormData
-    let taxes = [];
-    for (let taxName in taxDetails) {
-        taxes.push({
-            name: taxName,
-            value: taxDetails[taxName],
-        });
-    }
-    formData.append("taxes", JSON.stringify(taxes));
-
-    // إرسال البيانات إلى الكنترولر
-    fetch(this.action, {
-        method: this.method,
-        body: formData,
-        headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("تم حفظ البيانات بنجاح:", data);
-    })
-    .catch(error => {
-        console.error("حدث خطأ أثناء حفظ البيانات:", error);
-    });
-});
-
-    }
-
-    // حساب القيم عند تغيير المدخلات
-    document.addEventListener("input", function (event) {
-        if (event.target.matches(".quantity, .price, .tax-select")) {
+            // حساب القيم عند تحميل الصفحة
             calculateTotals();
-        }
-    });
-
-    // حساب القيم عند تحميل الصفحة
-    calculateTotals();
-});
-
-
+        });
     </script>
 <?php $__env->stopSection(); ?>
 

@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title'); ?>
     تعديل العميل - <?php echo e($client->trade_name); ?>
 
@@ -29,9 +27,10 @@
             <?php echo csrf_field(); ?>
             <?php echo method_field('PUT'); ?>
 
-            <!-- حقلين مخفيين لتخزين الإحداثيات -->
-            <input type="hidden" name="latitude" id="latitude" value="<?php echo e(old('latitude', $client->latitude)); ?>">
-            <input type="hidden" name="longitude" id="longitude" value="<?php echo e(old('longitude', $client->longitude)); ?>">
+
+          <!-- حقلين مخفيين لتخزين الإحداثيات -->
+<input type="hidden" name="latitude" id="latitude" value="<?php echo e(old('latitude', $client->latitude ?? ($location->latitude ?? ''))); ?>">
+<input type="hidden" name="longitude" id="longitude" value="<?php echo e(old('longitude', $client->longitude ?? ($location->longitude ?? ''))); ?>">
 
             <?php if($errors->any()): ?>
                 <div class="alert alert-danger">
@@ -281,17 +280,41 @@
                                                 </div>
                                             </div>
                                         </div>
-   <div class="col-md-12 col-12 mb-3">
+                              <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
                                                     <select class="form-control" id="printing_method" name="region_id">
-    <?php $__currentLoopData = $Regions_groub; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_groub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        <option value="<?php echo e($Region_groub->id); ?>"><?php echo e($Region_groub->name); ?></option>
-    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php $__currentLoopData = $Regions_groub; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_groub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($Region_groub->id); ?>" 
+                                                            <?php echo e(isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : ''); ?>>
+                                                            <?php echo e($Region_groub->name); ?>
+
+                                                        </option>
+                                                        
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
+                                                    
+
+
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6 col-12 mb-3">
+                                            <div class="form-group">
+                                                <label for="credit_period">المجموعة</label>
+                                                <div class="position-relative has-icon-left">
+                                                    
+                                                     <select class="form-control" id="printing_method" name="visit_type">
+    <option value="am" <?php echo e($client->visit_type == 'am' ? 'selected' : ''); ?>>صباحية</option>
+    <option value="pm" <?php echo e($client->visit_type == 'pm' ? 'selected' : ''); ?>>مسائية</option>
 </select>
 
-                                                    
+
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -307,7 +330,7 @@
                                                 <div id="map" style="height: 100%;"></div>
                                             </div>
                                         </div>
-
+                                     
                                         <!-- قائمة الاتصال -->
                                         <div class="card">
                                             <div class="card-header">
@@ -386,8 +409,9 @@
                                                 <label for="opening_balance">الرصيد الافتتاحي</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="number" step="0.01" name="opening_balance"
-                                                        id="opening_balance" class="form-control"
-                                                        value="<?php echo e(old('opening_balance', $client->opening_balance)); ?>">
+                                                    id="opening_balance" class="form-control"
+                                                    value="<?php echo e(old('opening_balance', $client->opening_balance)); ?>" disabled>
+                                             
                                                     <div class="form-control-position">
                                                         <i class="feather icon-dollar-sign"></i>
                                                     </div>
@@ -514,6 +538,61 @@ unset($__errorArgs, $__bag); ?>
                                                     </div>
                                                 <?php endif; ?>
                                             </div>
+                                            <div class="col-md-12 col-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="branch_id">الفرع</label>
+                                                    <select class="form-control" name="branch_id" id="branch_id" required>
+                                                        <option value="">اختر الفرع</option>
+                                                        <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branche): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($branche->id); ?>"
+                                                                <?php if(isset($client) && $client->branch_id == $branche->id): ?> selected <?php endif; ?>>
+                                                                <?php echo e($branche->name ?? 'لا يوجد فروع'); ?>
+
+                                                            </option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
+                                                    
+                                                    
+                                                </div>
+                                            </div>
+                                            <?php if(auth()->user()->role === 'manager'): ?>
+                                            <div class="col-md-12 col-12 mb-3">
+                                                <div class="form-group">
+                                                    <label for="employee_client_id" class="form-label">الموظفين المسؤولين</label>
+                                                    <select id="employee_select" class="form-control">
+                                                        <option value="">اختر الموظف</option>
+                                                        <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <option value="<?php echo e($employee->id); ?>" data-name="<?php echo e($employee->full_name); ?>">
+                                                                <?php echo e($employee->full_name); ?>
+
+                                                            </option>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </select>
+                                        
+                                                    
+                                                    <div id="selected_employees">
+                                                        <?php $__currentLoopData = $client->employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assigned): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <input type="hidden" name="employee_client_id[]" value="<?php echo e($assigned->id); ?>">
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </div>
+                                        
+                                                    
+                                                    <ul id="employee_list" class="mt-2 list-group">
+                                                        <?php $__currentLoopData = $client->employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assigned): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                                <?php echo e($assigned->full_name); ?>
+
+                                                                <button type="button" class="btn btn-sm btn-danger remove-employee" data-id="<?php echo e($assigned->id); ?>">حذف</button>
+                                                            </li>
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                        
+                                        
+                                      
+                                        
                                         </div>
                                     </div>
                                 </div>
@@ -531,6 +610,11 @@ unset($__errorArgs, $__bag); ?>
     <!-- إضافة مكتبة Google Maps -->
     <script src="https://maps.googleapis.com/maps/api/js?key=<?php echo e(env('GOOGLE_MAPS_API_KEY')); ?>&libraries=places"></script>
     <script>
+        let savedLat = <?php echo e($location->latitude ?? 'null'); ?>;
+        let savedLng = <?php echo e($location->longitude ?? 'null'); ?>;
+    </script>
+    
+    <script>
         // دالة لعرض الخريطة
         function toggleMap() {
             const mapContainer = document.getElementById('map-container');
@@ -542,25 +626,33 @@ unset($__errorArgs, $__bag); ?>
         }
 
         // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
-        function requestLocationPermission() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        // إذا وافق المستخدم، نعرض الخريطة
-                        toggleMap();
-                        initMap(position.coords.latitude, position.coords.longitude);
-                    },
-                    (error) => {
-                        // إذا رفض المستخدم أو حدث خطأ
-                        alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
-                        console.error('Error getting location:', error);
-                    }
-                );
-            } else {
-                // إذا كان المتصفح لا يدعم الـ Geolocation
-                alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
+    // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
+function requestLocationPermission() {
+    toggleMap(); // لعرض الخريطة
+
+    // إذا كان لدينا موقع محفوظ من السيرفر
+    if (savedLat && savedLng) {
+        initMap(savedLat, savedLng);
+        return;
+    }
+
+    // إذا لم يكن لدينا موقع محفوظ، نطلب موقع المستخدم
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                initMap(position.coords.latitude, position.coords.longitude);
+            },
+            (error) => {
+                alert('⚠️ سيتم الاحتفاظ بالموقع القديم. يرجى السماح بالوصول إلى الموقع لتحديثه.');
+                console.error('Error getting location:', error);
+                // هنا لا نقوم بأي شيء وسيتم الاحتفاظ بالقيم القديمة
             }
-        }
+        );
+    } else {
+        alert('⚠️ المتصفح لا يدعم تحديد الموقع. سيتم الاحتفاظ بالموقع القديم.');
+    }
+}
+
 
         // دالة لتهيئة الخريطة
         function initMap(lat, lng) {
@@ -660,14 +752,56 @@ unset($__errorArgs, $__bag); ?>
         }
 
         // التأكد من وجود الإحداثيات قبل الإرسال
-        document.getElementById('clientForm').addEventListener('submit', function(e) {
-            const lat = document.getElementById('latitude').value;
-            const lon = document.getElementById('longitude').value;
-
-            if (!lat || !lon) {
-                e.preventDefault();
-                alert('⚠️ يرجى تحديد الموقع من الخريطة قبل الإرسال!');
+       
+    </script>
+      <script>
+        document.querySelectorAll('.remove-employee').forEach(button => {
+            button.addEventListener('click', function () {
+                const employeeId = this.dataset.id;
+                this.closest('li').remove();
+                const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
+                if (input) input.remove();
+            });
+        });
+    
+        const employeeSelect = document.getElementById('employee_select');
+        const employeeList = document.getElementById('employee_list');
+        const selectedEmployees = document.getElementById('selected_employees');
+        let selectedEmployeeIds = Array.from(document.querySelectorAll('input[name="employee_client_id[]"]')).map(i => i.value);
+    
+        employeeSelect.addEventListener('change', function () {
+            const selectedOption = this.options[this.selectedIndex];
+            const employeeId = selectedOption.value;
+            const employeeName = selectedOption.dataset.name;
+    
+            if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
+                selectedEmployeeIds.push(employeeId);
+    
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.textContent = employeeName;
+    
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'حذف';
+                removeBtn.className = 'btn btn-sm btn-danger';
+                removeBtn.onclick = () => {
+                    li.remove();
+                    selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
+                    const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
+                    if (input) input.remove();
+                };
+    
+                li.appendChild(removeBtn);
+                employeeList.appendChild(li);
+    
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'employee_client_id[]';
+                input.value = employeeId;
+                selectedEmployees.appendChild(input);
             }
+    
+            this.value = '';
         });
     </script>
 <?php $__env->stopSection(); ?>

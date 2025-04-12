@@ -1,8 +1,110 @@
+
+
 <?php $__env->startSection('title'); ?>
     عرض فاتورة المرتجع
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
+<style>
+    /* تخصيص الأزرار */
+    .custom-btn {
+        min-width: 120px;
+        /* تحديد عرض ثابت للأزرار */
+        margin: 5px;
+        /* إضافة margin بقيمة 10px بين الأزرار */
+        justify-content: center;
+        /* توسيط النص والأيقونات داخل الأزرار */
+    }
+    .custom-dropdown {
+min-width: 200px; /* يمكنك تعديل العرض حسب الحاجة */
+}
+/* إصلاح تخطيط الصفحة الرئيسية */
+.tab-content {
+position: relative;
+z-index: 1;
+}
+.pdf-iframe {
+    width: 100%;
+    height: 800px;
+    border: none;
+    display: block;
+    margin: 0 auto;
+}
+
+.sidebar {
+position: fixed;
+z-index: 100;
+/* تأكد من وجود هذه الخصائص */
+top: 0;
+right: 0;
+height: 100vh;
+width: 250px; /* تعديل حسب عرض السايد بار */
+background: #f8f9fa;
+box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+}
+.invoice-wrapper {
+    /* عزل الفاتورة عن تخطيط الصفحة */
+    contain: content;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    overflow: visible;
+    padding: 20px 0;
+}
+/* إصلاحات نهائية للسايد بار */
+.sidebar {
+position: fixed !important;
+right: 0 !important;
+top: 0 !important;
+bottom: 0 !important;
+transform: none !important;
+margin: 0 !important;
+}
+
+.main-content {
+transition: none !important;
+transform: none !important;
+}
+.main-content {
+margin-left: 250px; /* نفس عرض السايد بار */
+padding: 20px;
+width: calc(100% - 250px);
+}
+/* تحسينات لعرض الفاتورة ضمن التبويب */
+.pdf-wrapper {
+width: 100%;
+overflow-x: auto;
+background: white;
+padding: 20px;
+display: flex;
+justify-content: center;
+}
+
+/* إصلاح مشكلة الـ RTL */
+[dir="rtl"] .pdf-wrapper {
+direction: rtl;
+}
+
+/* منع تأثيرات التبويبات على الفاتورة */
+.tab-content > .active {
+overflow: visible !important;
+}
+
+.custom-dropdown .dropdown-item {
+padding: 0.5rem 1rem; /* تعديل الحشوة لتتناسب مع الأزرار */
+font-size: 0.875rem; /* حجم الخط */
+}
+
+.custom-dropdown .dropdown-item:hover {
+background-color: #f8f9fa; /* لون الخلفية عند التحويم */
+color: #0056b3; /* لون النص عند التحويم */
+}
+    /* التأكد من أن الأزرار متساوية في الارتفاع */
+    .custom-btn i {
+        margin-right: 5px;
+        /* إضافة مسافة بين الأيقونة والنص */
+    }
+</style>
     <div class="content-body">
         <div class="card">
             <div class="card-body">
@@ -32,10 +134,13 @@
                         </a>
 
                         <!-- طباعة -->
-                        <a href="#" class="btn btn-sm btn-outline-success d-inline-flex align-items-center print-button">
-                            <i class="fas fa-print me-1"></i> طباعة
-                        </a>
-
+                        <!--<a href="#" class="btn btn-sm btn-outline-success d-inline-flex align-items-center print-button">-->
+                        <!--    <i class="fas fa-print me-1"></i> طباعة-->
+                        <!--</a>-->
+                    <a href="<?php echo e(route('return.print', $id)); ?>"
+                        class="btn btn-sm btn-outline-success d-flex align-items-center custom-btn">
+                        <i class="fas fa-print me-1"></i> طباعة
+                    </a>
                         <!-- PDF -->
                         <a href=""
                             class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
@@ -57,25 +162,13 @@
                             </li>
                         </ul>
 
-                        <div class="tab-content mt-3">
-                            <div class="tab-pane fade show active" id="return-details" role="tabpanel" aria-labelledby="return-details-tab">
-                                <div class="col-md-12">
-                                    <div class="card">
-                                        <div style="background: lightslategray; min-height: 100vh; padding: 20px;">
-                                            <div class="card shadow" style="max-width: 600px; margin: 20px auto;">
-                                                <div class="card-body bg-white p-4" style="min-height: 400px; overflow: auto;">
-                                                    <div style="transform-origin: top center;">
-                                                        <?php echo $__env->make('sales.retend_invoice.pdf', [
-                                                            'return_invoice' => $return_invoice,
-                                                        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="invoice" role="tabpanel" aria-labelledby="invoice-tab">
+                                <iframe src="<?php echo e(route('return.print', ['id' => $id, 'embed' => true])); ?>" 
+                                        class="pdf-iframe"
+                                        frameborder="0"></iframe>
                             </div>
-
+                           
                             <div class="tab-pane fade" id="activity-log" role="tabpanel" aria-labelledby="activity-log-tab">
                                 <h5>سجل النشاطات</h5>
                             </div>

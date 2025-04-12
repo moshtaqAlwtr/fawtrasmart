@@ -21,6 +21,7 @@ use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Mpdf\Mpdf;
 use App\Models\Log as ModelsLog;
 use App\Models\JournalEntryDetail;
 use App\Models\notifications;
@@ -46,6 +47,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use TCPDF;
 use App\Services\Accounts\JournalEntryService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -1457,9 +1459,15 @@ class InvoicesController extends Controller
         $writer = new Writer($renderer);
         $qrCodeSvg = $writer->writeString($invoice->qrcode);
         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        $client = Client::where('user_id', auth()->user()->id)->first();
+        $account_setting = null;
 
+if (auth()->check()) {
+    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+}
+$client =  null;
+if (auth()->check()) {
+        $client = Client::where('user_id', auth()->user()->id)->first();
+}
         $invoice_number = $this->generateInvoiceNumber();
 
         // إنشاء رقم الباركود من رقم الفاتورة
@@ -1575,4 +1583,81 @@ class InvoicesController extends Controller
         // Output file
         return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
     }
+  
+
+
+    
+
+public function label($id)
+{
+    $invoice = Invoice::findOrFail($id);
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4', // تغيير من A6 إلى A4
+        'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
+        'default_font' => 'dejavusans',
+        'default_font_size' => 12, // تصغير حجم الخط قليلاً
+        'margin_top' => 10,
+        'margin_bottom' => 10,
+        'margin_left' => 10,
+        'margin_right' => 10,
+    ]);
+
+    $html = view('sales.invoices.label', compact('invoice'))->render();
+
+    $mpdf->WriteHTML($html);
+    return response($mpdf->Output('shipping-label.pdf', 'S'))
+           ->header('Content-Type', 'application/pdf');
+}
+
+// قائمة الاستلام 
+public function picklist($id)
+{
+    $invoice = Invoice::findOrFail($id);
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4', // تغيير من A6 إلى A4
+        'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
+        'default_font' => 'dejavusans',
+        'default_font_size' => 12, // تصغير حجم الخط قليلاً
+        'margin_top' => 10,
+        'margin_bottom' => 10,
+        'margin_left' => 10,
+        'margin_right' => 10,
+    ]);
+
+    $html = view('sales.invoices.picklist', compact('invoice'))->render();
+
+    $mpdf->WriteHTML($html);
+    return response($mpdf->Output('shipping-picklist.pdf', 'S'))
+           ->header('Content-Type', 'application/pdf');
+}
+
+// ملصق التوصيل 
+
+public function shipping_label($id)
+{
+    $invoice = Invoice::findOrFail($id);
+
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4', // تغيير من A6 إلى A4
+        'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
+        'default_font' => 'dejavusans',
+        'default_font_size' => 12, // تصغير حجم الخط قليلاً
+        'margin_top' => 10,
+        'margin_bottom' => 10,
+        'margin_left' => 10,
+        'margin_right' => 10,
+    ]);
+
+    $html = view('sales.invoices.shipping_label', compact('invoice'))->render();
+
+    $mpdf->WriteHTML($html);
+    return response($mpdf->Output('shipping-shipping_label.pdf', 'S'))
+           ->header('Content-Type', 'application/pdf');
+}
+
 }

@@ -54,3 +54,5 @@ Stack trace:
 [02-Apr-2025 22:35:08 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Salaries\AncestorController::storePayments() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 152
 [02-Apr-2025 22:36:23 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Salaries\AncestorController::storePayments() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 152
 [02-Apr-2025 23:38:22 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Salaries\AncestorController::pay() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Salaries/AncestorController.php on line 178
+[12-Apr-2025 17:54:12 Asia/Riyadh] PHP Fatal error:  Trait "App\Http\Controllers\Sales\Mpdf\Mpdf" not found in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Sales/InvoicesController.php on line 54
+[12-Apr-2025 19:01:52 Asia/Riyadh] PHP Fatal error:  Cannot redeclare App\Http\Controllers\Sales\InvoicesController::label() in /home/sehohoqm/hitstest.sehoool.com/app/Http/Controllers/Sales/InvoicesController.php on line 1611
