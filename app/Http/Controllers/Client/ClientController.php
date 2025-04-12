@@ -811,34 +811,65 @@ class ClientController extends Controller
     }
 
     public function contacts(Request $request)
-    {
-        $query = Client::with('employee')->select('id', 'trade_name', 'first_name', 'last_name', 'phone', 'city', 'region', 'street1', 'street2', 'code', 'employee_id')->orderBy('created_at', 'desc');
+{
+    $query = Client::query()->with(['employee', 'status']);
 
-        // البحث الأساسي (بالاسم أو الكود)
-        if ($request->has('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('trade_name', 'like', '%' . $search . '%')
-                    ->orWhere('code', 'like', '%' . $search . '%')
-                    ->orWhere('first_name', 'like', '%' . $search . '%')
-                    ->orWhere('last_name', 'like', '%' . $search . '%');
-            });
-        }
-
-        // البحث المتقدم (بالبريد الإلكتروني أو رقم الهاتف أو رقم الجوال)
-        if ($request->has('advanced_search')) {
-            $advancedSearch = $request->input('advanced_search');
-            $query->where(function ($q) use ($advancedSearch) {
-                $q->where('email', 'like', '%' . $advancedSearch . '%')
-                    ->orWhere('phone', 'like', '%' . $advancedSearch . '%')
-                    ->orWhere('mobile', 'like', '%' . $advancedSearch . '%');
-            });
-        }
-
-        $clients = $query->paginate(25);
-
-        return view('client.contacts.contact_mang', compact('clients'));
+    // البحث الأساسي (يشمل جميع الحقول المهمة)
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $query->where(function ($q) use ($search) {
+            $q->where('trade_name', 'like', '%' . $search . '%')
+              ->orWhere('code', 'like', '%' . $search . '%')
+              ->orWhere('first_name', 'like', '%' . $search . '%')
+              ->orWhere('last_name', 'like', '%' . $search . '%')
+              ->orWhere('phone', 'like', '%' . $search . '%')
+              ->orWhere('mobile', 'like', '%' . $search . '%')
+              ->orWhere('email', 'like', '%' . $search . '%')
+              ->orWhereHas('employee', function($q) use ($search) {
+                  $q->where('trade_name', 'like', '%' . $search . '%');
+              })
+              ->orWhereHas('status', function($q) use ($search) {
+                  $q->where('name', 'like', '%' . $search . '%');
+              });
+        });
     }
+
+    // البحث المتقدم (حسب الحقول المحددة)
+    if ($request->filled('phone')) {
+        $query->where('phone', 'like', '%' . $request->input('phone') . '%');
+    }
+
+    if ($request->filled('mobile')) {
+        $query->where('mobile', 'like', '%' . $request->input('mobile') . '%');
+    }
+
+    if ($request->filled('email')) {
+        $query->where('email', 'like', '%' . $request->input('email') . '%');
+    }
+
+    if ($request->filled('employee_id')) {
+        $query->where('employee_id', $request->input('employee_id'));
+    }
+
+    if ($request->filled('status_id')) {
+        $query->where('status_id', $request->input('status_id'));
+    }
+
+    if ($request->filled('city')) {
+        $query->where('city', 'like', '%' . $request->input('city') . '%');
+    }
+
+    if ($request->filled('region')) {
+        $query->where('region', 'like', '%' . $request->input('region') . '%');
+    }
+
+    $clients = $query->paginate(25)->withQueryString();
+
+    $employees = Employee::all(); // لاستخدامها في dropdown الموظفين
+    $statuses = Statuses::all(); // لاستخدامها في dropdown الحالات
+
+    return view('client.contacts.contact_mang', compact('clients', 'employees', 'statuses'));
+}
 
     public function show_contant($id)
     {

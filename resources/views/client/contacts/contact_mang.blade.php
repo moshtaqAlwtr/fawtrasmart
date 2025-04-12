@@ -77,7 +77,8 @@
                                 <!-- زر الانتقال إلى الصفحة التالية -->
                                 @if ($clients->hasMorePages())
                                     <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}" aria-label="Next">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}"
+                                            aria-label="Next">
                                             <i class="fas fa-angle-left"></i>
                                         </a>
                                     </li>
@@ -116,120 +117,193 @@
         </div>
     </div>
 
-        <div class="card">
-            <div class="card-content">
+    <div class="card">
+        <div class="card-content">
 
-    <div class="card-body">
-        <form class="form" method="GET" action="{{ route('clients.contacts') }}">
-            <!-- البحث الأساسي -->
-            <div class="form-body row">
-                <div class="form-group col-md-12">
-                    <label for="search">بحث بالاسم أو الكود</label>
-                    <input type="text" id="search" class="form-control" placeholder="ادخل الاسم أو الكود" name="search">
-                </div>
-            </div>
-
-            <!-- البحث المتقدم -->
-            <div class="collapse" id="advancedSearchForm">
-                <div class="form-body row">
-                    <div class="form-group col-md-12">
-                        <label for="advanced_search">بحث متقدم (بالبريد الإلكتروني أو رقم الهاتف أو الجوال)</label>
-                        <input type="text" id="advanced_search" class="form-control" placeholder="ادخل البريد الإلكتروني أو رقم الهاتف أو الجوال" name="advanced_search">
-                    </div>
-                </div>
-            </div>
-
-            <!-- أزرار البحث -->
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-                <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse" href="#advancedSearchForm" aria-expanded="false" aria-controls="advancedSearchForm">
-                    <i class="bi bi-sliders"></i> بحث متقدم
-                </a>
-                <a href="{{ route('clients.contacts') }}" class="btn btn-outline-warning waves-effect waves-light">إلغاء</a>
-            </div>
-        </form>
-    </div>
-    @if (@isset($clients) && !@empty($clients) && count($clients) > 0)
-    @foreach ($clients as $client)
-        <div class="card">
             <div class="card-body">
-                <div class="card-body row align-items-center">
-                    <div class="col-md-1 text-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="{{ $client->id }}">
+                <form class="form" method="GET" action="{{ route('clients.contacts') }}">
+                    <!-- البحث الأساسي -->
+                    <div class="form-body row">
+                        <div class="form-group col-md-12">
+                            <label for="search">بحث سريع (بالاسم، الكود، الهاتف، البريد، الموظف، الحالة)</label>
+                            <input type="text" id="search" class="form-control"
+                                   placeholder="ابحث بأي حقل رئيسي" name="search"
+                                   value="{{ request('search') }}">
                         </div>
                     </div>
-                    <div class="col-md-3">
 
-                        <small class="text-muted">{{ $client->code }}</small>
+                    <!-- البحث المتقدم -->
+                    <div class="collapse" id="advancedSearchForm">
+                        <div class="form-body row">
+                            <div class="form-group col-md-4">
+                                <label for="phone">رقم الهاتف</label>
+                                <input type="text" id="phone" class="form-control"
+                                       placeholder="ابحث برقم الهاتف" name="phone"
+                                       value="{{ request('phone') }}">
+                            </div>
 
-                    </div>
-                    <div class="col-md-3">
-                        <h5 class="mb-0">{{ $client->trade_name }}</h5>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <strong class="text-primary">
-                            <i class="fas fa-phone me-2"></i>{{ $client->phone }}
-                        </strong>
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <div class="btn-group">
-                            <div class="dropdown">
-                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('clients.show_contant', $client->id) }}">
-                                            <i class="fa fa-eye me-2 text-primary"></i>شاهد العميل
-                                        </a>
-                                    </li>
+                            <div class="form-group col-md-4">
+                                <label for="mobile">رقم الجوال</label>
+                                <input type="text" id="mobile" class="form-control"
+                                       placeholder="ابحث برقم الجوال" name="mobile"
+                                       value="{{ request('mobile') }}">
+                            </div>
 
-                                    <div class="dropdown-divider"></div>
-                                    <form id="delete-client-{{ $client->id }}"
-                                        action="{{ route('clients.destroy', $client->id) }}"
-                                        method="POST"
-                                        style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="dropdown-item text-danger delete-client"
-                                            data-id="{{ $client->id }}"
-                                            onclick="return confirm('هل أنت متأكد من حذف هذا العميل؟')">
-                                            <i class="fas fa-trash me-2"></i>حذف
-                                        </button>
-                                    </form>
-                                </div>
+                            <div class="form-group col-md-4">
+                                <label for="email">البريد الإلكتروني</label>
+                                <input type="text" id="email" class="form-control"
+                                       placeholder="ابحث بالبريد الإلكتروني" name="email"
+                                       value="{{ request('email') }}">
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="employee_id">الموظف المسؤول</label>
+                                <select class="form-control" id="employee_id" name="employee_id">
+                                    <option value="">اختر الموظف...</option>
+                                    @foreach($employees as $employee)
+                                        <option value="{{ $employee->id }}" {{ request('employee_id') == $employee->id ? 'selected' : '' }}>
+                                            {{ $employee->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="status_id">حالة العميل</label>
+                                <select class="form-control" id="status_id" name="status_id">
+                                    <option value="">اختر الحالة...</option>
+                                    @foreach($statuses as $status)
+                                        <option value="{{ $status->id }}" {{ request('status_id') == $status->id ? 'selected' : '' }}>
+                                            {{ $status->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="city">المدينة</label>
+                                <input type="text" id="city" class="form-control"
+                                       placeholder="ابحث بالمدينة" name="city"
+                                       value="{{ request('city') }}">
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="region">المنطقة</label>
+                                <input type="text" id="region" class="form-control"
+                                       placeholder="ابحث بالمنطقة" name="region"
+                                       value="{{ request('region') }}">
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- أزرار البحث -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">
+                            <i class="fas fa-search"></i> بحث
+                        </button>
+
+                        <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse" href="#advancedSearchForm"
+                           aria-expanded="false" aria-controls="advancedSearchForm">
+                            <i class="fas fa-sliders-h"></i> بحث متقدم
+                        </a>
+
+                        <a href="{{ route('clients.contacts') }}" class="btn btn-outline-warning">
+                            <i class="fas fa-times"></i> إلغاء
+                        </a>
+                    </div>
+                </form>
             </div>
+            @if (@isset($clients) && !@empty($clients) && count($clients) > 0)
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="5%" class="text-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </div>
+                            </th>
+                            <th width="20%">الكود</th>
+                            <th width="25%">الاسم التجاري</th>
+                            <th width="20%" class="text-center">الهاتف</th>
+                            <th width="15%" class="text-end">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($clients as $client)
+                            <tr>
+                                <td class="text-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="{{ $client->id }}">
+                                    </div>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ $client->code }}</small>
+                                </td>
+                                <td>
+                                    <h5 class="mb-0">{{ $client->trade_name }}</h5>
+                                </td>
+                                <td class="text-center">
+                                    <strong class="text-primary">
+                                        <i class="fas fa-phone me-2"></i>{{ $client->phone }}
+                                    </strong>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group">
+                                        <div class="dropdown">
+                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                type="button" id="dropdownMenuButton{{ $client->id }}" data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="false"></button>
+                                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $client->id }}">
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('clients.show_contant', $client->id) }}">
+                                                        <i class="fa fa-eye me-2 text-primary"></i>عرض العميل
+                                                    </a>
+                                                </li>
+                                                <div class="dropdown-divider"></div>
+                                                <form id="delete-client-{{ $client->id }}"
+                                                    action="{{ route('clients.destroy', $client->id) }}" method="POST"
+                                                    style="display: inline;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="dropdown-item text-danger delete-client"
+                                                        data-id="{{ $client->id }}"
+                                                        onclick="return confirm('هل أنت متأكد من حذف هذا العميل؟')">
+                                                        <i class="fas fa-trash me-2"></i>حذف
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="alert alert-danger" role="alert">
+                <p class="mb-0">
+                    لا توجد عملاء
+                </p>
+            </div>
+        @endif
         </div>
-    @endforeach
-@else
-    <div class="alert alert-danger" role="alert">
-        <p class="mb-0">
-            لا توجد  عملاء
-        </p>
     </div>
-@endif
-</div>
-</div>
-</div>
+    </div>
 @endsection
 
 
 @section('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const advancedSearchButton = document.querySelector('[data-toggle="collapse"]');
             const advancedSearchForm = document.getElementById('advancedSearchForm');
 
-            advancedSearchButton.addEventListener('click', function () {
+            advancedSearchButton.addEventListener('click', function() {
 
             });
         });
     </script>
 @endsection
-
-
-
