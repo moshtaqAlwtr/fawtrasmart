@@ -237,7 +237,7 @@
                             <li><a href="{{ route('store_settings.index') }}"><i
                                         class="feather icon-circle {{ request()->is("$getLocal/online_store/store_settings/*") ? 'active' : '' }}"></i><span
                                         class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                                        data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                             </li>
                         </ul>
                     </li>
@@ -290,7 +290,7 @@
                                     <i
                                         class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/Settings/*") ? 'active' : '' }}"></i>
                                     <span class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span>
+                                        data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span>
                                 </a>
                             </li>
                         </ul>
@@ -438,7 +438,7 @@
                             @can('rental_unit_manage_rental_settings')
                                 <li><a href="{{ route('rental_management.settings.index') }}"><i
                                             class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                                            data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                                 </li>
                             @endcan
                         </ul>
@@ -491,7 +491,7 @@
                         </a>
                         <ul class="menu-content">
                             <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="Analytics">{{ trans('main_trans.Settings') }}</span></a></li>
+                                        data-i18n="Analytics">{{ trans('main_trans.Sittings') }}</span></a></li>
                         </ul>
                     </li>
                 @endif
@@ -557,7 +557,7 @@
                                         data-i18n="eCommerce">اعدادات المجموعات</span>
                                 </a>
                             </li>
-                            
+
                             @endcan
 
                         </ul>
@@ -605,7 +605,7 @@
                             @can('points_credits_credit_settings_manage')
                                 <li><a href="{{ route('sitting.index') }}"><i class="feather icon-circle"></i><span
                                             class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span>
+                                            data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span>
                                     </a>
                                 </li>
                             @endcan
@@ -638,7 +638,7 @@
                             @can('customer_loyalty_points_redeem_loyalty_points')
                                 <li><a href="{{ route('sittingLoyalty.sitting') }}"><i
                                             class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span>
+                                            data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span>
                                     </a>
                                 </li>
                             @endcan
@@ -710,7 +710,7 @@
                                     <a href="{{ route('SittingMemberships.index') }}">
                                         <i class="feather icon-circle"></i>
                                         <span class="menu-item" data-i18n="eCommerce">
-                                            {{ trans('main_trans.Settings') }}
+                                            {{ trans('main_trans.Sittings') }}
                                         </span>
                                     </a>
                                 </li>
@@ -1042,7 +1042,7 @@
                                             class="menu-item"
                                             data-i18n="eCommerce">{{ trans('main_trans.Cost_Centers') }}</span></a>
                                 </li>
-                                 <li><a href="{{ route('journal.generalLedger') }}"><i
+                                 <li><a href=""><i
                                             class="feather icon-circle {{ request()->is("$getLocal/finance/expenses/*") ? 'active' : '' }}"></i><span
                                             class="menu-item"
                                             data-i18n="Analytics">حساب الاستاذ</span></a>
@@ -1115,7 +1115,7 @@
                             @can('orders_setting_management')
                                 <li><a href="{{ route('orders.Settings.index') }}"><i
                                             class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                                            data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                                 </li>
                             @endcan
                         </ul>
@@ -1155,7 +1155,7 @@
 
                             <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span
                                         class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                                        data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                             </li>
                         </ul>
 
@@ -1277,7 +1277,7 @@
                                 <li><a href="{{ route('attendance.settings.index') }}"><i
                                             class="feather icon-circle {{ request()->is("$getLocal/presence/settings/*") ? 'active' : '' }}"></i><span
                                             class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                                            data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                                 </li>
                             @endcan
                         </ul>
@@ -1340,7 +1340,7 @@
                             @can('salaries_payroll_settings_manage')
                                 <li><a href="{{ route('SalarySittings.index') }}"><i
                                             class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Settings') }}</span></a>
+                                            data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                                 </li>
                             @endcan
                         </ul>
@@ -1440,7 +1440,7 @@
 
                             <li><a href="{{ route('branches.settings') }}"><i class="feather icon-circle"></i><span
                                         class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.settings') }}</span></a>
+                                        data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                             </li>
 
 

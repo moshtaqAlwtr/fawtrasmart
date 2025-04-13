@@ -191,7 +191,7 @@
                             </p>
                         </div>
                     @endif --}}
-                {{-- {{ $shifts->links('pagination::bootstrap-5') }} --}}
+
             </div>
         </div>
 

@@ -162,9 +162,9 @@
                                     <span>لا يوجد حساب مرتبط</span>
                                 @endif
                             </small>
-                            
+
                         </small>
-                        
+
                     </div>
                     @php
                         $currency = $account_setting->currency ?? 'SAR';
@@ -238,7 +238,7 @@
                            height: 42px;">
                     {{ $currentStatus->name ?? 'اختر الحالة' }}
                 </button>
-    
+
                 <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown" style="border-radius: 8px;">
                     @foreach ($statuses as $status)
                         <li>
@@ -260,7 +260,7 @@
                 </ul>
             </div>
         </form>
-    
+
         <!-- قائمة خيارات أخرى -->
         <div class="dropdown flex-grow-1" style="min-width: 220px;">
             <button class="btn w-100 text-start dropdown-toggle"
@@ -274,7 +274,7 @@
                        height: 42px;">
                 <i class="fas fa-ellipsis-v me-2"></i> خيارات أخرى
             </button>
-    
+
             <ul class="dropdown-menu w-100" aria-labelledby="otherOptionsDropdown" style="border-radius: 8px;">
                 <li>
                     <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
@@ -299,7 +299,7 @@
             </ul>
         </div>
     </div>
-    
+
 </div>
 
                 </div>
@@ -327,7 +327,7 @@
                     </button>
                 </div>
 
-               
+
 
                 <!-- القائمة الأصلية (تظهر فقط في الشاشات الكبيرة) -->
                 <div class="dropdown col-12 col-md-auto d-none d-md-block">
@@ -1046,7 +1046,7 @@
                                                     <td class="text-start">{{ number_format($operation['balance_after'], 2) }}</td>
                                                 </tr>
 
-                                                
+
                                             @endforeach
                                         </tbody>
                                         <tfoot class="bg-light">
@@ -1056,7 +1056,7 @@
                                                 <th></th> {{-- عمود فاضي لتوازن الأعمدة --}}
                                             </tr>
                                         </tfoot>
-                                        
+
                                     </table>
                                 </div>
                             </div>
@@ -2317,7 +2317,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="{{ asset('assets/js/applmintion.js') }}"></script>
+    {{-- <!--<script src="{{ asset('assets/js/applmintion.js') }}"></script>--> --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>

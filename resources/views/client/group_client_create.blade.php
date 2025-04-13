@@ -64,9 +64,9 @@
                         <input type="text" id="name" name="name" class="form-control" placeholder="المجموعة"
                             step="0.01" value="" required>
                     </div>
-                    
+
                 </div>
-             
+
             </div>
         </div>
     </form>
