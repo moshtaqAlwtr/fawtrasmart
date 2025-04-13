@@ -7,7 +7,6 @@ use App\Models\Client;
 use App\Models\ClientRelation;
 use App\Models\Invoice;
 use App\Models\Location;
-
 use App\Models\notifications;
 use App\Models\PaymentsProcess;
 use App\Models\Region_groub;
@@ -21,12 +20,13 @@ use Illuminate\Support\Facades\Log;
 
 class VisitController extends Controller
 {
-    // ثوابت النظام
-    const ARRIVAL_DISTANCE = 300; // مسافة الوصول بالمتر
-    const DEPARTURE_DISTANCE = 350; // مسافة الانصراف بالمتر
-    const MIN_DEPARTURE_MINUTES = 5; // أقل مدة للانصراف
-    const AUTO_DEPARTURE_TIMEOUT = 120; // مهلة الانصراف التلقائي (دقيقة)
-    const VISIT_COOLDOWN = 30; // مدة الانتظار بين الزيارات (دقيقة)
+    // ثوابت النظام المعدلة
+    private const ARRIVAL_DISTANCE = 100; // مسافة الوصول بالمتر (تم تخفيضها)
+    private const DEPARTURE_DISTANCE = 150; // مسافة الانصراف بالمتر (تم تخفيضها)
+    private const MIN_DEPARTURE_MINUTES = 3; // أقل مدة للانصراف (تم تخفيضها)
+    private const AUTO_DEPARTURE_TIMEOUT = 10; // مهلة الانصراف التلقائي (تم تعديلها إلى 10 دقائق)
+    private const VISIT_COOLDOWN = 30; // مدة الانتظار بين الزيارات (دقيقة)
+    private const FORCE_AUTO_DEPARTURE = true; // إضافة خاصية تفعيل الانصراف التلقائي
 
     // عرض جميع الزيارات
     public function index()
@@ -98,6 +98,9 @@ class VisitController extends Controller
         $this->sendVisitNotifications($visit, 'arrival');
         $this->sendEmployeeNotification($employeeId, 'تم تسجيل وصولك للعميل ' . $client->trade_name, 'وصول يدوي');
 
+        // جدولة الانصراف التلقائي بعد 10 دقائق
+        $this->scheduleAutoDeparture($visit);
+
         return response()->json([
             'success' => true,
             'message' => 'تم تسجيل الزيارة بنجاح',
@@ -153,7 +156,7 @@ class VisitController extends Controller
         ]);
     }
 
-    // تخزين موقع الموظف تلقائياً
+    // تخزين موقع الموظف تلقائياً (محدثة)
     public function storeLocationEnhanced(Request $request)
     {
         $request->validate([
@@ -184,17 +187,23 @@ class VisitController extends Controller
                 'isExit' => $request->isExit
             ]);
 
+            // معالجة الزيارات التي تحتاج انصراف تلقائي
+            $this->processAutoDepartures($employeeId, $request->latitude, $request->longitude);
+
+            // التحقق من الانصراف في جميع الحالات
+            $this->checkForDepartures($employeeId, $request->latitude, $request->longitude);
+
             // إذا كانت نقاط خروج
             if ($request->isExit) {
-                $this->checkForDepartures($employeeId, $request->latitude, $request->longitude);
                 return response()->json([
                     'success' => true,
                     'message' => 'تم تسجيل موقع الخروج بنجاح',
-                    'location' => $location
+                    'location' => $location,
+                    'departures_checked' => true
                 ]);
             }
 
-            // البحث عن العملاء القريبين
+            // البحث عن العملاء القريبين (فقط إذا لم تكن نقاط خروج)
             $nearbyClients = $this->getNearbyClients(
                 $request->latitude,
                 $request->longitude,
@@ -217,31 +226,31 @@ class VisitController extends Controller
                 );
 
                 if ($visit) {
+                    // جدولة الانصراف التلقائي للزيارة الجديدة
+                    $this->scheduleAutoDeparture($visit);
                     $recordedVisits[] = $visit;
                 }
             }
-
-            // التحقق من الانصراف
-            $this->checkForDepartures($employeeId, $request->latitude, $request->longitude);
 
             return response()->json([
                 'success' => true,
                 'message' => 'تم تحديث الموقع بنجاح',
                 'nearby_clients' => count($nearbyClients),
                 'recorded_visits' => $recordedVisits,
-                'location' => $location
+                'location' => $location,
+                'departures_checked' => true
             ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to update location: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء تحديث الموقع'
+                'message' => 'حدث خطأ أثناء تحديث الموقع: ' . $e->getMessage()
             ], 500);
         }
     }
 
-    // تسجيل زيارة تلقائية
+    // تسجيل زيارة تلقائية (محدثة)
     private function recordVisitAutomatically($employeeId, $clientId, $latitude, $longitude)
     {
         $now = now();
@@ -312,69 +321,146 @@ class VisitController extends Controller
         return $visit;
     }
 
-    // التحقق من الانصراف
+    // جدولة الانصراف التلقائي (دالة جديدة)
+    private function scheduleAutoDeparture($visit)
+    {
+        // إضافة معلومات للسجل
+        Log::info('Auto departure scheduled', [
+            'visit_id' => $visit->id,
+            'client_id' => $visit->client_id,
+            'employee_id' => $visit->employee_id,
+            'scheduled_time' => now()->addMinutes(self::AUTO_DEPARTURE_TIMEOUT)->format('Y-m-d H:i:s')
+        ]);
+    }
+
+    // معالجة الانصراف التلقائي للزيارات (دالة جديدة)
+    private function processAutoDepartures($employeeId, $latitude, $longitude)
+    {
+        // البحث عن الزيارات النشطة التي مضى على وصولها أكثر من 10 دقائق
+        $activeVisits = Visit::where('employee_id', $employeeId)
+            ->whereDate('visit_date', now()->toDateString())
+            ->whereNotNull('arrival_time')
+            ->whereNull('departure_time')
+            ->get();
+
+        foreach ($activeVisits as $visit) {
+            $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
+
+            // إذا مضى على الزيارة 10 دقائق أو أكثر، سجل الانصراف تلقائياً
+            if ($minutesSinceArrival >= self::AUTO_DEPARTURE_TIMEOUT) {
+                Log::info('Auto departure triggering', [
+                    'visit_id' => $visit->id,
+                    'client_id' => $visit->client_id,
+                    'minutes_since_arrival' => $minutesSinceArrival
+                ]);
+
+                $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, 'auto_timeout');
+            }
+        }
+    }
+
+    // التحقق من الانصراف (محدثة)
     private function checkForDepartures($employeeId, $latitude, $longitude)
     {
         $activeVisits = Visit::where('employee_id', $employeeId)
             ->whereDate('visit_date', now()->toDateString())
             ->whereNotNull('arrival_time')
             ->whereNull('departure_time')
-            ->with('client.locations')
+            ->with(['client' => function($query) {
+                $query->with(['locations' => function($q) {
+                    $q->latest()->limit(1);
+                }]);
+            }])
             ->get();
 
-        Log::info('Checking for departures', [
+        Log::info('Checking for departures - Active visits count: ' . $activeVisits->count(), [
             'employee_id' => $employeeId,
-            'active_visits_count' => $activeVisits->count(),
-            'current_location' => [$latitude, $longitude]
+            'current_location' => [$latitude, $longitude],
+            'active_visits' => $activeVisits->pluck('id')
         ]);
 
         foreach ($activeVisits as $visit) {
-            $this->processVisitDeparture($visit, $latitude, $longitude);
+            try {
+                $this->processVisitDeparture($visit, $latitude, $longitude);
+            } catch (\Exception $e) {
+                Log::error('Error processing visit departure', [
+                    'visit_id' => $visit->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
         }
     }
 
-    // معالجة انصراف الزيارة
+    // معالجة انصراف الزيارة (محدثة)
     private function processVisitDeparture($visit, $latitude, $longitude)
     {
+        // الحصول على أحدث موقع للعميل أو استخدام موقع الوصول كبديل
         $clientLocation = $visit->client->locations()->latest()->first();
 
         if (!$clientLocation) {
-            Log::warning('Client has no location data', [
-                'client_id' => $visit->client_id,
-                'visit_id' => $visit->id
+            // إذا لم يكن هناك موقع مسجل للعميل، نستخدم موقع الوصول للزيارة
+            $clientLat = $visit->employee_latitude;
+            $clientLng = $visit->employee_longitude;
+            Log::warning('Using visit arrival location as client location', [
+                'visit_id' => $visit->id,
+                'client_id' => $visit->client_id
             ]);
-            return;
+        } else {
+            $clientLat = $clientLocation->latitude;
+            $clientLng = $clientLocation->longitude;
         }
 
         $distance = $this->calculateDistance(
-            $clientLocation->latitude,
-            $clientLocation->longitude,
+            $clientLat,
+            $clientLng,
             $latitude,
             $longitude
         );
 
         $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
 
-        Log::debug('Visit check', [
+        Log::info('Visit departure check details', [
             'visit_id' => $visit->id,
             'client_id' => $visit->client_id,
-            'distance' => $distance,
-            'minutes_since_arrival' => $minutesSinceArrival
+            'distance' => round($distance, 2) . ' meters',
+            'distance_threshold' => self::DEPARTURE_DISTANCE,
+            'minutes_since_arrival' => $minutesSinceArrival,
+            'min_departure_minutes' => self::MIN_DEPARTURE_MINUTES,
+            'auto_departure_timeout' => self::AUTO_DEPARTURE_TIMEOUT,
+            'client_location' => [$clientLat, $clientLng],
+            'current_location' => [$latitude, $longitude]
         ]);
 
-        // الانصراف عند الابتعاد
+        // الانصراف عند الابتعاد (مع وقت كافٍ)
         if ($distance > self::DEPARTURE_DISTANCE && $minutesSinceArrival > self::MIN_DEPARTURE_MINUTES) {
-            $this->recordDeparture($visit, $latitude, $longitude, $distance, 'auto_distance');
+            $this->recordDeparture($visit, $latitude, $longitude, round($distance), 'auto_distance');
+            return;
         }
-        // الانصراف بعد مدة طويلة
-        elseif ($minutesSinceArrival > self::AUTO_DEPARTURE_TIMEOUT) {
+
+        // الانصراف بعد مدة طويلة (بغض النظر عن الموقع) - تم تعديل المدة إلى 10 دقائق
+        if ($minutesSinceArrival > self::AUTO_DEPARTURE_TIMEOUT) {
             $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, 'auto_timeout');
+            return;
         }
+
+        Log::debug('Visit does not meet departure conditions yet', [
+            'visit_id' => $visit->id,
+            'reason' => 'Neither distance nor timeout conditions met'
+        ]);
     }
 
     // تسجيل الانصراف
     private function recordDeparture($visit, $latitude, $longitude, $value, $type)
     {
+        // تحقق إذا كان الانصراف مسجل بالفعل
+        if ($visit->departure_time) {
+            Log::info('Departure already recorded, skipping', [
+                'visit_id' => $visit->id
+            ]);
+            return;
+        }
+
         $notes = [
             'auto_distance' => 'تم تسجيل الانصراف تلقائياً عند الابتعاد عن العميل بمسافة '.$value.' متر',
             'auto_timeout' => 'تم تسجيل الانصراف تلقائياً بعد مضي '.$value.' دقيقة على الوصول'
@@ -696,5 +782,4 @@ class VisitController extends Controller
 
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
-
 }

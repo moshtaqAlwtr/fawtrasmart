@@ -368,8 +368,15 @@
                     isTracking: false,
                     lastLocation: null,
                     lastUpdate: null,
-                    permissionAsked: false
+                    permissionAsked: false,
+                    pageAlreadyLoaded: false
                 }));
+            }
+
+            // فحص حالة التتبع عند التحميل
+            const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
+            if (trackingState.isTracking) {
+                updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
             }
 
             // التحقق من إذن الموقع عند تحميل الصفحة
@@ -385,10 +392,10 @@
                     clearInterval(pageRefreshInterval);
                 }
 
-                // تعيين مؤقت جديد لتحديث الصفحة كل دقيقة (60000 مللي ثانية)
+                // تعيين مؤقت جديد لتحديث الصفحة كل 10 دقائق (600000 مللي ثانية)
                 pageRefreshInterval = setInterval(() => {
                     location.reload();
-                }, 60000); // 60 ثانية
+                }, 600000); // 600 ثانية (10 دقائق)
             }
 
             // دالة لعرض Toast Notification
@@ -437,6 +444,19 @@
                 // إذا كان المستخدم قد وافق سابقاً
                 if (localStorage.getItem('locationPermission') === 'granted') {
                     startTrackingSilently();
+
+                    // إظهار حالة التتبع إذا كان نشطاً
+                    if (trackingState.isTracking) {
+                        updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
+                        // إخفاء بعد 5 ثوانٍ فقط إذا كانت الصفحة جديدة
+                        if (!trackingState.pageAlreadyLoaded) {
+                            setTimeout(() => {
+                                fadeOutTrackingStatus();
+                            }, 5000);
+                            trackingState.pageAlreadyLoaded = true;
+                            sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
+                        }
+                    }
                     return;
                 }
 
@@ -557,6 +577,7 @@
                 trackingState.isTracking = true;
                 trackingState.lastLocation = lastLocation;
                 trackingState.lastUpdate = new Date().toISOString();
+                trackingState.pageAlreadyLoaded = true;
                 sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
 
                 sendLocationToServer(position);
@@ -632,10 +653,14 @@
 
                         updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
 
-                        // إخفاء رسالة التتبع بعد 5 ثوانٍ
-                        setTimeout(() => {
-                            fadeOutTrackingStatus();
-                        }, 5000);
+                        // إخفاء رسالة التتبع بعد 5 ثوانٍ فقط إذا كانت الصفحة جديدة
+                        if (!trackingState.pageAlreadyLoaded) {
+                            setTimeout(() => {
+                                fadeOutTrackingStatus();
+                            }, 5000);
+                            trackingState.pageAlreadyLoaded = true;
+                            sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
+                        }
 
                         return;
                     }
@@ -652,6 +677,7 @@
                         trackingState.isTracking = true;
                         trackingState.lastLocation = lastLocation;
                         trackingState.lastUpdate = new Date().toISOString();
+                        trackingState.pageAlreadyLoaded = true;
                         sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
 
                         sendLocationToServer(position);
@@ -684,10 +710,14 @@
 
                         updateTrackingStatus('active', 'جاري التتبع - موقعك يتم تسجيله');
 
-                        // إخفاء رسالة التتبع بعد 5 ثوانٍ
-                        setTimeout(() => {
-                            fadeOutTrackingStatus();
-                        }, 5000);
+                        // إخفاء رسالة التتبع بعد 5 ثوانٍ فقط إذا كانت الصفحة جديدة
+                        if (!trackingState.pageAlreadyLoaded) {
+                            setTimeout(() => {
+                                fadeOutTrackingStatus();
+                            }, 5000);
+                            trackingState.pageAlreadyLoaded = true;
+                            sessionStorage.setItem('trackingState', JSON.stringify(trackingState));
+                        }
                     },
                     error => {
                         console.error('خطأ في الحصول على الموقع:', error);
@@ -759,6 +789,8 @@
 
             // تحديث حالة التتبع في الواجهة
             function updateTrackingStatus(status, text) {
+                const trackingState = JSON.parse(sessionStorage.getItem('trackingState'));
+
                 trackingStatusElement.style.display = 'block';
                 trackingStatusElement.classList.remove('fade-out');
                 trackingStatusText.textContent = text;
@@ -773,6 +805,13 @@
                     trackingStatusElement.classList.add('tracking-paused');
                 } else {
                     trackingStatusElement.classList.add('tracking-inactive');
+                }
+
+                // إذا كانت الصفحة قد تم تحميلها مسبقاً، لا تخفي الرسالة تلقائياً
+                if (!trackingState.pageAlreadyLoaded) {
+                    setTimeout(() => {
+                        fadeOutTrackingStatus();
+                    }, 5000);
                 }
             }
 
@@ -875,7 +914,7 @@
                 if (trackingState.isTracking && !isTracking && !trackingPaused) {
                     resumeTracking();
                 }
-            }, 600000);
+            }, 60000);
         });
     </script>
 
