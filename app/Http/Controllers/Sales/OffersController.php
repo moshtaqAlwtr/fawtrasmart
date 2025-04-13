@@ -32,23 +32,26 @@ class OffersController extends Controller
             'name' => 'nullable|string|max:255',
             'valid_from' => 'nullable|date',
             'valid_to' => 'nullable|date|after:valid_from',
-            'type' => 'required|integer|in:1,2', // يجب أن تكون القيمة 1 أو 2
+            'type' => 'required|integer|in:1,2',
             'quantity' => 'nullable|numeric|min:0',
-            'discount_type' => 'nullable|integer|in:1,2', // يجب أن تكون القيمة 1 أو 2
+            'discount_type' => 'nullable|integer|in:1,2',
             'discount_value' => 'nullable|numeric|min:0',
             'category' => 'nullable|string',
-            'client_id' => 'nullable|exists:clients,id',
-            'unit_type' => 'nullable|integer|in:1,2,3', // يجب أن تكون القيمة 1 أو 2 أو 3
-            'product_id' => 'required_if:unit_type,3|nullable|exists:products,id',
-            'category_id' => 'required_if:unit_type,2|nullable|exists:categories,id',
+            'client_id' => 'nullable|array',
+            'client_id.*' => 'exists:clients,id',
+            'unit_type' => 'nullable|integer|in:1,2,3',
+            'product_id' => 'required_if:unit_type,3|nullable|array',
+            'product_id.*' => 'exists:products,id',
+            'category_id' => 'required_if:unit_type,2|nullable|array',
+            'category_id.*' => 'exists:categories,id',
             'is_active' => 'boolean',
         ]);
-
+    
         try {
             // إضافة القيمة الافتراضية لـ is_active إذا لم يتم إرسالها
             $validated['is_active'] = $request->has('is_active') ? true : false;
-
-            // إنشاء العرض باستخدام البيانات المصدقة
+    
+            // إنشاء العرض الأساسي
             $offer = Offer::create([
                 'name' => $validated['name'],
                 'valid_from' => $validated['valid_from'],
@@ -58,18 +61,28 @@ class OffersController extends Controller
                 'discount_type' => $validated['discount_type'],
                 'discount_value' => $validated['discount_value'],
                 'category' => $validated['category'] ?? null,
-                'client_id' => $validated['client_id'] ?? null,
                 'unit_type' => $validated['unit_type'],
-                'product_id' => $validated['product_id'] ?? null,
-                'category_id' => $validated['category_id'] ?? null,
                 'is_active' => $validated['is_active'],
             ]);
-
+    
+            // إرفاق العملاء (Many-to-Many)
+            if (!empty($validated['client_id'])) {
+                $offer->clients()->attach($validated['client_id']);
+            }
+    
+            // إرفاق التصنيفات (Many-to-Many)
+            if (!empty($validated['category_id'])) {
+                $offer->categories()->attach($validated['category_id']);
+            }
+    
+            // إرفاق المنتجات (Many-to-Many)
+            if (!empty($validated['product_id'])) {
+                $offer->products()->attach($validated['product_id']);
+            }
+    
             return redirect()->route('Offers.index')->with('success', 'تم إضافة العرض بنجاح');
         } catch (\Exception $e) {
-            // تسجيل الخطأ في الـ log
             Log::error('Error in store method: ' . $e->getMessage());
-
             return redirect()
                 ->back()
                 ->withInput()

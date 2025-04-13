@@ -461,7 +461,7 @@
                                     </small>
                                     @if ($retur->client && $retur->client->full_address)
                                         <small class="d-block">
-                                            <i class="fas fa-map-marker-alt me-1"></i>{{ $retur->client->full_address }}
+                                            <i class="fas fa-map-marker-alt me-1"></i>{{ $retur->client->full_address }} مرجع الفاتورة {{$retur->reference_number ?? ""}}
                                         </small>
                                     @endif
                                 </div>
@@ -491,11 +491,11 @@
                                        <small class="currency">{!! $currencySymbol !!}</small>
                                     </h5>
 
-                                    @if($retur->due_value > 0)
+                                    {{-- @if($retur->due_value > 0)
                                         <small class="d-block mb-2 text-danger">
                                             المبلغ المستحق: {{ number_format($retur->due_value, 2) }} {!! $currencySymbol !!}
                                         </small>
-                                    @endif
+                                    @endif --}}
 
                                     @php
                                         $statusClass = '';
@@ -535,7 +535,7 @@
                                                 <a class="dropdown-item" href="{{ route('invoices.edit', $retur->id) }}">
                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.show', $retur->id) }}">
+                                                <a class="dropdown-item" href="{{ route('ReturnIInvoices.show', $retur->id) }}">
                                                     <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
                                                 <a class="dropdown-item" href="{{ route('invoices.generatePdf', $retur->id) }}">

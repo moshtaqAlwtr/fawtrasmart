@@ -3,7 +3,14 @@
 @section('title')
     اضافة عرض
 @stop
-
+ <!-- jQuery FIRST -->
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+ <!-- Select2 CSS -->
+ <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+ <!-- Select2 JS -->
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+ <!-- Select2 Arabic -->
+ <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/ar.js"></script>
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -29,7 +36,7 @@
 
     <div class="content-body">
         <div class="container-fluid">
-            <form class="form-horizontal" action="{{ route('Offers.store') }}" method="POST" >
+            <form class="form-horizontal" action="{{ route('Offers.store') }}" method="POST">
                 @csrf
 
 
@@ -87,13 +94,14 @@
                                 <div class="form-group col-md-6">
                                     <label for="">النوع</label>
                                     <select class="form-control" name="type">
-                                        <option value="1">اختر البند</option>
+                                        <option value="1">خصم على البند</option>
                                         <option value="2">اشتري كمية واحصل خصم على البند</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group col-md-6">
-                                    <label for="">الكمية المطلوبة لتطبيق العرض <span style="color: red">*</span></label>
+                                    <label for="">الكمية المطلوبة لتطبيق العرض <span
+                                            style="color: red">*</span></label>
                                     <input type="text" name="quantity" class="form-control" id="quantity">
                                 </div>
 
@@ -110,7 +118,7 @@
                                     <input type="text" name="discount_value" class="form-control" id="">
                                 </div>
 
-                                <div class="col-md-6">
+                                {{-- <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="category">التصنيف</label>
                                         <input list="classifications" class="form-control" id="client_type" name="category"
@@ -124,12 +132,13 @@
                                             <option value="العربية والدار البيضاء">
                                         </datalist>
                                     </div>
-                                </div>
+                                </div> --}}
 
+                                <!-- حقل العملاء -->
                                 <div class="form-group col-md-6">
-                                    <label for="">العميل </label>
-                                    <select class="form-control" name="client_id">
-                                        <option value=""> اختر العميل </option>
+                                    <label for="">العميل</label>
+                                    <select class="form-control select2" name="client_id[]" multiple="multiple"
+                                        placeholder="ابحث عن العملاء">
                                         @foreach ($clients as $client)
                                             <option value="{{ $client->id }}">{{ $client->trade_name }}</option>
                                         @endforeach
@@ -165,19 +174,21 @@
                                         <option value="3">المنتجات</option>
                                     </select>
                                 </div>
+                                <!-- حقل المنتجات -->
                                 <div class="form-group col-md-6">
                                     <label for="">المنتج</label>
-                                    <select class="form-control" name="product_id">
-                                        <option value="">NotThing Select</option>
+                                    <select class="form-control select2" name="product_id[]" multiple="multiple"
+                                        placeholder="ابحث عن المنتجات">
                                         @foreach ($product as $prod)
                                             <option value="{{ $prod->id }}">{{ $prod->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
+                                <!-- حقل التصنيفات -->
                                 <div class="form-group col-md-6">
                                     <label for="">التصنيف</label>
-                                    <select class="form-control" name="category_id">
-                                        <option value="">NotThing Select</option>
+                                    <select class="form-control select2" name="category_id[]" multiple="multiple"
+                                        placeholder="ابحث عن التصنيفات">
                                         @foreach ($category as $cat)
                                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                                         @endforeach
@@ -194,47 +205,68 @@
 @endsection
 
 @section('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-        // عند تغيير حقل "نوع الوحدة"
-        $('select[name="unit_type"]').change(function() {
-            var selectedValue = $(this).val();
-            var productField = $('select[name="product_id"]').closest('.form-group');
-            var categoryField = $('select[name="category_id"]').closest('.form-group');
+   
 
-            productField.hide();
-            categoryField.hide();
-
-            if (selectedValue === "3") {
-                productField.show();
-            } else if (selectedValue === "2") {
-                categoryField.show();
-            } else {
-                productField.hide();
-                categoryField.hide();
-            }
-        });
-
-        // إخفاء الحقول عند التحميل الأولي
-        $('select[name="product_id"], select[name="category_id"]').closest('.form-group').hide();
-
-        // عند تغيير حقل "النوع"
-        $('select[name="type"]').change(function() {
-            var selectedValue = $(this).val();
-            var quantityInput = $('input[name="quantity"]');
-
-            if (selectedValue === "") {
-                quantityInput.val("0").prop("readonly", true);
-            } else if (selectedValue === "discount") {
-                quantityInput.val("").prop("readonly", false);
-            }
-        });
-
-        // تعيين الحالة الأولية عند تحميل الصفحة
-        if ($('select[name="type"]').val() === "") {
-            $('input[name="quantity"]').val("0").prop("readonly", true);
+    <style>
+        /* حل مشكلة ظهور حقل الإدخال المزدوج */
+        .select2-container--default .select2-selection--multiple {
+            border: 1px solid #ddd;
+            padding: 5px;
+            min-height: 42px;
         }
-    });
-</script>
+
+        .select2-container--default .select2-selection--multiple .select2-selection__choice {
+            background-color: #7367f0;
+            border-color: #7367f0;
+            color: #fff;
+            padding: 3px 10px;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function() {
+            // تهيئة Select2 مع إعدادات متقدمة
+            $('.select2').each(function() {
+                $(this).select2({
+                    language: 'ar',
+                    dir: 'rtl',
+                    placeholder: $(this).attr('placeholder') || 'اختر عناصر',
+                    width: '100%',
+                    dropdownAutoWidth: true,
+                    allowClear: true,
+                    closeOnSelect: false
+                });
+            });
+
+            // إخفاء حقول المنتجات والتصنيفات في البداية
+            $('[name="product_id[]"], [name="category_id[]"]').closest('.form-group').hide();
+
+            // التحكم في إظهار/إخفاء الحقول حسب نوع الوحدة
+            $('[name="unit_type"]').change(function() {
+                const unitType = $(this).val();
+
+                // إخفاء جميع الحقول أولاً
+                $('[name="product_id[]"], [name="category_id[]"]').closest('.form-group').hide();
+
+                // إظهار الحقل المناسب
+                if (unitType === '3') {
+                    $('[name="product_id[]"]').closest('.form-group').show();
+                } else if (unitType === '2') {
+                    $('[name="category_id[]"]').closest('.form-group').show();
+                }
+            }).trigger('change');
+
+            // التحكم في حقل الكمية حسب نوع العرض
+            $('[name="type"]').change(function() {
+                const offerType = $(this).val();
+                const quantityInput = $('#quantity');
+
+                if (offerType === '1') {
+                    quantityInput.val('1').prop('readonly', true);
+                } else {
+                    quantityInput.val('').prop('readonly', false);
+                }
+            }).trigger('change');
+        });
+    </script>
 @endsection

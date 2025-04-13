@@ -201,7 +201,7 @@
             <td class="info-label">الهاتف:</td>
             <td class="info-value">{{ $return_invoice->client->mobile ?? 'غير متوفر' }}</td>
             <td class="info-label">الفاتورة الأصلية:</td>
-            <td class="info-value">{{ $return_invoice->code ?? "" }}</td>
+            <td class="info-value">{{ $return_invoice->id ?? "" }}</td>
         </tr>
         <tr>
             <td class="info-label">الرقم الضريبي:</td>

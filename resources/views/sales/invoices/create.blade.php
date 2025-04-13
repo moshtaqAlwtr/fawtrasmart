@@ -1137,5 +1137,125 @@
             });
         });
     </script>
+    <script>
+// دالة للتحقق من العروض وتطبيق الخصومات
+function applyOffersToInvoice() {
+    const clientId = $('#client_id').val();
+    const today = new Date().toISOString().split('T')[0];
+    let hasOffers = false;
 
+    // مسح الخصومات السابقة من العروض
+    $('.item-row').each(function() {
+        $(this).find('.discount-value').val(0).trigger('change');
+    });
+
+    // جلب العروض النشطة من السيرفر
+    $.ajax({
+        url: '/clients/offers/active-offers',
+        method: 'GET',
+        data: {
+            client_id: clientId,
+            date: today
+        },
+        success: function(offers) {
+            $('.item-row').each(function() {
+                const productId = $(this).find('.product-select').val();
+                const quantity = parseInt($(this).find('.quantity').val());
+                const price = parseFloat($(this).find('.price').val()) || 0;
+                
+                if (!productId) return;
+
+                // جلب معلومات المنتج (التصنيف)
+                const product = productsData.find(p => p.id == productId);
+                const categoryId = product ? product.category_id : null;
+
+                offers.forEach(offer => {
+                    if (checkOfferConditions(offer, clientId, productId, categoryId, quantity)) {
+                        applyDiscountToItem($(this), offer, price);
+                        hasOffers = true;
+                    }
+                });
+            });
+
+            if (hasOffers) {
+                toastr.success('تم تطبيق العروض التلقائية بنجاح');
+            }
+        }
+    });
+}
+
+// دالة التحقق من شروط العرض
+function checkOfferConditions(offer, clientId, productId, categoryId, quantity) {
+    // 1. التحقق من العميل
+    if (offer.clients.length > 0 && !offer.clients.includes(parseInt(clientId))) {
+        return false;
+    }
+
+    // 2. التحقق من نوع الوحدة
+    switch (offer.unit_type) {
+        case 1: break; // الكل
+        case 2: // التصنيف
+            if (!offer.categories.includes(categoryId)) return false;
+            break;
+        case 3: // المنتجات
+            if (!offer.products.includes(productId)) return false;
+            break;
+    }
+
+    // 3. التحقق من الكمية المطلوبة
+    if (offer.type == 2 && quantity < offer.quantity) {
+        return false;
+    }
+
+    return true;
+}
+
+// دالة تطبيق الخصم على العنصر
+function applyDiscountToItem(row, offer, originalPrice) {
+    const discountInput = row.find('.discount-value');
+    const discountTypeSelect = row.find('.discount-type');
+    const currentDiscount = parseFloat(discountInput.val()) || 0;
+    let newDiscount = 0;
+
+    // حساب الخصم حسب النوع
+    if (offer.discount_type == 1) { // مبلغ ثابت
+        newDiscount = offer.discount_value;
+    } else { // نسبة مئوية
+        newDiscount = (originalPrice * offer.discount_value) / 100;
+    }
+
+    // إضافة الخصم الجديد إلى الخصم الحالي
+    discountInput.val(currentDiscount + newDiscount).trigger('change');
+    discountTypeSelect.val('amount'); // جعل نوع الخصم "مبلغ" بعد التطبيق
+
+    // إضافة بادج للإشارة إلى الخصم التلقائي
+    // row.find('.discount-value').after(`
+    //     <small class="text-success offer-applied-badge" 
+    //            title="خصم تلقائي من عرض ${offer.name}">
+    //         (تلقائي)
+    //     </small>
+    // `);
+}
+
+// استدعاء الدالة عند تغيير العميل أو المنتجات أو الكميات
+$(document).on('change', '#client_id, .product-select, .quantity', function() {
+    applyOffersToInvoice();
+});
+
+// عند تحميل الصفحة
+$(document).ready(function() {
+    // جلب بيانات المنتجات مرة واحدة
+    productsData = @json($items->map(function($item) {
+        return [
+            'id' => $item->id,
+            'category_id' => $item->category_id
+        ];
+    }));
+    
+    // تطبيق العروض عند التحميل إذا كان هناك عميل محدد
+    if ($('#client_id').val()) {
+        applyOffersToInvoice();
+    }
+});
+</script>
 @endsection

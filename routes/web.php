@@ -25,7 +25,7 @@ use App\Http\Controllers\Sales\ReturnInvoiceController;
 use App\Http\Controllers\Sales\ShippingOptionsController;
 use App\Http\Controllers\Sales\SittingInvoiceController;
 use App\Models\Client;
-
+use App\Models\Offer;
 
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
 require __DIR__ . '/auth.php';
@@ -288,6 +288,34 @@ Route::group(
                     Route::get('/show/{id}', [OffersController::class, 'show'])->name('Offers.show');
                     Route::get('/edit/{id}', [OffersController::class, 'edit'])->name('Offers.edit');
                     Route::put('/update/{id}', [OffersController::class, 'update'])->name('Offers.update');
+                    Route::get('/active-offers', function(Request $request) {
+                        $today = now()->format('Y-m-d');
+                        $clientId = $request->client_id;
+                    
+                        $offers = Offer::with(['clients', 'products', 'categories'])
+                            ->where('is_active', true)
+                            ->whereDate('valid_from', '<=', $today)
+                            ->whereDate('valid_to', '>=', $today)
+                            ->get()
+                            ->map(function($offer) {
+                                return [
+                                    'id' => $offer->id,
+                                    'name' => $offer->name,
+                                    'type' => $offer->type,
+                                    'unit_type' => $offer->unit_type,
+                                    'quantity' => $offer->quantity,
+                                    'discount_type' => $offer->discount_type,
+                                    'discount_value' => $offer->discount_value,
+                                    'valid_from' => $offer->valid_from,
+                                    'valid_to' => $offer->valid_to,
+                                    'clients' => $offer->clients->map(fn($c) => ['id' => $c->id]),
+                                    'products' => $offer->products->map(fn($p) => ['id' => $p->id]),
+                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id])
+                                ];
+                            });
+                    
+                        return response()->json($offers);
+                    });
                     Route::delete('/destroy/{id}', [OffersController::class, 'destroy'])->name('Offers.destroy');
                     Route::post('/updateStatus/{id}', [OffersController::class, 'updateStatus'])->name('Offers.updateStatus');
                 });

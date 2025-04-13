@@ -30,7 +30,88 @@ class Invoice extends Model
     {
         return $this->belongsTo(Client::class);
     }
-
+    public function applyOffers()
+    {
+        $today = now()->format('Y-m-d');
+        $clientId = $this->client_id;
+        $invoiceItems = $this->items;
+        $appliedOffers = [];
+    
+        // جلب جميع العروض النشطة في الفترة الحالية
+        $offers = Offer::where('is_active', true)
+            ->whereDate('valid_from', '<=', $today)
+            ->whereDate('valid_to', '>=', $today)
+            ->get();
+    
+        foreach ($invoiceItems as $item) {
+            $productId = $item->product_id;
+            $categoryId = $item->product->category_id ?? null;
+            $quantity = $item->quantity;
+            $originalPrice = $item->unit_price;
+    
+            foreach ($offers as $offer) {
+                // التحقق من شروط العرض
+                if ($this->checkOfferConditions($offer, $clientId, $productId, $categoryId, $quantity)) {
+                    $discountValue = $this->calculateDiscount($offer, $originalPrice);
+                    $appliedOffers[] = [
+                        'product_id' => $productId,
+                        'offer_id' => $offer->id,
+                        'discount_value' => $discountValue,
+                        'original_price' => $originalPrice,
+                        'final_price' => $originalPrice - $discountValue
+                    ];
+                    
+                    // تطبيق الخصم على العنصر
+                    $item->discount += $discountValue;
+                    $item->save();
+                }
+            }
+        }
+    
+        return $appliedOffers;
+    }
+    
+    private function checkOfferConditions($offer, $clientId, $productId, $categoryId, $quantity)
+    {
+        // 1. التحقق من أن العميل مشمول بالعرض (إذا كان العرض محدد لعملاء معينين)
+        if ($offer->clients->isNotEmpty() && !$offer->clients->contains('id', $clientId)) {
+            return false;
+        }
+    
+        // 2. التحقق من نوع الوحدة
+        switch ($offer->unit_type) {
+            case 1: // الكل
+                break;
+                
+            case 2: // التصنيف
+                if (!$offer->categories->contains('id', $categoryId)) {
+                    return false;
+                }
+                break;
+                
+            case 3: // المنتجات
+                if (!$offer->products->contains('id', $productId)) {
+                    return false;
+                }
+                break;
+        }
+    
+        // 3. التحقق من نوع العرض وكميته
+        if ($offer->type == 2 && $quantity < $offer->quantity) {
+            return false;
+        }
+    
+        return true;
+    }
+    
+    private function calculateDiscount($offer, $originalPrice)
+    {
+        if ($offer->discount_type == 1) { // خصم حقيقي
+            return $offer->discount_value;
+        } else { // خصم نسبي
+            return ($originalPrice * $offer->discount_value) / 100;
+        }
+    }
     // العلاقة مع الخزينة
     public function treasury(): BelongsTo
     {

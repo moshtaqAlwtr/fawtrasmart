@@ -73,13 +73,25 @@ class Offer extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
-    /**
-     * العلاقة مع التصنيف (Category).
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
+   
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+
+ // في App\Models\Offer
+public function clients()
+{
+    return $this->belongsToMany(Client::class, 'offer_clients');
+}
+
+public function categories()
+{
+    return $this->belongsToMany(Category::class, 'offer_categories');
+}
+
+public function products()
+{
+    return $this->belongsToMany(Product::class, 'offer_products');
+}
 }

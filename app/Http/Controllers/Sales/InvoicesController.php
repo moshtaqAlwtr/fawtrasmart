@@ -79,12 +79,12 @@ class InvoicesController extends Controller
         if (auth()->user()->hasAnyPermission(['sales_view_all_invoices'])) {
             // عنده صلاحية، يشوف كل الفواتير
             $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
-                        ->orderBy('created_at', 'desc');
+                        ->where('type','normal')->orderBy('created_at', 'desc');
         } else {
             // ما عنده صلاحية، يشوف فقط فواتيره
             $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
                         ->where('created_by', auth()->user()->id)
-                        ->orderBy('created_at', 'desc');
+                        ->where('type','normal')->orderBy('created_at', 'desc');
         }
 
         // 1. البحث حسب العميل

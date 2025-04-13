@@ -527,7 +527,13 @@
                                                 $payments = \App\Models\PaymentsProcess::where('invoice_id', $invoice->id)->where('type', 'client payments')->orderBy('created_at', 'desc')->get();
                                             @endphp
 
-                                            @if ($invoice->type == 'returned')
+@php
+$returnedInvoice = \App\Models\Invoice::where('type', 'returned')
+    ->where('reference_number', $invoice->id)
+    ->first();
+@endphp
+
+@if ($returnedInvoice)
                                                 <span class="badge bg-danger text-white"><i class="fas fa-undo me-1"></i>مرتجع</span>
                                             @elseif ($invoice->type == 'normal' && $payments->count() == 0)
                                                 <span class="badge bg-secondary text-white"><i class="fas fa-file-invoice me-1"></i>أنشئت فاتورة</span>
