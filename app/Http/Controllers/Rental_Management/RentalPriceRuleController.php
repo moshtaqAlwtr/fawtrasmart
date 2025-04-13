@@ -11,13 +11,13 @@ class RentalPriceRuleController extends Controller
     public function index()
     {
         $pricingRules = PricingRule::all();
-        return view('Rental_Management.rental_price_rule.index', compact('pricingRules'));
+        return view('rental_management.rental_price_rule.index', compact('pricingRules'));
     }
 
 
     public function create()
     {
-        return view('Rental_Management.rental_price_rule.create');
+        return view('rental_management.rental_price_rule.create');
     }
 
     public function edit($id)
@@ -49,7 +49,7 @@ class RentalPriceRuleController extends Controller
         // إعادة التوجيه مع رسالة نجاح
         return redirect()->route('rental_management.rental_price_rule.show', $rule->id)
             ->with('success', 'تم تحديث قاعدة التسعير بنجاح!');
-            
+
             }public function destroy($id)
             {
                 // حذف قاعدة التسعير
@@ -61,8 +61,8 @@ class RentalPriceRuleController extends Controller
                     ->with('success', 'تم حذف قاعدة التسعير بنجاح!');
                 // العثور على قاعدة التسعير باستخدام ID
             }
-            
-       
+
+
     public function show($id)
     {
         // استرجاع قاعدة التسعير بناءً على ID
@@ -74,7 +74,7 @@ class RentalPriceRuleController extends Controller
 
     public function store(Request $request)
     {
-        
+
         // التحقق من صحة البيانات
         $validatedData = $request->validate([
             'pricingName' => 'required|string|max:255',
@@ -87,7 +87,7 @@ class RentalPriceRuleController extends Controller
         // إنشاء قاعدة تسعير جديدة
      $PRICE =   PricingRule::create($validatedData);
 
-        
+
                         ModelsLog::create([
     'type' => 'unit',
     'type_id' => $PRICE->id, // ID النشاط المرتبط
@@ -117,5 +117,5 @@ class RentalPriceRuleController extends Controller
         ]);
     }
 
-    
+
 }
