@@ -1074,39 +1074,29 @@ class ClientController extends Controller
     }
 
     public function addnotes(Request $request)
-    {
-        // التحقق من صحة البيانات
-        $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            //'status' => 'required|string',
-            'process' => 'required|string',
-            'description' => 'required|string',
-            'attachments' => 'nullable|file',
-        ]);
+{
+    // التحقق من صحة البيانات
+    $validated = $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'process' => 'required|string|max:255',
+        'description' => 'required|string',
+        'attachments' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+    ]);
 
+    DB::beginTransaction();
+
+    try {
         // الحصول على أحدث موقع للموظف
         $employeeLocation = Location::where('employee_id', auth()->id())
-                                    ->latest()
-                                    ->first();
-
-        if (!$employeeLocation) {
-            return redirect()
-                ->route('clients.show', $request->client_id)
-                ->with('error', 'لم يتم تحديد موقعك الجغرافي! يرجى تفعيل خدمة الموقع.');
-        }
+                                  ->latest()
+                                  ->firstOrFail();
 
         // الحصول على موقع العميل
         $clientLocation = Location::where('client_id', $request->client_id)
-                                  ->latest()
-                                  ->first();
+                                ->latest()
+                                ->firstOrFail();
 
-        if (!$clientLocation) {
-            return redirect()
-                ->route('clients.show', $request->client_id)
-                ->with('error', 'لا يوجد موقع مسجل لهذا العميل!');
-        }
-
-        // حساب المسافة بين الموظف والعميل (Haversine formula) بالكيلومتر
+        // حساب المسافة بين الموظف والعميل
         $lat1 = deg2rad($employeeLocation->latitude);
         $lon1 = deg2rad($employeeLocation->longitude);
         $lat2 = deg2rad($clientLocation->latitude);
@@ -1121,79 +1111,83 @@ class ClientController extends Controller
 
         // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
         if ($distance > 0.3) {
-            return redirect()
-                ->route('clients.show', $request->client_id)
-                ->with('error', 'يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+            throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
         }
 
-        // بدء معاملة قاعدة البيانات
-        DB::beginTransaction();
-        try {
-            // إنشاء الملاحظة
-            $clientRelation = ClientRelation::create([
-                'employee_id' => auth()->id(),
-                'client_id' => $request->client_id,
-                'status' => $request->status,
-                'process' => $request->process,
-                'description' => $request->description,
-                'location_id' => $employeeLocation->id
-            ]);
+        // إنشاء الملاحظة
+        $clientRelation = ClientRelation::create([
+            'employee_id' => auth()->id(),
+            'client_id' => $request->client_id,
+            'status' => $request->status ?? 'pending',
+            'process' => $request->process,
+            'description' => $request->description,
+            'location_id' => $employeeLocation->id
+        ]);
 
-            // معالجة المرفقات إن وجدت
-            if ($request->hasFile('attachments')) {
-                $file = $request->file('attachments');
-                if ($file->isValid()) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $file->move(public_path('assets/uploads/notes'), $filename);
-                    $clientRelation->attachments = $filename;
-                    $clientRelation->save();
-                }
+        // معالجة المرفقات إن وجدت
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . preg_replace('/[^a-z0-9\.]/i', '_', $file->getClientOriginalName());
+                $file->move(public_path('assets/uploads/notes'), $filename);
+                $clientRelation->attachments = $filename;
+                $clientRelation->save();
             }
-
-            // ربط الموقع بالملاحظة
-            $employeeLocation->update([
-                'client_relation_id' => $clientRelation->id,
-                'client_id' => $request->client_id
-            ]);
-
-            // تسجيل اشعار نظام
-            ModelsLog::create([
-                'type' => 'notes',
-                'type_log' => 'log',
-                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-                'created_by' => auth()->id(),
-            ]);
-
-            // إرسال الإشعارات
-            $clientName = Client::find($request->client_id)->trade_name ?? 'عميل غير معروف';
-            $userName = auth()->user()->name;
-
-            notifications::create([
-                'user_id' => auth()->id(),
-                'type' => 'notes',
-                'title' => $userName . ' أضاف ملاحظة لعميل',
-                'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
-                'data' => [
-                    'client_id' => $request->client_id,
-                    'note_id' => $clientRelation->id
-                ]
-            ]);
-
-            DB::commit();
-
-            return redirect()
-                ->route('clients.show', $request->client_id)
-                ->with('success', 'تم إضافة الملاحظة بنجاح!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('فشل إضافة ملاحظة: ' . $e->getMessage());
-
-            return redirect()
-                ->route('clients.show', $request->client_id)
-                ->with('error', 'حدث خطأ أثناء إضافة الملاحظة!');
         }
+
+        // ربط الموقع بالملاحظة
+        $employeeLocation->update([
+            'client_relation_id' => $clientRelation->id,
+            'client_id' => $request->client_id
+        ]);
+
+        // تسجيل اشعار نظام
+        ModelsLog::create([
+            'type' => 'notes',
+            'type_log' => 'log',
+            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+            'created_by' => auth()->id(),
+        ]);
+
+        // إرسال الإشعارات
+        $clientName = Client::findOrFail($request->client_id)->trade_name ?? 'عميل غير معروف';
+        $userName = auth()->user()->name;
+
+        notifications::create([
+            'user_id' => auth()->id(),
+            'type' => 'notes',
+            'title' => $userName . ' أضاف ملاحظة لعميل',
+            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
+
+        ]);
+
+        DB::commit();
+
+        return redirect()
+            ->route('clients.show', $request->client_id)
+            ->with('success', 'تم إضافة الملاحظة بنجاح!');
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return redirect()
+            ->back()
+            ->withErrors($e->validator)
+            ->withInput();
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        DB::rollBack();
+        return redirect()
+            ->route('clients.show', $request->client_id ?? 0)
+            ->with('error', 'لم يتم العثور على الموقع المطلوب!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('فشل إضافة ملاحظة: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
+        return redirect()
+            ->route('clients.show', $request->client_id ?? 0)
+            ->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
     }
+}
         /**
      * حساب المسافة باستخدام Haversine formula
      */

@@ -304,8 +304,8 @@
                                                              <option value="am">صباحية</option>
                                                              <option value="pm">مسائية</option>
                                                         </select>
-    
-    
+
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -527,7 +527,7 @@
 
                                                          </select>
                                                         <div class="form-control-position">
-                                     
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -535,15 +535,15 @@
                                             <div class="col-md-12 col-12 mb-3">
                                                 <div class="form-group">
                                                     <label for="category">الفرع</label>
-                                                   
-                                                   
+
+
                                                     <select class="form-control" name="branch_id" id="client_type" required>
                                                         <option value="">اختر الفرع</option>
                                                         @foreach ($branches as $branche)
                                                             <option value="{{ $branche->id }}">{{ $branche->name ?? "لا يوجد فروع" }}</option>
                                                         @endforeach
                                                     </select>
-                                                    
+
                                                 </div>
                                             </div>
                                             @if (auth()->user()->role === 'manager')
@@ -558,16 +558,16 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    
+
                                                     {{-- الحقل الحقيقي الذي سترسله للباك إند --}}
                                                     <div id="selected_employees"></div>
-                                                    
+
                                                     {{-- هنا سيظهر الموظفون المختارون --}}
                                                     <ul id="employee_list" class="mt-2 list-group"></ul>
-                                                    
-                                                 
-                                                    
-                                                    
+
+
+
+
                                                     @error('employee_client_id')
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
@@ -596,7 +596,7 @@
 
 
 @section('scripts')
-    <script src="{{ asset('assets/js/scripts.js') }}"></script>
+    {{-- <script src="{{ asset('assets/js/scripts.js') }}"></script> --}}
     <!-- إضافة مكتبة Google Maps -->
     <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
 
@@ -730,23 +730,23 @@
         const employeeSelect = document.getElementById('employee_select');
         const employeeList = document.getElementById('employee_list');
         const selectedEmployees = document.getElementById('selected_employees');
-    
+
         let selectedEmployeeIds = [];
-    
+
         employeeSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const employeeId = selectedOption.value;
             const employeeName = selectedOption.dataset.name;
-    
+
             // منع التكرار
             if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
                 selectedEmployeeIds.push(employeeId);
-    
+
                 // عرض في القائمة
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center';
                 li.textContent = employeeName;
-    
+
                 const removeBtn = document.createElement('button');
                 removeBtn.textContent = 'حذف';
                 removeBtn.className = 'btn btn-sm btn-danger';
@@ -755,17 +755,17 @@
                     selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
                     updateHiddenInputs();
                 };
-    
+
                 li.appendChild(removeBtn);
                 employeeList.appendChild(li);
-    
+
                 updateHiddenInputs();
             }
-    
+
             // إعادة تعيين السلكت
             this.value = '';
         });
-    
+
         function updateHiddenInputs() {
             selectedEmployees.innerHTML = '';
             selectedEmployeeIds.forEach(id => {

@@ -74,7 +74,7 @@ Route::group(
                         Route::post('/store', [InvoicesController::class, 'store'])->name('invoices.store');
                         Route::delete('/delete/{id}', [InvoicesController::class, 'destroy'])->name('invoices.destroy');
                         Route::get('/{id}/generatePdf', [InvoicesController::class, 'generatePdf'])->name('invoices.generatePdf');
-                       
+
                         Route::get('/get-price', [InvoicesController::class, 'getPrice'])->name('get-price');
                         Route::get('/notifications/unread', [InvoicesController::class, 'getUnreadNotifications'])->name('notifications.unread');
                         Route::post('/notifications/mark', [InvoicesController::class, 'markAsRead'])->name('notifications.markAsRead');
@@ -339,7 +339,7 @@ Route::group(
                 Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
-        Route::prefix('visits')
+            Route::prefix('visits')
             ->middleware(['auth'])
             ->group(function () {
                 Route::post('/visits', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
@@ -349,18 +349,18 @@ Route::group(
 
                 Route::get('/visits', [VisitController::class, 'traffics'])->name('visits.traffics');
 
-                    Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
+                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
                     ->name('visits.storeLocationEnhanced');
-                    Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
+                Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
 
-                // Route::get('/my-visits', [VisitController::class, 'myVisits']);
+                // إضافة هذا المسار للانصراف التلقائي
+                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])
+                    ->name('visits.processAutoDepartures');
 
-                // // تتبع الموقع
-                // Route::post('/track-employee', [VisitController::class, 'trackEmployee']);
-
-                // إدارة الزيارات
+                // إضافة مسار للانصراف اليدوي
+                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])
+                    ->name('visits.manualDeparture');
             });
-
         Route::prefix('commission')
             ->middleware(['auth'])
             ->group(function () {
