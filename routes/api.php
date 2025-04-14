@@ -33,7 +33,7 @@ Route::get('/accounts/{code}/direct-children', function ($code) {
 // الحصول على بيانات الشجرة بتنسيق JSTree
 Route::get('/accounts/tree', function () {
     $accounts = ChartOfAccount::whereNull('parent_id')->get();
-    
+
     function formatForJSTree($account) {
         $node = [
             'id' => $account->id,
@@ -41,19 +41,19 @@ Route::get('/accounts/tree', function () {
             'state' => ['opened' => true],
             'children' => []
         ];
-        
+
         foreach ($account->childAccounts as $child) {
             $node['children'][] = formatForJSTree($child);
         }
-        
+
         return $node;
     }
-    
+
     $treeData = [];
     foreach ($accounts as $account) {
         $treeData[] = formatForJSTree($account);
     }
-    
+
     return response()->json($treeData);
 });
 
@@ -63,7 +63,7 @@ Route::get('/accounts/{id}/details', function ($id) {
     if (!$account) {
         return response()->json(['error' => 'الحساب غير موجود'], 404);
     }
-    
+
     return response()->json([
         'id' => $account->id,
         'code' => $account->code,
@@ -81,7 +81,7 @@ Route::get('/invoice-details/{code}', function ($code) {
         if (!$account) {
             return response()->json(['error' => 'الفاتورة غير موجودة']);
         }
-        
+
         // جلب الفاتورة المرتبطة بهذا الحساب
         $invoice = Invoice::where('account_code', $code)->first();
         if (!$invoice) {
@@ -103,7 +103,7 @@ Route::get('/invoice-details/{code}', function ($code) {
                     'branch_name' => 'الفرع الرئيسي' // يمكن تغييره حسب هيكل البيانات لديك
                 ];
             });
-        
+
         // حساب الرصيد التراكمي
         $balance = 0;
         $entries = $entries->map(function ($entry) use (&$balance) {

@@ -141,7 +141,7 @@
                         <!-- Customer Filter -->
                         <div class="col-md-3">
                             <label for="customer" class="form-label">العميل:</label>
-                            <select id="customer" name="customer" class="form-control">
+                            <select id="customer" name="customer" class="form-control select2">
                                 <option value="">الكل</option>
                                 @foreach ($customers as $customer)
                                     <option value="{{ $customer->id }}">{{ $customer->trade_name }}</option>
@@ -155,7 +155,7 @@
                             <select id="sales-manager" name="sales_manager" class="form-control">
                                 <option value="">الكل</option>
                                 @foreach ($salesManagers as $manager)
-                                    <option value="{{ $manager->id }}">{{ $manager->full_name }}</option>
+                                    <option value="{{ $manager->id }}">{{ $manager->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -237,7 +237,7 @@
                     </tr>
                 @endforeach
             </tbody>
-            <tfoot>
+            {{-- <tfoot>
                 <tr>
                     <th colspan="4" class="text-end">الاجمالي </th>
                     <th>{{ number_format($reportData->sum('today'), 2) }}</th>
@@ -248,7 +248,7 @@
                     <th>{{ number_format($reportData->sum('daysOver120'), 2) }}</th>
                     <th>{{ number_format($reportData->sum('total_due'), 2) }}</th>
                 </tr>
-            </tfoot>
+            </tfoot> --}}
         </table>
     </div>
 @endsection
@@ -284,11 +284,7 @@
                 },
                 {
                     label: 'عدد الفواتير لكل موظف',
-                    data: [
-                        @foreach ($reportData as $data)
-                            {{ $data['invoice_count'] }},
-                        @endforeach
-                    ],
+
                     backgroundColor: 'rgba(255, 99, 132, 0.5)',
                     borderColor: '#ff6384',
                     borderWidth: 1,

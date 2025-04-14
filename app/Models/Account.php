@@ -87,4 +87,8 @@ class Account extends Model
     {
         return $this->hasOne(Treasury::class, 'account_id');
     }
+    public function getAvailableCredit()
+    {
+        return $this->credit_limit - $this->current_balance;
+    }
 }

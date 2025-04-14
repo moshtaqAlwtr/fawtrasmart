@@ -78,8 +78,8 @@ public function Balance()
     {
         return $this->belongsTo(Neighborhood::class);
     }
-    
-    
+
+
     // العلاقات
     public function invoices()
     {
@@ -91,7 +91,7 @@ public function Balance()
         return $this->hasMany(Receipt::class, 'client_id', 'id');
     }
 
-   
+
 
     public function cheques()
     {
@@ -157,7 +157,7 @@ public function Balance()
     return $this->hasMany(AppointmentNote::class);
 }
 
- 
+
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
     {

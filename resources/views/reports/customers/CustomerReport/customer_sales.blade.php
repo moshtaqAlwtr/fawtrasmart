@@ -5,10 +5,10 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
 
     <link rel="stylesheet" href="{{ asset('assets/css/customer.css') }}">
 @endsection
@@ -35,83 +35,75 @@
             <div class="card-body">
                 <form id="filterForm" method="GET" action="{{ route('ClientReport.customerSales') }}">
                     <div class="row">
+                        <!-- تحسين حقول التاريخ -->
                         <div class="col-md-3">
                             <label for="date-from" class="form-label">التاريخ من:</label>
                             <input type="date" id="date-from" name="date_from" class="form-control"
-                                value="{{ request('date_from', '2024-10-09') }}">
+                                   value="{{ request('date_from') }}" max="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-3">
                             <label for="date-to" class="form-label">التاريخ إلى:</label>
                             <input type="date" id="date-to" name="date_to" class="form-control"
-                                value="{{ request('date_to', '2024-11-09') }}">
-                        </div>
-                        <div class="col-md-3">
-                            <label for="client-category" class="form-label">تصنيف العميل:</label>
-                            <select id="client-category" name="client_category" class="form-select">
-                                <option value="">الكل</option>
-                                <option value="عميل فردي">عميل فردي</option>
-                                <option value="مؤسسة">مؤسسة</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="currency" class="form-label">العملة:</label>
-                            <select id="currency" name="currency" class="form-select">
-                                <option value="SAR">(SAR) الجمع إلى</option>
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label for="order-by" class="form-label">ترتيب حسب:</label>
-                            <select id="order-by" name="order_by" class="form-select">
-                                <option value="">الكل</option>
-                                <option value="client">العميل</option>
-                                <option value="branch">الفرع</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="branch" class="form-label">فرع:</label>
-                            <select id="branch" name="branch" class="form-select">
-                                <option value="">الكل</option>
-                                <option value="main">Main Branch</option>
-                                <option value="branch2">فرع 2</option>
-                            </select>
+                                   value="{{ request('date_to') }}" max="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-3">
                             <label for="client" class="form-label">العميل:</label>
-                            <select id="client" name="client" class="form-select">
+                            <select id="client" name="client" class="form-control select2">
                                 <option value="">الكل</option>
                                 @foreach ($clients ?? [] as $client)
-                                    <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                    <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
+                                        {{ $client->trade_name ?? $client->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label for="status" class="form-label">حالة المتابعة:</label>
-                            <select id="status" name="status" class="form-select">
+                            <label for="branch" class="form-label">الفرع:</label>
+                            <select id="branch" name="branch" class="form-control select2">
                                 <option value="">الكل</option>
-                                <option value="active">نشط</option>
-                                <option value="inactive">غير نشط</option>
+                                @foreach($branches  as $branch)
+                                    <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->name }}
+                                    </option>
+                                @endforeach
                             </select>
                         </div>
+
+                        <div class="col-md-3">
+                            <label for="added_by" class="form-label"> اضيفت بواسطة </label>
+                            <select id="added_by" name="added_by" class="form-control select2">
+                                <option value="">الكل</option>
+                                @foreach($employees  as $employee)
+                                    <option value="{{ $employee->id }}" {{ request('added_by') == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+
                     </div>
 
                     <div class="row mt-3">
                         <div class="col-12 text-center">
-                            <button type="submit" class="btn btn-custom me-2">
-                                <i class="fas fa-search"></i> عرض التقرير
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter"></i> تصفية النتائج
                             </button>
-                            <button type="button" id="resetFilters" class="btn btn-secondary">
-                                <i class="fas fa-undo"></i> إلغاء الفلتر
-                            </button>
+                            <a href="{{ route('ClientReport.customerSales') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> إلغاء الفلتر
+                            </a>
+                            @if(request()->anyFilled(['date_from', 'date_to', 'client', 'branch']))
+                                <button type="button" id="exportBtn" class="btn btn-success ms-2">
+                                    <i class="fas fa-file-excel"></i> تصدير إلى Excel
+                                </button>
+                            @endif
                         </div>
                     </div>
                 </form>
             </div>
         </div>
+
+
         <div class="card mb-4">
             <div class="card-body">
                 <div class="action-buttons text-end">
@@ -183,25 +175,19 @@
 @endsection
 
 @section('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 
     <script>
         $(document).ready(function() {
             // تهيئة Select2 للقوائم المنسدلة
-            $('.form-select').select2({
-                dir: "rtl",
-                placeholder: "اختر...",
-                allowClear: true
-            });
+
 
             // إعادة تعيين الفلتر
             $('#resetFilters').click(function() {
                 $('#filterForm')[0].reset();
-                $('.form-select').trigger('change');
+                $('.form-control').trigger('change');
                 window.location.href = "{{ route('ClientReport.customerSales') }}";
             });
         });
@@ -223,5 +209,24 @@
         function exportToPDF() {
             // تنفيذ تصدير PDF
         }
+
+        $(document).ready(function() {
+            // تهيئة Select2
+            $('.select2').select2();
+
+            // التحقق من صحة التواريخ
+            $('#filterForm').submit(function(e) {
+                const dateFrom = $('#date-from').val();
+                const dateTo = $('#date-to').val();
+
+                if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
+                    alert('تاريخ البداية يجب أن يكون قبل تاريخ النهاية');
+                    e.preventDefault();
+                }
+            });
+
+            // زر التصدير
+
+        });
     </script>
 @endsection

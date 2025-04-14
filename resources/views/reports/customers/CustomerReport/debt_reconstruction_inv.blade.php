@@ -110,49 +110,67 @@
                             <select id="branch" name="branch" class="form-control">
                                 <option value="">كل الفروع</option>
                                 @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                    <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
+
                         <!-- Customer Type Filter -->
                         <div class="col-md-3">
-                            <label for="customer-type" class="form-label">تصنيف العميل:</label>
-                            <select id="customer-type" name="customer_type" class="form-control">
+                            <label for="customer_type" class="form-label">تصنيف العميل:</label>
+                            <select id="customer_type" name="customer_type" class="form-control">
                                 <option value="">الكل</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->name }}"></option>
+                                    <option value="{{ $category->id }}" {{ request('customer_type') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
+
                         <!-- Customer Filter -->
                         <div class="col-md-3">
                             <label for="customer" class="form-label">العميل:</label>
-                            <select id="customer" name="customer" class="form-control">
+                            <select id="customer" name="customer" class="form-control select2">
                                 <option value="">الكل</option>
                                 @foreach ($customers as $customer)
-                                    <option value="{{ $customer->id }}">{{ $customer->trade_name }}</option>
+                                    <option value="{{ $customer->id }}" {{ request('customer') == $customer->id ? 'selected' : '' }}>
+                                        {{ $customer->trade_name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
+
                         <!-- Sales Manager Filter -->
                         <div class="col-md-3">
-                            <label for="sales-manager" class="form-label">مسؤول مبيعات:</label>
-                            <select id="sales-manager" name="sales_manager" class="form-control">
+                            <label for="sales_manager" class="form-label">مسؤول المبيعات:</label>
+                            <select id="sales_manager" name="sales_manager" class="form-control">
                                 <option value="">الكل</option>
                                 @foreach ($salesManagers as $manager)
-                                    <option value="{{ $manager->id }}">{{ $manager->full_name }}</option>
+                                    <option value="{{ $manager->id }}" {{ request('added_by') == $manager->id ? 'selected' : '' }}>
+                                        {{ $manager->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
+
                     <div class="row mt-3">
+                        <!-- Added By Filter -->
+
+                    </div>
+
+                    <div class="row mt-4">
                         <div class="col-md-12 text-center">
-                            <button type="submit" class="btn-custom">عرض التقرير</button>
-                            <a href="{{ route('ClientReport.debtReconstructionInv') }}" class="btn-custom"> الغاء الفلتر
-                            </a>
+                            <button type="submit" class="btn btn-primary">عرض التقرير</button>
+                            <a href="{{ route('ClientReport.debtReconstructionInv') }}" class="btn btn-secondary">إلغاء الفلتر</a>
                         </div>
                     </div>
                 </form>
+
+
             </div>
         </div>
     </div>

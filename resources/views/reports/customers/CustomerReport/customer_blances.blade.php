@@ -5,11 +5,10 @@
 @stop
 
 @section('css')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.bootstrap5.min.css">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/customer.css') }}">
 @endsection
@@ -32,8 +31,11 @@
         </div>
     </div>
 
-    <div class="container">
+
         <!-- Stats Cards -->
+<div class="card">
+    <div class="card-body">
+
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="stats-card">
@@ -72,6 +74,8 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
         <div class="card mb-4">
             <div class="card-body">
                 <div class="action-buttons text-end">
@@ -103,7 +107,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="client-category" class="form-label">تصنيف العميل:</label>
-                                <select id="client-category" name="client_category" class="form-select">
+                                <select id="client-category" name="client_category" class="form-control">
                                     <option value="">الكل</option>
                                     <option value="عميل فردي" {{ request('client_category') == 'عميل فردي' ? 'selected' : '' }}>
                                         عميل فردي</option>
@@ -115,7 +119,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="client" class="form-label">العميل:</label>
-                                <select id="client" name="client" class="form-select">
+                                <select id="client" name="client" class="form-control">
                                     <option value="">الكل</option>
                                     @foreach ($clients as $client)
                                         <option value="{{ $client->id }}"
@@ -132,7 +136,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="employee" class="form-label">الموظف:</label>
-                                <select id="employee" name="employee" class="form-select">
+                                <select id="employee" name="employee" class="form-control">
                                     <option value="">الكل</option>
                                     @foreach ($employees as $employee)
                                         <option value="{{ $employee->id }}"
@@ -146,7 +150,7 @@
                         <div class="col-md-3">
                             <div class="mb-3">
                                 <label for="branch" class="form-label">الفرع:</label>
-                                <select id="branch" name="branch" class="form-select">
+                                <select id="branch" name="branch" class="form-control">
                                     <option value="">الكل</option>
                                     @foreach ($branches as $branch)
                                         <option value="{{ $branch->id }}"
@@ -190,7 +194,7 @@
         <!-- Results Table -->
         <div class="card">
             <div class="card-body">
-                <div class="table-container">
+                <div class="table">
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -199,7 +203,6 @@
                                     <th>رقم الحساب</th>
                                     <th>الاسم</th>
                                     <th>الفرع</th>
-                                    <th>حالة العملة</th>
                                     <th>الموظف</th>
                                     <th>الرصيد قبل</th>
                                     <th>إجمالي المبيعات</th>
@@ -207,7 +210,7 @@
                                     <th>صافي المبيعات</th>
                                     <th>إجمالي المدفوعات</th>
                                     <th>المبلغ المستحق</th>
-                                    <th>تسويات</th>
+
                                     <th>الرصيد</th>
                                 </tr>
                             </thead>
@@ -230,7 +233,7 @@
                                         <td>{{ $client['account_number'] }}</td>
                                         <td>{{ $client['name'] }}</td>
                                         <td>{{ $client['branch'] }}</td>
-                                        <td>{{ $client['currency_status'] }}</td>
+
                                         <td>{{ $client['employee'] }}</td>
                                         <td>{{ number_format($client['balance_before'], 2) }}</td>
                                         <td>{{ number_format($client['total_sales'], 2) }}</td>
@@ -238,7 +241,7 @@
                                         <td>{{ number_format($client['net_sales'], 2) }}</td>
                                         <td>{{ number_format($client['total_payments'], 2) }}</td>
                                         <td>{{ number_format($client['due_value'], 2) }}</td>
-                                        <td>{{ number_format($client['adjustments'], 2) }}</td>
+
                                         <td>{{ number_format($client['balance'], 2) }}</td>
                                     </tr>
 
@@ -257,7 +260,7 @@
 
                                 <!-- صف المجموع الكلي -->
                                 <tr style="font-weight: bold; background-color: #f8f9fa;">
-                                    <td colspan="6" class="text-end">المجموع الكلي:</td>
+                                    <td colspan="4" class="text-end">المجموع الكلي:</td>
                                     <td>{{ number_format($totalBalanceBefore, 2) }}</td>
                                     <td>{{ number_format($totalSales, 2) }}</td>
                                     <td>{{ number_format($totalReturns, 2) }}</td>
@@ -273,7 +276,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Loading Overlay -->
 
@@ -281,17 +283,14 @@
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.bootstrap5.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
         $(document).ready(function() {
             // تهيئة Select2 للقوائم المنسدلة
-            $('.form-select').select2({
+            $('.form-control').select2({
                 dir: "rtl",
                 placeholder: "اختر...",
                 allowClear: true
@@ -327,7 +326,7 @@
             // إعادة تعيين الفلتر
             $('#resetFilters').click(function() {
                 $('#filterForm')[0].reset();
-                $('.form-select').trigger('change');
+                $('.form-control').trigger('change');
                 window.location.href = "{{ route('ClientReport.customerBalances') }}";
             });
 

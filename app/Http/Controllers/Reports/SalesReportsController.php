@@ -40,12 +40,14 @@ class SalesReportsController extends Controller
             'category' => 'nullable|exists:categories_clients,id',
             'client' => 'nullable|exists:clients,id',
             'branch' => 'nullable|exists:branches,id',
-            'status' => 'nullable|in:0,1,5',
+            'status' => 'nullable|in:0,1,2',
+            'invoice_type' => 'nullable|in:sale,return,returned',
             'order_origin' => 'nullable|exists:employees,id',
             'added_by' => 'nullable|exists:users,id',
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date|after_or_equal:from_date',
-            'report_type' => 'nullable|in:daily,weekly,monthly,yearly,sales_manager,employee,returns',
+            'report_type' => 'nullable|in:daily,weekly,monthly,yearly,sales_manager,employee',
+            'report_period' => 'nullable|in:daily,weekly,monthly,yearly',
         ]);
 
         // 2. الحصول على البيانات الأساسية للقوائم المنسدلة
@@ -56,9 +58,10 @@ class SalesReportsController extends Controller
         $users = User::where('role', 'employee')->get();
 
         // 3. بناء استعلام الفواتير مع العلاقات
-        $invoices = Invoice::with(['client.branch', 'createdByUser', 'employee']);
-
-        // 4. تطبيق الفلاتر بنفس طريقة تقرير الموظفين
+        $invoices = Invoice::with(['client.branch', 'createdByUser', 'employee'])
+        ->orderBy('invoice_date', 'desc')
+        ->orderBy('created_at', 'desc');
+        // 4. تطبيق الفلاتر
         if ($request->filled('category')) {
             $invoices->whereHas('client', function ($query) use ($request) {
                 $query->where('category_id', $request->category);
@@ -79,9 +82,14 @@ class SalesReportsController extends Controller
             $invoices->where('payment_status', $request->status);
         }
 
+        if ($request->filled('invoice_type')) {
+            $invoices->where('type', $request->invoice_type);
+        }
+
         if ($request->filled('order_origin')) {
             $invoices->where(function ($query) use ($request) {
-                $query->where('employee_id', $request->order_origin)->orWhere('created_by', $request->order_origin);
+                $query->where('employee_id', $request->order_origin)
+                      ->orWhere('created_by', $request->order_origin);
             });
         }
 
@@ -90,11 +98,35 @@ class SalesReportsController extends Controller
         }
 
         // فلتر نطاق التاريخ
-        $fromDate = $request->input('from_date') ? Carbon::parse($request->input('from_date')) : now()->startOfMonth();
-        $toDate = $request->input('to_date') ? Carbon::parse($request->input('to_date')) : now()->endOfMonth();
         $reportPeriod = $request->input('report_period', 'monthly');
 
-        // Adjust dates based on report period if not manually set
+        if ($request->filled('from_date') && $request->filled('to_date')) {
+            $fromDate = Carbon::parse($request->input('from_date'));
+            $toDate = Carbon::parse($request->input('to_date'));
+        } else {
+            // تحديد الفترة التلقائية بناءً على report_period
+            switch ($reportPeriod) {
+                case 'daily':
+                    $fromDate = now()->startOfDay();
+                    $toDate = now()->endOfDay();
+                    break;
+                case 'weekly':
+                    $fromDate = now()->startOfWeek();
+                    $toDate = now()->endOfWeek();
+                    break;
+                case 'monthly':
+                    $fromDate = now()->startOfMonth();
+                    $toDate = now()->endOfMonth();
+                    break;
+                case 'yearly':
+                    $fromDate = now()->startOfYear();
+                    $toDate = now()->endOfYear();
+                    break;
+                default:
+                    $fromDate = now()->startOfMonth();
+                    $toDate = now()->endOfMonth();
+            }
+        }
 
         $invoices->whereBetween('invoice_date', [$fromDate, $toDate]);
 
@@ -108,7 +140,10 @@ class SalesReportsController extends Controller
                     $invoices->whereMonth('invoice_date', $toDate->month);
                     break;
                 case 'weekly':
-                    $invoices->whereBetween('invoice_date', [$toDate->copy()->startOfWeek(), $toDate->copy()->endOfWeek()]);
+                    $invoices->whereBetween('invoice_date', [
+                        $toDate->copy()->startOfWeek(),
+                        $toDate->copy()->endOfWeek()
+                    ]);
                     break;
                 case 'daily':
                     $invoices->whereDate('invoice_date', $toDate->toDateString());
@@ -127,36 +162,13 @@ class SalesReportsController extends Controller
                         });
                     });
                     break;
-                case 'returns':
-                    $invoices->whereIn('type', ['return', 'returned']);
-                    break;
-            }
-        }
-        if (!$request->filled('from_date') && !$request->filled('to_date')) {
-            switch ($reportPeriod) {
-                case 'daily':
-                    $fromDate = now()->startOfDay();
-                    $toDate = now()->endOfDay();
-                    break;
-                case 'weekly':
-                    $fromDate = now()->startOfWeek();
-                    $toDate = now()->endOfWeek();
-                    break;
-                case 'monthly':
-                    $fromDate = now()->startOfMonth();
-                    $toDate = now()->endOfMonth();
-                    break;
-                case 'yearly':
-                    $fromDate = now()->startOfYear();
-                    $toDate = now()->endOfYear();
-                    break;
             }
         }
 
         // 5. الحصول على النتائج
         $invoices = $invoices->get();
 
-        // 6. معالجة البيانات - التغيير الأساسي هنا للتجميع حسب العميل بدلاً من الموظف
+        // 6. معالجة البيانات - التجميع حسب العميل
         $groupedInvoices = collect();
         $customerTotals = collect();
         $chartData = ['labels' => [], 'values' => []];
@@ -171,7 +183,7 @@ class SalesReportsController extends Controller
         ];
 
         if ($invoices->isNotEmpty()) {
-            // تجميع الفواتير حسب العميل بدلاً من الموظف
+            // تجميع الفواتير حسب العميل
             $groupedInvoices = $invoices->groupBy('client_id');
 
             // حساب الإجماليات لكل عميل
@@ -179,11 +191,11 @@ class SalesReportsController extends Controller
                 $client = $customerInvoices->first()->client;
                 $clientName = $client ? $client->trade_name : 'عميل غير معروف';
 
-                $paidAmount = $customerInvoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
+                $paidAmount = $customerInvoices->where('type', 'sale')->sum(function ($invoice) {
                     return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
                 });
 
-                $unpaidAmount = $customerInvoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
+                $unpaidAmount = $customerInvoices->where('type', 'sale')->sum(function ($invoice) {
                     return $invoice->payment_status == 1 ? 0 : $invoice->due_value;
                 });
 
@@ -199,6 +211,7 @@ class SalesReportsController extends Controller
                     'returned_amount' => $returnedAmount,
                     'total_amount' => $totalAmount,
                     'branch_name' => $customerInvoices->first()->client->branch->name ?? 'N/A',
+                    'invoices_count' => $customerInvoices->count(),
                 ];
             });
 
@@ -210,21 +223,36 @@ class SalesReportsController extends Controller
 
             // حساب الإجماليات العامة
             $totals = [
-                'paid_amount' => $invoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
+                'paid_amount' => $invoices->where('type', 'sale')->sum(function ($invoice) {
                     return $invoice->payment_status == 1 ? $invoice->grand_total : $invoice->paid_amount;
                 }),
-                'unpaid_amount' => $invoices->where('type', '!=', ['return', 'returned'])->sum(function ($invoice) {
+                'unpaid_amount' => $invoices->where('type', 'sale')->sum(function ($invoice) {
                     return $invoice->payment_status == 1 ? 0 : $invoice->due_value;
                 }),
                 'returned_amount' => $invoices->whereIn('type', ['return', 'returned'])->sum('grand_total'),
                 'total_amount' => $invoices->sum('grand_total'),
-                'total_sales' => $invoices->where('type', '!=', ['return', 'returned'])->sum('grand_total'),
+                'total_sales' => $invoices->where('type', 'sale')->sum('grand_total'),
                 'total_returns' => $invoices->whereIn('type', ['return', 'returned'])->sum('grand_total'),
+                'total_invoices' => $invoices->count(),
             ];
         }
 
-        // 7. إرجاع النتائج للعرض بنفس هيكل تقرير الموظفين
-        return view('reports.sals.salesRport.Sales_By_Customer', compact('groupedInvoices', 'employees', 'clients', 'categories', 'branches', 'totals', 'chartData', 'fromDate', 'toDate', 'customerTotals', 'users', 'reportPeriod'));
+        // 7. إرجاع النتائج للعرض
+        return view('reports.sals.salesRport.Sales_By_Customer', [
+            'groupedInvoices' => $groupedInvoices,
+            'employees' => $employees,
+            'clients' => $clients,
+            'categories' => $categories,
+            'branches' => $branches,
+            'totals' => $totals,
+            'chartData' => $chartData,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'customerTotals' => $customerTotals,
+            'users' => $users,
+            'reportPeriod' => $reportPeriod,
+            'request' => $request->all(),
+        ]);
     }
     public function byEmployee(Request $request)
     {
@@ -249,7 +277,9 @@ class SalesReportsController extends Controller
         $users = User::where('role', 'employee')->get();
 
         // 3. بناء استعلام الفواتير مع العلاقات
-        $invoices = Invoice::with(['client.branch', 'createdByUser', 'employee']);
+        $invoices = Invoice::with(['client.branch', 'createdByUser', 'employee'])
+        ->orderBy('invoice_date', 'desc')
+        ->orderBy('created_at', 'desc');
 
         // 4. تطبيق الفلاتر
         // فلتر فئة العميل
@@ -274,6 +304,10 @@ class SalesReportsController extends Controller
         // فلتر حالة الدفع
         if ($request->filled('status')) {
             $invoices->where('payment_status', $request->status);
+        }
+
+        if ($request->filled('invoice_type')) {
+            $invoices->where('type', $request->invoice_type);
         }
 
         // فلتر الموظف

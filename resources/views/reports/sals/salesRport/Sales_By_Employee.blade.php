@@ -104,27 +104,31 @@
                             </select>
                         </div>
 
+
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
                             <select name="status" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مدفوعة</option>
-                                <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير مدفوعة</option>
-                                <option value="5" {{ request('status') == '5' ? 'selected' : '' }}>مرتجعة</option>
+                                <option value="3" {{ request('status') == '3' ? 'selected' : '' }}>غير مدفوعة</option>
+                                <option value="2" {{ request('status') == '2' ? 'selected' : '' }}>مدفوعة جزئياً</option>
                             </select>
                         </div>
 
-                        {{-- Second Row of Filters --}}
+                        <div class="col-md-3">
+                            <label class="form-label">نوع الفاتورة</label>
+                            <select name="invoice_type" class="form-control">
+                                <option value="">الكل</option>
+                                <option value="normal" {{ request('invoice_type') == 'sale' ? 'selected' : '' }}>مبيعات</option>
+                                <option value="returned" {{ request('invoice_type') == 'returned' ? 'selected' : '' }}>مرتجع</option>
+                            </select>
+                        </div>                        {{-- Second Row of Filters --}}
 
 
                         {{-- New Field: Added By --}}
                         <div class="col-md-3">
                             <label class="form-label">تمت الإضافة بواسطة</label>
-
-                            <select name="added_by" class="form-select">
-
                             <select name="added_by" class="form-control">
-
                                 <option value="">الكل</option>
                                 @foreach ($users as $user)
                                     <option value="{{ $user->id }}" {{ request('added_by') == $user->id ? 'selected' : '' }}>
@@ -150,7 +154,7 @@
                         <div class="col-md-3">
                             <label class="form-label">نوع التقرير</label>
 
-                            <select name="report_type" class="form-select">
+
 
                             <select name="report_type" class="form-control">
 
@@ -173,15 +177,8 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3 align-self-end">
-                            <button type="submit" class="btn btn-primary w-80">
-                                <i class="fas fa-filter me-2"></i> تصفية التقرير
-                            </button>
-                            <a href="{{ route('salesReports.byEmployee') }}" class="btn btn-primary w-20">
-                                <i class="fas fa-filter me-2"></i> الغاء الفلتر
-                            </a>
 
-                        </div>
+
                         <div class="col-md-3 align-self-end">
                             <div class="d-flex justify-content-between gap-2">
                                 <button type="submit" class="btn btn-primary ">
