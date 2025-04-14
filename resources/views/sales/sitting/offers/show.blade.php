@@ -81,13 +81,32 @@
                                             </tr>
                                             <tr>
                                                 <td><small>نوع الخصم</small></td>
-                                                <td>{{ $offer->discount_type }}</td>
-                                                <td><small>نسبة الخصم</small></td>
-                                                <td>{{ $offer->discount_percentage }}%</td>
+                                                @if($offer->discount_type == 1)
+                                                <td class="text-success">
+                                                    <i class="fas fa-money-bill-wave"></i> مبلغ ثابت
+                                                </td>
+                                                <td><small>قيمة الخصم</small></td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-primary">
+                                                        {{ number_format($offer->discount_value, 2) }} ريال
+                                                    </span>
+                                                </td>
+                                            @else
+                                                <td class="text-info">
+                                                    <i class="fas fa-percentage"></i> نسبي
+                                                </td>
+                                                <td><small>قيمة الخصم</small></td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-info">
+                                                        {{ number_format($offer->discount_value, 2) }}%
+                                                    </span>
+                                                </td>
+                                            @endif
+                                                
                                             </tr>
                                             <tr>
-                                                <td><small>النقطة المستهدفة لتطبيق العرض</small></td>
-                                                <td>{{ $offer->target_points }}</td>
+                                                <td><small> الكمية المطلوبة لتطبيق العرض</small></td>
+                                                <td>{{ $offer->quantity }}</td>
                                                 <td><small>الحالة</small></td>
                                                 <td>
                                                     @if ($offer->status == 1)
@@ -113,26 +132,48 @@
                                                     @if ($offer->unit_type == 1)
                                                         الكل
                                                     @elseif($offer->unit_type == 2)
-                                                        المنتجات
+                                                    التصنيفات
                                                     @else
-                                                        التصنيفات
+                                                        المنتجات
                                                     @endif
                                                 </td>
                                             </tr>
 
-                                            @if ($offer->unit_type == 2) <!-- إذا كان نوع الوحدة هو "المنتجات" -->
-                                                <tr>
-                                                    <td><small>البنود</small></td>
-                                                    <td>{{ $offer->product_id }}</td>
-                                                </tr>
-                                            @endif
-
-                                            @if ($offer->unit_type == 3) <!-- إذا كان نوع الوحدة هو "التصنيفات" -->
-                                                <tr>
-                                                    <td><small>البنود</small></td>
-                                                    <td>{{ $offer->category_id }}</td>
-                                                </tr>
-                                            @endif
+                                            @if ($offer->unit_type == 2) <!-- إذا كان نوع الوحدة هو "التصنيفات" -->
+                                            <tr>
+                                                <td><small>التصنيفات المشمولة</small></td>
+                                                <td>
+                                                    @foreach ($offer->categories as $category)
+                                                        <span class="badge badge-primary mr-1">
+                                                            {{ $category->name }}
+                                                        </span>
+                                                    @endforeach
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        
+                                        @if ($offer->unit_type == 3) <!-- إذا كان نوع الوحدة هو "المنتجات" -->
+                                            <tr>
+                                                <td><small>المنتجات المشمولة</small></td>
+                                                <td>
+                                                    @foreach ($offer->products as $product)
+                                                        <span class="badge badge-info mr-1">
+                                                            {{ $product->name }}
+                                                        </span>
+                                                    @endforeach
+                                                </td>
+                                            </tr>
+                                        @endif
+                                        <tr>
+                                            <td><small>العملاء المشمولين</small></td>
+                                            <td>
+                                                @foreach ($offer->clients as $client)
+                                                    <span class="badge badge-info mr-1">
+                                                        {{ $client->trade_name }}
+                                                    </span>
+                                                @endforeach
+                                            </td>
+                                        </tr>
                                         </tbody>
                                     </table>
                                 </div>

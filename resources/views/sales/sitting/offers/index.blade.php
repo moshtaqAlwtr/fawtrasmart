@@ -86,7 +86,7 @@
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a class="dropdown-item text-danger" href="#" data-toggle="modal"
+                                                    <a class="dropdown-item text-danger" href="{{ route('Offers.destroy', $offer->id) }}" data-toggle="modal"
                                                         data-target="#modal_DELETE{{ $offer->id }}">
                                                         <i class="fa fa-trash me-2"></i>حذف
                                                     </a>
