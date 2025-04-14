@@ -480,7 +480,7 @@
                                         <i class="fas fa-mobile-alt me-1"></i> المصدر: تطبيق الهاتف المحمول
                                     </small>
                                 </div>
- @php
+                                        @php
                                             $currency = $account_setting->currency ?? 'SAR';
                                             $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
                                         @endphp

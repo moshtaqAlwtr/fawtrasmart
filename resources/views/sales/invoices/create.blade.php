@@ -1139,12 +1139,14 @@
     </script>
     <script>
 // دالة للتحقق من العروض وتطبيق الخصومات
+// دالة للتحقق من العروض وتطبيق الخصومات
 function applyOffersToInvoice() {
-    const clientId = $('#client_id').val();
+    const clientId = parseInt($('#clientSelect').val());
     const today = new Date().toISOString().split('T')[0];
     let hasOffers = false;
 
     // مسح الخصومات السابقة من العروض
+    $('.offer-applied-badge').remove();
     $('.item-row').each(function() {
         $(this).find('.discount-value').val(0).trigger('change');
     });
@@ -1157,58 +1159,139 @@ function applyOffersToInvoice() {
             client_id: clientId,
             date: today
         },
-        success: function(offers) {
-            $('.item-row').each(function() {
-                const productId = $(this).find('.product-select').val();
-                const quantity = parseInt($(this).find('.quantity').val());
-                const price = parseFloat($(this).find('.price').val()) || 0;
+      success: function(offers) {
+    // تحويل clientId إلى رقم لضمان المقارنة الصحيحة
+    const clientId = parseInt($('#clientSelect').val());
+    
+    $('.item-row').each(function() {
+        const productId = parseInt($(this).find('.product-select').val());
+        const quantity = parseInt($(this).find('.quantity').val());
+        const price = parseFloat($(this).find('.price').val()) || 0;
+
+        if (!productId) return;
+
+        // جلب معلومات المنتج (التصنيف)
+        const product = productsData.find(p => p.id == productId);
+        const categoryId = product ? parseInt(product.category_id) : null;
+
+        offers.forEach(offer => {
+            // تحسين معالجة بيانات العرض
+            const convertedOffer = {
+                ...offer,
+                // معالجة خاصة للعملاء - تحويل جميع الحالات إلى أرقام
+                clients: Array.isArray(offer.clients) 
+                    ? offer.clients.map(c => {
+                        if (c === null || c === undefined) return null;
+                        return typeof c === 'object' ? parseInt(c.id) : parseInt(c);
+                    }).filter(id => !isNaN(id)) // إزالة أي قيم غير رقمية
+                    : [],
                 
-                if (!productId) return;
+                // نفس المعالجة للمنتجات والتصنيفات
+                products: Array.isArray(offer.products) 
+                    ? offer.products.map(p => typeof p === 'object' ? parseInt(p.id) : parseInt(p))
+                    : [],
+                categories: Array.isArray(offer.categories) 
+                    ? offer.categories.map(cat => typeof cat === 'object' ? parseInt(cat.id) : parseInt(cat))
+                    : []
+            };
 
-                // جلب معلومات المنتج (التصنيف)
-                const product = productsData.find(p => p.id == productId);
-                const categoryId = product ? product.category_id : null;
-
-                offers.forEach(offer => {
-                    if (checkOfferConditions(offer, clientId, productId, categoryId, quantity)) {
-                        applyDiscountToItem($(this), offer, price);
-                        hasOffers = true;
-                    }
-                });
+            // إضافة console.log للتصحيح
+            console.log('Checking offer:', {
+                offer: convertedOffer,
+                clientId: clientId,
+                productId: productId,
+                categoryId: categoryId,
+                quantity: quantity
             });
 
-            if (hasOffers) {
-                toastr.success('تم تطبيق العروض التلقائية بنجاح');
+            if (checkOfferConditions(convertedOffer, clientId, productId, categoryId, quantity)) {
+                applyDiscountToItem($(this), convertedOffer, price);
+                hasOffers = true;
             }
-        }
+        });
+    });
+
+    if (hasOffers) {
+        toastr.success('تم تطبيق العروض التلقائية بنجاح');
+    }
+}
     });
 }
+// دالة التحقق من شروط العرض (معدلة)
 
-// دالة التحقق من شروط العرض
+
+// في دالة applyOffersToInvoice:
+
+// دالة التحقق من شروط العرض (معدلة)
 function checkOfferConditions(offer, clientId, productId, categoryId, quantity) {
-    // 1. التحقق من العميل
-    if (offer.clients.length > 0 && !offer.clients.includes(parseInt(clientId))) {
-        return false;
+    // تحويل جميع IDs إلى أرقام لضمان المقارنة الصحيحة
+    clientId = parseInt(clientId);
+    productId = parseInt(productId);
+    categoryId = parseInt(categoryId);
+    quantity = parseInt(quantity);
+
+    // 1. التحقق من العميل (الإصلاح الرئيسي هنا)
+    if (offer.clients && offer.clients.length > 0) {
+        // تحويل جميع هويات عملاء العرض إلى أرقام
+        const offerClientIds = offer.clients.map(c => {
+            return typeof c === 'object' ? parseInt(c.id) : parseInt(c);
+        });
+
+        if (!offerClientIds.includes(clientId)) {
+            return false;
+        }
     }
 
     // 2. التحقق من نوع الوحدة
-    switch (offer.unit_type) {
+    switch (parseInt(offer.unit_type)) {
         case 1: break; // الكل
         case 2: // التصنيف
-            if (!offer.categories.includes(categoryId)) return false;
+            if (!offer.categories || !offer.categories.map(c => parseInt(c.id || c)).includes(categoryId)) {
+                return false;
+            }
             break;
         case 3: // المنتجات
-            if (!offer.products.includes(productId)) return false;
+            if (!offer.products || !offer.products.map(p => parseInt(p.id || p)).includes(productId)) {
+                return false;
+            }
             break;
     }
 
     // 3. التحقق من الكمية المطلوبة
-    if (offer.type == 2 && quantity < offer.quantity) {
+    if (parseInt(offer.type) == 2 && quantity < parseInt(offer.quantity)) {
         return false;
     }
 
     return true;
 }
+
+// دالة التحقق من شروط العرض
+// function checkOfferConditions(offer, clientId, productId, categoryId, quantity) {
+  
+
+//     // 1. التحقق من العميل
+//     if (offer.clients.length > 0 && !offer.clients.includes(parseInt(clientId))) {
+//         return false;
+//     }
+
+//     // 2. التحقق من نوع الوحدة
+//     switch (offer.unit_type) {
+//         case 1: break; // الكل
+//         case 2: // التصنيف
+//             if (!offer.categories.includes(categoryId)) return false;
+//             break;
+//         case 3: // المنتجات
+//             if (!offer.products.includes(productId)) return false;
+//             break;
+//     }
+
+//     // 3. التحقق من الكمية المطلوبة
+//     if (offer.type == 2 && quantity < offer.quantity) {
+//         return false;
+//     }
+
+//     return true;
+// }
 
 // دالة تطبيق الخصم على العنصر
 function applyDiscountToItem(row, offer, originalPrice) {
@@ -1231,14 +1314,14 @@ function applyDiscountToItem(row, offer, originalPrice) {
     // إضافة بادج للإشارة إلى الخصم التلقائي
     // row.find('.discount-value').after(`
     //     <small class="text-success offer-applied-badge" 
-    //            title="خصم تلقائي من عرض ${offer.name}">
+    //             title="خصم تلقائي من عرض ${offer.name}">
     //         (تلقائي)
     //     </small>
     // `);
 }
 
 // استدعاء الدالة عند تغيير العميل أو المنتجات أو الكميات
-$(document).on('change', '#client_id, .product-select, .quantity', function() {
+$(document).on('change', '#clientSelect, .product-select, .quantity', function() {
     applyOffersToInvoice();
 });
 
@@ -1246,14 +1329,16 @@ $(document).on('change', '#client_id, .product-select, .quantity', function() {
 $(document).ready(function() {
     // جلب بيانات المنتجات مرة واحدة
     productsData = @json($items->map(function($item) {
+        
         return [
             'id' => $item->id,
             'category_id' => $item->category_id
         ];
     }));
-    
+   
+
     // تطبيق العروض عند التحميل إذا كان هناك عميل محدد
-    if ($('#client_id').val()) {
+    if ($('#clientSelect').val()) {
         applyOffersToInvoice();
     }
 });

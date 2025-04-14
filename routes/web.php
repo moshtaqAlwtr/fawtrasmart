@@ -279,7 +279,6 @@ Route::group(
                 });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingInvoiceController::class, 'index'])->name('SittingInvoice.index');
-
                 });
                 Route::prefix('offers')->group(function () {
                     Route::get('/index', [OffersController::class, 'index'])->name('Offers.index');
@@ -288,11 +287,11 @@ Route::group(
                     Route::get('/show/{id}', [OffersController::class, 'show'])->name('Offers.show');
                     Route::get('/edit/{id}', [OffersController::class, 'edit'])->name('Offers.edit');
                     Route::put('/update/{id}', [OffersController::class, 'update'])->name('Offers.update');
-                    Route::get('/active-offers', function(Request $request) {
+                    Route::get('/active-offers', function (Request $request) {
                         $today = now()->format('Y-m-d');
                         $clientId = $request->client_id;
-                    
-                        $offers = Offer::with(['clients', 'products', 'categories'])
+
+                         $offers = Offer::with(['clients', 'products', 'categories'])
                             ->where('is_active', true)
                             ->whereDate('valid_from', '<=', $today)
                             ->whereDate('valid_to', '>=', $today)
@@ -314,9 +313,11 @@ Route::group(
                                 ];
                             });
                     
+                    
+
                         return response()->json($offers);
                     });
-                    Route::delete('/destroy/{id}', [OffersController::class, 'destroy'])->name('Offers.destroy');
+                    Route::get('/destroy/{id}', [OffersController::class, 'destroy'])->name('Offers.destroy');
                     Route::post('/updateStatus/{id}', [OffersController::class, 'updateStatus'])->name('Offers.updateStatus');
                 });
                 Route::prefix('shippingOptions')->group(function () {
@@ -339,7 +340,7 @@ Route::group(
                 Route::get('/chart/details/{accountId}', [AccountsChartController::class, 'getAccountDetails'])->name('accounts.details');
                 Route::get('/{id}/children', [AccountsChartController::class, 'getChildren'])->name('accounts.children');
             });
-            Route::prefix('visits')
+        Route::prefix('visits')
             ->middleware(['auth'])
             ->group(function () {
                 Route::post('/visits', [VisitController::class, 'storeEmployeeLocation'])->name('visits.storeEmployeeLocation');
@@ -376,12 +377,5 @@ Route::group(
             ->group(function () {
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
-
-
-
-
-
-
-
     },
 );
