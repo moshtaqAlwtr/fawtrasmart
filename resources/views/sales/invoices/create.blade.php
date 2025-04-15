@@ -336,7 +336,7 @@
                                 <tbody>
                                     <tr class="item-row">
                                         <td style="width:18%" data-label="المنتج">
-                                            <select name="items[0][product_id]" class="form-control product-select">
+                                            <select name="items[0][product_id]" class="form-control product-select" required>
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
                                                     <option value="{{ $item->id }}"
@@ -787,45 +787,50 @@
 
 
             function initializeEvents() {
-                // عند تغيير اختيار المنتج أو قائمة الأسعار
-                $('.product-select, #price-list-select').off('change').on('change', function() {
-                    var priceListId = $('#price-list-select').val(); // قيمة قائمة الأسعار المختارة
-                    var productId = $(this).closest('tr').find('.product-select')
-                        .val(); // قيمة المنتج المختار
-                    var priceInput = $(this).closest('tr').find('.price'); // حقل السعر
+    $('.product-select, #price-list-select').off('change').on('change', function() {
+        var priceListId = $('#price-list-select').val();
+        var productId = $(this).closest('tr').find('.product-select').val();
+        var priceInput = $(this).closest('tr').find('.price');
+        var currentRow = $(this).closest('tr'); // حفظ المرجع للصف الحالي
 
-                    if (priceListId && productId) {
-                        // جلب السعر من قائمة الأسعار إذا كان المنتج موجودًا فيها
-                        $.ajax({
-                            url: '/sales/invoices/get-price', // رابط API لجلب السعر
-                            method: 'GET',
-                            data: {
-                                price_list_id: priceListId,
-                                product_id: productId
-                            },
-                            success: function(response) {
-                                if (response.price) {
-                                    // إذا وجد السعر في قائمة الأسعار
-                                    priceInput.val(response.price);
-                                } else {
-                                    // إذا لم يوجد السعر في قائمة الأسعار، استخدم سعر المنتج
-                                    var productPrice = $(this).closest('tr').find(
-                                        '.product-select option:selected').data('price');
-                                    priceInput.val(productPrice);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error("Error fetching price:", error);
-                            }
-                        });
+        if (priceListId && productId) {
+            $.ajax({
+                url: '/sales/invoices/get-price',
+                method: 'GET',
+                data: {
+                    price_list_id: priceListId,
+                    product_id: productId
+                },
+                success: function(response) {
+                    if (response.price) {
+                        priceInput.val(response.price);
                     } else {
-                        // إذا لم يتم اختيار قائمة الأسعار، استخدم سعر المنتج
-                        var productPrice = $(this).closest('tr').find('.product-select option:selected')
-                            .data('price');
+                        var productPrice = currentRow.find('.product-select option:selected').data('price');
                         priceInput.val(productPrice);
                     }
-                });
-            }
+                    // حساب المجموع بعد تحديث السعر
+                    calculateRowTotal(currentRow);
+                    calculateGrandTotal();
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error fetching price:", error);
+                }
+            });
+        } else {
+            var productPrice = $(this).closest('tr').find('.product-select option:selected').data('price');
+            priceInput.val(productPrice);
+            // حساب المجموع بعد تحديث السعر
+            calculateRowTotal($(this).closest('tr'));
+            calculateGrandTotal();
+        }
+    });
+
+    // أيضا تأكد من أن تغيير الكمية أو الخصم يحسب المجموع
+    $(document).on('change', '.quantity, .discount-value, .discount-type, .tax-select', function() {
+        calculateRowTotal($(this).closest('tr'));
+        calculateGrandTotal();
+    });
+}
         });
         $(document).ready(function() {
             $('.product-select').change(function() {

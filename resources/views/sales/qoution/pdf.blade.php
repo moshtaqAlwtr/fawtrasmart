@@ -12,6 +12,21 @@
             margin: 0;
             font-size: 12px;
         }
+      
+    @media print {
+        body {
+            background: white !important;
+            color: black !important;
+            font-size: 12pt;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .print-only {
+            display: block !important;
+        }
+        /* أي أنماط إضافية تحتاجها للطباعة */
+    }
 
         .header {
             text-align: center;
@@ -180,7 +195,7 @@
         </p>
     @endforeach
 @else
-    <p>الضريبة: 0.00 {!! $currencySymbol !!}</p>
+    {{-- <p>الضريبة: 0.00 {!! $currencySymbol !!}</p> --}}
 @endif
 
         <!-- الشحن -->

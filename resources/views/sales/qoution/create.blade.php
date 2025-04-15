@@ -185,7 +185,7 @@
                                     <tr class="item-row">
                                         <td style="width:18%">
                                             <select name="items[0][product_id]"
-                                                class="form-control product-select">
+                                                class="form-control product-select" required>
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
                                                     <option value="{{ $item->id }}" data-price="{{ $item->price }}">
@@ -251,8 +251,12 @@
     </div>
 </td>
 
-                                            <span class="row-total">0.00</span>
-                                        </td>
+
+<td data-label="المجموع">
+    <span class="row-total">0.00</span>
+</td>
+                                           
+                                        
                                         <td>
                                             <button type="button" class="btn btn-danger btn-sm remove-row">
                                                 <i class="fa fa-trash"></i>
@@ -278,7 +282,7 @@
                                         <td></td>
                                     </tr>
                                     <tr>
-                                        <td colspan="7" class="text-right">مجموع الخصومات</td>{!! $currencySymbol !!}
+                                        <td colspan="7" class="text-right">مجموع الخصومات</td>
                                         <td>
                                             <span id="total-discount">0.00</span>{!! $currencySymbol !!}
                                             <span id="discount-type-label"></span>

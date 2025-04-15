@@ -88,9 +88,9 @@
         @if(isset($company_logo))
             <img src="{{ $company_logo }}" alt="شعار الشركة">
         @endif
-        <h2>{{ $company_name ?? 'اسم الشركة' }}</h2>
-        <p>{{ $company_address ?? 'عنوان الشركة' }}</p>
-        <p>هاتف: <span class="numbers">{{ $company_phone ?? 'رقم الهاتف' }}</span></p>
+        <h2>مؤسسة اعمال خاصة للتجارة</h2>
+        <p>الرياض</p>
+        <p>هاتف: <span class="numbers">0509992803</span></p>
     </div>
 
     <div class="header">
@@ -150,7 +150,7 @@
         </p>
     @endforeach
 @else
-    <p>الضريبة: 0.00 {!! $currencySymbol !!}</p>
+    {{-- <p>الضريبة: 0.00 {!! $currencySymbol !!}</p> --}}
 @endif
         <p style="font-size: 14px; margin-top: 10px;">المجموع الكلي: {{ number_format($credit->grand_total ?? 0, 2) }} {!! $currencySymbol !!}</p>
         <p>{{ $amount_in_words ?? '' }}</p>

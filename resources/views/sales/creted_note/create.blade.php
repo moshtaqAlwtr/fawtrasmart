@@ -195,7 +195,7 @@
                                     <tr class="item-row">
                                         <td style="width:18%">
                                             <select name="items[0][product_id]"
-                                                class="form-control product-select select2">
+                                                class="form-control product-select">
                                                 <option value="">اختر المنتج</option>
                                                 @foreach ($items as $item)
                                                     <option value="{{ $item->id }}" data-price="{{ $item->price }}">

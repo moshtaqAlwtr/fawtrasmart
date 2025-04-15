@@ -1,8 +1,12 @@
 @extends('master')
 
 @section('title')
-    عرض الاشعارات الدائنة
+    الاشعارات الدائنة
 @stop
+
+
+
+@section('content')
 
 <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
     <!-- Toast -->
@@ -18,7 +22,7 @@
         </div>
     @endif
 </div>
-@section('content')
+
 <div class="content-header row">
     <div class="content-header-left col-md-9 col-12 mb-2">
         <div class="row breadcrumbs-top">
@@ -47,7 +51,7 @@
                 </div>
                 <div class="d-flex gap-2">
 
-                    <button class="btn btn-sm btn-success d-inline-flex align-items-center">
+                    <button onclick="printCreditNote()" class="btn btn-sm btn-success d-inline-flex align-items-center">
                         <i class="fas fa-print me-1"></i> طباعة
                     </button>
                 </div>
@@ -73,9 +77,9 @@
                         </a>
 
 
-                        <a href="#" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
-                            <i class="far fa-sticky-note me-1"></i> طباعة
-                        </a>
+                        <button onclick="printCreditNote()" class="btn btn-sm btn-success d-inline-flex align-items-center">
+                            <i class="fas fa-print me-1"></i> طباعة
+                        </button>
                         <a href="#" class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
                             <i class="fas fa-file-invoice me-1"></i> PDF
                         </a>
@@ -154,17 +158,65 @@
     </div>
 </div>
 @endsection
+
+
 @section('scripts')
-
-
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    // طباعة المحتوى المحدد
+    function printCreditNote() {
+        // احصل على محتوى الـ div الذي تريد طباعته
+        var printContent = document.querySelector('div[style*="transform: scale(0.8);"]').innerHTML;
+        
+        // أنشئ نافذة جديدة للطباعة
+        var printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        // اكتب محتوى الصفحة الجديدة
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>طباعة الإشعار الدائن</title>
+                <style>
+                    body { 
+                        font-family: Arial, sans-serif;
+                        direction: rtl;
+                    }
+                    @page {
+                        size: A4;
+                        margin: 10mm;
+                    }
+                    @media print {
+                        body {
+                            transform: scale(1) !important;
+                        }
+                    }
+                </style>
+            </head>
+            <body onload="window.print(); window.close();">
+                <div style="transform: scale(1);">
+                    ${printContent}
+                </div>
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+    }
+
+    // ربط حدث الطباعة بالأزرار
+    document.addEventListener('DOMContentLoaded', function() {
+        // ربط جميع أزرار الطباعة
+        document.querySelectorAll('.btn-outline-success, .btn-success').forEach(btn => {
+            if (btn.textContent.includes('طباعة')) {
+                btn.addEventListener('click', printCreditNote);
+            }
+        });
+
+        // Toast البوب آب
         var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-        toastElList.map(function (toastEl) {
+        toastElList.map(function(toastEl) {
             return new bootstrap.Toast(toastEl).show();
         });
     });
 </script>
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<script src="{{ asset('assets/js/applmintion.js') }}"></script>
 @endsection

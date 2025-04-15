@@ -281,6 +281,29 @@ class InvoicesController extends Controller
             'client_id' => $client_id,
         ]);
     }
+  
+
+public function getPrice(Request $request)
+{
+    $priceListId = $request->input('price_list_id');
+    $productId = $request->input('product_id');
+
+    $proudect = Product::where('id',$productId)->get();
+
+    $priceItem = PriceListItems::where('price_list_id', $priceListId)
+                              ->where('product_id', $productId)
+                              ->first();
+
+    if ($priceItem) {
+        return response()->json([
+            'price' => $priceItem->sale_price
+        ]);
+    } else {
+        return response()->json([
+            'price' => null
+        ]);
+    }
+}
     public function sendVerificationCode(Request $request)
     {
         $client = Client::find($request->client_id);
@@ -461,7 +484,7 @@ class InvoicesController extends Controller
                 foreach ($request->items as $item) {
                     // التحقق من وجود product_id في البند
                     if (!isset($item['product_id'])) {
-                        throw new \Exception('معرف المنتج (product_id) مطلوب لكل بند.');
+                        throw new \Exception('الرجاء اختيار المنتج');
                     }
 
                     // جلب المنتج
@@ -691,7 +714,7 @@ class InvoicesController extends Controller
                 'is_paid' => $is_paid,
                 'created_by' => Auth::id(),
                 'account_id' => $request->account_id,
-                'discount_amount' => $invoice_discount,
+                'discount_amount' => $final_total_discount,
                 'discount_type' => $request->has('discount_type') ? ($request->discount_type === 'percentage' ? 2 : 1) : 1,
                 'advance_payment' => $advance_payment,
                 'payment_type' => $request->payment_type ?? 1,
@@ -702,7 +725,7 @@ class InvoicesController extends Controller
                 'reference_number' => $request->reference_number,
                 'received_date' => $request->received_date,
                 'subtotal' => $total_amount,
-                'total_discount' => $final_total_discount,
+                // 'discount_amount' => $final_total_discount,
                 'tax_total' => $tax_total,
                 'grand_total' => $total_with_tax,
                 'paid_amount' => $advance_payment,
@@ -1123,7 +1146,9 @@ class InvoicesController extends Controller
                 }
             }
             $clientaccounts = Account::where('client_id', $invoice->client_id)->first();
-
+            if (!$clientaccounts) {
+                throw new \Exception('حساب العميل غير موجود');
+            }
                 // استرجاع حساب القيمة المضافة المحصلة
                 $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
                 if (!$vatAccount) {

@@ -527,8 +527,8 @@ class ReturnInvoiceController extends Controller
     {
         // dd($request->all());
         try {
-            $invoice = Invoice::find($request->invoice_id);
-            $invoice_code = $invoice->id;
+            $invoice_orginal = Invoice::find($request->invoice_id);
+            $invoice_code = $invoice_orginal->id;
 
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
             $code = $request->code;
@@ -552,7 +552,7 @@ class ReturnInvoiceController extends Controller
             $total_amount = 0; // إجمالي المبلغ قبل الخصومات
             $total_discount = 0; // إجمالي الخصومات على البنود
             $items_data = []; // تجميع بيانات البنود
-            $invoiceItems = $invoice->items;
+            // $invoiceItems = $invoice->items;
             // ** الخطوة الثانية: معالجة البنود (items) **
             if ($request->has('items') && count($request->items)) {
                 foreach ($request->items as $item) {
@@ -794,7 +794,9 @@ class ReturnInvoiceController extends Controller
 
            
             $invoice->save();
-
+            $invoice_orginal->returned_payment += $invoice->grand_total;
+            
+            $invoice_orginal->save();
             // حساب الضريبة
             foreach ($request->items as $item) {
                 // حساب الإجمالي لكل منتج (السعر × الكمية)
@@ -1121,6 +1123,8 @@ JournalEntryDetail::create([
             
                 $costAccount->balance -= $invoice->grand_total;
                 $costAccount->save();
+
+               
             }
             
 

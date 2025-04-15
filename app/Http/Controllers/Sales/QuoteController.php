@@ -575,7 +575,8 @@ foreach ($items_data as $item) {
                 'tax_total' => $quote->tax_total,
                 'grand_total' => $quote->grand_total,
             ]);
-
+            $invoice->qrcode = $this->generateTlvContent($invoice->created_at, $invoice->grand_total, $invoice->tax_total);
+            $invoice->save();
             // إضافة عناصر الفاتورة
             foreach ($quote->items as $item) {
                 $invoice->items()->create([
@@ -611,5 +612,16 @@ foreach ($items_data as $item) {
     }
     public  function   logsaction(Request $request){
         return view('test');
+    }
+    private function generateTlvContent($timestamp, $totalAmount, $vatAmount)
+    {
+        $tlvContent = $this->getTlv(1, 'مؤسسة اعمال خاصة للتجارة') . $this->getTlv(2, '000000000000000') . $this->getTlv(3, $timestamp) . $this->getTlv(4, number_format($totalAmount, 2, '.', '')) . $this->getTlv(5, number_format($vatAmount, 2, '.', ''));
+
+        return base64_encode($tlvContent);
+    }
+    private function getTlv($tag, $value)
+    {
+        $value = (string) $value;
+        return pack('C', $tag) . pack('C', strlen($value)) . $value;
     }
 }

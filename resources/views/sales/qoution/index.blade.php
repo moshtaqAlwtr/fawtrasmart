@@ -407,16 +407,16 @@
                                         aria-haspopup="true" aria-expanded="false">
                                     </button>
                                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $quote->id }}">
-                                        <a class="dropdown-item" href="{{ route('questions.edit', $quote->id) }}">
+                                        {{-- <a class="dropdown-item" href="{{ route('questions.edit', $quote->id) }}">
                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                        </a>
+                                        </a> --}}
                                         <a class="dropdown-item" href="{{ route('questions.show', $quote->id) }}">
                                             <i class="fa fa-eye me-2 text-primary"></i>عرض
                                         </a>
-                                        <a class="dropdown-item"
+                                        {{-- <a class="dropdown-item"
                                             href="{{ route('questions.create', ['id' => $quote->id]) }}">
                                             <i class="fa fa-money-bill me-2 text-success"></i>إضافة دفعة
-                                        </a>
+                                        </a> --}}
                                         <a class="dropdown-item" href="">
                                             <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
                                         </a>

@@ -24,9 +24,7 @@
                                 <i class="fas fa-dollar-sign me-1"></i> تحويل لفاتورة
                             </button>
                         </form>
-                        <button class="btn btn-sm btn-success d-inline-flex align-items-center">
-                            <i class="fas fa-print me-1"></i> طباعة عرض الأسعار
-                        </button>
+                        
                     </div>
                 </div>
             </div>
@@ -36,21 +34,21 @@
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div class="d-flex gap-2">
                         <!-- تعديل -->
-                        <a href="{{ route('questions.edit', $quote->id) }}"
+                        {{-- <a href="{{ route('questions.edit', $quote->id) }}"
                             class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
                             <i class="fas fa-pen me-1"></i> تعديل
-                        </a>
+                        </a> --}}
 
                         <!-- طباعة -->
-                        <a href="#" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
+                        <button id="printQuoteBtn" class="btn btn-sm btn-outline-success d-inline-flex align-items-center">
                             <i class="fas fa-print me-1"></i> طباعة
-                        </a>
+                        </button>
 
                         <!-- PDF -->
-                        <a href=""
+                        {{-- <a href=""
                             class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
                             <i class="fas fa-file-pdf me-1"></i> PDF
-                        </a>
+                        </a> --}}
 
                         <!-- إرسال عبر -->
                         <a href="#" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
@@ -198,5 +196,89 @@
             }
         }
     </script>
+    
+    <script>
+        document.getElementById('printQuoteBtn').addEventListener('click', function() {
+            // احصل على محتوى الـ div الذي تريد طباعته
+            var printContent = document.querySelector('div[style*="transform: scale(0.8);"]').innerHTML;
+            
+            // احتفظ بمحتوى الـ head الأصلي (لضمان استيراد أنماط CSS)
+            var headContent = document.head.innerHTML;
+            
+            // أنشئ نافذة جديدة للطباعة
+            var printWindow = window.open('', '_blank');
+            
+            // اكتب محتوى الصفحة الجديدة
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>طباعة عرض الأسعار #{{ $quote->id }}</title>
+                    ${headContent}
+                    <style>
+                        @media print {
+                            body * {
+                                visibility: hidden;
+                            }
+                            .print-content, .print-content * {
+                                visibility: visible;
+                            }
+                            .print-content {
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                                width: 100%;
+                                transform: scale(1) !important;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-content">
+                        ${printContent}
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.print();
+                                window.close();
+                            }, 200);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        });
+    
+        // دالة تحويل إلى فاتورة (إن وجدت)
+        function convertToInvoice(quoteId) {
+            if (confirm('هل أنت متأكد من تحويل عرض الأسعار إلى فاتورة؟')) {
+                fetch(`/quotes/${quoteId}/convert-to-invoice`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('تم تحويل عرض الأسعار إلى فاتورة بنجاح!');
+                        window.location.href = '/invoices/' + data.invoice_id;
+                    } else {
+                        alert('حدث خطأ أثناء التحويل: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('حدث خطأ أثناء التحويل.');
+                });
+            }
+        }
+    </script>
+   
 @endsection
 @endsection

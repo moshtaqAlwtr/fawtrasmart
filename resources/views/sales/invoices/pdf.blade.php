@@ -224,10 +224,10 @@
                     <span>{{ number_format($invoice->grand_total, 2) }} ر.س</span>
                 </div>
 
-                @if($invoice->total_discount > 0)
+                @if($invoice->discount_amount > 0)
                 <div class="total-row">
                     <span>الخصم:</span>
-                    <span>{{ number_format($invoice->total_discount, 2) }} ر.س</span>
+                    <span>{{ number_format($invoice->discount_amount, 2) }} ر.س</span>
                 </div>
                 @endif
 

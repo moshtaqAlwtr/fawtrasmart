@@ -48,11 +48,14 @@
             .table {
                 font-size: 0.8rem;
                 width: 100%;
-                overflow-x: auto; /* Allow horizontal scrolling */
+                overflow-x: auto;
+                /* Allow horizontal scrolling */
             }
 
-            .table th, .table td {
-                white-space: nowrap; /* Prevent text from wrapping */
+            .table th,
+            .table td {
+                white-space: nowrap;
+                /* Prevent text from wrapping */
             }
 
             .form-check {
@@ -84,8 +87,10 @@
                 margin-bottom: 10px;
             }
 
-            .table th, .table td {
-                font-size: 0.7rem; /* Smaller font size for mobile */
+            .table th,
+            .table td {
+                font-size: 0.7rem;
+                /* Smaller font size for mobile */
             }
         }
     </style>
@@ -163,7 +168,8 @@
                             <i class="fa fa-times"></i>
                             <span class="hide-button-text">اخفاء</span>
                         </button>
-                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse"
+                            data-bs-target="#advancedSearchForm" onclick="toggleSearchText(this)">
                             <i class="fa fa-filter"></i>
                             <span class="button-text">متقدم</span>
                         </button>
@@ -178,7 +184,9 @@
                                 <select name="client_id" class="form-control select2" id="client_id">
                                     <option value="">أي العميل</option>
                                     @foreach ($clients as $client)
-                                        <option value="{{ $client->id }}" data-client-number="{{ $client->id }}" data-client-name="{{ $client->trade_name }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                        <option value="{{ $client->id }}" data-client-number="{{ $client->id }}"
+                                            data-client-name="{{ $client->trade_name }}"
+                                            {{ request('client_id') == $client->id ? 'selected' : '' }}>
                                             {{ $client->trade_name }} ({{ $client->code }})
                                         </option>
                                     @endforeach
@@ -186,19 +194,27 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="invoice_number">رقم الفاتورة</label>
-                                <input type="text" id="invoice_number" class="form-control" placeholder="رقم الفاتورة" name="invoice_number" value="{{ request('invoice_number') }}">
+                                <input type="text" id="invoice_number" class="form-control" placeholder="رقم الفاتورة"
+                                    name="invoice_number" value="{{ request('invoice_number') }}">
                             </div>
                             <div class="col-md-4">
                                 <label for="status">حالة الفاتورة</label>
                                 <select name="status" class="form-control" id="status">
                                     <option value="">الحالة</option>
-                                    <option value="1" {{ request('Payment_status') == 1 ? 'selected' : '' }}> مدفوعة بالكامل</option>
-                                    <option value="2" {{ request('Payment_status') == 2 ? 'selected' : '' }}>مدفوعة جزئيًا</option>
-                                    <option value="3" {{ request('Payment_status') == 3 ? 'selected' : '' }}>غير مدفوعة بالكامل</option>
-                                    <option value="4" {{ request('Payment_status') == 4 ? 'selected' : '' }}>مرتجع</option>
-                                    <option value="5" {{ request('Payment_status') == 5 ? 'selected' : '' }}>مرتجع جزئي</option>
-                                    <option value="6" {{ request('Payment_status') == 6 ? 'selected' : '' }}>مدفوع بزيادة</option>
-                                    <option value="7" {{ request('Payment_status') == 7 ? 'selected' : '' }}>مستحقة الدفع</option>
+                                    <option value="1" {{ request('Payment_status') == 1 ? 'selected' : '' }}> مدفوعة
+                                        بالكامل</option>
+                                    <option value="2" {{ request('Payment_status') == 2 ? 'selected' : '' }}>مدفوعة
+                                        جزئيًا</option>
+                                    <option value="3" {{ request('Payment_status') == 3 ? 'selected' : '' }}>غير
+                                        مدفوعة بالكامل</option>
+                                    <option value="4" {{ request('Payment_status') == 4 ? 'selected' : '' }}>مرتجع
+                                    </option>
+                                    <option value="5" {{ request('Payment_status') == 5 ? 'selected' : '' }}>مرتجع
+                                        جزئي</option>
+                                    <option value="6" {{ request('Payment_status') == 6 ? 'selected' : '' }}>مدفوع
+                                        بزيادة</option>
+                                    <option value="7" {{ request('Payment_status') == 7 ? 'selected' : '' }}>مستحقة
+                                        الدفع</option>
                                 </select>
                             </div>
                         </div>
@@ -440,7 +456,8 @@
                         <!-- Action Buttons -->
                         <div class="form-actions mt-2">
                             <button type="submit" class="btn btn-primary">بحث</button>
-                            <a href="{{ route('invoices.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
+                            <a href="{{ route('invoices.index') }}" type="reset"
+                                class="btn btn-outline-warning">إلغاء</a>
                         </div>
                     </form>
                 </div>
@@ -486,11 +503,15 @@
                         </thead>
                         <tbody id="invoiceTableBody">
                             @foreach ($invoices as $invoice)
-                                <tr class="align-middle invoice-row" onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'" style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
+                                <tr class="align-middle invoice-row"
+                                    onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
+                                    style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
                                     <td onclick="event.stopPropagation()">
-                                        <input type="checkbox" class="invoice-checkbox" name="invoices[]" value="{{ $invoice->id }}">
+                                        <input type="checkbox" class="invoice-checkbox" name="invoices[]"
+                                            value="{{ $invoice->id }}">
                                     </td>
-                                    <td class="text-center border-start"><span class="invoice-number">#{{ $invoice->id }}</span></td>
+                                    <td class="text-center border-start"><span
+                                            class="invoice-number">#{{ $invoice->id }}</span></td>
                                     <td>
                                         <div class="client-info">
                                             <div class="client-name mb-2">
@@ -500,13 +521,15 @@
                                             @if ($invoice->client && $invoice->client->tax_number)
                                                 <div class="tax-info mb-1">
                                                     <i class="fas fa-hashtag text-muted me-1"></i>
-                                                    <span class="text-muted small">الرقم الضريبي: {{ $invoice->client->tax_number }}</span>
+                                                    <span class="text-muted small">الرقم الضريبي:
+                                                        {{ $invoice->client->tax_number }}</span>
                                                 </div>
                                             @endif
                                             @if ($invoice->client && $invoice->client->full_address)
                                                 <div class="address-info">
                                                     <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                                    <span class="text-muted small">{{ $invoice->client->full_address }}</span>
+                                                    <span
+                                                        class="text-muted small">{{ $invoice->client->full_address }}</span>
                                                 </div>
                                             @endif
                                         </div>
@@ -518,29 +541,40 @@
                                         </div>
                                         <div class="creator-info">
                                             <i class="fas fa-user text-muted me-1"></i>
-                                            <span class="text-muted small">بواسطة: {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
+                                            <span class="text-muted small">بواسطة:
+                                                {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div class="d-flex flex-column gap-2" style="margin-bottom: 60px">
                                             @php
-                                                $payments = \App\Models\PaymentsProcess::where('invoice_id', $invoice->id)->where('type', 'client payments')->orderBy('created_at', 'desc')->get();
+                                                $payments = \App\Models\PaymentsProcess::where(
+                                                    'invoice_id',
+                                                    $invoice->id,
+                                                )
+                                                    ->where('type', 'client payments')
+                                                    ->orderBy('created_at', 'desc')
+                                                    ->get();
                                             @endphp
 
-@php
-$returnedInvoice = \App\Models\Invoice::where('type', 'returned')
-    ->where('reference_number', $invoice->id)
-    ->first();
-@endphp
+                                            @php
+                                                $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
+                                                    ->where('reference_number', $invoice->id)
+                                                    ->first();
+                                            @endphp
 
-@if ($returnedInvoice)
-                                                <span class="badge bg-danger text-white"><i class="fas fa-undo me-1"></i>مرتجع</span>
+                                            @if ($returnedInvoice)
+                                           
+                                                <span class="badge bg-danger text-white"><i
+                                                        class="fas fa-undo me-1"></i>مرتجع</span>
                                             @elseif ($invoice->type == 'normal' && $payments->count() == 0)
-                                                <span class="badge bg-secondary text-white"><i class="fas fa-file-invoice me-1"></i>أنشئت فاتورة</span>
+                                                <span class="badge bg-secondary text-white"><i
+                                                        class="fas fa-file-invoice me-1"></i>أنشئت فاتورة</span>
                                             @endif
 
                                             @if ($payments->count() > 0)
-                                                <span class="badge bg-success text-white"><i class="fas fa-check-circle me-1"></i>أضيفت عملية دفع</span>
+                                                <span class="badge bg-success text-white"><i
+                                                        class="fas fa-check-circle me-1"></i>أضيفت عملية دفع</span>
                                             @endif
                                         </div>
                                     </td>
@@ -562,47 +596,69 @@ $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
                                             };
                                         @endphp
                                         <div class="text-center">
-                                            <span class="badge bg-{{ $statusClass }} text-white status-badge">{{ $statusText }}</span>
+                                            <span
+                                                class="badge bg-{{ $statusClass }} text-white status-badge">{{ $statusText }}</span>
                                         </div>
                                         @php
                                             $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
+                                            $currencySymbol =
+                                                $currency == 'SAR' || empty($currency)
+                                                    ? '<img src="' .
+                                                        asset('assets/images/Saudi_Riyal.svg') .
+                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                    : $currency;
                                         @endphp
                                         <div class="amount-info text-center mb-2">
-                                            <h6 class="amount mb-1">{{ number_format($invoice->grand_total ?? $invoice->total, 2) }} <small class="currency">{!! $currencySymbol !!}</small></h6>
+                                            <h6 class="amount mb-1">
+                                                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }} <small
+                                                    class="currency">{!! $currencySymbol !!}</small></h6>
+                                                    @if ($returnedInvoice)
+                                                    <span class="text-danger"> مرتجع : {{number_format($invoice->returned_payment, 2) ?? ""}} {!! $currencySymbol !!}</span>
+                                                    @endif
                                             @if ($invoice->due_value > 0)
                                                 <div class="due-amount">
-                                                    <small class="text-danger">المبلغ المستحق: {{ number_format($invoice->due_value, 2) }} {!! $currencySymbol !!}</small>
+                                                    <small class="text-danger">المبلغ المستحق:
+                                                        {{ number_format($invoice->due_value, 2) - number_format($invoice->returned_payment, 2)  }}
+                                                        {!! $currencySymbol !!}</small>
                                                 </div>
                                             @endif
                                         </div>
                                     </td>
                                     <td>
                                         <div class="dropdown" onclick="event.stopPropagation()">
-                                            <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v " type="button" id="dropdownMenuButton{{ $invoice->id }}" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-haspopup="true" aria-expanded="false"></button>
+                                            <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v " type="button"
+                                                id="dropdownMenuButton{{ $invoice->id }}" data-bs-toggle="dropdown"
+                                                data-bs-auto-close="outside" aria-haspopup="true"
+                                                aria-expanded="false"></button>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="{{ route('invoices.edit', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.edit', $invoice->id) }}">
                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.show', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.show', $invoice->id) }}">
                                                     <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $invoice->id) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-print me-2 text-dark"></i>طباعة
                                                 </a>
                                                 <a class="dropdown-item" href="#">
                                                     <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
                                                 </a>
-                                                <a class="dropdown-item" href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
+                                                <a class="dropdown-item"
+                                                    href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
                                                     <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
                                                 </a>
                                                 <a class="dropdown-item" href="#">
                                                     <i class="fa fa-copy me-2 text-secondary"></i>نسخ
                                                 </a>
-                                                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST" class="d-inline">
+                                                <form action="{{ route('invoices.destroy', $invoice->id) }}"
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="dropdown-item text-danger">
@@ -637,8 +693,6 @@ $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
     <script src="{{ asset('assets/js/search.js') }}"></script>
-<script>
-
-</script>
+    <script></script>
 
 @endsection
