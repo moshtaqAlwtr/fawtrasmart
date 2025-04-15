@@ -136,6 +136,23 @@
                     </div>
                     <div class="modal-body">
                         <strong>
+                           عفوا لا يمكنك الحذف يمكن اصدار سند قبض
+                        </strong>
+                    </div>
+                   
+                </div>
+            </div>
+        </div><div class="modal fade text-left" id="modal_DELETE{{ $expense->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #EA5455 !important;">
+                        <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف سند صرف</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true" style="color: #DC3545">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <strong>
                             هل انت متاكد من انك تريد الحذف ؟
                         </strong>
                     </div>

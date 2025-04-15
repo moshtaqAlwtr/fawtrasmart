@@ -139,22 +139,17 @@
             <div class="modal-dialog modal-dialog-scrollable" role="document">
                 <div class="modal-content">
                     <div class="modal-header" style="background-color: #EA5455 !important;">
-                        <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف سند صرف</h4>
+                        <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف سند قبض</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true" style="color: #DC3545">&times;</span>
                         </button>
                     </div>
                     <div class="modal-body">
                         <strong>
-                            هل انت متاكد من انك تريد الحذف ؟
+                          عفوا لا يمكن الحذف يمكنك اصدار سند صرف
                         </strong>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light waves-effect waves-light"
-                            data-dismiss="modal">الغاء</button>
-                        <a href="{{ route('incomes.delete', $income->id) }}"
-                            class="btn btn-danger waves-effect waves-light">تأكيد</a>
-                    </div>
+                  
                 </div>
             </div>
         </div>
