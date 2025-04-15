@@ -111,15 +111,13 @@ class ExpensesController extends Controller
     public function store(Request $request)
     {
         try {
-
-            dd($request->all());
             DB::beginTransaction();
 
-
+            // إنشاء سند الصرف الجديد
             $expense = new Expense();
-            $expense->created_by = auth()->id();
             $expense->code = $request->input('code');
-            $expense->amount = $request->input('amount');
+            $expense->created_by = auth()->id();
+            $expense->amount = $request->input('amount', 0);
             $expense->description = $request->input('description');
             $expense->date = $request->input('date');
             $expense->unit_id = $request->input('unit_id');
@@ -128,30 +126,36 @@ class ExpensesController extends Controller
             $expense->seller = $request->input('seller');
             $expense->treasury_id = $request->input('treasury_id');
             $expense->account_id = $request->input('account_id');
-            $expense->is_recurring = $request->has('is_recurring') ? 1 : 0;
+            $expense->is_recurring = $request->boolean('is_recurring', false);
             $expense->recurring_frequency = $request->input('recurring_frequency');
             $expense->end_date = $request->input('end_date');
-            $expense->tax1 = $request->input('tax1');
-            $expense->tax2 = $request->input('tax2');
-            $expense->tax1_amount = $request->input('tax1_amount');
-            $expense->tax2_amount = $request->input('tax2_amount');
-            $expense->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
+            $expense->tax1 = $request->input('tax1', 0);
+            $expense->tax2 = $request->input('tax2', 0);
+            $expense->tax1_amount = $request->input('tax1_amount', 0);
+            $expense->tax2_amount = $request->input('tax2_amount', 0);
+            $expense->cost_centers_enabled = $request->boolean('cost_centers_enabled', false);
 
-
+            // رفع المرفقات إذا وجدت
             if ($request->hasFile('attachments')) {
                 $expense->attachments = $this->uploadImage('assets/uploads/expenses', $request->file('attachments'));
             }
 
+            // حفظ سند الصرف
             $expense->save();
 
+            // تسجيل العملية في السجلات
             ModelsLog::create([
                 'type' => 'finance_log',
                 'type_id' => $expense->id,
                 'type_log' => 'log',
-                'description' => sprintf('تم انشاء سند صرف رقم **%s** بقيمة **%d**', $expense->code, $expense->amount),
+                'description' => sprintf('تم انشاء سند صرف رقم **%s** بقيمة **%s**',
+                    $expense->code,
+                    number_format($expense->amount, 2)
+                ),
                 'created_by' => auth()->id(),
             ]);
 
+            // الحصول على الخزينة المناسبة
             $user = Auth::user();
             $MainTreasury = null;
 
@@ -164,26 +168,31 @@ class ExpensesController extends Controller
                 $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
             }
 
+            // التحقق من وجود الخزينة
             if (!$MainTreasury) {
                 throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
             }
 
+            // التحقق من رصيد الخزينة
             if ($MainTreasury->balance < $expense->amount) {
                 throw new \Exception('رصيد الخزينة غير كافٍ لتنفيذ عملية الصرف.');
             }
 
+            // تحديث رصيد الخزينة
             $MainTreasury->balance -= $expense->amount;
             $MainTreasury->save();
 
+            // إنشاء قيد يومية
             $journalEntry = JournalEntry::create([
                 'reference_number' => $expense->code,
                 'date' => $expense->date,
                 'description' => 'سند صرف رقم ' . $expense->code,
                 'status' => 1,
                 'currency' => 'SAR',
-                'vendor_id' => $expense->supplier_id,
+                'created_by_employee' => $user->id,
             ]);
 
+            // تفاصيل القيد اليومي (من الخزينة)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $MainTreasury->id,
@@ -193,6 +202,7 @@ class ExpensesController extends Controller
                 'is_debit' => false,
             ]);
 
+            // تفاصيل القيد اليومي (إلى المصروفات)
             JournalEntryDetail::create([
                 'journal_entry_id' => $journalEntry->id,
                 'account_id' => $expense->account_id,
@@ -202,6 +212,7 @@ class ExpensesController extends Controller
                 'is_debit' => true,
             ]);
 
+            // تحديث رصيد حساب المصروفات
             $expense_account = Account::find($expense->account_id);
             if ($expense_account) {
                 $expense_account->balance += $expense->amount;
@@ -210,17 +221,19 @@ class ExpensesController extends Controller
 
             DB::commit();
 
-            return redirect()->route('expenses.index')->with('success', 'تم إضافة سند صرف بنجاح!');
+            return redirect()
+                ->route('expenses.index')
+                ->with('success', 'تم إضافة سند صرف بنجاح!');
+
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('خطأ في إضافة سند صرف: ' . $e->getMessage());
+
             return back()
                 ->with('error', 'حدث خطأ أثناء إضافة سند الصرف: ' . $e->getMessage())
                 ->withInput();
         }
     }
-
-
 public function update(Request $request, $id)
 {
     try {
