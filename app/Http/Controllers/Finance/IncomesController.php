@@ -165,18 +165,18 @@ class IncomesController extends Controller
             // حفظ سند القبض
             $income->save();
 
-          
+
             $user = auth()->user();
             $income_account_name = Account::find($income->account_id);
-            
+
             notifications::create([
                 'user_id' => auth()->user()->id,
                 'type' => 'Receipt',
                 'title' => $user->name . ' أنشأ سند قبض',
                 'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
             ]);
-            
-    
+
+
 
             // تسجيل النشاط في السجل
             ModelsLog::create([
@@ -224,7 +224,7 @@ class IncomesController extends Controller
                 'status' => 1,
                 'currency' => 'SAR',
                 'client_id' => $income->client_id, // استخدام client_id بدلاً من seller
-                // 'created_by_employee' => Auth::id(),
+                'created_by_employee' => $user->id,
             ]);
 
             // إضافة تفاصيل القيد المحاسبي لسند القبض
