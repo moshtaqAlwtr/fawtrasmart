@@ -364,13 +364,10 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <strong>
-                                                        هل انت متاكد من انك تريد الحذف ؟
+                                                       عفوا لا يمكنك الحذف يمكن اصدار سند قبض
                                                     </strong>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-light waves-effect waves-light" data-dismiss="modal">الغاء</button>
-                                                    <a href="{{ route('expenses.delete',$expense->id) }}" class="btn btn-danger waves-effect waves-light">تأكيد</a>
-                                                </div>
+                                               
                                             </div>
                                         </div>
                                     </div>
