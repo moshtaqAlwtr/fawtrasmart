@@ -5,7 +5,7 @@
 @stop
 
 @section('css')
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('assets/css/customer.css') }}">
 @endsection
@@ -43,60 +43,75 @@
                                 value="{{ request('date_to') }}">
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="employee" class="form-label">الموظف</label>
-                            <select id="employee" name="employee" class="form-select">
-                                <option value="">الكل</option>
-                                @foreach ($employees as $employee)
-                                    <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                            <label for="client" class="form-label">العميل</label>
+                            <select id="client" name="client_id" class="form-control sel">
+                                <option value="">اختر العميل</option>
+                                @foreach ($clients as $client)
+                                    <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                        {{ $client->trade_name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label for="client-category" class="form-label">تصنيف العميل</label>
-                            <select id="client-category" name="client_category" class="form-select">
+                            <label for="employee" class="form-label">الموظف</label>
+                            <select id="employee" name="employee_id" class="form-control">
                                 <option value="">الكل</option>
-                                @foreach ($clientCategories as $category)
-                                    <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                @foreach ($employees as $employee)
+                                    <option value="{{ $employee->id }}" {{ request('employee_id') == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
+
                     </div>
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <label for="payment-method" class="form-label">وسيلة دفع</label>
-                            <select id="payment-method" name="payment_method" class="form-select">
+                            <label for="client-category" class="form-label">تصنيف العميل</label>
+                            <select id="client-category" name="client_category_id" class="form-control">
                                 <option value="">الكل</option>
-                                <option value="cash">نقدي</option>
-                                <option value="credit_card">بطاقة ائتمان</option>
-                                <option value="bank_transfer">تحويل بنكي</option>
+                                @foreach ($clientCategories as $category)
+                                    <option value="{{ $category->id }}" {{ request('client_category_id') == $category->id ? 'selected' : '' }}>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="payment-method" class="form-label">وسيلة دفع</label>
+                            <select id="payment-method" name="payment_method" class="form-control">
+                                <option value="">الكل</option>
+                                <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>نقدي</option>
+                                <option value="credit_card" {{ request('payment_method') == 'credit_card' ? 'selected' : '' }}>بطاقة ائتمان</option>
+                                <option value="bank_transfer" {{ request('payment_method') == 'bank_transfer' ? 'selected' : '' }}>تحويل بنكي</option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="branch" class="form-label">فرع</label>
-                            <select id="branch" name="branch" class="form-select">
+                            <select id="branch" name="branch_id" class="form-control">
                                 <option value="">الكل</option>
                                 @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                                    <option value="{{ $branch->id }}" {{ request('branch') == $branch->id ? 'selected' : '' }}>
+                                        {{ $branch->name }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label for="tax-status" class="form-label">حالة الضريبة</label>
-                            <select id="tax-status" name="tax_status" class="form-select">
+                            <select id="tax-status" name="tax_status" class="form-control">
                                 <option value="">الكل</option>
-                                <option value="with_tax">مع ضريبة</option>
-                                <option value="without_tax">بدون ضريبة</option>
+                                <option value="with_tax" {{ request('tax_status') == 'with_tax' ? 'selected' : '' }}>مع ضريبة</option>
+                                <option value="without_tax" {{ request('tax_status') == 'without_tax' ? 'selected' : '' }}>بدون ضريبة</option>
                             </select>
                         </div>
                     </div>
                     <div class="row mt-4">
                         <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-chart-bar"></i> عرض
-                                التقرير</button>
-                            <button type="button" id="exportExcel" class="btn btn-success"><i
-                                    class="fas fa-file-excel"></i> تصدير إلى Excel</button>
-                            <a href="{{ route('ClientReport.customerPayments') }}" id="resetFilters"
-                                class="btn btn-secondary"><i class="fas fa-times-circle"></i> إلغاء الفلتر</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-chart-bar"></i> عرض التقرير</button>
+                            <button type="button" id="exportExcel" class="btn btn-success"><i class="fas fa-file-excel"></i> تصدير إلى Excel</button>
+                            <a href="{{ route('ClientReport.customerPayments') }}" id="resetFilters" class="btn btn-secondary"><i class="fas fa-times-circle"></i> إلغاء الفلتر</a>
                         </div>
                     </div>
                 </form>
@@ -121,11 +136,10 @@
                             <th>التاريخ</th>
                             <th>كود العميل</th>
                             <th>اسم العميل</th>
-                            <th>نوع</th>
-                            <th>رقم المستند</th>
+
                             <th>وسيلة الدفع</th>
-                            <th>الخزينة ( <img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">)</th>
-                            <th>المبلغ ( <img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">)</th>
+                            <th>الخزينة </th>
+                            <th>المبلغ </th>
                             <th>الفرع</th>
                             <th>الموظف</th>
                         </tr>
@@ -137,14 +151,12 @@
                                 <td>{{ $payment->payment_date->format('d/m/Y') }}</td>
                                 <td>{{ $payment->invoice->client->code ?? 'غير متوفر' }}</td>
                                 <td>{{ $payment->invoice->client->trade_name ?? 'غير متوفر' }}</td>
-                                <td>{{ $payment->type }}</td>
-                                <td>{{ $payment->document_number }}</td>
                                 <td>
-                                    @if ($payment->payment_method == '1')
+                                    @if ($payment->Payment_method == '1')
                                         كاش
-                                    @elseif ($payment->payment_method == '2')
+                                    @elseif ($payment->Payment_method == '2')
                                         بطاقة ائتمان
-                                    @elseif ($payment->payment_method == '3')
+                                    @elseif ($payment->Payment_method == '3')
                                         بنك
                                     @endif
                                 </td>
@@ -162,7 +174,7 @@
 @endsection
 
 @section('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Move this line up -->
 

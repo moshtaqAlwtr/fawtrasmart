@@ -460,64 +460,96 @@ class CustomerReportController extends Controller
     // عرض مدفوعات العملاء
     public function customerPayments(Request $request)
     {
-        // الاستعلام الأساسي لجلب المدفوعات
-        $query = PaymentsProcess::query()
-            ->with(['client', 'employee', 'branch'])
+        $query = PaymentsProcess::with([
+                'client',
+                'employee',
+                'branch',
+                'payment_type',
+                'invoice' => function($q) {
+                    $q->with(['createdByUser', 'client.branch']);
+                }
+            ])
             ->orderBy('payment_date', 'desc');
 
-        // تطبيق الفلترة
-        if ($request->filled('date_from')) {
-            $query->whereDate('payment_date', '>=', $request->date_from);
-        }
+        // فلترة حسب التاريخ
+        $query->when($request->filled('date_from'), function ($q) use ($request) {
+            $q->whereDate('payment_date', '>=', $request->date_from);
+        })
+        ->when($request->filled('date_to'), function ($q) use ($request) {
+            $q->whereDate('payment_date', '<=', $request->date_to);
+        });
 
-        if ($request->filled('date_to')) {
-            $query->whereDate('payment_date', '<=', $request->date_to);
-        }
+        // فلترة حسب العميل
+        $query->when($request->filled('client_id'), function ($q) use ($request) {
+            $q->where('client_id', $request->client_id);
+        });
 
-        if ($request->filled('employee')) {
-            $query->where('employee_id', $request->employee);
-        }
-
-        if ($request->filled('client_category')) {
-            $query->whereHas('client', function ($q) use ($request) {
-                $q->where('category', $request->client_category);
+        // فلترة حسب الموظف (الآن من الفواتير)
+        $query->when($request->filled('employee_id'), function ($q) use ($request) {
+            $q->whereHas('invoice', function ($invoiceQuery) use ($request) {
+                $invoiceQuery->where('created_by', $request->employee_id);
             });
-        }
+        });
 
-        if ($request->filled('payment_method')) {
-            $query->where('payment_method', $request->payment_method);
-        }
+        // فلترة حسب تصنيف العميل
+        $query->when($request->filled('client_category_id'), function ($q) use ($request) {
+            $q->whereHas('client', function ($clientQuery) use ($request) {
+                $clientQuery->where('category_id', $request->client_category_id);
+            });
+        });
 
-        // جلب البيانات
+        // فلترة حسب وسيلة الدفع
+        $query->when($request->filled('payment_method'), function ($q) use ($request) {
+            $q->where('payment_method', $request->payment_method);
+        });
+
+        // فلترة حسب الفرع (الآن من الفواتير عبر العملاء)
+        $query->when($request->filled('branch'), function ($q) use ($request) {
+            $q->whereHas('invoice.client', function ($clientQuery) use ($request) {
+                $clientQuery->where('branch_id', $request->branch);
+            });
+        });
+
+        // فلترة حسب حالة الضريبة
+        $query->when($request->filled('tax_status'), function ($q) use ($request) {
+            $q->where('tax_status', $request->tax_status == 'with_tax' ? 1 : 0);
+        });
+
         $payments = $query->get();
 
-        // تحقق من وجود بيانات
-        if ($payments->isEmpty()) {
-            return redirect()->back()->with('error', 'لا توجد بيانات مطابقة للمعايير المحددة.');
-        }
-
-        // إعداد البيانات للرسم البياني
+        // إحصاءات وسائل الدفع
         $paymentLabels = ['نقدي', 'بطاقة ائتمان', 'تحويل بنكي'];
-        $paymentData = [$payments->where('payment_method', 'cash')->count(), $payments->where('payment_method', 'credit_card')->count(), $payments->where('payment_method', 'bank_transfer')->count()];
+        $paymentData = [
+            $payments->where('payment_method', 'cash')->count(),
+            $payments->where('payment_method', 'credit_card')->count(),
+            $payments->where('payment_method', 'bank_transfer')->count()
+        ];
 
-        // الحصول على قائمة العملاء والفروع والموظفين للفلتر
-        $clients = Client::all();
-        $employees = Employee::all(); // جلب جميع الموظفين
-        $branches = Branch::all(); // جلب جميع الفروع
-        $clientCategories = CategoriesClient::all();
-        return view('reports.customers.CustomerReport.customer_payments', compact('payments', 'clients', 'employees', 'branches', 'paymentLabels', 'paymentData', 'clientCategories'));
+        return view('reports.customers.CustomerReport.customer_payments', [
+            'payments' => $payments,
+            'clients' => Client::all(),
+            'employees' => User::where('role', 'employee')->get(),
+            'clientCategories' => CategoriesClient::all(),
+            'branches' => Branch::all(),
+            'paymentLabels' => $paymentLabels,
+            'paymentData' => $paymentData,
+        ]);
     }
     // عرض كشف حساب العملاء
     public function customerAccountStatement(Request $request)
     {
         // إعداد الاستعلام الأساسي لجلب كشف حساب العملاء
         $query = Account::query()
-            ->with(['customer', 'branch'])
+            ->with(['customer', 'branch', 'journalEntries.journalEntry'])
             ->orderBy('created_at', 'desc');
 
         // تطبيق الفلاتر
         if ($request->filled('branch')) {
             $query->where('branch_id', $request->branch);
+        }
+
+        if ($request->filled('account')) {
+            $query->where('id', $request->account);
         }
 
         if ($request->filled('days')) {
@@ -534,24 +566,79 @@ class CustomerReportController extends Controller
         }
 
         if ($request->filled('customer_type')) {
-            $query->where('customer_type_id', $request->customer_type);
+            $query->whereHas('customer', function($q) use ($request) {
+                $q->where('category_id', $request->customer_type);
+            });
         }
 
         if ($request->filled('customer')) {
             $query->where('customer_id', $request->customer);
         }
 
+        if ($request->filled('cost_center')) {
+            $query->whereHas('journalEntries.journalEntry', function($q) use ($request) {
+                $q->where('cost_center_id', $request->cost_center);
+            });
+        }
+
         if ($request->filled('sales_manager')) {
-            $query->where('employee_id', $request->sales_manager);
+            $query->whereHas('journalEntries.journalEntry', function($q) use ($request) {
+                $q->where('employee_id', $request->sales_manager);
+            });
         }
 
         // جلب البيانات
         $accountStatements = $query->get();
 
-        // جلب القيود المحاسبية
-        $journalEntries = JournalEntry::with(['details', 'client', 'employee', 'costCenter'])
-            ->orderBy('date', 'desc')
-            ->get();
+        // جلب القيود المحاسبية مع تطبيق نفس الفلاتر
+        $journalEntriesQuery = JournalEntry::with(['details', 'client', 'employee', 'costCenter'])
+            ->orderBy('date', 'desc');
+
+        // تطبيق نفس الفلاتر على القيود المحاسبية
+        if ($request->filled('branch')) {
+            $journalEntriesQuery->whereHas('details.account', function($q) use ($request) {
+                $q->where('branch_id', $request->branch);
+            });
+        }
+
+        if ($request->filled('account')) {
+            $journalEntriesQuery->whereHas('details', function($q) use ($request) {
+                $q->where('account_id', $request->account);
+            });
+        }
+
+        if ($request->filled('days')) {
+            $journalEntriesQuery->where('date', '>=', now()->subDays($request->days));
+        }
+
+        if ($request->filled('financial_year')) {
+            if (in_array('current', $request->financial_year)) {
+                $journalEntriesQuery->whereYear('date', date('Y'));
+            }
+            if (!in_array('all', $request->financial_year)) {
+                $journalEntriesQuery->whereIn(DB::raw('YEAR(date)'), $request->financial_year);
+            }
+        }
+
+        if ($request->filled('customer_type')) {
+            $journalEntriesQuery->whereHas('client', function($q) use ($request) {
+                $q->where('category_id', $request->customer_type);
+            });
+        }
+
+        if ($request->filled('customer')) {
+            $journalEntriesQuery->where('client_id', $request->customer);
+        }
+
+        if ($request->filled('cost_center')) {
+            $journalEntriesQuery->where('cost_center_id', $request->cost_center);
+        }
+
+        if ($request->filled('sales_manager')) {
+            $journalEntriesQuery->where('employee_id', $request->sales_manager);
+        }
+
+        $journalEntries = $journalEntriesQuery->get();
 
         // الحصول على قائمة الفروع، العملاء، ومديري المبيعات للفلتر
         $branches = Branch::all();
@@ -561,7 +648,9 @@ class CustomerReportController extends Controller
         $accounts = Account::all();
         $costCenters = CostCenter::all();
 
-        return view('reports.customers.CustomerReport.customer_account_statement', compact('accountStatements', 'journalEntries', 'costCenters', 'accounts', 'branches', 'customers', 'salesManagers', 'categories'));
+        return view('reports.customers.CustomerReport.customer_account_statement',
+            compact('accountStatements', 'journalEntries', 'costCenters', 'accounts',
+                    'branches', 'customers', 'salesManagers', 'categories'));
     }
     // عرض مواعيد العملاء
 

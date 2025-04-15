@@ -6,20 +6,196 @@
 
 @section('css')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
     <style>
-        .table-return {
-            background-color: #ffdddd !important;
+        :root {
+            --primary-color: #7367F0;
+            --secondary-color: #82868B;
+            --success-color: #28C76F;
+            --danger-color: #EA5455;
+            --warning-color: #FF9F43;
+            --info-color: #00CFE8;
+            --dark-color: #4B4B4B;
+            --light-color: #F8F8F8;
         }
-        .text-return {
-            color: #dc3545 !important;
-        }
-        .filter-card {
-            background-color: #f8f9fa;
+
+        .card {
             border-radius: 10px;
-            padding: 20px;
+            box-shadow: 0 4px 24px 0 rgba(34, 41, 47, 0.1);
+            border: none;
             margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 15px 20px;
+        }
+
+        .card-header h3 {
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        .btn-custom {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 0 5px;
+        }
+
+        .btn-custom:hover {
+            background-color: #5d50e8;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(115, 103, 240, 0.3);
+        }
+
+        .btn-custom:active {
+            transform: translateY(0);
+        }
+
+        .btn-custom-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-custom-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .filter-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-control, .select2-container--default .select2-selection--single {
+            border-radius: 5px;
+            height: 40px;
+            border: 1px solid #EBE9F1;
+        }
+
+        .form-control:focus, .select2-container--default .select2-selection--single:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(115, 103, 240, 0.25);
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-top: 1px solid #EBE9F1;
+        }
+
+        .table tbody tr:nth-child(even) {
+            background-color: #F9F9F9;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(115, 103, 240, 0.1);
+        }
+
+        .supplier-header {
+            background-color: #E8E7FC;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        .supplier-total {
+            background-color: #F0EFFD;
+            font-weight: 600;
+        }
+
+        .grand-total {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .return-row {
+            background-color: rgba(234, 84, 85, 0.1);
+            color: var(--danger-color);
+        }
+
+        .text-paid {
+            color: var(--success-color);
+        }
+
+        .text-unpaid {
+            color: var(--warning-color);
+        }
+
+        .text-return {
+            color: var(--danger-color);
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 24px 0 rgba(34, 41, 47, 0.1);
+            margin-bottom: 20px;
+            height: 350px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .col-md-3 {
+                margin-bottom: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-custom {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
         }
     </style>
 @endsection
@@ -39,7 +215,7 @@
                         {{-- First Row of Filters --}}
                         <div class="col-md-3">
                             <label class="form-label">المورد</label>
-                            <select name="supplier" class="form-select">
+                            <select name="supplier" class="form-control">
                                 <option value="">جميع الموردين</option>
                                 @foreach($suppliers as $supplier)
                                     <option value="{{ $supplier->id }}"
@@ -52,7 +228,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">الفرع</label>
-                            <select name="branch" class="form-select">
+                            <select name="branch" class="form-control">
                                 <option value="">جميع الفروع</option>
                                 @foreach($branches as $branch)
                                     <option value="{{ $branch->id }}"
@@ -65,7 +241,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">حالة الدفع</label>
-                            <select name="status" class="form-select">
+                            <select name="status" class="form-control">
                                 <option value="">الكل</option>
                                 <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>مدفوعة</option>
                                 <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير مدفوعة</option>
@@ -75,7 +251,7 @@
 
                         <div class="col-md-3">
                             <label class="form-label">الفترة</label>
-                            <select name="report_period" class="form-select">
+                            <select name="report_period" class="form-control">
                                 <option value="daily" {{ $reportPeriod == 'daily' ? 'selected' : '' }}>يومي</option>
                                 <option value="weekly" {{ $reportPeriod == 'weekly' ? 'selected' : '' }}>أسبوعي</option>
                                 <option value="monthly" {{ $reportPeriod == 'monthly' ? 'selected' : '' }}>شهري</option>
@@ -95,22 +271,18 @@
                                 value="{{ $toDate->format('Y-m-d') }}">
                         </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="col-md-6">
-            <button type="button" id="exportExcel" class="btn btn-success">
-                <i class="fas fa-file-excel me-2"></i> تصدير إكسل
-            </button>
-            <button type="submit" class="btn btn-primary w-80">
-                <i class="fas fa-filter me-2"></i> تصفية التقرير
-            </button>
-            <a href="{{ route('ReportsPurchases.bySupplier') }}" class="btn btn-primary w-20">
-                <i class="fas fa-filter me-2"></i> الغاء الفلتر
-            </a>
-        </div>
-    </div>
-</div>
-                    </div>
+                        <div class="col-md-6">
+                            <button type="button" id="exportExcel" class="btn btn-success">
+                                <i class="fas fa-file-excel me-2"></i> تصدير إكسل
+                            </button>
+                            <button type="submit" class="btn btn-primary w-80">
+                                <i class="fas fa-filter me-2"></i> تصفية التقرير
+                            </button>
+                            <a href="{{ route('ReportsPurchases.bySupplier') }}" class="btn btn-primary w-20">
+                                <i class="fas fa-filter me-2"></i> الغاء الفلتر
+                            </a>
+                        </div>
+              </div>
                 </form>
             </div>
         </div>
@@ -363,8 +535,7 @@
 </div>
 @endsection
 ً@section('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 <script>

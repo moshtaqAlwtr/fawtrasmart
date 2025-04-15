@@ -1,286 +1,386 @@
 @extends('master')
 
 @section('title')
-    تقريرالمشتريات
+    تقارير المشتريات
 @stop
 
 @section('css')
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f7f9fc;
-            direction: rtl;
-            text-align: right;
-        }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="{{ asset('assets/css/report.css') }}">
+<style>
+    /* أنماط مخصصة لتنسيق التقارير */
+    .report-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+        color: #333;
+        transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
+        margin-left: 8px;
+        font-size: 13px;
+    }
 
-        .card {
-            border: none;
-            background-color: #edf2f7;
-        }
+    .report-link:hover {
+        background-color: #e9ecef;
+        text-decoration: none;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
-        .section-title {
-            background-color: #d8e3e8;
-            font-weight: bold;
-            padding: 15px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            font-size: 16px;
-        }
+    .report-link i {
+        margin-right: 5px;
+        font-size: 12px;
+    }
 
-        .icon-box {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-        }
+    .report-link.details {
+        background-color: #f0f7ff;
+        border-color: #cce5ff;
+        color: #0062cc;
+    }
 
-        .icon1 {
-            background: linear-gradient(45deg, #ff7e5f, #feb47b);
-        }
+    .report-link.summary {
+        background-color: #f0fff4;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
 
-        .icon2 {
-            background: linear-gradient(45deg, #86a8e7, #91eae4);
-        }
+    .report-link.view {
+        background-color: #fff5f5;
+        border-color: #f5c6cb;
+        color: #721c24;
+    }
 
-        .icon3 {
-            background: linear-gradient(45deg, #00c6ff, #0072ff);
-        }
+    .list-group-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+    }
 
-        .icon4 {
-            background: linear-gradient(45deg, #00f260, #0575e6);
-        }
+    .list-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-left: 10px;
+        color: white;
+        font-size: 14px;
+    }
 
-        .icon5 {
-            background: linear-gradient(45deg, #f7971e, #ffd200);
-        }
+    /* ألوان أيقونات القوائم */
+    .orange { background-color: #fd7e14; }
+    .red { background-color: #dc3545; }
+    .green { background-color: #28a745; }
+    .blue { background-color: #007bff; }
+    .teal { background-color: #20c997; }
+    .purple { background-color: #6f42c1; }
+    .gradient-blue { background: linear-gradient(135deg, #007bff, #00b4ff); }
+    .gradient-orange { background: linear-gradient(135deg, #fd7e14, #ff9d2e); }
+    .gradient-red { background: linear-gradient(135deg, #dc3545, #ff6b6b); }
+    .gradient-teal { background: linear-gradient(135deg, #20c997, #3dd5f3); }
+    .gradient-purple { background: linear-gradient(135deg, #6f42c1, #9c42f5); }
+    .gradient-green { background: linear-gradient(135deg, #28a745, #5cb85c); }
 
-        .view-button {
-            color: #6c757d;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-        }
+    .card-title i {
+        margin-left: 8px;
+        color: #5a5a5a;
+    }
 
-        .view-button i {
-            margin-left: 5px;
-        }
+    .card {
+        margin-bottom: 20px;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
 
-        .list-group-item {
-            padding: 15px 20px;
-            background-color: #f7f9fc;
-            border: none;
-            border-bottom: 1px solid #ddd;
-        }
+    .card-body {
+        padding: 1.25rem;
+    }
 
-        .list-group-item:last-child {
-            border-bottom: none;
-        }
-    </style>
+    .content-header-title {
+        font-weight: 600;
+    }
+</style>
 @endsection
 
 @section('content')
-    <div class="content-header row mb-3">
-        <div class="content-header-left col-md-12">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h2 class="content-header-title float-start mb-0">تقارير المشتريات</h2>
-                </div>
-                <div class="col-md-6">
-                    <div class="breadcrumb-wrapper float-start">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
-                            <li class="breadcrumb-item active">عرض</li>
-                        </ol>
-                    </div>
+<div class="content-header row">
+    <div class="content-header-left col-md-9 col-12 mb-2">
+        <div class="row breadcrumbs-top">
+            <div class="col-12">
+                <h2 class="content-header-title float-left mb-0">تقارير المشتريات</h2>
+                <div class="breadcrumb-wrapper col-12">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="">الرئيسيه</a></li>
+                        <li class="breadcrumb-item active">عرض</li>
+                    </ol>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="container mt-5">
-        <div class="row">
-            <!-- تقارير متابعة المشتريات المقسمة -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="section-title">
-                        <i class="fas fa-file-alt ml-2"></i>
+<div class="container mt-5">
+    <div class="row">
+        <!-- تقارير متابعة المشتريات المقسمة -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-chart-line"></i>
                         تقارير متابعة المشتريات المقسمة
-                    </div>
+                    </h5>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon5 ml-2"><i class="fas fa-truck"></i></div>
-                                تقرير مشتريات حسب المورد
+                        <li class="list-group-item">
+                            <span class="list-icon orange">
+                                <i class="fa-solid fa-truck"></i>
+                            </span>
+                            <span class="flex-grow-1">المشتريات حسب المورد</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.bySupplier')}}" class="report-link details">
+                                    <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                </a>
+                                <a href="{{route('ReportsPurchases.bySupplier')}}" class="report-link summary">
+                                    <i class="fa-solid fa-clipboard"></i> الملخص
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.bySupplier')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
-                                تقرير مشتريات حسب الموظف
+                        <li class="list-group-item">
+                            <span class="list-icon red">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </span>
+                            <span class="flex-grow-1">المشتريات حسب الموظف</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.purchaseByEmployee')}}" class="report-link details">
+                                    <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                </a>
+                                <a href="{{route('ReportsPurchases.purchaseByEmployee')}}" class="report-link summary">
+                                    <i class="fa-solid fa-clipboard"></i> الملخص
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.purchaseByEmployee')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
             </div>
+        </div>
 
-            <!-- تقارير الموردين -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="section-title">
-                        <i class="fas fa-file-alt ml-2"></i>
+        <!-- تقارير الموردين -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-chart-bar"></i>
                         تقارير الموردين
-                    </div>
+                    </h5>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-address-book"></i></div>
-                                دليل الموردين
+                        <li class="list-group-item">
+                            <span class="list-icon blue">
+                                <i class="fa-solid fa-address-book"></i>
+                            </span>
+                            <span class="flex-grow-1">دليل الموردين</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.SuppliersDirectory')}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.SuppliersDirectory')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_serial_num.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon2 ml-2"><i class="fas fa-balance-scale"></i></div>
-                                ارصدة الموردين
+                        <li class="list-group-item">
+                            <span class="list-icon teal">
+                                <i class="fa-solid fa-balance-scale"></i>
+                            </span>
+                            <span class="flex-grow-1">أرصدة الموردين</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.balnceSuppliers')}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.balnceSuppliers')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon3 ml-2"><i class="fas fa-clock"></i></div>
-                                اعمار المدين حساب الاستاذ العام
+                        <li class="list-group-item">
+                            <span class="list-icon purple">
+                                <i class="fa-solid fa-clock"></i>
+                            </span>
+                            <span class="flex-grow-1">أعمار المدين حساب الاستاذ العام</span>
+                            <div class="d-flex">
+                                <a href="#" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="Product_tracking/Track_shipment_num.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon4 ml-2"><i class="fas fa-shopping-cart"></i></div>
-                                مشتريات الموردين
+                        <li class="list-group-item">
+                            <span class="list-icon green">
+                                <i class="fa-solid fa-shopping-cart"></i>
+                            </span>
+                            <span class="flex-grow-1">مشتريات الموردين</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.purchaseSupplier')}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.purchaseSupplier')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon4 ml-2"><i class="fas fa-money-bill-wave"></i></div>
-                                مدفوعات مشتريات الموردين
-                            </div>
-                            <a href="{{route('ReportsPurchases.paymentPurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon4 ml-2"><i class="fas fa-file-invoice"></i></div>
-                                كشف حساب الموردين
-                            </div>
-                            <a href="Product_tracking/Track_use_expiry_date.html" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="row">
-            <!-- تقرير مشتريات المنتجات -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="section-title">
-                        <i class="fas fa-file-alt ml-2"></i>
+    <div class="row">
+        <!-- تقرير مشتريات المنتجات -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-chart-line"></i>
                         تقرير مشتريات المنتجات
-                    </div>
+                    </h5>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Inventory_sheet.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon5 ml-2"><i class="fas fa-box"></i></div>
-                                تقرير مشتريات المنتجات حسب المنتج
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-orange">
+                                <i class="fa-solid fa-box"></i>
+                            </span>
+                            <span class="flex-grow-1">مشتريات المنتجات حسب المنتج</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.prodectPurchases')}}" class="report-link details">
+                                    <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                </a>
+                                <a href="{{route('ReportsPurchases.prodectPurchases')}}" class="report-link summary">
+                                    <i class="fa-solid fa-clipboard"></i> الملخص
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.prodectPurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-truck"></i></div>
-                                تقرير مشتريات المنتجات حسب المورد
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-red">
+                                <i class="fa-solid fa-truck"></i>
+                            </span>
+                            <span class="flex-grow-1">مشتريات المنتجات حسب المورد</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.supplierPurchases')}}" class="report-link details">
+                                    <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                </a>
+                                <a href="{{route('ReportsPurchases.supplierPurchases')}}" class="report-link summary">
+                                    <i class="fa-solid fa-clipboard"></i> الملخص
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.supplierPurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='stock_reprt_a/Summary_inventory_operations.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-user"></i></div>
-                                تقرير مشتريات المنتجات حسب الموظف
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-teal">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </span>
+                            <span class="flex-grow-1">مشتريات المنتجات حسب الموظف</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.employeePurchases')}}" class="report-link details">
+                                    <i class="fa-solid fa-file-lines"></i> التفاصيل
+                                </a>
+                                <a href="{{route('ReportsPurchases.employeePurchases')}}" class="report-link summary">
+                                    <i class="fa-solid fa-clipboard"></i> الملخص
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.employeePurchases')}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
             </div>
+        </div>
 
-            <!-- تقارير المدفوعات بالمدة الزمنية -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="section-title">
-                        <i class="fas fa-file-alt ml-2"></i>
+        <!-- تقارير المدفوعات بالمدة الزمنية -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-chart-bar"></i>
                         تقارير المدفوعات بالمدة الزمنية
-                    </div>
+                    </h5>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_expiry_date.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon1 ml-2"><i class="fas fa-sun"></i></div>
-                                المدفوعات اليومية
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-blue">
+                                <i class="fa-solid fa-sun"></i>
+                            </span>
+                            <span class="flex-grow-1">المدفوعات اليومية</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'daily'])}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'daily'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_serial_num.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon2 ml-2"><i class="fas fa-calendar-week"></i></div>
-                                المدفوعات الاسبوعية
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-blue">
+                                <i class="fa-solid fa-calendar-week"></i>
+                            </span>
+                            <span class="flex-grow-1">المدفوعات الأسبوعية</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'weekly'])}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'weekly'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_shipment_num.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon3 ml-2"><i class="fas fa-calendar-alt"></i></div>
-                                المدفوعات الشهرية
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-blue">
+                                <i class="fa-solid fa-calendar-alt"></i>
+                            </span>
+                            <span class="flex-grow-1">المدفوعات الشهرية</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'monthly'])}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'monthly'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            onclick="window.location.href='Product_tracking/Track_use_expiry_date.html'">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-box icon4 ml-2"><i class="fas fa-calendar-check"></i></div>
-                                المدفوعات السنوية
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-blue">
+                                <i class="fa-solid fa-calendar"></i>
+                            </span>
+                            <span class="flex-grow-1">المدفوعات السنوية</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'yearly'])}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
                             </div>
-                            <a href="{{route('ReportsPurchases.supplierPayments', ['report_period' => 'yearly'])}}" class="view-button"><i class="fas fa-eye"></i> عرض</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <!-- تقارير مدفوعات المشتريات -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        تقارير مدفوعات المشتريات
+                    </h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-purple">
+                                <i class="fa-solid fa-money-bill"></i>
+                            </span>
+                            <span class="flex-grow-1">مدفوعات مشتريات الموردين</span>
+                            <div class="d-flex">
+                                <a href="{{route('ReportsPurchases.paymentPurchases')}}" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="list-icon gradient-green">
+                                <i class="fa-solid fa-file-invoice"></i>
+                            </span>
+                            <span class="flex-grow-1">كشف حساب الموردين</span>
+                            <div class="d-flex">
+                                <a href="#" class="report-link view">
+                                    <i class="fa-solid fa-eye"></i> عرض
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 @endsection
 
 @section('scripts')
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 @endsection
