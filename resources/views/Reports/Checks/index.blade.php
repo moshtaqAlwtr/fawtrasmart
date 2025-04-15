@@ -1,7 +1,7 @@
 @extends('master')
 
 @section('title')
-تقارير الشيكات
+تقارير شحن الارصدة
 @stop
 
 @section('content')
@@ -12,7 +12,7 @@
     <div class="content-header-left col-md-9 col-12 mb-2">
         <div class="row breadcrumbs-top">
             <div class="col-12">
-                <h2 class="content-header-title float-left mb-0">تقارير الشيكات</h2>
+                <h2 class="content-header-title float-left mb-0"> تقارير شحن الارصدة</h2>
                 <div class="breadcrumb-wrapper col-12">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="">الرئيسيه</a>
@@ -33,17 +33,18 @@
             <div class="card shadow">
                 <div class="card-body">
                     <h5 class="card-title text-primary">
-                        <i class="bi bi-cash-stack"></i> تقارير الشيكات
+                        <i class="bi bi-cash-stack"></i> تقارير
                     </h5>
                     <ul class="list-unstyled">
                         <li class="mb-2">
-                            <i class="bi bi-arrow-up-right-circle text-success"></i> الشيكات المدفوعة
-                            <a href="{{ route('reports.Checks.delivered-checks') }}" class="btn btn-link p-0">عرض</a>
+                            <i class="bi bi-arrow-up-right-circle text-success"></i> تقرير شحن الارصدة
+                            <a href="{{ route('ClientReport.rechargeBalancesReport') }}" class="btn btn-link p-0">عرض</a>
                         </li>
                         <li class="mb-2">
-                            <i class="bi bi-arrow-down-left-circle text-info"></i> الشيكات المستلمة
-                            <a href="{{ route('reports.Checks.received-checks') }}" class="btn btn-link p-0">عرض</a>
+                            <i class="bi bi-arrow-up-right-circle text-success"></i> تقرير  استهلاك الارصدة
+                            <a href="{{ route('ClientReport.rechargeBalancesReport') }}" class="btn btn-link p-0">عرض</a>
                         </li>
+
                     </ul>
                 </div>
             </div>

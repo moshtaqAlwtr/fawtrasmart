@@ -126,17 +126,5 @@
 
         </div>
 
-
-
-
-
-
-
-
-
     </div>
-
-
-
-
 @endsection

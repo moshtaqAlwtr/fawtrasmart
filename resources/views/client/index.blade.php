@@ -7,9 +7,173 @@
 @section('css')
     <style>
         #map {
-            height: 500px;
+            height: 85vh;
             width: 100%;
-            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* تصميم صندوق البحث على غرار جوجل مابس */
+        .pac-card {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: 400px;
+            font-family: Roboto, Arial, sans-serif;
+        }
+
+        .search-container {
+            padding: 0;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 0 16px 0 48px;
+            font-size: 15px;
+            border-radius: 8px;
+            direction: rtl;
+        }
+
+        .search-box:focus {
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 18px;
+        }
+
+        /* تصميم لوحة التحكم على غرار جوجل مابس */
+        .map-controls {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+        }
+
+        .map-control-group {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .map-control-button {
+            width: 40px;
+            height: 40px;
+            background: #fff;
+            border: none;
+            border-bottom: 1px solid #e6e6e6;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .map-control-button:last-child {
+            border-bottom: none;
+        }
+
+        .map-control-button:hover {
+            background-color: #f1f1f1;
+        }
+
+        .map-control-button i {
+            color: #666;
+            font-size: 18px;
+        }
+
+        /* تصميم نافذة المعلومات على غرار جوجل مابس */
+        .gm-style .gm-style-iw-c {
+            padding: 0 !important;
+            border-radius: 8px !important;
+            max-width: 300px !important;
+        }
+
+        .gm-style .gm-style-iw-d {
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+
+        .client-info-window {
+            font-family: Roboto, Arial, sans-serif;
+        }
+
+        .info-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e6e6e6;
+        }
+
+        .info-content {
+            padding: 16px;
+        }
+
+        .info-row {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-label {
+            color: #666;
+            margin-left: 8px;
+            font-size: 13px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 13px;
+        }
+
+        .info-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .info-button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .info-button.primary {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .info-button.secondary {
+            background: #fff;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+        }
+
+        .info-button:hover {
+            opacity: 0.9;
         }
 
         .hover-effect:hover {
@@ -77,6 +241,20 @@
                 font-size: 0.8rem !important;
             }
         }
+
+        #clientSearch {
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+        }
+
+        #clientSearch:focus {
+            outline: none;
+            border-color: #80bdff;
+        }
+
+        .input-group-text {
+            color: #6c757d;
+        }
     </style>
 @stop
 
@@ -101,8 +279,33 @@
     </div>
 
     <div class="content-body">
-        <!-- الخريطة -->
-        <div id="map"></div>
+        <div class="position-relative">
+            <div id="map"></div>
+            <div class="pac-card">
+                <div class="search-container">
+                    <input type="text" id="clientSearch" class="search-box" placeholder="ابحث عن عميل...">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+            </div>
+            <div class="map-controls">
+                <div class="map-control-group">
+                    <button class="map-control-button" onclick="map.setZoom(map.getZoom() + 1)" title="تكبير">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button class="map-control-button" onclick="map.setZoom(map.getZoom() - 1)" title="تصغير">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+                <div class="map-control-group">
+                    <button class="map-control-button" onclick="getCurrentLocation()" title="موقعي الحالي">
+                        <i class="fas fa-location-arrow"></i>
+                    </button>
+                    <button class="map-control-button" onclick="resetMapView()" title="إعادة ضبط الخريطة">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- بطاقة الإجراءات -->
         <div class="card shadow-sm border-0 rounded-3">
@@ -195,14 +398,14 @@
                                     @endforeach
                                 </select>
                             </div>
-                    
+
                             <!-- الاسم -->
                             <div class="col-md-3 col-12">
                                 <label for="name" class="form-label">الاسم</label>
                                 <input type="text" name="name" id="name" class="form-control"
                                     placeholder="الاسم" value="{{ request('name') }}">
                             </div>
-                    
+
                             <!-- الحالة -->
                             <div class="col-md-3 col-12">
                                 <label for="status" class="form-label">الحالة</label>
@@ -215,7 +418,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                    
+
                             <!-- المجموعة -->
                             <div class="col-md-3 col-12">
                                 <label for="region" class="form-label">المجموعة</label>
@@ -228,7 +431,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                    
+
                             <!-- الحي -->
                             <div class="col-md-12 col-12">
                                 <label for="neighborhood" class="form-label">الحي</label>
@@ -237,8 +440,8 @@
                             </div>
                         </div>
                     </div>
-                    
-                    
+
+
 
                     <div class="collapse" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
@@ -408,8 +611,8 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        
-                                        
+
+
                                         <td>{{ $client->code ?? '' }}</td>
                                         <td>
                                             <strong class="text-primary">
@@ -631,6 +834,217 @@
         src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
         async defer></script>
     <script>
+        let map;
+        let infoWindow;
+        let currentUserMarker;
+
+        function initMap() {
+            const mapOptions = {
+                zoom: 14,
+                center: { lat: 24.7136, lng: 46.6753 },
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
+                zoomControl: false,
+                streetViewControl: true,
+                streetViewControlOptions: {
+                    position: google.maps.ControlPosition.LEFT_BOTTOM
+                },
+                fullscreenControl: true,
+                fullscreenControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_TOP
+                },
+                styles: [
+                    {
+                        "featureType": "poi",
+                        "stylers": [
+                            { "visibility": "off" }
+                        ]
+                    },
+                    {
+                        "featureType": "transit",
+                        "elementType": "labels.icon",
+                        "stylers": [
+                            { "visibility": "off" }
+                        ]
+                    }
+                ]
+            };
+
+            map = new google.maps.Map(document.getElementById('map'), mapOptions);
+            infoWindow = new google.maps.InfoWindow({
+                maxWidth: 300
+            });
+
+            // تحديث تصميم نافذة المعلومات
+            function showClientInfo(markerData) {
+                const contentString = `
+                    <div class="client-info-window">
+                        <div class="info-header">
+                            <h6 style="margin: 0; font-size: 15px; font-weight: 500;">
+                                ${markerData.data.name}
+                            </h6>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-row">
+                                <span class="info-label">الكود:</span>
+                                <span class="info-value">${markerData.data.code}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">الهاتف:</span>
+                                <span class="info-value">
+                                    <a href="tel:${markerData.data.phone}" style="color: #1a73e8; text-decoration: none;">
+                                        ${markerData.data.phone}
+                                    </a>
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">الموقع:</span>
+                                <span class="info-value">${markerData.data.city}, ${markerData.data.region}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">الرصيد:</span>
+                                <span class="info-value" style="color: ${markerData.data.balance < 0 ? '#d93025' : '#188038'}">
+                                    ${markerData.data.balance} ر.س
+                                </span>
+                            </div>
+                            <div class="info-actions">
+                                <button onclick="window.location.href='{{ route('clients.show',  $client->id) }}'" class="info-button primary">
+                                    <i class="fas fa-info-circle"></i>
+                                    التفاصيل
+                                </button>
+                                <button onclick="openMap(${markerData.marker.getPosition().lat()}, ${markerData.marker.getPosition().lng()})"
+                                        class="info-button secondary">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    فتح
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                infoWindow.setContent(contentString);
+                infoWindow.open(map, markerData.marker);
+            }
+
+            // إضافة علامات العملاء
+            let allMarkers = [];
+
+            @foreach ($clients as $client)
+                @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
+                    const marker{{ $client->id }} = new google.maps.Marker({
+                        position: {
+                            lat: {{ $client->locations->latitude }},
+                            lng: {{ $client->locations->longitude }}
+                        },
+                        map: map,
+                        title: "{{ $client->trade_name }}",
+                        icon: {
+                            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                                    <circle cx="20" cy="20" r="18" fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}" stroke="#FFFFFF" stroke-width="2"/>
+                                    <path fill="#FFFFFF" d="M20 10a8 8 0 0 1 8 8c0 5-8 14-8 14s-8-9-8-14a8 8 0 0 1 8-8zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+                                    <text x="20" y="32" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="#FFFFFF">{{ $client->code }}</text>
+                                </svg>
+                            `),
+                            scaledSize: new google.maps.Size(40, 40),
+                            anchor: new google.maps.Point(20, 40)
+                        },
+                        animation: google.maps.Animation.DROP
+                    });
+
+                    // إضافة الماركر للمصفوفة
+                    allMarkers.push({
+                        marker: marker{{ $client->id }},
+                        clientName: "{{ $client->trade_name }}".toLowerCase(),
+                        clientCode: "{{ $client->code }}".toLowerCase(),
+                        data: {
+                            id: {{ $client->id }},
+                            name: "{{ $client->trade_name }}",
+                            code: "{{ $client->code }}",
+                            status: "{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}",
+                            phone: "{{ $client->phone }}",
+                            city: "{{ $client->city }}",
+                            region: "{{ $client->region }}",
+                            balance: "{{ $client->Balance() }}"
+                        }
+                    });
+
+                    // إضافة مستمع حدث النقر
+                    marker{{ $client->id }}.addListener('click', () => {
+                        showClientInfo(allMarkers.find(m => m.marker === marker{{ $client->id }}));
+                    });
+                @endif
+            @endforeach
+
+            // تفعيل البحث
+            const searchInput = document.getElementById('clientSearch');
+            searchInput.addEventListener('input', function() {
+                const searchValue = this.value.toLowerCase().trim();
+                filterMarkers(searchValue, allMarkers);
+            });
+        }
+
+        function filterMarkers(searchValue, markers) {
+            markers.forEach(item => {
+                const isVisible = item.clientName.includes(searchValue) ||
+                                item.clientCode.includes(searchValue);
+                item.marker.setVisible(isVisible);
+
+                if (searchValue && (item.clientName === searchValue || item.clientCode === searchValue)) {
+                    showClientInfo(item);
+                    map.panTo(item.marker.getPosition());
+                    map.setZoom(15);
+                }
+            });
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+
+                        if (currentUserMarker) {
+                            currentUserMarker.setPosition(pos);
+                        } else {
+                            currentUserMarker = new google.maps.Marker({
+                                position: pos,
+                                map: map,
+                                icon: {
+                                    url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                                    scaledSize: new google.maps.Size(40, 40)
+                                },
+                                title: "موقعك الحالي",
+                                animation: google.maps.Animation.DROP
+                            });
+                        }
+
+                        map.setCenter(pos);
+                        map.setZoom(14);
+                    },
+                    () => {
+                        console.error("فشل في الحصول على الموقع");
+                    }
+                );
+            }
+        }
+
+        function resetMapView() {
+            if (currentUserMarker) {
+                map.setCenter(currentUserMarker.getPosition());
+                map.setZoom(14);
+            } else {
+                map.setCenter({ lat: 24.7136, lng: 46.6753 });
+                map.setZoom(10);
+            }
+            infoWindow.close();
+        }
+
         function openMap(lat, lng, title = '') {
             if (lat === 0 || lng === 0) {
                 alert('لا يوجد إحداثيات متاحة لهذا العميل');
@@ -638,207 +1052,6 @@
             }
 
             window.location.href = `https://www.google.com/maps?q=${lat},${lng}&z=17`;
-        }
-
-        function initMap() {
-            // إنشاء الخريطة بنفس تصميم جوجل
-            const map = new google.maps.Map(document.getElementById('map'), {
-
-            })
-            const infoWindow = new google.maps.InfoWindow();
-
-            // 1. إضافة علامة خضراء لموقع المستخدم الحالي
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-
-                        // إنشاء علامة خضراء كبيرة لموقع المستخدم
-                        const userMarker = new google.maps.Marker({
-                            position: userLocation,
-                            map: map,
-                            title: "أنت هنا",
-                            icon: {
-                                url: "https://maps.google.com/mapfiles/ms/icons/green-dot.png",
-                                scaledSize: new google.maps.Size(40, 40)
-                            },
-                            animation: google.maps.Animation.BOUNCE
-                        });
-
-                        // محتوى نافذة المعلومات لموقع المستخدم
-                        const userContentString = `
-                            <div style="color: #333; font-family: Arial, sans-serif; width: 250px;">
-                                <h4 style="margin: 0; font-size: 16px; color: #28a745;">
-                                    <i class="fas fa-map-marker-alt" style="color: #28a745;"></i> موقعك الحالي
-                                </h4>
-                                <hr style="margin: 5px 0; border-color: #eee;">
-                                <p style="margin: 5px 0; font-size: 14px;">
-                                    <strong>الإحداثيات:</strong><br>
-                                    ${userLocation.lat.toFixed(6)}, ${userLocation.lng.toFixed(6)}
-                                </p>
-                                <a href="https://www.google.com/maps?q=${userLocation.lat},${userLocation.lng}"
-                                   target="_blank"
-                                   style="display: inline-block; margin-top: 5px; padding: 5px 10px; background: #28a745; color: white; text-decoration: none; border-radius: 3px; font-size: 13px;">
-                                    <i class="fas fa-external-link-alt"></i> فتح في خرائط جوجل
-                                </a>
-                            </div>
-                        `;
-
-                        // إضافة حدث النقر لعلامة المستخدم
-                        userMarker.addListener('click', () => {
-                            infoWindow.setContent(userContentString);
-                            infoWindow.open(map, userMarker);
-                        });
-
-                        // تحريك الخريطة لمركز موقع المستخدم
-                        map.setCenter(userLocation);
-                        map.setZoom(14); // تكبير أقرب لموقع المستخدم
-                    },
-                    (error) => {
-                        console.error("حدث خطأ في الحصول على الموقع:", error);
-                        // إذا فشل الحصول على الموقع، نستخدم الموقع الافتراضي
-                        map.setCenter({
-                            lat: 24.7136,
-                            lng: 46.6753
-                        });
-                        map.setZoom(10);
-                    }, {
-                        enableHighAccuracy: true,
-                        timeout: 5000,
-                        maximumAge: 0
-                    }
-                );
-            } else {
-                alert("المتصفح لا يدعم خدمة تحديد الموقع الجغرافي");
-                map.setCenter({
-                    lat: 24.7136,
-                    lng: 46.6753
-                });
-                map.setZoom(10);
-            }
-
-            // 2. إضافة علامات للعملاء (بلون أزرق)
-            @foreach ($clients as $client)
-                @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
-                    @php
-                        $statusColor = optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC';
-                    @endphp
-
-                    // إنشاء علامة العميل
-                    const marker{{ $client->id }} = new google.maps.Marker({
-                        position: {
-                            lat: {{ $client->locations->latitude }},
-                            lng: {{ $client->locations->longitude }}
-                        },
-                        map: map,
-                        title: "{{ $client->trade_name }} ({{ $statusColor }})",
-                        icon: {
-                            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                        <circle cx="20" cy="20" r="18" fill="{{ $statusColor }}" stroke="#FFFFFF" stroke-width="2"/>
-                        <path fill="#FFFFFF" d="M20 10a8 8 0 0 1 8 8c0 5-8 14-8 14s-8-9-8-14a8 8 0 0 1 8-8zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-                        <text x="20" y="32" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="#FFFFFF">{{ $client->code }}</text>
-                    </svg>
-                `),
-                            scaledSize: new google.maps.Size(40, 40),
-                            anchor: new google.maps.Point(20, 40)
-                        },
-                        animation: google.maps.Animation.DROP
-                    });
-
-
-                    // محتوى نافذة المعلومات للعميل
-                    const contentString{{ $client->id }} = `
-            <div style="color: #333; font-family: Arial, sans-serif; width: 280px;">
-                <div style="background: {{ $statusColor }}; color: white; padding: 10px; border-radius: 5px 5px 0 0;">
-                    <h4 style="margin: 0; font-size: 16px;">
-                        <i class="fas fa-store" style="margin-right: 5px;"></i> {{ $client->trade_name }}
-                    </h4>
-                </div>
-                <div style="padding: 10px;">
-                    <table style="width: 100%; font-size: 14px;">
-                        <tr>
-                            <td style="width: 30%; color: #666;">الكود:</td>
-                            <td><strong>{{ $client->code }}</strong></td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">المالك:</td>
-                            <td>{{ $client->first_name }} {{ $client->last_name }}</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">الحالة:</td>
-                            <td>
-                                <span style="display: inline-block; width: 12px; height: 12px; background: {{ $statusColor }}; border-radius: 50%; margin-right: 5px;"></span>
-                                {{ $statusColor }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">الهاتف:</td>
-                            <td><a href="tel:{{ $client->phone }}" style="color: #4285F4;">{{ $client->phone }}</a></td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">الموقع:</td>
-                            <td>{{ $client->city }}, {{ $client->region }}</td>
-                        </tr>
-                         <tr>
-                            <td style="color: #666;">المجموعة:</td>
-                            <td>{{$client->Neighborhoodname->Region->name ?? 'لا يوجد'}}</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">نوع الزيارة:</td>
-                            <td>  @if($client->visit_type == "am")
-        <span class="badge badge-success">
-            ☀️ صباحية
-        </span>
-    @else
-        <span class="badge badge-primary">
-            🌙 مسائية
-        </span>
-    @endif</td>
-                        </tr>
-                        <tr>
-                            <td style="color: #666;">الرصيد:</td>
-                            <td style="color: {{ $client->Balance() < 0 ? '#EA4335' : '#34A853' }}; font-weight: bold;">
-                                {{ $client->Balance() }} ر.س
-
-                            </td>
-                        </tr>
-                    </table>
-                    <div style="margin-top: 15px; display: flex; gap: 5px;">
-                        <a href="{{ route('clients.show', $client->id) }}"
-                           target="_blank"
-                           style="flex: 1; padding: 8px; background: #4285F4; color: white; text-decoration: none; border-radius: 4px; text-align: center; font-size: 13px;">
-                            <i class="fas fa-info-circle"></i> التفاصيل
-                        </a>
-                        <a href="https://www.google.com/maps?q={{ $client->locations->latitude }},{{ $client->locations->longitude }}"
-                           target="_blank"
-                           style="flex: 1; padding: 8px; background: #34A853; color: white; text-decoration: none; border-radius: 4px; text-align: center; font-size: 13px;">
-                            <i class="fas fa-map-marked-alt"></i> فتح الخريطة
-                        </a>
-                    </div>
-                </div>
-            </div>
-        `;
-
-                    // إضافة أحداث الماركر
-                    marker{{ $client->id }}.addListener('click', () => {
-                        infoWindow.setContent(contentString{{ $client->id }});
-                        infoWindow.open(map, marker{{ $client->id }});
-                        map.panTo(marker{{ $client->id }}.getPosition());
-                    });
-
-                    marker{{ $client->id }}.addListener('mouseover', () => {
-                        marker{{ $client->id }}.setAnimation(google.maps.Animation.BOUNCE);
-                    });
-
-                    marker{{ $client->id }}.addListener('mouseout', () => {
-                        marker{{ $client->id }}.setAnimation(null);
-                    });
-                @endif
-            @endforeach
         }
 
         function handleRowClick(event, url) {

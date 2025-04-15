@@ -1377,7 +1377,7 @@
                                 data-i18n="eCommerce">{{ trans('main_trans.SMS_Report') }}</span></a>
                     </li>
 
-                    <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
+                    <li><a href="{{ route('ClientReport.BalancesClient') }}"><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce">{{ trans('main_trans.Points_and_Balances_Report') }}</span></a>
                     </li>
 

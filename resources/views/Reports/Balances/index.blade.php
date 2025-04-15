@@ -38,11 +38,11 @@
                     <ul class="list-unstyled">
                         <li class="mb-2">
                             <i class="bi bi-arrow-up-right-circle text-success"></i> أستهلاك الأرصدة
-                            <a href="{{ route('reports.Balances.consume_balance') }}" class="btn btn-link p-0">عرض</a>
+                            <a href="{{ route('ClientReport.BalancesClient') }}" class="btn btn-link p-0">عرض</a>
                         </li>
                         <li class="mb-2">
                             <i class="bi bi-arrow-down-left-circle text-info"></i> شحن الأرصدة
-                            <a href="{{ route('reports.Balances.add_balance') }}" class="btn btn-link p-0">عرض</a>
+                            <a href="{{ route('ClientReport.rechargeBalancesReport') }}" class="btn btn-link p-0">عرض</a>
                         </li>
                     </ul>
                 </div>

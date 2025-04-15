@@ -38,6 +38,9 @@ Route::group(
             Route::get('/customerInstallments', [CustomerReportController::class, 'customerInstallments'])->name('ClientReport.customerInstallments');
             Route::get('/invoices/month/{month}', [CustomerReportController::class, 'getInvoicesByMonth']);
             Route::get('/customerAccountStatement', [CustomerReportController::class, 'customerAccountStatement'])->name('ClientReport.customerAccountStatement');
+            Route::get('/rechargeBalancesReport', [CustomerReportController::class, 'rechargeBalancesReport'])->name('ClientReport.rechargeBalancesReport');
+            Route::get('/BalancesClient', [CustomerReportController::class, 'BalancesClient'])->name('ClientReport.BalancesClient');
+
         });
         Route::prefix('ReportsPurchases')->group(function () {
 
@@ -80,6 +83,7 @@ Route::group(
                 Route::get('/reports/employeeProfits', [SalesReportsController::class, 'employeeProfits'])->name('salesReports.employeeProfits');
                 Route::get('/salaryRep', [SalesReportsController::class, 'salaryRep'])->name('salesReports.salaryRep');
                 Route::get('/byProduct', [SalesReportsController::class, 'byProduct'])->name('salesReports.byProduct');
+
 
 
             });

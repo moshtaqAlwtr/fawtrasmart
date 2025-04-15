@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Reports\Customers;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Appointment;
+use App\Models\BalanceCharge;
+use App\Models\BalanceType;
 use App\Models\Branch;
 use App\Models\CategoriesClient;
 use App\Models\Client;
@@ -13,6 +15,7 @@ use App\Models\Employee;
 use App\Models\Installment;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
+use App\Models\Log;
 use App\Models\PaymentsProcess;
 use App\Models\User;
 use Carbon\Carbon;
@@ -765,5 +768,73 @@ class CustomerReportController extends Controller
 
         return response()->json($responseData);
     }
-    // تأكد من استيراد نموذج Sale
+
+
+
+public function BalancesClient(Request $request)
+{
+return view('reports.balances.index');
+}
+    public function rechargeBalancesReport(Request $request)
+{
+    try {
+        // بناء الاستعلام الأساسي مع العلاقات
+        $query = BalanceCharge::with([
+            'client' => function($query) {
+                $query->with('branch');
+            },
+            'balanceType'
+        ]);
+
+        // تطبيق فلتر العميل
+        $query->when($request->filled('customer'), function($q) use ($request) {
+            $q->where('client_id', $request->customer);
+        });
+
+        // تطبيق فلتر نوع الرصيد
+        $query->when($request->filled('income_type'), function($q) use ($request) {
+            $q->where('balance_type_id', $request->income_type);
+        });
+
+        // تطبيق فلتر التاريخ من
+        $query->when($request->filled('date_from'), function($q) use ($request) {
+            $q->whereDate('start_date', '>=', $request->date_from);
+        });
+
+        // تطبيق فلتر التاريخ إلى
+        $query->when($request->filled('date_to'), function($q) use ($request) {
+            $q->whereDate('end_date', '<=', $request->date_to);
+        });
+
+        // تطبيق فلتر الفرع
+        $query->when($request->filled('branch'), function($q) use ($request) {
+            $q->whereHas('client', function($clientQuery) use ($request) {
+                $clientQuery->where('branch_id', $request->branch);
+            });
+        });
+
+        // الحصول على النتائج مع الترتيب
+        $charges = $query->orderBy('created_at', 'desc')->get();
+
+        // حساب الإجمالي
+        $totalAmount = $charges->sum('value');
+
+        // بيانات الفلاتر
+        $filterData = [
+            'clients' => Client::orderBy('trade_name')->get(),
+            'types' => BalanceType::orderBy('name')->get(),
+            'branches' => Branch::orderBy('name')->get()
+        ];
+
+        return view('reports.balances.rechargeBalancesReport', array_merge([
+            'charges' => $charges,
+            'totalAmount' => $totalAmount,
+            'request' => $request
+        ], $filterData));
+
+    } catch (\Exception $e) {
+        Log::error('Error in recharge report: '.$e->getMessage());
+        return back()->with('error', 'حدث خطأ: '.$e->getMessage());
+    }
+}
 }
