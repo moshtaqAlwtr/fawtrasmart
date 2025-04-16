@@ -47,7 +47,8 @@
                     <div class="card hover-card">
                         <div class="card-content">
                             <div class="card-body setting">
-                                <a href="">
+                                
+                                <a href="{{route('SittingInvoice.bill_designs')}}">
                                     <i class="fas fa-paint-brush fa-8x p-3" style="color: primary;"></i>
                                     <h5><strong>تصاميم الفواتير / عروض الاسعار</strong></h5>
                                 </a>
