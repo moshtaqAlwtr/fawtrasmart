@@ -12,6 +12,7 @@ use App\Models\PaymentsProcess;
 use App\Models\Region_groub;
 use App\Models\User;
 use App\Models\Visit;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -659,4 +660,51 @@ class VisitController extends Controller
 
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
+
+    // public function sendDailyReport()
+    // {
+    //     $date = Carbon::today();
+    //     $users = User::all();
+    //     $reports = [];
+
+    //     foreach ($users as $user) {
+    //         $invoices = Invoice::where('created_by', $user->id)->whereDate('created_at', $date)->get();
+    //         $visits = Visit::where('employee_id', $user->id)->whereDate('created_at', $date)->get();
+    //         $payments = PaymentsProcess::where('employee_id', $user->id)->whereDate('payment_date', $date)->get();
+    //         $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
+    //         $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
+
+    //         $reports[] = [
+    //             'user' => $user,
+    //             'invoices' => $invoices,
+    //             'visits' => $visits,
+    //             'payments' => $payments,
+    //             'receipts' => $receipts,
+    //             'expenses' => $expenses
+    //         ];
+    //     }
+
+    //     $pdf = Pdf::loadView('reports.daily_employee', [
+    //         'reports' => $reports,
+    //         'date' => $date->toDateString(),
+    //     ]);
+
+    //     $pdfPath = storage_path('app/public/daily_report.pdf');
+    //     $pdf->save($pdfPath);
+
+    //     $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+    //     $chatId = '@Salesfatrasmart';
+
+    //     $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report.pdf')
+    //         ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+    //             'chat_id' => $chatId,
+    //             'caption' => "📊 تقرير الموظفين اليومي: {$date->toDateString()}",
+    //         ]);
+
+    //     if ($response->successful()) {
+    //         return response()->json(['success' => true, 'message' => 'تم إرسال التقرير إلى التليجرام']);
+    //     } else {
+    //         return response()->json(['success' => false, 'message' => 'فشل الإرسال', 'error' => $response->body()]);
+    //     }
+    // }
 }

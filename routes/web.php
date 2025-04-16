@@ -26,6 +26,7 @@ use App\Http\Controllers\Sales\ShippingOptionsController;
 use App\Http\Controllers\Sales\SittingInvoiceController;
 use App\Models\Client;
 use App\Models\Offer;
+use Illuminate\Support\Facades\Http;
 
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
 require __DIR__ . '/auth.php';
@@ -312,8 +313,8 @@ Route::group(
                                     'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id])
                                 ];
                             });
-                    
-                    
+
+
 
                         return response()->json($offers);
                     });
@@ -357,7 +358,7 @@ Route::group(
                 // إضافة هذا المسار للانصراف التلقائي
                 Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])
                     ->name('visits.processAutoDepartures');
-
+                    Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
                 // إضافة مسار للانصراف اليدوي
                 Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])
                     ->name('visits.manualDeparture');
@@ -377,5 +378,12 @@ Route::group(
             ->group(function () {
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
+
+
+
     },
+
+
+
+
 );

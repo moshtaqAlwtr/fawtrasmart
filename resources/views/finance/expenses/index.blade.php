@@ -5,25 +5,31 @@
 @stop
 
 @section('css')
-<style>
- .ex-card {
-    background: linear-gradient(135deg, #4a90e2, #13d7fe); /* Gradient background */
-    border-radius: 10px; /* Rounded corners */
-    color: white; /* Default text color */
-}
+    <style>
+        .ex-card {
+            background: linear-gradient(135deg, #4a90e2, #13d7fe);
+            /* Gradient background */
+            border-radius: 10px;
+            /* Rounded corners */
+            color: white;
+            /* Default text color */
+        }
 
-.card-title {
-    font-weight: bold; /* Bold title */
-}
+        .card-title {
+            font-weight: bold;
+            /* Bold title */
+        }
 
-.text-muted {
-    color: rgba(255, 255, 255, 0.7); /* Muted white for labels */
-}
+        .text-muted {
+            color: rgba(255, 255, 255, 0.7);
+            /* Muted white for labels */
+        }
 
-.text-white {
-    font-size: 1.5rem; /* Larger font size for totals */
-}
-</style>
+        .text-white {
+            font-size: 1.5rem;
+            /* Larger font size for totals */
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -62,7 +68,8 @@
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->url(1) }}" aria-label="First">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->url(1) }}"
+                                        aria-label="First">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </li>
@@ -77,7 +84,8 @@
                                 </li>
                             @else
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->previousPageUrl() }}" aria-label="Previous">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->previousPageUrl() }}"
+                                        aria-label="Previous">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
                                 </li>
@@ -93,7 +101,8 @@
                             <!-- زر الانتقال إلى الصفحة التالية -->
                             @if ($expenses->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->nextPageUrl() }}" aria-label="Next">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->nextPageUrl() }}"
+                                        aria-label="Next">
                                         <i class="fas fa-angle-left"></i>
                                     </a>
                                 </li>
@@ -108,7 +117,8 @@
                             <!-- زر الانتقال إلى آخر صفحة -->
                             @if ($expenses->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $expenses->url($expenses->lastPage()) }}" aria-label="Last">
+                                    <a class="page-link border-0 rounded-pill"
+                                        href="{{ $expenses->url($expenses->lastPage()) }}" aria-label="Last">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
                                 </li>
@@ -141,10 +151,15 @@
             <div class="card-body">
                 <h5 class="card-title text-center">إجمالي المصروفات</h5>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
- @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
+                    @php
+                        $currency = $account_setting->currency ?? 'SAR';
+                        $currencySymbol =
+                            $currency == 'SAR' || empty($currency)
+                                ? '<img src="' .
+                                    asset('assets/images/Saudi_Riyal.svg') .
+                                    '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                : $currency;
+                    @endphp
                     <div class="text-center">
                         <p class="text-muted">آخر 7 أيام</p>
                         <h2 class="text-white">{!! $currencySymbol !!} {{ $totalLast7Days }}</h2>
@@ -198,19 +213,22 @@
                         <!-- 1. Keyword Search -->
                         <div class="col-md-4">
                             <label for="keywords">البحث بكلمة مفتاحية</label>
-                            <input type="text" id="keywords" class="form-control" placeholder="ادخل الإسم او الكود" name="keywords" value="{{ request('keywords') }}">
+                            <input type="text" id="keywords" class="form-control" placeholder="ادخل الإسم او الكود"
+                                name="keywords" value="{{ request('keywords') }}">
                         </div>
 
                         <!-- 2. From Date -->
                         <div class="col-md-2">
                             <label for="from_date">من تاريخ</label>
-                            <input type="date" id="from_date" class="form-control" name="from_date" value="{{ request('from_date') }}">
+                            <input type="date" id="from_date" class="form-control" name="from_date"
+                                value="{{ request('from_date') }}">
                         </div>
 
                         <!-- 3. To Date -->
                         <div class="col-md-2">
                             <label for="to_date">إلى تاريخ</label>
-                            <input type="date" id="to_date" class="form-control" name="to_date" value="{{ request('to_date') }}">
+                            <input type="date" id="to_date" class="form-control" name="to_date"
+                                value="{{ request('to_date') }}">
                         </div>
 
                         <!-- 4. Category -->
@@ -242,7 +260,8 @@
                             <!-- 6. Description -->
                             <div class="col-md-4">
                                 <label for="description">الوصف</label>
-                                <input type="text" id="description" class="form-control" placeholder="الوصف" name="description" value="{{ request('description') }}">
+                                <input type="text" id="description" class="form-control" placeholder="الوصف"
+                                    name="description" value="{{ request('description') }}">
                             </div>
 
                             <!-- 7. Vendor -->
@@ -258,25 +277,29 @@
                             <!-- 8. Amount From -->
                             <div class="col-md-2">
                                 <label for="amount_from">أكبر مبلغ</label>
-                                <input type="text" id="amount_from" class="form-control" placeholder="أكبر مبلغ" name="amount_from" value="{{ request('amount_from') }}">
+                                <input type="text" id="amount_from" class="form-control" placeholder="أكبر مبلغ"
+                                    name="amount_from" value="{{ request('amount_from') }}">
                             </div>
 
                             <!-- 9. Amount To -->
                             <div class="col-md-2">
                                 <label for="amount_to">أقل مبلغ</label>
-                                <input type="text" id="amount_to" class="form-control" placeholder="أقل مبلغ" name="amount_to" value="{{ request('amount_to') }}">
+                                <input type="text" id="amount_to" class="form-control" placeholder="أقل مبلغ"
+                                    name="amount_to" value="{{ request('amount_to') }}">
                             </div>
 
                             <!-- 10. Created At From -->
                             <div class="col-md-2">
                                 <label for="created_at_from">من تاريخ الإنشاء</label>
-                                <input type="date" id="created_at_from" class="form-control" name="created_at_from" value="{{ request('created_at_from') }}">
+                                <input type="date" id="created_at_from" class="form-control" name="created_at_from"
+                                    value="{{ request('created_at_from') }}">
                             </div>
 
                             <!-- 11. Created At To -->
                             <div class="col-md-2">
                                 <label for="created_at_to">إلى تاريخ الإنشاء</label>
-                                <input type="date" id="created_at_to" class="form-control" name="created_at_to" value="{{ request('created_at_to') }}">
+                                <input type="date" id="created_at_to" class="form-control" name="created_at_to"
+                                    value="{{ request('created_at_to') }}">
                             </div>
 
                             <!-- 12. Sub Account -->
@@ -284,8 +307,10 @@
                                 <label for="sub_account">الحساب الفرعي</label>
                                 <select name="sub_account" class="form-control" id="sub_account">
                                     <option value="">أي حساب</option>
-                                    <option value="1" {{ request('sub_account') == 1 ? 'selected' : '' }}>حساب 1</option>
-                                    <option value="2" {{ request('sub_account') == 2 ? 'selected' : '' }}>حساب 2</option>
+                                    <option value="1" {{ request('sub_account') == 1 ? 'selected' : '' }}>حساب 1
+                                    </option>
+                                    <option value="2" {{ request('sub_account') == 2 ? 'selected' : '' }}>حساب 2
+                                    </option>
                                 </select>
                             </div>
 
@@ -294,8 +319,10 @@
                                 <label for="added_by">أضيفت بواسطة</label>
                                 <select name="added_by" class="form-control" id="added_by">
                                     <option value="">أي موظف</option>
-                                    <option value="1" {{ request('added_by') == 1 ? 'selected' : '' }}>موظف 1</option>
-                                    <option value="2" {{ request('added_by') == 2 ? 'selected' : '' }}>موظف 2</option>
+                                    <option value="1" {{ request('added_by') == 1 ? 'selected' : '' }}>موظف 1
+                                    </option>
+                                    <option value="2" {{ request('added_by') == 2 ? 'selected' : '' }}>موظف 2
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -318,32 +345,40 @@
                             @foreach ($expenses as $expense)
                                 <tr>
                                     <td style="width: 80%">
-                                        <p><strong>{{ $expense->expenses_category->name ?? "" }}</strong></p>
+                                        <p><strong>{{ $expense->expenses_category->name ?? '' }}</strong></p>
                                         <p><small>{{ $expense->date }} | {{ $expense->description }}</small></p>
-                                        <img src="{{ asset('assets/uploads/expenses/'.$expense->attachments) }}" alt="img" width="100">
+                                        <img src="{{ asset('assets/uploads/expenses/' . $expense->attachments) }}"
+                                            alt="img" width="100">
                                     </td>
                                     <td>
                                         <p><strong>{{ $expense->amount }} رس</strong></p>
                                         <i class="fa fa-archive"></i> <small>{{ $expense->store_id }}</small>
                                     </td>
+                                    <td>{{ $expense->createdBy->name }}</td>
                                     <td>
                                         <div class="btn-group">
                                             <div class="dropdown">
-                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
+                                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                    type="button"id="dropdownMenuButton303" data-toggle="dropdown"
+                                                    aria-haspopup="true"aria-expanded="false"></button>
                                                 <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                     <li>
-                                                        <a class="dropdown-item" href="{{ route('expenses.show',$expense->id) }}">
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('expenses.show', $expense->id) }}">
                                                             <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a class="dropdown-item" href="{{ route('expenses.edit',$expense->id) }}">
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('expenses.edit', $expense->id) }}">
                                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                         </a>
                                                     </li>
 
                                                     <li>
-                                                        <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $expense->id }}">
+                                                        <a class="dropdown-item text-danger" href="#"
+                                                            data-toggle="modal"
+                                                            data-target="#modal_DELETE{{ $expense->id }}">
                                                             <i class="fa fa-trash me-2"></i>حذف
                                                         </a>
                                                     </li>
@@ -353,21 +388,25 @@
                                     </td>
 
                                     <!-- Modal delete -->
-                                    <div class="modal fade text-left" id="modal_DELETE{{ $expense->id }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" aria-hidden="true">
+                                    <div class="modal fade text-left" id="modal_DELETE{{ $expense->id }}"
+                                        tabindex="-1" role="dialog" aria-labelledby="myModalLabel1"
+                                        aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable" role="document">
                                             <div class="modal-content">
                                                 <div class="modal-header" style="background-color: #EA5455 !important;">
-                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف سند صرف</h4>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <h4 class="modal-title" id="myModalLabel1" style="color: #FFFFFF">حذف
+                                                        سند صرف</h4>
+                                                    <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
                                                         <span aria-hidden="true" style="color: #DC3545">&times;</span>
                                                     </button>
                                                 </div>
                                                 <div class="modal-body">
                                                     <strong>
-                                                       عفوا لا يمكنك الحذف يمكن اصدار سند قبض
+                                                        عفوا لا يمكنك الحذف يمكن اصدار سند قبض
                                                     </strong>
                                                 </div>
-                                               
+
                                             </div>
                                         </div>
                                     </div>
@@ -389,7 +428,7 @@
         </div>
 
     </div><!-- content-body -->
-    @endsection
+@endsection
 @section('scripts')
-<script src="{{ asset('assets/js/search.js') }}"></script>
+    <script src="{{ asset('assets/js/search.js') }}"></script>
 @endsection

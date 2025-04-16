@@ -1,6 +1,7 @@
 <?php
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -276,5 +277,66 @@ public function status()
         'name' => 'غير محدد',
         'color' => '#CCCCCC'
     ]);
+}public function fullLocation(): Attribute
+{
+    return Attribute::get(function () {
+        $location = [];
+
+        if (!empty($this->street1)) {
+            $location['street1'] = $this->street1;
+        }
+
+        if (!empty($this->street2)) {
+            $location['street2'] = $this->street2;
+        }
+
+        if (!empty($this->country)) {
+            $location['country'] = $this->country;
+        }
+
+        if (!empty($this->city)) {
+            $location['city'] = $this->city;
+        }
+
+        if (!empty($this->region)) {
+            $location['region'] = $this->region;
+        }
+
+        if (!empty($this->postal_code)) {
+            $location['postal_code'] = $this->postal_code;
+        }
+
+        if ($this->relationLoaded('neighborhood') && $this->neighborhood) {
+            $location['neighborhood'] = $this->neighborhood->name;
+        } elseif (!empty($this->neighborhood_id)) {
+            $location['neighborhood'] = Neighborhood::find($this->neighborhood_id)?->name;
+        }
+
+        if ($this->relationLoaded('locations') && $this->locations) {
+            $location['latitude'] = $this->locations->latitude;
+            $location['longitude'] = $this->locations->longitude;
+            $location['map_url'] = $this->locations->map_url;
+        }
+
+        $formattedAddress = [];
+        if (!empty($location['street1'])) $formattedAddress[] = $location['street1'];
+        if (!empty($location['street2'])) $formattedAddress[] = $location['street2'];
+        if (!empty($location['neighborhood'])) $formattedAddress[] = $location['neighborhood'];
+        if (!empty($location['city'])) $formattedAddress[] = $location['city'];
+        if (!empty($location['region'])) $formattedAddress[] = $location['region'];
+        if (!empty($location['postal_code'])) $formattedAddress[] = $location['postal_code'];
+        if (!empty($location['country'])) $formattedAddress[] = $location['country'];
+
+        $location['formatted_address'] = implode('، ', $formattedAddress);
+
+        return $location;
+    });
 }
+public function formattedAddress(): Attribute
+{
+    return Attribute::get(function () {
+        return $this->full_location['formatted_address'] ?? '';
+    });
+}
+
 }

@@ -422,7 +422,7 @@
                             <!-- المجموعة -->
                             <div class="col-md-3 col-12">
                                 <label for="region" class="form-label">المجموعة</label>
-                                <select name="region" id="region" class="form-control">
+                                <select name="region" id="region" class="form-control select2">
                                     <option value="">اختر المجموعة</option>
                                     @foreach ($Region_groups as $Region_group)
                                         <option value="{{ $Region_group->id }}" {{ request('region') == $Region_group->id ? 'selected' : '' }}>
@@ -911,7 +911,7 @@
                                 </span>
                             </div>
                             <div class="info-actions">
-                                <button onclick="window.location.href='{{ route('clients.show',  $client->id) }}'" class="info-button primary">
+                                <button onclick="window.location.href=''" class="info-button primary">
                                     <i class="fas fa-info-circle"></i>
                                     التفاصيل
                                 </button>
