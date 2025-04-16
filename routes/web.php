@@ -31,6 +31,9 @@ Route::get('/test/send', [ClientSettingController::class, 'test'])->name('client
 require __DIR__ . '/auth.php';
 
 Route::get('/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
+   Route::get('/text/editor', function () {
+                   return view('text_editor');
+                    });
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
@@ -125,6 +128,10 @@ Route::group(
                     Route::put('/update/{id}', [QuoteController::class, 'update'])->name('questions.update');
                     Route::post('/convertToInvoice/{id}', [QuoteController::class, 'convertToInvoice'])->name('questions.convertToInvoice');
                     Route::delete('/delete/{id}', [QuoteController::class, 'destroy'])->name('questions.destroy');
+                    
+                    Route::get('quotes/{quote}/edit-template', [QuoteController::class, 'editTemplate'])->name('quotes.template.edit');
+                    Route::put('quotes/{quote}/update-template', [QuoteController::class, 'updateTemplate'])->name('quotes.template.update');
+
                 });
 
                 Route::prefix('appointments')->group(function () {
@@ -279,6 +286,16 @@ Route::group(
                 });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingInvoiceController::class, 'index'])->name('SittingInvoice.index');
+                    
+                        Route::get('/', [SittingInvoiceController::class, 'bill_designs'])->name('SittingInvoice.bill_designs');
+                        Route::get('/create', [SittingInvoiceController::class, 'create'])->name('templates.create');
+                        Route::post('/', [SittingInvoiceController::class, 'store'])->name('templates.store');
+                        Route::get('/{template}/edit', [SittingInvoiceController::class, 'edit'])->name('templates.edit');
+                        Route::put('/{template}', [SittingInvoiceController::class, 'update'])->name('templates.update');
+                        Route::post('/template/preview', [SittingInvoiceController::class, 'preview'])->name('template.preview');
+                        Route::post('/{template}/reset', [SittingInvoiceController::class, 'reset'])->name('templates.reset');
+                        Route::delete('/{template}', [SittingInvoiceController::class, 'destroy'])->name('templates.destroy');
+                  
                 });
                 Route::prefix('offers')->group(function () {
                     Route::get('/index', [OffersController::class, 'index'])->name('Offers.index');
@@ -320,6 +337,7 @@ Route::group(
                     Route::get('/destroy/{id}', [OffersController::class, 'destroy'])->name('Offers.destroy');
                     Route::post('/updateStatus/{id}', [OffersController::class, 'updateStatus'])->name('Offers.updateStatus');
                 });
+                
                 Route::prefix('shippingOptions')->group(function () {
                     Route::get('/index', [ShippingOptionsController::class, 'index'])->name('shippingOptions.index');
                     Route::get('/create', [ShippingOptionsController::class, 'create'])->name('shippingOptions.create');

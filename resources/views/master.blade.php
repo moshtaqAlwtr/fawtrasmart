@@ -919,7 +919,7 @@
     </script>
 
     @yield('scripts')
-
+@stack('scripts')
 </body>
 <!-- END: Body-->
 
