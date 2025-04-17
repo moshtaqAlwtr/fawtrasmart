@@ -174,7 +174,7 @@
                                                     @foreach ($clients as $c)
                                                         <option value="{{ $c->id }}"
                                                             {{ (isset($client_id) && $client_id == $c->id) || (isset($client) && $client->id == $c->id) ? 'selected' : '' }}>
-                                                            {{ $c->trade_name }} - الرصيد الافتتاحي: {{ number_format($c->opening_balance, 2) }} ريال
+                                                            {{ $c->trade_name }} - الرصيد الافتتاحي: {{ number_format($c->opening_balance, 2) }} ريال {{$c->code ?? ""}}
                                                         </option>
                                                     @endforeach
                                                 </select>

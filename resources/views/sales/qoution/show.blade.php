@@ -6,8 +6,8 @@
 
 @section('content')
 
-@include('layouts.alerts.error')
-@include('layouts.alerts.success')
+    @include('layouts.alerts.error')
+    @include('layouts.alerts.success')
     <div class="content-body">
         <div class="card">
             <div class="card-body">
@@ -24,7 +24,7 @@
                                 <i class="fas fa-dollar-sign me-1"></i> تحويل لفاتورة
                             </button>
                         </form>
-                        
+
                     </div>
                 </div>
             </div>
@@ -45,15 +45,50 @@
                         </button>
 
                         <!-- PDF -->
-                        {{-- <a href=""
+                     
+                        <a href="{{ route('quotes.pdf', $quote->id) }}"
                             class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
                             <i class="fas fa-file-pdf me-1"></i> PDF
-                        </a> --}}
+                        </a>
 
                         <!-- إرسال عبر -->
-                        <a href="#" class="btn btn-sm btn-outline-dark d-inline-flex align-items-center">
-                            <i class="fas fa-share me-1"></i> إرسال عبر
-                        </a>
+                        <div class="btn-group">
+                            <div class="dropdown">
+                                <button      
+                                    class="btn btn-sm btn-outline-success dropdown-toggle d-flex align-items-center custom-btn"
+                                    type="button" id="dropdownMenuButton200" data-toggle="dropdown" aria-haspopup="true"
+                                    aria-expanded="false">
+                                    <i class="fas fa me-1"></i> ارسال عبر
+                                </button>
+                                <div class="dropdown-menu custom-dropdown" aria-labelledby="dropdownMenuButton200">
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center" target="_blank"
+                                                href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $quote->client->phone) }}?text={{ urlencode(
+                                                    'مرحبًا ' .
+                                                        $quote->client->trade_name .
+                                                        ',' .
+                                                        "\n\n" .
+                                                        'يسعدنا إعلامكم بأن فاتورتكم أصبحت جاهزة. يمكنكم الاطلاع عليها من خلال الرابط التالي:' .
+                                                        "\n" .
+                                                        route('questions.print', ['id' => $quote->id, 'embed' => true]) .
+                                                        "\n\n" .
+                                                        'مع أطيب التحيات،' .
+                                                        "\n" .
+                                                        ($account_setting->trade_name ?? 'مؤسسة أعمال خاصة للتجارة'),
+                                                ) }}">
+                                                <i class="fab fa-whatsapp me-2 text-success"></i> واتساب
+                                            </a>
+    
+                                        </li>
+    
+    
+    
+    
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- خيارات أخرى -->
                         <div class="dropdown">
@@ -87,7 +122,8 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="quote-details-tab" data-toggle="tab" href="#quote-details"
-                                    role="tab" aria-controls="quote-details" aria-selected="false">تفاصيل عرض الأسعار</a>
+                                    role="tab" aria-controls="quote-details" aria-selected="false">تفاصيل عرض
+                                    الأسعار</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="activity-log-tab" data-toggle="tab" href="#activity-log"
@@ -140,18 +176,21 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="activity-log" role="tabpanel"
-                                aria-labelledby="activity-log-tab">
+                            <div class="tab-pane fade" id="activity-log" role="tabpanel" aria-labelledby="activity-log-tab">
                                 <div class="activity-item">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div class="d-flex align-items-center">
-                                            <span class="badge badge-pill badge-success">{{ $quote->created_at->format('d M') }}</span>
-                                            <p class="mb-0 ml-2">أنشأ {{ $quote->employee->name ?? "" }} عرض الأسعار رقم <strong>#{{ $quote->id }}</strong>
-                                                للعميل <strong>{{ $quote->client->trade_name ?? "" }}</strong> بإجمالي
-                                                <strong>{{ $quote->total }}</strong></p>
+                                            <span
+                                                class="badge badge-pill badge-success">{{ $quote->created_at->format('d M') }}</span>
+                                            <p class="mb-0 ml-2">أنشأ {{ $quote->employee->name ?? '' }} عرض الأسعار رقم
+                                                <strong>#{{ $quote->id }}</strong>
+                                                للعميل <strong>{{ $quote->client->trade_name ?? '' }}</strong> بإجمالي
+                                                <strong>{{ $quote->total }}</strong>
+                                            </p>
                                         </div>
                                         <div class="d-flex align-items-center">
-                                            <span class="mr-2">{{ $quote->created_at->format('H:i:s') ?? "" }} - {{ $quote->employee->name ?? "" }}</span>
+                                            <span class="mr-2">{{ $quote->created_at->format('H:i:s') ?? '' }} -
+                                                {{ $quote->employee->name ?? '' }}</span>
                                             <span class="badge badge-pill badge-info">Main Branch</span>
                                         </div>
                                     </div>
@@ -168,46 +207,46 @@
 @section('scripts')
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="{{ asset('assets/js/applmintion.js') }}"></script>
-    @section('scripts')
+@section('scripts')
     <script>
         function convertToInvoice(quoteId) {
             if (confirm('هل أنت متأكد من تحويل عرض الأسعار إلى فاتورة؟')) {
                 fetch(`/quotes/${quoteId}/convert-to-invoice`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('تم تحويل عرض الأسعار إلى فاتورة بنجاح!');
-                        window.location.href = '/invoices/' + data.invoice_id; // توجيه المستخدم إلى صفحة الفاتورة
-                    } else {
-                        alert('حدث خطأ أثناء التحويل: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('حدث خطأ أثناء التحويل.');
-                });
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('تم تحويل عرض الأسعار إلى فاتورة بنجاح!');
+                            window.location.href = '/invoices/' + data.invoice_id; // توجيه المستخدم إلى صفحة الفاتورة
+                        } else {
+                            alert('حدث خطأ أثناء التحويل: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('حدث خطأ أثناء التحويل.');
+                    });
             }
         }
     </script>
-    
+
     <script>
         document.getElementById('printQuoteBtn').addEventListener('click', function() {
             // احصل على محتوى الـ div الذي تريد طباعته
             var printContent = document.querySelector('div[style*="transform: scale(0.8);"]').innerHTML;
-            
+
             // احتفظ بمحتوى الـ head الأصلي (لضمان استيراد أنماط CSS)
             var headContent = document.head.innerHTML;
-            
+
             // أنشئ نافذة جديدة للطباعة
             var printWindow = window.open('', '_blank');
-            
+
             // اكتب محتوى الصفحة الجديدة
             printWindow.document.write(`
                 <!DOCTYPE html>
@@ -248,37 +287,37 @@
                 </body>
                 </html>
             `);
-            
+
             printWindow.document.close();
         });
-    
+
         // دالة تحويل إلى فاتورة (إن وجدت)
         function convertToInvoice(quoteId) {
             if (confirm('هل أنت متأكد من تحويل عرض الأسعار إلى فاتورة؟')) {
                 fetch(`/quotes/${quoteId}/convert-to-invoice`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('تم تحويل عرض الأسعار إلى فاتورة بنجاح!');
-                        window.location.href = '/invoices/' + data.invoice_id;
-                    } else {
-                        alert('حدث خطأ أثناء التحويل: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('حدث خطأ أثناء التحويل.');
-                });
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('تم تحويل عرض الأسعار إلى فاتورة بنجاح!');
+                            window.location.href = '/invoices/' + data.invoice_id;
+                        } else {
+                            alert('حدث خطأ أثناء التحويل: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('حدث خطأ أثناء التحويل.');
+                    });
             }
         }
     </script>
-   
+
 @endsection
 @endsection

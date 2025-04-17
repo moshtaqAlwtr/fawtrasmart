@@ -1666,7 +1666,7 @@ public function shipping_label($id)
 {
     $invoice = Invoice::findOrFail($id);
 
-    $mpdf = new Mpdf([
+    $mpdf = new App\Http\Controllers\Sales\Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4', // تغيير من A6 إلى A4
         'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي

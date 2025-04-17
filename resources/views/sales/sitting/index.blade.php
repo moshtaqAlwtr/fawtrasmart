@@ -33,7 +33,8 @@
                     <div class="card hover-card">
                         <div class="card-content">
                             <div class="card-body setting">
-                                <a href="">
+                       
+                        <a href="{{route('SittingInvoice.invoice')}}"> 
                                     <i class="fas fa-file-invoice fa-8x p-3" style="color: primary;"></i>
                                     <h5><strong>اعدادات الفواتير وعروض الاسعار</strong></h5>
                                 </a>

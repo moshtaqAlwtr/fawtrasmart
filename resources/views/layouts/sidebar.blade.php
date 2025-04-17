@@ -156,6 +156,12 @@
                                             data-i18n="eCommerce">{{ trans('main_trans.Sales_Settings') }}</span></a>
                                 </li>
                             @endcan
+                            @if (auth()->user()->role != 'employee')
+                            <li><a href="{{ route('templates.test_print') }}"><i class="feather icon-circle"></i><span
+                                class="menu-item"
+                                data-i18n="eCommerce">اختبار  الطباعة على الفواتير</span></a>
+                         </li>
+                            @endif
                         </ul>
 
                     </li>

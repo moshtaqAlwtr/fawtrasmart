@@ -11,6 +11,7 @@ class Template extends Model
         'type',
         'content', // أضف هذا الحقل
         'thumbnail',
+        'default_content',
         'is_default'
     ];
 }

@@ -15,8 +15,14 @@ use App\Models\User;
 use App\Models\TaxSitting;
 use App\Models\TaxInvoice;
 use App\Models\AccountSetting;
-
 use Carbon\Carbon;
+use BaconQrCode\Writer;
+use TCPDF;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use Barryvdh\DomPDF\Facade\Pdf;
+use ArPHP\I18N\Arabic;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -372,7 +378,129 @@ foreach ($items_data as $item) {
           $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('sales.qoution.show', compact('quote','TaxsInvoice','account_setting'));
     }
+  
+    public function print($id)
+    {
 
+        $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
+        $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'quote')->get();
+        $account_setting = null;
+
+        if (auth()->check()) {
+            $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        }
+        $client =  null;
+        if (auth()->check()) {
+                $client = Client::where('user_id', auth()->user()->id)->first();
+        }
+        return view('sales.qoution.pdf', compact('quote','TaxsInvoice','account_setting'));
+    }
+
+
+// public function downloadPdf($id)
+// {
+//     $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
+//     $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'quote')->get();
+//     $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    
+//     // إعدادات PDF
+//     $pdf = PDF::loadView('sales.qoution.pdf', compact('quote','TaxsInvoice','account_setting'));
+    
+//     // إعدادات إضافية للغة العربية
+//     $pdf->setPaper('A4', 'portrait');
+//     $pdf->setOption([
+//         'isHtml5ParserEnabled' => true,
+//         'isRemoteEnabled' => true,
+//         'isPhpEnabled' => true,
+//         'defaultFont' => 'dejavusans', // أو أي خط يدعم العربية
+//         'fontDir' => storage_path('fonts/'), // مسار الخطوط
+//         'fontCache' => storage_path('fonts/'),
+//         'tempDir' => storage_path('temp/'),
+//         'chroot' => realpath(base_path()),
+//         'dpi' => 300,
+//     ]);
+    
+//     return $pdf->download('quote_'.$quote->id.'.pdf');
+// }
+public function downloadPdf($id)
+{
+    $invoice = Invoice::with(['client', 'items', 'createdByUser'])->findOrFail($id);
+    $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
+    $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'quote')->get();
+    // إنشاء بيانات QR Code
+    $qrData = 'رقم الفاتورة: ' . $quote->id . "\n";
+    $qrData .= 'التاريخ: ' . $quote->created_at->format('Y/m/d') . "\n";
+    $qrData .= 'العميل: ' . ($quote->client->trade_name ?? $quote->client->first_name . ' ' . $quote->client->last_name) . "\n";
+    $qrData .= 'الإجمالي: ' . number_format($quote->grand_total, 2) . ' ر.س';
+
+    // إنشاء QR Code
+    $qrOptions = new \chillerlan\QRCode\QROptions([
+        'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+        'eccLevel' => \chillerlan\QRCode\QRCode::ECC_L,
+        'scale' => 5,
+        'imageBase64' => true,
+    ]);
+    // composer require chillerlan/php-qrcode
+
+    $qrCode = new \chillerlan\QRCode\QRCode($qrOptions);
+    $barcodeImage = $qrCode->render($qrData);
+
+    // Create new PDF document
+    $pdf = new TCPDF('P', PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+    // Set document information
+    $pdf->SetCreator('Fawtra');
+    $pdf->SetAuthor('Fawtra System');
+    $pdf->SetTitle('عرض سعر رقم ' . $quote->code);
+
+    // Set margins
+    $pdf->SetMargins(15, 15, 15);
+    $pdf->SetHeaderMargin(0);
+    $pdf->SetFooterMargin(0);
+
+    // Disable header and footer
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+
+    // Add new page
+    $pdf->AddPage();
+
+    // Set RTL direction
+    $pdf->setRTL(true);
+
+    // Set font
+    $pdf->SetFont('aealarabiya', '', 14);
+
+    // Pass QR code image to view
+    // $barcodeImage = $qrCode->render($qrData);
+
+    // Generate
+
+    $renderer = new ImageRenderer(
+        new RendererStyle(150), // تحديد الحجم
+        new SvgImageBackEnd(), // تحديد نوع الصورة (SVG)
+    );
+
+    $writer = new Writer($renderer);
+    $qrText = urlencode("
+    رقم عرض السعر: {$quote->quotes_number}
+    التاريخ: {$quote->quote_date}
+    العميل: ".($quote->client->trade_name ?? $quote->client->first_name.' '.$quote->client->last_name)."
+    الإجمالي: ".number_format($quote->grand_total, 2)." ر.س
+");
+
+// استخدام خدمة QR Code خارجية
+$qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=".$qrText;
+    
+    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    $html = view('sales.qoution.pdf', compact('quote','TaxsInvoice','account_setting','qrCodeUrl'))->render();
+
+    // Add content to PDF
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // Output file
+    return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
+}
     public function edit($id)
     {
         $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);

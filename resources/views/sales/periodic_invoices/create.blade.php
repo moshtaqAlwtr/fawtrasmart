@@ -233,7 +233,7 @@
                                             <option value="">اختر العميل</option>
                                             @foreach ($clients as $client)
                                                 <option value="{{ $client->id }}">
-                                                    {{ $client->trade_name ?: $client->first_name . ' ' . $client->last_name }}
+                                                    {{ $client->trade_name ?: $client->first_name . ' ' . $client->last_name }} - {{$client->code ?? ""}}
                                                 </option>
                                             @endforeach
                                         </select>

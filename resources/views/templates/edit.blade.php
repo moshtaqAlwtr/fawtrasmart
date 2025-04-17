@@ -52,12 +52,78 @@
                 </div>
                 <div class="card-body">
                     <ul class="list-group">
-       
                         <li class="list-group-item">
                             <code>{ $invoice->id }</code> - رقم الفاتورة
                         </li>
                         <li class="list-group-item">
-                            <code>{ $invoice->client->name }</code> - اسم العميل
+                            <code>{ $invoice->client->trade_name }</code> - اسم العميل (الاسم التجاري)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $invoice->client->first_name . ' ' . $invoice->client->last_name }</code> - اسم العميل (كامل)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $invoice->client->street1 }</code> - عنوان العميل
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $invoice->client->code }</code> - كود العميل
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $invoice->client->tax_number }</code> - الرقم الضريبي
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $invoice->client->phone }</code> - هاتف العميل
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ str_pad($invoice->id, 5, '0', STR_PAD_LEFT) }</code> - رقم الفاتورة (مُنسق)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y H:i') }</code> - تاريخ الفاتورة
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $item->item }</code> - اسم المنتج (في الحلقة)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $item->quantity }</code> - الكمية (في الحلقة)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($item->unit_price, 2) }</code> - سعر الوحدة (في الحلقة)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($item->total, 2) }</code> - المجموع (في الحلقة)
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($invoice->grand_total, 2) }</code> - المجموع الكلي
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($invoice->total_discount, 2) }</code> - قيمة الخصم
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($invoice->shipping_cost, 2) }</code> - تكلفة الشحن
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($invoice->advance_payment, 2) }</code> - الدفعة المقدمة
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ number_format($invoice->due_value, 2) {</code> - المبلغ المستحق
+                        </li>
+                        <li class="list-group-item">
+                            <code>{ $qrCodeSvg }</code> - رمز QR
+                        </li>
+                        <!-- المتغيرات المشروطة -->
+                        <li class="list-group-item list-group-item-info">
+                            <strong>المتغيرات المشروطة:</strong>
+                        </li>
+                        <li class="list-group-item">
+                            <code>if($invoice->client->phone)...endif</code> - عرض هاتف العميل إذا موجود
+                        </li>
+                        <li class="list-group-item">
+                            <code>if($invoice->total_discount > 0)...endif</code> - عرض الخصم إذا كان أكبر من الصفر
+                        </li>
+                        <li class="list-group-item">
+                            <code>if($invoice->shipping_cost > 0)...endif</code> - عرض تكلفة الشحن إذا كانت أكبر من الصفر
+                        </li>
+                        <li class="list-group-item">
+                            <code>if($invoice->advance_payment > 0)...endif</code> - عرض الدفعة المقدمة إذا كانت أكبر من الصفر
                         </li>
                     </ul>
                 </div>
@@ -68,7 +134,7 @@
 @endsection
 
 @section('scripts')
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script src="https://cdn.tiny.cloud/1/58lh78ur0azb8wa2ediw9s0mby3caposfnr4sp9il5j3z6ka/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
     // تفعيل TinyMCE
     tinymce.init({
