@@ -593,212 +593,233 @@
             </div>
         </form>
     @endsection
-
     @section('scripts')
-        {{-- <script src="{{ asset('assets/js/scripts.js') }}"></script> --}}
-        <!-- إضافة مكتبة Google Maps -->
-        <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
+    <!-- إضافة مكتبة Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap" async defer></script>
 
-        <script>
-            function toggleMap() {
-                const mapContainer = document.getElementById('map-container');
-                const searchBox = document.getElementById('search-box');
+    <script>
+        // متغير عداد لجهات الاتصال
+        let contactCounter = 0;
 
-                if (mapContainer.style.display === 'none') {
-                    mapContainer.style.display = 'block';
-                    searchBox.style.display = 'block';
-                } else {
-                    mapContainer.style.display = 'none';
-                    searchBox.style.display = 'none';
-                }
-            }
+        // دالة إضافة حقول جهة اتصال جديدة
+        function addContactFields() {
+            contactCounter++;
 
-            function requestLocationPermission() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            toggleMap();
-                            initMap(position.coords.latitude, position.coords.longitude);
-                        },
-                        (error) => {
-                            alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
-                            console.error('Error getting location:', error);
-                        }
-                    );
-                } else {
-                    alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
-                }
-            }
+            const contactContainer = document.getElementById('contactContainer');
+            const newContactGroup = document.createElement('div');
+            newContactGroup.className = 'contact-fields-group mb-3 p-3 border rounded';
+            newContactGroup.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label>الاسم الأول</label>
+                        <input type="text" class="form-control" name="contacts[${contactCounter}][first_name]" placeholder="الاسم الأول">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label>الاسم الأخير</label>
+                        <input type="text" class="form-control" name="contacts[${contactCounter}][last_name]" placeholder="الاسم الأخير">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" class="form-control" name="contacts[${contactCounter}][email]" placeholder="البريد الإلكتروني">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label>الهاتف</label>
+                        <input type="tel" class="form-control" name="contacts[${contactCounter}][phone]" placeholder="الهاتف">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label>جوال</label>
+                        <input type="tel" class="form-control" name="contacts[${contactCounter}][mobile]" placeholder="جوال">
+                    </div>
+                    <div class="col-md-6 mb-2 text-right">
+                        <button type="button" class="btn btn-danger mt-2" onclick="removeContactFields(this)">
+                            <i class="fa fa-trash"></i> حذف
+                        </button>
+                    </div>
+                </div>
+                <hr>
+            `;
+            contactContainer.appendChild(newContactGroup);
+        }
 
-            function initMap(lat, lng) {
-                document.getElementById('latitude').value = lat;
-                document.getElementById('longitude').value = lng;
+        // دالة حذف حقول جهة اتصال
+        function removeContactFields(button) {
+            const contactGroup = button.closest('.contact-fields-group');
+            contactGroup.remove();
+        }
 
-                const map = new google.maps.Map(document.getElementById('map'), {
-                    center: {
-                        lat,
-                        lng
+        // دالة طلب إذن الموقع
+        function requestLocationPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        initMap(position.coords.latitude, position.coords.longitude);
+                        document.getElementById('map-container').style.display = 'block';
+                        document.getElementById('search-box').style.display = 'block';
                     },
-                    zoom: 15,
-                });
-
-                const marker = new google.maps.Marker({
-                    position: {
-                        lat,
-                        lng
-                    },
-                    map: map,
-                    draggable: true,
-                    title: 'موقعك الحالي',
-                });
-
-                const searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
-                map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
-
-                searchBox.addListener('places_changed', function() {
-                    const places = searchBox.getPlaces();
-                    if (places.length === 0) return;
-
-                    const place = places[0];
-                    const newLat = place.geometry.location.lat();
-                    const newLng = place.geometry.location.lng();
-
-                    map.setCenter({
-                        lat: newLat,
-                        lng: newLng
-                    });
-                    marker.setPosition({
-                        lat: newLat,
-                        lng: newLng
-                    });
-
-                    document.getElementById('latitude').value = newLat;
-                    document.getElementById('longitude').value = newLng;
-
-                    fetchAddressFromCoordinates(newLat, newLng);
-                });
-
-                google.maps.event.addListener(marker, 'dragend', function() {
-                    const newLat = marker.getPosition().lat();
-                    const newLng = marker.getPosition().lng();
-                    document.getElementById('latitude').value = newLat;
-                    document.getElementById('longitude').value = newLng;
-
-                    fetchAddressFromCoordinates(newLat, newLng);
-                });
-
-                google.maps.event.addListener(map, 'click', function(event) {
-                    const newLat = event.latLng.lat();
-                    const newLng = event.latLng.lng();
-                    marker.setPosition({
-                        lat: newLat,
-                        lng: newLng
-                    });
-                    document.getElementById('latitude').value = newLat;
-                    document.getElementById('longitude').value = newLng;
-
-                    fetchAddressFromCoordinates(newLat, newLng);
-                });
+                    (error) => {
+                        alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
+                        console.error('Error getting location:', error);
+                    }
+                );
+            } else {
+                alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
             }
+        }
 
-            function fetchAddressFromCoordinates(lat, lng) {
-                const geocoder = new google.maps.Geocoder();
-                const latLng = {
-                    lat,
-                    lng
+        // دالة تهيئة الخريطة
+        let map;
+        let marker;
+        let searchBox;
+
+        function initMap(lat = 24.7136, lng = 46.6753) {
+            // تعيين الإحداثيات في الحقول المخفية
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+
+            // إنشاء الخريطة
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat, lng },
+                zoom: 15,
+            });
+
+            // إنشاء علامة
+            marker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                draggable: true,
+                title: 'موقع العميل',
+            });
+
+            // إنشاء صندوق البحث
+            searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
+
+            // حدث عند تغيير نتائج البحث
+            searchBox.addListener('places_changed', function() {
+                const places = searchBox.getPlaces();
+                if (places.length === 0) return;
+
+                const place = places[0];
+                const newLat = place.geometry.location.lat();
+                const newLng = place.geometry.location.lng();
+
+                updateMapPosition(newLat, newLng);
+                fetchAddressFromCoordinates(newLat, newLng);
+            });
+
+            // حدث عند سحب العلامة
+            marker.addListener('dragend', function() {
+                const newLat = marker.getPosition().lat();
+                const newLng = marker.getPosition().lng();
+                document.getElementById('latitude').value = newLat;
+                document.getElementById('longitude').value = newLng;
+                fetchAddressFromCoordinates(newLat, newLng);
+            });
+
+            // حدث عند النقر على الخريطة
+            map.addListener('click', function(event) {
+                const newLat = event.latLng.lat();
+                const newLng = event.latLng.lng();
+                updateMapPosition(newLat, newLng);
+            });
+        }
+
+        // دالة تحديث موقع الخريطة
+        function updateMapPosition(lat, lng) {
+            map.setCenter({ lat, lng });
+            marker.setPosition({ lat, lng });
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            fetchAddressFromCoordinates(lat, lng);
+        }
+
+        // دالة جلب العنوان من الإحداثيات
+        function fetchAddressFromCoordinates(lat, lng) {
+            const geocoder = new google.maps.Geocoder();
+            const latLng = { lat, lng };
+
+            geocoder.geocode({ location: latLng }, (results, status) => {
+                if (status === 'OK' && results[0]) {
+                    const addressComponents = results[0].address_components;
+
+                    // تحديث حقول العنوان تلقائياً
+                    document.getElementById('country').value = getAddressComponent(addressComponents, 'country');
+                    document.getElementById('region').value = getAddressComponent(addressComponents, 'administrative_area_level_1');
+                    document.getElementById('city').value = getAddressComponent(addressComponents, 'locality') ||
+                                                          getAddressComponent(addressComponents, 'administrative_area_level_2');
+                    document.getElementById('postal_code').value = getAddressComponent(addressComponents, 'postal_code');
+                    document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
+                    document.getElementById('street2').value = getAddressComponent(addressComponents, 'neighborhood');
+                }
+            });
+        }
+
+        // دالة مساعدة لجلب مكونات العنوان
+        function getAddressComponent(components, type) {
+            const component = components.find(c => c.types.includes(type));
+            return component ? component.long_name : '';
+        }
+
+        // التأكد من تحديد الموقع قبل الإرسال
+        document.getElementById('clientForm').addEventListener('submit', function(e) {
+            const lat = document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value;
+
+            if (!lat || !lng) {
+                e.preventDefault();
+                alert('⚠️ يرجى تحديد موقع العميل على الخريطة قبل الحفظ!');
+                requestLocationPermission();
+            }
+        });
+
+        // كود إدارة الموظفين (كما هو)
+        const employeeSelect = document.getElementById('employee_select');
+        const employeeList = document.getElementById('employee_list');
+        const selectedEmployees = document.getElementById('selected_employees');
+        let selectedEmployeeIds = [];
+
+        employeeSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const employeeId = selectedOption.value;
+            const employeeName = selectedOption.dataset.name;
+
+            if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
+                selectedEmployeeIds.push(employeeId);
+
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.textContent = employeeName;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'حذف';
+                removeBtn.className = 'btn btn-sm btn-danger';
+                removeBtn.onclick = () => {
+                    li.remove();
+                    selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
+                    updateHiddenInputs();
                 };
 
-                geocoder.geocode({
-                    location: latLng
-                }, (results, status) => {
-                    if (status === 'OK') {
-                        if (results[0]) {
-                            const addressComponents = results[0].address_components;
-
-                            document.getElementById('country').value = getAddressComponent(addressComponents,
-                                'country');
-                            document.getElementById('region').value = getAddressComponent(addressComponents,
-                                'administrative_area_level_1');
-                            document.getElementById('city').value = getAddressComponent(addressComponents,
-                                'locality') || getAddressComponent(addressComponents, 'administrative_area_level_2');
-                            document.getElementById('postal_code').value = getAddressComponent(addressComponents,
-                                'postal_code');
-                            document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
-                            document.getElementById('street2').value = getAddressComponent(addressComponents,
-                                'neighborhood');
-                        } else {
-                            console.error('لم يتم العثور على عنوان لهذه الإحداثيات.');
-                        }
-                    } else {
-                        console.error('حدث خطأ أثناء جلب العنوان:', status);
-                    }
-                });
+                li.appendChild(removeBtn);
+                employeeList.appendChild(li);
+                updateHiddenInputs();
             }
 
-            function getAddressComponent(addressComponents, type) {
-                const component = addressComponents.find(component => component.types.includes(type));
-                return component ? component.long_name : '';
-            }
+            this.value = '';
+        });
 
-            document.getElementById('clientForm').addEventListener('submit', function(e) {
-                const lat = document.getElementById('latitude').value;
-                const lon = document.getElementById('longitude').value;
-
-                if (!lat || !lon) {
-                    e.preventDefault();
-                    alert('⚠️ يرجى تحديد الموقع من الخريطة قبل الإرسال!');
-                }
+        function updateHiddenInputs() {
+            selectedEmployees.innerHTML = '';
+            selectedEmployeeIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'employee_client_id[]';
+                input.value = id;
+                selectedEmployees.appendChild(input);
             });
-        </script>
-        <script>
-            const employeeSelect = document.getElementById('employee_select');
-            const employeeList = document.getElementById('employee_list');
-            const selectedEmployees = document.getElementById('selected_employees');
-
-            let selectedEmployeeIds = [];
-
-            employeeSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const employeeId = selectedOption.value;
-                const employeeName = selectedOption.dataset.name;
-
-                // منع التكرار
-                if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
-                    selectedEmployeeIds.push(employeeId);
-
-                    // عرض في القائمة
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    li.textContent = employeeName;
-
-                    const removeBtn = document.createElement('button');
-                    removeBtn.textContent = 'حذف';
-                    removeBtn.className = 'btn btn-sm btn-danger';
-                    removeBtn.onclick = () => {
-                        li.remove();
-                        selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
-                        updateHiddenInputs();
-                    };
-
-                    li.appendChild(removeBtn);
-                    employeeList.appendChild(li);
-
-                    updateHiddenInputs();
-                }
-
-                // إعادة تعيين السلكت
-                this.value = '';
-            });
-
-            function updateHiddenInputs() {
-                selectedEmployees.innerHTML = '';
-                selectedEmployeeIds.forEach(id => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'employee_client_id[]';
-                    input.value = id;
-                    selectedEmployees.appendChild(input);
-                });
-            }
-        </script>
+        }
+    </script>
     @endsection

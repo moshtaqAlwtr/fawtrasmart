@@ -883,8 +883,12 @@
 
             // تحديث تصميم نافذة المعلومات
             function showClientInfo(markerData) {
+                if (infoWindow) {
+                    infoWindow.close();
+                }
+
                 const contentString = `
-        <div class="client-info-window" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px; overflow: hidden;">
+        <div class="client-info-window" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 300px; max-height: 400px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px; overflow: hidden;">
             <div class="info-header" style="background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%); color: white; padding: 16px; text-align: center;">
                 <h6 style="margin: 0; font-size: 18px; font-weight: 700;">
                     ${markerData.data.name}
@@ -895,11 +899,7 @@
             <div class="info-content" style="padding: 16px; background: #f8f9fa;">
                 <div style="display: grid; gap: 10px;">
                     <!-- كود العميل -->
-                    <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                        <i class="fas fa-hashtag" style="color: #7209b7; width: 20px; text-align: center;"></i>
-                        <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الكود:</span>
-                        <span class="info-value" style="color: #343a40; font-weight: 600; font-size: 14px;">${markerData.data.code}</span>
-                    </div>
+
 
                     <!-- هاتف العميل -->
                     <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
@@ -914,7 +914,9 @@
                     <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                         <i class="fas fa-map-marker-alt" style="color: #f72585; width: 20px; text-align: center;"></i>
                         <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الموقع:</span>
-                        <span class="info-value" style="color: #343a40; font-weight: 500; font-size: 14px;">${markerData.data.city}, ${markerData.data.region}</span>
+                        <span class="info-value" style="color: #343a40; font-weight: 500; font-size: 14px;">
+ ${markerData.data.region}
+                        </span>
                     </div>
 
                     <!-- رصيد العميل -->
@@ -929,8 +931,8 @@
 
                 <!-- أزرار الإجراءات -->
                 <div class="info-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button onclick="window.open('{{ route('clients.show', $client->id) }}', '_blank')"
-        style="flex: 1; padding: 10px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+<button onclick="window.location.href='{{ route('clients.show', '') }}/${markerData.data.id}'"
+    style="flex: 1; padding: 10px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
     <i class="fas fa-info-circle"></i>
     التفاصيل
 </button>
@@ -943,9 +945,13 @@
             </div>
         </div>
     `;
-                infoWindow.setContent(contentString);
+                infoWindow = new google.maps.InfoWindow({
+                    content: contentString,
+                    maxWidth: 300
+                });
                 infoWindow.open(map, markerData.marker);
             }
+
             // إضافة علامات العملاء
             let allMarkers = [];
 
@@ -960,10 +966,10 @@
                         title: "{{ $client->trade_name }}",
                         icon: {
                             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                                    <circle cx="20" cy="20" r="18" fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}" stroke="#FFFFFF" stroke-width="2"/>
-                                    <path fill="#FFFFFF" d="M20 10a8 8 0 0 1 8 8c0 5-8 14-8 14s-8-9-8-14a8 8 0 0 1 8-8zm0 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-                                    <text x="20" y="32" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="#FFFFFF">{{ $client->code }}</text>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                                    <path fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}" d="M24 4C16.27 4 10 10.27 10 18c0 7.73 14 26 14 26s14-18.27 14-26C38 10.27 31.73 4 24 4z"/>
+                                    <path fill="#FFFFFF" d="M24 12c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6z"/>
+                                    <text x="24" y="42" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFFFFF">{{ $client->code }}</text>
                                 </svg>
                             `),
                             scaledSize: new google.maps.Size(40, 40),
@@ -980,11 +986,12 @@
                         data: {
                             id: {{ $client->id }},
                             name: "{{ $client->trade_name }}",
-                            code: "{{ $client->code }}",
+
                             status: "{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}",
                             phone: "{{ $client->phone }}",
-                            city: "{{ $client->city }}",
-                            region: "{{ $client->region }}",
+
+
+                            region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
                             balance: "{{ $client->Balance() }}"
                         }
                     });
