@@ -9,6 +9,8 @@ use App\Models\Client;
 use App\Models\Employee;
 use App\Models\Log as ModelsLog;
 use App\Http\Requests\AppointmentRequest;
+use App\Models\Statuses;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +33,7 @@ class AppointmentController extends Controller
 
         // البحث حسب الموظف
         if ($request->has('employee_id') && !empty($request->employee_id)) {
-            $query->where('employee_id', $request->employee_id);
+            $query->where('created_by', $request->employee_id);
         }
 
         // البحث حسب العميل
@@ -44,22 +46,42 @@ class AppointmentController extends Controller
             $query->where('action_type', $request->action_type);
         }
 
+        // البحث حسب مسؤول المبيعات
+        if ($request->has('sales_person_user') && !empty($request->sales_person_user)) {
+            $query->where('created_by', $request->sales_person_user);
+        }
+
+        // البحث حسب التاريخ من
+        if ($request->has('from_date') && !empty($request->from_date)) {
+            $query->whereDate('date', '>=', $request->from_date);
+        }
+
+        // البحث حسب التاريخ إلى
+        if ($request->has('to_date') && !empty($request->to_date)) {
+            $query->whereDate('date', '<=', $request->to_date);
+        }
+
+        // البحث حسب الحالة (من جدول statuses)
+        if ($request->has('status_id') && !empty($request->status_id)) {
+            $query->whereHas('client', function($q) use ($request) {
+                $q->where('status_id', $request->status_id);
+            });
+        }
         $appointments = $query->latest()->paginate(10);
-        $employees = Employee::all();
+        $employees = User::where('role','employee')->get();
         $clients = Client::all();
-        // جلب الإجراءات الفريدة
+        $statuses = Statuses::all();
         $actionTypes = Appointment::distinct()->pluck('action_type')->filter()->values();
 
-        return view('client.appointments.index', compact('appointments', 'employees', 'clients', 'actionTypes'));
+        return view('client.appointments.index', compact('appointments','statuses', 'employees', 'clients', 'actionTypes'));
     }
-
     /**
      * عرض صفحة إنشاء موعد جديد.
      */
     public function create()
     {
         $clients = Client::all();
-        $employees = Employee::all();
+        $employees = User::where('role','employee')->get();
         return view('client.appointments.create', compact('clients', 'employees'));
     }
 
@@ -72,7 +94,7 @@ class AppointmentController extends Controller
             $request->all(),
             [
                 'client_id' => 'required|exists:clients,id',
-                'employee_id' => 'nullable|exists:employees,id',
+                'created_by' => 'nullable|exists:users,id',
                 'date' => 'required|date|after_or_equal:today',
                 'time' => 'required|date_format:H:i',
                 'notes' => 'nullable|string|max:500',
@@ -80,7 +102,7 @@ class AppointmentController extends Controller
             [
                 'client_id.required' => 'يجب اختيار العميل',
                 'client_id.exists' => 'العميل غير موجود',
-                'employee_id.exists' => 'الموظف غير موجود',
+                'created_by.exists' => 'الموظف غير موجود',
                 'date.required' => 'يجب إدخال التاريخ',
                 'date.date' => 'التاريخ غير صحيح',
                 'date.after_or_equal' => 'يجب أن يكون التاريخ اليوم أو في المستقبل',
@@ -93,14 +115,17 @@ class AppointmentController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
+
         $appointment = new Appointment();
         $appointment->client_id = $request->client_id;
-        $appointment->employee_id = $request->employee_id;
+
         $appointment->appointment_date = $request->date;
         $appointment->time = $request->time;
         $appointment->duration = $request->duration;
         $appointment->notes = $request->notes;
+        $appointment->created_by =$request->created_by;
         $appointment->action_type = $request->action_type;
+
 
         if (!empty($request->recurrence_type)) {
             $appointment->is_recurring = true;
@@ -117,9 +142,9 @@ class AppointmentController extends Controller
              'description' => 'تم اضافة موعد جديد',
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
-         
-                
-                
+
+
+
 
         return redirect()->route('appointments.index')->with('success', 'تم إضافة الموعد بنجاح');
     }
@@ -138,7 +163,7 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::findOrFail($id);
         $clients = Client::all();
-        $employees = Employee::all();
+        $employees = User::where('role','employee')->get();
         return view('client.appointments.edit', compact('appointment', 'clients', 'employees'));
     }
 

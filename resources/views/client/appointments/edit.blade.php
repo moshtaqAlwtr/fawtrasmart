@@ -196,14 +196,14 @@
                                         name="assign_staff" onchange="toggleStaffFields(this)">
                                     <label class="custom-control-label" for="assign_staff">تعيين إلى موظفين</label>
                                 </div>
-
-                                <div id="staff-fields" class="mt-3" style="display: none;">
-
-                                        <label for="staff_id">موظف</label>
-                                        <select class="form-control select2" id="employee_id" name="employee_id">
-                                            <option value="">اختر الموظفين</option>
-                                            @foreach($employees as $employee)
-                                                <option value="{{ $employee->employee_id }}">{{ $employee->first_name }}</option>
+                                <div id="staff-fields" style="display: none;">
+                                    <div class="form-group">
+                                        <label for="created_by">اختر الموظف</label>
+                                        <select class="form-control" id="created_by" name="created_by">
+                                            <option value="">اختر الموظف</option>
+                                            @foreach ($employees as $user)
+                                                <option value="{{ $user->id }}">{{ $user->name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>

@@ -38,198 +38,227 @@
         </div>
     </div>
     <div class="content-body">
-        <div class="card shadow-lg border-0 rounded-lg mb-4">
-            <div class="card-header bg-white py-3">
-                <div class="row justify-content-between align-items-center mx-2">
-                    <!-- القسم الأيسر: زر إضافة عميل -->
-                    <div class="col-auto">
-                        <a href="{{ route('clients.create') }}" class="btn btn-success px-4">
-                            <i class="fas fa-plus-circle me-2"></i>
-                            إضافة عميل
-                        </a>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <!-- Checkbox لتحديد الكل -->
+                    <div class="form-check me-3">.
+                        <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+
                     </div>
-    
-                    <!-- القسم الأوسط: التنقل بين الصفحات -->
-                    <div class="col-auto">
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination mb-0 pagination-sm">
-                                <!-- زر الانتقال إلى الصفحة الأولى -->
+
+                    <div class="d-flex flex-wrap justify-content-between">
+                        <a href="{{ route('clients.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
+                            <i class="fas fa-plus-circle me-1"></i> اضافة عميل جديد
+                        </a>
+
+                        <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
+                            <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
+                        </button>
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- زر الانتقال إلى أول صفحة -->
+                            @if ($clients->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </span>
+                                </li>
+                            @else
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-start" href="#" aria-label="First">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}"
+                                        aria-label="First">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </li>
-    
-                                <!-- زر الانتقال إلى الصفحة السابقة -->
+                            @endif
+
+                            <!-- زر الانتقال إلى الصفحة السابقة -->
+                            @if ($clients->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </span>
+                                </li>
+                            @else
                                 <li class="page-item">
-                                    <a class="page-link border-0" href="#" aria-label="Previous">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}"
+                                        aria-label="Previous">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
                                 </li>
-    
-                                <!-- عرض رقم الصفحة الحالية -->
+                            @endif
+
+                            <!-- عرض رقم الصفحة الحالية -->
+                            <li class="page-item">
+                                <span class="page-link border-0 bg-light rounded-pill px-3">
+                                    صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
+                                </span>
+                            </li>
+
+                            <!-- زر الانتقال إلى الصفحة التالية -->
+                            @if ($clients->hasMorePages())
                                 <li class="page-item">
-                                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                                        صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
+                                    <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}"
+                                        aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
                                     </span>
                                 </li>
-    
-                                <!-- زر الانتقال إلى الصفحة التالية -->
-                                @if ($clients->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-    
-                                <!-- زر الانتقال إلى الصفحة الأخيرة -->
+                            @endif
+
+                            <!-- زر الانتقال إلى آخر صفحة -->
+                            @if ($clients->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-end" href="#" aria-label="Last">
+                                    <a class="page-link border-0 rounded-pill"
+                                        href="{{ $clients->url($clients->lastPage()) }}" aria-label="Last">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
                                 </li>
-                            </ul>
-                        </nav>
-                    </div>
-    
-                    <!-- القسم الأيمن: زر تصدير إلى Excel -->
-                    {{-- <div class="col-auto">
-                        <a href="" class="btn btn-primary px-4">
-                            <i class="fas fa-file-excel me-2"></i>
-                            تصدير إلى Excel
-                        </a>
-                    </div> --}}
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
+
+                    <!-- جزء التنقل بين الصفحات -->
+
                 </div>
-            </div>
-    
-            <!-- محتوى الجدول -->
-            <div class="card-body">
-                <!-- محتوى الجدول هنا -->
             </div>
         </div>
     </div>
 
-        <div class="card">
-            <div class="card-content">
-               
-    <div class="card-body">
-        <form class="form" method="GET" action="{{ route('clients.contacts') }}">
-            <!-- البحث الأساسي -->
-            <div class="form-body row">
-                <div class="form-group col-md-12">
-                    <label for="search">بحث بالاسم أو الكود</label>
-                    <input type="text" id="search" class="form-control" placeholder="ادخل الاسم أو الكود" name="search">
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-content">
 
-            <!-- البحث المتقدم -->
-            <div class="collapse" id="advancedSearchForm">
-                <div class="form-body row">
-                    <div class="form-group col-md-12">
-                        <label for="advanced_search">بحث متقدم (بالبريد الإلكتروني أو رقم الهاتف أو الجوال)</label>
-                        <input type="text" id="advanced_search" class="form-control" placeholder="ادخل البريد الإلكتروني أو رقم الهاتف أو الجوال" name="advanced_search">
-                    </div>
-                </div>
-            </div>
-
-            <!-- أزرار البحث -->
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-                <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse" href="#advancedSearchForm" aria-expanded="false" aria-controls="advancedSearchForm">
-                    <i class="bi bi-sliders"></i> بحث متقدم
-                </a>
-                <button type="reset" class="btn btn-outline-warning waves-effect waves-light">إلغاء</button>
-            </div>
-        </form>
-    </div>
-    @if (@isset($clients) && !@empty($clients) && count($clients) > 0)
-    @foreach ($clients as $client)
-        <div class="card">
             <div class="card-body">
-                <div class="card-body row align-items-center">
-                    <div class="col-md-1 text-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="{{ $client->id }}">
+                <form class="form" method="GET" action="{{ route('clients.contacts') }}">
+                    <!-- البحث الأساسي -->
+                    <div class="form-body row">
+                        <div class="form-group col-md-12">
+                            <label for="search">بحث بالاسم أو الكود</label>
+                            <input type="text" id="search" class="form-control" placeholder="ادخل الاسم أو الكود"
+                                name="search">
                         </div>
                     </div>
-                    <div class="col-md-3">
 
-                        <small class="text-muted">{{ $client->code }}</small>
-
-                    </div>
-                    <div class="col-md-3">
-                        <h5 class="mb-0">{{ $client->trade_name }}</h5>
-                    </div>
-                    <div class="col-md-3 text-center">
-                        <strong class="text-primary">
-                            <i class="fas fa-phone me-2"></i>{{ $client->phone }}
-                        </strong>
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <div class="btn-group">
-                            <div class="dropdown">
-                                <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('clients.show_contant', $client->id) }}">
-                                            <i class="fa fa-eye me-2 text-primary"></i>شاهد العميل
-                                        </a>
-                                    </li>
-
-                                    <div class="dropdown-divider"></div>
-                                    <form id="delete-client-{{ $client->id }}"
-                                        action="{{ route('clients.destroy', $client->id) }}"
-                                        method="POST"
-                                        style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                            class="dropdown-item text-danger delete-client"
-                                            data-id="{{ $client->id }}"
-                                            onclick="return confirm('هل أنت متأكد من حذف هذا العميل؟')">
-                                            <i class="fas fa-trash me-2"></i>حذف
-                                        </button>
-                                    </form>
-                                </div>
+                    <!-- البحث المتقدم -->
+                    <div class="collapse" id="advancedSearchForm">
+                        <div class="form-body row">
+                            <div class="form-group col-md-12">
+                                <label for="advanced_search">بحث متقدم (بالبريد الإلكتروني أو رقم الهاتف أو الجوال)</label>
+                                <input type="text" id="advanced_search" class="form-control"
+                                    placeholder="ادخل البريد الإلكتروني أو رقم الهاتف أو الجوال" name="advanced_search">
                             </div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- أزرار البحث -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
+                        <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse" href="#advancedSearchForm"
+                            aria-expanded="false" aria-controls="advancedSearchForm">
+                            <i class="bi bi-sliders"></i> بحث متقدم
+                        </a>
+                        <button type="reset" class="btn btn-outline-warning waves-effect waves-light">إلغاء</button>
+                    </div>
+                </form>
             </div>
+            @if (isset($clients) && !empty($clients) && count($clients) > 0)
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th width="5%" class="text-center">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="select-all">
+                                    </div>
+                                </th>
+                                <th width="20%">الكود</th>
+                                <th width="25%">الاسم التجاري</th>
+                                <th width="20%" class="text-center">الهاتف</th>
+                                <th width="10%" class="text-center">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($clients as $client)
+                                <tr>
+                                    <td class="text-center">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="{{ $client->id }}">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ $client->code }}</small>
+                                    </td>
+                                    <td>
+                                        <h5 class="mb-0">{{ $client->trade_name }}</h5>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="text-primary">
+                                            <i class="fas fa-phone me-2"></i>{{ $client->phone }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v"
+                                                    type="button" id="dropdownMenuButton{{ $client->id }}"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                </button>
+
+                                                <ul class="dropdown-menu dropdown-menu-end show"
+                                                    aria-labelledby="dropdownMenuButton{{ $client->id }}"
+                                                    style="position: fixed; top: 100px; right: 120px; z-index: 1050;">
+
+
+
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.show', $client->id) }}">
+                                                            <i class="fa fa-eye me-2 text-success"></i>شاهد العميل
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="alert alert-danger" role="alert">
+                    <p class="mb-0">لا توجد عملاء</p>
+                </div>
+            @endif
         </div>
-    @endforeach
-@else
-    <div class="alert alert-danger" role="alert">
-        <p class="mb-0">
-            لا توجد  عملاء
-        </p>
     </div>
-@endif
-</div>
-</div>
-</div>
+    </div>
 @endsection
-                   
+
 
 @section('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const advancedSearchButton = document.querySelector('[data-toggle="collapse"]');
             const advancedSearchForm = document.getElementById('advancedSearchForm');
 
-            advancedSearchButton.addEventListener('click', function () {
-               
+            advancedSearchButton.addEventListener('click', function() {
+
             });
         });
     </script>
 @endsection
-
-
-

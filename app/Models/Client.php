@@ -273,10 +273,9 @@ public function status_client()
 // في ملف app/Models/Client.php
 public function status()
 {
-    return $this->belongsTo(Statuses::class)->withDefault([
-        'name' => 'غير محدد',
-        'color' => '#CCCCCC'
-    ]);
+    return $this->belongsTo(Statuses::class);
+
+
 }public function fullLocation(): Attribute
 {
     return Attribute::get(function () {
