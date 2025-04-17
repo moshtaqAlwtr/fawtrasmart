@@ -4,10 +4,126 @@
     ادارة المواعيد
 @stop
 
-@section('head')
-    <!-- تضمين ملفات Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+@section('css')
+
+    <style>
+        /* إضافة CSS للتجاوب مع أحجام الشاشات المختلفة */
+        @media (max-width: 575.98px) {
+            .min-mobile {
+                display: table-cell;
+            }
+
+
+            .fixed-status-menu {
+                position: fixed;
+                left: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 1000;
+                background: white;
+                border-radius: 8px;
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+                padding: 10px 0;
+                width: 180px;
+            }
+
+            .status-menu-item {
+                padding: 8px 15px;
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .status-menu-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .status-menu-item i {
+                margin-left: 8px;
+                font-size: 14px;
+            }
+
+            .status-menu-item .text-danger {
+                color: #dc3545;
+            }
+
+            .status-menu-item .text-success {
+                color: #28a745;
+            }
+
+            .status-menu-item .text-warning {
+                color: #ffc107;
+            }
+
+            .status-menu-item .text-info {
+                color: #17a2b8;
+            }
+
+            .status-menu-item .text-primary {
+                color: #007bff;
+            }
+
+            .min-tablet {
+                display: none;
+            }
+
+            .min-desktop {
+                display: none;
+            }
+        }
+
+        @media (min-width: 576px) and (max-width: 991.98px) {
+            .min-mobile {
+                display: table-cell;
+            }
+
+            .min-tablet {
+                display: table-cell;
+            }
+
+            .min-desktop {
+                display: none;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .min-mobile {
+                display: table-cell;
+            }
+
+            .min-tablet {
+                display: table-cell;
+            }
+
+            .min-desktop {
+                display: table-cell;
+            }
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            left: auto;
+        }
+
+        /* عشان نخلي القائمة ثابتة على الشاشة وقت ما تظهر */
+        .fixed-dropdown-menu {
+            position: fixed !important;
+            top: 100px;
+            /* عدّل حسب المكان المناسب */
+            right: 120px;
+            /* تزحزح نحو اليسار */
+            z-index: 1050;
+            /* عشان تبقى فوق كل العناصر */
+        }
+    </style>
+
 @endsection
 
 @section('content')
@@ -21,18 +137,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
-    @if(session('toast_message'))
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        toastr.{{ session('toast_type', 'success') }}('{{ session('toast_message') }}', '', {
-            positionClass: 'toast-bottom-left',
-            closeButton: true,
-            progressBar: true,
-            timeOut: 5000
-        });
-    });
-</script>
-@endif
+
+    @include('layouts.alerts.success')
+    @include('layouts.alerts.error')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -51,367 +158,389 @@
         </div>
     </div>
     <div class="content-body">
-        <div class="card shadow-lg border-0 rounded-lg mb-4">
-            <div class="card-header bg-white py-3">
-                <div class="row justify-content-between align-items-center mx-2">
-                    <!-- القسم الأيمن -->
-                    <div class="col-auto d-flex align-items-center gap-5">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAll">
-                        </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle px-4" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-filter me-2"></i>
-                            </button>
-                            <ul class="dropdown-menu shadow-sm">
-                                <li><a class="dropdown-item py-2" href="#"><i
-                                            class="fas fa-sort-alpha-down me-2"></i>ترتيب حسب الاسم</a></li>
-                                <li><a class="dropdown-item py-2" href="#"><i
-                                            class="fas fa-sort-numeric-down me-2"></i>ترتيب حسب الرقم</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-sync me-2"></i>تحديث</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="dropdown">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <!-- Checkbox لتحديد الكل -->
+                    <div class="form-check me-3">.
+                        <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
 
-                            <ul class="dropdown-menu shadow-sm">
-                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-edit me-2"></i>تعديل
-                                        المحدد</a></li>
-                                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-trash me-2"></i>حذف
-                                        المحدد</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item py-2" href="#"><i
-                                            class="fas fa-file-export me-2"></i>تصدير</a></li>
-                            </ul>
-                        </div>
                     </div>
 
-                    <!-- القسم الأيسر -->
-                    <div class="col-auto d-flex align-items-center gap-5">
-                        <!-- التنقل بين الصفحات -->
-                        <nav aria-label="Page navigation" class="d-flex align-items-center">
-                            <ul class="pagination mb-0 pagination-sm">
+                    <div class="d-flex flex-wrap justify-content-between">
+                        <a href="{{ route('appointments.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
+                            <i class="fas fa-plus-circle me-1"></i> موعد جديد
+                        </a>
+
+                        <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
+                            <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
+                        </button>
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <!-- زر الانتقال إلى أول صفحة -->
+                            @if ($appointments->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="First">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </span>
+                                </li>
+                            @else
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-start" href="#" aria-label="First">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $appointments->url(1) }}"
+                                        aria-label="First">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
                                 </li>
+                            @endif
+
+                            <!-- زر الانتقال إلى الصفحة السابقة -->
+                            @if ($appointments->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                        <i class="fas fa-angle-right"></i>
+                                    </span>
+                                </li>
+                            @else
                                 <li class="page-item">
-                                    <a class="page-link border-0" href="#" aria-label="Previous">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $appointments->previousPageUrl() }}"
+                                        aria-label="Previous">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
                                 </li>
-                                <li class="page-item"><span class="page-link border-0">صفحة 1 من 10</span></li>
+                            @endif
+
+                            <!-- عرض رقم الصفحة الحالية -->
+                            <li class="page-item">
+                                <span class="page-link border-0 bg-light rounded-pill px-3">
+                                    صفحة {{ $appointments->currentPage() }} من {{ $appointments->lastPage() }}
+                                </span>
+                            </li>
+
+                            <!-- زر الانتقال إلى الصفحة التالية -->
+                            @if ($appointments->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link border-0" href="#" aria-label="Next">
+                                    <a class="page-link border-0 rounded-pill" href="{{ $appointments->nextPageUrl() }}"
+                                        aria-label="Next">
                                         <i class="fas fa-angle-left"></i>
                                     </a>
                                 </li>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                        <i class="fas fa-angle-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+
+                            <!-- زر الانتقال إلى آخر صفحة -->
+                            @if ($appointments->hasMorePages())
                                 <li class="page-item">
-                                    <a class="page-link border-0 rounded-end" href="#" aria-label="Last">
+                                    <a class="page-link border-0 rounded-pill"
+                                        href="{{ $appointments->url($appointments->lastPage()) }}" aria-label="Last">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
                                 </li>
-                            </ul>
-                        </nav>
+                            @else
+                                <li class="page-item disabled">
+                                    <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </span>
+                                </li>
+                            @endif
+                        </ul>
+                    </nav>
 
-                        <div class="d-flex gap-4">
+                    <!-- جزء التنقل بين الصفحات -->
 
-                            <button class="btn btn-outline-secondary sitting px-4" type="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <i class="fas fa-cog me-2"></i>
-                            </button>
-                            <!-- زر إضافة عميل -->
-                            <a href="{{ route('appointments.create') }}" class="btn btn-success px-4">
-                                <i class="fas fa-plus-circle me-2"></i>
-                                موعد جديد
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </div>
-
-            <!-- محتوى الجدول -->
-
         </div>
-
         <div class="card">
             <div class="card-content">
                 <div class="card-body">
                     <h4 class="card-title">بحث</h4>
-                </div>
 
-                <div class="card-body">
-                    <form class="form">
-                        <div class="form-body row">
-                            <div class="form-group col-md-4">
-                                <select name="status" id="feedback2" class="form-control">
-                                    <option value="">-- اختر الحالة --</option>
-                                    <option value="pending">تم جدولته</option>
-                                    <option value="completed">تم</option>
-                                    <option value="ignored">صرف النظر عنه</option>
-                                    <option value="rescheduled">تم جدولته مجددا</option>
-                                </select>
-                            </div>
 
-                            <div class="form-group col-md-4">
-                                <select name="employee_id" class="form-control" id="">
-                                    <option value="">الموضف </option>
-                                    @if (@isset($employees) && !@empty($employees) && count($employees) > 0)
-                                        @foreach ($employees as $employee)
-                                            <option value="{{ $employee->employee_id }}">{{ $employee->full_name }}
-                                                {{-- {{ $employee->last_name }}</option> --}}
-                                        @endforeach
-                                    @else
-                                        <option value="">لا توجد عملا�� حاليا</option>
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="time" class="form-label">اختار الحالة </label>
-                                <select class="form-control" name="client_id" required>
-                                    @foreach($clients as $client)
-                                        <option value="{{ $client->id }}">
-                                            @if($client->client_type == 1)
-                                                عميل عادي
-                                            @elseif($client->client_type == 2)
-                                                عميل VIP
-                                            @else
-                                                غير محدد
-                                            @endif
+                    <div class="card-body">
+                        <form class="form" action="{{ route('appointments.index') }}" method="GET">
+                            <div class="form-body row">
+                                <div class="form-group col-md-4">
+                                    <label for=""> اختر الاجراء</label>
+                                    <select name="status" id="feedback2" class="form-control">
+                                        <option value="">-- اختر الحالة --</option>
+                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>تم
+                                            جدولته</option>
+                                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>
+                                            تم</option>
+                                        <option value="ignored" {{ request('status') == 'ignored' ? 'selected' : '' }}>صرف
+                                            النظر عنه</option>
+                                        <option value="rescheduled"
+                                            {{ request('status') == 'rescheduled' ? 'selected' : '' }}>تم جدولته مجددا
                                         </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="form-group col-md-4">
-                                <select id="feedback2" class="form-control">
-                                    <option value="">اي اجراء</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="collapse" id="advancedSearchForm">
-                            <div class="form-body row d-flex align-items-center g-0">
-
-                                <div class="form-group col-md-2">
-                                    <select id="feedback2" class="form-control">
-                                        <option value="">تخصيص</option>
-                                        <option value=""></option>
-                                        <option value=""></option>
-                                        <option value=""></option>
                                     </select>
                                 </div>
 
-                                <div class="form-group col-md-2">
-                                    <input type="date" id="feedback1" class="form-control" placeholder="من"
-                                        name="from_date">
+                                <div class="col-md-4">
+                                    <label for="sales_person_user">مسؤول المبيعات (المستخدمين)</label>
+                                    <select name="sales_person_user" class="form-control" id="sales_person_user">
+                                        <option value="">مسؤول المبيعات</option>
+                                        @foreach ($employees as $user)
+                                            <option value="{{ $user->id }}"
+                                                {{ request('sales_person_user') == $user->id ? 'selected' : '' }}>
+                                                {{ $user->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
-                                <!-- إلى (التاريخ) -->
-                                <div class="form-group col-md-2">
-                                    <input type="date" id="feedback2" class="form-control" placeholder="إلى"
-                                        name="to_date">
+                                <div class="form-group col-md-4">
+                                    <label for="time" class="form-label">اختار الحالة </label>
+                                    <select class="form-control" name="status_id">
+                                        <option value="">-- اختر الحالة --</option>
+                                        @foreach ($statuses as $status)
+                                            <option value="{{ $status->id }}"
+                                                {{ request('status_id') == $status->id ? 'selected' : '' }}>
+                                                {{ $status->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                                <div class="form-group col-md-3">
-                                    <select name="" class="form-control" id="">
-                                        <option value="">العميل </option>
-                                        @if (@isset($clients) && !@empty($clients) && count($clients) > 0)
-                                            @foreach ($clients as $client)
-                                                <option value="{{ $client->id }}">{{ $client->trade_name }}
-                                                    {{ $client->last_name }}</option>
+                            </div>
+
+                            <div class="collapse" id="advancedSearchForm">
+                                <div class="form-body row d-flex align-items-center g-0">
+                                    <div class="form-group col-md-2">
+                                        <select name="action_type" class="form-control">
+                                            <option value="">نوع الإجراء</option>
+                                            @foreach ($actionTypes as $type)
+                                                <option value="{{ $type }}"
+                                                    {{ request('action_type') == $type ? 'selected' : '' }}>
+                                                    {{ $type }}</option>
                                             @endforeach
-                                        @else
-                                            <option value="">لا توجد حالات حاليا</option>
-                                        @endif
-                                    </select>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+                                        <input type="date" class="form-control" placeholder="من" name="from_date"
+                                            value="{{ request('from_date') }}">
+                                    </div>
+
+                                    <div class="form-group col-md-2">
+                                        <input type="date" class="form-control" placeholder="إلى" name="to_date"
+                                            value="{{ request('to_date') }}">
+                                    </div>
+
+                                    <div class="form-group col-md-3">
+                                        <select name="client_id" class="form-control">
+                                            <option value="">العميل</option>
+                                            @if (isset($clients) && !empty($clients) && count($clients) > 0)
+                                                @foreach ($clients as $client)
+                                                    <option value="{{ $client->id }}"
+                                                        {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                                        {{ $client->trade_name }} {{ $client->last_name }}
+                                                    </option>
+                                                @endforeach
+                                            @else
+                                                <option value="">لا توجد عملاء حاليا</option>
+                                            @endif
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group col-md-3">
+                                        <select name="employee_id" class="form-control">
+                                            <option value="">أضيفت بواسطة</option>
+                                            @if (isset($employees) && !empty($employees) && count($employees) > 0)
+                                                @foreach ($employees as $employee)
+                                                    <option value="{{ $employee->id }}"
+                                                        {{ request('employee_id') == $employee->id ? 'selected' : '' }}>
+                                                        {{ $employee->name }}
+                                                    </option>
+                                                @endforeach
+                                            @else
+                                                <option value="">لا توجد موظفين حاليا</option>
+                                            @endif
+                                        </select>
+                                    </div>
                                 </div>
-
-                                <div class="form-group col-md-3">
-                                    <select name="employee_id" class="form-control" id="">
-                                        <option value="">اضيفت بواسطة </option>
-                                        @if (@isset($employees) && !@empty($employees) && count($employees) > 0)
-                                            @foreach ($employees as $employee)
-                                                <option value="{{ $employee->employee_id }}">{{ $employee->first_name }}
-                                                    {{ $employee->last_name }}</option>
-                                            @endforeach
-                                        @else
-                                            <option value="">لا توجد عملا�� حاليا</option>
-                                        @endif
-                                    </select>
-                                </div>
-                                <div class="form-group col-md-3">
-                                    <select name="" class="form-control" id="">
-                                        <option value=""> ضعط </option>
-
-                                    </select>
-                                </div>
-
-
-
-
-
-
-
                             </div>
 
-                        </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
+                                <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
+                                    data-target="#advancedSearchForm">
+                                    <i class="bi bi-sliders"></i> بحث متقدم
+                                </a>
+                                <a href="{{ route('appointments.index') }}"
+                                    class="btn btn-outline-warning waves-effect waves-light">إلغاء</a>
+                            </div>
+                        </form>
+                    </div>
+
+
+
 
 
 
                 </div>
-
-
-
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
-
-                    <a class="btn btn-outline-secondary ml-2 mr-2" data-toggle="collapse"
-                        data-target="#advancedSearchForm">
-                        <i class="bi bi-sliders"></i> بحث متقدم
-                    </a>
-                    <button type="reset" class="btn btn-outline-warning waves-effect waves-light">Cancel</button>
-                </div>
-
-
-
             </div>
         </div>
         @if (@isset($appointments) && !@empty($appointments) && count($appointments) > 0)
-        @foreach ($appointments as $info)
-            <div class="card mb-3" style="height: auto; min-height: 150px;">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <h5 class="mb-0 me-3">{{ $info->client->trade_name }}</h5>
-                        <span id="status-badge-{{ $info->id }}" class="badge {{ $info->status == 1 ? 'bg-warning' : ($info->status == 2 ? 'bg-success' : ($info->status == 3 ? 'bg-danger' : 'bg-info')) }}" style="margin-right: 20px">
-                            {{ $info->status == 1 ? 'قيد الانتظار' : ($info->status == 2 ? 'مكتمل' : ($info->status == 3 ? 'ملغي' : 'معاد جدولته')) }}
-                        </span>
-
-                        <!-- In your dropdown menu -->
-
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <div class="btn-group">
-                    <div class="dropdown">
-                        <button class="btn bg-gradient-info fa fa-ellipsis-v" type="button" id="dropdownMenuButton{{ $info->id }}" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ $info->id }}">
-                            <li>
-                                <a class="dropdown-item" href="{{ route('appointments.show', $info->id) }}">
-                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{{ route('appointments.edit', $info->id) }}">
-                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                </a>
-                            </li>
-                            <form action="{{ route('appointments.update-status', $info->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="1">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fa fa-clock me-2 text-warning"></i>تم جدولته
-                                </button>
-                            </form>
-
-                            <form action="{{ route('appointments.update-status', $info->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="2">
-                                <input type="hidden" name="auto_delete" value="1">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fa fa-check me-2 text-success"></i>تم
-                                </button>
-                            </form>
-
-                            <!-- For ignored status -->
-                            <form action="{{ route('appointments.update-status', $info->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="3">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fa fa-times me-2 text-danger"></i>صرف النظر عنه
-                                </button>
-                            </form>
-                            <form action="{{ route('appointments.update-status', $info->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="4">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fa fa-redo me-2 text-info"></i>تم جدولته مجددا
-                                </button>
-                            </form>
-
-                            <li>
-                                <form action="{{ route('appointments.destroy', $info->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="dropdown-item text-danger" onclick="return confirm('هل أنت متأكد من حذف هذا الموعد؟')">
-                                        <i class="fa fa-trash me-2"></i>حذف
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="card">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
+                    <div class="table"> <!-- إضافة div لجعل الجدول متجاوبًا -->
+                        <table class="table table-striped table-bordered dt-responsive nowrap" style="width:100%">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="min-mobile">اسم العميل</th>
+                                    <th class="min-tablet">حالة العميل</th>
+                                    <th class="min-tablet">رقم الهاتف</th>
+                                    <th class="min-mobile">التاريخ</th>
+                                    <th class="min-tablet">الوقت</th>
+                                    <th class="min-desktop">المدة</th>
+                                    <th class="min-tablet">الموظف</th>
+                                    <th class="min-mobile">الحالة</th>
+                                    <th style="width: 80px">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($appointments as $info)
+                                    <tr>
+                                        <td class="min-mobile">{{ $info->client->trade_name }}</td>
+                                        <td class="min-tablet">
+                                            @if ($info->client->status_client)
+                                            <span
+                                                style="background-color: {{ $info->client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                {{ $info->client->status_client->name }}
+                                            </span>
+                                        @else
+                                            <span
+                                                style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                غير محدد
+                                            </span>
+                                        @endif
+                                        </td>
+                                        <td class="min-tablet">{{ $info->client->phone }}</td>
+                                        <td class="min-mobile">
+                                            {{ \Carbon\Carbon::parse($info->appointment_date)->format('Y-m-d') }}</td>
+                                        <td class="min-tablet">{{ $info->time }}</td>
+                                        <td class="min-desktop">{{ $info->duration ?? 'غير محدد' }}</td>
+                                        <td class="min-tablet">
+                                            {{ $info->createdBy ? $info->createdBy->name : 'غير محدد' }}</td>
+                                        <td class="min-mobile">
+                                            <span
+                                                class="badge
+                                    {{ $info->status == 1
+                                        ? 'bg-warning'
+                                        : ($info->status == 2
+                                            ? 'bg-success'
+                                            : ($info->status == 3
+                                                ? 'bg-danger'
+                                                : 'bg-info')) }}">
+                                                {{ $info->status == 1
+                                                    ? 'قيد الانتظار'
+                                                    : ($info->status == 2
+                                                        ? 'مكتمل'
+                                                        : ($info->status == 3
+                                                            ? 'ملغي'
+                                                            : 'معاد جدولته')) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v"
+                                                        type="button" id="dropdownMenuButton{{ $info->id }}"
+                                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                                    </button>
 
-                            <div class="mb-2">
-                                <strong>اسم العميل التجاري:</strong> {{ $info->client->trade_name }}
-                            </div>
-                            <div class="mb-2">
-                                <strong>نوع العميل:</strong>
-                                @if($info->client->client_type == 1)
-                                    عميل عادي
-                                @elseif($info->client->client_type == 2)
-                                    عميل VIP
-                                @else
-                                    غير محدد
-                                @endif
-                            </div>
-                            <div class="mb-2">
-                                <strong>رقم الهاتف:</strong> {{ $info->client->phone }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-2">
-                                <strong>التاريخ:</strong> {{ \Carbon\Carbon::parse($info->appointment_date)->format('Y-m-d') }}
-                            </div>
-                            <div class="mb-2">
-                                <strong>الوقت:</strong> {{ $info->time }}
-                            </div>
-                            <div class="mb-2">
-                                <strong>المدة:</strong> {{ $info->duration ?? 'غير محدد' }}
-                            </div>
-                            <div class="mb-2">
-                                <strong>الموظف:</strong> {{ $info->employee ? $info->employee->name : 'غير محدد' }}
-                            </div>
-                        </div>
+                                                    <ul class="dropdown-menu dropdown-menu-end show"
+                                                        aria-labelledby="dropdownMenuButton{{ $info->id }}"
+                                                        style="position: fixed; top: 100px; right: 120px; z-index: 1050;">
+
+
+
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('appointments.edit', $info->id) }}">
+                                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                            </a>
+                                                        </li>
+
+                                                        <form
+                                                            action="{{ route('appointments.update-status', $info->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <input type="hidden" name="status" value="1">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fa fa-clock me-2 text-warning"></i>تم جدولته
+                                                            </button>
+                                                        </form>
+
+                                                        <form
+                                                            action="{{ route('appointments.update-status', $info->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <input type="hidden" name="status" value="2">
+                                                            <input type="hidden" name="auto_delete" value="1">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fa fa-check me-2 text-success"></i>تم
+                                                            </button>
+                                                        </form>
+
+                                                        <form
+                                                            action="{{ route('appointments.update-status', $info->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <input type="hidden" name="status" value="3">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fa fa-times me-2 text-danger"></i>صرف النظر عنه
+                                                            </button>
+                                                        </form>
+
+                                                        <form
+                                                            action="{{ route('appointments.update-status', $info->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <input type="hidden" name="status" value="4">
+                                                            <button type="submit" class="dropdown-item">
+                                                                <i class="fa fa-redo me-2 text-info"></i>تم جدولته مجددا
+                                                            </button>
+                                                        </form>
+
+                                                        <li>
+                                                            <form action="{{ route('appointments.destroy', $info->id) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="dropdown-item text-danger"
+                                                                    onclick="return confirm('هل أنت متأكد من حذف هذا الموعد؟')">
+                                                                    <i class="fa fa-trash me-2"></i>حذف
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                    @if($info->notes)
-                        <div class="mt-3 bg-light p-2 rounded">
-                            <strong>ملاحظات:</strong>
-                            <p class="mb-0">{{ $info->anotes }}</p>
-                        </div>
-                    @endif
                 </div>
             </div>
-        @endforeach
-    @else
-        <div class="alert alert-info text-center">
-            <p class="mb-0">لا توجد مواعيد مسجلة حالياً</p>
-        </div>
-    @endif
+        @else
+            <div class="alert alert-info text-center">
+                <p class="mb-0">لا توجد مواعيد مسجلة حالياً</p>
+            </div>
+        @endif
+
     </div>
     </div>
     </div>
@@ -423,7 +552,7 @@
 
 
 @section('scripts')
-<script src="{{ asset('assets/js/applmintion.js') }}"></script>
+    <script src="{{ asset('assets/js/applmintion.js') }}"></script>
 
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
@@ -432,4 +561,3 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @endsection
-

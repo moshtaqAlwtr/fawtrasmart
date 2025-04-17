@@ -1,20 +1,21 @@
 @extends('master')
 
 @section('title')
-    تعديل العميل - {{ $client->trade_name }}
+    تعديل عميل
 @stop
+<!-- أضف هذه المكتبات في head أو قبل نهاية body -->
 
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">تعديل العميل</h2>
+                    <h2 class="content-header-title float-left mb-0"> تعديل  عميل</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسيه</a>
                             </li>
-                            <li class="breadcrumb-item active">تعديل
+                            <li class="breadcrumb-item active">
                             </li>
                         </ol>
                     </div>
@@ -23,36 +24,30 @@
         </div>
     </div>
     <div class="content-body">
+
+
+        @include('layouts.alerts.success')
+        @include('layouts.alerts.error')
+
+
+
+
         <form id="clientForm" action="{{ route('clients.update', $client->id) }}" method="POST"
             enctype="multipart/form-data">
             @csrf
             @method('PUT')
-
-
-          <!-- حقلين مخفيين لتخزين الإحداثيات -->
-<input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $client->latitude ?? ($location->latitude ?? '')) }}">
-<input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $client->longitude ?? ($location->longitude ?? '')) }}">
-
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
+            <!-- حقلين مخفيين لتخزين الإحداثيات -->
+            <input type="hidden" name="latitude" id="latitude"
+                value="{{ old('latitude', $client->latitude ?? ($location->latitude ?? '')) }}">
+            <input type="hidden" name="longitude" id="longitude"
+                value="{{ old('longitude', $client->longitude ?? ($location->longitude ?? '')) }}">
 
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
+                            <label>الحقول التي عليها علامة <span style="color: red">*</span>
+                                الزامية</label>
                         </div>
 
                         <div>
@@ -241,7 +236,8 @@
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="commercial_registration">السجل التجاري</label>
+                                                <label for="commercial_registration">السجل
+                                                    التجاري</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="text" name="commercial_registration"
                                                         id="commercial_registration" class="form-control"
@@ -269,7 +265,8 @@
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="credit_period">المدة الائتمانية (أيام)</label>
+                                                <label for="credit_period">المدة الائتمانية
+                                                    (أيام)</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="number" name="credit_period" id="credit_period"
                                                         class="form-control"
@@ -280,43 +277,48 @@
                                                 </div>
                                             </div>
                                         </div>
-                              <div class="col-md-6 col-12 mb-3">
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
                                                     <select class="form-control" id="printing_method" name="region_id">
-                                                        @foreach($Regions_groub as $Region_groub)
-                                                        <option value="{{ $Region_groub->id }}" 
-                                                            {{ isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : '' }}>
-                                                            {{ $Region_groub->name }}
-                                                        </option>
-                                                        
+                                                        @foreach ($Regions_groub as $Region_groub)
+                                                            <option value="{{ $Region_groub->id }}"
+                                                                {{ isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : '' }}>
+                                                                {{ $Region_groub->name }}
+                                                            </option>
                                                         @endforeach
                                                     </select>
-                                                    
 
 
 
 
-                                                    </div>
+
                                                 </div>
                                             </div>
-                                            
-                                            <div class="col-md-6 col-12 mb-3">
+                                        </div>
+
+                                        <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    
-                                                     <select class="form-control" id="printing_method" name="visit_type">
-    <option value="am" {{ $client->visit_type == 'am' ? 'selected' : '' }}>صباحية</option>
-    <option value="pm" {{ $client->visit_type == 'pm' ? 'selected' : '' }}>مسائية</option>
-</select>
+
+                                                    <select class="form-control" id="printing_method" name="visit_type">
+                                                        <option value="am"
+                                                            {{ $client->visit_type == 'am' ? 'selected' : '' }}>
+                                                            صباحية
+                                                        </option>
+                                                        <option value="pm"
+                                                            {{ $client->visit_type == 'pm' ? 'selected' : '' }}>
+                                                            مسائية
+                                                        </option>
+                                                    </select>
 
 
 
-                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
                                         <!-- زر إظهار الخريطة -->
                                         <div class="col-12 mb-3">
                                             <button type="button" class="btn btn-outline-primary"
@@ -329,7 +331,7 @@
                                                 <div id="map" style="height: 100%;"></div>
                                             </div>
                                         </div>
-                                     
+
                                         <!-- قائمة الاتصال -->
                                         <div class="card">
                                             <div class="card-header">
@@ -344,7 +346,8 @@
                                                         <button type="button"
                                                             class="btn btn-outline-success mr-1 mb-1 إضافة"
                                                             onclick="addContactFields()">
-                                                            <i class="feather icon-plus"></i> إضافة جهة اتصال
+                                                            <i class="feather icon-plus"></i> إضافة جهة
+                                                            اتصال
                                                         </button>
                                                     </div>
                                                 </div>
@@ -387,7 +390,8 @@
                                                 <div class="position-relative has-icon-left">
                                                     <select name="printing_method" id="printing_method"
                                                         class="form-control">
-                                                        <option value="">اختر طريقة الطباعة</option>
+                                                        <option value="">اختر طريقة الطباعة
+                                                        </option>
                                                         <option value="1"
                                                             {{ old('printing_method', $client->printing_method) == '1' ? 'selected' : '' }}>
                                                             طباعة</option>
@@ -408,9 +412,10 @@
                                                 <label for="opening_balance">الرصيد الافتتاحي</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="number" step="0.01" name="opening_balance"
-                                                    id="opening_balance" class="form-control"
-                                                    value="{{ old('opening_balance', $client->opening_balance) }}" disabled>
-                                             
+                                                        id="opening_balance" class="form-control"
+                                                        value="{{ old('opening_balance', $client->opening_balance) }}"
+                                                        disabled>
+
                                                     <div class="form-control-position">
                                                         <i class="feather icon-dollar-sign"></i>
                                                     </div>
@@ -421,7 +426,8 @@
                                         <!-- تاريخ الرصيد الاستحقاق -->
                                         <div class="col-md-6 mb-3">
                                             <div class="form-group">
-                                                <label for="opening_balance_date">تاريخ الرصيد الاستحقاق</label>
+                                                <label for="opening_balance_date">تاريخ الرصيد
+                                                    الاستحقاق</label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="date" name="opening_balance_date"
                                                         id="opening_balance_date" class="form-control"
@@ -513,7 +519,8 @@
                                                     class="form-control @error('attachments') is-invalid @enderror"
                                                     id="attachments" name="attachments">
                                                 @error('attachments')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                    <div class="invalid-feedback">{{ $message }}
+                                                    </div>
                                                 @enderror
                                                 @if ($client->attachments)
                                                     <div class="mt-2">
@@ -526,7 +533,8 @@
                                             <div class="col-md-12 col-12 mb-3">
                                                 <div class="form-group">
                                                     <label for="branch_id">الفرع</label>
-                                                    <select class="form-control" name="branch_id" id="branch_id" required>
+                                                    <select class="form-control" name="branch_id" id="branch_id"
+                                                        required>
                                                         <option value="">اختر الفرع</option>
                                                         @foreach ($branches as $branche)
                                                             <option value="{{ $branche->id }}"
@@ -535,46 +543,46 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    
-                                                    
                                                 </div>
                                             </div>
                                             @if (auth()->user()->role === 'manager')
-                                            <div class="col-md-12 col-12 mb-3">
-                                                <div class="form-group">
-                                                    <label for="employee_client_id" class="form-label">الموظفين المسؤولين</label>
-                                                    <select id="employee_select" class="form-control">
-                                                        <option value="">اختر الموظف</option>
-                                                        @foreach ($employees as $employee)
-                                                            <option value="{{ $employee->id }}" data-name="{{ $employee->full_name }}">
-                                                                {{ $employee->full_name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                        
-                                                    {{-- الحقل الحقيقي الذي يتم إرساله --}}
-                                                    <div id="selected_employees">
-                                                        @foreach ($client->employees as $assigned)
-                                                            <input type="hidden" name="employee_client_id[]" value="{{ $assigned->id }}">
-                                                        @endforeach
+                                                <div class="col-md-12 col-12 mb-3">
+                                                    <div class="form-group">
+                                                        <label for="employee_client_id" class="form-label">الموظفين
+                                                            المسؤولين</label>
+                                                        <select id="employee_select" class="form-control">
+                                                            <option value="">اختر الموظف</option>
+                                                            @foreach ($employees as $employee)
+                                                                <option value="{{ $employee->id }}"
+                                                                    data-name="{{ $employee->full_name }}">
+                                                                    {{ $employee->full_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+
+                                                        {{-- الحقل الحقيقي الذي يتم إرساله --}}
+                                                        <div id="selected_employees">
+                                                            @foreach ($client->employees as $assigned)
+                                                                <input type="hidden" name="employee_client_id[]"
+                                                                    value="{{ $assigned->id }}">
+                                                            @endforeach
+                                                        </div>
+
+                                                        {{-- عرض الموظفين المسؤولين الحاليين --}}
+                                                        <ul id="employee_list" class="mt-2 list-group">
+                                                            @foreach ($client->employees as $assigned)
+                                                                <li
+                                                                    class="list-group-item d-flex justify-content-between align-items-center">
+                                                                    {{ $assigned->full_name }}
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-danger remove-employee"
+                                                                        data-id="{{ $assigned->id }}">حذف</button>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
                                                     </div>
-                                        
-                                                    {{-- عرض الموظفين المسؤولين الحاليين --}}
-                                                    <ul id="employee_list" class="mt-2 list-group">
-                                                        @foreach ($client->employees as $assigned)
-                                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                                {{ $assigned->full_name }}
-                                                                <button type="button" class="btn btn-sm btn-danger remove-employee" data-id="{{ $assigned->id }}">حذف</button>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
                                                 </div>
-                                            </div>
-                                        @endif
-                                        
-                                        
-                                      
-                                        
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -584,206 +592,213 @@
                 </div>
             </div>
         </form>
-    </div>
-@endsection
+    @endsection
 
-@section('scripts')
-    <script src="{{ asset('assets/js/scripts.js') }}"></script>
-    <!-- إضافة مكتبة Google Maps -->
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
-    <script>
-        let savedLat = {{ $location->latitude ?? 'null' }};
-        let savedLng = {{ $location->longitude ?? 'null' }};
-    </script>
-    
-    <script>
-        // دالة لعرض الخريطة
-        function toggleMap() {
-            const mapContainer = document.getElementById('map-container');
-            if (mapContainer.style.display === 'none') {
-                mapContainer.style.display = 'block';
-            } else {
-                mapContainer.style.display = 'none';
-            }
-        }
+    @section('scripts')
+        {{-- <script src="{{ asset('assets/js/scripts.js') }}"></script> --}}
+        <!-- إضافة مكتبة Google Maps -->
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
 
-        // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
-    // دالة لطلب الإذن من المستخدم للوصول إلى موقعه الحالي
-function requestLocationPermission() {
-    toggleMap(); // لعرض الخريطة
+        <script>
+            function toggleMap() {
+                const mapContainer = document.getElementById('map-container');
+                const searchBox = document.getElementById('search-box');
 
-    // إذا كان لدينا موقع محفوظ من السيرفر
-    if (savedLat && savedLng) {
-        initMap(savedLat, savedLng);
-        return;
-    }
-
-    // إذا لم يكن لدينا موقع محفوظ، نطلب موقع المستخدم
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                initMap(position.coords.latitude, position.coords.longitude);
-            },
-            (error) => {
-                alert('⚠️ سيتم الاحتفاظ بالموقع القديم. يرجى السماح بالوصول إلى الموقع لتحديثه.');
-                console.error('Error getting location:', error);
-                // هنا لا نقوم بأي شيء وسيتم الاحتفاظ بالقيم القديمة
-            }
-        );
-    } else {
-        alert('⚠️ المتصفح لا يدعم تحديد الموقع. سيتم الاحتفاظ بالموقع القديم.');
-    }
-}
-
-
-        // دالة لتهيئة الخريطة
-        function initMap(lat, lng) {
-            // تعيين الإحداثيات في الحقول المخفية
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-
-            // تهيئة الخريطة مع الإحداثيات المحددة
-            const map = new google.maps.Map(document.getElementById('map'), {
-                center: {
-                    lat,
-                    lng
-                },
-                zoom: 15, // زيادة مستوى التكبير لدقة أعلى
-            });
-
-            // إضافة علامة (Marker) في الموقع المحدد
-            const marker = new google.maps.Marker({
-                position: {
-                    lat,
-                    lng
-                },
-                map: map,
-                draggable: true, // السماح بسحب العلامة
-                title: 'موقعك الحالي',
-            });
-
-            // تحديث الحقول المخفية عند تحريك العلامة
-            google.maps.event.addListener(marker, 'dragend', function() {
-                const newLat = marker.getPosition().lat();
-                const newLng = marker.getPosition().lng();
-                document.getElementById('latitude').value = newLat;
-                document.getElementById('longitude').value = newLng;
-
-                // جلب العنوان بناءً على الإحداثيات الجديدة
-                fetchAddressFromCoordinates(newLat, newLng);
-            });
-
-            // جلب العنوان عند النقر على الخريطة
-            google.maps.event.addListener(map, 'click', function(event) {
-                const newLat = event.latLng.lat();
-                const newLng = event.latLng.lng();
-                marker.setPosition({
-                    lat: newLat,
-                    lng: newLng
-                });
-                document.getElementById('latitude').value = newLat;
-                document.getElementById('longitude').value = newLng;
-
-                // جلب العنوان بناءً على الإحداثيات الجديدة
-                fetchAddressFromCoordinates(newLat, newLng);
-            });
-        }
-
-        // دالة لجلب العنوان من الإحداثيات
-        function fetchAddressFromCoordinates(lat, lng) {
-            const geocoder = new google.maps.Geocoder();
-            const latLng = {
-                lat,
-                lng
-            };
-
-            geocoder.geocode({
-                location: latLng
-            }, (results, status) => {
-                if (status === 'OK') {
-                    if (results[0]) {
-                        const addressComponents = results[0].address_components;
-
-                        // تعبئة الحقول بناءً على البيانات المسترجعة
-                        document.getElementById('country').value = getAddressComponent(addressComponents,
-                        'country');
-                        document.getElementById('region').value = getAddressComponent(addressComponents,
-                            'administrative_area_level_1');
-                        document.getElementById('city').value = getAddressComponent(addressComponents,
-                            'locality') || getAddressComponent(addressComponents, 'administrative_area_level_2');
-                        document.getElementById('postal_code').value = getAddressComponent(addressComponents,
-                            'postal_code');
-                        document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
-                        document.getElementById('street2').value =
-    getAddressComponent(addressComponents, 'neighborhood') ||
-    getAddressComponent(addressComponents, 'sublocality') ||
-    getAddressComponent(addressComponents, 'sublocality_level_1');
-                    } else {
-                        console.error('لم يتم العثور على عنوان لهذه الإحداثيات.');
-                    }
+                if (mapContainer.style.display === 'none') {
+                    mapContainer.style.display = 'block';
+                    searchBox.style.display = 'block';
                 } else {
-                    console.error('حدث خطأ أثناء جلب العنوان:', status);
+                    mapContainer.style.display = 'none';
+                    searchBox.style.display = 'none';
+                }
+            }
+
+            function requestLocationPermission() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            toggleMap();
+                            initMap(position.coords.latitude, position.coords.longitude);
+                        },
+                        (error) => {
+                            alert('⚠️ يرجى السماح بالوصول إلى الموقع لعرض الخريطة.');
+                            console.error('Error getting location:', error);
+                        }
+                    );
+                } else {
+                    alert('⚠️ المتصفح لا يدعم تحديد الموقع. يرجى استخدام متصفح آخر.');
+                }
+            }
+
+            function initMap(lat, lng) {
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
+
+                const map = new google.maps.Map(document.getElementById('map'), {
+                    center: {
+                        lat,
+                        lng
+                    },
+                    zoom: 15,
+                });
+
+                const marker = new google.maps.Marker({
+                    position: {
+                        lat,
+                        lng
+                    },
+                    map: map,
+                    draggable: true,
+                    title: 'موقعك الحالي',
+                });
+
+                const searchBox = new google.maps.places.SearchBox(document.getElementById('search-box'));
+                map.controls[google.maps.ControlPosition.TOP_CENTER].push(document.getElementById('search-box'));
+
+                searchBox.addListener('places_changed', function() {
+                    const places = searchBox.getPlaces();
+                    if (places.length === 0) return;
+
+                    const place = places[0];
+                    const newLat = place.geometry.location.lat();
+                    const newLng = place.geometry.location.lng();
+
+                    map.setCenter({
+                        lat: newLat,
+                        lng: newLng
+                    });
+                    marker.setPosition({
+                        lat: newLat,
+                        lng: newLng
+                    });
+
+                    document.getElementById('latitude').value = newLat;
+                    document.getElementById('longitude').value = newLng;
+
+                    fetchAddressFromCoordinates(newLat, newLng);
+                });
+
+                google.maps.event.addListener(marker, 'dragend', function() {
+                    const newLat = marker.getPosition().lat();
+                    const newLng = marker.getPosition().lng();
+                    document.getElementById('latitude').value = newLat;
+                    document.getElementById('longitude').value = newLng;
+
+                    fetchAddressFromCoordinates(newLat, newLng);
+                });
+
+                google.maps.event.addListener(map, 'click', function(event) {
+                    const newLat = event.latLng.lat();
+                    const newLng = event.latLng.lng();
+                    marker.setPosition({
+                        lat: newLat,
+                        lng: newLng
+                    });
+                    document.getElementById('latitude').value = newLat;
+                    document.getElementById('longitude').value = newLng;
+
+                    fetchAddressFromCoordinates(newLat, newLng);
+                });
+            }
+
+            function fetchAddressFromCoordinates(lat, lng) {
+                const geocoder = new google.maps.Geocoder();
+                const latLng = {
+                    lat,
+                    lng
+                };
+
+                geocoder.geocode({
+                    location: latLng
+                }, (results, status) => {
+                    if (status === 'OK') {
+                        if (results[0]) {
+                            const addressComponents = results[0].address_components;
+
+                            document.getElementById('country').value = getAddressComponent(addressComponents,
+                                'country');
+                            document.getElementById('region').value = getAddressComponent(addressComponents,
+                                'administrative_area_level_1');
+                            document.getElementById('city').value = getAddressComponent(addressComponents,
+                                'locality') || getAddressComponent(addressComponents, 'administrative_area_level_2');
+                            document.getElementById('postal_code').value = getAddressComponent(addressComponents,
+                                'postal_code');
+                            document.getElementById('street1').value = getAddressComponent(addressComponents, 'route');
+                            document.getElementById('street2').value = getAddressComponent(addressComponents,
+                                'neighborhood');
+                        } else {
+                            console.error('لم يتم العثور على عنوان لهذه الإحداثيات.');
+                        }
+                    } else {
+                        console.error('حدث خطأ أثناء جلب العنوان:', status);
+                    }
+                });
+            }
+
+            function getAddressComponent(addressComponents, type) {
+                const component = addressComponents.find(component => component.types.includes(type));
+                return component ? component.long_name : '';
+            }
+
+            document.getElementById('clientForm').addEventListener('submit', function(e) {
+                const lat = document.getElementById('latitude').value;
+                const lon = document.getElementById('longitude').value;
+
+                if (!lat || !lon) {
+                    e.preventDefault();
+                    alert('⚠️ يرجى تحديد الموقع من الخريطة قبل الإرسال!');
                 }
             });
-        }
+        </script>
+        <script>
+            const employeeSelect = document.getElementById('employee_select');
+            const employeeList = document.getElementById('employee_list');
+            const selectedEmployees = document.getElementById('selected_employees');
 
-        // دالة مساعدة لاستخراج مكونات العنوان
-        function getAddressComponent(addressComponents, type) {
-            const component = addressComponents.find(component => component.types.includes(type));
-            return component ? component.long_name : '';
-        }
+            let selectedEmployeeIds = [];
 
-        // التأكد من وجود الإحداثيات قبل الإرسال
-       
-    </script>
-      <script>
-        document.querySelectorAll('.remove-employee').forEach(button => {
-            button.addEventListener('click', function () {
-                const employeeId = this.dataset.id;
-                this.closest('li').remove();
-                const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
-                if (input) input.remove();
+            employeeSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const employeeId = selectedOption.value;
+                const employeeName = selectedOption.dataset.name;
+
+                // منع التكرار
+                if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
+                    selectedEmployeeIds.push(employeeId);
+
+                    // عرض في القائمة
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.textContent = employeeName;
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = 'حذف';
+                    removeBtn.className = 'btn btn-sm btn-danger';
+                    removeBtn.onclick = () => {
+                        li.remove();
+                        selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
+                        updateHiddenInputs();
+                    };
+
+                    li.appendChild(removeBtn);
+                    employeeList.appendChild(li);
+
+                    updateHiddenInputs();
+                }
+
+                // إعادة تعيين السلكت
+                this.value = '';
             });
-        });
-    
-        const employeeSelect = document.getElementById('employee_select');
-        const employeeList = document.getElementById('employee_list');
-        const selectedEmployees = document.getElementById('selected_employees');
-        let selectedEmployeeIds = Array.from(document.querySelectorAll('input[name="employee_client_id[]"]')).map(i => i.value);
-    
-        employeeSelect.addEventListener('change', function () {
-            const selectedOption = this.options[this.selectedIndex];
-            const employeeId = selectedOption.value;
-            const employeeName = selectedOption.dataset.name;
-    
-            if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
-                selectedEmployeeIds.push(employeeId);
-    
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.textContent = employeeName;
-    
-                const removeBtn = document.createElement('button');
-                removeBtn.textContent = 'حذف';
-                removeBtn.className = 'btn btn-sm btn-danger';
-                removeBtn.onclick = () => {
-                    li.remove();
-                    selectedEmployeeIds = selectedEmployeeIds.filter(id => id !== employeeId);
-                    const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
-                    if (input) input.remove();
-                };
-    
-                li.appendChild(removeBtn);
-                employeeList.appendChild(li);
-    
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'employee_client_id[]';
-                input.value = employeeId;
-                selectedEmployees.appendChild(input);
+
+            function updateHiddenInputs() {
+                selectedEmployees.innerHTML = '';
+                selectedEmployeeIds.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'employee_client_id[]';
+                    input.value = id;
+                    selectedEmployees.appendChild(input);
+                });
             }
-    
-            this.value = '';
-        });
-    </script>
-@endsection
+        </script>
+    @endsection

@@ -239,11 +239,11 @@
 
                             <div id="staff-fields" style="display: none;">
                                 <div class="form-group">
-                                    <label for="employee_id">اختر الموظف</label>
-                                    <select class="form-control" id="employee_id" name="employee_id">
+                                    <label for="created_by">اختر الموظف</label>
+                                    <select class="form-control" id="created_by" name="created_by">
                                         <option value="">اختر الموظف</option>
-                                        @foreach ($employees as $employee)
-                                            <option value="{{ $employee->employee_id }}">{{ $employee->first_name }}
+                                        @foreach ($employees as $user)
+                                            <option value="{{ $user->id }}">{{ $user->name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -251,12 +251,12 @@
                             </div>
                         </div>
                     </div>
-            </div>
+                </form>     </div>
 
 
         </div>
 
-        </form>
+
     </div>
     </div>
     </div>

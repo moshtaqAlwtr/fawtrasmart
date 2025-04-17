@@ -392,7 +392,8 @@
                                 <select name="client" id="client" class="form-control select2">
                                     <option value="">اختر العميل</option>
                                     @foreach ($clients as $client)
-                                        <option value="{{ $client->id }}" {{ request('client') == $client->id ? 'selected' : '' }}>
+                                        <option value="{{ $client->id }}"
+                                            {{ request('client') == $client->id ? 'selected' : '' }}>
                                             {{ $client->trade_name }} - {{ $client->code }}
                                         </option>
                                     @endforeach
@@ -412,7 +413,8 @@
                                 <select name="status" id="status" class="form-control">
                                     <option value="">اختر الحالة</option>
                                     @foreach ($statuses as $status)
-                                        <option value="{{ $status->id }}" {{ request('status') == $status->id ? 'selected' : '' }}>
+                                        <option value="{{ $status->id }}"
+                                            {{ request('status') == $status->id ? 'selected' : '' }}>
                                             {{ $status->name }}
                                         </option>
                                     @endforeach
@@ -425,7 +427,8 @@
                                 <select name="region" id="region" class="form-control select2">
                                     <option value="">اختر المجموعة</option>
                                     @foreach ($Region_groups as $Region_group)
-                                        <option value="{{ $Region_group->id }}" {{ request('region') == $Region_group->id ? 'selected' : '' }}>
+                                        <option value="{{ $Region_group->id }}"
+                                            {{ request('region') == $Region_group->id ? 'selected' : '' }}>
                                             {{ $Region_group->name }}
                                         </option>
                                     @endforeach
@@ -544,9 +547,9 @@
                                     <th>العنوان</th>
                                     <th>المجموعة</th>
                                     <th>الحي</th>
-                                     <th>الفرع</th>
-                                     <th>نوع الزيارة</th>
-                                     <th>الحالة</th>
+                                    <th>الفرع</th>
+                                    <th>نوع الزيارة</th>
+                                    <th>الحالة</th>
                                     <th>الكود</th>
                                     <th>رقم الهاتف</th>
                                     <th style="width: 10%">الإجراءات</th>
@@ -588,9 +591,9 @@
                                         <td>{{ $client->Neighborhoodname->name ?? '' }}</td>
 
 
-                                           <td>{{ $client->branch->name ?? '' }}</td>
-                                           <td>
-                                            @if($client->visit_type == "am")
+                                        <td>{{ $client->branch->name ?? '' }}</td>
+                                        <td>
+                                            @if ($client->visit_type == 'am')
                                                 <span class="badge badge-success">
                                                     ☀️ صباحية
                                                 </span>
@@ -601,12 +604,14 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($client->status_client)
-                                                <span style="background-color: {{ $client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                            @if ($client->status_client)
+                                                <span
+                                                    style="background-color: {{ $client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
                                                     {{ $client->status_client->name }}
                                                 </span>
                                             @else
-                                                <span style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                <span
+                                                    style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
                                                     غير محدد
                                                 </span>
                                             @endif
@@ -841,13 +846,26 @@
         function initMap() {
             const mapOptions = {
                 zoom: 14,
-                center: { lat: 24.7136, lng: 46.6753 },
+                center: {
+                    lat: 24.7136,
+                    lng: 46.6753
+                },
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
                 mapTypeControl: true,
                 mapTypeControlOptions: {
                     style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-                    position: google.maps.ControlPosition.TOP_RIGHT
+                    position: google.maps.ControlPosition.TOP_RIGHT,
+                    mapTypeIds: [
+                        google.maps.MapTypeId.ROADMAP,
+                        google.maps.MapTypeId.SATELLITE,
+                        google.maps.MapTypeId.HYBRID,
+                        google.maps.MapTypeId.TERRAIN
+                    ]
                 },
-                zoomControl: false,
+                zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.LEFT_CENTER
+                },
                 streetViewControl: true,
                 streetViewControlOptions: {
                     position: google.maps.ControlPosition.LEFT_BOTTOM
@@ -856,21 +874,6 @@
                 fullscreenControlOptions: {
                     position: google.maps.ControlPosition.RIGHT_TOP
                 },
-                styles: [
-                    {
-                        "featureType": "poi",
-                        "stylers": [
-                            { "visibility": "off" }
-                        ]
-                    },
-                    {
-                        "featureType": "transit",
-                        "elementType": "labels.icon",
-                        "stylers": [
-                            { "visibility": "off" }
-                        ]
-                    }
-                ]
             };
 
             map = new google.maps.Map(document.getElementById('map'), mapOptions);
@@ -881,53 +884,68 @@
             // تحديث تصميم نافذة المعلومات
             function showClientInfo(markerData) {
                 const contentString = `
-                    <div class="client-info-window">
-                        <div class="info-header">
-                            <h6 style="margin: 0; font-size: 15px; font-weight: 500;">
-                                ${markerData.data.name}
-                            </h6>
-                        </div>
-                        <div class="info-content">
-                            <div class="info-row">
-                                <span class="info-label">الكود:</span>
-                                <span class="info-value">${markerData.data.code}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">الهاتف:</span>
-                                <span class="info-value">
-                                    <a href="tel:${markerData.data.phone}" style="color: #1a73e8; text-decoration: none;">
-                                        ${markerData.data.phone}
-                                    </a>
-                                </span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">الموقع:</span>
-                                <span class="info-value">${markerData.data.city}, ${markerData.data.region}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">الرصيد:</span>
-                                <span class="info-value" style="color: ${markerData.data.balance < 0 ? '#d93025' : '#188038'}">
-                                    ${markerData.data.balance} ر.س
-                                </span>
-                            </div>
-                            <div class="info-actions">
-                                <button onclick="window.location.href=''" class="info-button primary">
-                                    <i class="fas fa-info-circle"></i>
-                                    التفاصيل
-                                </button>
-                                <button onclick="openMap(${markerData.marker.getPosition().lat()}, ${markerData.marker.getPosition().lng()})"
-                                        class="info-button secondary">
-                                    <i class="fas fa-map-marked-alt"></i>
-                                    فتح
-                                </button>
-                            </div>
-                        </div>
+        <div class="client-info-window" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px; overflow: hidden;">
+            <div class="info-header" style="background: linear-gradient(135deg, #3a0ca3 0%, #4361ee 100%); color: white; padding: 16px; text-align: center;">
+                <h6 style="margin: 0; font-size: 18px; font-weight: 700;">
+                    ${markerData.data.name}
+                </h6>
+                <small style="opacity: 0.9; font-size: 13px; display: block; margin-top: 4px;">${markerData.data.code}</small>
+            </div>
+
+            <div class="info-content" style="padding: 16px; background: #f8f9fa;">
+                <div style="display: grid; gap: 10px;">
+                    <!-- كود العميل -->
+                    <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <i class="fas fa-hashtag" style="color: #7209b7; width: 20px; text-align: center;"></i>
+                        <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الكود:</span>
+                        <span class="info-value" style="color: #343a40; font-weight: 600; font-size: 14px;">${markerData.data.code}</span>
                     </div>
-                `;
+
+                    <!-- هاتف العميل -->
+                    <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <i class="fas fa-phone" style="color: #4361ee; width: 20px; text-align: center;"></i>
+                        <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الهاتف:</span>
+                        <a href="tel:${markerData.data.phone}" style="color: #4361ee; text-decoration: none; font-weight: 600; font-size: 14px;">
+                            ${markerData.data.phone}
+                        </a>
+                    </div>
+
+                    <!-- موقع العميل -->
+                    <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <i class="fas fa-map-marker-alt" style="color: #f72585; width: 20px; text-align: center;"></i>
+                        <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الموقع:</span>
+                        <span class="info-value" style="color: #343a40; font-weight: 500; font-size: 14px;">${markerData.data.city}, ${markerData.data.region}</span>
+                    </div>
+
+                    <!-- رصيد العميل -->
+                    <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                        <i class="fas fa-wallet" style="color: ${markerData.data.balance < 0 ? '#ef233c' : '#2b9348'}; width: 20px; text-align: center;"></i>
+                        <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الرصيد:</span>
+                        <span class="info-value" style="color: ${markerData.data.balance < 0 ? '#ef233c' : '#2b9348'}; font-weight: 700; font-size: 14px;">
+                            ${markerData.data.balance} ر.س
+                        </span>
+                    </div>
+                </div>
+
+                <!-- أزرار الإجراءات -->
+                <div class="info-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="window.open('{{ route('clients.show', $client->id) }}', '_blank')"
+        style="flex: 1; padding: 10px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+    <i class="fas fa-info-circle"></i>
+    التفاصيل
+</button>
+                    <button onclick="openMap(${markerData.marker.getPosition().lat()}, ${markerData.marker.getPosition().lng()})"
+                            style="flex: 1; padding: 10px 12px; border: 1px solid #4361ee; border-radius: 8px; background: white; color: #4361ee; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+                        <i class="fas fa-map-marked-alt"></i>
+                        الخريطة
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
                 infoWindow.setContent(contentString);
                 infoWindow.open(map, markerData.marker);
             }
-
             // إضافة علامات العملاء
             let allMarkers = [];
 
@@ -989,7 +1007,7 @@
         function filterMarkers(searchValue, markers) {
             markers.forEach(item => {
                 const isVisible = item.clientName.includes(searchValue) ||
-                                item.clientCode.includes(searchValue);
+                    item.clientCode.includes(searchValue);
                 item.marker.setVisible(isVisible);
 
                 if (searchValue && (item.clientName === searchValue || item.clientCode === searchValue)) {
@@ -1039,7 +1057,10 @@
                 map.setCenter(currentUserMarker.getPosition());
                 map.setZoom(14);
             } else {
-                map.setCenter({ lat: 24.7136, lng: 46.6753 });
+                map.setCenter({
+                    lat: 24.7136,
+                    lng: 46.6753
+                });
                 map.setZoom(10);
             }
             infoWindow.close();

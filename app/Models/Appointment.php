@@ -20,7 +20,7 @@ class Appointment extends Model
         'pending' => self::STATUS_PENDING,
         'completed' => self::STATUS_COMPLETED,
         'ignored' => self::STATUS_IGNORED,
-        'rescheduled' => self::STATUS_RESCHEDULED
+        'rescheduled' => self::STATUS_RESCHEDULED,
     ];
 
     // تحويل الرقم إلى نص الحالة
@@ -28,7 +28,7 @@ class Appointment extends Model
         self::STATUS_PENDING => 'pending',
         self::STATUS_COMPLETED => 'completed',
         self::STATUS_IGNORED => 'ignored',
-        self::STATUS_RESCHEDULED => 'rescheduled'
+        self::STATUS_RESCHEDULED => 'rescheduled',
     ];
 
     // تحويل الرقم إلى النص العربي
@@ -36,7 +36,7 @@ class Appointment extends Model
         self::STATUS_PENDING => 'تم جدولته',
         self::STATUS_COMPLETED => 'تم',
         self::STATUS_IGNORED => 'صرف النظر عنه',
-        self::STATUS_RESCHEDULED => 'تم جدولته مجددا'
+        self::STATUS_RESCHEDULED => 'تم جدولته مجددا',
     ];
 
     // إضافة نطاق الفرز حسب التاريخ
@@ -54,33 +54,28 @@ class Appointment extends Model
     // الحصول على لون الحالة
     public function getStatusColorAttribute()
     {
-        return match($this->status) {
+        return match ($this->status) {
             self::STATUS_PENDING => 'bg-warning text-dark',
             self::STATUS_COMPLETED => 'bg-success text-white',
             self::STATUS_IGNORED => 'bg-danger text-white',
             self::STATUS_RESCHEDULED => 'bg-info text-white',
-            default => 'bg-secondary text-white'
+            default => 'bg-secondary text-white',
         };
     }
 
     // تحديد الحقول القابلة للتعبئة
-    protected $fillable = [
-        'client_id',
-        'employee_id',
-        'title',
-        'description',
-        'date',
-        'status'
-    ];
+    protected $fillable = ['client_id', 'title', 'description', 'date', 'status','created_by'];
 
     // تحديد الحقول التي يتم تحويلها إلى أنواع معينة
     protected $casts = [
         'date' => 'datetime',
-        'status' => 'integer'
+        'status' => 'integer',
     ];
 
-
-
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class,'created_by');
+    }
     public function notes()
     {
         return $this->hasMany(AppointmentNote::class);
@@ -91,9 +86,4 @@ class Appointment extends Model
         return $this->belongsTo(Client::class, 'client_id');
     }
 
-    // علاقة مع الموظف
-    public function employee()
-    {
-        return $this->belongsTo(Employee::class, 'employee_id');
-    }
 }
