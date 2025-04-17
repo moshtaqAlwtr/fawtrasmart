@@ -82,8 +82,8 @@
                                 <td>{{ $payment->payment_date }}</td>
                             </tr>
                             <tr>
-                                <td>أضيفت بواسطة</td>
-                                <td>{{ $payment->employee->name ?? '-' }}</td>
+                                <td>حصلت بواسطة</td>
+                                <td>{{ $payment->employee->full_name ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td>ملاحظات</td>

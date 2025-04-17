@@ -310,7 +310,7 @@
                                         <small>{{ $payment->payment_date }}</small>
                                         @if($payment->employee)
                                         <small class="text-muted mt-1">
-                                            <i class="fas fa-user"></i> {{ $payment->employee->full_name }}
+                                            <i class="fas fa-user"></i> {{ $payment->employee->full_name ?? "" }}
                                         </small>
                                         @endif
                                     </div>

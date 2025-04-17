@@ -29,6 +29,7 @@ use App\Models\Offer;
 use Illuminate\Support\Facades\Http;
 
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
+Route::get('/print/questions/{id}', [QuoteController::class, 'print'])->name('questions.print');
 require __DIR__ . '/auth.php';
 
 Route::get('/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
@@ -121,6 +122,7 @@ Route::group(
                 #questions routes
                 Route::prefix('questions')->group(function () {
                     Route::get('/index', [QuoteController::class, 'index'])->name('questions.index');
+                    
                     Route::get('/create', [QuoteController::class, 'create'])->name('questions.create');
                     Route::get('/show/{id}', [QuoteController::class, 'show'])->name('questions.show');
                     Route::get('/edit/{id}', [QuoteController::class, 'edit'])->name('questions.edit');
@@ -129,7 +131,7 @@ Route::group(
                     Route::put('/update/{id}', [QuoteController::class, 'update'])->name('questions.update');
                     Route::post('/convertToInvoice/{id}', [QuoteController::class, 'convertToInvoice'])->name('questions.convertToInvoice');
                     Route::delete('/delete/{id}', [QuoteController::class, 'destroy'])->name('questions.destroy');
-                    
+                    Route::get('/quotes/{id}/pdf', [QuoteController::class, 'downloadPdf'])->name('quotes.pdf');
                     Route::get('quotes/{quote}/edit-template', [QuoteController::class, 'editTemplate'])->name('quotes.template.edit');
                     Route::put('quotes/{quote}/update-template', [QuoteController::class, 'updateTemplate'])->name('quotes.template.update');
 
@@ -296,7 +298,11 @@ Route::group(
                         Route::post('/template/preview', [SittingInvoiceController::class, 'preview'])->name('template.preview');
                         Route::post('/{template}/reset', [SittingInvoiceController::class, 'reset'])->name('templates.reset');
                         Route::delete('/{template}', [SittingInvoiceController::class, 'destroy'])->name('templates.destroy');
-                  
+
+                        Route::get('/invoice', [SittingInvoiceController::class, 'invoice'])->name('SittingInvoice.invoice');
+                        
+                        Route::get('/test_print', [SittingInvoiceController::class, 'test_print'])->name('templates.test_print');
+                        Route::get('/test_print/{id}', [SittingInvoiceController::class, 'print'])->name('templates.print');
                 });
                 Route::prefix('offers')->group(function () {
                     Route::get('/index', [OffersController::class, 'index'])->name('Offers.index');
