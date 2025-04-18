@@ -240,6 +240,77 @@
             .fs-6 {
                 font-size: 0.8rem !important;
             }
+
+            .mobile-stack {
+                flex-direction: column !important;
+            }
+
+            .mobile-full-width {
+                width: 100% !important;
+            }
+
+            .mobile-text-center {
+                text-align: center !important;
+            }
+
+            .mobile-mt-2 {
+                margin-top: 1rem !important;
+            }
+
+            .mobile-hide {
+                display: none !important;
+            }
+
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .tablet-stack {
+                flex-direction: column !important;
+            }
+
+            .tablet-text-center {
+                text-align: center !important;
+            }
+        }
+
+        .card {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .badge {
+            padding: 0.5em 0.75em;
+            border-radius: 0.25rem;
+        }
+
+        .collapse-section {
+            margin-bottom: 1rem;
+        }
+
+        .table th {
+            white-space: nowrap;
+        }
+
+        .dropdown-menu {
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         #clientSearch {
@@ -834,6 +905,7 @@
     </div>
 
 @endsection
+
 @section('scripts')
     <script
         src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
@@ -893,14 +965,10 @@
                 <h6 style="margin: 0; font-size: 18px; font-weight: 700;">
                     ${markerData.data.name}
                 </h6>
-                <small style="opacity: 0.9; font-size: 13px; display: block; margin-top: 4px;">${markerData.data.code}</small>
             </div>
 
             <div class="info-content" style="padding: 16px; background: #f8f9fa;">
                 <div style="display: grid; gap: 10px;">
-                    <!-- كود العميل -->
-
-
                     <!-- هاتف العميل -->
                     <div class="info-row" style="display: flex; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                         <i class="fas fa-phone" style="color: #4361ee; width: 20px; text-align: center;"></i>
@@ -915,7 +983,7 @@
                         <i class="fas fa-map-marker-alt" style="color: #f72585; width: 20px; text-align: center;"></i>
                         <span class="info-label" style="color: #6c757d; margin-right: 8px; font-size: 13px;">الموقع:</span>
                         <span class="info-value" style="color: #343a40; font-weight: 500; font-size: 14px;">
- ${markerData.data.region}
+                            ${markerData.data.region}
                         </span>
                     </div>
 
@@ -931,11 +999,11 @@
 
                 <!-- أزرار الإجراءات -->
                 <div class="info-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-<button onclick="window.location.href='{{ route('clients.show', '') }}/${markerData.data.id}'"
-    style="flex: 1; padding: 10px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
-    <i class="fas fa-info-circle"></i>
-    التفاصيل
-</button>
+                    <button onclick="window.location.href='{{ route('clients.show', '') }}/${markerData.data.id}'"
+                        style="flex: 1; padding: 10px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
+                        <i class="fas fa-info-circle"></i>
+                        التفاصيل
+                    </button>
                     <button onclick="openMap(${markerData.marker.getPosition().lat()}, ${markerData.marker.getPosition().lng()})"
                             style="flex: 1; padding: 10px 12px; border: 1px solid #4361ee; border-radius: 8px; background: white; color: #4361ee; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
                         <i class="fas fa-map-marked-alt"></i>
@@ -966,14 +1034,17 @@
                         title: "{{ $client->trade_name }}",
                         icon: {
                             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-                                    <path fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}" d="M24 4C16.27 4 10 10.27 10 18c0 7.73 14 26 14 26s14-18.27 14-26C38 10.27 31.73 4 24 4z"/>
-                                    <path fill="#FFFFFF" d="M24 12c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6 2.69-6 6-6z"/>
-                                    <text x="24" y="42" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFFFFF">{{ $client->code }}</text>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
+                                    <!-- Background bubble -->
+                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#4CAF50' }}" />
+                                    <!-- Bottom triangle -->
+                                    <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#4CAF50' }}" />
+                                    <!-- Text -->
+                                    <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white">{{ $client->code }}</text>
                                 </svg>
                             `),
-                            scaledSize: new google.maps.Size(40, 40),
-                            anchor: new google.maps.Point(20, 40)
+                            scaledSize: new google.maps.Size(60, 24),
+                            anchor: new google.maps.Point(12, 22)
                         },
                         animation: google.maps.Animation.DROP
                     });
@@ -986,11 +1057,8 @@
                         data: {
                             id: {{ $client->id }},
                             name: "{{ $client->trade_name }}",
-
                             status: "{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}",
                             phone: "{{ $client->phone }}",
-
-
                             region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
                             balance: "{{ $client->Balance() }}"
                         }
