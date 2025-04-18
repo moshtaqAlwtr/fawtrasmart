@@ -23,7 +23,7 @@ class Kernel extends ConsoleKernel
 
         // ✅ تنفيذ التقرير اليومي للموظفين الساعة 10 مساءً كل يوم
         $schedule->command('reports:daily_employee')
-            ->dailyAt('22:01') // يمكنك تغيير الوقت مثلاً '08:00' صباحًا أو غيره
+            ->dailyAt('23:55') // يمكنك تغيير الوقت مثلاً '08:00' صباحًا أو غيره
             ->onFailure(function () {
                 Log::error('فشل في تنفيذ أمر التقرير اليومي للموظفين.');
             });
