@@ -32,20 +32,20 @@ class BranchesController extends Controller
         return view('branches.create', compact('code'));
     }
     public function switchBranch($branchId)
-    {
-        $user = auth()->user();
+{
+    $user = auth()->user();
 
-        // التحقق مما إذا كان المستخدم ليس موظفًا ويمكنه تغيير الفرع
-        if ($user->role !== 'employee') {
-            // تحديث branch_id في جدول المستخدم
-            $user->update(['branch_id' => $branchId]);
+    // التحقق مما إذا كان المستخدم ليس موظفًا ويمكنه تغيير الفرع
+    if ($user->role !== 'employee') {
+        // تحديث branch_id في جدول المستخدم
+        $user->update(['branch_id' => $branchId]);
 
-            // حفظ الفرع في الجلسة (لضمان بقاء المستخدم في الفرع المحدد)
-            session(['current_branch_id' => $branchId]);
-        }
-
-        return redirect()->back(); // إعادة التوجيه إلى الصفحة السابقة
+        // حفظ الفرع في الجلسة (لضمان بقاء المستخدم في الفرع المحدد)
+        session(['current_branch_id' => $branchId]);
     }
+
+    return redirect()->back();
+}
 
     // تخزين بيانات الفرع
     public function store(Request $request)
