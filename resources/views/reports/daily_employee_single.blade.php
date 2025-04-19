@@ -341,15 +341,15 @@
                 </thead>
                 <tbody>
                     @foreach ($visits as $visit)
-                        <tr>
-                            <td>{{ Str::limit($visit->client->trade_name ?? 'غير محدد', 15) }}</td>
-                            <td>{{ Str::limit($visit->client->formattedAddress ?? 'غير محدد', 15) }}</td>
-                            <td class="time">{{ $visit->arrival_time ?? '--' }}</td>
-                            <td class="time">{{ $visit->departure_time ?? '--' }}</td>
-                            <td>{{ $visit->created_at->format('H:i') }}</td>
-                            <td>{{ Str::limit($visit->notes ?? '--', 15) }}</td>
-                        </tr>
-                    @endforeach
+                    <tr>
+                        <td>{{ Str::limit(optional($visit->client)->trade_name ?? 'غير محدد', 15) }}</td>
+                        <td>{{ Str::limit(optional($visit->client)->formattedAddress ?? 'غير محدد', 15) }}</td>
+                        <td class="time">{{ $visit->arrival_time ?? '--' }}</td>
+                        <td class="time">{{ $visit->departure_time ?? '--' }}</td>
+                        <td>{{ $visit->created_at->format('H:i') }}</td>
+                        <td>{{ Str::limit($visit->notes ?? '--', 15) }}</td>
+                    </tr>
+                @endforeach
                     <tr class="total-row">
                         <td colspan="6">إجمالي الزيارات: {{ $visits->count() }}</td>
                     </tr>

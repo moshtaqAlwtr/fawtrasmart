@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\ClientRelation;
+use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Location;
 use App\Models\notifications;
 use App\Models\PaymentsProcess;
+use App\Models\Receipt;
 use App\Models\Region_groub;
 use App\Models\User;
 use App\Models\Visit;
@@ -18,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use TCPDF;
 
 class VisitController extends Controller
 {
@@ -661,50 +664,97 @@ class VisitController extends Controller
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
     }
 
-    // public function sendDailyReport()
-    // {
-    //     $date = Carbon::today();
-    //     $users = User::all();
-    //     $reports = [];
+    public function sendDailyReport()
+    {
+        $date = Carbon::today();
 
-    //     foreach ($users as $user) {
-    //         $invoices = Invoice::where('created_by', $user->id)->whereDate('created_at', $date)->get();
-    //         $visits = Visit::where('employee_id', $user->id)->whereDate('created_at', $date)->get();
-    //         $payments = PaymentsProcess::where('employee_id', $user->id)->whereDate('payment_date', $date)->get();
-    //         $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
-    //         $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
+        // جلب فقط الموظفين الذين لديهم دور employee
+        $users = User::where('role', 'employee')->get();
 
-    //         $reports[] = [
-    //             'user' => $user,
-    //             'invoices' => $invoices,
-    //             'visits' => $visits,
-    //             'payments' => $payments,
-    //             'receipts' => $receipts,
-    //             'expenses' => $expenses
-    //         ];
-    //     }
+        foreach ($users as $user) {
+            // الفواتير التي أنشأها الموظف اليوم
+            $invoices = Invoice::where('created_by', $user->id)
+                ->whereDate('created_at', $date)
+                ->get();
 
-    //     $pdf = Pdf::loadView('reports.daily_employee', [
-    //         'reports' => $reports,
-    //         'date' => $date->toDateString(),
-    //     ]);
+            // جلب أرقام الفواتير
+            $invoiceIds = $invoices->pluck('id')->toArray();
 
-    //     $pdfPath = storage_path('app/public/daily_report.pdf');
-    //     $pdf->save($pdfPath);
+            // المدفوعات المرتبطة بهذه الفواتير
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
+                ->whereDate('payment_date', $date)
+                ->get();
 
-    //     $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
-    //     $chatId = '@Salesfatrasmart';
+            // الزيارات التي قام بها الموظف اليوم
+            $visits = Visit::with('client')
+            ->where('employee_id', $user->id)
+            ->whereDate('created_at', $date)
+            ->get();
+            // الإيصالات التي أنشأها الموظف اليوم
+            $receipts = Receipt::where('created_by', $user->id)
+                ->whereDate('created_at', $date)
+                ->get();
 
-    //     $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report.pdf')
-    //         ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
-    //             'chat_id' => $chatId,
-    //             'caption' => "📊 تقرير الموظفين اليومي: {$date->toDateString()}",
-    //         ]);
+            // المصروفات التي أنشأها الموظف اليوم
+            $expenses = Expense::where('created_by', $user->id)
+                ->whereDate('created_at', $date)
+                ->get();
 
-    //     if ($response->successful()) {
-    //         return response()->json(['success' => true, 'message' => 'تم إرسال التقرير إلى التليجرام']);
-    //     } else {
-    //         return response()->json(['success' => false, 'message' => 'فشل الإرسال', 'error' => $response->body()]);
-    //     }
-    // }
+            // الملاحظات التي أنشأها الموظف اليوم للعملاء (مباشرة بدون علاقة بالفواتير)
+            $notes = ClientRelation::with('client')
+                ->where('employee_id', $user->id) // فقط ملاحظات الموظف الحالي
+                ->whereDate('created_at', $date)
+                ->get();
+
+            // إنشاء ملف PDF للموظف الحالي
+            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->SetCreator('Your Application');
+            $pdf->SetAuthor('Your Name');
+            $pdf->SetTitle('Daily Employee Report - ' . $user->name);
+            $pdf->SetSubject('Daily Report');
+            $pdf->AddPage();
+
+            // محتوى التقرير للموظف الحالي
+            $html = view('reports.daily_employee_single', [
+                'user' => $user,
+                'invoices' => $invoices,
+                'visits' => $visits,
+                'payments' => $payments,
+                'receipts' => $receipts,
+                'expenses' => $expenses,
+                'notes' => $notes,
+                'total_payments' => $payments->sum('amount'),
+                'total_invoices' => $invoices->sum('total_amount'),
+                'date' => $date->format('Y-m-d'),
+            ])->render();
+
+            $pdf->writeHTML($html, true, false, true, false, 'R');
+
+            // حفظ الملف باسم فريد لكل موظف
+            $pdfPath = storage_path('app/public/daily_report_'.$user->id.'_'.$date->format('Y-m-d').'.pdf');
+            $pdf->Output($pdfPath, 'F');
+
+            // إرسال إلى Telegram
+            $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+            $chatId = '@Salesfatrasmart';
+
+            $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_'.$user->name.'.pdf')
+                ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+                    'chat_id' => $chatId,
+                    'caption' => "📊 تقرير الموظف اليومي - ".$user->name." - ".$date->format('Y-m-d'),
+                ]);
+
+            // if ($response->successful()) {
+            //     $this->info('✅ تم إرسال تقرير الموظف '.$user->name.' بنجاح إلى Telegram');
+            // } else {
+            //     $this->error('❌ فشل إرسال تقرير الموظف '.$user->name.': '.$response->body());
+            // }
+
+            // حذف الملف بعد الإرسال
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
+            }
+        }
+    }
+
 }
