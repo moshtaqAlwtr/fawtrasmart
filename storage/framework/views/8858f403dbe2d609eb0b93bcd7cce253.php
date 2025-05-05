@@ -919,7 +919,7 @@
     </script>
 
     <?php echo $__env->yieldContent('scripts'); ?>
-
+<?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 <!-- END: Body-->
 

@@ -462,7 +462,7 @@
                                 <label for="client" class="form-label">العميل</label>
                                 <select name="client" id="client" class="form-control select2">
                                     <option value="">اختر العميل</option>
-                                    @foreach ($clients as $client)
+                                    @foreach ($allClients as $client)
                                         <option value="{{ $client->id }}"
                                             {{ request('client') == $client->id ? 'selected' : '' }}>
                                             {{ $client->trade_name }} - {{ $client->code }}
@@ -796,7 +796,8 @@
 
 
         @endif
-        {{-- @if ($clients->hasPages())
+
+        @if ($clients->hasPages())
             <nav aria-label="Page navigation">
                 <ul class="pagination pagination-sm mb-0">
                     <!-- زر الانتقال إلى أول صفحة -->
@@ -870,7 +871,7 @@
                     @endif
                 </ul>
             </nav>
-        @endif --}}
+        @endif
 
     </div>
 
@@ -1023,7 +1024,7 @@
             // إضافة علامات العملاء
             let allMarkers = [];
 
-            @foreach ($clients as $client)
+            @foreach ($allClients as $client)
                 @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
                     const marker{{ $client->id }} = new google.maps.Marker({
                         position: {
@@ -1036,9 +1037,9 @@
                             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
                                 <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
                                     <!-- Background bubble -->
-                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#4CAF50' }}" />
+                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
                                     <!-- Bottom triangle -->
-                                    <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#4CAF50' }}" />
+                                    <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
                                     <!-- Text -->
                                     <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white">{{ $client->code }}</text>
                                 </svg>
@@ -1057,7 +1058,7 @@
                         data: {
                             id: {{ $client->id }},
                             name: "{{ $client->trade_name }}",
-                            status: "{{ optional(\App\Models\Statuses::find($client->status_id))->color ?? '#CCCCCC' }}",
+                            status: "{{ optional($client->status_client)->color ?? '#CCCCCC' }}",
                             phone: "{{ $client->phone }}",
                             region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
                             balance: "{{ $client->Balance() }}"
@@ -1070,6 +1071,41 @@
                     });
                 @endif
             @endforeach
+
+            // إضافة ماركر موقع المستخدم
+            @if(isset($userLocation))
+                var userLocation = {
+                    lat: parseFloat('{{ $userLocation->latitude }}'),
+                    lng: parseFloat('{{ $userLocation->longitude }}')
+                };
+
+                // إضافة ماركر موقع المستخدم
+                const userMarker = new google.maps.Marker({
+                    position: userLocation,
+                    map: map,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: '#2196F3',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2
+                    },
+                    title: 'موقعك الحالي'
+                });
+
+                // إضافة دائرة حول موقع المستخدم
+                const userCircle = new google.maps.Circle({
+                    strokeColor: '#2196F3',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#2196F3',
+                    fillOpacity: 0.1,
+                    map: map,
+                    center: userLocation,
+                    radius: 300 // نصف قطر 300 متر
+                });
+            @endif
 
             // تفعيل البحث
             const searchInput = document.getElementById('clientSearch');

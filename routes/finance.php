@@ -55,7 +55,7 @@ Route::group(
                     Route::post('/store', [IncomesController::class, 'store'])->name('incomes.store');
                     Route::get('/show/{id}', [IncomesController::class, 'show'])->name('incomes.show');
                     Route::get('/edit/{id}', [IncomesController::class, 'edit'])->name('incomes.edit');
-                    Route::post('/update/{id}', [IncomesController::class, 'update'])->name('incomes.update');
+                    Route::put('/update/{id}', [IncomesController::class, 'update'])->name('incomes.update');
                     Route::get('/delete/{id}', [IncomesController::class, 'delete'])->name('incomes.delete');
                     Route::get('/incomes/print/{id}/{type}', [IncomesController::class, 'print'])->name('incomes.print');
                 });

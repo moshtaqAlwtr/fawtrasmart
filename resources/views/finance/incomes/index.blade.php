@@ -297,7 +297,7 @@
                                 <!-- 12. Sub Account -->
                                 <div class="col-md-4">
                                     <label for="sub_account">الحساب الفرعي</label>
-                                    <select name="sub_account" class="form-control" id="sub_account">
+                                    <select name="sub_account" class="form-control select2" id="sub_account">
                                         <option value="">أي حساب</option>
                                         @foreach ($Accounts as $account)
                                             <option value="{{ $account->id }}"
@@ -342,7 +342,7 @@
                             @foreach ($incomes as $income)
                                 <tr>
                                     <td style="width: 80%">
-                                        <p><strong>{{ $income->seller }}</strong></p>
+                                        <p><strong>{{ $income->account->name??"" }}</strong></p>
                                         <p><small>{{ $income->date }} | {{ $income->description }}</small></p>
                                         <img src="{{ asset('assets/uploads/incomes/' . $income->attachments) }}"
                                             alt="img" width="100"><br>

@@ -156,6 +156,12 @@
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Sales_Settings')); ?></span></a>
                                 </li>
                             <?php endif; ?>
+                            <?php if(auth()->user()->role != 'employee'): ?>
+                            <li><a href="<?php echo e(route('templates.test_print')); ?>"><i class="feather icon-circle"></i><span
+                                class="menu-item"
+                                data-i18n="eCommerce">اختبار  الطباعة على الفواتير</span></a>
+                         </li>
+                            <?php endif; ?>
                         </ul>
 
                     </li>

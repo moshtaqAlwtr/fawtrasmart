@@ -92,11 +92,11 @@
                     </div>
                     <div class="col-md-3">
                         <label for="inputGroupBy" class="form-label">العميل:</label>
-                        <select class="form-control" id="inputGroupBy" name="client">
+                        <select class="form-control select2" id="inputGroupBy" name="client">
                             <option value="">اختر العميل</option>
                             @foreach ($accounts as $account)
                                 <option value="{{ $account->id }}" {{ request('account') == $account->id ? 'selected' : '' }}>
-                                    {{ $account->name }}</option>
+                                    {{ $account->name }}{{ $account->client->code??'' }}</option>
                             @endforeach
                         </select>
                     </div>

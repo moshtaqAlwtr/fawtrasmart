@@ -166,6 +166,11 @@
         .col-15 { width: 15%; }
         .col-20 { width: 20%; }
         .col-25 { width: 25%; }
+        .col-30 { width: 30%; }
+        .col-35 { width: 35%; }
+        .col-40 { width: 40%; }
+        .nowrap { white-space: nowrap; }
+        .wrap-text { white-space: normal; word-wrap: break-word; }
     </style>
 </head>
 <body>
@@ -242,18 +247,18 @@
                 <thead>
                     <tr>
                         <th class="col-10">رقم الفاتورة</th>
-                        <th class="col-20">العميل</th>
+                        <th class="col-25">العميل</th>
                         <th class="col-15">المجموع</th>
                         <th class="col-15">الحالة</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-25">ملاحظات</th>
+                        <th class="col-20">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($invoices as $invoice)
                         <tr>
-                            <td>#{{ $invoice->id }}</td>
-                            <td>{{ Str::limit($invoice->client->trade_name ?? 'غير محدد', 15) }}</td>
+                            <td class="nowrap">#{{ $invoice->id }}</td>
+                            <td class="wrap-text">{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
                             <td class="currency">{{ number_format($invoice->grand_total, 2, '.', ',') }} ر.س</td>
                             <td>
                                 @if($invoice->payment_status == 1)
@@ -264,13 +269,13 @@
                                     <span class="status-badge status-unpaid">غير مدفوعة</span>
                                 @endif
                             </td>
-                            <td>{{ $invoice->created_at->format('H:i') }}</td>
-                            <td>{{ Str::limit($invoice->notes ?? '--', 20) }}</td>
+                            <td class="nowrap">{{ $invoice->created_at->format('H:i') }}</td>
+                            <td class="wrap-text">{{ $invoice->notes ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($invoices->sum('grand_total'), 2, '.', ',') }} ر.س</td>
+                        <td class="currency">{{ number_format($invoices->sum('grand_total'), 2) }} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
@@ -291,119 +296,33 @@
                 <thead>
                     <tr>
                         <th class="col-10">رقم العملية</th>
-                        <th class="col-20">العميل</th>
+                        <th class="col-25">العميل</th>
                         <th class="col-15">المبلغ</th>
-                        <th class="col-15">طريقة الدفع</th>
+                        <th class="col-20">طريقة الدفع</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-25">رقم الفاتورة</th>
+                        <th class="col-15">رقم الفاتورة</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($payments as $payment)
                         <tr>
-                            <td>#{{ $payment->id }}</td>
-                            <td>{{ Str::limit($payment->client->trade_name ?? 'غير محدد', 15) }}</td>
+                            <td class="nowrap">#{{ $payment->id }}</td>
+                            <td class="wrap-text">{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
                             <td class="currency">{{ number_format($payment->amount, 2, '.', ',') }} ر.س</td>
-                            <td>{{ Str::limit($payment->payment_method, 10) }}</td>
-                            <td class="time">{{ $payment->payment_date }}</td>
-                            <td>#{{ $payment->invoice_id }}</td>
+                            <td class="wrap-text">{{ $payment->payment_method }}</td>
+                            <td class="nowrap">{{ $payment->payment_date }}</td>
+                            <td class="nowrap">#{{ $payment->invoice_id }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($payments->sum('amount'), 2, '.', ',') }} ر.س</td>
+                        <td class="currency">{{ number_format($payments->sum('amount'), 2) }} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
             </table>
         @else
             <div class="no-data">لا يوجد مدفوعات مسجلة</div>
-        @endif
-    </div>
-
-    {{-- زيارات العملاء --}}
-    <div class="section">
-        <div class="section-title">
-            <span>زيارات العملاء</span>
-            <span class="section-count">{{ $visits->count() }}</span>
-        </div>
-        @if ($visits->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-20">العميل</th>
-                        <th class="col-20">العنوان</th>
-                        <th class="col-10">الوصول</th>
-                        <th class="col-10">الانصراف</th>
-                        <th class="col-15">التاريخ</th>
-                        <th class="col-25">ملاحظات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($visits as $visit)
-                    <tr>
-                        <td>{{ Str::limit(optional($visit->client)->trade_name ?? 'غير محدد', 15) }}</td>
-                        <td>{{ Str::limit(optional($visit->client)->formattedAddress ?? 'غير محدد', 15) }}</td>
-                        <td class="time">{{ $visit->arrival_time ?? '--' }}</td>
-                        <td class="time">{{ $visit->departure_time ?? '--' }}</td>
-                        <td>{{ $visit->created_at->format('H:i') }}</td>
-                        <td>{{ Str::limit($visit->notes ?? '--', 15) }}</td>
-                    </tr>
-                @endforeach
-                    <tr class="total-row">
-                        <td colspan="6">إجمالي الزيارات: {{ $visits->count() }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        @else
-            <div class="no-data">لا يوجد زيارات مسجلة</div>
-        @endif
-    </div>
-
-    {{-- الملاحظات --}}
-    <div class="section">
-        <div class="section-title">
-            <span>ملاحظات الموظف</span>
-            <span class="section-count">{{ $notes->count() }}</span>
-        </div>
-        @if ($notes->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-20">العميل</th>
-                        <th class="col-15">الحالة</th>
-                        <th class="col-15">الوقت</th>
-                        <th class="col-15">التاريخ</th>
-                        <th class="col-35">الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($notes as $note)
-                        <tr>
-                            <td>{{ Str::limit($note->client->trade_name ?? 'غير محدد', 15) }}</td>
-                            <td>
-                                @if($note->status == 'completed')
-                                    <span class="status-badge status-completed">مكتمل</span>
-                                @elseif($note->status == 'pending')
-                                    <span class="status-badge status-pending">قيد التنفيذ</span>
-                                @elseif($note->status == 'cancelled')
-                                    <span class="status-badge status-cancelled">ملغى</span>
-                                @else
-                                    {{ $note->status }}
-                                @endif
-                            </td>
-                            <td class="time">{{ $note->time ?? '--' }}</td>
-                            <td>{{ $note->date ?? '--' }}</td>
-                            <td>{{ Str::limit($note->description ?? '--', 30) }}</td>
-                        </tr>
-                    @endforeach
-                    <tr class="total-row">
-                        <td colspan="5">إجمالي الملاحظات: {{ $notes->count() }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        @else
-            <div class="no-data">لا يوجد ملاحظات مسجلة</div>
         @endif
     </div>
 
@@ -418,25 +337,25 @@
                 <thead>
                     <tr>
                         <th class="col-15">رقم السند</th>
-                        <th class="col-25">من</th>
+                        <th class="col-30">من</th>
                         <th class="col-15">المبلغ</th>
                         <th class="col-20">التاريخ</th>
-                        <th class="col-25">الوصف</th>
+                        <th class="col-20">الوصف</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($receipts as $receipt)
                         <tr>
-                            <td>#{{ $receipt->id }}</td>
-                            <td>{{ Str::limit($receipt->account->name ?? 'غير محدد', 15) }}</td>
+                            <td class="nowrap">#{{ $receipt->id }}</td>
+                            <td class="wrap-text">{{ $receipt->account->name ?? 'غير محدد' }}</td>
                             <td class="currency">{{ number_format($receipt->amount, 2, '.', ',') }} ر.س</td>
-                            <td>{{ $receipt->created_at->format('H:i') }}</td>
-                            <td>{{ Str::limit($receipt->description ?? '--', 15) }}</td>
+                            <td class="nowrap">{{ $receipt->created_at->format('H:i') }}</td>
+                            <td class="wrap-text">{{ $receipt->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($receipts->sum('amount'), 2, '.', ',' )}} ر.س</td>
+                        <td class="currency">{{ number_format($receipts->sum('amount'), 2) }} ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -457,31 +376,117 @@
                 <thead>
                     <tr>
                         <th class="col-15">رقم السند</th>
-                        <th class="col-25">إلى</th>
+                        <th class="col-30">إلى</th>
                         <th class="col-15">المبلغ</th>
                         <th class="col-20">التاريخ</th>
-                        <th class="col-25">الوصف</th>
+                        <th class="col-20">الوصف</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($expenses as $expense)
                         <tr>
-                            <td>#{{ $expense->id }}</td>
-                            <td>{{ Str::limit($expense->name, 15) }}</td>
+                            <td class="nowrap">#{{ $expense->id }}</td>
+                            <td class="wrap-text">{{ $expense->name }}</td>
                             <td class="currency">{{ number_format($expense->amount, 2, '.', ',') }} ر.س</td>
-                            <td>{{ $expense->created_at->format('H:i') }}</td>
-                            <td>{{ Str::limit($expense->description ?? '--', 15) }}</td>
+                            <td class="nowrap">{{ $expense->created_at->format('H:i') }}</td>
+                            <td class="wrap-text">{{ $expense->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($expenses->sum('amount'), 2, '.', ',') }} ر.س</td>
+                        <td class="currency">{{ number_format($expenses->sum('amount'), 2) }} ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
             </table>
         @else
             <div class="no-data">لا يوجد سندات صرف</div>
+        @endif
+    </div>
+
+    {{-- زيارات العملاء --}}
+    <div class="section">
+        <div class="section-title">
+            <span>زيارات العملاء</span>
+            <span class="section-count">{{ $visits->count() }}</span>
+        </div>
+        @if ($visits->count() > 0)
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-25">العميل</th>
+                        <th class="col-25">العنوان</th>
+                        <th class="col-10">الوصول</th>
+                        <th class="col-10">الانصراف</th>
+                        <th class="col-15">التاريخ</th>
+                        <th class="col-15">ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($visits as $visit)
+                        <tr>
+                            <td class="wrap-text">{{ optional($visit->client)->trade_name ?? 'غير محدد' }}</td>
+                            <td class="wrap-text">{{ optional($visit->client)->formattedAddress ?? 'غير محدد' }}</td>
+                            <td class="nowrap">{{ $visit->arrival_time ?? '--' }}</td>
+                            <td class="nowrap">{{ $visit->departure_time ?? '--' }}</td>
+                            <td class="nowrap">{{ $visit->created_at->format('H:i') }}</td>
+                            <td class="wrap-text">{{ $visit->notes ?? '--' }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="total-row">
+                        <td colspan="6">إجمالي الزيارات: {{ $visits->count() }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        @else
+            <div class="no-data">لا يوجد زيارات مسجلة</div>
+        @endif
+    </div>
+
+    {{-- الملاحظات --}}
+    <div class="section">
+        <div class="section-title">
+            <span>ملاحظات الموظف</span>
+            <span class="section-count">{{ $notes->count() }}</span>
+        </div>
+        @if ($notes->count() > 0)
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-25">العميل</th>
+                        <th class="col-15">الحالة</th>
+                        <th class="col-15">الوقت</th>
+                        <th class="col-15">التاريخ</th>
+                        <th class="col-30">الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($notes as $note)
+                        <tr>
+                            <td class="wrap-text">{{ $note->client->trade_name ?? 'غير محدد' }}</td>
+                            <td>
+                                @if($note->status == 'completed')
+                                    <span class="status-badge status-completed">مكتمل</span>
+                                @elseif($note->status == 'pending')
+                                    <span class="status-badge status-pending">قيد التنفيذ</span>
+                                @elseif($note->status == 'cancelled')
+                                    <span class="status-badge status-cancelled">ملغى</span>
+                                @else
+                                    {{ $note->status }}
+                                @endif
+                            </td>
+                            <td class="nowrap">{{ $note->time ?? '--' }}</td>
+                            <td class="nowrap">{{ $note->date ?? '--' }}</td>
+                            <td class="wrap-text">{{ $note->description ?? '--' }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="total-row">
+                        <td colspan="5">إجمالي الملاحظات: {{ $notes->count() }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        @else
+            <div class="no-data">لا يوجد ملاحظات مسجلة</div>
         @endif
     </div>
 
