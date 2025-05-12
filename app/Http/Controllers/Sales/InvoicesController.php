@@ -1260,7 +1260,7 @@ public function getPrice(Request $request)
             // تحديث رصيد حساب الخزينة الرئيسية
 
             // ** الخطوة السابعة: إنشاء سجل الدفع إذا كان هناك دفعة مقدمة أو دفع كامل **
-            if ($advance_payment > 0 || $is_paid) {
+           if ($advance_payment > 0 || $is_paid) {
                 $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
 
                 // تحديد الخزينة المستهدفة بناءً على الموظف
@@ -1306,11 +1306,19 @@ public function getPrice(Request $request)
                     $MainTreasury->save();
                 }
 
-                if ($clientaccounts) {
+              if($advance_payment > 0 ){
+                  
+                   if ($clientaccounts) {
+                    $clientaccounts->balance -= $payment_amount; // المبلغ الكلي (المبيعات + الضريبة)
+                    $clientaccounts->save();
+                }
+              }else{
+                    if ($clientaccounts) {
                     $clientaccounts->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
                     $clientaccounts->save();
                 }
-
+              }
+              
                 // إنشاء قيد محاسبي للدفعة
                 $paymentJournalEntry = JournalEntry::create([
                     'reference_number' => $payment->reference_number ?? $invoice->code,

@@ -387,7 +387,7 @@ public function store(ClientPaymentRequest $request)
         ]);
 
         if ($clientaccounts) {
-            $clientaccounts->balance -= $newTotalPayments; // المبلغ الكلي (المبيعات + الضريبة)
+            $clientaccounts->balance -= $data['amount']; // المبلغ الكلي (المبيعات + الضريبة)
             $clientaccounts->save();
         }
         DB::commit();
@@ -851,4 +851,3 @@ public function createPurchase($id)
     }
 
 }
-
