@@ -636,32 +636,86 @@ class VisitController extends Controller
     // تحليلات حركة الزيارات
     public function tracktaff()
     {
-        $groups = Region_groub::with('clients')->get();
+        $groups = Region_groub::with(['neighborhoods.client' => function($query) {
+            $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts']);
+        }])->get();
 
-        // بداية جزء حساب التاريخ الأدنى
-        $invoiceDate = Invoice::min('created_at');
-        $paymentDate = PaymentsProcess::min('created_at');
-        $noteDate = ClientRelation::min('created_at');
-        $visitDate = Visit::min('created_at');
-
-        $minDate = collect([$invoiceDate, $paymentDate, $noteDate, $visitDate])
-            ->filter()
-            ->min();
-        // نهاية جزء حساب التاريخ الأدنى
-
-        $start = \Carbon\Carbon::parse($minDate)->startOfWeek();
-        $now = now()->endOfWeek();
-        $totalWeeks = $start->diffInWeeks($now) + 1;
-
+        // تحديد آخر 4 أسابيع
+        $now = now();
         $weeks = [];
-        for ($i = 0; $i < $totalWeeks; $i++) {
+
+        for ($i = 3; $i >= 0; $i--) {
+            $startDate = $now->copy()->subWeeks($i)->startOfWeek();
+            $endDate = $now->copy()->subWeeks($i)->endOfWeek();
+
             $weeks[] = [
-                'start' => $start->copy()->addWeeks($i)->format('Y-m-d'),
-                'end' => $start->copy()->addWeeks($i)->endOfWeek()->format('Y-m-d'),
+                'start' => $startDate->format('Y-m-d'),
+                'end' => $endDate->format('Y-m-d'),
+                'month_year' => $startDate->translatedFormat('F Y'),
+                'week_number' => 4 - $i // رقم الأسبوع (1 إلى 4)
             ];
         }
 
         return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+    }
+
+    public function getWeeksData(Request $request)
+    {
+        $offset = $request->input('offset', 0);
+        $now = now();
+        $weeks = [];
+
+        for ($i = 3 + $offset; $i >= 0 + $offset; $i--) {
+            $startDate = $now->copy()->subWeeks($i)->startOfWeek();
+            $endDate = $now->copy()->subWeeks($i)->endOfWeek();
+
+            $weeks[] = [
+                'start' => $startDate->format('Y-m-d'),
+                'end' => $endDate->format('Y-m-d'),
+                'month_year' => $startDate->translatedFormat('F Y'),
+                'week_number' => (4 + $offset) - $i
+            ];
+        }
+
+        return response()->json(['weeks' => $weeks]);
+    }
+
+    public function getTrafficData(Request $request)
+    {
+        $weeks = $request->input('weeks');
+        $groupIds = $request->input('group_ids', []);
+
+        // هنا يمكنك تنفيذ الاستعلامات للحصول على البيانات حسب الأسابيع المحددة
+        // هذا مثال مبسط، يجب تعديله حسب هيكل قاعدة البيانات الخاص بك
+
+        $groups = Region_groub::when(!empty($groupIds), function($query) use ($groupIds) {
+                return $query->whereIn('id', $groupIds);
+            })
+            ->with(['neighborhoods.client' => function($query) use ($weeks) {
+                $query->with([
+                    'invoices' => function($q) use ($weeks) {
+                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                    },
+                    'payments' => function($q) use ($weeks) {
+                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                    },
+                    'appointmentNotes' => function($q) use ($weeks) {
+                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                    },
+                    'visits' => function($q) use ($weeks) {
+                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                    },
+                    'accounts.receipts' => function($q) use ($weeks) {
+                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                    }
+                ]);
+            }])
+            ->get();
+
+        return response()->json([
+            'groups' => $groups,
+            'weeks' => $weeks
+        ]);
     }
 
     public function sendDailyReport()
@@ -756,5 +810,182 @@ class VisitController extends Controller
             }
         }
     }
+    public function sendWeeklyReport()
+{
+    // تحديد تاريخ بداية ونهاية الأسبوع (من الأحد إلى السبت)
+    $endDate = Carbon::today();
+    $startDate = $endDate->copy()->subDays(6); // الأسبوع الماضي
+
+    // جلب فقط الموظفين الذين لديهم دور employee
+    $users = User::where('role', 'employee')->get();
+
+    foreach ($users as $user) {
+        // الفواتير التي أنشأها الموظف خلال الأسبوع
+        $invoices = Invoice::where('created_by', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // جلب أرقام الفواتير
+        $invoiceIds = $invoices->pluck('id')->toArray();
+
+        // المدفوعات المرتبطة بهذه الفواتير خلال الأسبوع
+        $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
+            ->whereBetween('payment_date', [$startDate, $endDate])
+            ->get();
+
+        // الزيارات التي قام بها الموظف خلال الأسبوع
+        $visits = Visit::with('client')
+            ->where('employee_id', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // الإيصالات التي أنشأها الموظف خلال الأسبوع
+        $receipts = Receipt::where('created_by', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // المصروفات التي أنشأها الموظف خلال الأسبوع
+        $expenses = Expense::where('created_by', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // الملاحظات التي أنشأها الموظف خلال الأسبوع
+        $notes = ClientRelation::with('client')
+            ->where('employee_id', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // إنشاء ملف PDF للموظف الحالي
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator('Your Application');
+        $pdf->SetAuthor('Your Name');
+        $pdf->SetTitle('Weekly Employee Report - ' . $user->name);
+        $pdf->AddPage();
+
+        // محتوى التقرير للموظف الحالي
+        $html = view('reports.weekly_employee', [
+            'user' => $user,
+            'invoices' => $invoices,
+            'visits' => $visits,
+            'payments' => $payments,
+            'receipts' => $receipts,
+            'expenses' => $expenses,
+            'notes' => $notes,
+            'startDate' => $startDate->format('Y-m-d'),
+            'endDate' => $endDate->format('Y-m-d'),
+        ])->render();
+
+        $pdf->writeHTML($html, true, false, true, false, 'R');
+
+        // حفظ الملف باسم فريد لكل موظف
+        $pdfPath = storage_path('app/public/weekly_report_'.$user->id.'_'.$startDate->format('Y-m-d').'_to_'.$endDate->format('Y-m-d').'.pdf');
+        $pdf->Output($pdfPath, 'F');
+
+        // إرسال إلى Telegram
+        $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+        $chatId = '@Salesfatrasmart';
+
+        $response = Http::attach('document', file_get_contents($pdfPath), 'weekly_report_'.$user->name.'.pdf')
+            ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+                'chat_id' => $chatId,
+                'caption' => "📊 تقرير الموظف الأسبوعي - ".$user->name." - من ".$startDate->format('Y-m-d')." إلى ".$endDate->format('Y-m-d'),
+            ]);
+
+        // حذف الملف بعد الإرسال
+        if (file_exists($pdfPath)) {
+            unlink($pdfPath);
+        }
+    }
+}
+public function sendMonthlyReport()
+{
+    // تحديد تاريخ بداية ونهاية الشهر
+    $endDate = Carbon::today();
+    $startDate = $endDate->copy()->startOfMonth();
+
+    // جلب الموظفين
+    $users = User::where('role', 'employee')->get();
+
+    foreach ($users as $user) {
+        // الفواتير الشهرية
+        $invoices = Invoice::where('created_by', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        $invoiceIds = $invoices->pluck('id')->toArray();
+
+        // المدفوعات الشهرية
+        $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
+            ->whereBetween('payment_date', [$startDate, $endDate])
+            ->get();
+
+        // الزيارات الشهرية مع تجميع عدد الزيارات لكل عميل
+        $visits = Visit::with('client')
+            ->where('employee_id', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // حساب عدد الزيارات لكل عميل
+        $clientVisitsCount = $visits->groupBy('client_id')->map->count();
+
+        // الإيصالات الشهرية
+        $receipts = Receipt::where('created_by', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // المصروفات الشهرية
+        $expenses = Expense::where('created_by', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // الملاحظات الشهرية
+        $notes = ClientRelation::with('client')
+            ->where('employee_id', $user->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        // إنشاء ملف PDF
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator('Your Application');
+        $pdf->SetAuthor('Your Name');
+        $pdf->SetTitle('Monthly Employee Report - ' . $user->name);
+        $pdf->AddPage();
+
+        // محتوى التقرير
+        $html = view('reports.monthly_employee', [
+            'user' => $user,
+            'invoices' => $invoices,
+            'visits' => $visits,
+            'clientVisitsCount' => $clientVisitsCount,
+            'payments' => $payments,
+            'receipts' => $receipts,
+            'expenses' => $expenses,
+            'notes' => $notes,
+            'startDate' => Carbon::parse($startDate), // تحويل إلى كائن Carbon
+            'endDate' => Carbon::parse($endDate),
+        ])->render();
+
+        $pdf->writeHTML($html, true, false, true, false, 'R');
+
+        // حفظ الملف
+        $pdfPath = storage_path('app/public/monthly_report_'.$user->id.'_'.$startDate->format('Y-m').'.pdf');
+        $pdf->Output($pdfPath, 'F');
+
+        // إرسال إلى Telegram
+        $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+        $chatId = '@Salesfatrasmart';
+
+        $response = Http::attach('document', file_get_contents($pdfPath), 'monthly_report_'.$user->name.'.pdf')
+            ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+                'chat_id' => $chatId,
+                'caption' => "📊 تقرير الموظف الشهري - ".$user->name." - لشهر ".$startDate->format('Y-m'),
+            ]);
+
+        // حذف الملف بعد الإرسال
+        if (file_exists($pdfPath)) {
+            unlink($pdfPath);
+        }
+    }
+}
 
 }

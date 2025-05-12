@@ -27,15 +27,17 @@
                 <i class="fas fa-chart-line mr-1"></i> تحليل حركة العملاء
             </h4>
             <div class="heading-elements">
-                <button class="btn btn-sm btn-outline-primary toggle-week-dates">إظهار/إخفاء التواريخ</button>
+                <button class="btn btn-sm btn-outline-primary toggle-week-dates">
+                    <i class="fas fa-calendar-alt"></i> إظهار/إخفاء التواريخ
+                </button>
             </div>
         </div>
         <div class="card-body">
             <div class="row mb-2">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <input type="text" id="client-search" class="form-control" placeholder="بحث باسم العميل...">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <select id="group-filter" class="form-control">
                         <option value="">جميع المجموعات</option>
                         @foreach ($groups as $group)
@@ -43,7 +45,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="activity-filter btn-group btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-outline-primary active">
                             <input type="radio" name="activity" value="all" checked> الكل
@@ -56,7 +58,24 @@
                         </label>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <button id="export-excel" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> تصدير لإكسل
+                    </button>
+                </div>
             </div>
+
+            <div class="d-flex justify-content-between mb-3">
+                <button id="prev-period" class="btn btn-outline-primary">
+                    <i class="fas fa-chevron-right"></i> الأسابيع السابقة
+                </button>
+                <h5 id="current-period" class="text-center">{{ $weeks[0]['month_year'] ?? '' }}</h5>
+                <button id="next-period" class="btn btn-outline-primary">
+                    الأسابيع التالية <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div id="weeks-container" data-current-weeks="{{ json_encode($weeks) }}"></div>
 
             <div class="accordion" id="groups-accordion">
                 @foreach ($groups as $group)
@@ -67,8 +86,9 @@
                                     data-target="#collapse-{{ $group->id }}" aria-expanded="true"
                                     aria-controls="collapse-{{ $group->id }}">
                                     <i class="fas fa-map-marker-alt text-danger"></i> {{ $group->name }}
-                                    <span
-                                        class="badge badge-primary badge-pill ml-2">{{ $group->neighborhoods->flatMap(fn($n) => $n->client ? [$n->client] : [])->filter()->unique('id')->count() }}</span>
+                                    <span class="badge badge-primary badge-pill ml-2">
+                                        {{ $group->neighborhoods->flatMap(fn($n) => $n->client ? [$n->client] : [])->filter()->unique('id')->count() }}
+                                    </span>
                                 </button>
                             </h5>
                         </div>
@@ -93,7 +113,7 @@
                                                     <th style="width: 20%; min-width: 200px;">العميل</th>
                                                     @foreach ($weeks as $week)
                                                         <th class="week-header" style="min-width: 80px;">
-                                                            <div class="week-number">الأسبوع {{ $loop->iteration }}</div>
+                                                            <div class="week-number">الأسبوع {{ $week['week_number'] }}</div>
                                                             <div class="week-dates">
                                                                 {{ \Carbon\Carbon::parse($week['start'])->format('d/m') }}
                                                                 -
@@ -110,13 +130,26 @@
                                                         <td class="text-start align-middle">
                                                             <div class="d-flex align-items-center">
                                                                 <div class="avatar mr-1">
-                                                                    <span
-                                                                        class="avatar-content bg-primary">{{ substr($client->trade_name, 0, 1) }}</span>
+                                                                    <span class="avatar-content bg-primary">
+                                                                        {{ substr($client->trade_name, 0, 1) }}
+                                                                    </span>
                                                                 </div>
                                                                 <div>
-                                                                    <strong>{{ $client->trade_name }}</strong>
+                                                                    <strong>{{ $client->trade_name }}-{{ $client->code }}</strong>
+                                                                    <strong>
+                                                                        @if ($client->status_client)
+                                                                            <span style="background-color: {{ $client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                                                {{ $client->status_client->name }}
+                                                                            </span>
+                                                                        @else
+                                                                            <span style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                                                غير محدد
+                                                                            </span>
+                                                                        @endif
+                                                                    </strong>
                                                                     <div class="small text-muted">
-                                                                        {{ optional($client->neighborhood)->name }}</div>
+                                                                        {{ optional($client->neighborhood)->name }}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -127,84 +160,37 @@
                                                                 $activities = [];
                                                                 $hasActivity = false;
 
-                                                                if (
-                                                                    $client->invoices &&
-                                                                    $client->invoices
-                                                                        ->whereBetween('created_at', [
-                                                                            $week['start'],
-                                                                            $week['end'],
-                                                                        ])
-                                                                        ->count()
-                                                                ) {
-                                                                    $activities[] = [
-                                                                        'icon' => '🧾',
-                                                                        'title' => 'فاتورة',
-                                                                    ];
+                                                                // فحص الفواتير
+                                                                if ($client->invoices->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
+                                                                    $activities[] = ['icon' => '🧾', 'title' => 'فاتورة'];
                                                                     $hasActivity = true;
                                                                 }
 
-                                                                if (
-                                                                    $client->payments &&
-                                                                    $client->payments
-                                                                        ->whereBetween('created_at', [
-                                                                            $week['start'],
-                                                                            $week['end'],
-                                                                        ])
-                                                                        ->count()
-                                                                ) {
+                                                                // فحص المدفوعات
+                                                                if ($client->payments->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
                                                                     $activities[] = ['icon' => '💵', 'title' => 'دفعة'];
                                                                     $hasActivity = true;
                                                                 }
 
-                                                                if (
-                                                                    $client->appointmentNotes &&
-                                                                    $client->appointmentNotes
-                                                                        ->whereBetween('created_at', [
-                                                                            $week['start'],
-                                                                            $week['end'],
-                                                                        ])
-                                                                        ->count()
-                                                                ) {
-                                                                    $activities[] = [
-                                                                        'icon' => '📝',
-                                                                        'title' => 'ملاحظة',
-                                                                    ];
+                                                                // فحص الملاحظات
+                                                                if ($client->appointmentNotes->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
+                                                                    $activities[] = ['icon' => '📝', 'title' => 'ملاحظة'];
                                                                     $hasActivity = true;
                                                                 }
 
-                                                                if (
-                                                                    $client->visits &&
-                                                                    $client->visits
-                                                                        ->whereBetween('created_at', [
-                                                                            $week['start'],
-                                                                            $week['end'],
-                                                                        ])
-                                                                        ->count()
-                                                                ) {
-                                                                    $activities[] = [
-                                                                        'icon' => '👣',
-                                                                        'title' => 'زيارة',
-                                                                    ];
+                                                                // فحص الزيارات
+                                                                if ($client->visits->whereBetween('created_at', [$week['start'], $week['end']])->count()) {
+                                                                    $activities[] = ['icon' => '👣', 'title' => 'زيارة'];
                                                                     $hasActivity = true;
                                                                 }
-                                                                // التحقق من وجود سندات قبض مرتبطة بالعميل
-                                                                $accountIds = $client->accounts->pluck('id'); // جلب account_id المرتبطة بالعميل
 
-                                                                $receiptsCount = \App\Models\Receipt::whereIn(
-                                                                    'account_id',
-                                                                    $accountIds,
-                                                                )
-                                                                    ->whereBetween('created_at', [
-                                                                        $week['start'],
-                                                                        $week['end'],
-                                                                    ])
-                                                                    ->count();
+                                                                // فحص سندات القبض
+                                                                $receiptsCount = $client->accounts->flatMap(function($account) use ($week) {
+                                                                    return $account->receipts->whereBetween('created_at', [$week['start'], $week['end']]);
+                                                                })->count();
 
                                                                 if ($receiptsCount > 0) {
-                                                                    $activities[] = [
-                                                                        'icon' => '💰',
-                                                                        'title' => 'سند قبض',
-                                                                    ];
+                                                                    $activities[] = ['icon' => '💰', 'title' => 'سند قبض'];
                                                                     $hasActivity = true;
                                                                 }
 
@@ -217,8 +203,9 @@
                                                                 @if ($hasActivity)
                                                                     <div class="activity-icons">
                                                                         @foreach ($activities as $activity)
-                                                                            <span
-                                                                                title="{{ $activity['title'] }}">{{ $activity['icon'] }}</span>
+                                                                            <span title="{{ $activity['title'] }}">
+                                                                                {{ $activity['icon'] }}
+                                                                            </span>
                                                                         @endforeach
                                                                     </div>
                                                                 @else
@@ -228,8 +215,7 @@
                                                         @endforeach
 
                                                         <td class="align-middle">
-                                                            <span
-                                                                class="badge badge-pill @if ($totalActivities > 0) badge-light-success @else badge-light-secondary @endif">
+                                                            <span class="badge badge-pill @if ($totalActivities > 0) badge-light-success @else badge-light-secondary @endif">
                                                                 {{ $totalActivities }} / {{ count($weeks) }}
                                                             </span>
                                                         </td>
@@ -250,7 +236,8 @@
     </div>
 @endsection
 
-@push('styles')
+@section('css')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <style>
         .card-header h5 button {
             font-weight: 600;
@@ -307,15 +294,60 @@
         .toggle-week-dates {
             font-size: 0.8rem;
         }
-    </style>
-@endpush
 
-@push('scripts')
+        #current-period {
+            font-weight: bold;
+            padding: 5px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+@endsection
+
+@section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            // إعداد Toastr
+            toastr.options = {
+                "positionClass": "toast-top-left",
+                "rtl": true,
+                "timeOut": 3000
+            };
+
             // إظهار/إخفاء تواريخ الأسابيع
             $('.toggle-week-dates').click(function() {
                 $('.week-dates').toggle();
+                $(this).toggleClass('btn-primary btn-outline-primary');
             });
 
             // فلترة حسب اسم العميل
@@ -341,27 +373,158 @@
             // فلترة حسب النشاط
             $('input[name="activity"]').change(function() {
                 const filter = $(this).val();
-
                 $('.client-row').each(function() {
                     const row = $(this);
                     if (filter === 'all') {
                         row.show();
                     } else if (filter === 'has-activity') {
-                        const hasActivity = row.find('.activity-cell[data-has-activity="1"]')
-                            .length > 0;
+                        const hasActivity = row.find('.activity-cell[data-has-activity="1"]').length > 0;
                         row.toggle(hasActivity);
                     } else if (filter === 'no-activity') {
-                        const noActivity = row.find('.activity-cell[data-has-activity="1"]')
-                            .length === 0;
+                        const noActivity = row.find('.activity-cell[data-has-activity="1"]').length === 0;
                         row.toggle(noActivity);
                     }
                 });
             });
 
-            // توسيع/طي جميع الأقسام
-            $('#toggle-all').click(function() {
-                $('.collapse').collapse('toggle');
+            // التصدير إلى Excel
+            $('#export-excel').click(function() {
+                // إنشاء ورقة عمل Excel
+                const wb = XLSX.utils.book_new();
+                const wsData = [];
+
+                // إضافة العناوين
+                const headers = ['العميل'];
+                $('.week-header .week-number').each(function() {
+                    headers.push($(this).text());
+                });
+                headers.push('إجمالي النشاط');
+                wsData.push(headers);
+
+                // إضافة بيانات العملاء
+                $('.client-row').each(function() {
+                    const row = [];
+                    const clientName = $(this).find('td:first-child strong').first().text();
+                    row.push(clientName);
+
+                    $(this).find('.activity-cell').each(function() {
+                        const hasActivity = $(this).data('has-activity') === '1';
+                        row.push(hasActivity ? 'نعم' : 'لا');
+                    });
+
+                    const totalActivities = $(this).find('.badge-pill').text();
+                    row.push(totalActivities);
+
+                    wsData.push(row);
+                });
+
+                // تحويل البيانات إلى ورقة عمل
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                // إضافة ورقة العمل إلى الكتاب
+                XLSX.utils.book_append_sheet(wb, ws, "تحليل الزيارات");
+
+                // تنزيل الملف
+                XLSX.writeFile(wb, 'تحليل_الزيارات_' + new Date().toISOString().split('T')[0] + '.xlsx');
             });
+
+            // متغيرات التحكم في الفترات الزمنية
+            let currentWeekOffset = 0;
+            let isLoading = false;
+
+            // عرض شاشة التحميل
+            function showLoading() {
+                isLoading = true;
+                $('body').append('<div class="loading-overlay"><div class="loading-spinner"></div></div>');
+                $('.loading-overlay').fadeIn();
+            }
+
+            // إخفاء شاشة التحميل
+            function hideLoading() {
+                isLoading = false;
+                $('.loading-overlay').fadeOut(function() {
+                    $(this).remove();
+                });
+            }
+
+            // تحديث الجدول بناء على الأسابيع
+            function updateTable(weeks) {
+                showLoading();
+
+                // هنا يمكنك إجراء طلب Ajax لتحميل البيانات الجديدة
+                $.ajax({
+                    url: '{{ route("get.traffic.data") }}',
+                    method: 'POST',
+                    data: {
+                        weeks: weeks,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        // في هذا المثال، سنقوم فقط بتحديث عرض الفترة
+                        // في تطبيق حقيقي، ستحتاج إلى تحديث الجدول بالبيانات الجديدة
+                        updatePeriodDisplay(weeks);
+                        hideLoading();
+                    },
+                    error: function() {
+                        toastr.error('حدث خطأ أثناء تحميل البيانات');
+                        hideLoading();
+                    }
+                });
+            }
+
+            // تحديث عرض الفترة الحالية
+            function updatePeriodDisplay(weeks) {
+                if (weeks.length > 0) {
+                    const firstWeek = weeks[0];
+                    const displayText = firstWeek.month_year;
+                    $('#current-period').text(displayText);
+                    $('#weeks-container').data('current-weeks', weeks);
+                }
+            }
+
+            // تحميل الأسابيع السابقة
+            $('#prev-period').click(function() {
+                if (isLoading) return;
+
+                currentWeekOffset += 4;
+                loadWeeks();
+            });
+
+            // تحميل الأسابيع التالية
+            $('#next-period').click(function() {
+                if (isLoading) return;
+
+                if (currentWeekOffset > 0) {
+                    currentWeekOffset -= 4;
+                    loadWeeks();
+                } else {
+                    toastr.info('أنت تشاهد أحدث الأسابيع');
+                }
+            });
+
+            // تحميل بيانات الأسابيع
+            function loadWeeks() {
+                showLoading();
+
+                $.ajax({
+                    url: '{{ route("get.weeks.data") }}',
+                    method: 'POST',
+                    data: {
+                        offset: currentWeekOffset,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        updateTable(response.weeks);
+                    },
+                    error: function() {
+                        toastr.error('حدث خطأ أثناء تحميل الأسابيع');
+                        hideLoading();
+                    }
+                });
+            }
+
+            // التهيئة الأولية
+            updatePeriodDisplay(@json($weeks));
         });
     </script>
-@endpush
+@endsection

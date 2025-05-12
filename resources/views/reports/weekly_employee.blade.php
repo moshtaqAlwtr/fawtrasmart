@@ -2,7 +2,7 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>التقرير اليومي للموظف {{ $user->name }}</title>
+    <title>التقرير الأسبوعي للموظف {{ $user->name }}</title>
     <style>
         @font-face {
             font-family: 'DejaVu Sans';
@@ -166,18 +166,19 @@
         .col-15 { width: 15%; }
         .col-20 { width: 20%; }
         .col-25 { width: 25%; }
-        .col-30 { width: 30%; }
-        .col-35 { width: 35%; }
-        .col-40 { width: 40%; }
-        .nowrap { white-space: nowrap; }
-        .wrap-text { white-space: normal; word-wrap: break-word; }
+        .date-range {
+            text-align: center;
+            margin-bottom: 5mm;
+            font-weight: bold;
+            color: #3498db;
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>التقرير اليومي لأداء الموظف</h1>
-        <div class="subtitle">تاريخ التقرير: {{ $date }}</div>
+        <h1>التقرير الأسبوعي لأداء الموظف</h1>
+        <div class="subtitle">فترة التقرير: من {{ $startDate }} إلى {{ $endDate }}</div>
     </div>
 
     <!-- معلومات الموظف -->
@@ -204,7 +205,7 @@
 
     <!-- ملخص المدفوعات -->
     <div class="payment-summary">
-        <div class="payment-summary-title">ملخص المدفوعات</div>
+        <div class="payment-summary-title">ملخص المدفوعات الأسبوعي</div>
         <div class="payment-summary-grid">
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي المدفوعات المستلمة</div>
@@ -225,7 +226,7 @@
                 </div>
             </div>
             <div class="payment-summary-item grand-total">
-                <div class="payment-summary-label">صافي التحصيل النقدي</div>
+                <div class="payment-summary-label">صافي التحصيل النقدي الأسبوعي</div>
                 <div class="payment-summary-value">
                     @php
                         $totalCollection = $payments->sum('amount') + $receipts->sum('amount') - $expenses->sum('amount');
@@ -239,27 +240,28 @@
     {{-- الفواتير --}}
     <div class="section">
         <div class="section-title">
-            <span>الفواتير الصادرة</span>
+            <span>الفواتير الصادرة خلال الأسبوع</span>
             <span class="section-count">{{ $invoices->count() }}</span>
         </div>
         @if ($invoices->count() > 0)
+            <div class="date-range">من {{ $startDate }} إلى {{ $endDate }}</div>
             <table>
                 <thead>
                     <tr>
                         <th class="col-10">رقم الفاتورة</th>
-                        <th class="col-25">العميل</th>
+                        <th class="col-20">العميل</th>
                         <th class="col-15">المجموع</th>
                         <th class="col-15">الحالة</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-20">ملاحظات</th>
+                        <th class="col-25">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($invoices as $invoice)
                         <tr>
-                            <td class="nowrap">#{{ $invoice->id }}</td>
-                            <td class="wrap-text">{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ number_format($invoice->grand_total, 2, '.', ',') }} ر.س</td>
+                            <td>#{{ $invoice->id }}</td>
+                            <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
+                            <td class="currency">{{ $invoice->grand_total?? '0.00' }}</td>
                             <td>
                                 @if($invoice->payment_status == 1)
                                     <span class="status-badge status-paid">مدفوعة</span>
@@ -269,201 +271,128 @@
                                     <span class="status-badge status-unpaid">غير مدفوعة</span>
                                 @endif
                             </td>
-                            <td class="nowrap">{{ $invoice->created_at->format('H:i') }}</td>
-                            <td class="wrap-text">{{ $invoice->notes ?? '--' }}</td>
+                            <td>{{ $invoice->created_at->format('Y-m-d H:i') }}</td>
+                            <td>{{ $invoice->notes ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($invoices->sum('grand_total'), 2) }} ر.س</td>
+                        <td class="currency">{{$invoices->sum('grand_total')?? '0.00'}} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
+
                 </tbody>
             </table>
         @else
-            <div class="no-data">لا يوجد فواتير مسجلة</div>
+            <div class="no-data">لا يوجد فواتير مسجلة خلال هذا الأسبوع</div>
         @endif
     </div>
 
     {{-- المدفوعات --}}
     <div class="section">
         <div class="section-title">
-            <span>المدفوعات المستلمة</span>
+            <span>المدفوعات المستلمة خلال الأسبوع</span>
             <span class="section-count">{{ $payments->count() }}</span>
         </div>
         @if ($payments->count() > 0)
+            <div class="date-range">من {{ $startDate }} إلى {{ $endDate }}</div>
             <table>
                 <thead>
                     <tr>
                         <th class="col-10">رقم العملية</th>
-                        <th class="col-25">العميل</th>
+                        <th class="col-20">العميل</th>
                         <th class="col-15">المبلغ</th>
-                        <th class="col-20">طريقة الدفع</th>
+                        <th class="col-15">طريقة الدفع</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-15">رقم الفاتورة</th>
+                        <th class="col-25">رقم الفاتورة</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($payments as $payment)
                         <tr>
-                            <td class="nowrap">#{{ $payment->id }}</td>
-                            <td class="wrap-text">{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
+                            <td>#{{ $payment->id }}</td>
+                            <td>{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
                             <td class="currency">{{ number_format($payment->amount, 2, '.', ',') }} ر.س</td>
-                            <td class="wrap-text">{{ $payment->payment_method }}</td>
-                            <td class="nowrap">{{ $payment->payment_date }}</td>
-                            <td class="nowrap">#{{ $payment->invoice_id }}</td>
+                            <td>{{ $payment->payment_method }}</td>
+                            <td class="time">{{ $payment->payment_date }}</td>
+                            <td>#{{ $payment->invoice_id }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($payments->sum('amount'), 2) }} ر.س</td>
+                        <td class="currency">{{$payments->sum('amount'), 2 }} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
             </table>
         @else
-            <div class="no-data">لا يوجد مدفوعات مسجلة</div>
-        @endif
-    </div>
-
-    {{-- سندات القبض --}}
-    <div class="section">
-        <div class="section-title">
-            <span>سندات القبض</span>
-            <span class="section-count">{{ $receipts->count() }}</span>
-        </div>
-        @if ($receipts->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-15">رقم السند</th>
-                        <th class="col-30">من</th>
-                        <th class="col-15">المبلغ</th>
-                        <th class="col-20">التاريخ</th>
-                        <th class="col-20">الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($receipts as $receipt)
-                        <tr>
-                            <td class="nowrap">#{{ $receipt->id }}</td>
-                            <td class="wrap-text">{{ $receipt->account->name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ number_format($receipt->amount, 2, '.', ',') }} ر.س</td>
-                            <td class="nowrap">{{ $receipt->created_at->format('H:i') }}</td>
-                            <td class="wrap-text">{{ $receipt->description ?? '--' }}</td>
-                        </tr>
-                    @endforeach
-                    <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($receipts->sum('amount'), 2) }} ر.س</td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        @else
-            <div class="no-data">لا يوجد سندات قبض</div>
-        @endif
-    </div>
-
-    {{-- سندات الصرف --}}
-    <div class="section">
-        <div class="section-title">
-            <span>سندات الصرف</span>
-            <span class="section-count">{{ $expenses->count() }}</span>
-        </div>
-        @if ($expenses->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-15">رقم السند</th>
-                        <th class="col-30">إلى</th>
-                        <th class="col-15">المبلغ</th>
-                        <th class="col-20">التاريخ</th>
-                        <th class="col-20">الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($expenses as $expense)
-                        <tr>
-                            <td class="nowrap">#{{ $expense->id }}</td>
-                            <td class="wrap-text">{{ $expense->name }}</td>
-                            <td class="currency">{{ number_format($expense->amount, 2, '.', ',') }} ر.س</td>
-                            <td class="nowrap">{{ $expense->created_at->format('H:i') }}</td>
-                            <td class="wrap-text">{{ $expense->description ?? '--' }}</td>
-                        </tr>
-                    @endforeach
-                    <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($expenses->sum('amount'), 2) }} ر.س</td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        @else
-            <div class="no-data">لا يوجد سندات صرف</div>
+            <div class="no-data">لا يوجد مدفوعات مسجلة خلال هذا الأسبوع</div>
         @endif
     </div>
 
     {{-- زيارات العملاء --}}
     <div class="section">
         <div class="section-title">
-            <span>زيارات العملاء</span>
+            <span>زيارات العملاء خلال الأسبوع</span>
             <span class="section-count">{{ $visits->count() }}</span>
         </div>
         @if ($visits->count() > 0)
+            <div class="date-range">من {{ $startDate }} إلى {{ $endDate }}</div>
             <table>
                 <thead>
                     <tr>
-                        <th class="col-25">العميل</th>
-                        <th class="col-25">العنوان</th>
+                        <th class="col-15">التاريخ</th>
+                        <th class="col-20">العميل</th>
+                        <th class="col-20">العنوان</th>
                         <th class="col-10">الوصول</th>
                         <th class="col-10">الانصراف</th>
-                        <th class="col-15">التاريخ</th>
-                        <th class="col-15">ملاحظات</th>
+                        <th class="col-25">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($visits as $visit)
-                        <tr>
-                            <td class="wrap-text">{{ optional($visit->client)->trade_name ?? 'غير محدد' }}</td>
-                            <td class="wrap-text">{{ optional($visit->client)->formattedAddress ?? 'غير محدد' }}</td>
-                            <td class="nowrap">{{ $visit->arrival_time ?? '--' }}</td>
-                            <td class="nowrap">{{ $visit->departure_time ?? '--' }}</td>
-                            <td class="nowrap">{{ $visit->created_at->format('H:i') }}</td>
-                            <td class="wrap-text">{{ $visit->notes ?? '--' }}</td>
-                        </tr>
-                    @endforeach
+                    <tr>
+                        <td>{{ $visit->created_at->format('Y-m-d') }}</td>
+                        <td>{{ $visit->client->trade_name ?? 'غير محدد' }}</td>
+                        <td>{{ $visit->client->formattedAddress ?? 'غير محدد' }}</td>
+                        <td class="time">{{ $visit->arrival_time ?? '--' }}</td>
+                        <td class="time">{{ $visit->departure_time ?? '--' }}</td>
+                        <td>{{ $visit->notes ?? '--' }}</td>
+                    </tr>
+                @endforeach
                     <tr class="total-row">
                         <td colspan="6">إجمالي الزيارات: {{ $visits->count() }}</td>
                     </tr>
                 </tbody>
             </table>
         @else
-            <div class="no-data">لا يوجد زيارات مسجلة</div>
+            <div class="no-data">لا يوجد زيارات مسجلة خلال هذا الأسبوع</div>
         @endif
     </div>
 
     {{-- الملاحظات --}}
     <div class="section">
         <div class="section-title">
-            <span>ملاحظات الموظف</span>
+            <span>ملاحظات الموظف خلال الأسبوع</span>
             <span class="section-count">{{ $notes->count() }}</span>
         </div>
         @if ($notes->count() > 0)
+            <div class="date-range">من {{ $startDate }} إلى {{ $endDate }}</div>
             <table>
                 <thead>
                     <tr>
-                        <th class="col-25">العميل</th>
+                        <th class="col-15">التاريخ</th>
+                        <th class="col-20">العميل</th>
                         <th class="col-15">الحالة</th>
                         <th class="col-15">الوقت</th>
-                        <th class="col-15">التاريخ</th>
-                        <th class="col-30">الوصف</th>
+                        <th class="col-35">الوصف</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($notes as $note)
                         <tr>
-                            <td class="wrap-text">{{ $note->client->trade_name ?? 'غير محدد' }}</td>
+                            <td>{{ $note->created_at->format('Y-m-d') }}</td>
+                            <td>{{ $note->client->trade_name ?? 'غير محدد' }}</td>
                             <td>
                                 @if($note->status == 'completed')
                                     <span class="status-badge status-completed">مكتمل</span>
@@ -475,9 +404,8 @@
                                     {{ $note->status }}
                                 @endif
                             </td>
-                            <td class="nowrap">{{ $note->time ?? '--' }}</td>
-                            <td class="nowrap">{{ $note->date ?? '--' }}</td>
-                            <td class="wrap-text">{{ $note->description ?? '--' }}</td>
+                            <td class="time">{{ $note->time ?? '--' }}</td>
+                            <td>{{ $note->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
@@ -486,7 +414,87 @@
                 </tbody>
             </table>
         @else
-            <div class="no-data">لا يوجد ملاحظات مسجلة</div>
+            <div class="no-data">لا يوجد ملاحظات مسجلة خلال هذا الأسبوع</div>
+        @endif
+    </div>
+
+    {{-- سندات القبض --}}
+    <div class="section">
+        <div class="section-title">
+            <span>سندات القبض خلال الأسبوع</span>
+            <span class="section-count">{{ $receipts->count() }}</span>
+        </div>
+        @if ($receipts->count() > 0)
+            <div class="date-range">من {{ $startDate }} إلى {{ $endDate }}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-15">رقم السند</th>
+                        <th class="col-25">من</th>
+                        <th class="col-15">المبلغ</th>
+                        <th class="col-20">التاريخ</th>
+                        <th class="col-25">الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($receipts as $receipt)
+                        <tr>
+                            <td>#{{ $receipt->id }}</td>
+                            <td>{{ $receipt->account->name ?? 'غير محدد' }}</td>
+                            <td class="currency">{{ number_format($receipt->amount, 2, '.', ',') }} ر.س</td>
+                            <td>{{ $receipt->created_at->format('Y-m-d H:i') }}</td>
+                            <td>{{ $receipt->description ?? '--' }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="total-row">
+                        <td colspan="2">المجموع</td>
+                        <td class="currency">{{$receipts->sum('amount'), 2 }} ر.س</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+        @else
+            <div class="no-data">لا يوجد سندات قبض خلال هذا الأسبوع</div>
+        @endif
+    </div>
+
+    {{-- سندات الصرف --}}
+    <div class="section">
+        <div class="section-title">
+            <span>سندات الصرف خلال الأسبوع</span>
+            <span class="section-count">{{ $expenses->count() }}</span>
+        </div>
+        @if ($expenses->count() > 0)
+            <div class="date-range">من {{ $startDate }} إلى {{ $endDate }}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-15">رقم السند</th>
+                        <th class="col-25">إلى</th>
+                        <th class="col-15">المبلغ</th>
+                        <th class="col-20">التاريخ</th>
+                        <th class="col-25">الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($expenses as $expense)
+                        <tr>
+                            <td>#{{ $expense->id }}</td>
+                            <td>{{ $expense->name }}</td>
+                            <td class="currency">{{ number_format($expense->amount, 2, '.', ',') }} ر.س</td>
+                            <td>{{ $expense->created_at->format('Y-m-d H:i') }}</td>
+                            <td>{{ $expense->description ?? '--' }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="total-row">
+                        <td colspan="2">المجموع</td>
+                        <td class="currency">{{$expenses->sum('amount'), 2, '.', ',' }} ر.س</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+        @else
+            <div class="no-data">لا يوجد سندات صرف خلال هذا الأسبوع</div>
         @endif
     </div>
 

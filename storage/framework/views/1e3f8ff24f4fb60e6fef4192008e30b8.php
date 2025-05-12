@@ -298,61 +298,61 @@
                         });
                     </script>
 
-<script>
+                    <script>
+                        $(document).ready(function() {
+                            function formatNotificationTime(dateTime) {
+                                const now = new Date();
+                                const notificationDate = new Date(dateTime);
+                                const diffInSeconds = Math.floor((now - notificationDate) / 1000);
 
-                $(document).ready(function() {
-                    function formatNotificationTime(dateTime) {
-                        const now = new Date();
-                        const notificationDate = new Date(dateTime);
-                        const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+                                // إذا مر أكثر من 24 ساعة (86400 ثانية) لا تعرض الإشعار
+                                if (diffInSeconds > 86400) {
+                                    return null;
+                                }
 
-                        // إذا مر أكثر من 24 ساعة (86400 ثانية) لا تعرض الإشعار
-                        if (diffInSeconds > 86400) {
-                            return null;
-                        }
+                                if (diffInSeconds < 60) {
+                                    return 'منذ لحظات';
+                                } else if (diffInSeconds < 3600) {
+                                    const minutes = Math.floor(diffInSeconds / 60);
+                                    return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
+                                } else if (diffInSeconds < 86400) {
+                                    const hours = Math.floor(diffInSeconds / 3600);
+                                    return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
+                                }
+                            }
 
-                        if (diffInSeconds < 60) {
-                            return 'منذ لحظات';
-                        } else if (diffInSeconds < 3600) {
-                            const minutes = Math.floor(diffInSeconds / 60);
-                            return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
-                        } else if (diffInSeconds < 86400) {
-                            const hours = Math.floor(diffInSeconds / 3600);
-                            return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
-                        }
-                    }
+                            function fetchNotifications() {
+                                $.ajax({
+                                    url: "<?php echo e(route('notifications.unread')); ?>",
+                                    method: "GET",
+                                    success: function(response) {
+                                        let notifications = response.notifications;
+                                        let validNotifications = [];
+                                        let currentTime = new Date();
 
-                    function fetchNotifications() {
-                        $.ajax({
-                            url: "<?php echo e(route('notifications.unread')); ?>",
-                            method: "GET",
-                            success: function(response) {
-                                let notifications = response.notifications;
-                                let validNotifications = [];
-                                let currentTime = new Date();
+                                        // تصفية الإشعارات لليوم الحالي فقط
+                                        notifications.forEach(notification => {
+                                            let notificationTime = new Date(notification.created_at);
+                                            let diffInHours = (currentTime - notificationTime) / (1000 * 60 *
+                                                60);
 
-                                // تصفية الإشعارات لليوم الحالي فقط
-                                notifications.forEach(notification => {
-                                    let notificationTime = new Date(notification.created_at);
-                                    let diffInHours = (currentTime - notificationTime) / (1000 * 60 * 60);
+                                            if (diffInHours <= 24) {
+                                                validNotifications.push(notification);
+                                            }
+                                        });
 
-                                    if (diffInHours <= 24) {
-                                        validNotifications.push(notification);
-                                    }
-                                });
+                                        let count = validNotifications.length;
+                                        $('#notification-count').text(count);
+                                        $('#notification-title').text(count + " إشعارات جديدة");
 
-                                let count = validNotifications.length;
-                                $('#notification-count').text(count);
-                                $('#notification-title').text(count + " إشعارات جديدة");
+                                        let notificationList = $('#notification-list');
+                                        notificationList.empty();
 
-                                let notificationList = $('#notification-list');
-                                notificationList.empty();
-
-                                if (count > 0) {
-                                    validNotifications.forEach(notification => {
-                                        let timeAgo = formatNotificationTime(notification.created_at);
-                                        if (timeAgo !== null) { // فقط إذا كان الوقت ضمن 24 ساعة
-                                            let listItem = `
+                                        if (count > 0) {
+                                            validNotifications.forEach(notification => {
+                                                let timeAgo = formatNotificationTime(notification.created_at);
+                                                if (timeAgo !== null) { // فقط إذا كان الوقت ضمن 24 ساعة
+                                                    let listItem = `
                                                 <a class="d-flex justify-content-between notification-item"
                                                     href="javascript:void(0)"
                                                     data-id="${notification.id}">
@@ -371,39 +371,40 @@
                                                 </a>
                                                 <hr class="my-1">
                                             `;
-                                            notificationList.append(listItem);
+                                                    notificationList.append(listItem);
+                                                }
+                                            });
+                                        } else {
+                                            notificationList.append(
+                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
                                         }
-                                    });
-                                } else {
-                                    notificationList.append('<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
-                                }
+                                    }
+                                });
                             }
+
+                            fetchNotifications();
+
+                            // تحديث الإشعارات كل دقيقة
+                            setInterval(fetchNotifications, 60000);
+
+                            $(document).on('click', '.notification-item', function() {
+                                let notificationId = $(this).data('id');
+
+                                $.ajax({
+                                    url: "<?php echo e(route('notifications.markAsRead')); ?>",
+                                    method: "POST",
+                                    data: {
+                                        _token: "<?php echo e(csrf_token()); ?>",
+                                        id: notificationId
+                                    },
+                                    success: function() {
+                                        fetchNotifications();
+                                    }
+                                });
+                            });
                         });
-                    }
-
-                    fetchNotifications();
-
-                    // تحديث الإشعارات كل دقيقة
-                    setInterval(fetchNotifications, 60000);
-
-                    $(document).on('click', '.notification-item', function() {
-                        let notificationId = $(this).data('id');
-
-                        $.ajax({
-                            url: "<?php echo e(route('notifications.markAsRead')); ?>",
-                            method: "POST",
-                            data: {
-                                _token: "<?php echo e(csrf_token()); ?>",
-                                id: notificationId
-                            },
-                            success: function() {
-                                fetchNotifications();
-                            }
-                        });
-                    });
-                });
-            </script>
-            <?php endif; ?>
+                    </script>
+                <?php endif; ?>
                 <li class="dropdown dropdown-user nav-item">
                     <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
                         aria-expanded="false">
@@ -433,6 +434,17 @@
                         <!-- 🔹 قائمة الفروع (إذا لم يكن الموظف) -->
                         <?php if(auth()->user()->role !== 'employee'): ?>
                             <span class="dropdown-item font-weight-bold">🔹 الفروع:</span>
+
+                            <?php if(auth()->user()->role === 'main'): ?>
+                                <a class="dropdown-item branch-item <?php echo e(!auth()->user()->branch_id ? 'active' : ''); ?>"
+                                    href="<?php echo e(route('branch.switch', 0)); ?>">
+                                    <i class="feather icon-globe"></i> جميع الفروع
+                                    <?php if(!auth()->user()->branch_id): ?>
+                                        <i class="feather icon-check text-success"></i>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endif; ?>
+
                             <?php $__currentLoopData = App\Models\Branch::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <a class="dropdown-item branch-item <?php echo e(auth()->user()->branch_id == $branch->id ? 'active' : ''); ?>"
                                     href="<?php echo e(route('branch.switch', $branch->id)); ?>">
@@ -440,7 +452,6 @@
 
                                     <?php if(auth()->user()->branch_id == $branch->id): ?>
                                         <i class="feather icon-check text-success"></i>
-                                        <!-- ✅ علامة عند تحديد الفرع -->
                                     <?php endif; ?>
                                 </a>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>

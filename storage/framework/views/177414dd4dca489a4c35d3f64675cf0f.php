@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     إدارة العملاء
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         #map {
             height: 85vh;
@@ -327,11 +325,11 @@
             color: #6c757d;
         }
     </style>
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
-    @include('layouts.alerts.success')
-    @include('layouts.alerts.error')
+<?php $__env->startSection('content'); ?>
+    <?php echo $__env->make('layouts.alerts.success', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('layouts.alerts.error', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -384,7 +382,7 @@
                 <div class="row align-items-center gy-2">
                     <!-- زر إضافة عميل -->
                     <div class="col-12 col-md-6 col-lg-3">
-                        <a href="{{ route('clients.create') }}"
+                        <a href="<?php echo e(route('clients.create')); ?>"
                             class="btn btn-hover-shine btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
                             style="height: 36px;">
                             <i class="fas fa-user-plus me-2 fs-6"></i>
@@ -454,7 +452,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <form class="form" id="searchForm" method="GET" action="{{ route('clients.index') }}">
+                <form class="form" id="searchForm" method="GET" action="<?php echo e(route('clients.index')); ?>">
                     <div class="card p-3 mb-4">
                         <div class="row g-3 align-items-end">
                             <!-- اسم العميل -->
@@ -462,12 +460,13 @@
                                 <label for="client" class="form-label">العميل</label>
                                 <select name="client" id="client" class="form-control select2">
                                     <option value="">اختر العميل</option>
-                                    @foreach ($allClients as $client)
-                                        <option value="{{ $client->id }}"
-                                            {{ request('client') == $client->id ? 'selected' : '' }}>
-                                            {{ $client->trade_name }} - {{ $client->code }}
+                                    <?php $__currentLoopData = $allClients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($client->id); ?>"
+                                            <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                            <?php echo e($client->trade_name); ?> - <?php echo e($client->code); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -475,7 +474,7 @@
                             <div class="col-md-3 col-12">
                                 <label for="name" class="form-label">الاسم</label>
                                 <input type="text" name="name" id="name" class="form-control"
-                                    placeholder="الاسم" value="{{ request('name') }}">
+                                    placeholder="الاسم" value="<?php echo e(request('name')); ?>">
                             </div>
 
                             <!-- الحالة -->
@@ -483,12 +482,13 @@
                                 <label for="status" class="form-label">الحالة</label>
                                 <select name="status" id="status" class="form-control">
                                     <option value="">اختر الحالة</option>
-                                    @foreach ($statuses as $status)
-                                        <option value="{{ $status->id }}"
-                                            {{ request('status') == $status->id ? 'selected' : '' }}>
-                                            {{ $status->name }}
+                                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($status->id); ?>"
+                                            <?php echo e(request('status') == $status->id ? 'selected' : ''); ?>>
+                                            <?php echo e($status->name); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -497,12 +497,13 @@
                                 <label for="region" class="form-label">المجموعة</label>
                                 <select name="region" id="region" class="form-control select2">
                                     <option value="">اختر المجموعة</option>
-                                    @foreach ($Region_groups as $Region_group)
-                                        <option value="{{ $Region_group->id }}"
-                                            {{ request('region') == $Region_group->id ? 'selected' : '' }}>
-                                            {{ $Region_group->name }}
+                                    <?php $__currentLoopData = $Region_groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($Region_group->id); ?>"
+                                            <?php echo e(request('region') == $Region_group->id ? 'selected' : ''); ?>>
+                                            <?php echo e($Region_group->name); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -510,7 +511,7 @@
                             <div class="col-md-12 col-12">
                                 <label for="neighborhood" class="form-label">الحي</label>
                                 <input type="text" name="neighborhood" id="neighborhood" class="form-control"
-                                    placeholder="الحي" value="{{ request('neighborhood') }}">
+                                    placeholder="الحي" value="<?php echo e(request('neighborhood')); ?>">
                             </div>
                         </div>
                     </div>
@@ -522,76 +523,78 @@
                             <div class="col-md-4 col-12">
                                 <select name="classifications" class="form-control">
                                     <option value="">اختر التصنيف</option>
-                                    <option value="1" {{ request('classifications') == '1' ? 'selected' : '' }}>
+                                    <option value="1" <?php echo e(request('classifications') == '1' ? 'selected' : ''); ?>>
                                     </option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
+                                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
                                     </option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
+                                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
                                     </option>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
                                 <input type="date" name="end_date_to" class="form-control"
-                                    placeholder="تاريخ الانتهاء (من)" value="{{ request('end_date_to') }}">
+                                    placeholder="تاريخ الانتهاء (من)" value="<?php echo e(request('end_date_to')); ?>">
                             </div>
                             <div class="col-md-4 col-12">
                                 <input type="date" name="end_date_to" class="form-control"
-                                    placeholder="تاريخ الانتهاء (الى)" value="{{ request('end_date_to') }}">
+                                    placeholder="تاريخ الانتهاء (الى)" value="<?php echo e(request('end_date_to')); ?>">
                             </div>
                             <div class="form-group col-md-4 col-12">
                                 <input type="text" name="address" class="form-control" placeholder="العنوان"
-                                    value="{{ request('address') }}">
+                                    value="<?php echo e(request('address')); ?>">
                             </div>
                             <div class="form-group col-md-4 col-12">
                                 <input type="text" name="postal_code" class="form-control"
-                                    placeholder="الرمز البريدي" value="{{ request('postal_code') }}">
+                                    placeholder="الرمز البريدي" value="<?php echo e(request('postal_code')); ?>">
                             </div>
                             <div class="col-md-4 col-12">
                                 <select name="country" class="form-control">
                                     <option value="">اختر البلد</option>
-                                    <option value="1" {{ request('country') == '1' ? 'selected' : '' }}>السعودية
+                                    <option value="1" <?php echo e(request('country') == '1' ? 'selected' : ''); ?>>السعودية
                                     </option>
-                                    <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>مصر</option>
-                                    <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>اليمن
+                                    <option value="0" <?php echo e(request('country') == '0' ? 'selected' : ''); ?>>مصر</option>
+                                    <option value="0" <?php echo e(request('country') == '0' ? 'selected' : ''); ?>>اليمن
                                     </option>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
                                 <select name="tage" class="form-control">
                                     <option value="">اختر الوسم</option>
-                                    <option value="1" {{ request('tage') == '1' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('tage') == '0' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('tage') == '0' ? 'selected' : '' }}></option>
+                                    <option value="1" <?php echo e(request('tage') == '1' ? 'selected' : ''); ?>></option>
+                                    <option value="0" <?php echo e(request('tage') == '0' ? 'selected' : ''); ?>></option>
+                                    <option value="0" <?php echo e(request('tage') == '0' ? 'selected' : ''); ?>></option>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
                                 <select name="user" class="form-control">
                                     <option value="">أضيفت بواسطة</option>
-                                    @foreach ($users as $user)
-                                        <option value="{{ $user->id }}"
-                                            {{ request('user') == $user->id ? 'selected' : '' }}>
-                                            {{ $user->name }} - {{ $user->id }}
+                                    <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($user->id); ?>"
+                                            <?php echo e(request('user') == $user->id ? 'selected' : ''); ?>>
+                                            <?php echo e($user->name); ?> - <?php echo e($user->id); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
                                 <select name="type" class="form-control">
                                     <option value="">اختر النوع</option>
-                                    <option value="1" {{ request('type') == '1' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
+                                    <option value="1" <?php echo e(request('type') == '1' ? 'selected' : ''); ?>></option>
+                                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
+                                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
                                 </select>
                             </div>
                             <div class="col-md-4 col-12">
                                 <select name="full_name" class="form-control">
                                     <option value="">اختر الموظفين المعيين</option>
-                                    @foreach ($employees as $employee)
-                                        <option value="{{ $employee->id }}"
-                                            {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                            {{ $employee->full_name }} - {{ $employee->id }}
+                                    <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($employee->id); ?>"
+                                            <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
+                                            <?php echo e($employee->full_name); ?> - <?php echo e($employee->id); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
                         </div>
@@ -599,14 +602,14 @@
 
                     <div class="form-actions mt-2">
                         <button type="submit" class="btn btn-primary">بحث</button>
-                        <a href="{{ route('clients.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
+                        <a href="<?php echo e(route('clients.index')); ?>" type="reset" class="btn btn-outline-warning">إلغاء</a>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- جدول العملاء -->
-        @if (isset($clients) && $clients->count() > 0)
+        <?php if(isset($clients) && $clients->count() > 0): ?>
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
@@ -627,72 +630,77 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($clients as $client)
-                                    <tr onclick="handleRowClick(event, '{{ route('clients.show', $client->id) }}')"
+                                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr onclick="handleRowClick(event, '<?php echo e(route('clients.show', $client->id)); ?>')"
                                         style="cursor: pointer;" class="hover-effect">
                                         <td>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox"
-                                                    value="{{ $client->id }}">
+                                                    value="<?php echo e($client->id); ?>">
                                             </div>
                                         </td>
                                         <td>
-                                            <h6 class="mb-0">{{ $client->trade_name }}</h6>
-                                            <small class="text-muted">{{ $client->code }}</small>
+                                            <h6 class="mb-0"><?php echo e($client->trade_name); ?></h6>
+                                            <small class="text-muted"><?php echo e($client->code); ?></small>
                                             <p class="text-muted mb-0">
                                                 <i class="fas fa-user me-1"></i>
-                                                {{ $client->first_name }} {{ $client->last_name }}
+                                                <?php echo e($client->first_name); ?> <?php echo e($client->last_name); ?>
+
                                             </p>
-                                            @if ($client->employee)
+                                            <?php if($client->employee): ?>
                                                 <p class="text-muted mb-0">
                                                     <i class="fas fa-user-tie me-1"></i>
-                                                    {{ $client->employee->first_name }} {{ $client->employee->last_name }}
+                                                    <?php echo e($client->employee->first_name); ?> <?php echo e($client->employee->last_name); ?>
+
                                                 </p>
-                                            @endif
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <p class="mb-0">
                                                 <i class="fas fa-map-marker-alt text-primary me-2"
                                                     style="cursor: pointer;"
-                                                    onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }}, '{{ $client->trade_name }}')"></i>
-                                                {{ $client->city }}, {{ $client->region }}
+                                                    onclick="openMap(<?php echo e($client->locations->latitude ?? 0); ?>, <?php echo e($client->locations->longitude ?? 0); ?>, '<?php echo e($client->trade_name); ?>')"></i>
+                                                <?php echo e($client->city); ?>, <?php echo e($client->region); ?>
+
                                             </p>
                                         </td>
-                                        <td>{{ $client->Neighborhoodname->Region->name ?? '' }}</td>
-                                        <td>{{ $client->Neighborhoodname->name ?? '' }}</td>
+                                        <td><?php echo e($client->Neighborhoodname->Region->name ?? ''); ?></td>
+                                        <td><?php echo e($client->Neighborhoodname->name ?? ''); ?></td>
 
 
-                                        <td>{{ $client->branch->name ?? '' }}</td>
+                                        <td><?php echo e($client->branch->name ?? ''); ?></td>
                                         <td>
-                                            @if ($client->visit_type == 'am')
+                                            <?php if($client->visit_type == 'am'): ?>
                                                 <span class="badge badge-success">
                                                     ☀️ صباحية
                                                 </span>
-                                            @else
+                                            <?php else: ?>
                                                 <span class="badge badge-primary">
                                                     🌙 مسائية
                                                 </span>
-                                            @endif
+                                            <?php endif; ?>
                                         </td>
                                         <td>
-                                            @if ($client->status_client)
+                                            <?php if($client->status_client): ?>
                                                 <span
-                                                    style="background-color: {{ $client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    {{ $client->status_client->name }}
+                                                    style="background-color: <?php echo e($client->status_client->color); ?>; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
+                                                    <?php echo e($client->status_client->name); ?>
+
                                                 </span>
-                                            @else
+                                            <?php else: ?>
                                                 <span
                                                     style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
                                                     غير محدد
                                                 </span>
-                                            @endif
+                                            <?php endif; ?>
                                         </td>
 
 
-                                        <td>{{ $client->code ?? '' }}</td>
+                                        <td><?php echo e($client->code ?? ''); ?></td>
                                         <td>
                                             <strong class="text-primary">
-                                                <i class="fas fa-phone me-2"></i>{{ $client->phone }}
+                                                <i class="fas fa-phone me-2"></i><?php echo e($client->phone); ?>
+
                                             </strong>
                                         </td>
                                         <td>
@@ -704,43 +712,43 @@
                                                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="{{ route('clients.show', $client->id) }}">
+                                                                href="<?php echo e(route('clients.show', $client->id)); ?>">
                                                                 <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                             </a>
                                                         </li>
-                                                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                                        <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
                                                             <li>
                                                                 <a class="dropdown-item"
-                                                                    href="{{ route('clients.edit', $client->id) }}">
+                                                                    href="<?php echo e(route('clients.edit', $client->id)); ?>">
                                                                     <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
                                                                 </a>
                                                             </li>
-                                                        @endif
+                                                        <?php endif; ?>
 
                                                         <a class="dropdown-item"
-                                                            href="{{ route('clients.send_info', $client->id) }}">
+                                                            href="<?php echo e(route('clients.send_info', $client->id)); ?>">
                                                             <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
                                                             الدخول
                                                         </a>
 
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="{{ route('clients.edit', $client->id) }}">
+                                                                href="<?php echo e(route('clients.edit', $client->id)); ?>">
                                                                 <i class="fa fa-copy me-2 text-info"></i>نسخ
                                                             </a>
                                                         </li>
-                                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                                        <?php if(auth()->user()->hasPermissionTo('Delete_Client')): ?>
                                                             <li>
                                                                 <a class="dropdown-item text-danger" href="#"
                                                                     data-toggle="modal"
-                                                                    data-target="#modal_DELETE{{ $client->id }}">
+                                                                    data-target="#modal_DELETE<?php echo e($client->id); ?>">
                                                                     <i class="fa fa-trash-alt me-2"></i>حذف
                                                                 </a>
                                                             </li>
-                                                        @endif
+                                                        <?php endif; ?>
                                                         <li>
                                                             <a class="dropdown-item"
-                                                                href="{{ route('clients.statement', $client->id) }}">
+                                                                href="<?php echo e(route('clients.statement', $client->id)); ?>">
                                                                 <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
                                                                 حساب
                                                             </a>
@@ -751,7 +759,7 @@
                                         </td>
 
                                         <!-- Modal Delete -->
-                                        <div class="modal fade" id="modal_DELETE{{ $client->id }}" tabindex="-1"
+                                        <div class="modal fade" id="modal_DELETE<?php echo e($client->id); ?>" tabindex="-1"
                                             role="dialog" aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered" role="document">
                                                 <div class="modal-content">
@@ -762,12 +770,12 @@
                                                             <span aria-hidden="true">&times;</span>
                                                         </button>
                                                     </div>
-                                                    <form action="{{ route('clients.destroy', $client->id) }}"
+                                                    <form action="<?php echo e(route('clients.destroy', $client->id)); ?>"
                                                         method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
+                                                        <?php echo csrf_field(); ?>
+                                                        <?php echo method_field('DELETE'); ?>
                                                         <div class="modal-body">
-                                                            <p>هل أنت متأكد من الحذف "{{ $client->trade_name }}"؟</p>
+                                                            <p>هل أنت متأكد من الحذف "<?php echo e($client->trade_name); ?>"؟</p>
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary"
@@ -781,13 +789,13 @@
                                         </div>
 
                                     </tr>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        @else
+        <?php else: ?>
             <div class="alert alert-danger text-xl-center" role="alert">
                 <p class="mb-0">
                     لا توجد عملاء !!
@@ -795,83 +803,84 @@
             </div>
 
 
-        @endif
+        <?php endif; ?>
 
-        @if ($clients->hasPages())
+        <?php if($clients->hasPages()): ?>
             <nav aria-label="Page navigation">
                 <ul class="pagination pagination-sm mb-0">
                     <!-- زر الانتقال إلى أول صفحة -->
-                    @if ($clients->onFirstPage())
+                    <?php if($clients->onFirstPage()): ?>
                         <li class="page-item disabled">
                             <span class="page-link border-0 rounded-pill" aria-label="First">
                                 <i class="fas fa-angle-double-right"></i>
                             </span>
                         </li>
-                    @else
+                    <?php else: ?>
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}" aria-label="First">
+                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->url(1)); ?>" aria-label="First">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         </li>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- زر الانتقال إلى الصفحة السابقة -->
-                    @if ($clients->onFirstPage())
+                    <?php if($clients->onFirstPage()): ?>
                         <li class="page-item disabled">
                             <span class="page-link border-0 rounded-pill" aria-label="Previous">
                                 <i class="fas fa-angle-right"></i>
                             </span>
                         </li>
-                    @else
+                    <?php else: ?>
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}"
+                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->previousPageUrl()); ?>"
                                 aria-label="Previous">
                                 <i class="fas fa-angle-right"></i>
                             </a>
                         </li>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- عرض رقم الصفحة الحالية -->
                     <li class="page-item">
                         <span class="page-link border-0 bg-light rounded-pill px-3">
-                            صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
+                            صفحة <?php echo e($clients->currentPage()); ?> من <?php echo e($clients->lastPage()); ?>
+
                         </span>
                     </li>
 
                     <!-- زر الانتقال إلى الصفحة التالية -->
-                    @if ($clients->hasMorePages())
+                    <?php if($clients->hasMorePages()): ?>
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}"
+                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->nextPageUrl()); ?>"
                                 aria-label="Next">
                                 <i class="fas fa-angle-left"></i>
                             </a>
                         </li>
-                    @else
+                    <?php else: ?>
                         <li class="page-item disabled">
                             <span class="page-link border-0 rounded-pill" aria-label="Next">
                                 <i class="fas fa-angle-left"></i>
                             </span>
                         </li>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- زر الانتقال إلى آخر صفحة -->
-                    @if ($clients->hasMorePages())
+                    <?php if($clients->hasMorePages()): ?>
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->url($clients->lastPage()) }}"
+                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->url($clients->lastPage())); ?>"
                                 aria-label="Last">
                                 <i class="fas fa-angle-double-left"></i>
                             </a>
                         </li>
-                    @else
+                    <?php else: ?>
                         <li class="page-item disabled">
                             <span class="page-link border-0 rounded-pill" aria-label="Last">
                                 <i class="fas fa-angle-double-left"></i>
                             </span>
                         </li>
-                    @endif
+                    <?php endif; ?>
                 </ul>
             </nav>
-        @endif
+        <?php endif; ?>
 
     </div>
 
@@ -884,16 +893,16 @@
                     <h5 class="modal-title" id="creditLimitModalLabel">تعديل الحد الائتماني</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form action="{{ route('clients.update_credit_limit') }}" method="POST">
-                    @csrf
+                <form action="<?php echo e(route('clients.update_credit_limit')); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="credit_limit" class="form-label">
                                 الحد الائتماني الحالي: <span
-                                    id="current_credit_limit">{{ $creditLimit->value ?? 'غير محدد' }}</span>
+                                    id="current_credit_limit"><?php echo e($creditLimit->value ?? 'غير محدد'); ?></span>
                             </label>
                             <input type="number" class="form-control" id="credit_limit" name="value"
-                                value="{{ $creditLimit->value ?? '' }}" required>
+                                value="<?php echo e($creditLimit->value ?? ''); ?>" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -905,11 +914,11 @@
         </div>
     </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
     <script
-        src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
+        src="https://maps.googleapis.com/maps/api/js?key=<?php echo e(env('GOOGLE_MAPS_API_KEY')); ?>&libraries=places&callback=initMap"
         async defer></script>
     <script>
         let map;
@@ -1000,7 +1009,7 @@
 
                 <!-- أزرار الإجراءات -->
                 <div class="info-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button onclick="window.location.href='{{ route('clients.show', '') }}/${markerData.data.id}'"
+                    <button onclick="window.location.href='<?php echo e(route('clients.show', '')); ?>/${markerData.data.id}'"
                         style="flex: 1; padding: 10px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, #28a745 0%, #5cb85c 100%); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 14px; transition: all 0.2s ease;">
                         <i class="fas fa-info-circle"></i>
                         التفاصيل
@@ -1024,24 +1033,25 @@
             // إضافة علامات العملاء
             let allMarkers = [];
 
-            @foreach ($allClients as $client)
-                @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
-                    const marker{{ $client->id }} = new google.maps.Marker({
+            <?php $__currentLoopData = $allClients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if($client->locations && $client->locations->latitude && $client->locations->longitude): ?>
+                    const marker<?php echo e($client->id); ?> = new google.maps.Marker({
                         position: {
-                            lat: {{ $client->locations->latitude }},
-                            lng: {{ $client->locations->longitude }}
+                            lat: <?php echo e($client->locations->latitude); ?>,
+                            lng: <?php echo e($client->locations->longitude); ?>
+
                         },
                         map: map,
-                        title: "{{ $client->trade_name }}",
+                        title: "<?php echo e($client->trade_name); ?>",
                         icon: {
                             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
                                 <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
                                     <!-- Background bubble -->
-                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
+                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="<?php echo e(optional($client->status_client)->color ?? '#4CAF50'); ?>" />
                                     <!-- Bottom triangle -->
-                                    <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
+                                    <path d="M8 16 L12 22 L16 16 Z" fill="<?php echo e(optional($client->status_client)->color ?? '#4CAF50'); ?>" />
                                     <!-- Text -->
-                                    <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white">{{ $client->code }}</text>
+                                    <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white"><?php echo e($client->code); ?></text>
                                 </svg>
                             `),
                             scaledSize: new google.maps.Size(60, 24),
@@ -1052,31 +1062,31 @@
 
                     // إضافة الماركر للمصفوفة
                     allMarkers.push({
-                        marker: marker{{ $client->id }},
-                        clientName: "{{ $client->trade_name }}".toLowerCase(),
-                        clientCode: "{{ $client->code }}".toLowerCase(),
+                        marker: marker<?php echo e($client->id); ?>,
+                        clientName: "<?php echo e($client->trade_name); ?>".toLowerCase(),
+                        clientCode: "<?php echo e($client->code); ?>".toLowerCase(),
                         data: {
-                            id: {{ $client->id }},
-                            name: "{{ $client->trade_name }}",
-                            status: "{{ optional($client->status_client)->color ?? '#CCCCCC' }}",
-                            phone: "{{ $client->phone }}",
-                            region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
-                            balance: "{{ $client->Balance() }}"
+                            id: <?php echo e($client->id); ?>,
+                            name: "<?php echo e($client->trade_name); ?>",
+                            status: "<?php echo e(optional($client->status_client)->color ?? '#CCCCCC'); ?>",
+                            phone: "<?php echo e($client->phone); ?>",
+                            region: "<?php echo e($client->Neighborhoodname->Region->name ?? ''); ?>",
+                            balance: "<?php echo e($client->Balance()); ?>"
                         }
                     });
 
                     // إضافة مستمع حدث النقر
-                    marker{{ $client->id }}.addListener('click', () => {
-                        showClientInfo(allMarkers.find(m => m.marker === marker{{ $client->id }}));
+                    marker<?php echo e($client->id); ?>.addListener('click', () => {
+                        showClientInfo(allMarkers.find(m => m.marker === marker<?php echo e($client->id); ?>));
                     });
-                @endif
-            @endforeach
+                <?php endif; ?>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             // إضافة ماركر موقع المستخدم
-            @if(isset($userLocation))
+            <?php if(isset($userLocation)): ?>
                 var userLocation = {
-                    lat: parseFloat('{{ $userLocation->latitude }}'),
-                    lng: parseFloat('{{ $userLocation->longitude }}')
+                    lat: parseFloat('<?php echo e($userLocation->latitude); ?>'),
+                    lng: parseFloat('<?php echo e($userLocation->longitude); ?>')
                 };
 
                 // إضافة ماركر موقع المستخدم
@@ -1105,7 +1115,7 @@
                     center: userLocation,
                     radius: 300 // نصف قطر 300 متر
                 });
-            @endif
+            <?php endif; ?>
 
             // تفعيل البحث
             const searchInput = document.getElementById('clientSearch');
@@ -1224,4 +1234,6 @@
             });
         });
     </script>
-@stop
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/client/index.blade.php ENDPATH**/ ?>

@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\Http;
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
 Route::get('/print/questions/{id}', [QuoteController::class, 'print'])->name('questions.print');
 Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
+Route::get('/send-weekly-report', [VisitController::class, 'sendWeeklyReport']);
+Route::get('/send-monthly-report', [VisitController::class, 'sendMonthlyReport']);
 
 require __DIR__ . '/auth.php';
 
@@ -375,7 +377,10 @@ Route::group(
                     ->middleware('auth')
                     ->name('visits.today');
 
-                Route::get('/visits', [VisitController::class, 'traffics'])->name('visits.traffics');
+
+                        Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
+                        Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
+                        Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
 
                 Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
                     ->name('visits.storeLocationEnhanced');

@@ -791,9 +791,9 @@ class GeneralAccountsController extends Controller
                     ->whereBetween('date', [$fromDate, $toDate]);
 
     // الفلاتر
-    if ($request->filled('branch')) {
-        $query->where('branch_id', $request->branch);
-    }
+    // if ($request->filled('branch')) {
+    //     $query->where('branch_id', $request->branch);
+    // }
 
     if ($request->filled('treasury')) {
         $query->where('treasury_id', $request->treasury);

@@ -91,4 +91,8 @@ class Account extends Model
     {
         return $this->credit_limit - $this->current_balance;
     }
+public function receipts()
+{
+    return $this->hasMany(Receipt::class, 'account_id');
+}
 }
