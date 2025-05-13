@@ -2,13 +2,13 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>التقرير الشهري للموظف {{ $user->name }}</title>
+    <title>التقرير الشهري للموظف <?php echo e($user->name); ?></title>
     <style>
         @font-face {
             font-family: 'DejaVu Sans';
             font-style: normal;
             font-weight: normal;
-            src: url('{{ storage_path('fonts/dejavu-sans/DejaVuSans.ttf') }}') format('truetype');
+            src: url('<?php echo e(storage_path('fonts/dejavu-sans/DejaVuSans.ttf')); ?>') format('truetype');
         }
         body {
             font-family: 'DejaVu Sans', sans-serif;
@@ -189,7 +189,7 @@
 
     <div class="header">
         <h1>التقرير الشهري لأداء الموظف</h1>
-        <div class="subtitle">فترة التقرير: لشهر {{ $startDate->format('Y-m') }}</div>
+        <div class="subtitle">فترة التقرير: لشهر <?php echo e($startDate->format('Y-m')); ?></div>
     </div>
 
     <!-- معلومات الموظف -->
@@ -197,19 +197,19 @@
         <table class="info-table">
             <tr>
                 <td style="width: 30%; font-weight: bold;">اسم الموظف</td>
-                <td style="width: 70%;">{{ $user->name }}</td>
+                <td style="width: 70%;"><?php echo e($user->name); ?></td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">رقم الموظف</td>
-                <td>{{ $user->id }}</td>
+                <td><?php echo e($user->id); ?></td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">البريد الإلكتروني</td>
-                <td>{{ $user->email }}</td>
+                <td><?php echo e($user->email); ?></td>
             </tr>
             <tr>
                 <td style="font-weight: bold;">تاريخ الإنضمام</td>
-                <td>{{ $user->created_at->format('Y-m-d') }}</td>
+                <td><?php echo e($user->created_at->format('Y-m-d')); ?></td>
             </tr>
         </table>
     </div>
@@ -221,19 +221,19 @@
             <div class="sales-summary-item">
                 <div class="sales-summary-label">إجمالي المبيعات (فواتير عادية)</div>
                 <div class="sales-summary-value">
-                    {{$totalSales, 2, '.', ',' }} ر.س
+                    <?php echo e($totalSales, 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="sales-summary-item">
                 <div class="sales-summary-label">إجمالي المرتجعات (فواتير مرتجعة)</div>
                 <div class="sales-summary-value">
-                    {{ $totalReturns, 2, '.', ',' }} ر.س
+                    <?php echo e($totalReturns, 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="sales-summary-item net-sales">
                 <div class="sales-summary-label">صافي المبيعات بعد المرتجعات</div>
                 <div class="sales-summary-value">
-                    {{ $netSales, 2, '.', ',' }} ر.س
+                    <?php echo e($netSales, 2, '.', ','); ?> ر.س
                 </div>
             </div>
         </div>
@@ -246,41 +246,41 @@
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي المدفوعات المستلمة</div>
                 <div class="payment-summary-value">
-                    {{$payments->sum('amount'), 2, '.', ',' }} ر.س
+                    <?php echo e($payments->sum('amount'), 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات القبض</div>
                 <div class="payment-summary-value">
-                    {{ $receipts->sum('amount'), 2, '.', ',' }} ر.س
+                    <?php echo e($receipts->sum('amount'), 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات الصرف</div>
                 <div class="payment-summary-value">
-                    {{$expenses->sum('amount'), 2, '.', ',' }} ر.س
+                    <?php echo e($expenses->sum('amount'), 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item grand-total">
                 <div class="payment-summary-label">صافي التحصيل النقدي الشهري</div>
                 <div class="payment-summary-value">
-                    @php
+                    <?php
                         $totalCollection = $payments->sum('amount') + $receipts->sum('amount') - $expenses->sum('amount');
-                    @endphp
-                    {{ $totalCollection, 2, '.', ',' }} ر.س
+                    ?>
+                    <?php echo e($totalCollection, 2, '.', ','); ?> ر.س
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- الفواتير --}}
+    
     <div class="section">
         <div class="section-title">
             <span>الفواتير الصادرة خلال الشهر</span>
-            <span class="section-count">{{ $invoices->count() }}</span>
+            <span class="section-count"><?php echo e($invoices->count()); ?></span>
         </div>
-        @if ($invoices->count() > 0)
-            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
+        <?php if($invoices->count() > 0): ?>
+            <div class="date-range">لشهر <?php echo e($startDate->format('Y-m')); ?></div>
             <table>
                 <thead>
                     <tr>
@@ -295,69 +295,70 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($invoices as $invoice)
+                    <?php $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
 
-                            <td>#{{ $invoice->id }}</td>
-                            <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
+                            <td>#<?php echo e($invoice->id); ?></td>
+                            <td><?php echo e($invoice->client->trade_name ?? 'غير محدد'); ?></td>
                             <td class="currency">
-                                @if($invoice->type == 'returned')
-                                    -{{ number_format($invoice->grand_total, 2, '.', ',') }}
-                                @else
-                                    {{ number_format($invoice->grand_total, 2, '.', ',') }}
-                                @endif
-                            </td>
-                            <td>
-                                @if($invoice->payment_status == 1)
-                                    <span class="status-badge status-paid">مدفوعة</span>
-                                @elseif ($invoice->payment_status == 2)
-                                    <span class="status-badge status-partial">جزئي</span>
-                                @elseif ($invoice->payment_status == 3)
-                                    <span class="status-badge status-unpaid">غير مدفوعة</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($invoice->type == 'returned')
-                                    <span class="status-badge status-returned">مرتجع</span>
-                                @else
-                                    <span class="status-badge status-paid"> مبيعات</span>
-                                @endif
-                            </td>
-                            <td>{{ $invoice->created_at->format('Y-m-d H:i') }}</td>
-                            <td>{{ $invoice->notes ?? '--' }}</td>
-                        </tr>
-                    @endforeach
+                                <?php if($invoice->type == 'returned'): ?>
+                                    -<?php echo e(number_format($invoice->grand_total, 2, '.', ',')); ?>
 
+                                <?php else: ?>
+                                    <?php echo e(number_format($invoice->grand_total, 2, '.', ',')); ?>
+
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if($invoice->payment_status == 1): ?>
+                                    <span class="status-badge status-paid">مدفوعة</span>
+                                <?php elseif($invoice->payment_status == 2): ?>
+                                    <span class="status-badge status-partial">جزئي</span>
+                                <?php elseif($invoice->payment_status == 3): ?>
+                                    <span class="status-badge status-unpaid">غير مدفوعة</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if($invoice->type == 'returned'): ?>
+                                    <span class="status-badge status-returned">مرتجع</span>
+                                <?php else: ?>
+                                    <span class="status-badge status-paid"> مبيعات</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo e($invoice->created_at->format('Y-m-d H:i')); ?></td>
+                            <td><?php echo e($invoice->notes ?? '--'); ?></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <tr class="total-row">
+                        <td colspan="3">المجموع</td>
+                        <td class="currency"><?php echo e($invoices->where('type', 'normal')->sum('grand_total') - $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
+                        <td colspan="3"></td>
+                    </tr>
                     <tr class="total-row">
                         <td colspan="3">إجمالي المبيعات (فواتير عادية)</td>
-                        <td class="currency">{{$invoices->where('type', 'normal')->sum('grand_total'), 2, '.', ',' }} ر.س</td>
+                        <td class="currency"><?php echo e($invoices->where('type', 'normal')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                     <tr class="total-row">
                         <td colspan="3">إجمالي المرتجعات (فواتير مرتجعة)</td>
-                        <td class="currency">-{{ $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ',' }} ر.س</td>
-                        <td colspan="3"></td>
-                    </tr>
-                    <tr class="total-row">
-                        <td colspan="3">المجموع</td>
-                        <td class="currency">{{$invoices->where('type', 'normal')->sum('grand_total') - $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ',' }} ر.س</td>
+                        <td class="currency">-<?php echo e($invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
             </table>
-        @else
+        <?php else: ?>
             <div class="no-data">لا يوجد فواتير مسجلة خلال هذا الشهر</div>
-        @endif
+        <?php endif; ?>
     </div>
 
-    {{-- المدفوعات --}}
+    
     <div class="section">
         <div class="section-title">
             <span>المدفوعات المستلمة خلال الشهر</span>
-            <span class="section-count">{{ $payments->count() }}</span>
+            <span class="section-count"><?php echo e($payments->count()); ?></span>
         </div>
-        @if ($payments->count() > 0)
-            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
+        <?php if($payments->count() > 0): ?>
+            <div class="date-range">لشهر <?php echo e($startDate->format('Y-m')); ?></div>
             <table>
                 <thead>
                     <tr>
@@ -370,36 +371,36 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($payments as $payment)
+                    <?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>#{{ $payment->id }}</td>
-                            <td>{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{$payment->amount, 2, '.', ',' }} ر.س</td>
-                            <td>{{ $payment->payment_method }}</td>
-                            <td class="time">{{ $payment->payment_date }}</td>
-                            <td>#{{ $payment->invoice_id }}</td>
+                            <td>#<?php echo e($payment->id); ?></td>
+                            <td><?php echo e($payment->client->trade_name ?? 'غير محدد'); ?></td>
+                            <td class="currency"><?php echo e($payment->amount, 2, '.', ','); ?> ر.س</td>
+                            <td><?php echo e($payment->payment_method); ?></td>
+                            <td class="time"><?php echo e($payment->payment_date); ?></td>
+                            <td>#<?php echo e($payment->invoice_id); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ $payments->sum('amount'), 2, '.', ',' }} ر.س</td>
+                        <td class="currency"><?php echo e($payments->sum('amount'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
             </table>
-        @else
+        <?php else: ?>
             <div class="no-data">لا يوجد مدفوعات مسجلة خلال هذا الشهر</div>
-        @endif
+        <?php endif; ?>
     </div>
 
-    {{-- سندات القبض --}}
+    
     <div class="section">
         <div class="section-title">
             <span>سندات القبض خلال الشهر</span>
-            <span class="section-count">{{ $receipts->count() }}</span>
+            <span class="section-count"><?php echo e($receipts->count()); ?></span>
         </div>
-        @if ($receipts->count() > 0)
-            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
+        <?php if($receipts->count() > 0): ?>
+            <div class="date-range">لشهر <?php echo e($startDate->format('Y-m')); ?></div>
             <table>
                 <thead>
                     <tr>
@@ -411,35 +412,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($receipts as $receipt)
+                    <?php $__currentLoopData = $receipts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $receipt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>#{{ $receipt->id }}</td>
-                            <td>{{ $receipt->account->name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ $receipt->amount, 2, '.', ',' }} ر.س</td>
-                            <td>{{ $receipt->created_at->format('Y-m-d H:i') }}</td>
-                            <td>{{ $receipt->description ?? '--' }}</td>
+                            <td>#<?php echo e($receipt->id); ?></td>
+                            <td><?php echo e($receipt->account->name ?? 'غير محدد'); ?></td>
+                            <td class="currency"><?php echo e($receipt->amount, 2, '.', ','); ?> ر.س</td>
+                            <td><?php echo e($receipt->created_at->format('Y-m-d H:i')); ?></td>
+                            <td><?php echo e($receipt->description ?? '--'); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ $receipts->sum('amount'), 2, '.', ','}} ر.س</td>
+                        <td class="currency"><?php echo e($receipts->sum('amount'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
             </table>
-        @else
+        <?php else: ?>
             <div class="no-data">لا يوجد سندات قبض خلال هذا الشهر</div>
-        @endif
+        <?php endif; ?>
     </div>
 
-    {{-- سندات الصرف --}}
+    
     <div class="section">
         <div class="section-title">
             <span>سندات الصرف خلال الشهر</span>
-            <span class="section-count">{{ $expenses->count() }}</span>
+            <span class="section-count"><?php echo e($expenses->count()); ?></span>
         </div>
-        @if ($expenses->count() > 0)
-            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
+        <?php if($expenses->count() > 0): ?>
+            <div class="date-range">لشهر <?php echo e($startDate->format('Y-m')); ?></div>
             <table>
                 <thead>
                     <tr>
@@ -451,35 +452,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($expenses as $expense)
+                    <?php $__currentLoopData = $expenses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $expense): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>#{{ $expense->id }}</td>
-                            <td>{{ $expense->name }}</td>
-                            <td class="currency">{{$expense->amount, 2, '.', ',' }} ر.س</td>
-                            <td>{{ $expense->created_at->format('Y-m-d H:i') }}</td>
-                            <td>{{ $expense->description ?? '--' }}</td>
+                            <td>#<?php echo e($expense->id); ?></td>
+                            <td><?php echo e($expense->name); ?></td>
+                            <td class="currency"><?php echo e($expense->amount, 2, '.', ','); ?> ر.س</td>
+                            <td><?php echo e($expense->created_at->format('Y-m-d H:i')); ?></td>
+                            <td><?php echo e($expense->description ?? '--'); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{$expenses->sum('amount'), 2, '.', ',' }} ر.س</td>
+                        <td class="currency"><?php echo e($expenses->sum('amount'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
             </table>
-        @else
+        <?php else: ?>
             <div class="no-data">لا يوجد سندات صرف خلال هذا الشهر</div>
-        @endif
+        <?php endif; ?>
     </div>
 
-    {{-- زيارات العملاء --}}
+    
     <div class="section">
         <div class="section-title">
             <span>زيارات العملاء خلال الشهر</span>
-            <span class="section-count">{{ $visits->count() }}</span>
+            <span class="section-count"><?php echo e($visits->count()); ?></span>
         </div>
-        @if ($visits->count() > 0)
-            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
+        <?php if($visits->count() > 0): ?>
+            <div class="date-range">لشهر <?php echo e($startDate->format('Y-m')); ?></div>
             <table>
                 <thead>
                     <tr>
@@ -493,42 +494,43 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($visits->groupBy('client_id') as $clientId => $clientVisits)
-                        @php
+                    <?php $__currentLoopData = $visits->groupBy('client_id'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $clientId => $clientVisits): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $firstVisit = $clientVisits->first();
                             $visitCount = $clientVisits->count();
-                        @endphp
+                        ?>
                         <tr>
-                            <td>{{ $firstVisit->created_at->format('Y-m-d') }}</td>
-                            <td>{{ $firstVisit->client->trade_name ?? 'غير محدد' }}</td>
-                            <td class="visit-count">{{ $visitCount }}</td>
-                            <td>{{ $firstVisit->client->formattedAddress ?? 'غير محدد' }}</td>
-                            <td class="time">{{ $firstVisit->arrival_time ?? '--' }}</td>
-                            <td class="time">{{ $firstVisit->departure_time ?? '--' }}</td>
-                            <td>{{ $firstVisit->notes ?? '--' }}</td>
+                            <td><?php echo e($firstVisit->created_at->format('Y-m-d')); ?></td>
+                            <td><?php echo e($firstVisit->client->trade_name ?? 'غير محدد'); ?></td>
+                            <td class="visit-count"><?php echo e($visitCount); ?></td>
+                            <td><?php echo e($firstVisit->client->formattedAddress ?? 'غير محدد'); ?></td>
+                            <td class="time"><?php echo e($firstVisit->arrival_time ?? '--'); ?></td>
+                            <td class="time"><?php echo e($firstVisit->departure_time ?? '--'); ?></td>
+                            <td><?php echo e($firstVisit->notes ?? '--'); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="7">
-                            إجمالي الزيارات: {{ $visits->count() }} -
-                            عدد العملاء المزورين: {{ $visits->groupBy('client_id')->count() }}
+                            إجمالي الزيارات: <?php echo e($visits->count()); ?> -
+                            عدد العملاء المزورين: <?php echo e($visits->groupBy('client_id')->count()); ?>
+
                         </td>
                     </tr>
                 </tbody>
             </table>
-        @else
+        <?php else: ?>
             <div class="no-data">لا يوجد زيارات مسجلة خلال هذا الشهر</div>
-        @endif
+        <?php endif; ?>
     </div>
 
-    {{-- الملاحظات --}}
+    
     <div class="section">
         <div class="section-title">
             <span>ملاحظات الموظف خلال الشهر</span>
-            <span class="section-count">{{ $notes->count() }}</span>
+            <span class="section-count"><?php echo e($notes->count()); ?></span>
         </div>
-        @if ($notes->count() > 0)
-            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
+        <?php if($notes->count() > 0): ?>
+            <div class="date-range">لشهر <?php echo e($startDate->format('Y-m')); ?></div>
             <table>
                 <thead>
                     <tr>
@@ -540,38 +542,40 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($notes as $note)
+                    <?php $__currentLoopData = $notes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>{{ $note->created_at->format('Y-m-d') }}</td>
-                            <td>{{ $note->client->trade_name ?? 'غير محدد' }}</td>
+                            <td><?php echo e($note->created_at->format('Y-m-d')); ?></td>
+                            <td><?php echo e($note->client->trade_name ?? 'غير محدد'); ?></td>
                             <td>
-                                @if($note->status == 'completed')
+                                <?php if($note->status == 'completed'): ?>
                                     <span class="status-badge status-completed">مكتمل</span>
-                                @elseif($note->status == 'pending')
+                                <?php elseif($note->status == 'pending'): ?>
                                     <span class="status-badge status-pending">قيد التنفيذ</span>
-                                @elseif($note->status == 'cancelled')
+                                <?php elseif($note->status == 'cancelled'): ?>
                                     <span class="status-badge status-cancelled">ملغى</span>
-                                @else
-                                    {{ $note->status }}
-                                @endif
+                                <?php else: ?>
+                                    <?php echo e($note->status); ?>
+
+                                <?php endif; ?>
                             </td>
-                            <td class="time">{{ $note->time ?? '--' }}</td>
-                            <td>{{ $note->description ?? '--' }}</td>
+                            <td class="time"><?php echo e($note->time ?? '--'); ?></td>
+                            <td><?php echo e($note->description ?? '--'); ?></td>
                         </tr>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
-                        <td colspan="5">إجمالي الملاحظات: {{ $notes->count() }}</td>
+                        <td colspan="5">إجمالي الملاحظات: <?php echo e($notes->count()); ?></td>
                     </tr>
                 </tbody>
             </table>
-        @else
+        <?php else: ?>
             <div class="no-data">لا يوجد ملاحظات مسجلة خلال هذا الشهر</div>
-        @endif
+        <?php endif; ?>
     </div>
 
     <div class="footer">
-        تم إنشاء التقرير تلقائياً بتاريخ {{ date('Y-m-d H:i') }} - نظام فوترة سمارت
+        تم إنشاء التقرير تلقائياً بتاريخ <?php echo e(date('Y-m-d H:i')); ?> - نظام فوترة سمارت
     </div>
 
 </body>
 </html>
+<?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/monthly_employee.blade.php ENDPATH**/ ?>

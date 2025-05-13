@@ -151,7 +151,80 @@
                             </button>
                         </div>
 
-                        <!-- جزء التنقل بين الصفحات -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm mb-0">
+                                <!-- زر الانتقال إلى أول صفحة -->
+                                @if ($invoices->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->url(1) }}"
+                                            aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <!-- زر الانتقال إلى الصفحة السابقة -->
+                                @if ($invoices->onFirstPage())
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </span>
+                                    </li>
+                                @else
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->previousPageUrl() }}"
+                                            aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <!-- عرض رقم الصفحة الحالية -->
+                                <li class="page-item">
+                                    <span class="page-link border-0 bg-light rounded-pill px-3">
+                                        صفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
+                                    </span>
+                                </li>
+
+                                <!-- زر الانتقال إلى الصفحة التالية -->
+                                @if ($invoices->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->nextPageUrl() }}"
+                                            aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </span>
+                                    </li>
+                                @endif
+
+                                <!-- زر الانتقال إلى آخر صفحة -->
+                                @if ($invoices->hasMorePages())
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill"
+                                            href="{{ $invoices->url($invoices->lastPage()) }}" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                @else
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </span>
+                                    </li>
+                                @endif
+                            </ul>
+                        </nav>
 
                     </div>
                 </div>
@@ -194,8 +267,9 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="invoice_number">رقم الفاتورة</label>
-                                <input type="text" id="invoice_number" class="form-control" placeholder="رقم الفاتورة"
-                                    name="invoice_number" value="{{ request('invoice_number') }}">
+                                <input type="text" id="invoice_number" class="form-control"
+                                    placeholder="رقم الفاتورة" name="invoice_number"
+                                    value="{{ request('invoice_number') }}">
                             </div>
                             <div class="col-md-4">
                                 <label for="status">حالة الفاتورة</label>
@@ -225,8 +299,8 @@
                                 <!-- 4. البند -->
                                 <div class="col-md-4">
                                     <label for="item">البند</label>
-                                    <input type="text" id="item" class="form-control" placeholder="تحتوي على البند"
-                                        name="item" value="{{ request('item') }}">
+                                    <input type="text" id="item" class="form-control"
+                                        placeholder="تحتوي على البند" name="item" value="{{ request('item') }}">
                                 </div>
 
                                 <!-- 5. العملة -->
@@ -564,7 +638,6 @@
                                             @endphp
 
                                             @if ($returnedInvoice)
-                                           
                                                 <span class="badge bg-danger text-white"><i
                                                         class="fas fa-undo me-1"></i>مرتجع</span>
                                             @elseif ($invoice->type == 'normal' && $payments->count() == 0)
@@ -612,13 +685,15 @@
                                             <h6 class="amount mb-1">
                                                 {{ number_format($invoice->grand_total ?? $invoice->total, 2) }} <small
                                                     class="currency">{!! $currencySymbol !!}</small></h6>
-                                                    @if ($returnedInvoice)
-                                                    <span class="text-danger"> مرتجع : {{number_format($invoice->returned_payment, 2) ?? ""}} {!! $currencySymbol !!}</span>
-                                                    @endif
+                                            @if ($returnedInvoice)
+                                                <span class="text-danger"> مرتجع :
+                                                    {{ number_format($invoice->returned_payment, 2) ?? '' }}
+                                                    {!! $currencySymbol !!}</span>
+                                            @endif
                                             @if ($invoice->due_value > 0)
-                                            @php
-                                            $net_due = $invoice->due_value - $invoice->returned_payment;
-                                        @endphp
+                                                @php
+                                                    $net_due = $invoice->due_value - $invoice->returned_payment;
+                                                @endphp
                                                 <div class="due-amount">
                                                     <small class="text-danger">المبلغ المستحق:
                                                         {{ number_format($net_due, 2) }}

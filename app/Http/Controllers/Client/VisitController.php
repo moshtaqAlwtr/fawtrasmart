@@ -719,76 +719,103 @@ class VisitController extends Controller
     }
 
     public function sendDailyReport()
-    {
-        $date = Carbon::today();
+{
+    $date = Carbon::today();
 
-        // جلب فقط الموظفين الذين لديهم دور employee
-        $users = User::where('role', 'employee')->get();
+    // جلب فقط الموظفين الذين لديهم دور employee
+    $users = User::where('role', 'employee')->get();
 
-        foreach ($users as $user) {
-            // الفواتير التي أنشأها الموظف اليوم
-            $invoices = Invoice::where('created_by', $user->id)
-                ->whereDate('created_at', $date)
-                ->get();
+    foreach ($users as $user) {
+        // الفواتير التي أنشأها الموظف اليوم (العادية والمرتجعة)
+        $invoices = Invoice::with('client')
+            ->where('created_by', $user->id)
+            ->whereDate('created_at', $date)
+            ->get();
 
-            // جلب أرقام الفواتير
-            $invoiceIds = $invoices->pluck('id')->toArray();
+        // جلب أرقام الفواتير العادية فقط (غير المرتجعة)
+        $normalInvoiceIds = $invoices->where('type', '!=', 'returned')->pluck('id')->toArray();
 
-            // المدفوعات المرتبطة بهذه الفواتير
-            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
-                ->whereDate('payment_date', $date)
-                ->get();
+        // المدفوعات المرتبطة بالفواتير العادية فقط
+        $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)
+            ->whereDate('payment_date', $date)
+            ->get();
 
-            // الزيارات التي قام بها الموظف اليوم
-            $visits = Visit::with('client')
+        // الزيارات التي قام بها الموظف اليوم
+        $visits = Visit::with('client')
             ->where('employee_id', $user->id)
             ->whereDate('created_at', $date)
             ->get();
-            // الإيصالات التي أنشأها الموظف اليوم
-            $receipts = Receipt::where('created_by', $user->id)
-                ->whereDate('created_at', $date)
-                ->get();
 
-            // المصروفات التي أنشأها الموظف اليوم
-            $expenses = Expense::where('created_by', $user->id)
-                ->whereDate('created_at', $date)
-                ->get();
+        // الإيصالات التي أنشأها الموظف اليوم
+        $receipts = Receipt::where('created_by', $user->id)
+            ->whereDate('created_at', $date)
+            ->get();
 
-            // الملاحظات التي أنشأها الموظف اليوم للعملاء (مباشرة بدون علاقة بالفواتير)
-            $notes = ClientRelation::with('client')
-                ->where('employee_id', $user->id) // فقط ملاحظات الموظف الحالي
-                ->whereDate('created_at', $date)
-                ->get();
+        // المصروفات التي أنشأها الموظف اليوم
+        $expenses = Expense::where('created_by', $user->id)
+            ->whereDate('created_at', $date)
+            ->get();
 
-            // إنشاء ملف PDF للموظف الحالي
-            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-            $pdf->SetCreator('Your Application');
-            $pdf->SetAuthor('Your Name');
-            $pdf->SetTitle('Daily Employee Report - ' . $user->name);
-            $pdf->SetSubject('Daily Report');
-            $pdf->AddPage();
+        // الملاحظات التي أنشأها الموظف اليوم للعملاء
+        $notes = ClientRelation::with('client')
+            ->where('employee_id', $user->id)
+            ->whereDate('created_at', $date)
+            ->get();
 
-            // محتوى التقرير للموظف الحالي
-            $html = view('reports.daily_employee_single', [
-                'user' => $user,
-                'invoices' => $invoices,
-                'visits' => $visits,
-                'payments' => $payments,
-                'receipts' => $receipts,
-                'expenses' => $expenses,
-                'notes' => $notes,
-                'total_payments' => $payments->sum('amount'),
-                'total_invoices' => $invoices->sum('total_amount'),
-                'date' => $date->format('Y-m-d'),
-            ])->render();
+        // حساب المجاميع
+        $totalNormalInvoices = $invoices->where('type', '!=', 'returned')->sum('grand_total');
+        $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
+        $netSales = $totalNormalInvoices - $totalReturnedInvoices;
+        $totalPayments = $payments->sum('amount');
+        $totalReceipts = $receipts->sum('amount');
+        $totalExpenses = $expenses->sum('amount');
+        $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
 
-            $pdf->writeHTML($html, true, false, true, false, 'R');
+        // إنشاء ملف PDF للموظف الحالي
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator(config('app.name'));
+        $pdf->SetAuthor($user->name);
+        $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
+        $pdf->SetSubject('التقرير اليومي');
+        $pdf->AddPage();
 
-            // حفظ الملف باسم فريد لكل موظف
-            $pdfPath = storage_path('app/public/daily_report_'.$user->id.'_'.$date->format('Y-m-d').'.pdf');
-            $pdf->Output($pdfPath, 'F');
+        // محتوى التقرير للموظف الحالي
+        $html = view('reports.daily_employee_single', [
+            'user' => $user,
+            'invoices' => $invoices,
+            'visits' => $visits,
+            'payments' => $payments,
+            'receipts' => $receipts,
+            'expenses' => $expenses,
+            'notes' => $notes,
+            'total_normal_invoices' => $totalNormalInvoices,
+            'total_returned_invoices' => $totalReturnedInvoices,
+            'net_sales' => $netSales,
+            'total_payments' => $totalPayments,
+            'total_receipts' => $totalReceipts,
+            'total_expenses' => $totalExpenses,
+            'net_collection' => $netCollection,
+            'date' => $date->format('Y-m-d'),
+        ])->render();
 
-            // إرسال إلى Telegram
+        $pdf->writeHTML($html, true, false, true, false, 'R');
+
+        // حفظ الملف باسم فريد لكل موظف
+        $pdfPath = storage_path('app/public/daily_report_'.$user->id.'_'.$date->format('Y-m-d').'.pdf');
+        $pdf->Output($pdfPath, 'F');
+
+        // إرسال إلى Telegram
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.report_chat_id');
+
+        $caption = "📊 التقرير اليومي للموظف\n"
+                 . "👤 اسم الموظف: " . $user->name . "\n"
+                 . "📅 التاريخ: " . $date->format('Y-m-d') . "\n"
+                 . "🛒 إجمالي الفواتير: " . number_format($netSales, 2) . " ر.س\n"
+                 . "💵 صافي التحصيل: " . number_format($netCollection, 2) . " ر.س\n"
+                 . "🔄 الفواتير المرتجعة: " . number_format($totalReturnedInvoices, 2) . " ر.س";
+
+   // إرسال إلى Telegram
             $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
             $chatId = '@Salesfatrasmart';
 
@@ -798,19 +825,24 @@ class VisitController extends Controller
                     'caption' => "📊 تقرير الموظف اليومي - ".$user->name." - ".$date->format('Y-m-d'),
                 ]);
 
-            // if ($response->successful()) {
-            //     $this->info('✅ تم إرسال تقرير الموظف '.$user->name.' بنجاح إلى Telegram');
-            // } else {
-            //     $this->error('❌ فشل إرسال تقرير الموظف '.$user->name.': '.$response->body());
-            // }
+        // حذف الملف بعد الإرسال
+        if (file_exists($pdfPath)) {
+            unlink($pdfPath);
+        }
 
-            // حذف الملف بعد الإرسال
-            if (file_exists($pdfPath)) {
-                unlink($pdfPath);
-            }
+        // تسجيل النتيجة (اختياري)
+        if ($response->successful()) {
+            Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
+        } else {
+            Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
+                'error' => $response->body()
+            ]);
         }
     }
-    public function sendWeeklyReport()
+
+    return true;
+}
+public function sendWeeklyReport()
 {
     // تحديد تاريخ بداية ونهاية الأسبوع (من الأحد إلى السبت)
     $endDate = Carbon::today();
@@ -820,10 +852,15 @@ class VisitController extends Controller
     $users = User::where('role', 'employee')->get();
 
     foreach ($users as $user) {
-        // الفواتير التي أنشأها الموظف خلال الأسبوع
+        // الفواتير التي أنشأها الموظف خلال الأسبوع (العادية والمرتجعة)
         $invoices = Invoice::where('created_by', $user->id)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
+
+        // حساب إجمالي المبيعات والمرتجعات
+        $totalSales = $invoices->where('type', 'normal')->sum('grand_total');
+        $totalReturns = abs($invoices->where('type', 'returned')->sum('grand_total'));
+        $netSales = $totalSales - $totalReturns;
 
         // جلب أرقام الفواتير
         $invoiceIds = $invoices->pluck('id')->toArray();
@@ -873,6 +910,9 @@ class VisitController extends Controller
             'notes' => $notes,
             'startDate' => $startDate->format('Y-m-d'),
             'endDate' => $endDate->format('Y-m-d'),
+            'totalSales' => $totalSales,
+            'totalReturns' => $totalReturns,
+            'netSales' => $netSales,
         ])->render();
 
         $pdf->writeHTML($html, true, false, true, false, 'R');
@@ -907,10 +947,15 @@ public function sendMonthlyReport()
     $users = User::where('role', 'employee')->get();
 
     foreach ($users as $user) {
-        // الفواتير الشهرية
+        // الفواتير الشهرية (العادية والمرتجعة)
         $invoices = Invoice::where('created_by', $user->id)
             ->whereBetween('created_at', [$startDate, $endDate])
             ->get();
+
+        // حساب إجمالي المبيعات والمرتجعات
+        $totalSales = $invoices->where('type', 'normal')->sum('grand_total');
+        $totalReturns = abs($invoices->where('type', 'returned')->sum('grand_total'));
+        $netSales = $totalSales - $totalReturns;
 
         $invoiceIds = $invoices->pluck('id')->toArray();
 
@@ -961,8 +1006,11 @@ public function sendMonthlyReport()
             'receipts' => $receipts,
             'expenses' => $expenses,
             'notes' => $notes,
-            'startDate' => Carbon::parse($startDate), // تحويل إلى كائن Carbon
+            'startDate' => Carbon::parse($startDate),
             'endDate' => Carbon::parse($endDate),
+            'totalSales' => $totalSales,
+            'totalReturns' => $totalReturns,
+            'netSales' => $netSales,
         ])->render();
 
         $pdf->writeHTML($html, true, false, true, false, 'R');

@@ -114,42 +114,49 @@
         .status-completed { background-color: #28a745; }
         .status-pending { background-color: #ffc107; color: #000; }
         .status-cancelled { background-color: #dc3545; }
+        .status-returned { background-color: #6c757d; }
         .payment-summary {
             margin-bottom: 5mm;
             border: 0.5pt solid #ddd;
             padding: 3mm;
         }
-        .payment-summary-title {
+        .sales-summary {
+            margin-bottom: 5mm;
+            border: 0.5pt solid #ddd;
+            padding: 3mm;
+        }
+        .payment-summary-title, .sales-summary-title {
             font-weight: bold;
             margin-bottom: 3mm;
             font-size: 10pt;
             text-align: center;
         }
-        .payment-summary-grid {
+        .payment-summary-grid, .sales-summary-grid {
             display: table;
             width: 100%;
         }
-        .payment-summary-item {
+        .payment-summary-item, .sales-summary-item {
             display: table-row;
         }
-        .payment-summary-label, .payment-summary-value {
+        .payment-summary-label, .payment-summary-value,
+        .sales-summary-label, .sales-summary-value {
             display: table-cell;
             padding: 1mm;
         }
-        .payment-summary-label {
+        .payment-summary-label, .sales-summary-label {
             font-size: 8pt;
             color: #6c757d;
             text-align: right;
             width: 70%;
         }
-        .payment-summary-value {
+        .payment-summary-value, .sales-summary-value {
             font-size: 9pt;
             font-weight: bold;
             text-align: left;
             width: 30%;
             direction: ltr;
         }
-        .grand-total {
+        .grand-total, .net-sales {
             background-color: #e9f7ef;
             border-top: 0.5pt solid #28a745;
         }
@@ -182,7 +189,7 @@
 
     <div class="header">
         <h1>التقرير الشهري لأداء الموظف</h1>
-        <div class="subtitle">فترة التقرير: لشهر {{ $startDate }} إلى {{ $endDate }}</div>
+        <div class="subtitle">فترة التقرير: لشهر {{ $startDate->format('Y-m') }}</div>
     </div>
 
     <!-- معلومات الموظف -->
@@ -207,6 +214,31 @@
         </table>
     </div>
 
+    <!-- ملخص المبيعات -->
+    <div class="sales-summary">
+        <div class="sales-summary-title">ملخص المبيعات الشهري</div>
+        <div class="sales-summary-grid">
+            <div class="sales-summary-item">
+                <div class="sales-summary-label">إجمالي المبيعات (فواتير عادية)</div>
+                <div class="sales-summary-value">
+                    {{$totalSales, 2, '.', ',' }} ر.س
+                </div>
+            </div>
+            <div class="sales-summary-item">
+                <div class="sales-summary-label">إجمالي المرتجعات (فواتير مرتجعة)</div>
+                <div class="sales-summary-value">
+                    {{ $totalReturns, 2, '.', ',' }} ر.س
+                </div>
+            </div>
+            <div class="sales-summary-item net-sales">
+                <div class="sales-summary-label">صافي المبيعات بعد المرتجعات</div>
+                <div class="sales-summary-value">
+                    {{ $netSales, 2, '.', ',' }} ر.س
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ملخص المدفوعات -->
     <div class="payment-summary">
         <div class="payment-summary-title">ملخص المدفوعات الشهري</div>
@@ -214,19 +246,19 @@
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي المدفوعات المستلمة</div>
                 <div class="payment-summary-value">
-                    {{ number_format($payments->sum('amount'), 2, '.', ',') }} ر.س
+                    {{$payments->sum('amount'), 2, '.', ',' }} ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات القبض</div>
                 <div class="payment-summary-value">
-                    {{ number_format($receipts->sum('amount'), 2, '.', ',') }} ر.س
+                    {{ $receipts->sum('amount'), 2, '.', ',' }} ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات الصرف</div>
                 <div class="payment-summary-value">
-                    {{ number_format($expenses->sum('amount'), 2, '.', ',') }} ر.س
+                    {{$expenses->sum('amount'), 2, '.', ',' }} ر.س
                 </div>
             </div>
             <div class="payment-summary-item grand-total">
@@ -235,7 +267,7 @@
                     @php
                         $totalCollection = $payments->sum('amount') + $receipts->sum('amount') - $expenses->sum('amount');
                     @endphp
-                    {{ number_format($totalCollection, 2, '.', ',') }} ر.س
+                    {{ $totalCollection, 2, '.', ',' }} ر.س
                 </div>
             </div>
         </div>
@@ -248,24 +280,33 @@
             <span class="section-count">{{ $invoices->count() }}</span>
         </div>
         @if ($invoices->count() > 0)
-        <div class="date-range">لشهر {{ \Carbon\Carbon::parse($startDate)->format('Y-m') }}</div>
+            <div class="date-range">لشهر {{ $startDate->format('Y-m') }}</div>
             <table>
                 <thead>
                     <tr>
+
                         <th class="col-10">رقم الفاتورة</th>
                         <th class="col-20">العميل</th>
                         <th class="col-15">المجموع</th>
                         <th class="col-15">الحالة</th>
+                         <th class="col-5">النوع</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-25">ملاحظات</th>
+                        <th class="col-20">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($invoices as $invoice)
                         <tr>
+
                             <td>#{{ $invoice->id }}</td>
                             <td>{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ $invoice->grand_total?? '0.00' }}</td>
+                            <td class="currency">
+                                @if($invoice->type == 'returned')
+                                    -{{ number_format($invoice->grand_total, 2, '.', ',') }}
+                                @else
+                                    {{ number_format($invoice->grand_total, 2, '.', ',') }}
+                                @endif
+                            </td>
                             <td>
                                 @if($invoice->payment_status == 1)
                                     <span class="status-badge status-paid">مدفوعة</span>
@@ -275,13 +316,31 @@
                                     <span class="status-badge status-unpaid">غير مدفوعة</span>
                                 @endif
                             </td>
+                            <td>
+                                @if($invoice->type == 'returned')
+                                    <span class="status-badge status-returned">مرتجع</span>
+                                @else
+                                    <span class="status-badge status-paid"> مبيعات</span>
+                                @endif
+                            </td>
                             <td>{{ $invoice->created_at->format('Y-m-d H:i') }}</td>
                             <td>{{ $invoice->notes ?? '--' }}</td>
                         </tr>
                     @endforeach
+
                     <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency">{{$invoices->sum('grand_total')?? '0.00'}} ر.س</td>
+                        <td colspan="3">إجمالي المبيعات (فواتير عادية)</td>
+                        <td class="currency">{{$invoices->where('type', 'normal')->sum('grand_total'), 2, '.', ',' }} ر.س</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3">إجمالي المرتجعات (فواتير مرتجعة)</td>
+                        <td class="currency">-{{ $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ',' }} ر.س</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3">المجموع</td>
+                        <td class="currency">{{$invoices->where('type', 'normal')->sum('grand_total') - $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ',' }} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
@@ -315,7 +374,7 @@
                         <tr>
                             <td>#{{ $payment->id }}</td>
                             <td>{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ number_format($payment->amount, 2, '.', ',') }} ر.س</td>
+                            <td class="currency">{{$payment->amount, 2, '.', ',' }} ر.س</td>
                             <td>{{ $payment->payment_method }}</td>
                             <td class="time">{{ $payment->payment_date }}</td>
                             <td>#{{ $payment->invoice_id }}</td>
@@ -323,7 +382,7 @@
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($payments->sum('amount'), 2) }} ر.س</td>
+                        <td class="currency">{{ $payments->sum('amount'), 2, '.', ',' }} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
@@ -333,6 +392,7 @@
         @endif
     </div>
 
+    {{-- سندات القبض --}}
     <div class="section">
         <div class="section-title">
             <span>سندات القبض خلال الشهر</span>
@@ -355,14 +415,14 @@
                         <tr>
                             <td>#{{ $receipt->id }}</td>
                             <td>{{ $receipt->account->name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ number_format($receipt->amount, 2, '.', ',') }} ر.س</td>
+                            <td class="currency">{{ $receipt->amount, 2, '.', ',' }} ر.س</td>
                             <td>{{ $receipt->created_at->format('Y-m-d H:i') }}</td>
                             <td>{{ $receipt->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($receipts->sum('amount'), 2) }} ر.س</td>
+                        <td class="currency">{{ $receipts->sum('amount'), 2, '.', ','}} ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -395,14 +455,14 @@
                         <tr>
                             <td>#{{ $expense->id }}</td>
                             <td>{{ $expense->name }}</td>
-                            <td class="currency">{{ number_format($expense->amount, 2, '.', ',') }} ر.س</td>
+                            <td class="currency">{{$expense->amount, 2, '.', ',' }} ر.س</td>
                             <td>{{ $expense->created_at->format('Y-m-d H:i') }}</td>
                             <td>{{ $expense->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{$expenses->sum('amount'), 2 }} ر.س</td>
+                        <td class="currency">{{$expenses->sum('amount'), 2, '.', ',' }} ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -508,8 +568,6 @@
             <div class="no-data">لا يوجد ملاحظات مسجلة خلال هذا الشهر</div>
         @endif
     </div>
-
-    {{-- سندات القبض --}}
 
     <div class="footer">
         تم إنشاء التقرير تلقائياً بتاريخ {{ date('Y-m-d H:i') }} - نظام فوترة سمارت
