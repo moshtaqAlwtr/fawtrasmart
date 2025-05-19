@@ -94,13 +94,14 @@ class TreasuryController extends Controller
         $account->type_accont = 0; // نوع الحساب (خزينة)
         $account->is_active = $request->is_active ?? 1; // حالة الحساب (افتراضي: نشط)
         $account->parent_id = 13; // الأب الافتراضي
-     
-        
-        $account->code = $this->generateNextCode(13);
-          
-        $account->balance_type = 'debit'; // نوع الرصيد (مدين)
+      $account->balance_type = 'debit'; // نوع الرصيد (مدين)
+      $account->code = 0;
         // $account->treasury_id = $treasury->id; // ربط الحساب بالخزينة
         $account->save();
+        
+        $account->code = $account->id;
+           $account->save();
+       
 
         // تسجيل النشاط في جدول السجلات
         ModelsLog::create([
