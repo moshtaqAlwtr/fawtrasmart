@@ -73,157 +73,173 @@ class InvoicesController extends Controller
     /**
      * Display a listing of invoices.
      */
-    public function index(Request $request)
-    {
-        // بدء بناء الاستعلام
-        if (auth()->user()->hasAnyPermission(['sales_view_all_invoices'])) {
-            // عنده صلاحية، يشوف كل الفواتير
-            $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
-                        ->where('type','normal')->orderBy('created_at', 'desc');
-        } else {
-            // ما عنده صلاحية، يشوف فقط فواتيره
-            $invoices = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
-                        ->where('created_by', auth()->user()->id)
-                        ->where('type','normal')->orderBy('created_at', 'desc');
-        }
+public function index(Request $request)
+{
+    // بدء بناء الاستعلام الأساسي حسب الصلاحيات
+    $query = auth()->user()->hasAnyPermission(['sales_view_all_invoices'])
+        ? Invoice::with(['client', 'createdByUser', 'updatedByUser'])->where('type', 'normal')
+        : Invoice::with(['client', 'createdByUser', 'updatedByUser'])
+            ->where('created_by', auth()->user()->id)
+            ->where('type', 'normal');
 
-        // 1. البحث حسب العميل
-        if ($request->has('client_id') && $request->client_id) {
-            $invoices->where('client_id', $request->client_id);
-        }
+    // تطبيق جميع شروط البحث
+    $this->applySearchFilters($query, $request);
 
-        // 2. البحث حسب رقم الفاتورة
-        if ($request->has('invoice_number') && $request->invoice_number) {
-            $invoices->where('id', $request->invoice_number);
-        }
+    // جلب النتائج مع التقسيم (30 فاتورة لكل صفحة) مرتبة من الأحدث إلى الأقدم
+    $invoices = $query->orderBy('created_at', 'desc')->paginate(30);
 
-        // 3. البحث حسب حالة الفاتورة
-        if ($request->has('status') && $request->status) {
-            $invoices->where('payment_status', $request->status);
-        }
+    // البيانات الأخرى المطلوبة للواجهة
+    $clients = Client::all();
+    $users = User::all();
+    $employees = Employee::all();
+    $invoice_number = $this->generateInvoiceNumber();
 
-        // 4. البحث حسب البند
-        if ($request->has('item') && $request->item) {
-            $invoices->whereHas('items', function ($query) use ($request) {
-                $query->where('item', 'like', '%' . $request->item . '%');
-            });
-        }
+    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    $client = Client::where('user_id', auth()->user()->id)->first();
 
-        // 5. البحث حسب العملة
-        if ($request->has('currency') && $request->currency) {
-            $invoices->where('currency', $request->currency);
-        }
+    return view('sales.invoices.index', compact(
+        'invoices',
+        'account_setting',
+        'client',
+        'clients',
+        'users',
+        'invoice_number',
+        'employees'
+    ));
+}
 
-        // 6. البحث حسب الإجمالي (من)
-        if ($request->has('total_from') && $request->total_from) {
-            $invoices->where('grand_total', '>=', $request->total_from);
-        }
-
-        // 7. البحث حسب الإجمالي (إلى)
-        if ($request->has('total_to') && $request->total_to) {
-            $invoices->where('grand_total', '<=', $request->total_to);
-        }
-
-        // 8. البحث حسب حالة الدفع
-        if ($request->has('payment_status') && $request->payment_status) {
-            $invoices->where('payment_status', $request->payment_status);
-        }
-
-        // 9. البحث حسب التخصيص (شهريًا، أسبوعيًا، يوميًا)
-        if ($request->has('custom_period') && $request->custom_period) {
-            if ($request->custom_period == 'monthly') {
-                $invoices->whereMonth('created_at', now()->month);
-            } elseif ($request->custom_period == 'weekly') {
-                $invoices->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-            } elseif ($request->custom_period == 'daily') {
-                $invoices->whereDate('created_at', now()->toDateString());
-            }
-        }
-
-        // 10. البحث حسب التاريخ (من)
-        if ($request->has('from_date') && $request->from_date) {
-            $invoices->whereDate('created_at', '>=', $request->from_date);
-        }
-
-        // 11. البحث حسب التاريخ (إلى)
-        if ($request->has('to_date') && $request->to_date) {
-            $invoices->whereDate('created_at', '<=', $request->to_date);
-        }
-
-        // 12. البحث حسب تاريخ الاستحقاق (من)
-        if ($request->has('due_date_from') && $request->due_date_from) {
-            $invoices->whereDate('due_date', '>=', $request->due_date_from);
-        }
-
-        // 13. البحث حسب تاريخ الاستحقاق (إلى)
-        if ($request->has('due_date_to') && $request->due_date_to) {
-            $invoices->whereDate('due_date', '<=', $request->due_date_to);
-        }
-
-        // 14. البحث حسب المصدر
-        if ($request->has('source') && $request->source) {
-            $invoices->where('source', $request->source);
-        }
-
-        // 15. البحث حسب الحقل المخصص
-        if ($request->has('custom_field') && $request->custom_field) {
-            $invoices->where('custom_field', 'like', '%' . $request->custom_field . '%');
-        }
-
-        // 16. البحث حسب تاريخ الإنشاء (من)
-        if ($request->has('created_at_from') && $request->created_at_from) {
-            $invoices->whereDate('created_at', '>=', $request->created_at_from);
-        }
-
-        // 17. البحث حسب تاريخ الإنشاء (إلى)
-        if ($request->has('created_at_to') && $request->created_at_to) {
-            $invoices->whereDate('created_at', '<=', $request->created_at_to);
-        }
-
-        // 18. البحث حسب حالة التسليم
-        if ($request->has('delivery_status') && $request->delivery_status) {
-            $invoices->where('delivery_status', $request->delivery_status);
-        }
-
-        // 19. البحث حسب "أضيفت بواسطة" (الموظفين)
-        if ($request->has('added_by_employee') && $request->added_by_employee) {
-            $invoices->where('created_by', $request->added_by_employee);
-        }
-
-        // 20. البحث حسب مسؤول المبيعات (المستخدمين)
-        if ($request->has('sales_person_user') && $request->sales_person_user) {
-            $invoices->where('created_by', $request->sales_person_user);
-        }
-
-        // 21. البحث حسب Post Shift
-        if ($request->has('post_shift') && $request->post_shift) {
-            $invoices->where('post_shift', 'like', '%' . $request->post_shift . '%');
-        }
-
-        // 22. البحث حسب خيارات الشحن
-        if ($request->has('shipping_option') && $request->shipping_option) {
-            $invoices->where('shipping_option', $request->shipping_option);
-        }
-
-        // 23. البحث حسب مصدر الطلب
-        if ($request->has('order_source') && $request->order_source) {
-            $invoices->where('order_source', $request->order_source);
-        }
-
-        // جلب النتائج مع التقسيم (Pagination)
-        $invoices = $invoices->get();
-
-        // البيانات الأخرى المطلوبة للواجهة
-        $clients = Client::all();
-        $users = User::all();
-        $employees = Employee::all();
-        $invoice_number = $this->generateInvoiceNumber();
-
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        $client = Client::where('user_id', auth()->user()->id)->first();
-
-        return view('sales.invoices.index', compact('invoices', 'account_setting', 'client', 'clients', 'users', 'invoice_number', 'employees'));
+/**
+ * تطبيق شروط البحث على الاستعلام
+ */
+protected function applySearchFilters($query, $request)
+{
+    // 1. البحث حسب العميل
+    if ($request->filled('client_id')) {
+        $query->where('client_id', $request->client_id);
     }
+
+    // 2. البحث حسب رقم الفاتورة
+    if ($request->filled('invoice_number')) {
+        $query->where('id', $request->invoice_number);
+    }
+
+    // 3. البحث حسب حالة الفاتورة
+    if ($request->filled('status')) {
+        $query->where('payment_status', $request->status);
+    }
+
+    // 4. البحث حسب البند
+    if ($request->filled('item')) {
+        $query->whereHas('items', function ($q) use ($request) {
+            $q->where('item', 'like', '%' . $request->item . '%');
+        });
+    }
+
+    // 5. البحث حسب العملة
+    if ($request->filled('currency')) {
+        $query->where('currency', $request->currency);
+    }
+
+    // 6. البحث حسب الإجمالي (من)
+    if ($request->filled('total_from')) {
+        $query->where('grand_total', '>=', $request->total_from);
+    }
+
+    // 7. البحث حسب الإجمالي (إلى)
+    if ($request->filled('total_to')) {
+        $query->where('grand_total', '<=', $request->total_to);
+    }
+
+    // 8. البحث حسب حالة الدفع
+    if ($request->filled('payment_status')) {
+        $query->where('payment_status', $request->payment_status);
+    }
+
+    // 9. البحث حسب التخصيص (شهريًا، أسبوعيًا، يوميًا)
+    if ($request->filled('custom_period')) {
+        switch ($request->custom_period) {
+            case 'monthly':
+                $query->whereMonth('created_at', now()->month);
+                break;
+            case 'weekly':
+                $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                break;
+            case 'daily':
+                $query->whereDate('created_at', now()->toDateString());
+                break;
+        }
+    }
+
+    // 10. البحث حسب التاريخ (من)
+    if ($request->filled('from_date')) {
+        $query->whereDate('created_at', '>=', $request->from_date);
+    }
+
+    // 11. البحث حسب التاريخ (إلى)
+    if ($request->filled('to_date')) {
+        $query->whereDate('created_at', '<=', $request->to_date);
+    }
+
+    // 12. البحث حسب تاريخ الاستحقاق (من)
+    if ($request->filled('due_date_from')) {
+        $query->whereDate('due_date', '>=', $request->due_date_from);
+    }
+
+    // 13. البحث حسب تاريخ الاستحقاق (إلى)
+    if ($request->filled('due_date_to')) {
+        $query->whereDate('due_date', '<=', $request->due_date_to);
+    }
+
+    // 14. البحث حسب المصدر
+    if ($request->filled('source')) {
+        $query->where('source', $request->source);
+    }
+
+    // 15. البحث حسب الحقل المخصص
+    if ($request->filled('custom_field')) {
+        $query->where('custom_field', 'like', '%' . $request->custom_field . '%');
+    }
+
+    // 16. البحث حسب تاريخ الإنشاء (من)
+    if ($request->filled('created_at_from')) {
+        $query->whereDate('created_at', '>=', $request->created_at_from);
+    }
+
+    // 17. البحث حسب تاريخ الإنشاء (إلى)
+    if ($request->filled('created_at_to')) {
+        $query->whereDate('created_at', '<=', $request->created_at_to);
+    }
+
+    // 18. البحث حسب حالة التسليم
+    if ($request->filled('delivery_status')) {
+        $query->where('delivery_status', $request->delivery_status);
+    }
+
+    // 19. البحث حسب "أضيفت بواسطة" (الموظفين)
+    if ($request->filled('added_by_employee')) {
+        $query->where('created_by', $request->added_by_employee);
+    }
+
+    // 20. البحث حسب مسؤول المبيعات
+    if ($request->filled('sales_person_user')) {
+        $query->where('created_by', $request->sales_person_user);
+    }
+
+    // 21. البحث حسب Post Shift
+    if ($request->filled('post_shift')) {
+        $query->where('post_shift', 'like', '%' . $request->post_shift . '%');
+    }
+
+    // 22. البحث حسب خيارات الشحن
+    if ($request->filled('shipping_option')) {
+        $query->where('shipping_option', $request->shipping_option);
+    }
+
+    // 23. البحث حسب مصدر الطلب
+    if ($request->filled('order_source')) {
+        $query->where('order_source', $request->order_source);
+    }
+}
     public function create(Request $request)
     {
         // توليد رقم الفاتورة
@@ -281,7 +297,7 @@ class InvoicesController extends Controller
             'client_id' => $client_id,
         ]);
     }
-  
+
 
 public function getPrice(Request $request)
 {
@@ -1307,7 +1323,7 @@ public function getPrice(Request $request)
                 }
 
               if($advance_payment > 0 ){
-                  
+
                    if ($clientaccounts) {
                     $clientaccounts->balance -= $payment_amount; // المبلغ الكلي (المبيعات + الضريبة)
                     $clientaccounts->save();
@@ -1318,7 +1334,7 @@ public function getPrice(Request $request)
                     $clientaccounts->save();
                 }
               }
-              
+
                 // إنشاء قيد محاسبي للدفعة
                 $paymentJournalEntry = JournalEntry::create([
                     'reference_number' => $payment->reference_number ?? $invoice->code,
@@ -1616,10 +1632,10 @@ if (auth()->check()) {
         // Output file
         return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
     }
-  
 
 
-    
+
+
 
 public function label($id)
 {
@@ -1644,7 +1660,7 @@ public function label($id)
            ->header('Content-Type', 'application/pdf');
 }
 
-// قائمة الاستلام 
+// قائمة الاستلام
 public function picklist($id)
 {
     $invoice = Invoice::findOrFail($id);
@@ -1668,7 +1684,7 @@ public function picklist($id)
            ->header('Content-Type', 'application/pdf');
 }
 
-// ملصق التوصيل 
+// ملصق التوصيل
 
 public function shipping_label($id)
 {

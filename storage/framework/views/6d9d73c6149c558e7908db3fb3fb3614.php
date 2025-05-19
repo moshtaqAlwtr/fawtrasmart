@@ -40,12 +40,14 @@
             width: 100%;
             margin-bottom: 3mm;
             font-size: 9pt;
+            border-collapse: collapse;
         }
         .info-table td {
-            padding: 1mm;
+            padding: 2mm;
+            border: 0.5pt solid #eee;
         }
         .section {
-            margin-bottom: 5mm;
+            margin-bottom: 8mm;
             page-break-inside: avoid;
         }
         .section-title {
@@ -69,12 +71,14 @@
             border-collapse: collapse;
             margin-bottom: 5mm;
             font-size: 8pt;
+            table-layout: fixed;
         }
         th, td {
             border: 0.5pt solid #ddd;
-            padding: 1.5mm;
+            padding: 2mm;
             text-align: right;
             direction: rtl;
+            word-wrap: break-word;
         }
         th {
             background-color: #f2f2f2;
@@ -97,16 +101,18 @@
             color: #999;
             font-style: italic;
             text-align: center;
-            padding: 3mm;
+            padding: 5mm;
             border: 0.5pt dashed #ddd;
             margin: 3mm 0;
         }
         .status-badge {
             display: inline-block;
-            padding: 1pt 2pt;
-            border-radius: 1.5pt;
-            font-size: 7pt;
+            padding: 1.5pt 3pt;
+            border-radius: 2pt;
+            font-size: 8pt;
             color: white;
+            min-width: 50px;
+            text-align: center;
         }
         .status-paid { background-color: #28a745; }
         .status-partial { background-color: #17a2b8; }
@@ -115,15 +121,17 @@
         .status-pending { background-color: #ffc107; color: #000; }
         .status-cancelled { background-color: #dc3545; }
         .payment-summary {
-            margin-bottom: 5mm;
+            margin-bottom: 8mm;
             border: 0.5pt solid #ddd;
-            padding: 3mm;
+            padding: 4mm;
+            border-radius: 3pt;
         }
         .payment-summary-title {
             font-weight: bold;
-            margin-bottom: 3mm;
+            margin-bottom: 4mm;
             font-size: 10pt;
             text-align: center;
+            color: #2c3e50;
         }
         .payment-summary-grid {
             display: table;
@@ -134,11 +142,12 @@
         }
         .payment-summary-label, .payment-summary-value {
             display: table-cell;
-            padding: 1mm;
+            padding: 2mm 1mm;
+            vertical-align: middle;
         }
         .payment-summary-label {
-            font-size: 8pt;
-            color: #6c757d;
+            font-size: 9pt;
+            color: #495057;
             text-align: right;
             width: 70%;
         }
@@ -155,8 +164,8 @@
         }
         .footer {
             text-align: center;
-            margin-top: 5mm;
-            padding-top: 2mm;
+            margin-top: 8mm;
+            padding-top: 3mm;
             border-top: 0.5pt solid #eee;
             font-size: 8pt;
             color: #6c757d;
@@ -166,6 +175,16 @@
         .col-15 { width: 15%; }
         .col-20 { width: 20%; }
         .col-25 { width: 25%; }
+        .col-30 { width: 30%; }
+        .col-35 { width: 35%; }
+        .col-40 { width: 40%; }
+        .nowrap { white-space: nowrap; }
+        .wrap-text {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .text-center { text-align: center; }
     </style>
 </head>
 <body>
@@ -204,19 +223,19 @@
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي المدفوعات المستلمة</div>
                 <div class="payment-summary-value">
-                    <?php echo e(number_format($payments->sum('amount'), 2, '.', ',')); ?> ر.س
+                    <?php echo e($payments->sum('amount'), 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات القبض</div>
                 <div class="payment-summary-value">
-                    <?php echo e(number_format($receipts->sum('amount'), 2, '.', ',')); ?> ر.س
+                    <?php echo e($receipts->sum('amount'), 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات الصرف</div>
                 <div class="payment-summary-value">
-                    <?php echo e(number_format($expenses->sum('amount'), 2, '.', ',')); ?> ر.س
+                    <?php echo e($expenses->sum('amount'), 2, '.', ','); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item grand-total">
@@ -225,13 +244,13 @@
                     <?php
                         $totalCollection = $payments->sum('amount') + $receipts->sum('amount') - $expenses->sum('amount');
                     ?>
-                    <?php echo e(number_format($totalCollection, 2, '.', ',')); ?> ر.س
+                    <?php echo e($totalCollection, 2, '.', ','); ?> ر.س
                 </div>
             </div>
         </div>
     </div>
 
-    
+    <!-- الفواتير -->
     <div class="section">
         <div class="section-title">
             <span>الفواتير الصادرة</span>
@@ -244,18 +263,38 @@
                         <th class="col-10">رقم الفاتورة</th>
                         <th class="col-20">العميل</th>
                         <th class="col-15">المجموع</th>
+                        <th class="col-10">النوع</th>
                         <th class="col-15">الحالة</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-25">ملاحظات</th>
+                        <th class="col-15">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <?php
+                        $totalNormal = 0;
+                        $totalReturned = 0;
+                    ?>
+
                     <?php $__currentLoopData = $invoices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $invoice): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
+                            if($invoice->type == 'returned') {
+                                $totalReturned += $invoice->grand_total;
+                            } else {
+                                $totalNormal += $invoice->grand_total;
+                            }
+                        ?>
                         <tr>
-                            <td>#<?php echo e($invoice->id); ?></td>
-                            <td><?php echo e(Str::limit($invoice->client->trade_name ?? 'غير محدد', 15)); ?></td>
+                            <td class="nowrap text-center">#<?php echo e($invoice->id); ?></td>
+                            <td class="wrap-text"><?php echo e($invoice->client->trade_name ?? 'غير محدد'); ?></td>
                             <td class="currency"><?php echo e(number_format($invoice->grand_total, 2, '.', ',')); ?> ر.س</td>
-                            <td>
+                            <td class="text-center">
+                                <?php if($invoice->type == 'returned'): ?>
+                                    <span class="status-badge status-cancelled">مرتجع</span>
+                                <?php else: ?>
+                                    <span class="status-badge status-completed">مبيعات</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
                                 <?php if($invoice->payment_status == 1): ?>
                                     <span class="status-badge status-paid">مدفوعة</span>
                                 <?php elseif($invoice->payment_status == 2): ?>
@@ -264,14 +303,24 @@
                                     <span class="status-badge status-unpaid">غير مدفوعة</span>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo e($invoice->created_at->format('H:i')); ?></td>
-                            <td><?php echo e(Str::limit($invoice->notes ?? '--', 20)); ?></td>
+                            <td class="nowrap text-center"><?php echo e($invoice->created_at->format('H:i')); ?></td>
+                            <td class="wrap-text"><?php echo e($invoice->notes ?? '--'); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e(number_format($invoices->sum('grand_total'), 2, '.', ',')); ?> ر.س</td>
-                        <td colspan="3"></td>
+                        <td colspan="2">إجمالي الفواتير العادية</td>
+                        <td class="currency"><?php echo e($totalNormal, 2, '.', ','); ?> ر.س</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr class="total-row" style="background-color: #f8d7da;">
+                        <td colspan="2">إجمالي الفواتير المرتجعة</td>
+                        <td class="currency">-<?php echo e($totalReturned, 2, '.', ','); ?> ر.س</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr class="total-row" style="background-color: #e7f1ff;">
+                        <td colspan="2">صافي المبيعات</td>
+                        <td class="currency"><?php echo e($totalNormal - $totalReturned, 2, '.', ','); ?> ر.س</td>
+                        <td colspan="4"></td>
                     </tr>
                 </tbody>
             </table>
@@ -280,7 +329,7 @@
         <?php endif; ?>
     </div>
 
-    
+    <!-- المدفوعات -->
     <div class="section">
         <div class="section-title">
             <span>المدفوعات المستلمة</span>
@@ -291,27 +340,27 @@
                 <thead>
                     <tr>
                         <th class="col-10">رقم العملية</th>
-                        <th class="col-20">العميل</th>
+                        <th class="col-25">العميل</th>
                         <th class="col-15">المبلغ</th>
-                        <th class="col-15">طريقة الدفع</th>
+                        <th class="col-20">طريقة الدفع</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-25">رقم الفاتورة</th>
+                        <th class="col-15">رقم الفاتورة</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>#<?php echo e($payment->id); ?></td>
-                            <td><?php echo e(Str::limit($payment->client->trade_name ?? 'غير محدد', 15)); ?></td>
-                            <td class="currency"><?php echo e(number_format($payment->amount, 2, '.', ',')); ?> ر.س</td>
-                            <td><?php echo e(Str::limit($payment->payment_method, 10)); ?></td>
-                            <td class="time"><?php echo e($payment->payment_date); ?></td>
-                            <td>#<?php echo e($payment->invoice_id); ?></td>
+                            <td class="nowrap text-center">#<?php echo e($payment->id); ?></td>
+                            <td class="wrap-text"><?php echo e($payment->client->trade_name ?? 'غير محدد'); ?></td>
+                            <td class="currency"><?php echo e($payment->amount, 2, '.', ','); ?> ر.س</td>
+                            <td class="wrap-text"><?php echo e($payment->payment_method); ?></td>
+                            <td class="nowrap text-center"><?php echo e($payment->payment_date); ?></td>
+                            <td class="nowrap text-center">#<?php echo e($payment->invoice_id); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e(number_format($payments->sum('amount'), 2, '.', ',')); ?> ر.س</td>
+                        <td class="currency"><?php echo e($payments->sum('amount'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
@@ -321,7 +370,85 @@
         <?php endif; ?>
     </div>
 
-    
+    <!-- سندات القبض -->
+    <div class="section">
+        <div class="section-title">
+            <span>سندات القبض</span>
+            <span class="section-count"><?php echo e($receipts->count()); ?></span>
+        </div>
+        <?php if($receipts->count() > 0): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-15">رقم السند</th>
+                        <th class="col-30">من</th>
+                        <th class="col-15">المبلغ</th>
+                        <th class="col-20">التاريخ</th>
+                        <th class="col-20">الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $__currentLoopData = $receipts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $receipt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <tr>
+                            <td class="nowrap text-center">#<?php echo e($receipt->id); ?></td>
+                            <td class="wrap-text"><?php echo e($receipt->account->name ?? 'غير محدد'); ?></td>
+                            <td class="currency"><?php echo e($receipt->amount, 2, '.', ','); ?> ر.س</td>
+                            <td class="nowrap text-center"><?php echo e($receipt->created_at->format('H:i')); ?></td>
+                            <td class="wrap-text"><?php echo e($receipt->description ?? '--'); ?></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <tr class="total-row">
+                        <td colspan="2">المجموع</td>
+                        <td class="currency"><?php echo e($receipts->sum('amount'), 2, '.', ','); ?> ر.س</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <div class="no-data">لا يوجد سندات قبض</div>
+        <?php endif; ?>
+    </div>
+
+    <!-- سندات الصرف -->
+    <div class="section">
+        <div class="section-title">
+            <span>سندات الصرف</span>
+            <span class="section-count"><?php echo e($expenses->count()); ?></span>
+        </div>
+        <?php if($expenses->count() > 0): ?>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-15">رقم السند</th>
+                        <th class="col-30">إلى</th>
+                        <th class="col-15">المبلغ</th>
+                        <th class="col-20">التاريخ</th>
+                        <th class="col-20">الوصف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $__currentLoopData = $expenses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $expense): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <tr>
+                            <td class="nowrap text-center">#<?php echo e($expense->id); ?></td>
+                            <td class="wrap-text"><?php echo e($expense->name); ?></td>
+                            <td class="currency"><?php echo e($expense->amount, 2, '.', ','); ?> ر.س</td>
+                            <td class="nowrap text-center"><?php echo e($expense->created_at->format('H:i')); ?></td>
+                            <td class="wrap-text"><?php echo e($expense->description ?? '--'); ?></td>
+                        </tr>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <tr class="total-row">
+                        <td colspan="2">المجموع</td>
+                        <td class="currency"><?php echo e($expenses->sum('amount'), 2, '.', ','); ?> ر.س</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <div class="no-data">لا يوجد سندات صرف</div>
+        <?php endif; ?>
+    </div>
+
+    <!-- زيارات العملاء -->
     <div class="section">
         <div class="section-title">
             <span>زيارات العملاء</span>
@@ -331,23 +458,23 @@
             <table>
                 <thead>
                     <tr>
-                        <th class="col-20">العميل</th>
-                        <th class="col-20">العنوان</th>
+                        <th class="col-25">العميل</th>
+                        <th class="col-25">العنوان</th>
                         <th class="col-10">الوصول</th>
                         <th class="col-10">الانصراف</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-25">ملاحظات</th>
+                        <th class="col-15">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php $__currentLoopData = $visits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $visit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td><?php echo e(Str::limit($visit->client->trade_name ?? 'غير محدد', 15)); ?></td>
-                            <td><?php echo e(Str::limit($visit->client->formattedAddress ?? 'غير محدد', 15)); ?></td>
-                            <td class="time"><?php echo e($visit->arrival_time ?? '--'); ?></td>
-                            <td class="time"><?php echo e($visit->departure_time ?? '--'); ?></td>
-                            <td><?php echo e($visit->created_at->format('H:i')); ?></td>
-                            <td><?php echo e(Str::limit($visit->notes ?? '--', 15)); ?></td>
+                            <td class="wrap-text"><?php echo e(optional($visit->client)->trade_name ?? 'غير محدد'); ?></td>
+                            <td class="wrap-text"><?php echo e(optional($visit->client)->formattedAddress ?? 'غير محدد'); ?></td>
+                            <td class="nowrap text-center"><?php echo e($visit->arrival_time ?? '--'); ?></td>
+                            <td class="nowrap text-center"><?php echo e($visit->departure_time ?? '--'); ?></td>
+                            <td class="nowrap text-center"><?php echo e($visit->created_at->format('H:i')); ?></td>
+                            <td class="wrap-text"><?php echo e($visit->notes ?? '--'); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
@@ -360,7 +487,7 @@
         <?php endif; ?>
     </div>
 
-    
+    <!-- الملاحظات -->
     <div class="section">
         <div class="section-title">
             <span>ملاحظات الموظف</span>
@@ -370,18 +497,18 @@
             <table>
                 <thead>
                     <tr>
-                        <th class="col-20">العميل</th>
+                        <th class="col-25">العميل</th>
                         <th class="col-15">الحالة</th>
                         <th class="col-15">الوقت</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-35">الوصف</th>
+                        <th class="col-30">الوصف</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php $__currentLoopData = $notes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td><?php echo e(Str::limit($note->client->trade_name ?? 'غير محدد', 15)); ?></td>
-                            <td>
+                            <td class="wrap-text"><?php echo e($note->client->trade_name ?? 'غير محدد'); ?></td>
+                            <td class="text-center">
                                 <?php if($note->status == 'completed'): ?>
                                     <span class="status-badge status-completed">مكتمل</span>
                                 <?php elseif($note->status == 'pending'): ?>
@@ -393,9 +520,9 @@
 
                                 <?php endif; ?>
                             </td>
-                            <td class="time"><?php echo e($note->time ?? '--'); ?></td>
-                            <td><?php echo e($note->date ?? '--'); ?></td>
-                            <td><?php echo e(Str::limit($note->description ?? '--', 30)); ?></td>
+                            <td class="nowrap text-center"><?php echo e($note->time ?? '--'); ?></td>
+                            <td class="nowrap text-center"><?php echo e($note->date ?? '--'); ?></td>
+                            <td class="wrap-text"><?php echo e($note->description ?? '--'); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
@@ -405,84 +532,6 @@
             </table>
         <?php else: ?>
             <div class="no-data">لا يوجد ملاحظات مسجلة</div>
-        <?php endif; ?>
-    </div>
-
-    
-    <div class="section">
-        <div class="section-title">
-            <span>سندات القبض</span>
-            <span class="section-count"><?php echo e($receipts->count()); ?></span>
-        </div>
-        <?php if($receipts->count() > 0): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-15">رقم السند</th>
-                        <th class="col-25">من</th>
-                        <th class="col-15">المبلغ</th>
-                        <th class="col-20">التاريخ</th>
-                        <th class="col-25">الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $__currentLoopData = $receipts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $receipt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <tr>
-                            <td>#<?php echo e($receipt->id); ?></td>
-                            <td><?php echo e(Str::limit($receipt->account->name ?? 'غير محدد', 15)); ?></td>
-                            <td class="currency"><?php echo e(number_format($receipt->amount, 2, '.', ',')); ?> ر.س</td>
-                            <td><?php echo e($receipt->created_at->format('H:i')); ?></td>
-                            <td><?php echo e(Str::limit($receipt->description ?? '--', 15)); ?></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e(number_format($receipts->sum('amount'), 2, '.', ',' )); ?> ر.س</td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <div class="no-data">لا يوجد سندات قبض</div>
-        <?php endif; ?>
-    </div>
-
-    
-    <div class="section">
-        <div class="section-title">
-            <span>سندات الصرف</span>
-            <span class="section-count"><?php echo e($expenses->count()); ?></span>
-        </div>
-        <?php if($expenses->count() > 0): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-15">رقم السند</th>
-                        <th class="col-25">إلى</th>
-                        <th class="col-15">المبلغ</th>
-                        <th class="col-20">التاريخ</th>
-                        <th class="col-25">الوصف</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $__currentLoopData = $expenses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $expense): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <tr>
-                            <td>#<?php echo e($expense->id); ?></td>
-                            <td><?php echo e(Str::limit($expense->name, 15)); ?></td>
-                            <td class="currency"><?php echo e(number_format($expense->amount, 2, '.', ',')); ?> ر.س</td>
-                            <td><?php echo e($expense->created_at->format('H:i')); ?></td>
-                            <td><?php echo e(Str::limit($expense->description ?? '--', 15)); ?></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e(number_format($expenses->sum('amount'), 2, '.', ',')); ?> ر.س</td>
-                        <td colspan="2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <div class="no-data">لا يوجد سندات صرف</div>
         <?php endif; ?>
     </div>
 

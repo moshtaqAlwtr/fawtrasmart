@@ -40,12 +40,14 @@
             width: 100%;
             margin-bottom: 3mm;
             font-size: 9pt;
+            border-collapse: collapse;
         }
         .info-table td {
-            padding: 1mm;
+            padding: 2mm;
+            border: 0.5pt solid #eee;
         }
         .section {
-            margin-bottom: 5mm;
+            margin-bottom: 8mm;
             page-break-inside: avoid;
         }
         .section-title {
@@ -69,12 +71,14 @@
             border-collapse: collapse;
             margin-bottom: 5mm;
             font-size: 8pt;
+            table-layout: fixed;
         }
         th, td {
             border: 0.5pt solid #ddd;
-            padding: 1.5mm;
+            padding: 2mm;
             text-align: right;
             direction: rtl;
+            word-wrap: break-word;
         }
         th {
             background-color: #f2f2f2;
@@ -97,16 +101,18 @@
             color: #999;
             font-style: italic;
             text-align: center;
-            padding: 3mm;
+            padding: 5mm;
             border: 0.5pt dashed #ddd;
             margin: 3mm 0;
         }
         .status-badge {
             display: inline-block;
-            padding: 1pt 2pt;
-            border-radius: 1.5pt;
-            font-size: 7pt;
+            padding: 1.5pt 3pt;
+            border-radius: 2pt;
+            font-size: 8pt;
             color: white;
+            min-width: 50px;
+            text-align: center;
         }
         .status-paid { background-color: #28a745; }
         .status-partial { background-color: #17a2b8; }
@@ -115,15 +121,17 @@
         .status-pending { background-color: #ffc107; color: #000; }
         .status-cancelled { background-color: #dc3545; }
         .payment-summary {
-            margin-bottom: 5mm;
+            margin-bottom: 8mm;
             border: 0.5pt solid #ddd;
-            padding: 3mm;
+            padding: 4mm;
+            border-radius: 3pt;
         }
         .payment-summary-title {
             font-weight: bold;
-            margin-bottom: 3mm;
+            margin-bottom: 4mm;
             font-size: 10pt;
             text-align: center;
+            color: #2c3e50;
         }
         .payment-summary-grid {
             display: table;
@@ -134,11 +142,12 @@
         }
         .payment-summary-label, .payment-summary-value {
             display: table-cell;
-            padding: 1mm;
+            padding: 2mm 1mm;
+            vertical-align: middle;
         }
         .payment-summary-label {
-            font-size: 8pt;
-            color: #6c757d;
+            font-size: 9pt;
+            color: #495057;
             text-align: right;
             width: 70%;
         }
@@ -155,8 +164,8 @@
         }
         .footer {
             text-align: center;
-            margin-top: 5mm;
-            padding-top: 2mm;
+            margin-top: 8mm;
+            padding-top: 3mm;
             border-top: 0.5pt solid #eee;
             font-size: 8pt;
             color: #6c757d;
@@ -170,7 +179,12 @@
         .col-35 { width: 35%; }
         .col-40 { width: 40%; }
         .nowrap { white-space: nowrap; }
-        .wrap-text { white-space: normal; word-wrap: break-word; }
+        .wrap-text {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .text-center { text-align: center; }
     </style>
 </head>
 <body>
@@ -209,19 +223,19 @@
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي المدفوعات المستلمة</div>
                 <div class="payment-summary-value">
-                    {{ number_format($payments->sum('amount'), 2, '.', ',') }} ر.س
+                    {{ $payments->sum('amount'), 2, '.', ',' }} ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات القبض</div>
                 <div class="payment-summary-value">
-                    {{ number_format($receipts->sum('amount'), 2, '.', ',') }} ر.س
+                    {{ $receipts->sum('amount'), 2, '.', ',' }} ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات الصرف</div>
                 <div class="payment-summary-value">
-                    {{ number_format($expenses->sum('amount'), 2, '.', ',') }} ر.س
+                    {{ $expenses->sum('amount'), 2, '.', ',' }} ر.س
                 </div>
             </div>
             <div class="payment-summary-item grand-total">
@@ -230,13 +244,13 @@
                     @php
                         $totalCollection = $payments->sum('amount') + $receipts->sum('amount') - $expenses->sum('amount');
                     @endphp
-                    {{ number_format($totalCollection, 2, '.', ',') }} ر.س
+                    {{ $totalCollection, 2, '.', ',' }} ر.س
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- الفواتير --}}
+    <!-- الفواتير -->
     <div class="section">
         <div class="section-title">
             <span>الفواتير الصادرة</span>
@@ -247,20 +261,40 @@
                 <thead>
                     <tr>
                         <th class="col-10">رقم الفاتورة</th>
-                        <th class="col-25">العميل</th>
+                        <th class="col-20">العميل</th>
                         <th class="col-15">المجموع</th>
+                        <th class="col-10">النوع</th>
                         <th class="col-15">الحالة</th>
                         <th class="col-15">التاريخ</th>
-                        <th class="col-20">ملاحظات</th>
+                        <th class="col-15">ملاحظات</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $totalNormal = 0;
+                        $totalReturned = 0;
+                    @endphp
+
                     @foreach ($invoices as $invoice)
+                        @php
+                            if($invoice->type == 'returned') {
+                                $totalReturned += $invoice->grand_total;
+                            } else {
+                                $totalNormal += $invoice->grand_total;
+                            }
+                        @endphp
                         <tr>
-                            <td class="nowrap">#{{ $invoice->id }}</td>
+                            <td class="nowrap text-center">#{{ $invoice->id }}</td>
                             <td class="wrap-text">{{ $invoice->client->trade_name ?? 'غير محدد' }}</td>
                             <td class="currency">{{ number_format($invoice->grand_total, 2, '.', ',') }} ر.س</td>
-                            <td>
+                            <td class="text-center">
+                                @if($invoice->type == 'returned')
+                                    <span class="status-badge status-cancelled">مرتجع</span>
+                                @else
+                                    <span class="status-badge status-completed">مبيعات</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
                                 @if($invoice->payment_status == 1)
                                     <span class="status-badge status-paid">مدفوعة</span>
                                 @elseif ($invoice->payment_status == 2)
@@ -269,14 +303,24 @@
                                     <span class="status-badge status-unpaid">غير مدفوعة</span>
                                 @endif
                             </td>
-                            <td class="nowrap">{{ $invoice->created_at->format('H:i') }}</td>
+                            <td class="nowrap text-center">{{ $invoice->created_at->format('H:i') }}</td>
                             <td class="wrap-text">{{ $invoice->notes ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($invoices->sum('grand_total'), 2) }} ر.س</td>
-                        <td colspan="3"></td>
+                        <td colspan="2">إجمالي الفواتير العادية</td>
+                        <td class="currency">{{ $totalNormal, 2, '.', ',' }} ر.س</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr class="total-row" style="background-color: #f8d7da;">
+                        <td colspan="2">إجمالي الفواتير المرتجعة</td>
+                        <td class="currency">-{{ $totalReturned, 2, '.', ',' }} ر.س</td>
+                        <td colspan="4"></td>
+                    </tr>
+                    <tr class="total-row" style="background-color: #e7f1ff;">
+                        <td colspan="2">صافي المبيعات</td>
+                        <td class="currency">{{$totalNormal - $totalReturned, 2, '.', ','}} ر.س</td>
+                        <td colspan="4"></td>
                     </tr>
                 </tbody>
             </table>
@@ -285,7 +329,7 @@
         @endif
     </div>
 
-    {{-- المدفوعات --}}
+    <!-- المدفوعات -->
     <div class="section">
         <div class="section-title">
             <span>المدفوعات المستلمة</span>
@@ -306,17 +350,17 @@
                 <tbody>
                     @foreach ($payments as $payment)
                         <tr>
-                            <td class="nowrap">#{{ $payment->id }}</td>
+                            <td class="nowrap text-center">#{{ $payment->id }}</td>
                             <td class="wrap-text">{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ number_format($payment->amount, 2, '.', ',') }} ر.س</td>
+                            <td class="currency">{{ $payment->amount, 2, '.', ',' }} ر.س</td>
                             <td class="wrap-text">{{ $payment->payment_method }}</td>
-                            <td class="nowrap">{{ $payment->payment_date }}</td>
-                            <td class="nowrap">#{{ $payment->invoice_id }}</td>
+                            <td class="nowrap text-center">{{ $payment->payment_date }}</td>
+                            <td class="nowrap text-center">#{{ $payment->invoice_id }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($payments->sum('amount'), 2) }} ر.س</td>
+                        <td class="currency">{{ $payments->sum('amount'), 2, '.', ',' }} ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
@@ -326,7 +370,7 @@
         @endif
     </div>
 
-    {{-- سندات القبض --}}
+    <!-- سندات القبض -->
     <div class="section">
         <div class="section-title">
             <span>سندات القبض</span>
@@ -346,16 +390,16 @@
                 <tbody>
                     @foreach ($receipts as $receipt)
                         <tr>
-                            <td class="nowrap">#{{ $receipt->id }}</td>
+                            <td class="nowrap text-center">#{{ $receipt->id }}</td>
                             <td class="wrap-text">{{ $receipt->account->name ?? 'غير محدد' }}</td>
-                            <td class="currency">{{ number_format($receipt->amount, 2, '.', ',') }} ر.س</td>
-                            <td class="nowrap">{{ $receipt->created_at->format('H:i') }}</td>
+                            <td class="currency">{{ $receipt->amount, 2, '.', ',' }} ر.س</td>
+                            <td class="nowrap text-center">{{ $receipt->created_at->format('H:i') }}</td>
                             <td class="wrap-text">{{ $receipt->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($receipts->sum('amount'), 2) }} ر.س</td>
+                        <td class="currency">{{ $receipts->sum('amount'), 2, '.', ',' }} ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -365,7 +409,7 @@
         @endif
     </div>
 
-    {{-- سندات الصرف --}}
+    <!-- سندات الصرف -->
     <div class="section">
         <div class="section-title">
             <span>سندات الصرف</span>
@@ -385,16 +429,16 @@
                 <tbody>
                     @foreach ($expenses as $expense)
                         <tr>
-                            <td class="nowrap">#{{ $expense->id }}</td>
+                            <td class="nowrap text-center">#{{ $expense->id }}</td>
                             <td class="wrap-text">{{ $expense->name }}</td>
-                            <td class="currency">{{ number_format($expense->amount, 2, '.', ',') }} ر.س</td>
-                            <td class="nowrap">{{ $expense->created_at->format('H:i') }}</td>
+                            <td class="currency">{{ $expense->amount, 2, '.', ',' }} ر.س</td>
+                            <td class="nowrap text-center">{{ $expense->created_at->format('H:i') }}</td>
                             <td class="wrap-text">{{ $expense->description ?? '--' }}</td>
                         </tr>
                     @endforeach
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency">{{ number_format($expenses->sum('amount'), 2) }} ر.س</td>
+                        <td class="currency">{{ $expenses->sum('amount'), 2, '.', ',' }} ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -404,7 +448,7 @@
         @endif
     </div>
 
-    {{-- زيارات العملاء --}}
+    <!-- زيارات العملاء -->
     <div class="section">
         <div class="section-title">
             <span>زيارات العملاء</span>
@@ -427,9 +471,9 @@
                         <tr>
                             <td class="wrap-text">{{ optional($visit->client)->trade_name ?? 'غير محدد' }}</td>
                             <td class="wrap-text">{{ optional($visit->client)->formattedAddress ?? 'غير محدد' }}</td>
-                            <td class="nowrap">{{ $visit->arrival_time ?? '--' }}</td>
-                            <td class="nowrap">{{ $visit->departure_time ?? '--' }}</td>
-                            <td class="nowrap">{{ $visit->created_at->format('H:i') }}</td>
+                            <td class="nowrap text-center">{{ $visit->arrival_time ?? '--' }}</td>
+                            <td class="nowrap text-center">{{ $visit->departure_time ?? '--' }}</td>
+                            <td class="nowrap text-center">{{ $visit->created_at->format('H:i') }}</td>
                             <td class="wrap-text">{{ $visit->notes ?? '--' }}</td>
                         </tr>
                     @endforeach
@@ -443,7 +487,7 @@
         @endif
     </div>
 
-    {{-- الملاحظات --}}
+    <!-- الملاحظات -->
     <div class="section">
         <div class="section-title">
             <span>ملاحظات الموظف</span>
@@ -464,7 +508,7 @@
                     @foreach ($notes as $note)
                         <tr>
                             <td class="wrap-text">{{ $note->client->trade_name ?? 'غير محدد' }}</td>
-                            <td>
+                            <td class="text-center">
                                 @if($note->status == 'completed')
                                     <span class="status-badge status-completed">مكتمل</span>
                                 @elseif($note->status == 'pending')
@@ -475,8 +519,8 @@
                                     {{ $note->status }}
                                 @endif
                             </td>
-                            <td class="nowrap">{{ $note->time ?? '--' }}</td>
-                            <td class="nowrap">{{ $note->date ?? '--' }}</td>
+                            <td class="nowrap text-center">{{ $note->time ?? '--' }}</td>
+                            <td class="nowrap text-center">{{ $note->date ?? '--' }}</td>
                             <td class="wrap-text">{{ $note->description ?? '--' }}</td>
                         </tr>
                     @endforeach

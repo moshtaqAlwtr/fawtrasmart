@@ -423,7 +423,7 @@
                         </p>
                     </div>
                 @endif
-                {{ $expenses->links('pagination::bootstrap-5') }}
+
             </div>
         </div>
 

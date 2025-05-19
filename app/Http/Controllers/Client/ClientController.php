@@ -52,121 +52,95 @@ class ClientController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->branch) {
-            $branch = $user->branch;
-            $shareCustomersStatus = $branch->settings()->where('key', 'share_customers')->first();
+        // بناء الاستعلام الأساسي للعملاء
+        $baseQuery = Client::query();
 
-            if ($shareCustomersStatus && $shareCustomersStatus->pivot->status == 0) {
-                // مشاركة العملاء غير مفعلة => نعرض فقط العملاء من نفس الفرع أو الذين الموظف مسؤول عنهم
-                $query = Client::where(function ($q) use ($branch, $user) {
-                    $q->where('branch_id', $branch->id)->orWhereHas('employees', function ($q2) use ($user) {
-                        $q2->where('employees.id', $user->employee_id);
-                    });
-                })->with([
-                    'employee',
-                    'status' => function ($q) {
-                        $q->select('id', 'name', 'color');
-                    },
-                    'locations',
-                ]);
+        // تطبيق فلتر الفرع
+        if ($user->branch_id) {
+            // إذا كان المستخدم مدير والفرع هو الفرع الرئيسي
+            if ($user->role === 'manager' && $user->branch && $user->branch->name === 'الرئيسي') {
+                // لا نطبق أي فلتر - سيظهر جميع العملاء
             } else {
-                // مشاركة العملاء مفعلة => عرض جميع العملاء
-                $query = Client::with([
-                    'employee',
-                    'status' => function ($q) {
-                        $q->select('id', 'name', 'color');
-                    },
-                    'locations',
-                ]);
+                // للموظفين العاديين أو المدراء في الفروع الأخرى
+                $baseQuery->where('branch_id', $user->branch_id);
             }
-        } else {
-            // لا يوجد فرع => عرض جميع العملاء
-            $query = Client::with([
-                'employee',
-                'status' => function ($q) {
-                    $q->select('id', 'name', 'color');
-                },
-                'locations',
-            ]);
         }
 
-        $clients = $query->get();
-
-        // تطبيق شروط البحث فقط
+        // تطبيق فلترات البحث على الاستعلام الأساسي
         if ($request->filled('client')) {
-            $query->where('id', $request->client);
+            $baseQuery->where('id', $request->client);
         }
 
         if ($request->filled('name')) {
-            $query->where('trade_name', 'like', '%' . $request->name . '%');
+            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
         }
 
         if ($request->filled('status')) {
-            $query->where('status_id', $request->status);
-        }
-
-        if ($request->filled('classifications')) {
-            $query->where('category', $request->classifications);
-        }
-
-        if ($request->filled('end_date_to')) {
-            $query->whereDate('created_at', '<=', $request->end_date_to);
-        }
-
-        if ($request->filled('address')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('street1', 'like', '%' . $request->address . '%')->orWhere('street2', 'like', '%' . $request->address . '%');
-            });
-        }
-
-        if ($request->filled('postal_code')) {
-            $query->where('postal_code', $request->postal_code);
-        }
-
-        if ($request->filled('country')) {
-            $query->where('country', $request->country);
-        }
-        if ($request->filled('neighborhood')) {
-            $query->whereHas('Neighborhoodname', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-            });
+            $baseQuery->where('status_id', $request->status);
         }
 
         if ($request->filled('region')) {
-            $query->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->region . '%')->orWhere('id', $request->region);
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+                $q->where('id', $request->region);
             });
         }
 
-        if ($request->filled('tag')) {
-            $query->where('tags', 'like', '%' . $request->tag . '%');
-        }
-
-        if ($request->filled('user')) {
-            $query->where('employee_id', $request->user);
-        }
-
-        if ($request->filled('type')) {
-            $query->where('client_type', $request->type);
-        }
-
-        if ($request->filled('full_name')) {
-            $query->whereHas('employee', function ($query) use ($request) {
-                $query->where('id', $request->full_name);
+        if ($request->filled('neighborhood')) {
+            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')
+                  ->orWhere('id', $request->neighborhood);
             });
         }
 
-        // تنفيذ الاستعلام مع الترتيب
-        $clients = $query->orderBy('created_at', 'desc')->get();
+        // نسخ الاستعلام المفلتر للخريطة
+        $mapQuery = clone $baseQuery;
 
-        // جلب البيانات الإضافية للعرض
+        // الحصول على العملاء للخريطة مع البيانات الأساسية
+        $allClients = $mapQuery->with([
+            'status_client:id,name,color',
+            'locations:id,client_id,latitude,longitude',
+            'Neighborhoodname.Region',
+            'branch:id,name'
+        ])->get();
+
+        // الحصول على موقع المستخدم الحالي
+        $userLocation = Location::where('employee_id', $user->employee_id)
+                              ->latest()
+                              ->first();
+
+        // تحميل العلاقات للعرض في الجدول
+        $baseQuery->with([
+            'employee',
+            'status:id,name,color',
+            'locations',
+            'Neighborhoodname.Region',
+            'branch:id,name'
+        ]);
+
+        // الحصول على النتائج المقسمة للجدول
+        $clients = $baseQuery->orderBy('created_at', 'desc')
+                            ->paginate(20)
+                            ->appends($request->except('page'));
+
+        // الحصول على البيانات الإضافية للقوائم المنسدلة
         $users = User::all();
         $employees = Employee::all();
         $statuses = Statuses::select('id', 'name', 'color')->get();
         $creditLimit = CreditLimit::first();
         $Region_groups = Region_groub::all();
         $Neighborhoods = Neighborhood::all();
-        return view('client.index', compact('clients', 'Neighborhoods', 'users', 'employees', 'creditLimit', 'statuses', 'Region_groups'));
+
+        return view('client.index', compact(
+            'clients',
+            'allClients',
+            'Neighborhoods',
+            'users',
+            'employees',
+            'creditLimit',
+            'statuses',
+            'Region_groups',
+            'userLocation'
+        ));
     }
     public function updateCreditLimit(Request $request)
     {
