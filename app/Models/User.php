@@ -67,6 +67,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Branch::class);
     }
+        public function directions()
+    {
+        return $this->belongsTo(Direction::class);
+    }
     public function notifications()
 {
     return $this->hasMany(Notification::class);

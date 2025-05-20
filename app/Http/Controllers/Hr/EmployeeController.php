@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TestMail;
+use App\Models\Direction;
+use App\Models\EmployeeGroup;
+use App\Models\Region_groub;
 
 class EmployeeController extends Controller
 {
@@ -59,12 +62,12 @@ class EmployeeController extends Controller
         // إرسال البريد
         Mail::to($employee->email)->send(new TestMail($details));
         ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $employee->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+            'type' => 'hr_log',
+            'type_id' => $employee->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم ارسال بيانات الدخول **' . $employee->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         // return back()->with('message', 'تم إرسال البريد بنجاح!');
         return redirect()
@@ -90,13 +93,16 @@ class EmployeeController extends Controller
         $departments = Department::select('id', 'name')->get();
         $job_roles = JobRole::select('id', 'role_name', 'role_type')->get();
         $employees = Employee::select('id', 'first_name', 'middle_name')->get();
-        return view('hr.employee.create', compact('employees', 'job_roles', 'departments', 'job_titles', 'job_levels', 'job_types', 'branches', 'shifts'));
+        $groups = Region_groub::select('id', 'name')->get(); // إضافة هذا السطر
+        $directions = Direction::select('id', 'name')->get(); // إضافة هذا السطر
+
+        return view('hr.employee.create', compact('employees', 'job_roles', 'departments', 'job_titles', 'job_levels', 'job_types', 'branches', 'shifts', 'groups', 'directions'));
     }
 
     public function store(EmployeeRequest $request)
     {
         DB::beginTransaction();
-        $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials');
+        $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials', 'groups', 'directions');
 
         $employee_data['created_by'] = auth()->user()->id;
 
@@ -113,62 +119,88 @@ class EmployeeController extends Controller
         if ($request->has('send_credentials')) {
             $employee->send_credentials = 1;
         }
-        $request->validate([
-            'email' => ['required', 'email', 'unique:users,email'],
-        ], [
-            'email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
-            'email.email' => 'يجب أن يكون البريد الإلكتروني صالحًا.',
-            'email.required' => 'حقل البريد الإلكتروني مطلوب.',
-        ]);
+
+        $request->validate(
+            [
+                'email' => ['required', 'email', 'unique:users,email'],
+            ],
+            [
+                'email.unique' => 'البريد الإلكتروني مستخدم بالفعل.',
+                'email.email' => 'يجب أن يكون البريد الإلكتروني صالحًا.',
+                'email.required' => 'حقل البريد الإلكتروني مطلوب.',
+            ],
+        );
 
         $new_employee = $employee->create($employee_data);
 
-            if($request->has('phone_number')){
+        // حفظ المجموعات والاتجاهات
+        if ($request->has('groups')) {
+            foreach ($request->groups as $index => $groupId) {
+                if (!empty($groupId)) {
+                    $directionId = $request->directions[$index] ?? null;
 
+                    EmployeeGroup::create([
+                        'employee_id' => $new_employee->id,
+                        'group_id' => $groupId,
+
+                        'direction_id' => $directionId,
+                        'created_by' => auth()->id(),
+                    ]);
+                }
             }
-            $user = User::create([
-                'name' => $new_employee->full_name,
-                'email' => $request->email,
-                'phone' => $request->phone_number,
-                'role' => 'employee',
-                'employee_id' => $new_employee->id,
-                'branch_id'   => $request->branch_id,
-                'password' => Hash::make($request->phone_number),
-            ]);
+        }
+
+        $user = User::create([
+            'name' => $new_employee->full_name,
+            'email' => $request->email,
+            'phone' => $request->phone_number,
+            'role' => 'employee',
+            'employee_id' => $new_employee->id,
+            'branch_id' => $request->branch_id,
+            'password' => Hash::make($request->phone_number),
+        ]);
 
         $role = JobRole::where('id', $request->Job_role_id)->first();
         $role_name = $role->role_name;
 
         $user->assignRole($role_name);
-ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $new_employee->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => 'تم إضافة موظف جديد **' . $new_employee->full_name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
 
+        ModelsLog::create([
+            'type' => 'hr_log',
+            'type_id' => $new_employee->id,
+            'type_log' => 'log',
+            'description' => 'تم إضافة موظف جديد **' . $new_employee->full_name . '**',
+            'created_by' => auth()->id(),
+        ]);
 
         DB::commit();
         return redirect()
             ->route('employee.show', $new_employee->id)
-            ->with(['success' => 'تم اضافه الموظف بنجاج !!']);
+            ->with(['success' => 'تم إضافة الموظف بنجاح !!']);
     }
+ public function edit($id)
+{
+    $shifts = Shift::select('id','name')->get();
+    $branches = Branch::select('id','name')->get();
+    $jobTypes = TypesJobs::select('id','name')->get();
+    $jobLevels = FunctionalLevels::select('id','name')->get();
+    $jobTitles = JopTitle::select('id','name')->get();
+    $job_roles = JobRole::select('id','role_name','role_type')->get();
+    $departments = Department::select('id','name')->get();
+    $employees = Employee::select('id','first_name','middle_name')->get();
+    $groups = Region_groub::select('id','name')->get(); // إضافة هذا السطر
+    $directions = Direction::select('id','name')->get(); // إضافة هذا السطر
+    $employee = Employee::findOrFail($id);
 
-    public function edit($id)
-    {
-        $shifts = Shift::select('id','name')->get();
-        $branches = Branch::select('id','name')->get();
-        $jobTypes = TypesJobs::select('id','name')->get();
-        $jobLevels = FunctionalLevels::select('id','name')->get();
-        $jobTitles = JopTitle::select('id','name')->get();
-        $job_roles = JobRole::select('id','role_name','role_type')->get();
-        $departments = Department::select('id','name')->get();
-        $employees = Employee::select('id','first_name','middle_name')->get();
-        $employee = Employee::findOrFail($id);
-        return view('hr.employee.edit',compact('employee','employees','job_roles','departments','jobTitles','jobLevels','jobTypes','branches','shifts'));
-    }
+    // استرجاع المجموعات والاتجاهات الحالية للموظف
+    $employeeGroups = EmployeeGroup::where('employee_id', $id)->get();
 
+    return view('hr.employee.edit', compact(
+        'employee', 'employees', 'job_roles', 'departments', 'jobTitles',
+        'jobLevels', 'jobTypes', 'branches', 'shifts', 'groups',
+        'directions', 'employeeGroups'
+    ));
+}
     public function show($id)
     {
         $employee = Employee::findOrFail($id);
@@ -177,95 +209,111 @@ ModelsLog::create([
         return view('hr.employee.show', compact('employee', 'user'));
     }
 
-    public function update(EmployeeRequest $request, $id)
-    {
-        try {
-            DB::beginTransaction();
+public function update(EmployeeRequest $request, $id)
+{
+    try {
+        DB::beginTransaction();
 
-            $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials');
+        $employee_data = $request->except('_token', 'allow_system_access', 'send_credentials', 'groups', 'directions');
 
-            $employee = Employee::findOrFail($id);
+        $employee = Employee::findOrFail($id);
 
-            // التحقق من البريد الإلكتروني فقط إذا كان مختلفًا عن البريد الإلكتروني الحالي
-            if ($request->email !== $employee->email) {
-                $existingEmployee = Employee::where('email', $request->email)->where('id', '!=', $id)->first();
-                if ($existingEmployee) {
-                    return redirect()
-                        ->route('employee.edit', $id)
-                        ->with(['error' => 'البريد الإلكتروني مستخدم بالفعل.']);
+        // التحقق من البريد الإلكتروني فقط إذا كان مختلفًا عن البريد الإلكتروني الحالي
+        if ($request->email !== $employee->email) {
+            $existingEmployee = Employee::where('email', $request->email)->where('id', '!=', $id)->first();
+            if ($existingEmployee) {
+                return redirect()
+                    ->route('employee.edit', $id)
+                    ->with(['error' => 'البريد الإلكتروني مستخدم بالفعل.']);
+            }
+        }
+
+        if ($request->hasFile('employee_photo')) {
+            $employee->employee_photo = $this->UploadImage('assets/uploads/employee', $request->employee_photo);
+        }
+
+        if ($request->has('allow_system_access')) {
+            $employee->allow_system_access = 1;
+        } else {
+            $employee->allow_system_access = 0;
+        }
+
+        if ($request->has('send_credentials')) {
+            $employee->send_credentials = 1;
+        } else {
+            $employee->send_credentials = 0;
+        }
+
+        $employee->update($employee_data);
+
+        // تحديث المجموعات والاتجاهات
+        if ($request->has('groups')) {
+            // حذف جميع المجموعات القديمة
+            EmployeeGroup::where('employee_id', $id)->delete();
+
+            // إضافة المجموعات الجديدة
+            foreach ($request->groups as $index => $groupId) {
+                if (!empty($groupId)) {
+                    $directionId = $request->directions[$index] ?? null;
+
+                    EmployeeGroup::create([
+                        'employee_id' => $id,
+                        'group_id' => $groupId,
+                        'direction_id' => $directionId,
+                        'created_by' => auth()->id()
+                    ]);
                 }
             }
-
-            if ($request->hasFile('employee_photo')) {
-                $employee->employee_photo = $this->UploadImage('assets/uploads/employee', $request->employee_photo);
-            }
-
-            if ($request->has('allow_system_access')) {
-                $employee->allow_system_access = 1;
-            }
-
-            if ($request->has('send_credentials')) {
-                $employee->send_credentials = 1;
-            }
-
-            $employee->update($employee_data);
-
-
-            User::where('employee_id', $id)->update([
-                'name' => $employee->full_name,
-                'email' => $request->email,
-                'phone' => $request->phone_number,
-                'branch_id'   => $request->branch_id,
-                'role' => 'employee',
-            ]);
-            
-            ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $employee->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => 'تم تعديل موظف  **' . $employee->full_name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
-
-            // توليد كلمة مرور افتراضية
-            $password = bcrypt('default_password'); // يمكنك تغيير "default_password" إلى أي قيمة تريدها
-
-            // تحديث أو إنشاء مستخدم
-            User::updateOrCreate(
-                ['employee_id' => $id], // الشروط للبحث
-                [
-                    'name' => $employee->full_name,
-                    'email' => $request->email,
-                    'phone' => $request->phone_number,
-                    'branch_id' => $request->branch_id,
-                    'role' => 'employee',
-                    'password' => $password, // إضافة كلمة المرور
-                ]
-            );
-
-
-            DB::commit();
-            return redirect()
-                ->route('employee.show', $id)
-                ->with(['success' => 'تم تحديث الموظف بنجاح !!']);
-        } catch (\Exception $exception) {
-            DB::rollback();
-            return redirect()
-                ->route('employee.index')
-                ->with(['error' => $exception->getMessage()]);
         }
-    }
 
+        // تحديث بيانات المستخدم
+        $userData = [
+            'name' => $employee->full_name,
+            'email' => $request->email,
+            'phone' => $request->phone_number,
+            'branch_id' => $request->branch_id,
+            'role' => 'employee',
+        ];
+
+        // إذا كانت هناك حاجة لتغيير كلمة المرور
+        if ($request->has('reset_password')) {
+            $userData['password'] = Hash::make($request->phone_number);
+        }
+
+        User::updateOrCreate(
+            ['employee_id' => $id],
+            $userData
+        );
+
+        ModelsLog::create([
+            'type' => 'hr_log',
+            'type_id' => $employee->id,
+            'type_log' => 'log',
+            'description' => 'تم تعديل موظف **' . $employee->full_name . '**',
+            'created_by' => auth()->id(),
+        ]);
+
+        DB::commit();
+        return redirect()
+            ->route('employee.show', $id)
+            ->with(['success' => 'تم تحديث الموظف بنجاح !!']);
+    } catch (\Exception $exception) {
+        DB::rollback();
+        return redirect()
+            ->route('employee.index')
+            ->with(['error' => $exception->getMessage()]);
+    }
+}
     public function delete($id)
     {
         $employee = Employee::findOrFail($id);
-                   ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $employee->id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => 'تم حذف موظف  **' . $employee->full_name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+        ModelsLog::create([
+            'type' => 'hr_log',
+            'type_id' => $employee->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم حذف موظف  **' . $employee->full_name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
         $employee->delete();
         return redirect()
             ->back()
@@ -288,13 +336,13 @@ ModelsLog::create([
         $user = User::where('email', $employee_email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
-             ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => 'تم    تعديل كلمة السر ل  **'.$user->name . '**',
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+        ModelsLog::create([
+            'type' => 'hr_log',
+            'type_id' => $id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم    تعديل كلمة السر ل  **' . $user->name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
         return redirect()
             ->back()
@@ -378,21 +426,25 @@ ModelsLog::create([
         $employee = Employee::find($id);
 
         if (!$employee) {
-            return redirect()->route('employee.show',$id)->with(['error' => ' نوع الرصيد غير موجود!']);
+            return redirect()
+                ->route('employee.show', $id)
+                ->with(['error' => ' نوع الرصيد غير موجود!']);
         }
 
         $employee->update(['status' => !$employee->status]);
-        
-     $statusText = $employee->status ? 'تم تفعيل الموظف' : 'تم تعطيل الموظف';
 
-ModelsLog::create([
-    'type' => 'hr_log',
-    'type_id' => $id, // ID النشاط المرتبط
-    'type_log' => 'log', // نوع النشاط
-    'description' => $statusText . ' **' . $employee->first_name . '**',  
-    'created_by' => auth()->id(), // ID المستخدم الحالي
-]);
+        $statusText = $employee->status ? 'تم تفعيل الموظف' : 'تم تعطيل الموظف';
 
-        return redirect()->route('employee.show',$id)->with(['success' => 'تم تحديث حالة الموضف  بنجاح!']);
+        ModelsLog::create([
+            'type' => 'hr_log',
+            'type_id' => $id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => $statusText . ' **' . $employee->first_name . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
+
+        return redirect()
+            ->route('employee.show', $id)
+            ->with(['success' => 'تم تحديث حالة الموضف  بنجاح!']);
     }
 }

@@ -351,7 +351,7 @@
                     <?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
                             <td class="nowrap text-center">#<?php echo e($payment->id); ?></td>
-                            <td class="wrap-text"><?php echo e($payment->client->trade_name ?? 'غير محدد'); ?></td>
+                            <td class="wrap-text"><?php echo e($payment->invoice->client->trade_name ?? 'غير محدد'); ?></td>
                             <td class="currency"><?php echo e($payment->amount, 2, '.', ','); ?> ر.س</td>
                             <td class="wrap-text"><?php echo e($payment->payment_method); ?></td>
                             <td class="nowrap text-center"><?php echo e($payment->payment_date); ?></td>

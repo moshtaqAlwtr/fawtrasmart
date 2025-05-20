@@ -189,7 +189,7 @@
 
     <div class="header">
         <h1>التقرير الشهري لأداء الموظف</h1>
-        <div class="subtitle">فترة التقرير: لشهر <?php echo e($startDate->format('Y-m')); ?></div>
+<div class="subtitle">فترة التقرير: لشهر <?php echo e($startDate->translatedFormat('F Y')); ?></div>
     </div>
 
     <!-- معلومات الموظف -->
@@ -329,11 +329,7 @@
                             <td><?php echo e($invoice->notes ?? '--'); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    <tr class="total-row">
-                        <td colspan="3">المجموع</td>
-                        <td class="currency"><?php echo e($invoices->where('type', 'normal')->sum('grand_total') - $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
-                        <td colspan="3"></td>
-                    </tr>
+
                     <tr class="total-row">
                         <td colspan="3">إجمالي المبيعات (فواتير عادية)</td>
                         <td class="currency"><?php echo e($invoices->where('type', 'normal')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
@@ -342,6 +338,11 @@
                     <tr class="total-row">
                         <td colspan="3">إجمالي المرتجعات (فواتير مرتجعة)</td>
                         <td class="currency">-<?php echo e($invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3">المجموع</td>
+                        <td class="currency"><?php echo e($invoices->where('type', 'normal')->sum('grand_total') - $invoices->where('type', 'returned')->sum('grand_total'), 2, '.', ','); ?> ر.س</td>
                         <td colspan="3"></td>
                     </tr>
                 </tbody>
@@ -374,7 +375,7 @@
                     <?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
                             <td>#<?php echo e($payment->id); ?></td>
-                            <td><?php echo e($payment->client->trade_name ?? 'غير محدد'); ?></td>
+                            <td><?php echo e($payment->invoice->client->trade_name ?? 'غير محدد'); ?></td>
                             <td class="currency"><?php echo e($payment->amount, 2, '.', ','); ?> ر.س</td>
                             <td><?php echo e($payment->payment_method); ?></td>
                             <td class="time"><?php echo e($payment->payment_date); ?></td>

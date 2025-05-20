@@ -558,7 +558,7 @@
                                             data-i18n="eCommerce">{{ trans('main_trans.Client_settings') }}</span>
                                     </a>
                                 </li>
-                                  <li><a href="{{ route('clients.group_client') }}"><i
+                                  <li><a href="{{ route('groups.group_client') }}"><i
                                         class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="eCommerce">اعدادات المجموعات</span>
                                 </a>

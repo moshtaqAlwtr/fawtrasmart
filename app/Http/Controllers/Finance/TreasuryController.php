@@ -38,15 +38,15 @@ class TreasuryController extends Controller
     public function store(Request $request)
     {
         // التحقق من صحة البيانات
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'deposit_permissions' => 'required|integer',
-            'withdraw_permissions' => 'required|integer',
-            'value_of_deposit_permissions' => 'nullable|string',
-            'value_of_withdraw_permissions' => 'nullable|string',
-            'is_active' => 'nullable|boolean',
-        ]);
+        // $request->validate([
+        //     'name' => 'required|string|max:255',
+        //     'description' => 'nullable|string',
+        //     'deposit_permissions' => 'required|integer',
+        //     'withdraw_permissions' => 'required|integer',
+        //     'value_of_deposit_permissions' => 'nullable|string',
+        //     'value_of_withdraw_permissions' => 'nullable|string',
+        //     'is_active' => 'nullable|boolean',
+        // ]);
 
         // إنشاء الخزينة في جدول Treasury
         $treasury = new Treasury();
@@ -94,10 +94,10 @@ class TreasuryController extends Controller
         $account->type_accont = 0; // نوع الحساب (خزينة)
         $account->is_active = $request->is_active ?? 1; // حالة الحساب (افتراضي: نشط)
         $account->parent_id = 13; // الأب الافتراضي
-     
-        
+
+
         $account->code = $this->generateNextCode(13);
-          
+
         $account->balance_type = 'debit'; // نوع الرصيد (مدين)
         // $account->treasury_id = $treasury->id; // ربط الحساب بالخزينة
         $account->save();
@@ -289,9 +289,7 @@ class TreasuryController extends Controller
 
         $treasury->name = $request->name;
         $oldName = $treasury->name;
-        $treasury->type = 0; # خزينه
-        $treasury->status = $request->status;
-        $treasury->description = $request->description;
+
         $treasury->deposit_permissions = $request->deposit_permissions;
         $treasury->withdraw_permissions = $request->withdraw_permissions;
         $treasury->value_of_deposit_permissions = $request->value_of_deposit_permissions;

@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Client\ClientSettingController;
+use App\Http\Controllers\Client\GroupsController;
 use App\Http\Controllers\Client\VisitController;
 use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\Logs\LogController;
@@ -37,9 +38,9 @@ Route::get('/send-monthly-report', [VisitController::class, 'sendMonthlyReport']
 require __DIR__ . '/auth.php';
 
 Route::get('/{id}/print', [InvoicesController::class, 'print'])->name('invoices.print');
-   Route::get('/text/editor', function () {
-                   return view('text_editor');
-                    });
+Route::get('/text/editor', function () {
+    return view('text_editor');
+});
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
@@ -138,7 +139,6 @@ Route::group(
                     Route::get('/quotes/{id}/pdf', [QuoteController::class, 'downloadPdf'])->name('quotes.pdf');
                     Route::get('quotes/{quote}/edit-template', [QuoteController::class, 'editTemplate'])->name('quotes.template.edit');
                     Route::put('quotes/{quote}/update-template', [QuoteController::class, 'updateTemplate'])->name('quotes.template.update');
-
                 });
 
                 Route::prefix('appointments')->group(function () {
@@ -221,7 +221,6 @@ Route::group(
                     Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
                     Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
 
-
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
                     Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
@@ -233,9 +232,7 @@ Route::group(
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
-                    Route::get('/group', [ClientController::class, 'group_client'])->name('clients.group_client');
-                    Route::get('/group/create', [ClientController::class, 'group_client_create'])->name('clients.group_client_create');
-                    Route::post('/group/store', [ClientController::class, 'group_client_store'])->name('clients.group_client_store');
+
                     Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
@@ -291,22 +288,31 @@ Route::group(
                     Route::put('/update/{id}', [PaymentProcessController::class, 'update'])->name('paymentsClient.update');
                     Route::get('payments/invoice-details/{invoice_id}', [PaymentProcessController::class, 'getInvoiceDetails'])->name('paymentsClient.invoice-details');
                 });
+
+                Route::prefix('groups')->group(function () {
+                    Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
+                    Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
+                    Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
+                    Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
+                    Route::put('/group/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
+                    Route::delete('/group/delete/{id}', [GroupsController::class, 'group_client_destroy'])->name('groups.group_client_destroy');
+                });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingInvoiceController::class, 'index'])->name('SittingInvoice.index');
 
-                        Route::get('/', [SittingInvoiceController::class, 'bill_designs'])->name('SittingInvoice.bill_designs');
-                        Route::get('/create', [SittingInvoiceController::class, 'create'])->name('templates.create');
-                        Route::post('/', [SittingInvoiceController::class, 'store'])->name('templates.store');
-                        Route::get('/{template}/edit', [SittingInvoiceController::class, 'edit'])->name('templates.edit');
-                        Route::put('/{template}', [SittingInvoiceController::class, 'update'])->name('templates.update');
-                        Route::post('/template/preview', [SittingInvoiceController::class, 'preview'])->name('template.preview');
-                        Route::post('/{template}/reset', [SittingInvoiceController::class, 'reset'])->name('templates.reset');
-                        Route::delete('/{template}', [SittingInvoiceController::class, 'destroy'])->name('templates.destroy');
+                    Route::get('/', [SittingInvoiceController::class, 'bill_designs'])->name('SittingInvoice.bill_designs');
+                    Route::get('/create', [SittingInvoiceController::class, 'create'])->name('templates.create');
+                    Route::post('/', [SittingInvoiceController::class, 'store'])->name('templates.store');
+                    Route::get('/{template}/edit', [SittingInvoiceController::class, 'edit'])->name('templates.edit');
+                    Route::put('/{template}', [SittingInvoiceController::class, 'update'])->name('templates.update');
+                    Route::post('/template/preview', [SittingInvoiceController::class, 'preview'])->name('template.preview');
+                    Route::post('/{template}/reset', [SittingInvoiceController::class, 'reset'])->name('templates.reset');
+                    Route::delete('/{template}', [SittingInvoiceController::class, 'destroy'])->name('templates.destroy');
 
-                        Route::get('/invoice', [SittingInvoiceController::class, 'invoice'])->name('SittingInvoice.invoice');
+                    Route::get('/invoice', [SittingInvoiceController::class, 'invoice'])->name('SittingInvoice.invoice');
 
-                        Route::get('/test_print', [SittingInvoiceController::class, 'test_print'])->name('templates.test_print');
-                        Route::get('/test_print/{id}', [SittingInvoiceController::class, 'print'])->name('templates.print');
+                    Route::get('/test_print', [SittingInvoiceController::class, 'test_print'])->name('templates.test_print');
+                    Route::get('/test_print/{id}', [SittingInvoiceController::class, 'print'])->name('templates.print');
                 });
                 Route::prefix('offers')->group(function () {
                     Route::get('/index', [OffersController::class, 'index'])->name('Offers.index');
@@ -319,12 +325,12 @@ Route::group(
                         $today = now()->format('Y-m-d');
                         $clientId = $request->client_id;
 
-                         $offers = Offer::with(['clients', 'products', 'categories'])
+                        $offers = Offer::with(['clients', 'products', 'categories'])
                             ->where('is_active', true)
                             ->whereDate('valid_from', '<=', $today)
                             ->whereDate('valid_to', '>=', $today)
                             ->get()
-                            ->map(function($offer) {
+                            ->map(function ($offer) {
                                 return [
                                     'id' => $offer->id,
                                     'name' => $offer->name,
@@ -337,11 +343,9 @@ Route::group(
                                     'valid_to' => $offer->valid_to,
                                     'clients' => $offer->clients->map(fn($c) => ['id' => $c->id]),
                                     'products' => $offer->products->map(fn($p) => ['id' => $p->id]),
-                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id])
+                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id]),
                                 ];
                             });
-
-
 
                         return response()->json($offers);
                     });
@@ -377,22 +381,18 @@ Route::group(
                     ->middleware('auth')
                     ->name('visits.today');
 
+                Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
+                Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
+                Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
 
-                        Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
-                        Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
-                        Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
-
-                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
-                    ->name('visits.storeLocationEnhanced');
+                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
                 Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
 
                 // إضافة هذا المسار للانصراف التلقائي
-                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])
-                    ->name('visits.processAutoDepartures');
-                    Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
+                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])->name('visits.processAutoDepartures');
+                Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
                 // إضافة مسار للانصراف اليدوي
-                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])
-                    ->name('visits.manualDeparture');
+                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])->name('visits.manualDeparture');
             });
         Route::prefix('commission')
             ->middleware(['auth'])
@@ -409,12 +409,5 @@ Route::group(
             ->group(function () {
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
-
-
-
     },
-
-
-
-
 );
