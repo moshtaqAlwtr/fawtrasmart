@@ -99,8 +99,16 @@ class TreasuryController extends Controller
         $account->code = $this->generateNextCode(13);
 
         $account->balance_type = 'debit'; // نوع الرصيد (مدين)
+
+      $account->balance_type = 'debit'; // نوع الرصيد (مدين)
+      $account->code = 0;
+
         // $account->treasury_id = $treasury->id; // ربط الحساب بالخزينة
         $account->save();
+
+        $account->code = $account->id;
+           $account->save();
+
 
         // تسجيل النشاط في جدول السجلات
         ModelsLog::create([
