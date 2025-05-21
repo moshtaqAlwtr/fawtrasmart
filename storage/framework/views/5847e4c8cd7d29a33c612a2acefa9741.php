@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     تعديل موظف
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -25,23 +23,24 @@
 
     <div class="content-body">
 
-        <form action="{{ route('employee.update', $employee->id) }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @if ($errors->any())
+        <form action="<?php echo e(route('employee.update', $employee->id)); ?>" method="POST" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
+            <?php if($errors->any()): ?>
                 <div class="alert alert-danger">
                     <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            @if (session('error'))
+            <?php if(session('error')): ?>
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    <?php echo e(session('error')); ?>
+
                 </div>
-            @endif
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-body">
@@ -51,7 +50,7 @@
                         </div>
 
                         <div>
-                            <a href="{{ route('employee.index') }}" class="btn btn-outline-danger">
+                            <a href="<?php echo e(route('employee.index')); ?>" class="btn btn-outline-danger">
                                 <i class="fa fa-ban"></i>الغاء
                             </a>
                             <button type="submit" class="btn btn-outline-primary">
@@ -74,17 +73,17 @@
                         <div class="form-group col-md-4">
                             <label for="first_name">الاسم الأول <span class="text-danger">*</span></label>
                             <input type="text" name="first_name" class="form-control" placeholder="أدخل الاسم الأول"
-                                value="{{ old('first_name', $employee->first_name) }}">
+                                value="<?php echo e(old('first_name', $employee->first_name)); ?>">
                         </div>
                         <div class="form-group col-md-4">
                             <label for="middle_name">الاسم الأوسط</label>
                             <input type="text" name="middle_name" class="form-control" placeholder="أدخل الاسم الأوسط"
-                                value="{{ old('middle_name', $employee->middle_name) }}">
+                                value="<?php echo e(old('middle_name', $employee->middle_name)); ?>">
                         </div>
                         <div class="form-group col-md-4">
                             <label for="last_name">اللقب</label>
                             <input type="text" name="nickname" class="form-control" placeholder="أدخل اللقب"
-                                value="{{ old('nickname', $employee->nickname) }}">
+                                value="<?php echo e(old('nickname', $employee->nickname)); ?>">
                         </div>
                     </div>
 
@@ -99,7 +98,7 @@
 
                         <div class="col-md-6">
                             <label for="notes">الملاحظات</label>
-                            <textarea name="notes" class="form-control" id="notes" rows="2" placeholder="أدخل ملاحظات">{{ old('notes', $employee->notes) }}</textarea>
+                            <textarea name="notes" class="form-control" id="notes" rows="2" placeholder="أدخل ملاحظات"><?php echo e(old('notes', $employee->notes)); ?></textarea>
                         </div>
                     </div>
 
@@ -108,16 +107,16 @@
                         <div class="form-group col-md-4">
                             <label for="email">البريد الإلكتروني</label>
                             <input type="email" name="email" class="form-control" id="email"
-                                placeholder="example@email.com" value="{{ old('email', $employee->email) }}">
+                                placeholder="example@email.com" value="<?php echo e(old('email', $employee->email)); ?>">
                         </div>
 
                         <div class="form-group col-md-4">
                             <label for="employee_type">نوع الموظف</label>
                             <select name="employee_type" class="form-control">
                                 <option value="1"
-                                    {{ old('employee_type', $employee->employee_type) == 1 ? 'selected' : '' }}>موظف</option>
+                                    <?php echo e(old('employee_type', $employee->employee_type) == 1 ? 'selected' : ''); ?>>موظف</option>
                                 <option value="2"
-                                    {{ old('employee_type' . $employee->employee_type) == 2 ? 'selected' : '' }}>مستخدم
+                                    <?php echo e(old('employee_type' . $employee->employee_type) == 2 ? 'selected' : ''); ?>>مستخدم
                                 </option>
                             </select>
                         </div>
@@ -125,9 +124,9 @@
                         <div class="form-group col-md-4">
                             <label for="status">الحالة <span class="text-danger">*</span></label>
                             <select name="status" class="form-control" id="status" required>
-                                <option value="1" {{ old('status', $employee->status) == 1 ? 'selected' : '' }}>نشط
+                                <option value="1" <?php echo e(old('status', $employee->status) == 1 ? 'selected' : ''); ?>>نشط
                                 </option>
-                                <option value="2" {{ old('status', $employee->status) == 2 ? 'selected' : '' }}>غير نشط
+                                <option value="2" <?php echo e(old('status', $employee->status) == 2 ? 'selected' : ''); ?>>غير نشط
                                 </option>
                             </select>
                         </div>
@@ -150,9 +149,9 @@
                         <div class="form-group col-md-4">
                             <label for="id_number">لغة العرض </label>
                             <select name="language" class="form-control">
-                                <option value="1" {{ old('language', $employee->language) == 1 ? 'selected' : '' }}>
+                                <option value="1" <?php echo e(old('language', $employee->language) == 1 ? 'selected' : ''); ?>>
                                     العربيه</option>
-                                <option value="2" {{ old('language', $employee->language) == 2 ? 'selected' : '' }}>
+                                <option value="2" <?php echo e(old('language', $employee->language) == 2 ? 'selected' : ''); ?>>
                                     انجليزيه</option>
                             </select>
                         </div>
@@ -160,26 +159,24 @@
                         <div class="form-group col-md-4">
                             <label for="nationality">الدور الوظيفي</label>
                             <select name="Job_role_id" class="form-control">
-                                @foreach ($job_roles as $job_role)
-                                    <option value="{{ $job_role->id }}"
-                                        {{ old('Job_role_id') == $job_role->id ? 'selected' : '' }}>
-                                        {{ $job_role->role_name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $job_roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $job_role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($job_role->id); ?>"
+                                        <?php echo e(old('Job_role_id') == $job_role->id ? 'selected' : ''); ?>>
+                                        <?php echo e($job_role->role_name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
                         <div class="form-group col-md-4">
                             <label for="gender">الفروع المسموح الدخول بها</label>
                             <select name="branch_id" class="form-control">
-                                @foreach ($branches as $branche)
-                                    <option value="{{ $branche->id }}">{{ $branche->name ?? '' }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branche): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($branche->id); ?>"><?php echo e($branche->name ?? ''); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
 
                             </select>
                         </div>
-
-
                     </div>
 
                 </div>
@@ -194,14 +191,14 @@
                         <div class="form-group col-md-6">
                             <label for="dob">تاريخ الميلاد <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="date_of_birth"
-                                value="{{ old('date_of_birth', $employee->date_of_birth) }}">
+                                value="<?php echo e(old('date_of_birth', $employee->date_of_birth)); ?>">
                         </div>
                         <div class="form-group col-md-6">
                             <label for="type">النوع</label>
                             <select class="form-control" name="gender">
-                                <option value="1" {{ old('gender', $employee->gender) == 1 ? 'selected' : '' }}>ذكر
+                                <option value="1" <?php echo e(old('gender', $employee->gender) == 1 ? 'selected' : ''); ?>>ذكر
                                 </option>
-                                <option value="2" {{ old('gender', $employee->gender) == 2 ? 'selected' : '' }}>انثى
+                                <option value="2" <?php echo e(old('gender', $employee->gender) == 2 ? 'selected' : ''); ?>>انثى
                                 </option>
                             </select>
                         </div>
@@ -212,13 +209,13 @@
                             <select class="form-control" name="nationality_status">
                                 <option selected disabled>من فضلك اختر</option>
                                 <option value="1"
-                                    {{ old('nationality_status', $employee->nationality_status) == 1 ? 'selected' : '' }}>
+                                    <?php echo e(old('nationality_status', $employee->nationality_status) == 1 ? 'selected' : ''); ?>>
                                     مواطن</option>
                                 <option value="2"
-                                    {{ old('nationality_status', $employee->nationality_status) == 2 ? 'selected' : '' }}>
+                                    <?php echo e(old('nationality_status', $employee->nationality_status) == 2 ? 'selected' : ''); ?>>
                                     مقيم</option>
                                 <option value="3"
-                                    {{ old('nationality_status', $employee->nationality_status) == 3 ? 'selected' : '' }}>
+                                    <?php echo e(old('nationality_status', $employee->nationality_status) == 3 ? 'selected' : ''); ?>>
                                     زائر</option>
                             </select>
                         </div>
@@ -226,7 +223,7 @@
                             <label for="country">البلد <span class="text-danger">*</span></label>
                             <select class="form-control select2" name="country">
                                 <option value="" disabled selected>اختر البلد</option>
-                                @php
+                                <?php
                                     $arabic_countries = [
                                         1 => 'المملكة العربية السعودية',
                                         3 => 'الكويت',
@@ -251,13 +248,14 @@
                                         21 => 'الصومال',
                                         22 => 'جزر القمر',
                                     ];
-                                @endphp
-                                @foreach ($arabic_countries as $key => $country)
-                                    <option value="{{ $key }}"
-                                        {{ old('country', $employee->country) == $key ? 'selected' : '' }}>
-                                        {{ $country }}
+                                ?>
+                                <?php $__currentLoopData = $arabic_countries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $country): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($key); ?>"
+                                        <?php echo e(old('country', $employee->country) == $key ? 'selected' : ''); ?>>
+                                        <?php echo e($country); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -281,29 +279,31 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @if ($employeeGroups->count() > 0)
-                                    @foreach ($employeeGroups as $employeeGroup)
+                                <?php if($employeeGroups->count() > 0): ?>
+                                    <?php $__currentLoopData = $employeeGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employeeGroup): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <tr>
                                             <td>
                                                 <select name="groups[]" class="form-control select2">
                                                     <option value="">اختر مجموعة</option>
-                                                    @foreach ($groups as $group)
-                                                        <option value="{{ $group->id }}"
-                                                            {{ $employeeGroup->group_id == $group->id ? 'selected' : '' }}>
-                                                            {{ $group->name }}
+                                                    <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($group->id); ?>"
+                                                            <?php echo e($employeeGroup->group_id == $group->id ? 'selected' : ''); ?>>
+                                                            <?php echo e($group->name); ?>
+
                                                         </option>
-                                                    @endforeach
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
                                             </td>
                                             <td>
                                                 <select name="directions[]" class="form-control select2">
                                                     <option value="">اختر اتجاه</option>
-                                                    @foreach ($directions as $direction)
-                                                        <option value="{{ $direction->id }}"
-                                                            {{ $employeeGroup->direction_id == $direction->id ? 'selected' : '' }}>
-                                                            {{ $direction->name }}
+                                                    <?php $__currentLoopData = $directions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $direction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <option value="<?php echo e($direction->id); ?>"
+                                                            <?php echo e($employeeGroup->direction_id == $direction->id ? 'selected' : ''); ?>>
+                                                            <?php echo e($direction->name); ?>
+
                                                         </option>
-                                                    @endforeach
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </select>
                                             </td>
                                             <td>
@@ -312,23 +312,23 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                    @endforeach
-                                @else
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php else: ?>
                                     <tr>
                                         <td>
                                             <select name="groups[]" class="form-control select2">
                                                 <option value="">اختر مجموعة</option>
-                                                @foreach ($groups as $group)
-                                                    <option value="{{ $group->id }}">{{ $group->name }}</option>
-                                                @endforeach
+                                                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <option value="<?php echo e($group->id); ?>"><?php echo e($group->name); ?></option>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </select>
                                         </td>
                                         <td>
                                             <select name="directions[]" class="form-control select2">
                                                 <option value="">اختر اتجاه</option>
-                                                @foreach ($directions as $direction)
-                                                    <option value="{{ $direction->id }}">{{ $direction->name }}</option>
-                                                @endforeach
+                                                <?php $__currentLoopData = $directions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $direction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <option value="<?php echo e($direction->id); ?>"><?php echo e($direction->name); ?></option>
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </select>
                                         </td>
                                         <td>
@@ -337,7 +337,7 @@
                                             </button>
                                         </td>
                                     </tr>
-                                @endif
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -356,19 +356,19 @@
                         <div class="form-group col-md-6">
                             <label for="phone">رقم الجوال</label>
                             <input type="text" class="form-control" name="mobile_number"
-                                value="{{ old('mobile_number', $employee->mobile_number) }}">
+                                value="<?php echo e(old('mobile_number', $employee->mobile_number)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="phone">رقم الهاتف</label>
                             <input type="text" class="form-control" name="phone_number"
-                                value="{{ old('phone_number', $employee->phone_number) }}">
+                                value="<?php echo e(old('phone_number', $employee->phone_number)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="personalEmail">البريد الإلكتروني الشخصي</label>
                             <input type="email" class="form-control" name="personal_email"
-                                value="{{ old('personal_email', $employee->personal_email) }}">
+                                value="<?php echo e(old('personal_email', $employee->personal_email)); ?>">
                         </div>
 
                     </div>
@@ -384,31 +384,31 @@
                         <div class="form-group col-md-6">
                             <label for="address1">عنوان 1</label>
                             <input type="text" class="form-control" name="current_address_1"
-                                value="{{ old('current_address_1', $employee->current_address_1) }}">
+                                value="<?php echo e(old('current_address_1', $employee->current_address_1)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="address2">عنوان 2</label>
                             <input type="text" class="form-control" name="current_address_2"
-                                value="{{ old('current_address_2', $employee->current_address_2) }}">
+                                value="<?php echo e(old('current_address_2', $employee->current_address_2)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="city">المدينة</label>
                             <input type="text" class="form-control" name="city"
-                                value="{{ old('city', $employee->city) }}">
+                                value="<?php echo e(old('city', $employee->city)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="region">المنطقة</label>
                             <input type="text" class="form-control" name="region"
-                                value="{{ old('region', $employee->region) }}">
+                                value="<?php echo e(old('region', $employee->region)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="postalCode">الرمز البريدي</label>
                             <input type="text" class="form-control" name="postal_code"
-                                value="{{ old('postal_code', $employee->postal_code) }}">
+                                value="<?php echo e(old('postal_code', $employee->postal_code)); ?>">
                         </div>
                     </div>
                 </div>
@@ -425,11 +425,11 @@
                             <label for="jobTitle">المسمى الوظيفي</label>
                             <select class="form-control" name="job_title_id">
                                 <option selected value="">اختر المسمى الوظيفي</option>
-                                @foreach ($jobTitles as $jobTitle)
-                                    <option value="{{ $jobTitle->id }}"
-                                        {{ old('job_title_id', $employee->job_title_id) == $jobTitle->id ? 'selected' : '' }}>
-                                        {{ $jobTitle->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $jobTitles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jobTitle): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($jobTitle->id); ?>"
+                                        <?php echo e(old('job_title_id', $employee->job_title_id) == $jobTitle->id ? 'selected' : ''); ?>>
+                                        <?php echo e($jobTitle->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -437,11 +437,11 @@
                             <label for="department">القسم</label>
                             <select class="form-control" name="department_id">
                                 <option selected value="">اختر قسم</option>
-                                @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}"
-                                        {{ old('department_id', $employee->department_id) == $department->id ? 'selected' : '' }}>
-                                        {{ $department->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $department): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($department->id); ?>"
+                                        <?php echo e(old('department_id', $employee->department_id) == $department->id ? 'selected' : ''); ?>>
+                                        <?php echo e($department->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -449,11 +449,11 @@
                             <label for="">المستوى الوظيفي</label>
                             <select class="form-control" name="job_level_id">
                                 <option selected value="">اختر المستوى الوظيفي</option>
-                                @foreach ($jobLevels as $jobLevel)
-                                    <option value="{{ $jobLevel->id }}"
-                                        {{ old('job_level_id', $employee->job_level_id) == $jobLevel->id ? 'selected' : '' }}>
-                                        {{ $jobLevel->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $jobLevels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jobLevel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($jobLevel->id); ?>"
+                                        <?php echo e(old('job_level_id', $employee->job_level_id) == $jobLevel->id ? 'selected' : ''); ?>>
+                                        <?php echo e($jobLevel->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -461,11 +461,11 @@
                             <label for="">نوع وظيفة</label>
                             <select class="form-control" name="job_type_id">
                                 <option selected value="">اختر نوع وظيفة</option>
-                                @foreach ($jobTypes as $jobType)
-                                    <option value="{{ $jobType->id }}"
-                                        {{ old('job_type_id', $employee->job_type_id) == $jobType->id ? 'selected' : '' }}>
-                                        {{ $jobType->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $jobTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $jobType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($jobType->id); ?>"
+                                        <?php echo e(old('job_type_id', $employee->job_type_id) == $jobType->id ? 'selected' : ''); ?>>
+                                        <?php echo e($jobType->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -473,11 +473,11 @@
                             <label for="branch">فرع <span class="text-danger">*</span></label>
                             <select class="form-control" name="branch_id">
                                 <option selected value="">اختر فرع</option>
-                                @foreach ($branches as $branch)
-                                    <option value="{{ $branch->id }}"
-                                        {{ old('branch_id', $employee->branch_id) == $branch->id ? 'selected' : '' }}>
-                                        {{ $branch->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($branch->id); ?>"
+                                        <?php echo e(old('branch_id', $employee->branch_id) == $branch->id ? 'selected' : ''); ?>>
+                                        <?php echo e($branch->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -485,29 +485,29 @@
                             <label for="manager">المدير المباشر</label>
                             <select class="form-control" name="direct_manager_id">
                                 <option selected value="">اختر موظف</option>
-                                @foreach ($employees as $employee)
-                                    <option value="{{ $employee->id }}"
-                                        {{ old('direct_manager_id', $employee->direct_manager_id) == $employee->id ? 'selected' : '' }}>
-                                        {{ $employee->full_name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($employee->id); ?>"
+                                        <?php echo e(old('direct_manager_id', $employee->direct_manager_id) == $employee->id ? 'selected' : ''); ?>>
+                                        <?php echo e($employee->full_name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="">تاريخ الالتحاق</label>
                             <input type="date" class="form-control" name="hire_date"
-                                value="{{ old('hire_date', $employee->hire_date) }}">
+                                value="<?php echo e(old('hire_date', $employee->hire_date)); ?>">
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="">ورديــة</label>
                             <select class="form-control" name="shift_id">
                                 <option selected value="">اختر وردية</option>
-                                @foreach ($shifts as $shift)
-                                    <option value="{{ $shift->id }}"
-                                        {{ old('shift_id', $employee->shift_id) == $shift->id ? 'selected' : '' }}>
-                                        {{ $shift->name }}</option>
-                                @endforeach
+                                <?php $__currentLoopData = $shifts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $shift): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($shift->id); ?>"
+                                        <?php echo e(old('shift_id', $employee->shift_id) == $shift->id ? 'selected' : ''); ?>>
+                                        <?php echo e($shift->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
@@ -526,10 +526,11 @@
 
                         <div class="form-group col-md-6">
                             <label for="month">الشهر</label>
-                            {{ $employee->custom_financial_month }}
+                            <?php echo e($employee->custom_financial_month); ?>
+
                             <select class="custom-select" id="month" name="custom_financial_month">
                                 <option value="" disabled selected>اختر الشهر</option>
-                                @php
+                                <?php
                                     $months = [
                                         1 => 'يناير',
                                         2 => 'فبراير',
@@ -544,28 +545,31 @@
                                         11 => 'نوفمبر',
                                         12 => 'ديسمبر',
                                     ];
-                                @endphp
+                                ?>
 
-                                @foreach ($months as $key => $value)
-                                    <option value="{{ $key }}"
-                                        {{ old('custom_financial_month', $employee->custom_financial_month) == $key ? 'selected' : '' }}>
-                                        {{ $value }}
+                                <?php $__currentLoopData = $months; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($key); ?>"
+                                        <?php echo e(old('custom_financial_month', $employee->custom_financial_month) == $key ? 'selected' : ''); ?>>
+                                        <?php echo e($value); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                         </div>
 
                         <div class="form-group col-md-6">
                             <label for="day">يوم</label>
-                            {{ $employee->custom_financial_day }}
+                            <?php echo e($employee->custom_financial_day); ?>
+
                             <select class="custom-select" id="day" name="custom_financial_day">
                                 <option value="" disabled selected>اختر اليوم</option>
-                                @for ($i = 1; $i <= 31; $i++)
-                                    <option value="{{ $i }}"
-                                        {{ old('custom_financial_day', $employee->custom_financial_day) == $i ? 'selected' : '' }}>
-                                        {{ $i }}
+                                <?php for($i = 1; $i <= 31; $i++): ?>
+                                    <option value="<?php echo e($i); ?>"
+                                        <?php echo e(old('custom_financial_day', $employee->custom_financial_day) == $i ? 'selected' : ''); ?>>
+                                        <?php echo e($i); ?>
+
                                     </option>
-                                @endfor
+                                <?php endfor; ?>
                             </select>
                         </div>
 
@@ -632,17 +636,17 @@
                     <td>
                         <select name="groups[]" class="form-control select2">
                             <option value="">اختر مجموعة</option>
-                            @foreach ($groups as $group)
-                                <option value="{{ $group->id }}">{{ $group->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($group->id); ?>"><?php echo e($group->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </td>
                     <td>
                         <select name="directions[]" class="form-control select2">
                             <option value="">اختر اتجاه</option>
-                            @foreach ($directions as $direction)
-                                <option value="{{ $direction->id }}">{{ $direction->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $directions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $direction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($direction->id); ?>"><?php echo e($direction->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </td>
                     <td>
@@ -667,4 +671,6 @@
         });
     </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/hr/employee/edit.blade.php ENDPATH**/ ?>

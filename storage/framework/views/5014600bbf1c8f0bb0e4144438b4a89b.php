@@ -150,7 +150,81 @@
                             </button>
                         </div>
 
-                        <!-- جزء التنقل بين الصفحات -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm mb-0">
+                                <!-- زر الانتقال إلى أول صفحة -->
+                                <?php if($invoices->onFirstPage()): ?>
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </span>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="<?php echo e($invoices->url(1)); ?>"
+                                            aria-label="First">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <!-- زر الانتقال إلى الصفحة السابقة -->
+                                <?php if($invoices->onFirstPage()): ?>
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </span>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="<?php echo e($invoices->previousPageUrl()); ?>"
+                                            aria-label="Previous">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <!-- عرض رقم الصفحة الحالية -->
+                                <li class="page-item">
+                                    <span class="page-link border-0 bg-light rounded-pill px-3">
+                                        صفحة <?php echo e($invoices->currentPage()); ?> من <?php echo e($invoices->lastPage()); ?>
+
+                                    </span>
+                                </li>
+
+                                <!-- زر الانتقال إلى الصفحة التالية -->
+                                <?php if($invoices->hasMorePages()): ?>
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill" href="<?php echo e($invoices->nextPageUrl()); ?>"
+                                            aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                            <i class="fas fa-angle-left"></i>
+                                        </span>
+                                    </li>
+                                <?php endif; ?>
+
+                                <!-- زر الانتقال إلى آخر صفحة -->
+                                <?php if($invoices->hasMorePages()): ?>
+                                    <li class="page-item">
+                                        <a class="page-link border-0 rounded-pill"
+                                            href="<?php echo e($invoices->url($invoices->lastPage())); ?>" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                <?php else: ?>
+                                    <li class="page-item disabled">
+                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </span>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </nav>
 
                     </div>
                 </div>
@@ -193,8 +267,9 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="invoice_number">رقم الفاتورة</label>
-                                <input type="text" id="invoice_number" class="form-control" placeholder="رقم الفاتورة"
-                                    name="invoice_number" value="<?php echo e(request('invoice_number')); ?>">
+                                <input type="text" id="invoice_number" class="form-control"
+                                    placeholder="رقم الفاتورة" name="invoice_number"
+                                    value="<?php echo e(request('invoice_number')); ?>">
                             </div>
                             <div class="col-md-4">
                                 <label for="status">حالة الفاتورة</label>
@@ -224,8 +299,8 @@
                                 <!-- 4. البند -->
                                 <div class="col-md-4">
                                     <label for="item">البند</label>
-                                    <input type="text" id="item" class="form-control" placeholder="تحتوي على البند"
-                                        name="item" value="<?php echo e(request('item')); ?>">
+                                    <input type="text" id="item" class="form-control"
+                                        placeholder="تحتوي على البند" name="item" value="<?php echo e(request('item')); ?>">
                                 </div>
 
                                 <!-- 5. العملة -->
@@ -566,7 +641,6 @@
                                             ?>
 
                                             <?php if($returnedInvoice): ?>
-                                           
                                                 <span class="badge bg-danger text-white"><i
                                                         class="fas fa-undo me-1"></i>مرتجع</span>
                                             <?php elseif($invoice->type == 'normal' && $payments->count() == 0): ?>
@@ -614,13 +688,16 @@
                                             <h6 class="amount mb-1">
                                                 <?php echo e(number_format($invoice->grand_total ?? $invoice->total, 2)); ?> <small
                                                     class="currency"><?php echo $currencySymbol; ?></small></h6>
-                                                    <?php if($returnedInvoice): ?>
-                                                    <span class="text-danger"> مرتجع : <?php echo e(number_format($invoice->returned_payment, 2) ?? ""); ?> <?php echo $currencySymbol; ?></span>
-                                                    <?php endif; ?>
+                                            <?php if($returnedInvoice): ?>
+                                                <span class="text-danger"> مرتجع :
+                                                    <?php echo e(number_format($invoice->returned_payment, 2) ?? ''); ?>
+
+                                                    <?php echo $currencySymbol; ?></span>
+                                            <?php endif; ?>
                                             <?php if($invoice->due_value > 0): ?>
-                                            <?php
-                                            $net_due = $invoice->due_value - $invoice->returned_payment;
-                                        ?>
+                                                <?php
+                                                    $net_due = $invoice->due_value - $invoice->returned_payment;
+                                                ?>
                                                 <div class="due-amount">
                                                     <small class="text-danger">المبلغ المستحق:
                                                         <?php echo e(number_format($net_due, 2)); ?>

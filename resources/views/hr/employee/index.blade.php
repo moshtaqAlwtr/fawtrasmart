@@ -34,7 +34,7 @@
                     <div></div>
                     <div>
                         <a href="{{ route('employee.export_view') }}" class="btn btn-outline-info waves-effect waves-light">
-                            <i class="fa fa-share-square me-2"></i>  تصدير
+                            <i class="fa fa-share-square me-2"></i> تصدير
                         </a>
                         <a href="{{ route('employee.create') }}" class="btn btn-outline-primary waves-effect waves-light">
                             <i class="fa fa-plus me-2"></i> اضافة موظف جديد
@@ -53,7 +53,8 @@
                                 <select name="employee" class="form-control">
                                     <option value="">البحث بواسطة اسم الموظف أو الرقم التعريفي</option>
                                     @foreach ($clients as $client)
-                                        <option value="{{ $client->id }}">{{ $client->trans_name }} {{ $client->last_name }}</option>
+                                        <option value="{{ $client->id }}">{{ $client->trans_name }}
+                                            {{ $client->last_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -151,7 +152,8 @@
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary mr-1 waves-effect waves-light">بحث</button>
 
-                            <a class="btn btn-outline-secondary ml-2 mr-2 waves-effect waves-light collapsed" data-toggle="collapse" data-target="#advancedSearchForm" aria-expanded="false">
+                            <a class="btn btn-outline-secondary ml-2 mr-2 waves-effect waves-light collapsed"
+                                data-toggle="collapse" data-target="#advancedSearchForm" aria-expanded="false">
                                 <i class="bi bi-sliders"></i> بحث متقدم
                             </a>
                             <a href="#" class="btn btn-outline-danger waves-effect waves-light">الغاء الفلترة</a>
@@ -186,27 +188,38 @@
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar mr-1">
-                                                    @if($employee->photo)
-                                                        <img src="{{ asset('storage/'.$employee->photo) }}" alt="صورة الموظف" width="40" height="40" class="rounded-circle">
+                                                    @if ($employee->photo)
+                                                        <img src="{{ asset('storage/' . $employee->photo) }}"
+                                                            alt="صورة الموظف" width="40" height="40"
+                                                            class="rounded-circle">
                                                     @else
-                                                        <span class="avatar-content">{{ substr($employee->full_name, 0, 1) }}</span>
+                                                        <span
+                                                            class="avatar-content">{{ substr($employee->full_name, 0, 1) }}</span>
                                                     @endif
                                                 </div>
                                                 <div>
                                                     <p class="mb-0 font-weight-bold">{{ $employee->full_name }}</p>
                                                     <small class="text-muted">#{{ $employee->id }}</small>
                                                 </div>
-                                            </div>
+                                            </div>س
                                         </td>
                                         <td>
-                                            <p class="mb-0 font-weight-bold">{{ $employee->job_role->role_name ?? "غير محدد" }}</p>
-                                            <small class="badge badge-light-{{ $employee->employee_type == 1 ? 'primary' : 'secondary' }}">
-                                                @if ($employee->employee_type == 1) موظف @else مستخدم @endif
+                                            <p class="mb-0 font-weight-bold">
+                                                {{ $employee->job_role->role_name ?? 'غير محدد' }}</p>
+                                            <small
+                                                class="badge badge-light-{{ $employee->employee_type == 1 ? 'primary' : 'secondary' }}">
+                                                @if ($employee->employee_type == 1)
+                                                    موظف
+                                                @else
+                                                    مستخدم
+                                                @endif
                                             </small>
                                         </td>
                                         <td>{{ optional($employee->job_title)->name ?? 'غير محدد' }}</td>
                                         <td>{{ optional($employee->department)->name ?? 'غير محدد' }}</td>
-                                        <td>{{ optional($employee->branch)->name ?? 'غير محدد' }}</td>
+                                        <td>{{ optional($employee->branch)->name ?? 'غير محدد' }}
+
+                                        </td>
                                         <td>
                                             @if ($employee->status == 1)
                                                 <span class="badge badge-pill badge-success">نشط</span>
@@ -217,32 +230,41 @@
                                         <td>
                                             <div class="btn-group">
                                                 <div class="dropdown">
-                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
+                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
+                                                        type="button"id="dropdownMenuButton303" data-toggle="dropdown"
+                                                        aria-haspopup="true"aria-expanded="false"></button>
                                                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                                         <li>
-                                                            <a class="dropdown-item" href="{{ route('employee.show',$employee->id) }}">
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('employee.show', $employee->id) }}">
                                                                 <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#ChangePassword">
+                                                            <a class="dropdown-item" href="#" data-toggle="modal"
+                                                                data-target="#ChangePassword">
                                                                 <i class="fa fa-lock me-2 text-info"></i>تغيير كلمة المرور
                                                             </a>
                                                         </li>
                                                         <li>
-                                                            <a class="dropdown-item" href="{{ route('employee.edit',$employee->id) }}">
+                                                            <a class="dropdown-item"
+                                                                href="{{ route('employee.edit', $employee->id) }}">
                                                                 <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                             </a>
                                                         </li>
 
                                                         <li>
-                                                            <a class="dropdown-item text-danger" href="#" data-toggle="modal" data-target="#modal_DELETE{{ $employee->id }}">
+                                                            <a class="dropdown-item text-danger" href="#"
+                                                                data-toggle="modal"
+                                                                data-target="#modal_DELETE{{ $employee->id }}">
                                                                 <i class="fa fa-trash me-2"></i>حذف
                                                             </a>
-                                                            <li>
-                                                                <a class="dropdown-item text-primary" href="{{ route('employee.send_email',$employee->id) }}">
-                                                                    <i class="fa fa-paper-plane me-2"></i> ارسال بيانات الدخول بالبريد
-                                                                </a>
+                                                        <li>
+                                                            <a class="dropdown-item text-primary"
+                                                                href="{{ route('employee.send_email', $employee->id) }}">
+                                                                <i class="fa fa-paper-plane me-2"></i> ارسال بيانات الدخول
+                                                                بالبريد
+                                                            </a>
 
                                                         </li>
                                                     </div>
@@ -254,20 +276,25 @@
                                     </tr>
 
                                     <!-- Modal delete -->
-                                    <div class="modal fade" id="modal_DELETE{{ $employee->id }}" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="modal_DELETE{{ $employee->id }}" tabindex="-1"
+                                        aria-labelledby="deleteModalLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-danger text-white">
                                                     <h5 class="modal-title" id="deleteModalLabel">حذف الموظف</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <p>هل أنت متأكد من حذف الموظف <strong>{{ $employee->full_name }}</strong>؟</p>
+                                                    <p>هل أنت متأكد من حذف الموظف
+                                                        <strong>{{ $employee->full_name }}</strong>؟</p>
                                                     <p class="text-danger">هذا الإجراء لا يمكن التراجع عنه!</p>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                                    <form action="{{ route('employee.delete',$employee->id) }}" method="POST">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">إلغاء</button>
+                                                    <form action="{{ route('employee.delete', $employee->id) }}"
+                                                        method="POST">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-danger">تأكيد الحذف</button>
@@ -279,31 +306,44 @@
                                     <!--end delete-->
 
                                     <!-- Modal change password -->
-                                    <div class="modal fade" id="ChangePassword{{$employee->id}}" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+                                    <div class="modal fade" id="ChangePassword{{ $employee->id }}" tabindex="-1"
+                                        aria-labelledby="changePasswordLabel" aria-hidden="true">
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header bg-primary text-white">
-                                                    <h5 class="modal-title" id="changePasswordLabel">تغيير كلمة المرور</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    <h5 class="modal-title" id="changePasswordLabel">تغيير كلمة المرور
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
                                                 </div>
-                                                <form action="{{ route('employee.updatePassword',$employee->id) }}" method="POST">
+                                                <form action="{{ route('employee.updatePassword', $employee->id) }}"
+                                                    method="POST">
                                                     @csrf
                                                     <div class="modal-body">
                                                         <div class="mb-3">
-                                                            <label for="password{{$employee->id}}" class="form-label">كلمة المرور الجديدة</label>
-                                                            <input type="password" class="form-control" id="password{{$employee->id}}" name="password" required>
+                                                            <label for="password{{ $employee->id }}"
+                                                                class="form-label">كلمة المرور الجديدة</label>
+                                                            <input type="password" class="form-control"
+                                                                id="password{{ $employee->id }}" name="password"
+                                                                required>
                                                             @error('password')
-                                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                                <div class="invalid-feedback d-block">{{ $message }}
+                                                                </div>
                                                             @enderror
                                                         </div>
                                                         <div class="mb-3">
-                                                            <label for="password_confirmation{{$employee->id}}" class="form-label">تأكيد كلمة المرور</label>
-                                                            <input type="password" class="form-control" id="password_confirmation{{$employee->id}}" name="password_confirmation" required>
+                                                            <label for="password_confirmation{{ $employee->id }}"
+                                                                class="form-label">تأكيد كلمة المرور</label>
+                                                            <input type="password" class="form-control"
+                                                                id="password_confirmation{{ $employee->id }}"
+                                                                name="password_confirmation" required>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                                                        <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">إلغاء</button>
+                                                        <button type="submit" class="btn btn-primary">حفظ
+                                                            التغييرات</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -314,8 +354,6 @@
                             </tbody>
                         </table>
                     </div>
-
-
                 @else
                     <div class="alert alert-info text-center">
                         <i class="fas fa-info-circle me-2"></i>

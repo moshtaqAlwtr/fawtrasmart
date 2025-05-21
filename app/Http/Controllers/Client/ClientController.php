@@ -40,108 +40,111 @@ use App\Mail\TestMail;
 use App\Models\ClientEmployee;
 use App\Models\Statuses;
 use App\Models\CreditLimit;
+use App\Models\EmployeeGroup;
 use App\Models\Expense;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Location;
 use App\Models\Revenue;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = auth()->user();
 
-        // بناء الاستعلام الأساسي للعملاء
-        $baseQuery = Client::query();
 
-        // تطبيق فلتر الفرع
-        if ($user->branch_id) {
-            // إذا كان المستخدم مدير والفرع هو الفرع الرئيسي
-            if ($user->role === 'manager' && $user->branch && $user->branch->name === 'الرئيسي') {
-                // لا نطبق أي فلتر - سيظهر جميع العملاء
-            } else {
-                // للموظفين العاديين أو المدراء في الفروع الأخرى
-                $baseQuery->where('branch_id', $user->branch_id);
-            }
-        }
 
-        // تطبيق فلترات البحث على الاستعلام الأساسي
-        if ($request->filled('client')) {
-            $baseQuery->where('id', $request->client);
-        }
+public function index(Request $request)
+{
+    $user = auth()->user();
 
-        if ($request->filled('name')) {
-            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-        }
+    $baseQuery = Client::with([
+        'employee',
+        'status:id,name,color',
+        'locations',
+        'Neighborhoodname.Region',
+        'branch:id,name'
+    ]);
 
-        if ($request->filled('status')) {
-            $baseQuery->where('status_id', $request->status);
-        }
+    $noClients = false;
 
-        if ($request->filled('region')) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-                $q->where('id', $request->region);
+    // تحديد الصلاحيات حسب الدور
+    if ($user->role === 'employee') {
+        // الموظف يرى فقط العملاء المرتبطين بالمجموعات الخاصة به
+        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)
+                                         ->pluck('group_id');
+
+        if ($employeeGroupIds->isNotEmpty()) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                $q->whereIn('id', $employeeGroupIds);
             });
+        } else {
+            // لا توجد مجموعات → لا توجد عملاء
+            $noClients = true;
         }
 
-        if ($request->filled('neighborhood')) {
-            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->neighborhood . '%')
-                  ->orWhere('id', $request->neighborhood);
-            });
-        }
-
-        // نسخ الاستعلام المفلتر للخريطة
-        $mapQuery = clone $baseQuery;
-
-        // الحصول على العملاء للخريطة مع البيانات الأساسية
-        $allClients = $mapQuery->with([
-            'status_client:id,name,color',
-            'locations:id,client_id,latitude,longitude',
-            'Neighborhoodname.Region',
-            'branch:id,name'
-        ])->get();
-
-        // الحصول على موقع المستخدم الحالي
-        $userLocation = Location::where('employee_id', $user->employee_id)
-                              ->latest()
-                              ->first();
-
-        // تحميل العلاقات للعرض في الجدول
-        $baseQuery->with([
-            'employee',
-            'status:id,name,color',
-            'locations',
-            'Neighborhoodname.Region',
-            'branch:id,name'
-        ]);
-
-        // الحصول على النتائج المقسمة للجدول
-        $clients = $baseQuery->orderBy('created_at', 'desc')
-                            ->paginate(20)
-                            ->appends($request->except('page'));
-
-        // الحصول على البيانات الإضافية للقوائم المنسدلة
-        $users = User::all();
-        $employees = Employee::all();
-        $statuses = Statuses::select('id', 'name', 'color')->get();
-        $creditLimit = CreditLimit::first();
-        $Region_groups = Region_groub::all();
-        $Neighborhoods = Neighborhood::all();
-
-        return view('client.index', compact(
-            'clients',
-            'allClients',
-            'Neighborhoods',
-            'users',
-            'employees',
-            'creditLimit',
-            'statuses',
-            'Region_groups',
-            'userLocation'
-        ));
+    } elseif ($user->role === 'manager') {
+        // المدير يرى جميع العملاء → لا فلترة
     }
+
+    // فلترة البحث حسب الطلب
+    if ($request->filled('client')) {
+        $baseQuery->where('id', $request->client);
+    }
+
+    if ($request->filled('name')) {
+        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->filled('status')) {
+        $baseQuery->where('status_id', $request->status);
+    }
+
+    if ($request->filled('region')) {
+        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+            $q->where('id', $request->region);
+        });
+    }
+
+    if ($request->filled('neighborhood')) {
+        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->neighborhood . '%')
+              ->orWhere('id', $request->neighborhood);
+        });
+    }
+
+    // استعلام الخريطة
+    $mapQuery = clone $baseQuery;
+    $allClients = $noClients ? collect() : $mapQuery->with([
+        'status_client:id,name,color',
+        'locations:id,client_id,latitude,longitude',
+        'Neighborhoodname.Region',
+        'branch:id,name'
+    ])->get();
+
+    // موقع الموظف
+    $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
+
+    // تنفيذ الاستعلام مع التقسيم
+    $clients = $noClients
+        ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20)
+        : $baseQuery->orderBy('created_at', 'desc')
+                    ->paginate(20)
+                    ->appends($request->except('page'));
+
+    // بيانات إضافية للعرض
+    return view('client.index', [
+        'clients' => $clients,
+        'allClients' => $allClients,
+        'Neighborhoods' => Neighborhood::all(),
+        'users' => User::all(),
+        'employees' => Employee::all(),
+        'creditLimit' => CreditLimit::first(),
+        'statuses' => Statuses::select('id', 'name', 'color')->get(),
+        'Region_groups' => Region_groub::all(),
+        'userLocation' => $userLocation,
+    ]);
+}
+
     public function updateCreditLimit(Request $request)
     {
         $request->validate([
@@ -162,32 +165,6 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'تم تحديث الحد الائتماني بنجاح!');
     }
 
-    public function group_client()
-    {
-        $Regions_groub = Region_groub::all();
-        return view('client.group_client', compact('Regions_groub'));
-    }
-
-    public function group_client_create()
-    {
-        return view('client.group_client_create');
-    }
-
-    public function group_client_store(Request $request)
-    {
-        // تحقق من صحة البيانات المدخلة
-        $request->validate([
-            'name' => 'required|string|unique:region_groubs,name',
-        ]);
-
-        // إنشاء مجموعة المنطقة الجديدة
-        $regionGroup = new Region_groub();
-        $regionGroup->name = $request->name;
-        $regionGroup->save();
-
-        // إرجاع البيانات المحفوظة أو رسالة نجاح
-        return redirect()->route('clients.group_client')->with('success', 'تم إنشاء المجموعة بنجاح');
-    }
     public function create()
     {
         $employees = Employee::all();
@@ -228,168 +205,168 @@ class ClientController extends Controller
         return 'لم يتم العثور على الحي';
     }
     public function store(ClientRequest $request)
-{
-    $data_request = $request->except('_token');
-    $rules = [
-        'region_id' => ['required'],
-    ];
+    {
+        $data_request = $request->except('_token');
+        $rules = [
+            'region_id' => ['required'],
+        ];
 
-    $messages = [
-        'region_id.required' => 'حقل المجموعة مطلوب.',
-    ];
+        $messages = [
+            'region_id.required' => 'حقل المجموعة مطلوب.',
+        ];
 
-    $request->validate($rules, $messages);
+        $request->validate($rules, $messages);
 
-    if ($request->has('latitude') && $request->has('longitude')) {
-        $latitude = $request->latitude;
-        $longitude = $request->longitude;
-    } else {
-        return redirect()->back()->with('error', 'الإحداثيات غير موجودة');
-    }
-
-    $client = new Client();
-
-    // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
-    $serialSetting = SerialSetting::where('section', 'customer')->first();
-    $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
-
-    // تعيين id للعميل الجديد
-    $client->code = $currentNumber;
-    $client->fill($data_request);
-
-    // معالجة الصورة
-    if ($request->hasFile('attachments')) {
-        $file = $request->file('attachments');
-        if ($file->isValid()) {
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('assets/uploads/'), $filename);
-            $client->attachments = $filename;
+        if ($request->has('latitude') && $request->has('longitude')) {
+            $latitude = $request->latitude;
+            $longitude = $request->longitude;
+        } else {
+            return redirect()->back()->with('error', 'الإحداثيات غير موجودة');
         }
-    }
 
-    // حفظ العميل أولاً
-    $client->save();
+        $client = new Client();
 
-    // حفظ جهات الاتصال الأساسية (الاسم التجاري والهاتف والجوال)
-    $mainContact = [
-        'first_name' => $client->trade_name,
-        'phone' => $client->phone,
-        'mobile' => $client->mobile,
-        'email' => $client->email,
-        'is_primary' => true, // إضافة حقل لتحديد الاتصال الأساسي
-    ];
+        // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
+        $serialSetting = SerialSetting::where('section', 'customer')->first();
+        $currentNumber = $serialSetting ? $serialSetting->current_number : 1;
 
-    $client->contacts()->create($mainContact);
+        // تعيين id للعميل الجديد
+        $client->code = $currentNumber;
+        $client->fill($data_request);
 
-    // حفظ الموظفين المرتبطين
-    if (auth()->user()->role === 'manager') {
-        if ($request->has('employee_client_id')) {
-            foreach ($request->employee_client_id as $employee_id) {
-                $client_employee = new ClientEmployee();
-                $client_employee->client_id = $client->id;
-                $client_employee->employee_id = $employee_id;
-                $client_employee->save();
+        // معالجة الصورة
+        if ($request->hasFile('attachments')) {
+            $file = $request->file('attachments');
+            if ($file->isValid()) {
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $file->move(public_path('assets/uploads/'), $filename);
+                $client->attachments = $filename;
             }
         }
-    } elseif (auth()->user()->role === 'employee') {
-        ClientEmployee::create([
-            'client_id' => $client->id,
-            'employee_id' => auth()->user()->employee_id,
-        ]);
-    }
 
-    // تسجيل الإحداثيات
-    $client->locations()->create([
-        'latitude' => $latitude,
-        'longitude' => $longitude,
-    ]);
+        // حفظ العميل أولاً
+        $client->save();
 
-    $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
-    $Neighborhood = new Neighborhood();
-    $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
-    $Neighborhood->region_id = $request->region_id;
-    $Neighborhood->client_id = $client->id;
-    $Neighborhood->save();
+        // حفظ جهات الاتصال الأساسية (الاسم التجاري والهاتف والجوال)
+        $mainContact = [
+            'first_name' => $client->trade_name,
+            'phone' => $client->phone,
+            'mobile' => $client->mobile,
+            'email' => $client->email,
+            'is_primary' => true, // إضافة حقل لتحديد الاتصال الأساسي
+        ];
 
-    // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
-    $password = Str::random(10);
-    $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
-    if ($request->email != null) {
-        User::create([
-            'name' => $full_name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role' => 'client',
-            'client_id' => $client->id,
-            'password' => Hash::make($password),
-        ]);
-    }
+        $client->contacts()->create($mainContact);
 
-    // تسجيل إشعار نظام جديد
-    ModelsLog::create([
-        'type' => 'client',
-        'type_id' => $client->id,
-        'type_log' => 'log',
-        'description' => 'تم إضافة عميل **' . $client->trade_name . '**',
-        'created_by' => auth()->id(),
-    ]);
-
-    // زيادة الرقم الحالي بمقدار 1
-    if ($serialSetting) {
-        $serialSetting->update(['current_number' => $currentNumber + 1]);
-    }
-
-    // إنشاء حساب فرعي باستخدام trade_name
-    $customers = Account::where('name', 'العملاء')->first();
-    if ($customers) {
-        $customerAccount = new Account();
-        $customerAccount->name = $client->trade_name;
-        $customerAccount->client_id = $client->id;
-        $customerAccount->balance += $client->opening_balance ?? 0;
-
-        $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
-        $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
-
-        while (\App\Models\Account::where('code', $newCode)->exists()) {
-            $newCode = $this->generateNextCode($newCode);
-        }
-
-        $customerAccount->code = $newCode;
-        $customerAccount->balance_type = 'debit';
-        $customerAccount->parent_id = $customers->id;
-        $customerAccount->is_active = false;
-        $customerAccount->save();
-
-        if ($client->opening_balance > 0) {
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $client->code,
-                'date' => now(),
-                'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
-                'status' => 1,
-                'currency' => 'SAR',
+        // حفظ الموظفين المرتبطين
+        if (auth()->user()->role === 'manager') {
+            if ($request->has('employee_client_id')) {
+                foreach ($request->employee_client_id as $employee_id) {
+                    $client_employee = new ClientEmployee();
+                    $client_employee->client_id = $client->id;
+                    $client_employee->employee_id = $employee_id;
+                    $client_employee->save();
+                }
+            }
+        } elseif (auth()->user()->role === 'employee') {
+            ClientEmployee::create([
                 'client_id' => $client->id,
-            ]);
-
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $customerAccount->id,
-                'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
-                'debit' => $client->opening_balance ?? 0,
-                'credit' => 0,
-                'is_debit' => true,
+                'employee_id' => auth()->user()->employee_id,
             ]);
         }
-    }
 
-    // حفظ جهات الاتصال الإضافية المرتبطة بالعميل
-    if ($request->has('contacts') && is_array($request->contacts)) {
-        foreach ($request->contacts as $contact) {
-            $client->contacts()->create($contact);
+        // تسجيل الإحداثيات
+        $client->locations()->create([
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        ]);
+
+        $neighborhoodName = $this->getNeighborhoodFromGoogle($latitude, $longitude);
+        $Neighborhood = new Neighborhood();
+        $Neighborhood->name = $neighborhoodName ?? 'غير محدد';
+        $Neighborhood->region_id = $request->region_id;
+        $Neighborhood->client_id = $client->id;
+        $Neighborhood->save();
+
+        // إنشاء مستخدم جديد إذا تم توفير البريد الإلكتروني
+        $password = Str::random(10);
+        $full_name = $client->trade_name . ' ' . $client->first_name . ' ' . $client->last_name;
+        if ($request->email != null) {
+            User::create([
+                'name' => $full_name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role' => 'client',
+                'client_id' => $client->id,
+                'password' => Hash::make($password),
+            ]);
         }
-    }
 
-    return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
-}
+        // تسجيل إشعار نظام جديد
+        ModelsLog::create([
+            'type' => 'client',
+            'type_id' => $client->id,
+            'type_log' => 'log',
+            'description' => 'تم إضافة عميل **' . $client->trade_name . '**',
+            'created_by' => auth()->id(),
+        ]);
+
+        // زيادة الرقم الحالي بمقدار 1
+        if ($serialSetting) {
+            $serialSetting->update(['current_number' => $currentNumber + 1]);
+        }
+
+        // إنشاء حساب فرعي باستخدام trade_name
+        $customers = Account::where('name', 'العملاء')->first();
+        if ($customers) {
+            $customerAccount = new Account();
+            $customerAccount->name = $client->trade_name;
+            $customerAccount->client_id = $client->id;
+            $customerAccount->balance += $client->opening_balance ?? 0;
+
+            $lastChild = Account::where('parent_id', $customers->id)->orderBy('code', 'desc')->first();
+            $newCode = $lastChild ? $this->generateNextCode($lastChild->code) : $customers->code . '1';
+
+            while (\App\Models\Account::where('code', $newCode)->exists()) {
+                $newCode = $this->generateNextCode($newCode);
+            }
+
+            $customerAccount->code = $newCode;
+            $customerAccount->balance_type = 'debit';
+            $customerAccount->parent_id = $customers->id;
+            $customerAccount->is_active = false;
+            $customerAccount->save();
+
+            if ($client->opening_balance > 0) {
+                $journalEntry = JournalEntry::create([
+                    'reference_number' => $client->code,
+                    'date' => now(),
+                    'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                    'status' => 1,
+                    'currency' => 'SAR',
+                    'client_id' => $client->id,
+                ]);
+
+                JournalEntryDetail::create([
+                    'journal_entry_id' => $journalEntry->id,
+                    'account_id' => $customerAccount->id,
+                    'description' => 'رصيد افتتاحي للعميل : ' . $client->trade_name,
+                    'debit' => $client->opening_balance ?? 0,
+                    'credit' => 0,
+                    'is_debit' => true,
+                ]);
+            }
+        }
+
+        // حفظ جهات الاتصال الإضافية المرتبطة بالعميل
+        if ($request->has('contacts') && is_array($request->contacts)) {
+            foreach ($request->contacts as $contact) {
+                $client->contacts()->create($contact);
+            }
+        }
+
+        return redirect()->route('clients.index')->with('success', '✨ تم إضافة العميل بنجاح!');
+    }
     public function send_email($id)
     {
         $employee = User::where('client_id', $id)->first();
@@ -790,65 +767,65 @@ class ClientController extends Controller
     }
 
     public function contacts(Request $request)
-{
-    $query = Client::query()->with(['employee', 'status']);
+    {
+        $query = Client::query()->with(['employee', 'status']);
 
-    // البحث الأساسي (يشمل جميع الحقول المهمة)
-    if ($request->filled('search')) {
-        $search = $request->input('search');
-        $query->where(function ($q) use ($search) {
-            $q->where('trade_name', 'like', '%' . $search . '%')
-              ->orWhere('code', 'like', '%' . $search . '%')
-              ->orWhere('first_name', 'like', '%' . $search . '%')
-              ->orWhere('last_name', 'like', '%' . $search . '%')
-              ->orWhere('phone', 'like', '%' . $search . '%')
-              ->orWhere('mobile', 'like', '%' . $search . '%')
-              ->orWhere('email', 'like', '%' . $search . '%')
-              ->orWhereHas('employee', function($q) use ($search) {
-                  $q->where('trade_name', 'like', '%' . $search . '%');
-              })
-              ->orWhereHas('status', function($q) use ($search) {
-                  $q->where('name', 'like', '%' . $search . '%');
-              });
-        });
+        // البحث الأساسي (يشمل جميع الحقول المهمة)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('trade_name', 'like', '%' . $search . '%')
+                    ->orWhere('code', 'like', '%' . $search . '%')
+                    ->orWhere('first_name', 'like', '%' . $search . '%')
+                    ->orWhere('last_name', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('mobile', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhereHas('employee', function ($q) use ($search) {
+                        $q->where('trade_name', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('status', function ($q) use ($search) {
+                        $q->where('name', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        // البحث المتقدم (حسب الحقول المحددة)
+        if ($request->filled('phone')) {
+            $query->where('phone', 'like', '%' . $request->input('phone') . '%');
+        }
+
+        if ($request->filled('mobile')) {
+            $query->where('mobile', 'like', '%' . $request->input('mobile') . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', 'like', '%' . $request->input('email') . '%');
+        }
+
+        if ($request->filled('employee_id')) {
+            $query->where('employee_id', $request->input('employee_id'));
+        }
+
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->input('status_id'));
+        }
+
+        if ($request->filled('city')) {
+            $query->where('city', 'like', '%' . $request->input('city') . '%');
+        }
+
+        if ($request->filled('region')) {
+            $query->where('region', 'like', '%' . $request->input('region') . '%');
+        }
+
+        $clients = $query->paginate(25)->withQueryString();
+
+        $employees = Employee::all(); // لاستخدامها في dropdown الموظفين
+        $statuses = Statuses::all(); // لاستخدامها في dropdown الحالات
+
+        return view('client.contacts.contact_mang', compact('clients', 'employees', 'statuses'));
     }
-
-    // البحث المتقدم (حسب الحقول المحددة)
-    if ($request->filled('phone')) {
-        $query->where('phone', 'like', '%' . $request->input('phone') . '%');
-    }
-
-    if ($request->filled('mobile')) {
-        $query->where('mobile', 'like', '%' . $request->input('mobile') . '%');
-    }
-
-    if ($request->filled('email')) {
-        $query->where('email', 'like', '%' . $request->input('email') . '%');
-    }
-
-    if ($request->filled('employee_id')) {
-        $query->where('employee_id', $request->input('employee_id'));
-    }
-
-    if ($request->filled('status_id')) {
-        $query->where('status_id', $request->input('status_id'));
-    }
-
-    if ($request->filled('city')) {
-        $query->where('city', 'like', '%' . $request->input('city') . '%');
-    }
-
-    if ($request->filled('region')) {
-        $query->where('region', 'like', '%' . $request->input('region') . '%');
-    }
-
-    $clients = $query->paginate(25)->withQueryString();
-
-    $employees = Employee::all(); // لاستخدامها في dropdown الموظفين
-    $statuses = Statuses::all(); // لاستخدامها في dropdown الحالات
-
-    return view('client.contacts.contact_mang', compact('clients', 'employees', 'statuses'));
-}
 
     public function show_contant($id)
     {
@@ -1053,121 +1030,110 @@ class ClientController extends Controller
     }
 
     public function addnotes(Request $request)
-{
-    // التحقق من صحة البيانات
-    $validated = $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'process' => 'required|string|max:255',
-        'description' => 'required|string',
-        'attachments' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
-    ]);
-
-    DB::beginTransaction();
-
-    try {
-        // الحصول على أحدث موقع للموظف
-        $employeeLocation = Location::where('employee_id', auth()->id())
-                                  ->latest()
-                                  ->firstOrFail();
-
-        // الحصول على موقع العميل
-        $clientLocation = Location::where('client_id', $request->client_id)
-                                ->latest()
-                                ->firstOrFail();
-
-        // حساب المسافة بين الموظف والعميل
-        $lat1 = deg2rad($employeeLocation->latitude);
-        $lon1 = deg2rad($employeeLocation->longitude);
-        $lat2 = deg2rad($clientLocation->latitude);
-        $lon2 = deg2rad($clientLocation->longitude);
-
-        $dlat = $lat2 - $lat1;
-        $dlon = $lon2 - $lon1;
-
-        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
-        $c = 2 * asin(sqrt($a));
-        $distance = (6371000 * $c) / 1000; // المسافة بالكيلومتر
-
-        // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
-        if ($distance > 0.3) {
-            throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
-        }
-
-        // إنشاء الملاحظة
-        $clientRelation = ClientRelation::create([
-            'employee_id' => auth()->id(),
-            'client_id' => $request->client_id,
-            'status' => $request->status ?? 'pending',
-            'process' => $request->process,
-            'description' => $request->description,
-            'location_id' => $employeeLocation->id
+    {
+        // التحقق من صحة البيانات
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'process' => 'required|string|max:255',
+            'description' => 'required|string',
+            'attachments' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
         ]);
 
-        // معالجة المرفقات إن وجدت
-        if ($request->hasFile('attachments')) {
-            $file = $request->file('attachments');
-            if ($file->isValid()) {
-                $filename = time() . '_' . preg_replace('/[^a-z0-9\.]/i', '_', $file->getClientOriginalName());
-                $file->move(public_path('assets/uploads/notes'), $filename);
-                $clientRelation->attachments = $filename;
-                $clientRelation->save();
+        DB::beginTransaction();
+
+        try {
+            // الحصول على أحدث موقع للموظف
+            $employeeLocation = Location::where('employee_id', auth()->id())
+                ->latest()
+                ->firstOrFail();
+
+            // الحصول على موقع العميل
+            $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
+
+            // حساب المسافة بين الموظف والعميل
+            $lat1 = deg2rad($employeeLocation->latitude);
+            $lon1 = deg2rad($employeeLocation->longitude);
+            $lat2 = deg2rad($clientLocation->latitude);
+            $lon2 = deg2rad($clientLocation->longitude);
+
+            $dlat = $lat2 - $lat1;
+            $dlon = $lon2 - $lon1;
+
+            $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
+            $c = 2 * asin(sqrt($a));
+            $distance = (6371000 * $c) / 1000; // المسافة بالكيلومتر
+
+            // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
+            if ($distance > 0.3) {
+                throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
             }
+
+            // إنشاء الملاحظة
+            $clientRelation = ClientRelation::create([
+                'employee_id' => auth()->id(),
+                'client_id' => $request->client_id,
+                'status' => $request->status ?? 'pending',
+                'process' => $request->process,
+                'description' => $request->description,
+                'location_id' => $employeeLocation->id,
+            ]);
+
+            // معالجة المرفقات إن وجدت
+            if ($request->hasFile('attachments')) {
+                $file = $request->file('attachments');
+                if ($file->isValid()) {
+                    $filename = time() . '_' . preg_replace('/[^a-z0-9\.]/i', '_', $file->getClientOriginalName());
+                    $file->move(public_path('assets/uploads/notes'), $filename);
+                    $clientRelation->attachments = $filename;
+                    $clientRelation->save();
+                }
+            }
+
+            // ربط الموقع بالملاحظة
+            $employeeLocation->update([
+                'client_relation_id' => $clientRelation->id,
+                'client_id' => $request->client_id,
+            ]);
+
+            // تسجيل اشعار نظام
+            ModelsLog::create([
+                'type' => 'notes',
+                'type_log' => 'log',
+                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+                'created_by' => auth()->id(),
+            ]);
+
+            // إرسال الإشعارات
+            $clientName = Client::findOrFail($request->client_id)->trade_name ?? 'عميل غير معروف';
+            $userName = auth()->user()->name;
+
+            notifications::create([
+                'user_id' => auth()->id(),
+                'type' => 'notes',
+                'title' => $userName . ' أضاف ملاحظة لعميل',
+                'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('clients.show', $request->client_id)->with('success', 'تم إضافة الملاحظة بنجاح!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return redirect()
+                ->route('clients.show', $request->client_id ?? 0)
+                ->with('error', 'لم يتم العثور على الموقع المطلوب!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('فشل إضافة ملاحظة: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
+            return redirect()
+                ->route('clients.show', $request->client_id ?? 0)
+                ->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
         }
-
-        // ربط الموقع بالملاحظة
-        $employeeLocation->update([
-            'client_relation_id' => $clientRelation->id,
-            'client_id' => $request->client_id
-        ]);
-
-        // تسجيل اشعار نظام
-        ModelsLog::create([
-            'type' => 'notes',
-            'type_log' => 'log',
-            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-            'created_by' => auth()->id(),
-        ]);
-
-        // إرسال الإشعارات
-        $clientName = Client::findOrFail($request->client_id)->trade_name ?? 'عميل غير معروف';
-        $userName = auth()->user()->name;
-
-        notifications::create([
-            'user_id' => auth()->id(),
-            'type' => 'notes',
-            'title' => $userName . ' أضاف ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
-
-        ]);
-
-        DB::commit();
-
-        return redirect()
-            ->route('clients.show', $request->client_id)
-            ->with('success', 'تم إضافة الملاحظة بنجاح!');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return redirect()
-            ->back()
-            ->withErrors($e->validator)
-            ->withInput();
-
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        DB::rollBack();
-        return redirect()
-            ->route('clients.show', $request->client_id ?? 0)
-            ->with('error', 'لم يتم العثور على الموقع المطلوب!');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('فشل إضافة ملاحظة: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-
-        return redirect()
-            ->route('clients.show', $request->client_id ?? 0)
-            ->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
     }
-}
-        /**
+    /**
      * حساب المسافة باستخدام Haversine formula
      */
     private function calculateHaversineDistance($lat1, $lon1, $lat2, $lon2)
@@ -1182,10 +1148,7 @@ class ClientController extends Controller
         $latDelta = $latTo - $latFrom;
         $lonDelta = $lonTo - $lonFrom;
 
-        $angle = 2 * asin(sqrt(
-            pow(sin($latDelta / 2), 2) +
-            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)
-        ));
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) + cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
 
         return $angle * $earthRadius;
     }

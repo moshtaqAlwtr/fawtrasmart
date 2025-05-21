@@ -351,7 +351,7 @@
                     @foreach ($payments as $payment)
                         <tr>
                             <td class="nowrap text-center">#{{ $payment->id }}</td>
-                            <td class="wrap-text">{{ $payment->client->trade_name ?? 'غير محدد' }}</td>
+                            <td class="wrap-text">{{ $payment->invoice->client->trade_name ?? 'غير محدد' }}</td>
                             <td class="currency">{{ $payment->amount, 2, '.', ',' }} ر.س</td>
                             <td class="wrap-text">{{ $payment->payment_method }}</td>
                             <td class="nowrap text-center">{{ $payment->payment_date }}</td>

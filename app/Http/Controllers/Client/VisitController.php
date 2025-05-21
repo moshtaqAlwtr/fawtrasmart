@@ -42,7 +42,7 @@ class VisitController extends Controller
         return response()->json([
             'success' => true,
             'data' => $visits,
-            'count' => $visits->count()
+            'count' => $visits->count(),
         ]);
     }
 
@@ -52,19 +52,20 @@ class VisitController extends Controller
         $visit = Visit::with(['employee', 'client'])->find($id);
 
         if (!$visit) {
-            return response()->json([
-                'success' => false,
-                'message' => 'الزيارة غير موجودة'
-            ], 404);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'الزيارة غير موجودة',
+                ],
+                404,
+            );
         }
 
         return response()->json([
             'success' => true,
-            'data' => $visit
+            'data' => $visit,
         ]);
     }
-
-
 
     // تخزين موقع الموظف تلقائياً (محدثة)
     public function storeLocationEnhanced(Request $request)
@@ -73,7 +74,7 @@ class VisitController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'accuracy' => 'nullable|numeric',
-            'isExit' => 'nullable|boolean'
+            'isExit' => 'nullable|boolean',
         ]);
 
         $employeeId = Auth::id();
@@ -88,13 +89,13 @@ class VisitController extends Controller
                     'longitude' => $request->longitude,
                     'accuracy' => $request->accuracy,
                     'recorded_at' => $now,
-                ]
+                ],
             );
 
             Log::info('Employee location updated', [
                 'employee_id' => $employeeId,
                 'location' => $location,
-                'isExit' => $request->isExit
+                'isExit' => $request->isExit,
             ]);
 
             // معالجة الزيارات التي تحتاج انصراف تلقائي
@@ -109,31 +110,22 @@ class VisitController extends Controller
                     'success' => true,
                     'message' => 'تم تسجيل موقع الخروج بنجاح',
                     'location' => $location,
-                    'departures_checked' => true
+                    'departures_checked' => true,
                 ]);
             }
 
             // البحث عن العملاء القريبين (فقط إذا لم تكن نقاط خروج)
-            $nearbyClients = $this->getNearbyClients(
-                $request->latitude,
-                $request->longitude,
-                self::ARRIVAL_DISTANCE
-            );
+            $nearbyClients = $this->getNearbyClients($request->latitude, $request->longitude, self::ARRIVAL_DISTANCE);
 
             Log::info('Nearby clients found', [
                 'count' => count($nearbyClients),
-                'clients' => $nearbyClients->pluck('id')
+                'clients' => $nearbyClients->pluck('id'),
             ]);
 
             // تسجيل الزيارات للعملاء القريبين
             $recordedVisits = [];
             foreach ($nearbyClients as $client) {
-                $visit = $this->recordVisitAutomatically(
-                    $employeeId,
-                    $client->id,
-                    $request->latitude,
-                    $request->longitude
-                );
+                $visit = $this->recordVisitAutomatically($employeeId, $client->id, $request->latitude, $request->longitude);
 
                 if ($visit) {
                     // جدولة الانصراف التلقائي للزيارة الجديدة
@@ -148,15 +140,17 @@ class VisitController extends Controller
                 'nearby_clients' => count($nearbyClients),
                 'recorded_visits' => $recordedVisits,
                 'location' => $location,
-                'departures_checked' => true
+                'departures_checked' => true,
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to update location: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'حدث خطأ أثناء تحديث الموقع: ' . $e->getMessage()
-            ], 500);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'حدث خطأ أثناء تحديث الموقع: ' . $e->getMessage(),
+                ],
+                500,
+            );
         }
     }
 
@@ -166,11 +160,7 @@ class VisitController extends Controller
         $now = now();
         $today = $now->toDateString();
 
-        $lastVisit = Visit::where('employee_id', $employeeId)
-            ->where('client_id', $clientId)
-            ->whereDate('visit_date', $today)
-            ->orderBy('visit_date', 'desc')
-            ->first();
+        $lastVisit = Visit::where('employee_id', $employeeId)->where('client_id', $clientId)->whereDate('visit_date', $today)->orderBy('visit_date', 'desc')->first();
 
         if (!$lastVisit) {
             return $this->createNewVisit($employeeId, $clientId, $latitude, $longitude, 'زيارة تلقائية - أول زيارة اليوم');
@@ -179,7 +169,7 @@ class VisitController extends Controller
         if (!$lastVisit->departure_time) {
             Log::info('Skipping new visit - previous visit has no departure', [
                 'visit_id' => $lastVisit->id,
-                'arrival_time' => $lastVisit->arrival_time
+                'arrival_time' => $lastVisit->arrival_time,
             ]);
             return null;
         }
@@ -192,7 +182,7 @@ class VisitController extends Controller
 
         Log::info('Skipping new visit - recent departure', [
             'visit_id' => $lastVisit->id,
-            'minutes_since_departure' => $minutesSinceDeparture
+            'minutes_since_departure' => $minutesSinceDeparture,
         ]);
 
         return null;
@@ -218,15 +208,11 @@ class VisitController extends Controller
         Log::info('New visit created automatically', [
             'visit_id' => $visit->id,
             'client_id' => $clientId,
-            'employee_id' => $employeeId
+            'employee_id' => $employeeId,
         ]);
 
         $this->sendVisitNotifications($visit, 'arrival');
-        $this->sendEmployeeNotification(
-            $employeeId,
-            'تم تسجيل وصولك للعميل ' . $client->trade_name,
-            'وصول تلقائي'
-        );
+        $this->sendEmployeeNotification($employeeId, 'تم تسجيل وصولك للعميل ' . $client->trade_name, 'وصول تلقائي');
 
         return $visit;
     }
@@ -239,7 +225,7 @@ class VisitController extends Controller
             'visit_id' => $visit->id,
             'client_id' => $visit->client_id,
             'employee_id' => $visit->employee_id,
-            'scheduled_time' => now()->addMinutes(self::AUTO_DEPARTURE_TIMEOUT)->format('Y-m-d H:i:s')
+            'scheduled_time' => now()->addMinutes(self::AUTO_DEPARTURE_TIMEOUT)->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -255,7 +241,7 @@ class VisitController extends Controller
         Log::info('Processing auto departures', [
             'employee_id' => $employeeId,
             'active_visits_count' => $activeVisits->count(),
-            'current_time' => now()->format('Y-m-d H:i:s')
+            'current_time' => now()->format('Y-m-d H:i:s'),
         ]);
 
         foreach ($activeVisits as $visit) {
@@ -265,7 +251,7 @@ class VisitController extends Controller
                 'visit_id' => $visit->id,
                 'arrival_time' => $visit->arrival_time,
                 'minutes_since_arrival' => $minutesSinceArrival,
-                'auto_departure_timeout' => self::AUTO_DEPARTURE_TIMEOUT
+                'auto_departure_timeout' => self::AUTO_DEPARTURE_TIMEOUT,
             ]);
 
             if ($minutesSinceArrival >= self::AUTO_DEPARTURE_TIMEOUT) {
@@ -275,74 +261,64 @@ class VisitController extends Controller
     }
     // التحقق من الانصراف (محدثة)
     private function checkForDepartures($employeeId, $latitude, $longitude)
-{
-    $activeVisits = Visit::where('employee_id', $employeeId)
-        ->whereDate('visit_date', now()->toDateString())
-        ->whereNotNull('arrival_time')
-        ->whereNull('departure_time')
-        ->with(['client.locations'])
-        ->get();
+    {
+        $activeVisits = Visit::where('employee_id', $employeeId)
+            ->whereDate('visit_date', now()->toDateString())
+            ->whereNotNull('arrival_time')
+            ->whereNull('departure_time')
+            ->with(['client.locations'])
+            ->get();
 
-    foreach ($activeVisits as $visit) {
-        try {
-            // حساب الوقت المنقضي
-            $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
+        foreach ($activeVisits as $visit) {
+            try {
+                // حساب الوقت المنقضي
+                $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
 
-            // التحقق من المسافة
-            $clientLocation = $visit->client->locations()->latest()->first();
-            $distance = $this->calculateDistance(
-                $clientLocation->latitude,
-                $clientLocation->longitude,
-                $latitude,
-                $longitude
-            );
+                // التحقق من المسافة
+                $clientLocation = $visit->client->locations()->latest()->first();
+                $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $latitude, $longitude);
 
-            // تسجيل الانصراف في أي من الحالتين:
-            if ($minutesSinceArrival >= 10 || $distance >= 100) {
-                $reason = $minutesSinceArrival >= 10 ? 'بعد 10 دقائق' : 'بعد الابتعاد بمسافة 100 متر';
+                // تسجيل الانصراف في أي من الحالتين:
+                if ($minutesSinceArrival >= 10 || $distance >= 100) {
+                    $reason = $minutesSinceArrival >= 10 ? 'بعد 10 دقائق' : 'بعد الابتعاد بمسافة 100 متر';
 
-                $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, $reason);
+                    $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, $reason);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error processing visit departure', [
+                    'visit_id' => $visit->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
-        } catch (\Exception $e) {
-            Log::error('Error processing visit departure', [
-                'visit_id' => $visit->id,
-                'error' => $e->getMessage()
-            ]);
         }
     }
-}
     // معالجة انصراف الزيارة (محدثة)
     private function processVisitDeparture($visit, $latitude, $longitude)
-{
-    // الحصول على موقع العميل
-    $clientLocation = $visit->client->locations()->latest()->first();
+    {
+        // الحصول على موقع العميل
+        $clientLocation = $visit->client->locations()->latest()->first();
 
-    if (!$clientLocation) {
-        $clientLat = $visit->employee_latitude;
-        $clientLng = $visit->employee_longitude;
-    } else {
-        $clientLat = $clientLocation->latitude;
-        $clientLng = $clientLocation->longitude;
+        if (!$clientLocation) {
+            $clientLat = $visit->employee_latitude;
+            $clientLng = $visit->employee_longitude;
+        } else {
+            $clientLat = $clientLocation->latitude;
+            $clientLng = $clientLocation->longitude;
+        }
+
+        // حساب المسافة
+        $distance = $this->calculateDistance($clientLat, $clientLng, $latitude, $longitude);
+
+        // حساب الوقت المنقضي
+        $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
+
+        // تسجيل الانصراف في أي من الحالتين:
+        if ($minutesSinceArrival >= 10 || $distance >= 100) {
+            $reason = $minutesSinceArrival >= 10 ? 'بعد 10 دقائق' : 'بعد الابتعاد بمسافة 100 متر';
+
+            $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, $reason);
+        }
     }
-
-    // حساب المسافة
-    $distance = $this->calculateDistance(
-        $clientLat,
-        $clientLng,
-        $latitude,
-        $longitude
-    );
-
-    // حساب الوقت المنقضي
-    $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
-
-    // تسجيل الانصراف في أي من الحالتين:
-    if ($minutesSinceArrival >= 10 || $distance >= 100) {
-        $reason = $minutesSinceArrival >= 10 ? 'بعد 10 دقائق' : 'بعد الابتعاد بمسافة 100 متر';
-
-        $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, $reason);
-    }
-}
 
     // تسجيل الانصراف
     private function recordDeparture($visit, $latitude, $longitude, $value, $reason)
@@ -356,29 +332,28 @@ class VisitController extends Controller
             'departure_latitude' => $latitude,
             'departure_longitude' => $longitude,
             'departure_notification_sent' => true,
-            'notes' => ($visit->notes ?? '') . "\nانصراف تلقائي: $reason"
+            'notes' => ($visit->notes ?? '') . "\nانصراف تلقائي: $reason",
         ]);
 
         // إرسال الإشعارات
         $this->sendVisitNotifications($visit, 'departure');
-        $this->sendEmployeeNotification(
-            $visit->employee_id,
-            'تم تسجيل انصرافك من العميل ' . $visit->client->trade_name,
-            'انصراف تلقائي'
-        );
+        $this->sendEmployeeNotification($visit->employee_id, 'تم تسجيل انصرافك من العميل ' . $visit->client->trade_name, 'انصراف تلقائي');
     }
 
     // البحث عن العملاء القريبين
     private function getNearbyClients($latitude, $longitude, $radius)
     {
         return Client::with('locations')
-            ->whereHas('locations', function($query) use ($latitude, $longitude, $radius) {
-                $query->whereRaw("
+            ->whereHas('locations', function ($query) use ($latitude, $longitude, $radius) {
+                $query->whereRaw(
+                    "
                     ST_Distance_Sphere(
                         POINT(longitude, latitude),
                         POINT(?, ?)
                     ) <= ?
-                ", [$longitude, $latitude, $radius]);
+                ",
+                    [$longitude, $latitude, $radius],
+                );
             })
             ->get();
     }
@@ -393,12 +368,7 @@ class VisitController extends Controller
             return false;
         }
 
-        $distance = $this->calculateDistance(
-            $clientLocation->latitude,
-            $clientLocation->longitude,
-            $latitude,
-            $longitude
-        );
+        $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $latitude, $longitude);
 
         return $distance <= $maxDistance;
     }
@@ -416,10 +386,7 @@ class VisitController extends Controller
         $latDelta = $latTo - $latFrom;
         $lonDelta = $lonTo - $lonFrom;
 
-        $angle = 2 * asin(sqrt(
-            pow(sin($latDelta / 2), 2) +
-            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)
-        ));
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) + cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
 
         return $angle * $earthRadius;
     }
@@ -429,24 +396,20 @@ class VisitController extends Controller
     {
         $employeeName = $visit->employee->name ?? 'غير معروف';
         $clientName = $visit->client->trade_name ?? 'غير معروف';
-        $time = $type === 'arrival'
-            ? Carbon::parse($visit->arrival_time)->format('H:i')
-            : Carbon::parse($visit->departure_time)->format('H:i');
+        $time = $type === 'arrival' ? Carbon::parse($visit->arrival_time)->format('H:i') : Carbon::parse($visit->departure_time)->format('H:i');
 
         // إرسال إشعار داخلي
         notifications::create([
             'user_id' => $visit->employee_id,
             'type' => 'visit',
             'title' => $type === 'arrival' ? 'وصول إلى عميل' : 'انصراف من عميل',
-            'message' => $type === 'arrival'
-                ? "تم تسجيل وصولك إلى العميل: $clientName"
-                : "تم تسجيل انصرافك من العميل: $clientName",
+            'message' => $type === 'arrival' ? "تم تسجيل وصولك إلى العميل: $clientName" : "تم تسجيل انصرافك من العميل: $clientName",
             'read' => false,
             'data' => [
                 'visit_id' => $visit->id,
                 'client_id' => $visit->client_id,
-                'type' => $type
-            ]
+                'type' => $type,
+            ],
         ]);
 
         // إرسال إشعار إلى المدير
@@ -456,16 +419,14 @@ class VisitController extends Controller
                 'user_id' => $manager->id,
                 'type' => 'visit',
                 'title' => $type === 'arrival' ? 'وصول موظف إلى عميل' : 'انصراف موظف من عميل',
-                'message' => $type === 'arrival'
-                    ? "الموظف $employeeName وصل إلى العميل $clientName"
-                    : "الموظف $employeeName انصرف من العميل $clientName",
+                'message' => $type === 'arrival' ? "الموظف $employeeName وصل إلى العميل $clientName" : "الموظف $employeeName انصرف من العميل $clientName",
                 'read' => false,
                 'data' => [
                     'visit_id' => $visit->id,
                     'employee_id' => $visit->employee_id,
                     'client_id' => $visit->client_id,
-                    'type' => $type
-                ]
+                    'type' => $type,
+                ],
             ]);
         }
 
@@ -483,8 +444,8 @@ class VisitController extends Controller
             'message' => $message,
             'read' => false,
             'data' => [
-                'type' => 'visit_update'
-            ]
+                'type' => 'visit_update',
+            ],
         ]);
     }
 
@@ -493,13 +454,11 @@ class VisitController extends Controller
     {
         $employeeName = $visit->employee->name ?? 'غير معروف';
         $clientName = $visit->client->trade_name ?? 'غير معروف';
-        $time = $type === 'arrival'
-            ? Carbon::parse($visit->arrival_time)->format('H:i')
-            : Carbon::parse($visit->departure_time)->format('H:i');
+        $time = $type === 'arrival' ? Carbon::parse($visit->arrival_time)->format('H:i') : Carbon::parse($visit->departure_time)->format('H:i');
 
         $message = "🔄 *حركة زيارة عملاء*\n";
         $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        $message .= $type === 'arrival' ? "✅ *وصول*" : "🛑 *انصراف*\n";
+        $message .= $type === 'arrival' ? '✅ *وصول*' : "🛑 *انصراف*\n";
         $message .= "👤 *الموظف:* `$employeeName`\n";
         $message .= "🏢 *العميل:* `$clientName`\n";
         $message .= "⏱ *الوقت:* `$time`\n";
@@ -525,10 +484,13 @@ class VisitController extends Controller
         $visit = Visit::find($id);
 
         if (!$visit) {
-            return response()->json([
-                'success' => false,
-                'message' => 'الزيارة غير موجودة'
-            ], 404);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'الزيارة غير موجودة',
+                ],
+                404,
+            );
         }
 
         $request->validate([
@@ -539,27 +501,26 @@ class VisitController extends Controller
         ]);
 
         if ($visit->employee_id != Auth::id() && !Auth::user()->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح لك بتعديل هذه الزيارة'
-            ], 403);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'غير مصرح لك بتعديل هذه الزيارة',
+                ],
+                403,
+            );
         }
 
         $visit->update($request->all());
 
         if ($request->has('departure_time')) {
             $this->sendVisitNotifications($visit, 'departure');
-            $this->sendEmployeeNotification(
-                $visit->employee_id,
-                'تم تحديث وقت انصرافك من العميل ' . $visit->client->trade_name,
-                'تحديث انصراف'
-            );
+            $this->sendEmployeeNotification($visit->employee_id, 'تم تحديث وقت انصرافك من العميل ' . $visit->client->trade_name, 'تحديث انصراف');
         }
 
         return response()->json([
             'success' => true,
             'message' => 'تم تحديث الزيارة بنجاح',
-            'data' => $visit
+            'data' => $visit,
         ]);
     }
 
@@ -569,39 +530,42 @@ class VisitController extends Controller
         $visit = Visit::find($id);
 
         if (!$visit) {
-            return response()->json([
-                'success' => false,
-                'message' => 'الزيارة غير موجودة'
-            ], 404);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'الزيارة غير موجودة',
+                ],
+                404,
+            );
         }
 
         if ($visit->employee_id != Auth::id() && !Auth::user()->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'غير مصرح لك بحذف هذه الزيارة'
-            ], 403);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => 'غير مصرح لك بحذف هذه الزيارة',
+                ],
+                403,
+            );
         }
 
         $visit->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'تم حذف الزيارة بنجاح'
+            'message' => 'تم حذف الزيارة بنجاح',
         ]);
     }
 
     // زيارات الموظف الحالي
     public function myVisits()
     {
-        $visits = Visit::with('client')
-            ->where('employee_id', Auth::id())
-            ->orderBy('visit_date', 'desc')
-            ->get();
+        $visits = Visit::with('client')->where('employee_id', Auth::id())->orderBy('visit_date', 'desc')->get();
 
         return response()->json([
             'success' => true,
             'data' => $visits,
-            'count' => $visits->count()
+            'count' => $visits->count(),
         ]);
     }
 
@@ -629,16 +593,18 @@ class VisitController extends Controller
         return response()->json([
             'success' => true,
             'visits' => $visits,
-            'count' => $visits->count()
+            'count' => $visits->count(),
         ]);
     }
 
     // تحليلات حركة الزيارات
     public function tracktaff()
     {
-        $groups = Region_groub::with(['neighborhoods.client' => function($query) {
-            $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts']);
-        }])->get();
+        $groups = Region_groub::with([
+            'neighborhoods.client' => function ($query) {
+                $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts']);
+            },
+        ])->get();
 
         // تحديد آخر 4 أسابيع
         $now = now();
@@ -652,7 +618,7 @@ class VisitController extends Controller
                 'start' => $startDate->format('Y-m-d'),
                 'end' => $endDate->format('Y-m-d'),
                 'month_year' => $startDate->translatedFormat('F Y'),
-                'week_number' => 4 - $i // رقم الأسبوع (1 إلى 4)
+                'week_number' => 4 - $i, // رقم الأسبوع (1 إلى 4)
             ];
         }
 
@@ -673,7 +639,7 @@ class VisitController extends Controller
                 'start' => $startDate->format('Y-m-d'),
                 'end' => $endDate->format('Y-m-d'),
                 'month_year' => $startDate->translatedFormat('F Y'),
-                'week_number' => (4 + $offset) - $i
+                'week_number' => 4 + $offset - $i,
             ];
         }
 
@@ -688,352 +654,347 @@ class VisitController extends Controller
         // هنا يمكنك تنفيذ الاستعلامات للحصول على البيانات حسب الأسابيع المحددة
         // هذا مثال مبسط، يجب تعديله حسب هيكل قاعدة البيانات الخاص بك
 
-        $groups = Region_groub::when(!empty($groupIds), function($query) use ($groupIds) {
-                return $query->whereIn('id', $groupIds);
-            })
-            ->with(['neighborhoods.client' => function($query) use ($weeks) {
-                $query->with([
-                    'invoices' => function($q) use ($weeks) {
-                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
-                    },
-                    'payments' => function($q) use ($weeks) {
-                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
-                    },
-                    'appointmentNotes' => function($q) use ($weeks) {
-                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
-                    },
-                    'visits' => function($q) use ($weeks) {
-                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
-                    },
-                    'accounts.receipts' => function($q) use ($weeks) {
-                        $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
-                    }
-                ]);
-            }])
+        $groups = Region_groub::when(!empty($groupIds), function ($query) use ($groupIds) {
+            return $query->whereIn('id', $groupIds);
+        })
+            ->with([
+                'neighborhoods.client' => function ($query) use ($weeks) {
+                    $query->with([
+                        'invoices' => function ($q) use ($weeks) {
+                            $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                        },
+                        'payments' => function ($q) use ($weeks) {
+                            $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                        },
+                        'appointmentNotes' => function ($q) use ($weeks) {
+                            $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                        },
+                        'visits' => function ($q) use ($weeks) {
+                            $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                        },
+                        'accounts.receipts' => function ($q) use ($weeks) {
+                            $q->whereBetween('created_at', [$weeks[0]['start'], end($weeks)['end']]);
+                        },
+                    ]);
+                },
+            ])
             ->get();
 
         return response()->json([
             'groups' => $groups,
-            'weeks' => $weeks
+            'weeks' => $weeks,
         ]);
     }
 
     public function sendDailyReport()
-{
-    $date = Carbon::today();
+    {
+        $date = Carbon::today();
 
-    // جلب فقط الموظفين الذين لديهم دور employee
-    $users = User::where('role', 'employee')->get();
+        // جلب فقط الموظفين الذين لديهم دور employee
+        $users = User::where('role', 'employee')->get();
 
-    foreach ($users as $user) {
-        // الفواتير التي أنشأها الموظف اليوم (العادية والمرتجعة)
-        $invoices = Invoice::with('client')
-            ->where('created_by', $user->id)
-            ->whereDate('created_at', $date)
-            ->get();
+        foreach ($users as $user) {
+            // الفواتير التي أنشأها الموظف اليوم (العادية والمرتجعة)
+            $invoices = Invoice::with('client')->where('created_by', $user->id)->whereDate('created_at', $date)->get();
 
-        // جلب أرقام الفواتير العادية فقط (غير المرتجعة)
-        $normalInvoiceIds = $invoices->where('type', '!=', 'returned')->pluck('id')->toArray();
+            // جلب أرقام الفواتير العادية فقط (غير المرتجعة) والتي ليس لها فواتير مرتجعة
+            $normalInvoiceIds = $invoices
+                ->where('type', '!=', 'returned')
+                ->reject(function ($invoice) use ($invoices) {
+                    // استبعاد الفواتير التي لها فواتير مرتجعة
+                    return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+                })
+                ->pluck('id')
+                ->toArray();
 
-        // المدفوعات المرتبطة بالفواتير العادية فقط
-        $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)
-            ->whereDate('payment_date', $date)
-            ->get();
+            // المدفوعات المرتبطة بالفواتير العادية فقط والتي ليس لها فواتير مرتجعة
+            $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)->whereDate('payment_date', $date)->get();
 
-        // الزيارات التي قام بها الموظف اليوم
-        $visits = Visit::with('client')
-            ->where('employee_id', $user->id)
-            ->whereDate('created_at', $date)
-            ->get();
+            // باقي الكود كما هو...
+            $visits = Visit::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
 
-        // الإيصالات التي أنشأها الموظف اليوم
-        $receipts = Receipt::where('created_by', $user->id)
-            ->whereDate('created_at', $date)
-            ->get();
+            $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
 
-        // المصروفات التي أنشأها الموظف اليوم
-        $expenses = Expense::where('created_by', $user->id)
-            ->whereDate('created_at', $date)
-            ->get();
+            $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
 
-        // الملاحظات التي أنشأها الموظف اليوم للعملاء
-        $notes = ClientRelation::with('client')
-            ->where('employee_id', $user->id)
-            ->whereDate('created_at', $date)
-            ->get();
+            $notes = ClientRelation::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
 
-        // حساب المجاميع
-        $totalNormalInvoices = $invoices->where('type', '!=', 'returned')->sum('grand_total');
-        $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
-        $netSales = $totalNormalInvoices - $totalReturnedInvoices;
-        $totalPayments = $payments->sum('amount');
-        $totalReceipts = $receipts->sum('amount');
-        $totalExpenses = $expenses->sum('amount');
-        $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
+            // حساب المجاميع
+            $totalNormalInvoices = $invoices
+                ->where('type', '!=', 'returned')
+                ->reject(function ($invoice) use ($invoices) {
+                    return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+                })
+                ->sum('grand_total');
 
-        // إنشاء ملف PDF للموظف الحالي
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator(config('app.name'));
-        $pdf->SetAuthor($user->name);
-        $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
-        $pdf->SetSubject('التقرير اليومي');
-        $pdf->AddPage();
+            $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
+            $netSales = $totalNormalInvoices - $totalReturnedInvoices;
+            $totalPayments = $payments->sum('amount');
+            $totalReceipts = $receipts->sum('amount');
+            $totalExpenses = $expenses->sum('amount');
+            $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
 
-        // محتوى التقرير للموظف الحالي
-        $html = view('reports.daily_employee_single', [
-            'user' => $user,
-            'invoices' => $invoices,
-            'visits' => $visits,
-            'payments' => $payments,
-            'receipts' => $receipts,
-            'expenses' => $expenses,
-            'notes' => $notes,
-            'total_normal_invoices' => $totalNormalInvoices,
-            'total_returned_invoices' => $totalReturnedInvoices,
-            'net_sales' => $netSales,
-            'total_payments' => $totalPayments,
-            'total_receipts' => $totalReceipts,
-            'total_expenses' => $totalExpenses,
-            'net_collection' => $netCollection,
-            'date' => $date->format('Y-m-d'),
-        ])->render();
+            // باقي الكود كما هو...
+            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->SetCreator(config('app.name'));
+            $pdf->SetAuthor($user->name);
+            $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
+            $pdf->SetSubject('التقرير اليومي');
+            $pdf->AddPage();
 
-        $pdf->writeHTML($html, true, false, true, false, 'R');
+            $html = view('reports.daily_employee_single', [
+                'user' => $user,
+                'invoices' => $invoices,
+                'visits' => $visits,
+                'payments' => $payments,
+                'receipts' => $receipts,
+                'expenses' => $expenses,
+                'notes' => $notes,
+                'total_normal_invoices' => $totalNormalInvoices,
+                'total_returned_invoices' => $totalReturnedInvoices,
+                'net_sales' => $netSales,
+                'total_payments' => $totalPayments,
+                'total_receipts' => $totalReceipts,
+                'total_expenses' => $totalExpenses,
+                'net_collection' => $netCollection,
+                'date' => $date->format('Y-m-d'),
+            ])->render();
 
-        // حفظ الملف باسم فريد لكل موظف
-        $pdfPath = storage_path('app/public/daily_report_'.$user->id.'_'.$date->format('Y-m-d').'.pdf');
-        $pdf->Output($pdfPath, 'F');
+            $pdf->writeHTML($html, true, false, true, false, 'R');
 
-        // إرسال إلى Telegram
-        $botToken = config('services.telegram.bot_token');
-        $chatId = config('services.telegram.report_chat_id');
+            $pdfPath = storage_path('app/public/daily_report_' . $user->id . '_' . $date->format('Y-m-d') . '.pdf');
+            $pdf->Output($pdfPath, 'F');
 
-        $caption = "📊 التقرير اليومي للموظف\n"
-                 . "👤 اسم الموظف: " . $user->name . "\n"
-                 . "📅 التاريخ: " . $date->format('Y-m-d') . "\n"
-                 . "🛒 إجمالي الفواتير: " . number_format($netSales, 2) . " ر.س\n"
-                 . "💵 صافي التحصيل: " . number_format($netCollection, 2) . " ر.س\n"
-                 . "🔄 الفواتير المرتجعة: " . number_format($totalReturnedInvoices, 2) . " ر.س";
+            $caption = "📊 التقرير اليومي للموظف\n" . '👤 اسم الموظف: ' . $user->name . "\n" . '📅 التاريخ: ' . $date->format('Y-m-d') . "\n" . '🛒 إجمالي الفواتير: ' . number_format($netSales, 2) . " ر.س\n" . '💵 صافي التحصيل: ' . number_format($netCollection, 2) . " ر.س\n" . '🔄 الفواتير المرتجعة: ' . number_format($totalReturnedInvoices, 2) . ' ر.س';
 
-   // إرسال إلى Telegram
             $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
             $chatId = '@Salesfatrasmart';
 
-            $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_'.$user->name.'.pdf')
-                ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
-                    'chat_id' => $chatId,
-                    'caption' => "📊 تقرير الموظف اليومي - ".$user->name." - ".$date->format('Y-m-d'),
+            $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+                'chat_id' => $chatId,
+                'caption' => '📊 تقرير الموظف اليومي - ' . $user->name . ' - ' . $date->format('Y-m-d')
+                . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n"
+                . '🔄 المرتجعات: ' . number_format($totalReturnedInvoices, 2) . ' ر.س' .
+                 '💰 صافي  التحصيل : ' . number_format($netCollection, 2) . " ر.س\n",
+            ]);
+
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
+            }
+
+            if ($response->successful()) {
+                Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
+            } else {
+                Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
+                    'error' => $response->body(),
                 ]);
-
-        // حذف الملف بعد الإرسال
-        if (file_exists($pdfPath)) {
-            unlink($pdfPath);
+            }
         }
 
-        // تسجيل النتيجة (اختياري)
-        if ($response->successful()) {
-            Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
-        } else {
-            Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
-                'error' => $response->body()
-            ]);
-        }
+        return true;
     }
+    public function sendWeeklyReport()
+    {
+        $endDate = Carbon::today();
+        $startDate = $endDate->copy()->subDays(6);
 
-    return true;
-}
-public function sendWeeklyReport()
-{
-    // تحديد تاريخ بداية ونهاية الأسبوع (من الأحد إلى السبت)
-    $endDate = Carbon::today();
-    $startDate = $endDate->copy()->subDays(6); // الأسبوع الماضي
+        $users = User::where('role', 'employee')->get();
 
-    // جلب فقط الموظفين الذين لديهم دور employee
-    $users = User::where('role', 'employee')->get();
+        foreach ($users as $user) {
+            // جلب جميع الفواتير (العادية والمرتجعة) للأسبوع
+            $invoices = Invoice::with('client')
+                ->where('created_by', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-    foreach ($users as $user) {
-        // الفواتير التي أنشأها الموظف خلال الأسبوع (العادية والمرتجعة)
-        $invoices = Invoice::where('created_by', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            // حساب الفواتير العادية الصافية (باستثناء التي لها مرتجع)
+            $normalInvoices = $invoices->where('type', '!=', 'returned')->reject(function ($invoice) use ($invoices) {
+                return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+            });
 
-        // حساب إجمالي المبيعات والمرتجعات
-        $totalSales = $invoices->where('type', 'normal')->sum('grand_total');
-        $totalReturns = abs($invoices->where('type', 'returned')->sum('grand_total'));
-        $netSales = $totalSales - $totalReturns;
+            // حساب الفواتير المرتجعة فقط
+            $returnedInvoices = $invoices->where('type', 'returned');
 
-        // جلب أرقام الفواتير
-        $invoiceIds = $invoices->pluck('id')->toArray();
+            // المدفوعات للفواتير العادية الصافية فقط
+            $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoices->pluck('id')->toArray())
+                ->whereBetween('payment_date', [$startDate, $endDate])
+                ->get();
 
-        // المدفوعات المرتبطة بهذه الفواتير خلال الأسبوع
-        $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
-            ->whereBetween('payment_date', [$startDate, $endDate])
-            ->get();
+            // باقي البيانات كما هي بدون تغيير
+            $visits = Visit::with('client')
+                ->where('employee_id', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // الزيارات التي قام بها الموظف خلال الأسبوع
-        $visits = Visit::with('client')
-            ->where('employee_id', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            $receipts = Receipt::where('created_by', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // الإيصالات التي أنشأها الموظف خلال الأسبوع
-        $receipts = Receipt::where('created_by', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            $expenses = Expense::where('created_by', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // المصروفات التي أنشأها الموظف خلال الأسبوع
-        $expenses = Expense::where('created_by', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            $notes = ClientRelation::with('client')
+                ->where('employee_id', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // الملاحظات التي أنشأها الموظف خلال الأسبوع
-        $notes = ClientRelation::with('client')
-            ->where('employee_id', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            // الحسابات المالية بنفس طريقة التقرير اليومي بالضبط
+            $totalSales = $normalInvoices->sum('grand_total');
+            $totalReturns = $returnedInvoices->sum('grand_total');
+            $netSales = $totalSales - $totalReturns;
+            $totalPayments = $payments->sum('amount');
+            $totalReceipts = $receipts->sum('amount');
+            $totalExpenses = $expenses->sum('amount');
+            $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
 
-        // إنشاء ملف PDF للموظف الحالي
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator('Your Application');
-        $pdf->SetAuthor('Your Name');
-        $pdf->SetTitle('Weekly Employee Report - ' . $user->name);
-        $pdf->AddPage();
+            // باقي الكود كما هو...
+            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->SetCreator(config('app.name'));
+            $pdf->SetAuthor($user->name);
+            $pdf->SetTitle('التقرير الأسبوعي للموظف - ' . $user->name);
+            $pdf->AddPage();
 
-        // محتوى التقرير للموظف الحالي
-        $html = view('reports.weekly_employee', [
-            'user' => $user,
-            'invoices' => $invoices,
-            'visits' => $visits,
-            'payments' => $payments,
-            'receipts' => $receipts,
-            'expenses' => $expenses,
-            'notes' => $notes,
-            'startDate' => $startDate->format('Y-m-d'),
-            'endDate' => $endDate->format('Y-m-d'),
-            'totalSales' => $totalSales,
-            'totalReturns' => $totalReturns,
-            'netSales' => $netSales,
-        ])->render();
+            $html = view('reports.weekly_employee', [
+                'user' => $user,
+                'invoices' => $invoices,
+                'visits' => $visits,
+                'payments' => $payments,
+                'receipts' => $receipts,
+                'expenses' => $expenses,
+                'notes' => $notes,
+                'totalSales' => $totalSales,
+                'totalReturns' => $totalReturns,
+                'netSales' => $netSales,
+                'total_payments' => $totalPayments,
+                'total_receipts' => $totalReceipts,
+                'total_expenses' => $totalExpenses,
+                'net_collection' => $netCollection,
+                'startDate' => $startDate->format('Y-m-d'),
+                'endDate' => $endDate->format('Y-m-d'),
+            ])->render();
 
-        $pdf->writeHTML($html, true, false, true, false, 'R');
+            $pdf->writeHTML($html, true, false, true, false, 'R');
 
-        // حفظ الملف باسم فريد لكل موظف
-        $pdfPath = storage_path('app/public/weekly_report_'.$user->id.'_'.$startDate->format('Y-m-d').'_to_'.$endDate->format('Y-m-d').'.pdf');
-        $pdf->Output($pdfPath, 'F');
+            $pdfPath = storage_path('app/public/weekly_report_' . $user->id . '_' . $startDate->format('Y-m-d') . '_to_' . $endDate->format('Y-m-d') . '.pdf');
+            $pdf->Output($pdfPath, 'F');
 
-        // إرسال إلى Telegram
-        $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
-        $chatId = '@Salesfatrasmart';
+            // إرسال التقرير عبر Telegram
+            $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+            $chatId = '@Salesfatrasmart';
 
-        $response = Http::attach('document', file_get_contents($pdfPath), 'weekly_report_'.$user->name.'.pdf')
-            ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+            $response = Http::attach('document', file_get_contents($pdfPath), 'weekly_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
                 'chat_id' => $chatId,
-                'caption' => "📊 تقرير الموظف الأسبوعي - ".$user->name." - من ".$startDate->format('Y-m-d')." إلى ".$endDate->format('Y-m-d'),
+                'caption' => '📊 التقرير الأسبوعي - ' . $user->name . "\n" . '📅 من ' . $startDate->format('Y-m-d') . ' إلى ' . $endDate->format('Y-m-d') . "\n" . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n" . '💰 صافي  التحصيل : ' . number_format($netCollection, 2) . " ر.س\n" . '🔄 المرتجعات: ' . number_format($totalReturns, 2) . ' ر.س',
             ]);
 
-        // حذف الملف بعد الإرسال
-        if (file_exists($pdfPath)) {
-            unlink($pdfPath);
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
+            }
         }
     }
-}
-public function sendMonthlyReport()
-{
-    // تحديد تاريخ بداية ونهاية الشهر
-    $endDate = Carbon::today();
-    $startDate = $endDate->copy()->startOfMonth();
 
-    // جلب الموظفين
-    $users = User::where('role', 'employee')->get();
+    public function sendMonthlyReport()
+    {
+        $endDate = Carbon::today();
+        $startDate = $endDate->copy()->startOfMonth();
 
-    foreach ($users as $user) {
-        // الفواتير الشهرية (العادية والمرتجعة)
-        $invoices = Invoice::where('created_by', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+        $users = User::where('role', 'employee')->get();
 
-        // حساب إجمالي المبيعات والمرتجعات
-        $totalSales = $invoices->where('type', 'normal')->sum('grand_total');
-        $totalReturns = abs($invoices->where('type', 'returned')->sum('grand_total'));
-        $netSales = $totalSales - $totalReturns;
+        foreach ($users as $user) {
+            // جلب جميع الفواتير (العادية والمرتجعة) للشهر
+            $invoices = Invoice::with('client')
+                ->where('created_by', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        $invoiceIds = $invoices->pluck('id')->toArray();
+            // حساب الفواتير العادية الصافية (باستثناء التي لها مرتجع)
+            $normalInvoices = $invoices->where('type', '!=', 'returned')->reject(function ($invoice) use ($invoices) {
+                return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+            });
 
-        // المدفوعات الشهرية
-        $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
-            ->whereBetween('payment_date', [$startDate, $endDate])
-            ->get();
+            // حساب الفواتير المرتجعة فقط
+            $returnedInvoices = $invoices->where('type', 'returned');
 
-        // الزيارات الشهرية مع تجميع عدد الزيارات لكل عميل
-        $visits = Visit::with('client')
-            ->where('employee_id', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            // المدفوعات للفواتير العادية الصافية فقط
+            $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoices->pluck('id')->toArray())
+                ->whereBetween('payment_date', [$startDate, $endDate])
+                ->get();
 
-        // حساب عدد الزيارات لكل عميل
-        $clientVisitsCount = $visits->groupBy('client_id')->map->count();
+            // باقي البيانات كما هي بدون تغيير
+            $visits = Visit::with('client')
+                ->where('employee_id', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // الإيصالات الشهرية
-        $receipts = Receipt::where('created_by', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            $clientVisitsCount = $visits->groupBy('client_id')->map->count();
 
-        // المصروفات الشهرية
-        $expenses = Expense::where('created_by', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            $receipts = Receipt::where('created_by', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // الملاحظات الشهرية
-        $notes = ClientRelation::with('client')
-            ->where('employee_id', $user->id)
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get();
+            $expenses = Expense::where('created_by', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // إنشاء ملف PDF
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator('Your Application');
-        $pdf->SetAuthor('Your Name');
-        $pdf->SetTitle('Monthly Employee Report - ' . $user->name);
-        $pdf->AddPage();
+            $notes = ClientRelation::with('client')
+                ->where('employee_id', $user->id)
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();
 
-        // محتوى التقرير
-        $html = view('reports.monthly_employee', [
-            'user' => $user,
-            'invoices' => $invoices,
-            'visits' => $visits,
-            'clientVisitsCount' => $clientVisitsCount,
-            'payments' => $payments,
-            'receipts' => $receipts,
-            'expenses' => $expenses,
-            'notes' => $notes,
-            'startDate' => Carbon::parse($startDate),
-            'endDate' => Carbon::parse($endDate),
-            'totalSales' => $totalSales,
-            'totalReturns' => $totalReturns,
-            'netSales' => $netSales,
-        ])->render();
+            // الحسابات المالية بنفس طريقة التقرير اليومي بالضبط
+            $totalSales = $normalInvoices->sum('grand_total');
+            $totalReturns = $returnedInvoices->sum('grand_total');
+            $netSales = $totalSales - $totalReturns;
+            $totalPayments = $payments->sum('amount');
+            $totalReceipts = $receipts->sum('amount');
+            $totalExpenses = $expenses->sum('amount');
+            $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
 
-        $pdf->writeHTML($html, true, false, true, false, 'R');
+            // باقي الكود كما هو...
+            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->SetCreator(config('app.name'));
+            $pdf->SetAuthor($user->name);
+            $pdf->SetTitle('التقرير الشهري للموظف - ' . $user->name);
+            $pdf->AddPage();
 
-        // حفظ الملف
-        $pdfPath = storage_path('app/public/monthly_report_'.$user->id.'_'.$startDate->format('Y-m').'.pdf');
-        $pdf->Output($pdfPath, 'F');
+            $html = view('reports.monthly_employee', [
+                'user' => $user,
+                'invoices' => $invoices,
+                'visits' => $visits,
+                'clientVisitsCount' => $clientVisitsCount,
+                'payments' => $payments,
+                'receipts' => $receipts,
+                'expenses' => $expenses,
+                'notes' => $notes,
+                'totalSales' => $totalSales,
+                'totalReturns' => $totalReturns,
+                'netSales' => $netSales,
+                'total_payments' => $totalPayments,
+                'total_receipts' => $totalReceipts,
+                'total_expenses' => $totalExpenses,
+                'net_collection' => $netCollection,
+                'startDate' => Carbon::parse($startDate), // تأكد من تحويله إلى كائن Carbon
+                'endDate' => Carbon::parse($endDate), // تأكد من تحويله إلى كائن Carbon
+            ])->render();
 
-        // إرسال إلى Telegram
-        $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
-        $chatId = '@Salesfatrasmart';
+            $pdf->writeHTML($html, true, false, true, false, 'R');
 
-        $response = Http::attach('document', file_get_contents($pdfPath), 'monthly_report_'.$user->name.'.pdf')
-            ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+            $pdfPath = storage_path('app/public/monthly_report_' . $user->id . '_' . $startDate->format('Y-m') . '.pdf');
+            $pdf->Output($pdfPath, 'F');
+
+            // إرسال التقرير عبر Telegram
+            $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+            $chatId = '@Salesfatrasmart';
+
+            $response = Http::attach('document', file_get_contents($pdfPath), 'monthly_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
                 'chat_id' => $chatId,
-                'caption' => "📊 تقرير الموظف الشهري - ".$user->name." - لشهر ".$startDate->format('Y-m'),
+                'caption' => '📊 التقرير الشهري - ' . $user->name . "\n" . '📅 شهر ' . $startDate->format('Y-m') . "\n" . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n" . '💸 التحصيل : ' . number_format($netCollection, 2) . " ر.س\n" . '🔄 المرتجعات: ' . number_format($totalReturns, 2) . ' ر.س',
             ]);
 
-        // حذف الملف بعد الإرسال
-        if (file_exists($pdfPath)) {
-            unlink($pdfPath);
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
+            }
         }
     }
-}
-
 }
