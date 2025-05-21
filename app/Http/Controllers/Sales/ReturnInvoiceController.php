@@ -631,9 +631,28 @@ class ReturnInvoiceController extends Controller
                     // الحصول على المستخدم الحالي
                   
 
-               
+   // احصل على بند المنتج في الفاتورة الأصلية
+    $original_item = InvoiceItem::where('invoice_id', $invoice_orginal->id)
+        ->where('product_id', $item['product_id'])
+        ->first();
 
-                 
+    if (!$original_item) {
+        return back()->with('error', 'المنتج غير موجود في الفاتورة الأصلية');
+    }
+
+    // اجمع الكمية المرتجعة سابقًا لهذا المنتج من فواتير الإرجاع التي تشير لنفس الفاتورة الأصلية
+    $previous_return_qty = InvoiceItem::whereHas('invoice', function ($query) use ($invoice_orginal) {
+            $query->where('reference_number', $invoice_orginal->id); // أو رقم الفاتورة الأصلية
+        })
+        ->where('product_id', $item['product_id'])
+        ->sum('quantity');
+
+    // اجمع الكمية المرتجعة سابقًا + الحالية
+    $total_return_qty = floatval($previous_return_qty) + floatval($item['quantity']);
+
+    if ($total_return_qty > $original_item->quantity) {
+        return back()->with('error', 'لا يمكن إرجاع كمية أكبر من الأصلية للمنتج: ' . ($original_item->product->name ?? 'غير معروف'));
+    }
                     // حساب تفاصيل الكمية والأسعار
                     $quantity = floatval($item['quantity']);
                     $unit_price = floatval($item['unit_price']);

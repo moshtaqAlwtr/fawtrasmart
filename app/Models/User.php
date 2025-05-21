@@ -58,6 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Branch::find($this->branch_id);
     }
+   
 
     public function isEmployee()
     {
