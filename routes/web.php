@@ -17,6 +17,7 @@ use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Client\ClientSettingController;
 use App\Http\Controllers\Client\VisitController;
 use App\Http\Controllers\Commission\CommissionController;
+use App\Http\Controllers\EmployeeTargetController;
 use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
 use App\Http\Controllers\Sales\PaymentClientController;
@@ -54,7 +55,8 @@ Route::group(
             Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client'); // أوامر الشغل
             Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الأسعار
             Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
-
+ Route::get('/employee-targets', [EmployeeTargetController::class, 'index'])->name('employee_targets.index');
+                Route::post('/employee-targets', [EmployeeTargetController::class, 'storeOrUpdate'])->name('employee_targets.store');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
         });
         Route::prefix('sales')
@@ -102,6 +104,8 @@ Route::group(
                     Route::put('/update/{id}', [ReturnInvoiceController::class, 'update'])->name('ReturnIInvoices.update');
                     Route::delete('/destroy/{id}', [ReturnInvoiceController::class, 'destroy'])->name('ReturnIInvoices.destroy');
                 });
+
+               
                 Route::prefix('RevolvingInvoices')->group(function () {
                     Route::get('/index', [RevolvingInvoicesController::class, 'index'])->name('revolving_invoices.index');
                     Route::get('/create', [RevolvingInvoicesController::class, 'create'])->name('revolving_invoices.create');
