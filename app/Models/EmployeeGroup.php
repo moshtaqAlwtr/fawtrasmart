@@ -11,6 +11,7 @@ class EmployeeGroup extends Pivot
     protected $fillable = [
         'employee_id',
         'group_id',
+        'direction_id',
         'expires_at',
     ];
 

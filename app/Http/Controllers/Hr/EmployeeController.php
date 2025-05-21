@@ -157,6 +157,7 @@ class EmployeeController extends Controller
             'role' => 'employee',
             'employee_id' => $new_employee->id,
             'branch_id' => $request->branch_id,
+
             'password' => Hash::make($request->phone_number),
         ]);
 

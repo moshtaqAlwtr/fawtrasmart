@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Region_groub extends Model
 {
@@ -30,10 +29,10 @@ public function direction()
     return $this->belongsTo(Direction::class, 'directions_id');
     // لاحظ تغيير اسم الدالة إلى direction (مفرد) لأنها علاقة belongsTo
 }
- public function employees(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'employee_group')
-                    ->withPivot('expires_at')
-                    ->withTimestamps();
-    }
+// App\Models\Region.php
+public function region_groubs()
+{
+    return $this->belongsToMany(Region_groub::class); // اسم الجدول الوسيط حسب مشروعك
+}
+
 }

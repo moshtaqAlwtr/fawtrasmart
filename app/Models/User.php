@@ -75,4 +75,10 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     return $this->hasMany(Notification::class);
 }
+public function groups()
+{
+    return $this->belongsToMany(Region_groub::class, 'employee_group')
+                ->using(EmployeeGroup::class)
+                ->withPivot('expires_at');
+}
 }

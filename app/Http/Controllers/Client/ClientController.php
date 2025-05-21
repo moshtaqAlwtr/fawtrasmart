@@ -46,83 +46,104 @@ use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Location;
 use App\Models\Revenue;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = auth()->user();
 
-        // بناء الاستعلام الأساسي للعملاء
-        $baseQuery = Client::query();
 
-        // تطبيق فلتر الفرع والمجموعات حسب صلاحيات المستخدم
-        if ($user->branch_id) {
-            if ($user->role === 'manager' && $user->branch && $user->branch->name === 'الرئيسي') {
-                // لا نطبق أي فلتر - المدير في الفرع الرئيسي يشوف جميع العملاء
-            } else {
-                // فلترة العملاء حسب المجموعات المرتبطة بالموظف
-                $employeeGroups = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id')->toArray();
 
-                if (!empty($employeeGroups)) {
-                    $baseQuery->whereIn('region_id', $employeeGroups);
-                } else {
-                    // إذا لم يكن الموظف في أي مجموعة، لا يتم جلب عملاء
-                    $baseQuery->whereRaw('1 = 0');
-                }
-            }
-        }
+public function index(Request $request)
+{
+    $user = auth()->user();
 
-        // تطبيق فلترات البحث على الاستعلام الأساسي
-        if ($request->filled('client')) {
-            $baseQuery->where('id', $request->client);
-        }
+    $baseQuery = Client::with([
+        'employee',
+        'status:id,name,color',
+        'locations',
+        'Neighborhoodname.Region',
+        'branch:id,name'
+    ]);
 
-        if ($request->filled('name')) {
-            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-        }
+    $noClients = false;
 
-        if ($request->filled('status')) {
-            $baseQuery->where('status_id', $request->status);
-        }
+    // تحديد الصلاحيات حسب الدور
+    if ($user->role === 'employee') {
+        // الموظف يرى فقط العملاء المرتبطين بالمجموعات الخاصة به
+        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)
+                                         ->pluck('group_id');
 
-        if ($request->filled('region')) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-                $q->where('id', $request->region);
+        if ($employeeGroupIds->isNotEmpty()) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                $q->whereIn('id', $employeeGroupIds);
             });
+        } else {
+            // لا توجد مجموعات → لا توجد عملاء
+            $noClients = true;
         }
 
-        if ($request->filled('neighborhood')) {
-            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-            });
-        }
-
-        // نسخ الاستعلام المفلتر للخريطة
-        $mapQuery = clone $baseQuery;
-
-        // الحصول على العملاء للخريطة مع البيانات الأساسية
-        $allClients = $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
-
-        // الحصول على موقع المستخدم الحالي
-        $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
-
-        // تحميل العلاقات للعرض في الجدول
-        $baseQuery->with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name']);
-
-        // الحصول على النتائج المقسمة للجدول
-        $clients = $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
-
-        // الحصول على البيانات الإضافية للقوائم المنسدلة
-        $users = User::all();
-        $employees = Employee::all();
-        $statuses = Statuses::select('id', 'name', 'color')->get();
-        $creditLimit = CreditLimit::first();
-        $Region_groups = Region_groub::all();
-        $Neighborhoods = Neighborhood::all();
-
-        return view('client.index', compact('clients', 'allClients', 'Neighborhoods', 'users', 'employees', 'creditLimit', 'statuses', 'Region_groups', 'userLocation'));
+    } elseif ($user->role === 'manager') {
+        // المدير يرى جميع العملاء → لا فلترة
     }
+
+    // فلترة البحث حسب الطلب
+    if ($request->filled('client')) {
+        $baseQuery->where('id', $request->client);
+    }
+
+    if ($request->filled('name')) {
+        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->filled('status')) {
+        $baseQuery->where('status_id', $request->status);
+    }
+
+    if ($request->filled('region')) {
+        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+            $q->where('id', $request->region);
+        });
+    }
+
+    if ($request->filled('neighborhood')) {
+        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->neighborhood . '%')
+              ->orWhere('id', $request->neighborhood);
+        });
+    }
+
+    // استعلام الخريطة
+    $mapQuery = clone $baseQuery;
+    $allClients = $noClients ? collect() : $mapQuery->with([
+        'status_client:id,name,color',
+        'locations:id,client_id,latitude,longitude',
+        'Neighborhoodname.Region',
+        'branch:id,name'
+    ])->get();
+
+    // موقع الموظف
+    $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
+
+    // تنفيذ الاستعلام مع التقسيم
+    $clients = $noClients
+        ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20)
+        : $baseQuery->orderBy('created_at', 'desc')
+                    ->paginate(20)
+                    ->appends($request->except('page'));
+
+    // بيانات إضافية للعرض
+    return view('client.index', [
+        'clients' => $clients,
+        'allClients' => $allClients,
+        'Neighborhoods' => Neighborhood::all(),
+        'users' => User::all(),
+        'employees' => Employee::all(),
+        'creditLimit' => CreditLimit::first(),
+        'statuses' => Statuses::select('id', 'name', 'color')->get(),
+        'Region_groups' => Region_groub::all(),
+        'userLocation' => $userLocation,
+    ]);
+}
 
     public function updateCreditLimit(Request $request)
     {

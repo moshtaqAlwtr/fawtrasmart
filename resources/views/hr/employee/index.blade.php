@@ -218,8 +218,7 @@
                                         <td>{{ optional($employee->job_title)->name ?? 'غير محدد' }}</td>
                                         <td>{{ optional($employee->department)->name ?? 'غير محدد' }}</td>
                                         <td>{{ optional($employee->branch)->name ?? 'غير محدد' }}
-                                            <div style="font-size: 12px; color: #888;">
-                                                {{ $employee->user->directions->name ?? 'غير محدد' }}</div>
+
                                         </td>
                                         <td>
                                             @if ($employee->status == 1)

@@ -337,10 +337,8 @@ public function formattedAddress(): Attribute
         return $this->full_location['formatted_address'] ?? '';
     });
 }
-public function regionGroups()
+public function group()
 {
-    return $this->belongsToMany(Region_groub::class, 'client_region_group', 'client_id', 'region_group_id');
+    return $this->belongsTo(Region_groub::class, 'group_id');
 }
-
-
 }
