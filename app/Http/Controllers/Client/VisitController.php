@@ -12,6 +12,7 @@ use App\Models\notifications;
 use App\Models\PaymentsProcess;
 use App\Models\Receipt;
 use App\Models\Region_groub;
+use App\Models\Statuses;
 use App\Models\User;
 use App\Models\Visit;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -598,33 +599,32 @@ class VisitController extends Controller
     }
 
     // تحليلات حركة الزيارات
-    public function tracktaff()
-    {
-        $groups = Region_groub::with([
-            'neighborhoods.client' => function ($query) {
-                $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts']);
-            },
-        ])->get();
+public function tracktaff()
+{
+    $groups = Region_groub::with([
+        'neighborhoods.client' => function ($query) {
+            $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts', 'status_client']);
+        },
+    ])->get();
 
-        // تحديد آخر 4 أسابيع
-        $now = now();
-        $weeks = [];
+    // تحديد آخر 4 أسابيع
+    $now = now();
+    $weeks = [];
 
-        for ($i = 3; $i >= 0; $i--) {
-            $startDate = $now->copy()->subWeeks($i)->startOfWeek();
-            $endDate = $now->copy()->subWeeks($i)->endOfWeek();
+    for ($i = 3; $i >= 0; $i--) {
+        $startDate = $now->copy()->subWeeks($i)->startOfWeek();
+        $endDate = $now->copy()->subWeeks($i)->endOfWeek();
 
-            $weeks[] = [
-                'start' => $startDate->format('Y-m-d'),
-                'end' => $endDate->format('Y-m-d'),
-                'month_year' => $startDate->translatedFormat('F Y'),
-                'week_number' => 4 - $i, // رقم الأسبوع (1 إلى 4)
-            ];
-        }
-
-        return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+        $weeks[] = [
+            'start' => $startDate->format('Y-m-d'),
+            'end' => $endDate->format('Y-m-d'),
+            'month_year' => $startDate->translatedFormat('F Y'),
+            'week_number' => 4 - $i, // رقم الأسبوع (1 إلى 4)
+        ];
     }
 
+    return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+}
     public function getWeeksData(Request $request)
     {
         $offset = $request->input('offset', 0);

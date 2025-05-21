@@ -79,6 +79,19 @@
 
             <div class="accordion" id="groups-accordion">
                 @foreach ($groups as $group)
+                    @php
+                        $clients = $group->neighborhoods
+                            ->flatMap(function ($neigh) {
+                                return $neigh->client ? [$neigh->client] : [];
+                            })
+                            ->filter()
+                            ->unique('id');
+
+                        $statusCounts = $clients->groupBy(function($client) {
+                            return optional($client->status_client)->name ?? 'غير محدد';
+                        })->map->count();
+                    @endphp
+
                     <div class="card mb-2 group-section" id="group-{{ $group->id }}">
                         <div class="card-header" id="heading-{{ $group->id }}">
                             <h5 class="mb-0">
@@ -87,8 +100,19 @@
                                     aria-controls="collapse-{{ $group->id }}">
                                     <i class="fas fa-map-marker-alt text-danger"></i> {{ $group->name }}
                                     <span class="badge badge-primary badge-pill ml-2">
-                                        {{ $group->neighborhoods->flatMap(fn($n) => $n->client ? [$n->client] : [])->filter()->unique('id')->count() }}
+                                        {{ $clients->count() }}
                                     </span>
+
+                                    @foreach($statusCounts as $status => $count)
+                                        @php
+                                            $color = $clients->first(function($client) use ($status) {
+                                                return (optional($client->status_client)->name ?? 'غير محدد') === $status;
+                                            })->status_client->color ?? '#6c757d';
+                                        @endphp
+                                        <span class="badge badge-pill ml-1" style="background-color: {{ $color }}; color: white;">
+                                            {{ $status }}: {{ $count }}
+                                        </span>
+                                    @endforeach
                                 </button>
                             </h5>
                         </div>
@@ -96,15 +120,6 @@
                         <div id="collapse-{{ $group->id }}" class="collapse show"
                             aria-labelledby="heading-{{ $group->id }}" data-parent="#groups-accordion">
                             <div class="card-body p-0">
-                                @php
-                                    $clients = $group->neighborhoods
-                                        ->flatMap(function ($neigh) {
-                                            return $neigh->client ? [$neigh->client] : [];
-                                        })
-                                        ->filter()
-                                        ->unique('id');
-                                @endphp
-
                                 @if ($clients->count() > 0)
                                     <div class="table-responsive">
                                         <table class="table table-hover table-bordered text-center mb-0 client-table">
@@ -126,11 +141,11 @@
                                             </thead>
                                             <tbody>
                                                 @foreach ($clients as $client)
-                                                    <tr class="client-row" data-client="{{ $client->trade_name }}">
+                                                    <tr class="client-row" data-client="{{ $client->trade_name }}" data-status="{{ optional($client->status_client)->name ?? 'غير محدد' }}">
                                                         <td class="text-start align-middle">
                                                             <div class="d-flex align-items-center">
                                                                 <div class="avatar mr-1">
-                                                                    <span class="avatar-content bg-primary">
+                                                                    <span class="avatar-content" style="background-color: {{ optional($client->status_client)->color ?? '#6c757d' }}">
                                                                         {{ substr($client->trade_name, 0, 1) }}
                                                                     </span>
                                                                 </div>
@@ -245,6 +260,16 @@
             text-decoration: none;
             width: 100%;
             text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-right: 10px;
         }
 
         .activity-icons span {
@@ -329,6 +354,17 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .status-filter {
+            margin-top: 10px;
+        }
+
+        .status-filter .btn {
+            margin-left: 5px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+            padding: 3px 8px;
+        }
     </style>
 @endsection
 
@@ -387,6 +423,19 @@
                 });
             });
 
+            // فلترة حسب حالة العميل
+            $(document).on('click', '.status-filter-btn', function() {
+                const status = $(this).data('status');
+                $('.client-row').each(function() {
+                    const rowStatus = $(this).data('status');
+                    $(this).toggle(rowStatus === status);
+                });
+
+                // تحديث حالة الأزرار
+                $('.status-filter-btn').removeClass('active').removeClass('btn-primary').addClass('btn-outline-primary');
+                $(this).addClass('active').addClass('btn-primary').removeClass('btn-outline-primary');
+            });
+
             // التصدير إلى Excel
             $('#export-excel').click(function() {
                 // إنشاء ورقة عمل Excel
@@ -394,7 +443,7 @@
                 const wsData = [];
 
                 // إضافة العناوين
-                const headers = ['العميل'];
+                const headers = ['العميل', 'الحالة'];
                 $('.week-header .week-number').each(function() {
                     headers.push($(this).text());
                 });
@@ -403,19 +452,22 @@
 
                 // إضافة بيانات العملاء
                 $('.client-row').each(function() {
-                    const row = [];
-                    const clientName = $(this).find('td:first-child strong').first().text();
-                    row.push(clientName);
+                    if ($(this).is(':visible')) {
+                        const row = [];
+                        const clientName = $(this).find('td:first-child strong').first().text();
+                        const clientStatus = $(this).data('status');
+                        row.push(clientName, clientStatus);
 
-                    $(this).find('.activity-cell').each(function() {
-                        const hasActivity = $(this).data('has-activity') === '1';
-                        row.push(hasActivity ? 'نعم' : 'لا');
-                    });
+                        $(this).find('.activity-cell').each(function() {
+                            const hasActivity = $(this).data('has-activity') === '1';
+                            row.push(hasActivity ? 'نعم' : 'لا');
+                        });
 
-                    const totalActivities = $(this).find('.badge-pill').text();
-                    row.push(totalActivities);
+                        const totalActivities = $(this).find('.badge-pill').text();
+                        row.push(totalActivities);
 
-                    wsData.push(row);
+                        wsData.push(row);
+                    }
                 });
 
                 // تحويل البيانات إلى ورقة عمل
