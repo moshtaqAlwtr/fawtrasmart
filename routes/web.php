@@ -106,7 +106,7 @@ Route::group(
                     Route::delete('/destroy/{id}', [ReturnInvoiceController::class, 'destroy'])->name('ReturnIInvoices.destroy');
                 });
 
-               
+
                 Route::prefix('RevolvingInvoices')->group(function () {
                     Route::get('/index', [RevolvingInvoicesController::class, 'index'])->name('revolving_invoices.index');
                     Route::get('/create', [RevolvingInvoicesController::class, 'create'])->name('revolving_invoices.create');
@@ -388,6 +388,7 @@ Route::group(
                 Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
                 Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
                 Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
+
 
                 Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
                 Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');

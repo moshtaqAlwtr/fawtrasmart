@@ -607,7 +607,7 @@ public function tracktaff()
         },
     ])->get();
 
-    // تحديد آخر 4 أسابيع
+    // تحديد آخر 4 أسابيع بدلاً من 8
     $now = now();
     $weeks = [];
 
@@ -619,11 +619,19 @@ public function tracktaff()
             'start' => $startDate->format('Y-m-d'),
             'end' => $endDate->format('Y-m-d'),
             'month_year' => $startDate->translatedFormat('F Y'),
-            'week_number' => 4 - $i, // رقم الأسبوع (1 إلى 4)
+            'week_number' => $startDate->weekOfMonth,
+            'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
         ];
     }
 
-    return view('reports.sals.traffic_analytics', compact('groups', 'weeks'));
+    $totalClients = 0;
+    foreach ($groups as $group) {
+        $totalClients += $group->neighborhoods->flatMap(function ($neigh) {
+            return $neigh->client ? [$neigh->client] : [];
+        })->unique('id')->count();
+    }
+
+    return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalClients'));
 }
     public function getWeeksData(Request $request)
     {
