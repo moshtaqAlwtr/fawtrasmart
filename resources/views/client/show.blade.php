@@ -1199,7 +1199,7 @@
                                                     <td>{{ $visit->id }}</td>
                                                     <td>{{ $visit->visit_date }}</td>
                                                     <td>{{ $visit->departure_time }}</td>
-                                                    <td>{{ $visit->employee->name }}</td>
+                                                    <td>{{ $visit->employee->name??'غير محدد' }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
