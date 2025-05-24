@@ -51,7 +51,7 @@
                                            <td>{{ $client->branch->name ?? '' }}</td>
 <td>
     <span class="badge bg-{{ $client->group_class }}">
-        المجموعة {{ $client->group }}
+        الفئة {{ $client->group }}
     </span>
    
 </td>

@@ -388,8 +388,13 @@ Route::group(
                 Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
                 Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
 
+
                 Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
                     ->name('visits.storeLocationEnhanced');
+
+
+                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
+
                 Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
 
                 // إضافة هذا المسار للانصراف التلقائي
