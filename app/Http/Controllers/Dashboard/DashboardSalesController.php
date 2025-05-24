@@ -10,34 +10,22 @@ use App\Models\Invoice;
 use App\Models\Neighborhood;
 use App\Models\PaymentsProcess;
 use App\Models\Receipt;
+use App\Models\Target;
 use App\Models\Visit;
 use App\Models\User;
+use Carbon\Carbon;
 use DB;
 
 class DashboardSalesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
 
         $ClientCount = Client::count();
-        $Invoice = Invoice::sum('grand_total');
+        $Invoice = Invoice::where('type','normal')->sum('grand_total');
         $Visit = Visit::count();
 
-        // حساب مبيعات الأحياء مع الأقاليم
-        // $groups = DB::table('neighborhoods')
-        // ->leftJoin('clients', 'neighborhoods.client_id', '=', 'clients.id')
-        // ->leftJoin('invoices', 'clients.id', '=', 'invoices.client_id')
-        // ->leftJoin('payments_process', 'invoices.id', '=', 'payments_process.invoice_id')
-        // ->leftJoin('region_groubs', 'neighborhoods.region_id', '=', 'region_groubs.id')
-        // ->select(
-        //     'neighborhoods.region_id',
-        //     'region_groubs.name as region_name',
-        //     DB::raw('COALESCE(SUM(DISTINCT invoices.grand_total), 0) as total_sales'),
-        //     DB::raw('COALESCE(SUM(DISTINCT payments_process.amount), 0) as total_payments')
-        // )
-        // ->groupBy('neighborhoods.region_id', 'region_groubs.name')
-        // ->get();
-
+      
 
 
 
@@ -86,13 +74,14 @@ class DashboardSalesController extends Controller
 
         ///
         // حساب إجمالي المبيعات
-        $totalSales = Invoice::sum('grand_total');
+        $totalSales = Invoice::where('type','normal')->sum('grand_total');
 
         // الحصول على مبيعات الموظفين
         $employeesSales = Invoice::selectRaw('created_by, COALESCE(SUM(grand_total), 0) as sales')
             ->groupBy('created_by')
             ->get();
 
+       
         // إنشاء البيانات للمخطط البياني
         $chartData = $employeesSales->map(function ($employee) use ($totalSales) {
             $user = User::find($employee->created_by);
@@ -102,18 +91,73 @@ class DashboardSalesController extends Controller
                 'percentage' => ($totalSales > 0) ? round(($employee->sales / $totalSales) * 100, 2) : 0
             ];
         });
-        // $groupChartData = $groups->map(function ($group) {
-        //     return [
-        //         'region' => $group->region_name ?? 'غير معروف',
-        //         'sales' => (float) $group->total_sales,
-        //         'payments' => (float) $group->total_payments,
-        //     ];
-        // });
+      
+        $defaultTarget = Target::find(1)->value ?? 35000;
+        // الشهر المحدد
+    $month = $request->input('month', now()->format('Y-m'));
+    [$year, $monthNum] = explode('-', $month);
+
+    // الموظفون الذين لديهم فواتير هذا الشهر (لتحديد من له مدفوعات)
+    $invoiceEmployeeIds = Invoice::whereMonth('created_at', $monthNum)
+        ->whereYear('created_at', $year)
+        ->pluck('created_by')
+        ->unique();
+
+    // الموظفون الذين أنشؤوا سندات قبض هذا الشهر
+    $receiptEmployeeIds = Receipt::whereMonth('created_at', $monthNum)
+        ->whereYear('created_at', $year)
+        ->pluck('created_by')
+        ->unique();
+
+    // دمج كل من لديه نشاط في هذا الشهر
+    $employeeIds = $invoiceEmployeeIds->merge($receiptEmployeeIds)->unique();
+
+    // استخراج بيانات الأداء
+$cards = $employeeIds->map(function ($userId) use ($defaultTarget, $monthNum, $year) {
+    $user = User::find($userId);
+$returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+   $invoiceIds = Invoice::where('created_by', $userId)->whereNotIn('id', $returnedInvoiceIds) // ✅ استبعاد الفواتير التي لها راجع
+    ->pluck('id');
+
+    $paymentsTotal = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->whereMonth('created_at', $monthNum)
+        ->whereYear('created_at', $year)->sum('amount');
+
+    $receiptsTotal = Receipt::where('created_by', $userId)
+        ->whereMonth('created_at', $monthNum)
+        ->whereYear('created_at', $year)
+        ->sum('amount');
+
+    $totalCollected = $paymentsTotal + $receiptsTotal;
+
+    $target = $user->target?->monthly_target ?? $defaultTarget;
+    $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+
+    return [
+        'name' => $user?->name ?? 'غير معروف',
+        'payments' => $paymentsTotal,
+        'receipts' => $receiptsTotal,
+        'total' => $totalCollected,
+        'target' => $target,
+        'percentage' => $percentage,
+    ];
+});
+
+// ✅ الترتيب تنازليًا حسب المبلغ المحصل
+$cards = $cards->sortByDesc('total')->values();
+
+
+    
         $totalSales    = $groups->sum('total_sales');
         $totalPayments = $payments->sum('total_payments');
         $totalReceipts = $receipts->sum('total_receipts');
 
-        return view('dashboard.sales.index', compact('ClientCount', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts'));
+        return view('dashboard.sales.index', compact('ClientCount','cards','month', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts'));
         return view('dashboard.sales.index', compact('ClientCount', 'Invoice'));
     }
 }
+
+
+
+
+
+
