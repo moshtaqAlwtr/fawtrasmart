@@ -115,8 +115,21 @@ class DashboardSalesController extends Controller
     // استخراج بيانات الأداء
 $cards = $employeeIds->map(function ($userId) use ($defaultTarget, $monthNum, $year) {
     $user = User::find($userId);
-$returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
-   $invoiceIds = Invoice::where('created_by', $userId)->whereNotIn('id', $returnedInvoiceIds) // ✅ استبعاد الفواتير التي لها راجع
+    
+    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
+    ->pluck('reference_number')
+    ->toArray();
+
+// الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
+// بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
+$excludedInvoiceIds = array_unique(array_merge(
+    $returnedInvoiceIds,
+    Invoice::where('type', 'returned')->pluck('id')->toArray()
+));
+
+
+
+   $invoiceIds = Invoice::where('created_by', $userId)->where('type','normal')->whereNotIn('id', $excludedInvoiceIds) // ✅ استبعاد الفواتير التي لها راجع
     ->pluck('id');
 
     $paymentsTotal = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->whereMonth('created_at', $monthNum)

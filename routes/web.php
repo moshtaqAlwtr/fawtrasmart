@@ -60,6 +60,8 @@ Route::group(
             Route::get('/general-target', [EmployeeTargetController::class, 'showGeneralTarget'])->name('target.show');
             Route::post('/general-target', [EmployeeTargetController::class, 'updateGeneralTarget'])->name('target.update');
             Route::get('/client-target', [EmployeeTargetController::class, 'client_target'])->name('target.client');
+            Route::get('/client-target-create', [EmployeeTargetController::class, 'client_target_create'])->name('target.client.create');
+             Route::post('/client-target-create', [EmployeeTargetController::class, 'client_target_store'])->name('target.client.update');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
         });
         Route::prefix('sales')

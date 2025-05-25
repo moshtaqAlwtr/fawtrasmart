@@ -189,6 +189,13 @@
                                         data-i18n="Sessions">اضافة الهدف الشهري للمناديب</span>
                                 </a>
                             </li>
+                             <li>
+                                <a href="{{ route('target.client.create') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item"
+                                        data-i18n="Sessions">اضافة الهدف  للعملاء</span>
+                                </a>
+                            </li>
                             <li>
                                 <a href="{{ route('target.client') }}">
                                     <i class="feather icon-circle"></i>
