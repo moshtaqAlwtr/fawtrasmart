@@ -179,14 +179,14 @@
                                 <a href="{{ route('employee_targets.index') }}">
                                     <i class="feather icon-circle"></i>
                                     <span class="menu-item"
-                                        data-i18n="Start Sale">اضافة الاهداف للموظفين</span>
+                                        data-i18n="Start Sale">اضافة الاهداف للمناديب</span>
                                 </a>
                             </li>
                             <li>
-                                <a href="{{ route('target.client') }}">
+                                <a href="{{ route('target.show') }}">
                                     <i class="feather icon-circle"></i>
                                     <span class="menu-item"
-                                        data-i18n="Sessions">اضافة الهدف العام</span>
+                                        data-i18n="Sessions">اضافة الهدف الشهري للمناديب</span>
                                 </a>
                             </li>
                             <li>
