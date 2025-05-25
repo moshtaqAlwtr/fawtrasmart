@@ -71,83 +71,76 @@ class TreasuryEmployeeController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    // الحصول على السجل الحالي مع العلاقات
-    $default = TreasuryEmployee::with('employee', 'treasury')->findOrFail($id);
+    {
+        // تحديث السجل
+        TreasuryEmployee::findOrFail($id)->update([
+            'treasury_id' => $request->treasury_id,
+            'employee_id' => $request->employee_id,
+        ]);
 
-    // حفظ القيم القديمة قبل التحديث
-    $oldTreasury = $default->treasury;
-    $oldEmployee = $default->employee;
+        // تحميل السجل المحدث مع العلاقات
+        $default = TreasuryEmployee::with('employee', 'treasury')->findOrFail($id);
 
-    // تحديث السجل
-    $default->update([
-        'treasury_id' => $request->treasury_id,
-        'employee_id' => $request->employee_id,
-    ]);
+        // تحميل الخزينة الجديد والموظف الجديد
+        $newStorehouse = Account::find($request->storehouse_id);
+        $newEmployee = Employee::find($request->employee_id);
 
-    // تحميل السجل المحدث مع العلاقات
-    $default->refresh()->load('employee', 'treasury');
+        // بناء النص بناءً على التغييرات
+        $description = '';
 
-    // تحميل الخزينة الجديد والموظف الجديد من العلاقات
-    $newTreasury = $default->treasury;
-    $newEmployee = $default->employee;
+        if ($oldStorehouseId != $request->storehouse_id && $oldEmployeeId != $request->employee_id) {
+            // تم تغيير الخزينة والموظف
+            $description = sprintf(
+                'تم تغيير الخزينة الافتراضي والموظف من **%s** (الموظف: **%s %s %s**) إلى **%s** (الموظف: **%s %s %s**)',
+                $oldStorehouse->name, // الخزينة القديم
+                $oldEmployee->first_name,
+                $oldEmployee->middle_name,
+                $oldEmployee->nickname, // الموظف القديم
+                $newStorehouse->name, // الخزينة الجديد
+                $newEmployee->first_name,
+                $newEmployee->middle_name,
+                $newEmployee->nickname, // الموظف الجديد
+            );
+        } elseif ($oldStorehouseId != $request->storehouse_id) {
+            // تم تغيير الخزينة فقط
+            $description = sprintf(
+                'تم تغيير الخزينة الافتراضي من **%s** إلى **%s** للموظف **%s %s %s**',
+                $oldStorehouse->name, // الخزينة القديم
+                $newStorehouse->name, // الخزينة الجديد
+                $default->employee->first_name,
+                $default->employee->middle_name,
+                $default->employee->nickname, // الموظف
+            );
+        } elseif ($oldEmployeeId != $request->employee_id) {
+            // تم تغيير الموظف فقط
+            $description = sprintf(
+                'تم تغيير الموظف للمستودع الافتراضي **%s** من **%s %s %s** إلى **%s %s %s**',
+                $default->treasury->name, // الخزينة
+                $oldEmployee->first_name,
+                $oldEmployee->middle_name,
+                $oldEmployee->nickname, // الموظف القديم
+                $newEmployee->first_name,
+                $newEmployee->middle_name,
+                $newEmployee->nickname, // الموظف الجديد
+            );
+        } else {
+            // لم يتم تغيير شيء
+            $description = 'لم يتم تغيير أي شيء.';
+        }
 
-    // بناء النص بناءً على التغييرات
-    $description = '';
+        // تسجيل اشعار نظام جديد
+        Log::create([
+            'type' => 'product_log',
+            'type_id' => $default->id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => $description, // النص المنسق
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
 
-    if ($oldTreasury->id != $request->treasury_id && $oldEmployee->id != $request->employee_id) {
-        // تم تغيير الخزينة والموظف
-        $description = sprintf(
-            'تم تغيير الخزينة الافتراضية والموظف من **%s** (الموظف: **%s %s %s**) إلى **%s** (الموظف: **%s %s %s**)',
-            $oldTreasury->name,
-            $oldEmployee->first_name,
-            $oldEmployee->middle_name,
-            $oldEmployee->nickname,
-            $newTreasury->name,
-            $newEmployee->first_name,
-            $newEmployee->middle_name,
-            $newEmployee->nickname
-        );
-    } elseif ($oldTreasury->id != $request->treasury_id) {
-        // تم تغيير الخزينة فقط
-        $description = sprintf(
-            'تم تغيير الخزينة الافتراضية من **%s** إلى **%s** للموظف **%s %s %s**',
-            $oldTreasury->name,
-            $newTreasury->name,
-            $newEmployee->first_name,
-            $newEmployee->middle_name,
-            $newEmployee->nickname
-        );
-    } elseif ($oldEmployee->id != $request->employee_id) {
-        // تم تغيير الموظف فقط
-        $description = sprintf(
-            'تم تغيير الموظف للخزينة الافتراضية **%s** من **%s %s %s** إلى **%s %s %s**',
-            $newTreasury->name,
-            $oldEmployee->first_name,
-            $oldEmployee->middle_name,
-            $oldEmployee->nickname,
-            $newEmployee->first_name,
-            $newEmployee->middle_name,
-            $newEmployee->nickname
-        );
-    } else {
-        // لم يتم تغيير شيء
-        $description = 'لم يتم تغيير أي شيء.';
+        return redirect()
+            ->route('finance_settings.treasury_employee')
+            ->with(['success' => 'تم تحديث خزينة الموظف بنجاج !!']);
     }
-
-    // تسجيل اشعار نظام جديد باستخدام ModelsLog مثل دالة store
-    ModelsLog::create([
-        'type' => 'product_log',
-        'type_id' => $default->id,
-        'type_log' => 'log',
-        'description' => $description,
-        'created_by' => auth()->id(),
-    ]);
-
-    return redirect()
-        ->route('finance_settings.treasury_employee')
-        ->with(['success' => 'تم تحديث خزينة الموظف بنجاح !!']);
-}
 
     public function delete($id)
     {

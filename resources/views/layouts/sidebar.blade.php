@@ -168,6 +168,44 @@
                 @endif
             @endif
 
+        
+            <li class="nav-item">
+                        <a href="#">
+                            <i class="feather icon-monitor"></i>
+                            <span class="menu-title">اعدادات الاحصائيات</span>
+                        </a>
+                        <ul class="menu-content">
+                            <li>
+                                <a href="{{ route('employee_targets.index') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item"
+                                        data-i18n="Start Sale">اضافة الاهداف للمناديب</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('target.show') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item"
+                                        data-i18n="Sessions">اضافة الهدف الشهري للمناديب</span>
+                                </a>
+                            </li>
+                             <li>
+                                <a href="{{ route('target.client.create') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item"
+                                        data-i18n="Sessions">اضافة الهدف  للعملاء</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('target.client') }}">
+                                    <i class="feather icon-circle"></i>
+                                    <span class="menu-item"
+                                        data-i18n="POS Reports">احصائيات وتصنيف العملاء</span>
+                                </a>
+                            </li>
+                           
+                        </ul>
+                    </li>
 
 
             <!-- نقاط  البيع -->
@@ -558,11 +596,7 @@
                                             data-i18n="eCommerce">{{ trans('main_trans.Client_settings') }}</span>
                                     </a>
                                 </li>
-                                  <li><a href="{{ route('groups.group_client') }}"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce">اعدادات المجموعات</span>
-                                </a>
-                            </li>
+                                 
 
                             @endcan
 

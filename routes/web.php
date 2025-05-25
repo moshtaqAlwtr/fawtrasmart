@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Client\ClientSettingController;
-use App\Http\Controllers\Client\GroupsController;
 use App\Http\Controllers\Client\VisitController;
 use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\EmployeeTargetController;
@@ -56,8 +55,13 @@ Route::group(
             Route::get('/SupplyOrders/client', [ClientSettingController::class, 'SupplyOrders_client'])->name('clients.SupplyOrders_client'); // أوامر الشغل
             Route::get('/questions/client', [ClientSettingController::class, 'questions_client'])->name('clients.questions_client'); // عروض الأسعار
             Route::get('/edit/profile', [ClientSettingController::class, 'profile'])->name('clients.profile');
- Route::get('/employee-targets', [EmployeeTargetController::class, 'index'])->name('employee_targets.index');
-                Route::post('/employee-targets', [EmployeeTargetController::class, 'storeOrUpdate'])->name('employee_targets.store');
+            Route::get('/employee-targets', [EmployeeTargetController::class, 'index'])->name('employee_targets.index');
+            Route::post('/employee-targets', [EmployeeTargetController::class, 'storeOrUpdate'])->name('employee_targets.store');
+            Route::get('/general-target', [EmployeeTargetController::class, 'showGeneralTarget'])->name('target.show');
+            Route::post('/general-target', [EmployeeTargetController::class, 'updateGeneralTarget'])->name('target.update');
+            Route::get('/client-target', [EmployeeTargetController::class, 'client_target'])->name('target.client');
+            Route::get('/client-target-create', [EmployeeTargetController::class, 'client_target_create'])->name('target.client.create');
+             Route::post('/client-target-create', [EmployeeTargetController::class, 'client_target_store'])->name('target.client.update');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
         });
         Route::prefix('sales')
@@ -225,6 +229,7 @@ Route::group(
                     Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
                     Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
 
+
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
                     Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
@@ -236,7 +241,9 @@ Route::group(
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
-
+                    Route::get('/group', [ClientController::class, 'group_client'])->name('clients.group_client');
+                    Route::get('/group/create', [ClientController::class, 'group_client_create'])->name('clients.group_client_create');
+                    Route::post('/group/store', [ClientController::class, 'group_client_store'])->name('clients.group_client_store');
                     Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
@@ -292,15 +299,6 @@ Route::group(
                     Route::put('/update/{id}', [PaymentProcessController::class, 'update'])->name('paymentsClient.update');
                     Route::get('payments/invoice-details/{invoice_id}', [PaymentProcessController::class, 'getInvoiceDetails'])->name('paymentsClient.invoice-details');
                 });
-
-                Route::prefix('groups')->group(function () {
-                    Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
-                    Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
-                    Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
-                    Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
-                    Route::put('/group/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
-                    Route::delete('/group/delete/{id}', [GroupsController::class, 'group_client_destroy'])->name('groups.group_client_destroy');
-                });
                 Route::prefix('Sitting')->group(function () {
                     Route::get('/index', [SittingInvoiceController::class, 'index'])->name('SittingInvoice.index');
 
@@ -347,9 +345,11 @@ Route::group(
                                     'valid_to' => $offer->valid_to,
                                     'clients' => $offer->clients->map(fn($c) => ['id' => $c->id]),
                                     'products' => $offer->products->map(fn($p) => ['id' => $p->id]),
-                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id]),
+                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id])
                                 ];
                             });
+
+
 
                         return response()->json($offers);
                     });
@@ -385,19 +385,27 @@ Route::group(
                     ->middleware('auth')
                     ->name('visits.today');
 
+
                 Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
                 Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
                 Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
 
 
+                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
+                    ->name('visits.storeLocationEnhanced');
+
+
                 Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
+
                 Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
 
                 // إضافة هذا المسار للانصراف التلقائي
-                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])->name('visits.processAutoDepartures');
+                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])
+                    ->name('visits.processAutoDepartures');
                 Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
                 // إضافة مسار للانصراف اليدوي
-                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])->name('visits.manualDeparture');
+                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])
+                    ->name('visits.manualDeparture');
             });
         Route::prefix('commission')
             ->middleware(['auth'])
@@ -415,4 +423,8 @@ Route::group(
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
     },
+
+
+
+
 );

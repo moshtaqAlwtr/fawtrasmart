@@ -58,7 +58,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Branch::find($this->branch_id);
     }
-   
+
+    public function target()
+{
+    return $this->hasOne(EmployeeTarget::class);
+}
+
 
     public function isEmployee()
     {
@@ -68,18 +73,8 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Branch::class);
     }
-        public function directions()
-    {
-        return $this->belongsTo(Direction::class);
-    }
     public function notifications()
 {
     return $this->hasMany(Notification::class);
-}
-public function groups()
-{
-    return $this->belongsToMany(Region_groub::class, 'employee_group')
-                ->using(EmployeeGroup::class)
-                ->withPivot('expires_at');
 }
 }
