@@ -1,27 +1,26 @@
-@extends('master')
+<?php $__env->startSection('title', 'إضافة ملاحظة أو مرفق'); ?>
 
-@section('title', 'إضافة ملاحظة أو مرفق')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container mt-4">
-        <form id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
-            @csrf
+        <form id="clientForm" action="<?php echo e(route('clients.addnotes')); ?>" method="POST" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
             <input type="hidden" name="current_latitude" id="current_latitude">
             <input type="hidden" name="current_longitude" id="current_longitude">
-            @if ($errors->any())
+            <?php if($errors->any()): ?>
                 <div class="alert alert-danger">
                     <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
-            @if (session('error'))
+            <?php endif; ?>
+            <?php if(session('error')): ?>
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    <?php echo e(session('error')); ?>
+
                 </div>
-            @endif
+            <?php endif; ?>
             <div class="card">
 
                 <div class="card-body">
@@ -31,7 +30,7 @@
                         </div>
 
                         <div>
-                            <a href="{{ route('appointments.index') }}" class="btn btn-outline-danger">
+                            <a href="<?php echo e(route('appointments.index')); ?>" class="btn btn-outline-danger">
                                 <i class="fa fa-ban"></i>الغاء
                             </a>
                             <button type="submit" class="btn btn-outline-primary">
@@ -56,7 +55,7 @@
                                 <option value="">اختر نوع الإجراء</option>
                                 <option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>
                             </select>
-                            <input type="hidden" name="client_id" value="{{ $id }}">
+                            <input type="hidden" name="client_id" value="<?php echo e($id); ?>">
                         </div>
 
                         <!-- Modal -->
@@ -97,28 +96,29 @@
                             <div class="dropdown col-md-6">
                                 <button class="btn btn-light dropdown-toggle text-start w-100" type="button"
                                     id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                    style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
+                                    style="background-color: <?php echo e($currentStatus->color ?? '#ffffff'); ?>;
                                            color: #000;
                                            border: 1px solid #ccc;">
-                                    {{ $currentStatus->name ?? 'اختر الحالة' }}
+                                    <?php echo e($currentStatus->name ?? 'اختر الحالة'); ?>
+
                                 </button>
 
                                 <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="clientStatusDropdown"
                                     style="border-radius: 8px;">
-                                    @foreach ($statuses as $status)
+                                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <li>
                                             <a href="#"
                                                 class="dropdown-item text-white d-flex align-items-center justify-content-between status-option"
-                                                data-id="{{ $status->id }}" data-name="{{ $status->name }}"
-                                                data-color="{{ $status->color }}"
-                                                style="background-color: {{ $status->color }};">
-                                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
+                                                data-id="<?php echo e($status->id); ?>" data-name="<?php echo e($status->name); ?>"
+                                                data-color="<?php echo e($status->color); ?>"
+                                                style="background-color: <?php echo e($status->color); ?>;">
+                                                <span><i class="fas fa-thumbtack me-1"></i> <?php echo e($status->name); ?></span>
                                             </a>
                                         </li>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                     <li>
-                                        <a href="{{ route('SupplyOrders.edit_status') }}"
+                                        <a href="<?php echo e(route('SupplyOrders.edit_status')); ?>"
                                             class="dropdown-item text-muted d-flex align-items-center justify-content-center"
                                             style="border-top: 1px solid #ddd; padding: 8px;">
                                             <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات
@@ -139,41 +139,27 @@
                     </div>
 
                     <!-- Attachments -->
-                    {{-- <div class="mt-4">
-                        <h5 class="mb-3">المرفقات</h5>
-                        <div class="upload-area p-4 border rounded bg-light text-center">
-                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                            <p class="mb-1">أفلت الملف هنا أو <label class="text-primary">اختر من جهازك</label></p>
-                            <input type="file" name="attachments" class="form-control mt-3" multiple>
-                        </div>
-                    </div> --}}
+                    
                     <!-- المرفقات -->
 
-<div class="col-md-12 col-12 mb-3">
-    <div class="form-group">
-        <label for="attachments" class="form-label">المرفقات</label>
-
-        <!-- حقل رفع الملفات الفعلي (مخفي) -->
-        <input type="file" name="attachments[]" multiple id="attachments" class="form-control d-none"
-            onchange="previewSelectedFiles()">
-
-        <!-- منطقة التحميل -->
-        <div class="upload-area border rounded p-4 text-center position-relative bg-light"
-            onclick="document.getElementById('attachments').click()" style="cursor: pointer;">
-            <div class="d-flex flex-column align-items-center justify-content-center gap-2">
-                <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
-                <p class="mb-0 text-primary fw-bold">اضغط هنا أو اختر من جهازك</p>
-                <small class="text-muted">يمكنك رفع صور، فيديوهات، وملفات PDF/Word/Excel</small>
-            </div>
-            <div class="position-absolute end-0 top-50 translate-middle-y me-3">
-                <i class="fas fa-file-alt fs-3 text-secondary"></i>
-            </div>
-        </div>
-
-        <!-- عرض أسماء الملفات المحددة -->
-        <div id="selected-files" class="mt-3"></div>
-    </div>
-</div>
+                    <div class="col-md-12 col-12 mb-3">
+                        <div class="form-group">
+                            <label for="attachments">المرفقات</label>
+                            <input type="file" name="attachments" id="attachments" class="d-none">
+                            <div class="upload-area border rounded p-3 text-center position-relative"
+                                onclick="document.getElementById('attachments').click()">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    <i class="fas fa-cloud-upload-alt text-primary"></i>
+                                    <span class="text-primary">اضغط هنا</span>
+                                    <span>أو</span>
+                                    <span class="text-primary">اختر من جهازك</span>
+                                </div>
+                                <div class="position-absolute end-0 top-50 translate-middle-y me-3">
+                                    <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
 
                     <!-- Options -->
@@ -190,9 +176,9 @@
             </div>
         </form>
     </div>
-@endsection
-@section('scripts')
-    @parent
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('scripts'); ?>
+    <?php echo \Illuminate\View\Factory::parentPlaceholder('scripts'); ?>
     <script>
         $(document).ready(function() {
             // تحميل الإجراءات من localStorage أو استخدام القائمة الافتراضية
@@ -356,25 +342,6 @@
             });
         });
     </script>
-<script>
-    function previewSelectedFiles() {
-        const input = document.getElementById('attachments');
-        const preview = document.getElementById('selected-files');
-        preview.innerHTML = '';
+<?php $__env->stopSection(); ?>
 
-        if (input.files.length > 0) {
-            const list = document.createElement('ul');
-            list.classList.add('list-unstyled', 'mb-0');
-
-            Array.from(input.files).forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i> ${file.name}`;
-                list.appendChild(listItem);
-            });
-
-            preview.appendChild(list);
-        }
-    }
-</script>
-
-@endsection
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/client/appointments/note/add_note.blade.php ENDPATH**/ ?>

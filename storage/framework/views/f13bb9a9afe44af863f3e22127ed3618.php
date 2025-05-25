@@ -5,157 +5,173 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('css'); ?>
-<style>
-    /* Responsive CSS */
-    @media (max-width: 768px) {
-        .mobile-stack {
-            flex-direction: column !important;
+    <style>
+        /* Responsive CSS */
+        @media (max-width: 768px) {
+            .mobile-stack {
+                flex-direction: column !important;
+            }
+
+            .mobile-full-width {
+                width: 100% !important;
+            }
+
+            .mobile-text-center {
+                text-align: center !important;
+            }
+
+            .mobile-mt-2 {
+                margin-top: 1rem !important;
+            }
+
+            .mobile-hide {
+                display: none !important;
+            }
+
+            .table-responsive {
+                font-size: 0.875rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
         }
 
-        .mobile-full-width {
-            width: 100% !important;
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .tablet-stack {
+                flex-direction: column !important;
+            }
+
+            .tablet-text-center {
+                text-align: center !important;
+            }
         }
 
-        .mobile-text-center {
-            text-align: center !important;
+        /* Card Styles */
+        .card {
+            transition: all 0.3s ease;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
         }
 
-        .mobile-mt-2 {
-            margin-top: 1rem !important;
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .mobile-hide {
-            display: none !important;
+        /* Button & Badge Styles */
+        .btn {
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
         }
 
-        .table-responsive {
-            font-size: 0.875rem;
+        .badge {
+            padding: 0.5em 0.75em;
+            border-radius: 0.25rem;
         }
 
-        .card-body {
+        /* Section Styles */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .info-group {
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        /* Timeline Styles */
+        .timeline {
+            position: relative;
+            padding: 1rem 0;
+        }
+
+        .timeline-item {
             padding: 1rem;
-        }
-    }
-
-    @media (min-width: 769px) and (max-width: 1024px) {
-        .tablet-stack {
-            flex-direction: column !important;
+            border-left: 2px solid #e9ecef;
+            margin-left: 1rem;
+            position: relative;
         }
 
-        .tablet-text-center {
-            text-align: center !important;
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -0.5rem;
+            top: 1.5rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #007bff;
         }
-    }
 
-    /* Card Styles */
-    .card {
-        transition: all 0.3s ease;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        margin-bottom: 1.5rem;
-    }
+        /* Table Styles */
+        .custom-table {
+            width: 100%;
+        }
 
-    .card:hover {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+        .custom-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
 
-    /* Button & Badge Styles */
-    .btn {
-        border-radius: 0.25rem;
-        transition: all 0.2s ease;
-    }
+        .custom-table td,
+        .custom-table th {
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
 
-    .badge {
-        padding: 0.5em 0.75em;
-        border-radius: 0.25rem;
-    }
+        /* Status Colors */
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 600;
+            border-radius: 0.25rem;
+        }
 
-    /* Section Styles */
-    .section-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
+        .status-success {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
 
-    .info-group {
-        margin-bottom: 0.5rem;
-    }
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
 
-    .info-label {
-        font-weight: 600;
-        color: #6c757d;
-    }
+        .status-danger {
+            background-color: #f8d7da;
+            color: #842029;
+        }
 
-    /* Timeline Styles */
-    .timeline {
-        position: relative;
-        padding: 1rem 0;
-    }
+        .status-info {
+            background-color: #cff4fc;
+            color: #055160;
+        }
 
-    .timeline-item {
-        padding: 1rem;
-        border-left: 2px solid #e9ecef;
-        margin-left: 1rem;
-        position: relative;
-    }
+        /* Dropdown Menu */
+        .dropdown-menu {
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
 
-    .timeline-item::before {
-        content: '';
-        position: absolute;
-        left: -0.5rem;
-        top: 1.5rem;
-        width: 1rem;
-        height: 1rem;
-        border-radius: 50%;
-        background: #fff;
-        border: 2px solid #007bff;
-    }
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+        }
 
-    /* Table Styles */
-    .custom-table {
-        width: 100%;
-    }
-
-    .custom-table th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-    }
-
-    .custom-table td, .custom-table th {
-        padding: 0.75rem;
-        vertical-align: middle;
-    }
-
-    /* Status Colors */
-    .status-badge {
-        padding: 0.35em 0.65em;
-        font-size: 0.75em;
-        font-weight: 600;
-        border-radius: 0.25rem;
-    }
-
-    .status-success { background-color: #d1e7dd; color: #0f5132; }
-    .status-warning { background-color: #fff3cd; color: #856404; }
-    .status-danger { background-color: #f8d7da; color: #842029; }
-    .status-info { background-color: #cff4fc; color: #055160; }
-
-    /* Dropdown Menu */
-    .dropdown-menu {
-        border-radius: 0.25rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .dropdown-item {
-        padding: 0.5rem 1rem;
-        display: flex;
-        align-items: center;
-    }
-
-    .dropdown-item i {
-        margin-right: 0.5rem;
-        width: 1.25rem;
-    }
-</style>
+        .dropdown-item i {
+            margin-right: 0.5rem;
+            width: 1.25rem;
+        }
+    </style>
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('content'); ?>
     <?php if(session('toast_message')): ?>
@@ -344,7 +360,7 @@
                             </form>
 
                             <!-- قائمة خيارات أخرى -->
-                                           </div>
+                        </div>
 
                     </div>
 
@@ -940,39 +956,85 @@
                         </button>
                         <!-- محتوى الملاحظات -->
                         <div id="notes" class="collapse mt-2">
-                            <div class="card card-body">
-                                <!-- محتوى الملاحظات هنا -->
-                                <div class="timeline">
-                                    <?php $__currentLoopData = $ClientRelations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <div class="timeline-item">
-                                            <div class="timeline-content d-flex align-items-start">
-                                                <span class="badge"
-                                                    style="background-color: <?php echo e($statuses->find($client->status_id)->color ?? '#007BFF'); ?>; color: white;">
-                                                    <?php echo e($statuses->find($client->status_id)->name ?? ''); ?>
+    <div class="card card-body">
+        <!-- الملاحظات -->
+        <div class="timeline">
+            <?php $__currentLoopData = $ClientRelations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="timeline-item mb-4">
+                    <div class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
+                        <!-- الحالة -->
+                        <span class="badge mb-2 mb-md-0"
+                            style="background-color: <?php echo e($statuses->find($client->status_id)->color ?? '#007BFF'); ?>; color: white;">
+                            <?php echo e($statuses->find($client->status_id)->name ?? ''); ?>
 
-                                                </span>
-                                                <div
-                                                    class="note-box border rounded bg-white shadow-sm p-3 ms-3 flex-grow-1">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <h6 class="mb-0"><i class="fas fa-user"></i>
-                                                            <?php echo e($note->created_by ?? ''); ?></h6>
-                                                        <small class="text-muted">
-                                                            <i class="fas fa-clock"></i>
-                                                            <?php echo e($note->created_at->format('H:i d/m/Y')); ?> - <span
-                                                                class="text-primary"><?php echo e($note->status ?? ''); ?></span>
-                                                        </small>
-                                                    </div>
-                                                    <hr> <i class="far fa-user me-1"></i>
-                                                    <p class="mb-2"><?php echo e($note->process ?? ''); ?></p>
-                                                    <small class="text-muted"><?php echo e($note->description ?? ''); ?></small>
-                                                </div>
-                                                <div class="timeline-dot bg-danger"></div>
-                                            </div>
-                                        </div>
+                        </span>
+
+                        <!-- مربع الملاحظة -->
+                        <div class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
+                            <!-- الرأس -->
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                                <h6 class="mb-2 mb-sm-0">
+                                    <i class="fas fa-user me-1"></i> <?php echo e($note->employee->name ?? ''); ?>
+
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <?php echo e($note->created_at->format('H:i d/m/Y')); ?> -
+                                    <span class="text-primary"><?php echo e($note->status ?? ''); ?></span>
+                                </small>
+                            </div>
+
+                            <hr class="my-2">
+
+                            <!-- النص -->
+                            <p class="mb-2">
+                                <i class="far fa-user me-1"></i> <?php echo e($note->process ?? ''); ?>
+
+                            </p>
+                            <small class="text-muted d-block mb-2"><?php echo e($note->description ?? ''); ?></small>
+
+                            <!-- عرض المرفقات -->
+                            <?php
+                                $files = json_decode($note->attachments, true);
+                                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                            ?>
+
+                            <?php if(is_array($files) && count($files)): ?>
+                                <div class="attachment mt-3 d-flex flex-wrap gap-2">
+                                    <?php $__currentLoopData = $files; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $file): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php
+                                            $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                            $fileUrl = asset('assets/uploads/notes/' . $file);
+                                        ?>
+
+                                        <?php if(in_array(strtolower($ext), $imageExtensions)): ?>
+                                            <a href="<?php echo e($fileUrl); ?>" target="_blank" class="d-block">
+                                                <img src="<?php echo e($fileUrl); ?>"
+                                                    alt="مرفق صورة"
+                                                    class="img-fluid rounded border"
+                                                    style="max-width: 180px; height: auto;">
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="<?php echo e($fileUrl); ?>" target="_blank"
+                                                class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                                <i class="fas fa-file-alt me-2"></i> عرض الملف: <?php echo e($file); ?>
+
+                                            </a>
+                                        <?php endif; ?>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
-                            </div>
+                            <?php endif; ?>
                         </div>
+
+                        <!-- نقطة الخط الزمني -->
+                        <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
+                    </div>
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+    </div>
+</div>
+
                     </div>
 
                     <!-- زر المدفوعات -->
@@ -1123,7 +1185,8 @@
                                     <!-- جدول حركة الحساب -->
                                     <div class="card border-0 shadow-sm">
                                         <div class="card-header bg-white border-bottom py-3">
-                                            <h5 class="mb-0"><i class="fas fa-exchange-alt me-2 text-primary"></i> حركة الحساب</h5>
+                                            <h5 class="mb-0"><i class="fas fa-exchange-alt me-2 text-primary"></i> حركة
+                                                الحساب</h5>
                                         </div>
                                         <div class="card-body p-0">
                                             <div class="table-responsive">
@@ -1133,39 +1196,43 @@
                                                             <th class="text-end" style="width: 15%;">التاريخ</th>
                                                             <th class="text-end" style="width: 40%;">الوصف</th>
                                                             <th class="text-center" style="width: 20%;">القيمة</th>
-                                                            <th class="text-center" style="width: 25%;">الرصيد بعد العملية</th>
+                                                            <th class="text-center" style="width: 25%;">الرصيد بعد العملية
+                                                            </th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <?php $__currentLoopData = $operationsPaginator; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $operation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <tr>
-                                                            <td class="text-end">
-                                                                <?php echo e(\Carbon\Carbon::parse($operation['date'])->format('d/m/Y')); ?>
+                                                            <tr>
+                                                                <td class="text-end">
+                                                                    <?php echo e(\Carbon\Carbon::parse($operation['date'])->format('d/m/Y')); ?>
 
-                                                            </td>
-                                                            <td class="text-end"><?php echo e($operation['operation']); ?></td>
-                                                            <td class="text-center <?php echo e($operation['deposit'] ? 'text-success' : 'text-danger'); ?>">
-                                                                <?php if($operation['deposit']): ?>
-                                                                    +<?php echo e(number_format($operation['deposit'], 2)); ?>
+                                                                </td>
+                                                                <td class="text-end"><?php echo e($operation['operation']); ?></td>
+                                                                <td
+                                                                    class="text-center <?php echo e($operation['deposit'] ? 'text-success' : 'text-danger'); ?>">
+                                                                    <?php if($operation['deposit']): ?>
+                                                                        +<?php echo e(number_format($operation['deposit'], 2)); ?>
 
-                                                                <?php elseif($operation['withdraw']): ?>
-                                                                    -<?php echo e(number_format($operation['withdraw'], 2)); ?>
+                                                                    <?php elseif($operation['withdraw']): ?>
+                                                                        -<?php echo e(number_format($operation['withdraw'], 2)); ?>
 
-                                                                <?php else: ?>
-                                                                    0.00
-                                                                <?php endif; ?>
-                                                            </td>
-                                                            <td class="text-center <?php echo e($operation['balance_after'] < 0 ? 'text-danger' : 'text-success'); ?>">
-                                                                <?php echo e(number_format($operation['balance_after'], 2)); ?>
+                                                                    <?php else: ?>
+                                                                        0.00
+                                                                    <?php endif; ?>
+                                                                </td>
+                                                                <td
+                                                                    class="text-center <?php echo e($operation['balance_after'] < 0 ? 'text-danger' : 'text-success'); ?>">
+                                                                    <?php echo e(number_format($operation['balance_after'], 2)); ?>
 
-                                                            </td>
-                                                        </tr>
+                                                                </td>
+                                                            </tr>
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </tbody>
                                                     <tfoot class="table-light">
                                                         <tr>
                                                             <th colspan="2" class="text-end">الرصيد النهائي</th>
-                                                            <th class="text-center <?php echo e(($account->balance ?? 0) < 0 ? 'text-danger' : 'text-success'); ?>">
+                                                            <th
+                                                                class="text-center <?php echo e(($account->balance ?? 0) < 0 ? 'text-danger' : 'text-success'); ?>">
                                                                 <?php echo e(number_format($account->balance ?? 0, 2)); ?>
 
                                                             </th>
@@ -1212,7 +1279,7 @@
                                                     <td><?php echo e($visit->id); ?></td>
                                                     <td><?php echo e($visit->visit_date); ?></td>
                                                     <td><?php echo e($visit->departure_time); ?></td>
-                                                    <td><?php echo e($visit->employee->name); ?></td>
+                                                    <td><?php echo e($visit->employee->name ?? 'غير محدد'); ?></td>
                                                 </tr>
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </tbody>

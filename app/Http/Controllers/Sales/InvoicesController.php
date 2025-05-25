@@ -405,15 +405,24 @@ public function getPrice(Request $request)
         return response()->json(['error' => 'رمز التحقق غير صحيح.'], 400);
     }
 
-    public function notifications()
-    {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']);
+public function notifications(Request $request)
+{
+    $query = notifications::with('user')
+        ->where('read', 0)
+        ->orderBy('created_at', 'desc');
 
-        return view('notifications.index', compact('notifications'));
+    // إضافة فلتر البحث حسب الموظف إذا تم توفيره
+    if ($request->has('user_id') && $request->user_id != '') {
+        $query->where('user_id', $request->user_id);
     }
 
+    // استبدال get() بـ paginate() لإضافة التقسيم للصفحات
+    $notifications = $query->paginate(100, ['id', 'user_id', 'title', 'description', 'created_at']);
+
+    $users = User::where('role', 'employee')->get(); // جلب جميع الموظفين للبحث
+
+    return view('notifications.index', compact('notifications', 'users'));
+}
     public function markAsReadid($id)
     {
         $notifications = notifications::find($id);

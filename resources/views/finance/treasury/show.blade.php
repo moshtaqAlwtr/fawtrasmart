@@ -247,94 +247,97 @@
                                             <th>التاريخ</th>
                                         </tr>
                                     </thead>
-                                      <tbody>
-            @foreach ($operationsPaginator as $operation)
-                <tr>
-                    <td>{{ $operation['operation'] ?? '---' }}</td>
-                    <td>{{ number_format($operation['deposit'] ?? 0, 2) }}</td>
-                    <td>{{ number_format($operation['withdraw'] ?? 0, 2) }}</td>
-                    <td>{{ number_format($operation['balance_after'] ?? 0, 2) }}</td>
-                    <td>{{ $operation['date'] ?? '---' }}</td>
-                </tr>
-            @endforeach
-        </tbody>
+                                    <tbody>
+                                        @foreach ($operationsPaginator as $operation)
+                                            <tr>
+                                                <td>{{ $operation['operation'] ?? '---' }}</td>
+                                                <td>{{ number_format($operation['deposit'] ?? 0, 2) }}</td>
+                                                <td>{{ number_format($operation['withdraw'] ?? 0, 2) }}</td>
+                                                <td>{{ number_format($operation['balance_after'] ?? 0, 2) }}</td>
+                                                <td>{{ $operation['date'] ?? '---' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
                                 </table>
 
                                 <!-- Pagination -->
-                                  <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- زر الانتقال إلى أول صفحة -->
-                                @if ($operationsPaginator->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $operationsPaginator->url(1) }}"
-                                            aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <!-- زر الانتقال إلى أول صفحة -->
+                                        @if ($operationsPaginator->onFirstPage())
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="First">
+                                                    <i class="fas fa-angle-double-right"></i>
+                                                </span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->url(1) }}" aria-label="First">
+                                                    <i class="fas fa-angle-double-right"></i>
+                                                </a>
+                                            </li>
+                                        @endif
 
-                                <!-- زر الانتقال إلى الصفحة السابقة -->
-                                @if ($operationsPaginator->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $operationsPaginator->previousPageUrl() }}"
-                                            aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
+                                        <!-- زر الانتقال إلى الصفحة السابقة -->
+                                        @if ($operationsPaginator->onFirstPage())
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                                    <i class="fas fa-angle-right"></i>
+                                                </span>
+                                            </li>
+                                        @else
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->previousPageUrl() }}"
+                                                    aria-label="Previous">
+                                                    <i class="fas fa-angle-right"></i>
+                                                </a>
+                                            </li>
+                                        @endif
 
-                                <!-- عرض رقم الصفحة الحالية -->
-                                <li class="page-item">
-                                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                                        صفحة {{ $operationsPaginator->currentPage() }} من {{ $operationsPaginator->lastPage() }}
-                                    </span>
-                                </li>
+                                        <!-- عرض رقم الصفحة الحالية -->
+                                        <li class="page-item">
+                                            <span class="page-link border-0 bg-light rounded-pill px-3">
+                                                صفحة {{ $operationsPaginator->currentPage() }} من
+                                                {{ $operationsPaginator->lastPage() }}
+                                            </span>
+                                        </li>
 
-                                <!-- زر الانتقال إلى الصفحة التالية -->
-                                @if ($operationsPaginator->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $operationsPaginator->nextPageUrl() }}"
-                                            aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
+                                        <!-- زر الانتقال إلى الصفحة التالية -->
+                                        @if ($operationsPaginator->hasMorePages())
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->nextPageUrl() }}" aria-label="Next">
+                                                    <i class="fas fa-angle-left"></i>
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                                    <i class="fas fa-angle-left"></i>
+                                                </span>
+                                            </li>
+                                        @endif
 
-                                <!-- زر الانتقال إلى آخر صفحة -->
-                                @if ($operationsPaginator->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill"
-                                            href="{{ $operationsPaginator->url($operationsPaginator->lastPage()) }}" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </nav>
+                                        <!-- زر الانتقال إلى آخر صفحة -->
+                                        @if ($operationsPaginator->hasMorePages())
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="{{ $operationsPaginator->url($operationsPaginator->lastPage()) }}"
+                                                    aria-label="Last">
+                                                    <i class="fas fa-angle-double-left"></i>
+                                                </a>
+                                            </li>
+                                        @else
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                                    <i class="fas fa-angle-double-left"></i>
+                                                </span>
+                                            </li>
+                                        @endif
+                                    </ul>
+                                </nav>
 
 
                             </div>
@@ -394,74 +397,70 @@
                                     <tr>
                                         <th>رقم القيد</th>
                                         <th>التاريخ</th>
-                                        <th>من خزينة الى خزينة </th>
-
+                                        <th>من خزينة الى خزينة</th>
                                         <th>المبلغ</th>
                                         <th style="width: 10%">الإجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($operationsPaginator as $operation)
-                                        @if ($operation['type'] == 'transfer')
-                                            <tr>
-                                                <td>{{ $operation['reference_number'] ?? '---' }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($operation['date'])->format('d/m/Y') }}</td>
-                                                <td>
-                                                    <div
-                                                        class="account-flow d-flex justify-content-center align-items-center">
-                                                        @if ($operation['from_account'])
-                                                            <a href="{{ route('accounts_chart.index', $operation['from_account']->id) }}"
-                                                                class="btn btn-outline-primary mx-2">
-                                                                {{ $operation['from_account']->name ?? '---' }}
-                                                            </a>
-                                                            <i class="fas fa-long-arrow-alt-right text-muted mx-2"></i>
-                                                        @endif
-                                                        @if ($operation['to_account'])
-                                                            <a href="{{ route('accounts_chart.index', $operation['to_account']->id) }}"
-                                                                class="btn btn-outline-primary mx-2">
-                                                                {{ $operation['to_account']->name ?? '---' }}
-                                                            </a>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="d-flex flex-column">
-                                                        <span
-                                                            class="font-weight-bold">{{ number_format($operation['amount'] ?? 0, 2) }}</span>
-                                                        <small class="text-muted">الرصيد:
-                                                            {{ number_format($operation['balance_after'] ?? 0, 2) }}</small>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <div class="dropdown">
-                                                            <button
-                                                                class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                                type="button"
-                                                                id="dropdownMenuButton{{ $operation['id'] }}"
-                                                                data-toggle="dropdown" aria-haspopup="true"
-                                                                aria-expanded="false"></button>
-                                                            <div class="dropdown-menu"
-                                                                aria-labelledby="dropdownMenuButton{{ $operation['id'] }}">
-                                                                <li>
-                                                                    <a class="dropdown-item"
-                                                                        href="{{ route('treasury.transferEdit', $operation['id']) }}">
-                                                                        <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                    </a>
-                                                                </li>
-                                                                <li>
-                                                                    <a class="dropdown-item text-danger" href="#"
-                                                                        data-toggle="modal"
-                                                                        data-target="#modal_DELETE_{{ $operation['id'] }}">
-                                                                        <i class="fa fa-trash me-2"></i>حذف
-                                                                    </a>
-                                                                </li>
-                                                            </div>
+                                    @foreach ($formattedTransfers as $transfer)
+                                        <!-- استخدم $formattedTransfers هنا -->
+                                        <tr>
+                                            <td>{{ $transfer['reference_number'] ?? '---' }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($transfer['date'])->format('d/m/Y') }}</td>
+                                            <td>
+                                                <div class="account-flow d-flex justify-content-center align-items-center">
+                                                    @if ($transfer['from_account'])
+                                                        <a href="{{ route('accounts_chart.index', $transfer['from_account']->id) }}"
+                                                            class="btn btn-outline-primary mx-2">
+                                                            {{ $transfer['from_account']->name ?? '---' }}
+                                                        </a>
+                                                        <i class="fas fa-long-arrow-alt-right text-muted mx-2"></i>
+                                                    @endif
+                                                    @if ($transfer['to_account'])
+                                                        <a href="{{ route('accounts_chart.index', $transfer['to_account']->id) }}"
+                                                            class="btn btn-outline-primary mx-2">
+                                                            {{ $transfer['to_account']->name ?? '---' }}
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span
+                                                        class="font-weight-bold">{{ number_format($transfer['amount'] ?? 0, 2) }}</span>
+                                                    <small class="text-muted">الرصيد:
+                                                        {{ number_format($transfer['balance_after'] ?? 0, 2) }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <div class="dropdown">
+                                                        <button
+                                                            class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                            type="button" id="dropdownMenuButton{{ $transfer['id'] }}"
+                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false"></button>
+                                                        <div class="dropdown-menu"
+                                                            aria-labelledby="dropdownMenuButton{{ $transfer['id'] }}">
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="{{ route('treasury.transferEdit', $transfer['id']) }}">
+                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modal_DELETE_{{ $transfer['id'] }}">
+                                                                    <i class="fa fa-trash me-2"></i>حذف
+                                                                </a>
+                                                            </li>
                                                         </div>
                                                     </div>
-                                                </td>
-                                            </tr>
-                                        @endif
+                                                </div>
+                                            </td>
+                                        </tr>
                                     @endforeach
                                 </tbody>
                             </table>
