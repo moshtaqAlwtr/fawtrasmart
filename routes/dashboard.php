@@ -12,6 +12,7 @@ use App\Models\PaymentsProcess;
 use App\Models\Receipt;
 use Illuminate\Http\Request;
 use App\Models\Target;
+use App\Models\ClientEmployee;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -37,6 +38,7 @@ Route::group(
     function () {
 
         Route::get('', function (Request $request) {
+       
         $ClientCount = Client::count();
         $Invoice = Invoice::where('type','normal')->sum('grand_total');
         $Visit = Visit::count();
@@ -55,6 +57,7 @@ Route::group(
                         'visit_date' => $visit->visit_date,
                     ];
                 });
+
 
 
 
@@ -144,7 +147,8 @@ Route::group(
     // استخراج بيانات الأداء
 $cards = $employeeIds->map(function ($userId) use ($defaultTarget, $monthNum, $year) {
     $user = User::find($userId);
- $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
+    
+    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
     ->pluck('reference_number')
     ->toArray();
 
@@ -152,7 +156,7 @@ $cards = $employeeIds->map(function ($userId) use ($defaultTarget, $monthNum, $y
 // بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
 $excludedInvoiceIds = array_unique(array_merge(
     $returnedInvoiceIds,
-    Invoice::where('type', 'return')->pluck('id')->toArray()
+    Invoice::where('type', 'returned')->pluck('id')->toArray()
 ));
 
 
@@ -172,6 +176,8 @@ $excludedInvoiceIds = array_unique(array_merge(
 
     $target = $user->target?->monthly_target ?? $defaultTarget;
     $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+    
+     $clientCount = ClientEmployee::where('employee_id', $user->employee_id)->count();
 
     return [
         'name' => $user?->name ?? 'غير معروف',
@@ -180,6 +186,7 @@ $excludedInvoiceIds = array_unique(array_merge(
         'total' => $totalCollected,
         'target' => $target,
         'percentage' => $percentage,
+        'clients_count' => $clientCount,
     ];
 });
 
@@ -191,6 +198,9 @@ $cards = $cards->sortByDesc('total')->values();
         $totalSales    = $groups->sum('total_sales');
         $totalPayments = $payments->sum('total_payments');
         $totalReceipts = $receipts->sum('total_receipts');
+
+       
+    
             return view('dashboard.sales.index', compact('ClientCount','cards','month','groupChartData','totalReceipts','totalSales','totalPayments','receipts', 'Invoice', 'groups', 'Visit', 'chartData', 'TodayVisits'));
         })->middleware(['auth']);
 

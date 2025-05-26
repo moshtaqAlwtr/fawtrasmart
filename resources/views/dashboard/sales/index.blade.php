@@ -178,8 +178,9 @@
             <thead class="table-light">
                 <tr>
                     <th width="25%">الموظف</th>
-                    <th width="25%" class="text-end">المبالغ المحصله</th>
-                    <th width="25%" class="text-end">الهدف</th>
+                     <th width="15%">العملاء</th>
+                    <th width="15%" class="text-end">المبالغ المحصله</th>
+                    <th width="15%" class="text-end">الهدف</th>
                     <th width="25%">النسبة</th>
                 </tr>
             </thead>
@@ -191,9 +192,11 @@
                         <div class="text-muted small mt-1">
                             المدفوعات: {{ number_format($card['payments']) }} ريال<br>
                             السندات: {{ number_format($card['receipts']) }} ريال<br>
+                             
                             الإجمالي: {{ number_format($card['total']) }} / الهدف: {{ number_format($card['target']) }} ريال
                         </div>
                     </td>
+                     <td class="text-end">{{ $card['clients_count'] }}</td>
                     <td class="text-end">{{ number_format($card['total']) }} ريال</td>
                     <td class="text-end">{{ number_format($card['target']) }} ريال</td>
                     <td>

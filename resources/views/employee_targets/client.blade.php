@@ -106,28 +106,30 @@
     }
 </style>
 <div class="card-body">
+    <!-- الجزء العلوي: البحث السريع والتصفية -->
     <div class="card p-3 mb-4">
         <div class="row g-3 align-items-end">
             <!-- حقل البحث -->
             <div class="col-md-4 col-12">
-                <label for="nameFilter" class="form-label">البحث</label>
-                <input type="text" id="nameFilter" class="form-control" placeholder="اسم، كود، أو فرع...">
+                <label for="nameFilter" class="form-label">البحث السريع</label>
+                <input type="text" id="nameFilter" class="form-control" placeholder="ابحث بالاسم، الكود، الموظف...">
             </div>
 
             <!-- فلترة الفئة -->
-            <div class="col-md-3 col-12">
-                <label for="groupFilter" class="form-label">الفئة</label>
-                <select id="groupFilter" class="form-control">
-                    <option value="">جميع الفئات</option>
-                    <option value="A">الفئة A</option>
-                    <option value="B">الفئة B</option>
-                    <option value="C">الفئة C</option>
-                </select>
-            </div>
-
+           <div class="col-md-3 col-12">
+    <label for="groupFilter" class="form-label">تصفية حسب الفئة</label>
+    <select id="groupFilter" class="form-control">
+        <option value="">جميع الفئات</option>
+        <option value="G">الفئة A++ (أكبر من 100%)</option>
+        <option value="K">الفئة A (60% - 100%)</option>
+        <option value="B">الفئة B (30% - 60%)</option>
+        <option value="C">الفئة C (10% - 30%)</option>
+        <option value="D">الفئة D (أقل من 10%)</option>
+    </select>
+</div>
             <!-- ترتيب النتائج -->
             <div class="col-md-3 col-12">
-                <label for="sortFilter" class="form-label">الترتيب حسب</label>
+                <label for="sortFilter" class="form-label">ترتيب النتائج</label>
                 <select id="sortFilter" class="form-control">
                     <option value="high">الأعلى تحصيلاً</option>
                     <option value="low">الأقل تحصيلاً</option>
@@ -136,15 +138,43 @@
 
             <!-- زر الإعادة -->
             <div class="col-md-2 col-12 d-grid">
-                <button id="resetFilters" class="btn btn-outline-secondary mt-auto">
+                <button id="resetFilters" class="btn btn-outline-secondary">
                     <i class="fas fa-undo me-1"></i> إعادة تعيين
                 </button>
             </div>
         </div>
     </div>
 
-   
+    <!-- الجزء السفلي: تصفية حسب التاريخ -->
+    <div class="card p-3 mb-4">
+        <form method="GET" action="{{ route('target.client') }}" id="dateFilterForm">
+            <div class="row g-3">
+                <div class="col-md-4 col-12">
+                    <label for="date_from" class="form-label">من تاريخ</label>
+                    <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
+                </div>
+                <div class="col-md-4 col-12">
+                    <label for="date_to" class="form-label">إلى تاريخ</label>
+                    <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
+                </div>
+                <div class="col-md-2 col-12 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="fas fa-filter me-1"></i> تطبيق
+                    </button>
+                </div>
+                <div class="col-md-2 col-12 d-flex align-items-end">
+                    <button class="btn btn-outline-danger w-100" type="button" id="resetDateFilter">
+                        <i class="fas fa-times me-1"></i> إلغاء
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
+
+<!-- JavaScript للتحكم في الوظائف -->
+
+
         <!-- جدول العملاء -->
         @if (isset($clients) && $clients->count() > 0)
             <div class="card">
@@ -155,6 +185,8 @@
                     <tr>
                         <th>معلومات العميل</th>
                         <th>الفرع</th>
+                        <th>الحي</th>
+                        <th>المجموعة</th>
                         <th>التصنيف</th>
                         <th>نسبة تحقيق الهدف</th>
                     </tr>
@@ -169,19 +201,37 @@
             <i class="fas fa-user me-1"></i>
             {{ $client->first_name ?? "" }} {{ $client->last_name ?? "" }}
         </p>
-        @if ($client->employee)
+         @if ($client->employees && $client->employees->count() > 0)
+        @foreach ($client->employees as $employee)
             <p class="text-muted mb-0">
                 <i class="fas fa-user-tie me-1"></i>
-                {{ $client->employee->first_name ?? "" }} {{ $client->employee->last_name ?? "" }}
+                 {{ $employee->full_name }}
             </p>
-        @endif
+        @endforeach
+                                @else
+                                    <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون بهذا العميل') }}</span>
+                                @endif
     </td>
     <td>{{ $client->branch->name ?? '' }}</td>
-    <td data-search="{{ $client->group }}">
-        <span class="badge bg-{{ $client->group_class }}">
-            الفئة {{ $client->group }}
-        </span>
-    </td>
+     <td>{{ $client->Neighborhoodname->name ?? '' }}</td>
+     <td>{{ $client->Neighborhoodname->Region->name ?? '' }}</td>
+ <td data-search="{{ $client->group }}">
+    <span class="badge bg-{{ $client->group_class }}">
+        @switch($client->group)
+            @case('G')
+                الفئة A++
+                @break
+            @case('K')
+                الفئة A
+                @break
+            @default
+                الفئة {{ $client->group }}
+        @endswitch
+    </span>
+</td>
+
+   
+
     <td data-order="{{ $client->percentage }}">
         <div class="d-flex align-items-center mb-1">
             <span class="me-2">{{ $client->percentage }}%</span>
@@ -275,6 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
 <script>
 $(document).ready(function() {
     // تهيئة DataTable مع إعدادات مخصصة
@@ -308,16 +359,16 @@ $(document).ready(function() {
         
         // فلترة حسب الفئة
         if (groupValue) {
-            table.column(2).search(groupValue, true, false).draw();
+            table.column(4).search(groupValue, true, false).draw();
         } else {
-            table.column(2).search('').draw();
+            table.column(4).search('').draw();
         }
         
         // ترتيب حسب النسبة
         if (sortValue === 'high') {
-            table.order([3, 'desc']).draw();
+            table.order([5, 'desc']).draw();
         } else {
-            table.order([3, 'asc']).draw();
+            table.order([5, 'asc']).draw();
         }
     }
     
@@ -351,7 +402,37 @@ $(document).ready(function() {
         }
     });
 });
+
+
+
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إعادة تعيين كل الفلاتر
+    document.getElementById('resetFilters').addEventListener('click', function() {
+        // إعادة تعيين الفلاتر العلوية
+        document.getElementById('nameFilter').value = '';
+        document.getElementById('groupFilter').value = '';
+        document.getElementById('sortFilter').value = 'high';
+        
+        // إعادة تعيين فلاتر التاريخ
+        document.getElementById('date_from').value = '';
+        document.getElementById('date_to').value = '';
+        
+        // إرسال الفورم لتطبيق التغييرات
+        document.getElementById('dateFilterForm').submit();
+    });
+
+    // إعادة تعيين فلاتر التاريخ فقط
+    document.getElementById('resetDateFilter').addEventListener('click', function() {
+        document.getElementById('date_from').value = '';
+        document.getElementById('date_to').value = '';
+        document.getElementById('dateFilterForm').submit();
+    });
+});
+</script>
+
+
 @endsection
 @endsection
 

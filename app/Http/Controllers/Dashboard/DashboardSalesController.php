@@ -13,6 +13,7 @@ use App\Models\Receipt;
 use App\Models\Target;
 use App\Models\Visit;
 use App\Models\User;
+use App\Models\ClientEmployee;
 use Carbon\Carbon;
 use DB;
 
@@ -144,6 +145,8 @@ $excludedInvoiceIds = array_unique(array_merge(
 
     $target = $user->target?->monthly_target ?? $defaultTarget;
     $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+    
+     $clientCount = ClientEmployee::where('employee_id', $user->employee_id)->count();
 
     return [
         'name' => $user?->name ?? 'غير معروف',
@@ -152,6 +155,7 @@ $excludedInvoiceIds = array_unique(array_merge(
         'total' => $totalCollected,
         'target' => $target,
         'percentage' => $percentage,
+        'clients_count' => $clientCount,
     ];
 });
 

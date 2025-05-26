@@ -147,13 +147,15 @@ class EmployeeTargetController extends Controller
         if ($month) {
             [$year, $monthNum] = explode('-', $month);
         }
-
+              $dateFrom = $request->input('date_from');
+$dateTo   = $request->input('date_to');
         // جلب جميع العملاء
         //  $clientsRaw = $noClients ? collect() : $baseQuery->get();
         $clients = Client::with(['employee', 'Neighborhoodname.Region', 'branch', 'locations'])->get();
-        $clients = $clients->map(function ($client) use ($target, $monthNum, $year) {
+        $clients = $clients->map(function ($client) use ($target, $monthNum, $year,$dateFrom , $dateTo) {
             // مجموع المدفوعات
-          
+        
+
                 $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
     ->pluck('reference_number')
     ->toArray();
@@ -167,7 +169,8 @@ $excludedInvoiceIds = array_unique(array_merge(
 
             
             
-            
+
+
             $invoiceIds = Invoice::where('client_id', $client->id)->where('type','normal')
                 ->whereNotIn('id', $excludedInvoiceIds)
                 ->pluck('id');
@@ -179,6 +182,9 @@ $excludedInvoiceIds = array_unique(array_merge(
                     ->whereYear('created_at', $year);
             }
 
+if ($dateFrom && $dateTo) {
+    $paymentsQuery->whereBetween('created_at', [$dateFrom, $dateTo]);
+}
             $paymentsTotal = $paymentsQuery->sum('amount');
 
             // مجموع سندات القبض
@@ -188,31 +194,45 @@ $excludedInvoiceIds = array_unique(array_merge(
                 ->when($monthNum && $year, function ($query) use ($monthNum, $year) {
                     $query->whereMonth('created_at', $monthNum)
                         ->whereYear('created_at', $year);
-                })
-                ->sum('amount');
+                });
                 
-                
+            
 
-            $collected = $paymentsTotal + $receiptsTotal;
+
+
+if ($dateFrom && $dateTo) {
+    $receiptsTotal->whereBetween('created_at', [$dateFrom, $dateTo]);
+}
+$receipts = $receiptsTotal->sum('amount');
+
+
+            $collected = $paymentsTotal + $receipts;
             $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
 
-            // تحديد المجموعة
-            if ($percentage < 30) {
-                $group = 'C';
-                $group_class = 'danger';
-            } elseif ($percentage >= 30 && $percentage < 50) {
-                $group = 'B';
-                $group_class = 'warning';
-            } else {
-                $group = 'A';
-                $group_class = 'success';
-            }
+// تحديد المجموعة حسب النسبة
+if ($percentage > 100) {
+    $group = 'G';
+    $group_class = 'primary';
+} elseif ($percentage >= 60) {
+    $group = 'K';
+    $group_class = 'success';
+} elseif ($percentage >= 30) {
+    $group = 'B';
+    $group_class = 'warning';
+} elseif ($percentage >= 10) {
+    $group = 'C';
+    $group_class = 'danger';
+} else {
+    $group = 'D';
+    $group_class = 'secondary'; // أو dark إن أردت
+}
+
 
             // إضافة الخصائص للعميل
             $client->collected = $collected;
             $client->percentage = $percentage;
             $client->payments = $paymentsTotal;
-            $client->receipts = $receiptsTotal;
+            $client->receipts = $receipts;
             $client->group = $group;
             $client->group_class = $group_class;
 
