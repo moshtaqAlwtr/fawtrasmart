@@ -50,100 +50,79 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = auth()->user();
 
+        $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name']);
 
+        $noClients = false;
 
-public function index(Request $request)
-{
-    $user = auth()->user();
+        // تحديد الصلاحيات حسب الدور
+        if ($user->role === 'employee') {
+            // الموظف يرى فقط العملاء المرتبطين بالمجموعات الخاصة به
+            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
-    $baseQuery = Client::with([
-        'employee',
-        'status:id,name,color',
-        'locations',
-        'Neighborhoodname.Region',
-        'branch:id,name'
-    ]);
-
-    $noClients = false;
-
-    // تحديد الصلاحيات حسب الدور
-    if ($user->role === 'employee') {
-        // الموظف يرى فقط العملاء المرتبطين بالمجموعات الخاصة به
-        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)
-                                         ->pluck('group_id');
-
-        if ($employeeGroupIds->isNotEmpty()) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
-                $q->whereIn('id', $employeeGroupIds);
-            });
-        } else {
-            // لا توجد مجموعات → لا توجد عملاء
-            $noClients = true;
+            if ($employeeGroupIds->isNotEmpty()) {
+                $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                    $q->whereIn('id', $employeeGroupIds);
+                });
+            } else {
+                // لا توجد مجموعات → لا توجد عملاء
+                $noClients = true;
+            }
+        } elseif ($user->role === 'manager') {
+            // المدير يرى جميع العملاء → لا فلترة
         }
 
-    } elseif ($user->role === 'manager') {
-        // المدير يرى جميع العملاء → لا فلترة
+        // فلترة البحث حسب الطلب
+        if ($request->filled('client')) {
+            $baseQuery->where('id', $request->client);
+        }
+
+        if ($request->filled('name')) {
+            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->filled('status')) {
+            $baseQuery->where('status_id', $request->status);
+        }
+
+        if ($request->filled('region')) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+                $q->where('id', $request->region);
+            });
+        }
+
+        if ($request->filled('neighborhood')) {
+            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
+            });
+        }
+
+        // استعلام الخريطة
+        $mapQuery = clone $baseQuery;
+        $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
+
+        // موقع الموظف
+        $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
+
+        // تنفيذ الاستعلام مع التقسيم
+        $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
+
+        // بيانات إضافية للعرض
+        return view('client.index', [
+            'clients' => $clients,
+            'allClients' => $allClients,
+            'Neighborhoods' => Neighborhood::all(),
+            'users' => User::all(),
+            'employees' => Employee::all(),
+            'creditLimit' => CreditLimit::first(),
+            'statuses' => Statuses::select('id', 'name', 'color')->get(),
+            'Region_groups' => Region_groub::all(),
+            'userLocation' => $userLocation,
+        ]);
     }
-
-    // فلترة البحث حسب الطلب
-    if ($request->filled('client')) {
-        $baseQuery->where('id', $request->client);
-    }
-
-    if ($request->filled('name')) {
-        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-    }
-
-    if ($request->filled('status')) {
-        $baseQuery->where('status_id', $request->status);
-    }
-
-    if ($request->filled('region')) {
-        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-            $q->where('id', $request->region);
-        });
-    }
-
-    if ($request->filled('neighborhood')) {
-        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->neighborhood . '%')
-              ->orWhere('id', $request->neighborhood);
-        });
-    }
-
-    // استعلام الخريطة
-    $mapQuery = clone $baseQuery;
-    $allClients = $noClients ? collect() : $mapQuery->with([
-        'status_client:id,name,color',
-        'locations:id,client_id,latitude,longitude',
-        'Neighborhoodname.Region',
-        'branch:id,name'
-    ])->get();
-
-    // موقع الموظف
-    $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
-
-    // تنفيذ الاستعلام مع التقسيم
-    $clients = $noClients
-        ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20)
-        : $baseQuery->orderBy('created_at', 'desc')
-                    ->paginate(20)
-                    ->appends($request->except('page'));
-
-    // بيانات إضافية للعرض
-    return view('client.index', [
-        'clients' => $clients,
-        'allClients' => $allClients,
-        'Neighborhoods' => Neighborhood::all(),
-        'users' => User::all(),
-        'employees' => Employee::all(),
-        'creditLimit' => CreditLimit::first(),
-        'statuses' => Statuses::select('id', 'name', 'color')->get(),
-        'Region_groups' => Region_groub::all(),
-        'userLocation' => $userLocation,
-    ]);
-}
 
     public function updateCreditLimit(Request $request)
     {
@@ -225,6 +204,7 @@ public function index(Request $request)
         }
 
         $client = new Client();
+        $client->status_id = 5;
 
         // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
         $serialSetting = SerialSetting::where('section', 'customer')->first();
@@ -1028,111 +1008,126 @@ public function index(Request $request)
 
         return redirect()->route('clients.mang_client')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
+public function addnotes(Request $request)
+{
+    // التحقق من صحة البيانات
+    $validated = $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'process' => 'required|string|max:255',
+        'description' => 'required|string',
+        'deposit_count' => 'nullable|integer|min:0',
+        'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
+        'competitor_documents' => 'nullable|integer|min:0',
+        'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:5120',
+    ]);
 
-    public function addnotes(Request $request)
-    {
-        // التحقق من صحة البيانات
-        $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'process' => 'required|string|max:255',
-            'description' => 'required|string',
-            'attachments' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+    DB::beginTransaction();
+
+    try {
+        // الحصول على أحدث موقع للموظف
+        $employeeLocation = Location::where('employee_id', auth()->id())
+            ->latest()
+            ->firstOrFail();
+
+        // الحصول على موقع العميل
+        $clientLocation = Location::where('client_id', $request->client_id)
+            ->latest()
+            ->firstOrFail();
+
+        // حساب المسافة بين الموظف والعميل
+        $lat1 = deg2rad($employeeLocation->latitude);
+        $lon1 = deg2rad($employeeLocation->longitude);
+        $lat2 = deg2rad($clientLocation->latitude);
+        $lon2 = deg2rad($clientLocation->longitude);
+
+        $dlat = $lat2 - $lat1;
+        $dlon = $lon2 - $lon1;
+
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
+        $c = 2 * asin(sqrt($a));
+        $distance = (6371000 * $c) / 1000; // المسافة بالكيلومتر
+
+        // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
+        if ($distance > 0.3) {
+            throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+        }
+
+        // إنشاء الملاحظة
+        $clientRelation = ClientRelation::create([
+            'employee_id' => auth()->id(),
+            'client_id' => $request->client_id,
+            'status' => $request->status ?? 'pending',
+            'process' => $request->process,
+            'description' => $request->description,
+            'deposit_count' => $request->deposit_count,
+            'site_type' => $request->site_type,
+            'competitor_documents' => $request->competitor_documents,
+            'additional_data' => json_encode([
+                'deposit_count' => $request->deposit_count,
+                'site_type' => $request->site_type,
+                'competitor_documents' => $request->competitor_documents,
+            ]),
         ]);
 
-        DB::beginTransaction();
+        // رفع الملفات المتعددة وتخزينها
+        $attachments = [];
 
-        try {
-            // الحصول على أحدث موقع للموظف
-            $employeeLocation = Location::where('employee_id', auth()->id())
-                ->latest()
-                ->firstOrFail();
-
-            // الحصول على موقع العميل
-            $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
-
-            // حساب المسافة بين الموظف والعميل
-            $lat1 = deg2rad($employeeLocation->latitude);
-            $lon1 = deg2rad($employeeLocation->longitude);
-            $lat2 = deg2rad($clientLocation->latitude);
-            $lon2 = deg2rad($clientLocation->longitude);
-
-            $dlat = $lat2 - $lat1;
-            $dlon = $lon2 - $lon1;
-
-            $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
-            $c = 2 * asin(sqrt($a));
-            $distance = (6371000 * $c) / 1000; // المسافة بالكيلومتر
-
-            // التحقق من أن الموظف ضمن النطاق المسموح (0.3 كم)
-            if ($distance > 0.3) {
-                throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
-            }
-
-            // إنشاء الملاحظة
-            $clientRelation = ClientRelation::create([
-                'employee_id' => auth()->id(),
-                'client_id' => $request->client_id,
-                'status' => $request->status ?? 'pending',
-                'process' => $request->process,
-                'description' => $request->description,
-                'location_id' => $employeeLocation->id,
-            ]);
-
-            // معالجة المرفقات إن وجدت
-            if ($request->hasFile('attachments')) {
-                $file = $request->file('attachments');
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
                 if ($file->isValid()) {
-                    $filename = time() . '_' . preg_replace('/[^a-z0-9\.]/i', '_', $file->getClientOriginalName());
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = time() . '_' . uniqid() . '.' . $extension;
                     $file->move(public_path('assets/uploads/notes'), $filename);
-                    $clientRelation->attachments = $filename;
-                    $clientRelation->save();
+                    $attachments[] = $filename;
                 }
             }
 
-            // ربط الموقع بالملاحظة
-            $employeeLocation->update([
-                'client_relation_id' => $clientRelation->id,
-                'client_id' => $request->client_id,
-            ]);
-
-            // تسجيل اشعار نظام
-            ModelsLog::create([
-                'type' => 'notes',
-                'type_log' => 'log',
-                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-                'created_by' => auth()->id(),
-            ]);
-
-            // إرسال الإشعارات
-            $clientName = Client::findOrFail($request->client_id)->trade_name ?? 'عميل غير معروف';
-            $userName = auth()->user()->name;
-
-            notifications::create([
-                'user_id' => auth()->id(),
-                'type' => 'notes',
-                'title' => $userName . ' أضاف ملاحظة لعميل',
-                'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('clients.show', $request->client_id)->with('success', 'تم إضافة الملاحظة بنجاح!');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->withErrors($e->validator)->withInput();
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            DB::rollBack();
-            return redirect()
-                ->route('clients.show', $request->client_id ?? 0)
-                ->with('error', 'لم يتم العثور على الموقع المطلوب!');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('فشل إضافة ملاحظة: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-
-            return redirect()
-                ->route('clients.show', $request->client_id ?? 0)
-                ->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
+            // تخزين أسماء الملفات كمصفوفة JSON
+            $clientRelation->attachments = json_encode($attachments);
+            $clientRelation->save();
         }
+
+        // ربط الموقع بالملاحظة
+        $employeeLocation->update([
+            'client_relation_id' => $clientRelation->id,
+            'client_id' => $request->client_id,
+        ]);
+
+        // تسجيل اشعار نظام
+        ModelsLog::create([
+            'type' => 'notes',
+            'type_log' => 'log',
+            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+            'created_by' => auth()->id(),
+        ]);
+
+        // إرسال الإشعارات
+        $clientName = Client::findOrFail($request->client_id)->trade_name ?? 'عميل غير معروف';
+        $userName = auth()->user()->name;
+
+        notifications::create([
+            'user_id' => auth()->id(),
+            'type' => 'notes',
+            'title' => $userName . ' أضاف ملاحظة لعميل',
+            'description' => 'ملاحظة للعميل ' . $clientName . ' - ' . $request->description,
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('clients.show', $request->client_id)->with('success', 'تم إضافة الملاحظة بنجاح!');
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return redirect()->back()->withErrors($e->validator)->withInput();
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        DB::rollBack();
+        return redirect()->route('clients.show', $request->client_id ?? 0)->with('error', 'لم يتم العثور على الموقع المطلوب!');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('فشل إضافة ملاحظة: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+
+        return redirect()->route('clients.show', $request->client_id ?? 0)->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
     }
+}
+
     /**
      * حساب المسافة باستخدام Haversine formula
      */

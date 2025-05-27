@@ -603,11 +603,18 @@ public function tracktaff()
 {
     $groups = Region_groub::with([
         'neighborhoods.client' => function ($query) {
-            $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts', 'status_client']);
+            $query->with([
+                'invoices',
+                'payments',
+                'appointmentNotes',
+                'visits',
+                'accounts.receipts',
+                'status_client'
+            ]);
         },
     ])->get();
 
-    // تحديد آخر 4 أسابيع بدلاً من 8
+    // تحديد آخر 4 أسابيع
     $now = now();
     $weeks = [];
 
@@ -633,27 +640,46 @@ public function tracktaff()
 
     return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalClients'));
 }
-    public function getWeeksData(Request $request)
-    {
-        $offset = $request->input('offset', 0);
-        $now = now();
-        $weeks = [];
+public function getWeeksData(Request $request)
+{
+    $offset = $request->input('offset', 0);
+    $limit = $request->input('limit', 8);
 
-        for ($i = 3 + $offset; $i >= 0 + $offset; $i--) {
-            $startDate = $now->copy()->subWeeks($i)->startOfWeek();
-            $endDate = $now->copy()->subWeeks($i)->endOfWeek();
+    // جلب بيانات الأسابيع
+    $weeks = Week::orderBy('start_date', 'DESC')
+                ->skip($offset)
+                ->take($limit)
+                ->get()
+                ->toArray();
 
-            $weeks[] = [
-                'start' => $startDate->format('Y-m-d'),
-                'end' => $endDate->format('Y-m-d'),
-                'month_year' => $startDate->translatedFormat('F Y'),
-                'week_number' => 4 + $offset - $i,
-            ];
-        }
+    // جلب بيانات العملاء والأنشطة
+    $clients = Client::with(['activities' => function($query) use ($weeks) {
+                    $query->whereIn('week_id', array_column($weeks, 'id'));
+                }])
+                ->get()
+                ->map(function($client) use ($weeks) {
+                    $activities = [];
+                    foreach ($client->activities as $activity) {
+                        $activities[$activity->week_id] = true;
+                    }
 
-        return response()->json(['weeks' => $weeks]);
-    }
+                    return [
+                        'id' => $client->id,
+                        'name' => $client->name,
+                        'area' => $client->area,
+                        'status' => $client->status,
+                        'activities' => $activities,
+                        'total_activities' => count($client->activities)
+                    ];
+                })
+                ->toArray();
 
+    return response()->json([
+        'success' => true,
+        'weeks' => $weeks,
+        'clients' => $clients
+    ]);
+}
     public function getTrafficData(Request $request)
     {
         $weeks = $request->input('weeks');

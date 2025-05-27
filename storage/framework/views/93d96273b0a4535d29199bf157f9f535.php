@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     تحليل الزيارات
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -68,9 +66,9 @@
                     <div class="col-md-3 col-sm-6">
                         <select id="group-filter" class="form-control select2">
                             <option value="">جميع المجموعات</option>
-                            @foreach ($groups as $group)
-                                <option value="group-{{ $group->id }}">{{ $group->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="group-<?php echo e($group->id); ?>"><?php echo e($group->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                     <div class="col-md-3 col-sm-6">
@@ -98,19 +96,20 @@
                         <i class="fas fa-chevron-right"></i> الأسابيع السابقة
                     </button>
                     <h4 id="current-period" class="text-center my-2 px-3 py-1 bg-light rounded">
-                        {{ $weeks[0]['month_week'] ?? '' }} - {{ $weeks[7]['month_week'] ?? '' }}
+                        <?php echo e($weeks[0]['month_week'] ?? ''); ?> - <?php echo e($weeks[7]['month_week'] ?? ''); ?>
+
                     </h4>
                     <button id="next-period" class="btn btn-outline-primary">
                         الأسابيع التالية <i class="fas fa-chevron-left"></i>
                     </button>
                 </div>
 
-                <div id="weeks-container" data-current-weeks="{{ json_encode($weeks) }}"></div>
+                <div id="weeks-container" data-current-weeks="<?php echo e(json_encode($weeks)); ?>"></div>
 
 
                 <div class="accordion custom-accordion" id="groups-accordion">
-                    @foreach ($groups as $group)
-                        @php
+                    <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $clients = $group->neighborhoods
                                 ->flatMap(function ($neigh) {
                                     return $neigh->client ? [$neigh->client] : [];
@@ -123,104 +122,114 @@
                                     return optional($client->status_client)->name ?? 'غير محدد';
                                 })
                                 ->map->count();
-                        @endphp
+                        ?>
 
-                        <div class="card card-outline card-info mb-2 group-section" id="group-{{ $group->id }}">
-                            <div class="card-header" id="heading-{{ $group->id }}">
+                        <div class="card card-outline card-info mb-2 group-section" id="group-<?php echo e($group->id); ?>">
+                            <div class="card-header" id="heading-<?php echo e($group->id); ?>">
                                 <h5 class="mb-0 d-flex justify-content-between align-items-center">
                                     <button class="btn btn-link text-dark font-weight-bold w-100 text-right collapsed"
-                                        type="button" data-toggle="collapse" data-target="#collapse-{{ $group->id }}"
-                                        aria-expanded="false" aria-controls="collapse-{{ $group->id }}">
+                                        type="button" data-toggle="collapse" data-target="#collapse-<?php echo e($group->id); ?>"
+                                        aria-expanded="false" aria-controls="collapse-<?php echo e($group->id); ?>">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <i class="fas fa-map-marker-alt mr-2"></i>
-                                                {{ $group->name }}
+                                                <?php echo e($group->name); ?>
+
                                                 <span class="badge badge-primary badge-pill ml-2">
-                                                    {{ $clients->count() }}
+                                                    <?php echo e($clients->count()); ?>
+
                                                 </span>
                                             </div>
                                             <div class="status-badges">
-                                                @foreach ($statusCounts as $status => $count)
-                                                    @php
+                                                <?php $__currentLoopData = $statusCounts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status => $count): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                    <?php
                                                         $color =
                                                             $clients->first(function ($client) use ($status) {
                                                                 return (optional($client->status_client)->name ??
                                                                     'غير محدد') ===
                                                                     $status;
                                                             })->status_client->color ?? '#6c757d';
-                                                    @endphp
+                                                    ?>
                                                     <span class="badge badge-pill ml-1"
-                                                        style="background-color: {{ $color }}; color: white;">
-                                                        {{ $status }}: {{ $count }}
+                                                        style="background-color: <?php echo e($color); ?>; color: white;">
+                                                        <?php echo e($status); ?>: <?php echo e($count); ?>
+
                                                     </span>
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                             </div>
                                         </div>
                                     </button>
                                 </h5>
                             </div>
 
-                            <div id="collapse-{{ $group->id }}" class="collapse"
-                                aria-labelledby="heading-{{ $group->id }}" data-parent="#groups-accordion">
+                            <div id="collapse-<?php echo e($group->id); ?>" class="collapse"
+                                aria-labelledby="heading-<?php echo e($group->id); ?>" data-parent="#groups-accordion">
                                 <div class="card-body p-0">
-                                    @if ($clients->count() > 0)
+                                    <?php if($clients->count() > 0): ?>
                                         <div class="table-responsive">
                                             <table class="table table-hover table-bordered text-center mb-0 client-table">
                                                 <thead class="thead-light">
                                                     <tr>
                                                         <th class="align-middle" style="min-width: 220px;">العميل</th>
-                                                        @foreach ($weeks as $week)
+                                                        <?php $__currentLoopData = $weeks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $week): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                             <th class="week-header align-middle" style="min-width: 80px;">
                                                                 <div class="week-number">الأسبوع
-                                                                    {{ $week['week_number'] }}
+                                                                    <?php echo e($week['week_number']); ?>
+
                                                                 </div>
                                                                 <div class="week-dates">
-                                                                    {{ \Carbon\Carbon::parse($week['start'])->format('d/m') }}
+                                                                    <?php echo e(\Carbon\Carbon::parse($week['start'])->format('d/m')); ?>
+
                                                                     -
-                                                                    {{ \Carbon\Carbon::parse($week['end'])->format('d/m') }}
+                                                                    <?php echo e(\Carbon\Carbon::parse($week['end'])->format('d/m')); ?>
+
                                                                 </div>
                                                             </th>
-                                                        @endforeach
+                                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                         <th class="align-middle">إجمالي النشاط</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach ($clients as $client)
-                                                        <tr class="client-row" data-client="{{ $client->trade_name }}"
-                                                            data-status="{{ optional($client->status_client)->name ?? 'غير محدد' }}">
+                                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <tr class="client-row" data-client="<?php echo e($client->trade_name); ?>"
+                                                            data-status="<?php echo e(optional($client->status_client)->name ?? 'غير محدد'); ?>">
                                                             <td class="text-start align-middle">
-                                                                <a href="{{ route('clients.show', $client->id) }}"
+                                                                <a href="<?php echo e(route('clients.show', $client->id)); ?>"
                                                                     class="text-decoration-none text-dark">
                                                                     <div class="d-flex align-items-center">
                                                                         <div class="avatar mr-2">
                                                                             <span class="avatar-content"
-                                                                                style="background-color: {{ optional($client->status_client)->color ?? '#6c757d' }};">
-                                                                                {{ substr($client->trade_name, 0, 1) }}
+                                                                                style="background-color: <?php echo e(optional($client->status_client)->color ?? '#6c757d'); ?>;">
+                                                                                <?php echo e(substr($client->trade_name, 0, 1)); ?>
+
                                                                             </span>
                                                                         </div>
                                                                         <div>
                                                                             <div class="font-weight-bold">
-                                                                                {{ $client->trade_name }}-{{ $client->code }}
+                                                                                <?php echo e($client->trade_name); ?>-<?php echo e($client->code); ?>
+
                                                                             </div>
                                                                             <div class="client-status-badge">
-                                                                                @if ($client->status_client)
+                                                                                <?php if($client->status_client): ?>
                                                                                     <span
-                                                                                        style="background-color: {{ $client->status_client->color }};
+                                                                                        style="background-color: <?php echo e($client->status_client->color); ?>;
                               color: #fff; padding: 2px 8px; font-size: 12px;
                               border-radius: 4px; display: inline-block;">
-                                                                                        {{ $client->status_client->name }}
+                                                                                        <?php echo e($client->status_client->name); ?>
+
                                                                                     </span>
-                                                                                @else
+                                                                                <?php else: ?>
                                                                                     <span
                                                                                         style="background-color: #6c757d;
                               color: #fff; padding: 2px 8px; font-size: 12px;
                               border-radius: 4px; display: inline-block;">
                                                                                         غير محدد
                                                                                     </span>
-                                                                                @endif
+                                                                                <?php endif; ?>
                                                                             </div>
                                                                             <div class="small text-muted">
-                                                                                {{ optional($client->neighborhood)->name }}
+                                                                                <?php echo e(optional($client->neighborhood)->name); ?>
+
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -228,9 +237,9 @@
                                                             </td>
 
 
-                                                            @php $totalActivities = 0; @endphp
-                                                            @foreach ($weeks as $week)
-                                                                @php
+                                                            <?php $totalActivities = 0; ?>
+                                                            <?php $__currentLoopData = $weeks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $week): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <?php
                                                                     $activities = [];
                                                                     $hasActivity = false;
                                                                     $activityTypes = [];
@@ -359,83 +368,87 @@
                                                                     if ($hasActivity) {
                                                                         $totalActivities++;
                                                                     }
-                                                                @endphp
-                                                                <td class="align-middle activity-cell {{ $cellColorClass }} @if ($hasActivity) has-activity @endif"
-                                                                    data-has-activity="{{ $hasActivity ? '1' : '0' }}"
-                                                                    data-activity-types="{{ implode(',', $activityTypes) }}"
-                                                                    data-notes="{{ htmlspecialchars(json_encode($notesData), ENT_QUOTES, 'UTF-8') }}">
-                                                                    @if ($hasActivity)
+                                                                ?>
+                                                                <td class="align-middle activity-cell <?php echo e($cellColorClass); ?> <?php if($hasActivity): ?> has-activity <?php endif; ?>"
+                                                                    data-has-activity="<?php echo e($hasActivity ? '1' : '0'); ?>"
+                                                                    data-activity-types="<?php echo e(implode(',', $activityTypes)); ?>"
+                                                                    data-notes="<?php echo e(htmlspecialchars(json_encode($notesData), ENT_QUOTES, 'UTF-8')); ?>">
+                                                                    <?php if($hasActivity): ?>
                                                                         <div
                                                                             class="activity-icons d-flex justify-content-center">
-                                                                            @foreach ($activities as $activity)
-                                                                                @if ($activity['title'] === 'ملاحظة' && isset($activity['notes']))
+                                                                            <?php $__currentLoopData = $activities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $activity): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                                <?php if($activity['title'] === 'ملاحظة' && isset($activity['notes'])): ?>
                                                                                     <a href="#" class="show-notes"
-                                                                                        data-notes="{{ htmlspecialchars(json_encode($activity['notes']), ENT_QUOTES, 'UTF-8') }}"
-                                                                                        data-client="{{ $client->trade_name }}">
-                                                                                        <i class="{{ $activity['icon'] }} mx-1"
-                                                                                            title="{{ $activity['title'] }}"
+                                                                                        data-notes="<?php echo e(htmlspecialchars(json_encode($activity['notes']), ENT_QUOTES, 'UTF-8')); ?>"
+                                                                                        data-client="<?php echo e($client->trade_name); ?>">
+                                                                                        <i class="<?php echo e($activity['icon']); ?> mx-1"
+                                                                                            title="<?php echo e($activity['title']); ?>"
                                                                                             data-toggle="tooltip"
-                                                                                            style="color: {{ $activity['color'] }}"></i>
+                                                                                            style="color: <?php echo e($activity['color']); ?>"></i>
                                                                                     </a>
-                                                                                @else
-                                                                                    <i class="{{ $activity['icon'] }} mx-1"
-                                                                                        title="{{ $activity['title'] }}"
+                                                                                <?php else: ?>
+                                                                                    <i class="<?php echo e($activity['icon']); ?> mx-1"
+                                                                                        title="<?php echo e($activity['title']); ?>"
                                                                                         data-toggle="tooltip"
-                                                                                        style="color: {{ $activity['color'] }}"></i>
-                                                                                @endif
-                                                                            @endforeach
+                                                                                        style="color: <?php echo e($activity['color']); ?>"></i>
+                                                                                <?php endif; ?>
+                                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                                         </div>
-                                                                    @else
+                                                                    <?php else: ?>
                                                                         <span class="text-muted">—</span>
-                                                                    @endif
+                                                                    <?php endif; ?>
                                                                 </td>
-                                                            @endforeach
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                                                             <td class="align-middle">
                                                                 <span
-                                                                    class="badge badge-pill @if ($totalActivities > 0) badge-success @else badge-secondary @endif">
-                                                                    {{ $totalActivities }} / {{ count($weeks) }}
+                                                                    class="badge badge-pill <?php if($totalActivities > 0): ?> badge-success <?php else: ?> badge-secondary <?php endif; ?>">
+                                                                    <?php echo e($totalActivities); ?> / <?php echo e(count($weeks)); ?>
+
                                                                 </span>
                                                             </td>
                                                         </tr>
-                                                    @endforeach
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                 </tbody>
                                             </table>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <div class="alert alert-info m-3">لا يوجد عملاء في هذه المجموعة</div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
             </div>
             <div class="card-footer">
                 <div class="d-flex justify-content-between">
                     <div class="small text-muted">
-                        تاريخ التحديث: {{ now()->format('Y/m/d H:i') }}
+                        تاريخ التحديث: <?php echo e(now()->format('Y/m/d H:i')); ?>
+
                     </div>
                     <div>
-                        <span class="badge badge-primary">مجموعات: {{ $groups->count() }}</span>
-                        <span class="badge badge-success ml-2">عملاء: {{ $totalClients ?? 0 }}</span>
+                        <span class="badge badge-primary">مجموعات: <?php echo e($groups->count()); ?></span>
+                        <span class="badge badge-success ml-2">عملاء: <?php echo e($totalClients ?? 0); ?></span>
                     </div>
                 </div>
             </div>
         </div>
-    @endsection
-    @section('css')
+    <?php $__env->stopSection(); ?>
+    <?php $__env->startSection('css'); ?>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
-        <link rel="stylesheet" href="{{ asset('assets/css/noteReport.css') }}">
+        <link rel="stylesheet" href="<?php echo e(asset('assets/css/noteReport.css')); ?>">
 
-    @endsection
+    <?php $__env->stopSection(); ?>
 
-    @section('scripts')
+    <?php $__env->startSection('scripts'); ?>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-        <script src="{{ asset('assets/js/noteReport.js') }}"></script>
+        <script src="<?php echo e(asset('assets/js/noteReport.js')); ?>"></script>
 
-    @endsection
+    <?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/reports/sals/traffic_analytics.blade.php ENDPATH**/ ?>

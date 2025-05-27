@@ -506,7 +506,7 @@ public function show($id)
         return strtotime($b['date']) - strtotime($a['date']);
     });
 
-    // تقسيم العمليات الأساسية إلى صفحات
+    // تقسيم العمليات الأساسية إلى صفحات (فقط للمعاملات)
     $operationsPaginator = $this->paginateOperations($allOperations);
 
     // معالجة التحويلات بشكل منفصل (بدون تقسيم صفحات)
