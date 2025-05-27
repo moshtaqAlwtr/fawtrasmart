@@ -486,34 +486,74 @@ class TreasuryController extends Controller
         $treasury->update();
         return redirect()->route('treasury.index')->with(key: ['success' => 'تم تحديث الحساب بنجاج !!']);
     }
-    public function show($id)
-    {
-        // جلب بيانات الخزينة
-        $treasury = $this->getTreasury($id);
-        $branches = $this->getBranches();
+public function show($id)
+{
+    // جلب بيانات الخزينة
+    $treasury = $this->getTreasury($id);
+    $branches = $this->getBranches();
 
-        // جلب العمليات المالية
-        $transactions = $this->getTransactions($id);
-        $transfers = $this->getTransfers($id);
-        $expenses = $this->getExpenses($id);
-        $revenues = $this->getRevenues($id);
+    // جلب العمليات المالية
+    $transactions = $this->getTransactions($id);
+    $transfers = $this->getTransfers($id)->load(['details.account']);
+    $expenses = $this->getExpenses($id);
+    $revenues = $this->getRevenues($id);
 
-        // معالجة العمليات وحساب الرصيد
-        $allOperations = $this->processOperations($transactions, $transfers, $expenses, $revenues, $treasury);
+    // معالجة العمليات الأساسية (بدون تحويلات)
+    $allOperations = $this->processOperations($transactions, [], $expenses, $revenues, $treasury);
 
-        // ترتيب العمليات حسب التاريخ
-        usort($allOperations, function ($a, $b) {
-            return strtotime($b['date']) - strtotime($a['date']);
-        });
+    // ترتيب العمليات الأساسية حسب التاريخ
+    usort($allOperations, function ($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
 
-        // تقسيم العمليات إلى صفحات
-        $operationsPaginator = $this->paginateOperations($allOperations);
+    // تقسيم العمليات الأساسية إلى صفحات
+    $operationsPaginator = $this->paginateOperations($allOperations);
 
-        // إرسال البيانات إلى الواجهة
-        return view('finance.treasury.show', compact('treasury', 'operationsPaginator', 'branches'));
+    // معالجة التحويلات بشكل منفصل (بدون تقسيم صفحات)
+    $formattedTransfers = [];
+    foreach ($transfers as $transfer) {
+        $fromAccount = null;
+        $toAccount = null;
+        $amount = $transfer->details->sum('debit');
+
+        foreach ($transfer->details as $detail) {
+            if ($detail->is_debit) {
+                $toAccount = $detail->account;
+            } else {
+                $fromAccount = $detail->account;
+            }
+        }
+
+        if ($fromAccount->id == $treasury->id || $toAccount->id == $treasury->id) {
+            $formattedTransfers[] = [
+                'operation' => 'تحويل مالي',
+                'deposit' => $toAccount->id == $treasury->id ? $amount : 0,
+                'withdraw' => $fromAccount->id == $treasury->id ? $amount : 0,
+                'balance_after' => 0,
+                'date' => $transfer->date,
+                'type' => 'transfer',
+                'reference_number' => $transfer->reference_number,
+                'from_account' => $fromAccount,
+                'to_account' => $toAccount,
+                'amount' => $amount,
+                'id' => $transfer->id
+            ];
+        }
     }
 
-    private function getTreasury($id)
+    // ترتيب التحويلات حسب التاريخ
+    usort($formattedTransfers, function ($a, $b) {
+        return strtotime($b['date']) - strtotime($a['date']);
+    });
+
+    return view('finance.treasury.show', compact(
+        'treasury',
+        'operationsPaginator',
+        'branches',
+        'formattedTransfers' // إرسال التحويلات كاملة بدون تقسيم صفحات
+    ));
+}
+ private function getTreasury($id)
     {
         return Account::findOrFail($id);
     }
@@ -534,20 +574,21 @@ class TreasuryController extends Controller
     }
 
     private function getTransfers($id)
-    {
-        return JournalEntry::whereHas('details', function ($query) use ($id) {
+{
+    return JournalEntry::whereHas('details', function ($query) use ($id) {
             $query->where('account_id', $id);
         })
         ->with(['details.account'])
         ->where('description', 'تحويل المالية')
         ->orderBy('created_at', 'asc')
         ->get();
-    }
+}
+
 
     private function getExpenses($id)
     {
         return Expense::where('treasury_id', $id)
-            ->with(['expenses_category', 'vendor', 'employee', 'branch', 'client'])
+            ->with(['expenses_category', 'branch', 'client'])
             ->orderBy('created_at', 'asc')
             ->get();
     }
