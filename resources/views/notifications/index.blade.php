@@ -81,9 +81,8 @@
                                                 @endif
                                             </div>
                                             <div>
-                                                <h6 class="mb-0">{{ $notification->user->name ?? 'مستخدم محذوف' }}</h6>
-                                                <small
-                                                    class="text-muted">{{ $notification->user->department->name ?? 'غير محدد' }}</small>
+                                                <h6 class="mb-0">{{ $notification->user->name ?? 'المستخدم غير موجود' }}</h6>
+
                                             </div>
                                         </div>
                                     </td>
@@ -92,7 +91,7 @@
                                     <td>
                                         <div class="d-flex flex-column">
                                             <h6 class="mb-1 fw-semibold">{{ $notification->title ?? 'بدون عنوان' }}</h6>
-                                            <p class="mb-0 text-muted text-truncate pe-2" style="max-width: 350px;">
+                                            <p class="mb-0 text-muted  pe-2" style="max-width: 350px;">
                                                 {{ $notification->description ?? 'لا توجد تفاصيل' }}
                                             </p>
                                         </div>

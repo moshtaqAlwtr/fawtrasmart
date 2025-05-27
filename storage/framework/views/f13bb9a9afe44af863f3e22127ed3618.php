@@ -957,82 +957,126 @@
                         <!-- محتوى الملاحظات -->
                         <div id="notes" class="collapse mt-2">
     <div class="card card-body">
-        <!-- الملاحظات -->
-        <div class="timeline">
-            <?php $__currentLoopData = $ClientRelations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="timeline-item mb-4">
-                    <div class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
-                        <!-- الحالة -->
-                        <span class="badge mb-2 mb-md-0"
-                            style="background-color: <?php echo e($statuses->find($client->status_id)->color ?? '#007BFF'); ?>; color: white;">
-                            <?php echo e($statuses->find($client->status_id)->name ?? ''); ?>
+    <!-- الملاحظات -->
+    <div class="timeline">
+        <?php $__currentLoopData = $ClientRelations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <div class="timeline-item mb-4">
+                <div class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
+                    <!-- الحالة -->
+                    <span class="badge mb-2 mb-md-0"
+                        style="background-color: <?php echo e($statuses->find($client->status_id)->color ?? '#007BFF'); ?>; color: white;">
+                        <?php echo e($statuses->find($client->status_id)->name ?? ''); ?>
 
-                        </span>
+                    </span>
 
-                        <!-- مربع الملاحظة -->
-                        <div class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
-                            <!-- الرأس -->
-                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
-                                <h6 class="mb-2 mb-sm-0">
-                                    <i class="fas fa-user me-1"></i> <?php echo e($note->employee->name ?? ''); ?>
+                    <!-- مربع الملاحظة -->
+                    <div class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
+                        <!-- الرأس -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                            <h6 class="mb-2 mb-sm-0">
+                                <i class="fas fa-user me-1"></i> <?php echo e($note->employee->name ?? ''); ?>
 
-                                </h6>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    <?php echo e($note->created_at->format('H:i d/m/Y')); ?> -
-                                    <span class="text-primary"><?php echo e($note->status ?? ''); ?></span>
-                                </small>
-                            </div>
-
-                            <hr class="my-2">
-
-                            <!-- النص -->
-                            <p class="mb-2">
-                                <i class="far fa-user me-1"></i> <?php echo e($note->process ?? ''); ?>
-
-                            </p>
-                            <small class="text-muted d-block mb-2"><?php echo e($note->description ?? ''); ?></small>
-
-                            <!-- عرض المرفقات -->
-                            <?php
-                                $files = json_decode($note->attachments, true);
-                                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                            ?>
-
-                            <?php if(is_array($files) && count($files)): ?>
-                                <div class="attachment mt-3 d-flex flex-wrap gap-2">
-                                    <?php $__currentLoopData = $files; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $file): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <?php
-                                            $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                            $fileUrl = asset('assets/uploads/notes/' . $file);
-                                        ?>
-
-                                        <?php if(in_array(strtolower($ext), $imageExtensions)): ?>
-                                            <a href="<?php echo e($fileUrl); ?>" target="_blank" class="d-block">
-                                                <img src="<?php echo e($fileUrl); ?>"
-                                                    alt="مرفق صورة"
-                                                    class="img-fluid rounded border"
-                                                    style="max-width: 180px; height: auto;">
-                                            </a>
-                                        <?php else: ?>
-                                            <a href="<?php echo e($fileUrl); ?>" target="_blank"
-                                                class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                                                <i class="fas fa-file-alt me-2"></i> عرض الملف: <?php echo e($file); ?>
-
-                                            </a>
-                                        <?php endif; ?>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </div>
-                            <?php endif; ?>
+                            </h6>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                <?php echo e($note->created_at->format('H:i d/m/Y')); ?> -
+                                <span class="text-primary"><?php echo e($note->status ?? ''); ?></span>
+                            </small>
                         </div>
 
-                        <!-- نقطة الخط الزمني -->
-                        <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
+                        <hr class="my-2">
+
+                        <!-- النص -->
+                        <p class="mb-2">
+                            <i class="far fa-user me-1"></i> <?php echo e($note->process ?? ''); ?>
+
+                        </p>
+                        <small class="text-muted d-block mb-2"><?php echo e($note->description ?? ''); ?></small>
+
+                        <!-- عرض البيانات الجديدة -->
+                        <?php if($note->deposit_count || $note->site_type || $note->competitor_documents): ?>
+                        <div class="additional-data mt-3 p-2 bg-light rounded">
+                            <div class="row">
+                                <?php if($note->deposit_count): ?>
+                                <div class="col-md-4 mb-2">
+                                    <span class="d-block text-primary">
+                                        <i class="fas fa-boxes me-1"></i> عدد العهدة:
+                                    </span>
+                                    <span class="fw-bold"><?php echo e($note->deposit_count); ?></span>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if($note->site_type): ?>
+                                <div class="col-md-4 mb-2">
+                                    <span class="d-block text-primary">
+                                        <i class="fas fa-store me-1"></i> نوع الموقع:
+                                    </span>
+                                    <span class="fw-bold">
+                                        <?php switch($note->site_type):
+                                            case ('independent_booth'): ?> بسطة مستقلة <?php break; ?>
+                                            <?php case ('grocery'): ?> بقالة <?php break; ?>
+                                            <?php case ('supplies'): ?> تموينات <?php break; ?>
+                                            <?php case ('markets'): ?> أسواق <?php break; ?>
+                                            <?php case ('station'): ?> محطة <?php break; ?>
+                                            <?php default: ?> <?php echo e($note->site_type); ?>
+
+                                        <?php endswitch; ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if($note->competitor_documents): ?>
+                                <div class="col-md-4 mb-2">
+                                    <span class="d-block text-primary">
+                                        <i class="fas fa-file-contract me-1"></i> استندات المنافسين:
+                                    </span>
+                                    <span class="fw-bold"><?php echo e($note->competitor_documents); ?></span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- عرض المرفقات -->
+                        <?php
+                            $files = json_decode($note->attachments, true);
+                            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                        ?>
+
+                        <?php if(is_array($files) && count($files)): ?>
+                            <div class="attachment mt-3 d-flex flex-wrap gap-2">
+                                <?php $__currentLoopData = $files; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $file): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php
+                                        $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                        $fileUrl = asset('assets/uploads/notes/' . $file);
+                                    ?>
+
+                                    <?php if(in_array(strtolower($ext), $imageExtensions)): ?>
+                                        <a href="<?php echo e($fileUrl); ?>" target="_blank" class="d-block">
+                                            <img src="<?php echo e($fileUrl); ?>"
+                                                alt="مرفق صورة"
+                                                class="img-fluid rounded border"
+                                                style="max-width: 180px; height: auto;">
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="<?php echo e($fileUrl); ?>" target="_blank"
+                                            class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                            <i class="fas fa-file-alt me-2"></i> عرض الملف: <?php echo e($file); ?>
+
+                                        </a>
+                                    <?php endif; ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
+
+                    <!-- نقطة الخط الزمني -->
+                    <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
                 </div>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-        </div>
+            </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
+</div>
 </div>
 
                     </div>

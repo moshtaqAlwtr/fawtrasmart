@@ -218,8 +218,7 @@
                                         <td><?php echo e(optional($employee->department)->name ?? 'غير محدد'); ?></td>
                                         <td><?php echo e(optional($employee->branch)->name ?? 'غير محدد'); ?>
 
-                                            <div style="font-size: 12px; color: #888;">
-                                                <?php echo e($employee->user->directions->name ?? 'غير محدد'); ?></div>
+
                                         </td>
                                         <td>
                                             <?php if($employee->status == 1): ?>

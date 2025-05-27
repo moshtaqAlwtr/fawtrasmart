@@ -91,7 +91,7 @@
                                     <td>
                                         <div class="d-flex flex-column">
                                             <h6 class="mb-1 fw-semibold"><?php echo e($notification->title ?? 'بدون عنوان'); ?></h6>
-                                            <p class="mb-0 text-muted text-truncate pe-2" style="max-width: 350px;">
+                                            <p class="mb-0 text-muted  pe-2" style="max-width: 350px;">
                                                 <?php echo e($notification->description ?? 'لا توجد تفاصيل'); ?>
 
                                             </p>

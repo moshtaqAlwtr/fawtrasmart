@@ -464,10 +464,12 @@
                         <i class="fas fa-bars me-1"></i> خيارات
                     </button>
                     <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center"
-                                href="{{ route('clients.edit', $client->id) }}">
-                                <i class="fas fa-user-edit me-2 text-info"></i> تعديل
-                            </a></li>
+                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                            <li><a class="dropdown-item d-flex align-items-center"
+                                    href="{{ route('clients.edit', $client->id) }}">
+                                    <i class="fas fa-user-edit me-2 text-info"></i> تعديل
+                        @endif
+                        </a></li>
                         <li><a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق
@@ -951,80 +953,148 @@
                         </button>
                         <!-- محتوى الملاحظات -->
                         <div id="notes" class="collapse mt-2">
-    <div class="card card-body">
-        <!-- الملاحظات -->
-        <div class="timeline">
-            @foreach ($ClientRelations as $note)
-                <div class="timeline-item mb-4">
-                    <div class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
-                        <!-- الحالة -->
-                        <span class="badge mb-2 mb-md-0"
-                            style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
-                            {{ $statuses->find($client->status_id)->name ?? '' }}
-                        </span>
+                            <div class="card card-body">
+                                <!-- الملاحظات -->
+                                <div class="timeline">
+                                    @foreach ($ClientRelations as $note)
+                                        <div class="timeline-item mb-4">
+                                            <div
+                                                class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
+                                                <!-- الحالة -->
+                                                <span class="badge mb-2 mb-md-0"
+                                                    style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
+                                                    {{ $statuses->find($client->status_id)->name ?? '' }}
+                                                </span>
 
-                        <!-- مربع الملاحظة -->
-                        <div class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
-                            <!-- الرأس -->
-                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
-                                <h6 class="mb-2 mb-sm-0">
-                                    <i class="fas fa-user me-1"></i> {{ $note->employee->name ?? '' }}
-                                </h6>
-                                <small class="text-muted">
-                                    <i class="fas fa-clock me-1"></i>
-                                    {{ $note->created_at->format('H:i d/m/Y') }} -
-                                    <span class="text-primary">{{ $note->status ?? '' }}</span>
-                                </small>
-                            </div>
+                                                <!-- مربع الملاحظة -->
+                                                <div
+                                                    class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
+                                                    <!-- الرأس -->
+                                                    <div
+                                                        class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                                                        <h6 class="mb-2 mb-sm-0">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            {{ $note->employee->name ?? '' }}
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            {{ $note->created_at->format('H:i d/m/Y') }} -
+                                                            <span class="text-primary">{{ $note->status ?? '' }}</span>
+                                                        </small>
+                                                    </div>
 
-                            <hr class="my-2">
+                                                    <hr class="my-2">
 
-                            <!-- النص -->
-                            <p class="mb-2">
-                                <i class="far fa-user me-1"></i> {{ $note->process ?? '' }}
-                            </p>
-                            <small class="text-muted d-block mb-2">{{ $note->description ?? '' }}</small>
+                                                    <!-- النص -->
+                                                    <p class="mb-2">
+                                                        <i class="far fa-user me-1"></i> {{ $note->process ?? '' }}
+                                                    </p>
+                                                    <small
+                                                        class="text-muted d-block mb-2">{{ $note->description ?? '' }}</small>
 
-                            <!-- عرض المرفقات -->
-                            @php
-                                $files = json_decode($note->attachments, true);
-                                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                            @endphp
+                                                    <!-- عرض البيانات الجديدة -->
+                                                    @if ($note->deposit_count || $note->site_type || $note->competitor_documents)
+                                                        <div class="additional-data mt-3 p-2 bg-light rounded">
+                                                            <div class="row">
+                                                                @if ($note->deposit_count)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-boxes me-1"></i> عدد العهدة:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold">{{ $note->deposit_count }}</span>
+                                                                    </div>
+                                                                @endif
 
-                            @if (is_array($files) && count($files))
-                                <div class="attachment mt-3 d-flex flex-wrap gap-2">
-                                    @foreach ($files as $file)
-                                        @php
-                                            $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                            $fileUrl = asset('assets/uploads/notes/' . $file);
-                                        @endphp
+                                                                @if ($note->site_type)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-store me-1"></i> نوع الموقع:
+                                                                        </span>
+                                                                        <span class="fw-bold">
+                                                                            @switch($note->site_type)
+                                                                                @case('independent_booth')
+                                                                                    بسطة مستقلة
+                                                                                @break
 
-                                        @if (in_array(strtolower($ext), $imageExtensions))
-                                            <a href="{{ $fileUrl }}" target="_blank" class="d-block">
-                                                <img src="{{ $fileUrl }}"
-                                                    alt="مرفق صورة"
-                                                    class="img-fluid rounded border"
-                                                    style="max-width: 180px; height: auto;">
-                                            </a>
-                                        @else
-                                            <a href="{{ $fileUrl }}" target="_blank"
-                                                class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                                                <i class="fas fa-file-alt me-2"></i> عرض الملف: {{ $file }}
-                                            </a>
-                                        @endif
+                                                                                @case('grocery')
+                                                                                    بقالة
+                                                                                @break
+
+                                                                                @case('supplies')
+                                                                                    تموينات
+                                                                                @break
+
+                                                                                @case('markets')
+                                                                                    أسواق
+                                                                                @break
+
+                                                                                @case('station')
+                                                                                    محطة
+                                                                                @break
+
+                                                                                @default
+                                                                                    {{ $note->site_type }}
+                                                                            @endswitch
+                                                                        </span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($note->competitor_documents)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-file-contract me-1"></i>
+                                                                            استندات المنافسين:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold">{{ $note->competitor_documents }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    <!-- عرض المرفقات -->
+                                                    @php
+                                                        $files = json_decode($note->attachments, true);
+                                                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                                    @endphp
+
+                                                    @if (is_array($files) && count($files))
+                                                        <div class="attachment mt-3 d-flex flex-wrap gap-2">
+                                                            @foreach ($files as $file)
+                                                                @php
+                                                                    $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                                                    $fileUrl = asset('assets/uploads/notes/' . $file);
+                                                                @endphp
+
+                                                                @if (in_array(strtolower($ext), $imageExtensions))
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="d-block">
+                                                                        <img src="{{ $fileUrl }}" alt="مرفق صورة"
+                                                                            class="img-fluid rounded border"
+                                                                            style="max-width: 180px; height: auto;">
+                                                                    </a>
+                                                                @else
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                                                        <i class="fas fa-file-alt me-2"></i> عرض الملف:
+                                                                        {{ $file }}
+                                                                    </a>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <!-- نقطة الخط الزمني -->
+                                                <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
+                                            </div>
+                                        </div>
                                     @endforeach
                                 </div>
-                            @endif
+                            </div>
                         </div>
-
-                        <!-- نقطة الخط الزمني -->
-                        <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-</div>
 
                     </div>
 

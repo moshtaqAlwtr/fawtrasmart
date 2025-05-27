@@ -131,7 +131,107 @@
                 </div>
             </div>
 
-                <div class="row">
+
+<div class="container py-4">
+    <div class="card shadow-sm border-0">
+        <!-- Header Section Inside Card -->
+        <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 fw-bold text-primary">أداء الموظفين مقارنة بالهدف الشهري</h4>
+                <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center me-3">
+                        <span class="badge bg-success me-2" style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                        <small>تحقيق 100%+</small>
+                    </div>
+                    <div class="d-flex align-items-center me-3">
+                        <span class="badge bg-warning me-2" style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                        <small>80% - 99%</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-danger me-2" style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                        <small>أقل من 80%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Section -->
+       <div class="card-body p-0">
+           <form method="GET" class="mb-3">
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <label for="month" class="form-label">اختر الشهر:</label>
+        </div>
+        <div class="col-auto">
+            <input type="month" name="month" id="month" class="form-control" value="<?php echo e($month); ?>">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">عرض</button>
+        </div>
+    </div>
+</form>
+
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="25%">الموظف</th>
+                    <th width="25%" class="text-end">المبالغ المحصله</th>
+                    <th width="25%" class="text-end">الهدف</th>
+                    <th width="25%">النسبة</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $__currentLoopData = $cards; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $card): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <tr>
+                    <td>
+                        <strong><?php echo e($card['name']); ?></strong>
+                        <div class="text-muted small mt-1">
+                            المدفوعات: <?php echo e(number_format($card['payments'])); ?> ريال<br>
+                            السندات: <?php echo e(number_format($card['receipts'])); ?> ريال<br>
+                            الإجمالي: <?php echo e(number_format($card['total'])); ?> / الهدف: <?php echo e(number_format($card['target'])); ?> ريال
+                        </div>
+                    </td>
+                    <td class="text-end"><?php echo e(number_format($card['total'])); ?> ريال</td>
+                    <td class="text-end"><?php echo e(number_format($card['target'])); ?> ريال</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <span class="text-success me-2"><?php echo e($card['percentage']); ?>%</span>
+                            <div class="progress" style="width: 100%; height: 8px;">
+                                <div class="progress-bar bg-success" 
+                                     role="progressbar"
+                                     style="width: <?php echo e($card['percentage']); ?>%;"
+                                     aria-valuenow="<?php echo e($card['percentage']); ?>"
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .progress-bar {
+        background-color: #28a745 !important; /* اللون الأخضر */
+        transition: width 0.6s ease;
+    }
+    .text-success {
+        color: #28a745 !important; /* اللون الأخضر للنص */
+        font-weight: bold;
+    }
+</style>
+    </div>
+</div>
+
+
+
+
+         <div class="row">
               <div class="col-md-12 col-12">
                   <div class="accordion mb-3" id="summaryAccordion">
     <div class="row mb-3">
@@ -350,7 +450,7 @@
                 <div class="col-md-12 col-12">
 
             <div class="row">
-                <div class="col-lg-4 col-12">
+                <div class="col-lg-6 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
                             <h4>مبيعات المجموعات</h4>
@@ -379,37 +479,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-end">
-                            <h4>مبيعات المجموعات</h4>
-                            <div class="dropdown chart-dropdown">
+                
 
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownItem1">
-                                    <a class="dropdown-item" href="#">آخر 28 يوم</a>
-                                    <a class="dropdown-item" href="#">الشهر الماضي</a>
-                                    <a class="dropdown-item" href="#">العام الماضي</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body pt-0">
-                                <div id="sales-chart" class="mb-1"></div>
-                                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <div class="chart-info d-flex justify-content-between mb-1">
-                                        <div class="series-info d-flex align-items-center">
-                                            <i class="feather icon-layers font-medium-2 text-primary"></i>
-                                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name ?? ''); ?></span>
-                                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
-                                        </div>
-                                    </div>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-12">
+                <div class="col-lg-6 col-12">
 
                     <div class="card">
                         <div class="card-header d-flex justify-content-between pb-0">

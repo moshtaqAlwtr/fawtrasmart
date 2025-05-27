@@ -23,13 +23,11 @@
                 </div>
             @endif
             <div class="card">
-
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
                             <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
                         </div>
-
                         <div>
                             <a href="{{ route('appointments.index') }}" class="btn btn-outline-danger">
                                 <i class="fa fa-ban"></i>الغاء
@@ -38,18 +36,15 @@
                                 <i class="fa fa-save"></i>حفظ
                             </button>
                         </div>
-
                     </div>
                 </div>
             </div>
-            <!-- Header Section -->
 
             <!-- Form Section -->
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <!-- Date and Time -->
                     <div class="row mb-3">
-
                         <div class="form-group col-md-6">
                             <label for="action_type">نوع الإجراء</label>
                             <select class="form-control" id="action_type" name="process" required>
@@ -59,41 +54,8 @@
                             <input type="hidden" name="client_id" value="{{ $id }}">
                         </div>
 
-                        <!-- Modal -->
-                        <div class="modal fade" id="proceduresModal" tabindex="-1" aria-labelledby="proceduresModalLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="proceduresModalLabel">تعديل قائمة الإجراءات</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div id="procedures-list">
-                                            <!-- القائمة ستضاف هنا -->
-                                        </div>
-                                        <div class="mt-3">
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="newProcedureName"
-                                                    placeholder="اسم الإجراء الجديد">
-                                                <button class="btn btn-primary" type="button" id="addProcedureBtn">
-                                                    <i class="fas fa-plus"></i> إضافة
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">إلغاء</button>
-                                        <button type="button" class="btn btn-success" id="saveProcedures">حفظ</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="form-group col-md-6">
                             <label for="time" class="form-label">اختر الحالة</label>
-
                             <div class="dropdown col-md-6">
                                 <button class="btn btn-light dropdown-toggle text-start w-100" type="button"
                                     id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
@@ -102,7 +64,6 @@
                                            border: 1px solid #ccc;">
                                     {{ $currentStatus->name ?? 'اختر الحالة' }}
                                 </button>
-
                                 <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="clientStatusDropdown"
                                     style="border-radius: 8px;">
                                     @foreach ($statuses as $status)
@@ -116,7 +77,6 @@
                                             </a>
                                         </li>
                                     @endforeach
-
                                     <li>
                                         <a href="{{ route('SupplyOrders.edit_status') }}"
                                             class="dropdown-item text-muted d-flex align-items-center justify-content-center"
@@ -127,9 +87,34 @@
                                 </ul>
                             </div>
                         </div>
+                    </div>
 
+                    <!-- New Fields -->
+                    <div class="row mb-3">
+                        <!-- عدد العهدة -->
+                        <div class="form-group col-md-4">
+                            <label for="deposit_count" class="form-label">عدد العهدة الموجودة</label>
+                            <input type="number" class="form-control" id="deposit_count" name="deposit_count" min="0">
+                        </div>
 
+                        <!-- نوع الموقع -->
+                        <div class="form-group col-md-4">
+                            <label for="site_type" class="form-label">نوع الموقع</label>
+                            <select class="form-control" id="site_type" name="site_type">
+                                <option value="">اختر نوع الموقع</option>
+                                <option value="independent_booth">بسطة مستقلة</option>
+                                <option value="grocery">بقالة</option>
+                                <option value="supplies">تموينات</option>
+                                <option value="markets">أسواق</option>
+                                <option value="station">محطة</option>
+                            </select>
+                        </div>
 
+                        <!-- عدد استندات المنافسين -->
+                        <div class="form-group col-md-4">
+                            <label for="competitor_documents" class="form-label">عدد استندات المنافسين</label>
+                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents" min="0">
+                        </div>
                     </div>
 
                     <!-- Notes -->
@@ -139,42 +124,25 @@
                     </div>
 
                     <!-- Attachments -->
-                    {{-- <div class="mt-4">
-                        <h5 class="mb-3">المرفقات</h5>
-                        <div class="upload-area p-4 border rounded bg-light text-center">
-                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                            <p class="mb-1">أفلت الملف هنا أو <label class="text-primary">اختر من جهازك</label></p>
-                            <input type="file" name="attachments" class="form-control mt-3" multiple>
+                    <div class="col-md-12 col-12 mb-3">
+                        <div class="form-group">
+                            <label for="attachments" class="form-label">المرفقات</label>
+                            <input type="file" name="attachments[]" multiple id="attachments" class="form-control d-none"
+                                onchange="previewSelectedFiles()">
+                            <div class="upload-area border rounded p-4 text-center position-relative bg-light"
+                                onclick="document.getElementById('attachments').click()" style="cursor: pointer;">
+                                <div class="d-flex flex-column align-items-center justify-content-center gap-2">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
+                                    <p class="mb-0 text-primary fw-bold">اضغط هنا أو اختر من جهازك</p>
+                                    <small class="text-muted">يمكنك رفع صور، فيديوهات، وملفات PDF/Word/Excel</small>
+                                </div>
+                                <div class="position-absolute end-0 top-50 translate-middle-y me-3">
+                                    <i class="fas fa-file-alt fs-3 text-secondary"></i>
+                                </div>
+                            </div>
+                            <div id="selected-files" class="mt-3"></div>
                         </div>
-                    </div> --}}
-                    <!-- المرفقات -->
-
-<div class="col-md-12 col-12 mb-3">
-    <div class="form-group">
-        <label for="attachments" class="form-label">المرفقات</label>
-
-        <!-- حقل رفع الملفات الفعلي (مخفي) -->
-        <input type="file" name="attachments[]" multiple id="attachments" class="form-control d-none"
-            onchange="previewSelectedFiles()">
-
-        <!-- منطقة التحميل -->
-        <div class="upload-area border rounded p-4 text-center position-relative bg-light"
-            onclick="document.getElementById('attachments').click()" style="cursor: pointer;">
-            <div class="d-flex flex-column align-items-center justify-content-center gap-2">
-                <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
-                <p class="mb-0 text-primary fw-bold">اضغط هنا أو اختر من جهازك</p>
-                <small class="text-muted">يمكنك رفع صور، فيديوهات، وملفات PDF/Word/Excel</small>
-            </div>
-            <div class="position-absolute end-0 top-50 translate-middle-y me-3">
-                <i class="fas fa-file-alt fs-3 text-secondary"></i>
-            </div>
-        </div>
-
-        <!-- عرض أسماء الملفات المحددة -->
-        <div id="selected-files" class="mt-3"></div>
-    </div>
-</div>
-
+                    </div>
 
                     <!-- Options -->
                     <div class="form-check mt-3">
@@ -182,11 +150,6 @@
                         <label class="form-check-label" for="shareWithWork">مشاركة مع العمل</label>
                     </div>
                 </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="d-flex justify-content-center mt-4">
-                <button type="button" class="btn btn-outline-secondary me-2">تحديد موعد جديد</button>
             </div>
         </form>
     </div>

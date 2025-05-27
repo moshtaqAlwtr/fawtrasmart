@@ -1015,7 +1015,10 @@ public function addnotes(Request $request)
         'client_id' => 'required|exists:clients,id',
         'process' => 'required|string|max:255',
         'description' => 'required|string',
-        'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:5120', // حتى 5 ميغا لكل ملف
+        'deposit_count' => 'nullable|integer|min:0',
+        'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
+        'competitor_documents' => 'nullable|integer|min:0',
+        'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:5120',
     ]);
 
     DB::beginTransaction();
@@ -1056,6 +1059,14 @@ public function addnotes(Request $request)
             'status' => $request->status ?? 'pending',
             'process' => $request->process,
             'description' => $request->description,
+            'deposit_count' => $request->deposit_count,
+            'site_type' => $request->site_type,
+            'competitor_documents' => $request->competitor_documents,
+            'additional_data' => json_encode([
+                'deposit_count' => $request->deposit_count,
+                'site_type' => $request->site_type,
+                'competitor_documents' => $request->competitor_documents,
+            ]),
         ]);
 
         // رفع الملفات المتعددة وتخزينها
@@ -1116,7 +1127,6 @@ public function addnotes(Request $request)
         return redirect()->route('clients.show', $request->client_id ?? 0)->with('error', 'حدث خطأ أثناء إضافة الملاحظة: ' . $e->getMessage());
     }
 }
-
 
     /**
      * حساب المسافة باستخدام Haversine formula
