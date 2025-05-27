@@ -151,7 +151,7 @@ class EmployeeTargetController extends Controller
 $dateTo   = $request->input('date_to');
         // جلب جميع العملاء
         //  $clientsRaw = $noClients ? collect() : $baseQuery->get();
-        $clients = Client::with(['employee', 'Neighborhoodname.Region', 'branch', 'locations'])->get();
+        $clients = Client::with(['employee', 'Neighborhoodname.Region', 'branch', 'locations'])->whereNotIn('status_id', ['2', '6'])->get();
         $clients = $clients->map(function ($client) use ($target, $monthNum, $year,$dateFrom , $dateTo) {
             // مجموع المدفوعات
         

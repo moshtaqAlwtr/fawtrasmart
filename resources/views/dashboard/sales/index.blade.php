@@ -42,6 +42,114 @@
         }
 
     </style>
+  
+
+<style>
+    .branch-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fff;
+    }
+    
+    .attention-item {
+        background-color: #fff9f9;
+        border-left: 3px solid #ff6b6b;
+        transition: all 0.3s ease;
+    }
+    
+    .attention-item:hover {
+        background-color: #fff0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .attention-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    
+    /* Scrollbar styling */
+    .attention-list::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .attention-list::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 10px;
+    }
+    
+    .smaller {
+        font-size: 0.8em;
+    }
+</style>
+    <style>
+.district-performance-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 250px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.district-header {
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    font-weight: bold;
+    font-size: 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.district-main {
+    padding: 16px;
+    text-align: center;
+    background-color: #ffffff;
+}
+
+.district-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.district-secondary {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.district-sub {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.district-sub:last-child {
+    border-bottom: none;
+}
+
+.district-sub-name {
+    font-size: 14px;
+    color: #555;
+}
+
+.district-sub-percentage {
+    font-weight: bold;
+    color: #28a745; /* اللون الأخضر للنسبة */
+}
+
+.district-sub-count {
+    font-weight: bold;
+    color: #333;
+}
+
+/* التصميم للفئة C */
+.district-sub-name:contains("C") {
+    color: #dc3545; /* اللون الأحمر للفئة C */
+}
+</style>
 @endsection
 
 @section('content')
@@ -132,6 +240,175 @@
                     </div>
                 </div>
             </div>
+
+
+<div class="row g-3">
+    @if ($branchesPerformance->count() >= 3)
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h5 class="fw-bold mb-4 text-center">
+                    ⭐ أفضل الفروع أداءً
+                </h5>
+
+                @foreach ($branchesPerformance->take(3) as $index => $branch)
+                  @php
+                    $max = $branchesPerformance->max('total_collected') ?: 1;
+                    $percentage = round($branch->total_collected / $max * 100, 2);
+                    $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                    $color = $colors[$index] ?? '#ccc';
+                    
+                @endphp
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-bold fs-6 text-truncate">{{ $branch->branch_name }}</div>
+                        <span class="badge rounded-circle text-white fw-bold"
+                            style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            {{ $index + 1 }}
+                        </span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                        <div class="progress-bar"
+                            role="progressbar"
+                            style="width: {{ min($percentage, 100) }}%;"
+                            aria-valuenow="{{ $percentage }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="text-end mb-2 text-muted small">
+                        {{ $percentage }}٪ من التحصيل الأعلى
+                    </div>
+
+                    <div class="text-muted small">
+                        🔹 المدفوعات: <strong>{{ number_format($branch->payments) }}</strong> ر.س<br>
+                        🔹 السندات: <strong>{{ number_format($branch->receipts) }}</strong> ر.س<br>
+                        🔸 الإجمالي: <strong>{{ number_format($branch->total_collected) }}</strong> ر.س
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if ($regionPerformance->count() >= 3)
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h5 class="fw-bold mb-4 text-center">
+                    🗺️ أفضل المجموعات أداءً
+                </h5>
+
+                @foreach ($regionPerformance->take(3) as $index => $region)
+                @php
+                    $max = $regionPerformance->max('total_collected') ?: 1;
+                    $percent = round($region->total_collected / $max * 100, 2);
+                    $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                    $color = $colors[$index] ?? '#ccc';
+                @endphp
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-bold fs-6 text-truncate">{{ $region->region_name }}</div>
+                        <span class="badge text-white fw-bold rounded-circle"
+                            style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            {{ $index + 1 }}
+                        </span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                        <div class="progress-bar"
+                            role="progressbar"
+                            style="width: {{ $percent }}%; background-color: {{ $color }};"
+                            aria-valuenow="{{ $percent }}"
+                            aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="text-end mb-2 text-muted small">
+                        {{ $percent }}٪ من الأعلى
+                    </div>
+
+                    <div class="text-muted small">
+                        🔹 المدفوعات: <strong>{{ number_format($region->payments) }}</strong> ر.س<br>
+                        🔹 السندات: <strong>{{ number_format($region->receipts) }}</strong> ر.س<br>
+                        🔸 الإجمالي: <strong>{{ number_format($region->total_collected) }}</strong> ر.س
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if ($neighborhoodPerformance->count() >= 3)
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+                <h5 class="fw-bold mb-4 text-center">
+                    🏘️ أفضل الأحياء أداءً
+                </h5>
+
+                @foreach ($neighborhoodPerformance->take(3) as $index => $neigh)
+                @php
+                    $max = $neighborhoodPerformance->max('total_collected') ?: 1;
+                    $percent = round($neigh->total_collected / $max * 100, 2);
+                    $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                    $color = $colors[$index] ?? '#ccc';
+                @endphp
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-bold fs-6 text-truncate">{{ $neigh->neighborhood_name }}</div>
+                        <span class="badge text-white fw-bold rounded-circle"
+                            style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            {{ $index + 1 }}
+                        </span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                        <div class="progress-bar"
+                            role="progressbar"
+                            style="width: {{ $percent }}%; background-color: {{ $color }};"
+                            aria-valuenow="{{ $percent }}"
+                            aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="text-end mb-2 text-muted small">
+                        {{ $percent }}٪ من الأعلى
+                    </div>
+
+                    <div class="text-muted small">
+                        🔹 المدفوعات: <strong>{{ number_format($neigh->payments) }}</strong> ر.س<br>
+                        🔹 السندات: <strong>{{ number_format($neigh->receipts) }}</strong> ر.س<br>
+                        🔸 الإجمالي: <strong>{{ number_format($neigh->total_collected) }}</strong> ر.س
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+    @endif
+</div>
+
+<br>
+<br>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body text-center">
+        <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
+        <div class="display-6 text-primary fw-bold">
+            {{ number_format($averageBranchCollection) }} <small class="fs-5">ريال</small>
+        </div>
+        <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
+    </div>
+</div>
+
+
 
 
 <div class="container py-4">
