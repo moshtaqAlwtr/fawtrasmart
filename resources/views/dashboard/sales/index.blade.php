@@ -240,69 +240,84 @@
                     </div>
                 </div>
             </div>
-
-
+   
+           
+            
+           
 <div class="row g-3">
     @if ($branchesPerformance->count() >= 3)
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <h5 class="fw-bold mb-4 text-center">
+  <div class="col-md-4">
+    <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+            <!-- العنوان مع زر عرض الكل بجواره -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
                     ⭐ أفضل الفروع أداءً
                 </h5>
-
-                @foreach ($branchesPerformance->take(3) as $index => $branch)
-                  @php
-                    $max = $branchesPerformance->max('total_collected') ?: 1;
-                    $percentage = round($branch->total_collected / $max * 100, 2);
-                    $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
-                    $color = $colors[$index] ?? '#ccc';
-                    
-                @endphp
-
-                <div class="mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="fw-bold fs-6 text-truncate">{{ $branch->branch_name }}</div>
-                        <span class="badge rounded-circle text-white fw-bold"
-                            style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
-                            {{ $index + 1 }}
-                        </span>
-                    </div>
-
-                    <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
-                        <div class="progress-bar"
-                            role="progressbar"
-                            style="width: {{ min($percentage, 100) }}%;"
-                            aria-valuenow="{{ $percentage }}"
-                            aria-valuemin="0"
-                            aria-valuemax="100">
-                        </div>
-                    </div>
-
-                    <div class="text-end mb-2 text-muted small">
-                        {{ $percentage }}٪ من التحصيل الأعلى
-                    </div>
-
-                    <div class="text-muted small">
-                        🔹 المدفوعات: <strong>{{ number_format($branch->payments) }}</strong> ر.س<br>
-                        🔹 السندات: <strong>{{ number_format($branch->receipts) }}</strong> ر.س<br>
-                        🔸 الإجمالي: <strong>{{ number_format($branch->total_collected) }}</strong> ر.س
-                    </div>
-                </div>
-                @endforeach
+                <a href="{{route('statistics.group')}}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> عرض الكل
+                </a>
             </div>
+
+            @foreach ($branchesPerformance->take(3) as $index => $branch)
+              @php
+                $max = $branchesPerformance->max('total_collected') ?: 1;
+                $percentage = round($branch->total_collected / $max * 100, 2);
+                $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                $color = $colors[$index] ?? '#ccc';
+              @endphp
+
+              <div class="mb-4 position-relative">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="fw-bold fs-6 text-truncate">{{ $branch->branch_name }}</div>
+                      <span class="badge rounded-circle text-white fw-bold"
+                          style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                          {{ $index + 1 }}
+                      </span>
+                  </div>
+
+                  <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                      <div class="progress-bar"
+                          role="progressbar"
+                          style="width: {{ min($percentage, 100) }}%;"
+                          aria-valuenow="{{ $percentage }}"
+                          aria-valuemin="0"
+                          aria-valuemax="100">
+                      </div>
+                  </div>
+
+                  <div class="text-end mb-2 text-muted small">
+                      {{ $percentage }}٪ من التحصيل الأعلى
+                  </div>
+
+                  <div class="text-muted small">
+                      🔹 المدفوعات: <strong>{{ number_format($branch->payments) }}</strong> ر.س<br>
+                      🔹 السندات: <strong>{{ number_format($branch->receipts) }}</strong> ر.س<br>
+                      🔸 الإجمالي: <strong>{{ number_format($branch->total_collected) }}</strong> ر.س
+                  </div>
+                  
+                  <!-- زر عرض التفاصيل -->
+                 
+              </div>
+            @endforeach
         </div>
     </div>
+</div>
     @endif
 
     @if ($regionPerformance->count() >= 3)
     <div class="col-md-4">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h5 class="fw-bold mb-4 text-center">
+               
+ <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
                     🗺️ أفضل المجموعات أداءً
                 </h5>
-
+                <a href="{{route('statistics.groupall')}}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> عرض الكل
+                </a>
+            </div>
                 @foreach ($regionPerformance->take(3) as $index => $region)
                 @php
                     $max = $regionPerformance->max('total_collected') ?: 1;
@@ -349,10 +364,15 @@
     <div class="col-md-4">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
-                <h5 class="fw-bold mb-4 text-center">
-                    🏘️ أفضل الأحياء أداءً
+              
+<div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
+                     🏘️ أفضل الأحياء أداءً
                 </h5>
-
+                <a href="{{route('statistics.neighborhood')}}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> عرض الكل
+                </a>
+            </div>
                 @foreach ($neighborhoodPerformance->take(3) as $index => $neigh)
                 @php
                     $max = $neighborhoodPerformance->max('total_collected') ?: 1;
