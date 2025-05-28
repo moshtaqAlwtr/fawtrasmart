@@ -38,6 +38,7 @@ use App\Models\TreasuryEmployee;
 use App\Models\User;
 use App\Models\CreditLimit;
 use App\Models\Location;
+use App\Models\Signature;
 use App\Models\TaxSitting;
 use GuzzleHttp\Client as GuzzleClient;
 use App\Models\WarehousePermits;
@@ -431,6 +432,10 @@ public function notifications(Request $request)
 
         return back();
     }
+
+
+
+
     // private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     // {
     //     $earthRadius = 6371000; // نصف قطر الأرض بالمتر
@@ -1479,7 +1484,7 @@ public function notifications(Request $request)
         $clients = Client::all();
         $employees = Employee::all();
         $invoice = Invoice::find($id);
-        // $qrCodeSvg = QrCode::encoding('UTF-8')->size(150)->generate($invoice->qrcode);
+
         $renderer = new ImageRenderer(
             new RendererStyle(150), // تحديد الحجم
             new SvgImageBackEnd(), // تحديد نوع الصورة (SVG)
@@ -1716,6 +1721,37 @@ public function shipping_label($id)
     $mpdf->WriteHTML($html);
     return response($mpdf->Output('shipping-shipping_label.pdf', 'S'))
            ->header('Content-Type', 'application/pdf');
+}
+
+public function storeSignatures(Request $request, $invoiceId)
+{
+    $validated = $request->validate([
+        'signer_name' => 'required|string|max:255',
+        'signer_role' => 'nullable|string|max:255',
+        'signature_data' => 'required|string',
+        'amount_paid' => 'required|numeric|min:0',
+    ]);
+
+    // حفظ التوقيع في متغير
+    $signature = Signature::create([
+        'invoice_id' => $invoiceId,
+        'signer_name' => $validated['signer_name'],
+        'signer_role' => $validated['signer_role'],
+        'signature_data' => $validated['signature_data'],
+        'amount_paid' => $validated['amount_paid'],
+        'signed_at' => now(),
+    ]);
+
+    // إرجاع البيانات
+    return response()->json([
+        'success' => true,
+        'signature' => [
+            'signer_name' => $signature->signer_name,
+            'signer_role' => $signature->signer_role,
+            'amount_paid' => $signature->amount_paid,
+            'signature_data' => $signature->signature_data,
+        ]
+    ]);
 }
 
 }

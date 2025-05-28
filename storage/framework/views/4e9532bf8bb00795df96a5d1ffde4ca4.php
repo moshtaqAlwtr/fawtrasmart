@@ -1,10 +1,8 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     الأذون المخزنية
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
@@ -25,8 +23,8 @@
 
     <div class="content-body">
 
-        @include('layouts.alerts.error')
-        @include('layouts.alerts.success')
+        <?php echo $__env->make('layouts.alerts.error', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        <?php echo $__env->make('layouts.alerts.success', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="card">
             <div class="card-content">
@@ -38,77 +36,78 @@
                             <nav aria-label="Page navigation">
                                 <ul class="pagination pagination-sm mb-0">
                                     <!-- زر الانتقال إلى أول صفحة -->
-                                    @if ($wareHousePermits->onFirstPage())
+                                    <?php if($wareHousePermits->onFirstPage()): ?>
                                         <li class="page-item disabled">
                                             <span class="page-link border-0 rounded-pill" aria-label="First">
                                                 <i class="fas fa-angle-double-right"></i>
                                             </span>
                                         </li>
-                                    @else
+                                    <?php else: ?>
                                         <li class="page-item">
                                             <a class="page-link border-0 rounded-pill"
-                                                href="{{ $wareHousePermits->url(1) }}" aria-label="First">
+                                                href="<?php echo e($wareHousePermits->url(1)); ?>" aria-label="First">
                                                 <i class="fas fa-angle-double-right"></i>
                                             </a>
                                         </li>
-                                    @endif
+                                    <?php endif; ?>
 
                                     <!-- زر الانتقال إلى الصفحة السابقة -->
-                                    @if ($wareHousePermits->onFirstPage())
+                                    <?php if($wareHousePermits->onFirstPage()): ?>
                                         <li class="page-item disabled">
                                             <span class="page-link border-0 rounded-pill" aria-label="Previous">
                                                 <i class="fas fa-angle-right"></i>
                                             </span>
                                         </li>
-                                    @else
+                                    <?php else: ?>
                                         <li class="page-item">
                                             <a class="page-link border-0 rounded-pill"
-                                                href="{{ $wareHousePermits->previousPageUrl() }}" aria-label="Previous">
+                                                href="<?php echo e($wareHousePermits->previousPageUrl()); ?>" aria-label="Previous">
                                                 <i class="fas fa-angle-right"></i>
                                             </a>
                                         </li>
-                                    @endif
+                                    <?php endif; ?>
 
                                     <!-- عرض رقم الصفحة الحالية -->
                                     <li class="page-item">
                                         <span class="page-link border-0 bg-light rounded-pill px-3">
-                                            صفحة {{ $wareHousePermits->currentPage() }} من
-                                            {{ $wareHousePermits->lastPage() }}
+                                            صفحة <?php echo e($wareHousePermits->currentPage()); ?> من
+                                            <?php echo e($wareHousePermits->lastPage()); ?>
+
                                         </span>
                                     </li>
 
                                     <!-- زر الانتقال إلى الصفحة التالية -->
-                                    @if ($wareHousePermits->hasMorePages())
+                                    <?php if($wareHousePermits->hasMorePages()): ?>
                                         <li class="page-item">
                                             <a class="page-link border-0 rounded-pill"
-                                                href="{{ $wareHousePermits->nextPageUrl() }}" aria-label="Next">
+                                                href="<?php echo e($wareHousePermits->nextPageUrl()); ?>" aria-label="Next">
                                                 <i class="fas fa-angle-left"></i>
                                             </a>
                                         </li>
-                                    @else
+                                    <?php else: ?>
                                         <li class="page-item disabled">
                                             <span class="page-link border-0 rounded-pill" aria-label="Next">
                                                 <i class="fas fa-angle-left"></i>
                                             </span>
                                         </li>
-                                    @endif
+                                    <?php endif; ?>
 
                                     <!-- زر الانتقال إلى آخر صفحة -->
-                                    @if ($wareHousePermits->hasMorePages())
+                                    <?php if($wareHousePermits->hasMorePages()): ?>
                                         <li class="page-item">
                                             <a class="page-link border-0 rounded-pill"
-                                                href="{{ $wareHousePermits->url($wareHousePermits->lastPage()) }}"
+                                                href="<?php echo e($wareHousePermits->url($wareHousePermits->lastPage())); ?>"
                                                 aria-label="Last">
                                                 <i class="fas fa-angle-double-left"></i>
                                             </a>
                                         </li>
-                                    @else
+                                    <?php else: ?>
                                         <li class="page-item disabled">
                                             <span class="page-link border-0 rounded-pill" aria-label="Last">
                                                 <i class="fas fa-angle-double-left"></i>
                                             </span>
                                         </li>
-                                    @endif
+                                    <?php endif; ?>
                                 </ul>
                             </nav>
 
@@ -122,12 +121,12 @@
                                     </button>
                                     <div class="dropdown-menu" x-placement="top-start"
                                         style="position: absolute; will-change: transform; top: 0px; left: 0px; transform: translate3d(0px, -193px, 0px);">
-                                        <a class="dropdown-item" href="{{ route('store_permits_management.create') }}">إضافة
+                                        <a class="dropdown-item" href="<?php echo e(route('store_permits_management.create')); ?>">إضافة
                                             يدوي</a>
                                         <a class="dropdown-item"
-                                            href="{{ route('store_permits_management.manual_disbursement') }}">صرف يدوي</a>
+                                            href="<?php echo e(route('store_permits_management.manual_disbursement')); ?>">صرف يدوي</a>
                                         <a class="dropdown-item"
-                                            href="{{ route('store_permits_management.manual_conversion') }}">تحويل يدوي</a>
+                                            href="<?php echo e(route('store_permits_management.manual_conversion')); ?>">تحويل يدوي</a>
                                     </div>
 
 
@@ -142,25 +141,26 @@
                 </div>
 
                 <div class="card-body">
-                    <form class="form" method="GET" action="{{ route('store_permits_management.index') }}">
+                    <form class="form" method="GET" action="<?php echo e(route('store_permits_management.index')); ?>">
                         <div class="form-body row">
                             <div class="form-group col-md-4">
                                 <label for="">فرع</label>
                                 <select name="branch" class="form-control select2">
                                     <option value="">جميع الفروع</option>
-                                    @foreach ($branches as $branch)
-                                        <option value="{{ $branch->id }}"
-                                            {{ request('branch') == $branch->id ? 'selected' : '' }}>
-                                            {{ $branch->name }}
+                                    <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($branch->id); ?>"
+                                            <?php echo e(request('branch') == $branch->id ? 'selected' : ''); ?>>
+                                            <?php echo e($branch->name); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
                             <div class="form-group col-md-4">
                                 <label for="">الاذن المخزني</label>
                                 <input type="text" class="form-control" placeholder="ادخل الإسم او الكود" name="keywords"
-                                    value="{{ request('keywords') }}">
+                                    value="<?php echo e(request('keywords')); ?>">
                             </div>
 
                             <div class="form-group col-md-4">
@@ -190,19 +190,20 @@
                             <div class="form-group col-md-4">
                                 <label for="">الرقم المعرف</label>
                                 <input type="text" class="form-control" placeholder="ادخل الرقم المعرف"
-                                    name="id" value="{{ request('id') }}">
+                                    name="id" value="<?php echo e(request('id')); ?>">
                             </div>
 
                             <div class="form-group col-md-4">
                                 <label for="">المستودع</label>
                                 <select name="store_house" class="form-control select2">
                                     <option value="">جميع المستودعات</option>
-                                    @foreach ($storeHouses as $storeHouse)
-                                        <option value="{{ $storeHouse->id }}"
-                                            {{ request('store_house') == $storeHouse->id ? 'selected' : '' }}>
-                                            {{ $storeHouse->name }}
+                                    <?php $__currentLoopData = $storeHouses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $storeHouse): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($storeHouse->id); ?>"
+                                            <?php echo e(request('store_house') == $storeHouse->id ? 'selected' : ''); ?>>
+                                            <?php echo e($storeHouse->name); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -210,12 +211,13 @@
                                 <label for="">العميل</label>
                                 <select name="client" class="form-control select2">
                                     <option value="">اختر العميل</option>
-                                    @foreach ($clients as $client)
-                                        <option value="{{ $client->id }}"
-                                            {{ request('client') == $client->id ? 'selected' : '' }}>
-                                            {{ $client->trade_name }}{{ $client->code ?? '' }}
+                                    <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($client->id); ?>"
+                                            <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                            <?php echo e($client->trade_name); ?><?php echo e($client->code ?? ''); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -223,12 +225,13 @@
                                 <label for="">الموردين</label>
                                 <select name="supplier" class="form-control select2">
                                     <option value="">اختر المورد</option>
-                                    @foreach ($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}"
-                                            {{ request('supplier') == $supplier->id ? 'selected' : '' }}>
-                                            {{ $supplier->trade_name }}
+                                    <?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supplier): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($supplier->id); ?>"
+                                            <?php echo e(request('supplier') == $supplier->id ? 'selected' : ''); ?>>
+                                            <?php echo e($supplier->trade_name); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
                         </div>
@@ -240,9 +243,9 @@
                                     <label for="">الحاله</label>
                                     <select class="form-control" name="status">
                                         <option value="">الكل</option>
-                                        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>نشط
+                                        <option value="1" <?php echo e(request('status') == '1' ? 'selected' : ''); ?>>نشط
                                         </option>
-                                        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>غير نشط
+                                        <option value="0" <?php echo e(request('status') == '0' ? 'selected' : ''); ?>>غير نشط
                                         </option>
                                     </select>
                                 </div>
@@ -251,12 +254,13 @@
                                     <label for="">اضيفت بواسطة</label>
                                     <select class="form-control select2" name="created_by">
                                         <option value="">اي موظف</option>
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}"
-                                                {{ request('created_by') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }}
+                                        <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($user->id); ?>"
+                                                <?php echo e(request('created_by') == $user->id ? 'selected' : ''); ?>>
+                                                <?php echo e($user->name); ?>
+
                                             </option>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
 
@@ -264,25 +268,26 @@
                                     <label for="">المنتجات</label>
                                     <select class="form-control select2" name="product">
                                         <option value="">اختر المنتج</option>
-                                        @foreach ($products as $product)
-                                            <option value="{{ $product->id }}"
-                                                {{ request('product') == $product->id ? 'selected' : '' }}>
-                                                {{ $product->name }}
+                                        <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e($product->id); ?>"
+                                                <?php echo e(request('product') == $product->id ? 'selected' : ''); ?>>
+                                                <?php echo e($product->name); ?>
+
                                             </option>
-                                        @endforeach
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </select>
                                 </div>
 
                                 <div class="form-group col-4">
                                     <label for="">من تاريخ</label>
                                     <input type="date" class="form-control" name="from_date"
-                                        value="{{ request('from_date') }}">
+                                        value="<?php echo e(request('from_date')); ?>">
                                 </div>
 
                                 <div class="form-group col-4">
                                     <label for="">الي تاريخ</label>
                                     <input type="date" class="form-control" name="to_date"
-                                        value="{{ request('to_date') }}">
+                                        value="<?php echo e(request('to_date')); ?>">
                                 </div>
                             </div>
                         </div>
@@ -293,7 +298,7 @@
                                 data-target="#advancedSearchForm">
                                 <i class="bi bi-sliders"></i> بحث متقدم
                             </a>
-                            <a href="{{ route('store_permits_management.index') }}"
+                            <a href="<?php echo e(route('store_permits_management.index')); ?>"
                                 class="btn btn-outline-danger waves-effect waves-light">الغاء الفلترة</a>
                         </div>
                     </form>
@@ -303,40 +308,42 @@
 
         </div>
 
-        @if (@isset($wareHousePermits) && !@empty($wareHousePermits) && count($wareHousePermits) > 0)
+        <?php if(@isset($wareHousePermits) && !@empty($wareHousePermits) && count($wareHousePermits) > 0): ?>
             <div class="card">
                 <div class="card-body">
                     <table class="table">
-                        @foreach ($wareHousePermits as $item)
+                        <?php $__currentLoopData = $wareHousePermits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <tbody>
                                 <tr>
                                     <td>
-                                        <p>#{{ $item->number }} - {{ $item->created_at }}</p>
+                                        <p>#<?php echo e($item->number); ?> - <?php echo e($item->created_at); ?></p>
                                         <p><strong class="mr-1">مؤسسة اعمال خاصة</strong> <small
                                                 class="text-muted">فاتوره مبيعات 2</small></p>
                                         <span class="mr-1"> <i class="fa fa-arrow-down"></i>
-                                            @if ($item->permission_type == 1)
+                                            <?php if($item->permission_type == 1): ?>
                                                 إذن إضافة مخزن
-                                            @elseif($item->permission_type == 2)
+                                            <?php elseif($item->permission_type == 2): ?>
                                                 إذن صرف مخزن
-                                            @else
+                                            <?php else: ?>
                                                 تحويل يدوي
-                                            @endif : <strong>
-                                                @if ($item->permission_type == 3)
-                                                    {{ $item->fromStoreHouse->name }} - {{ $item->toStoreHouse->name }}
-                                                @else
-                                                    {{ $item->storeHouse->name }}
-                                                @endif
+                                            <?php endif; ?> : <strong>
+                                                <?php if($item->permission_type == 3): ?>
+                                                    <?php echo e($item->fromStoreHouse->name); ?> - <?php echo e($item->toStoreHouse->name); ?>
+
+                                                <?php else: ?>
+                                                    <?php echo e($item->storeHouse->name); ?>
+
+                                                <?php endif; ?>
                                             </strong>
                                         </span> <span> <i class="fa fa-user"></i> بواسطة :
-                                            <strong>{{ $item->user->name }}</strong></span>
+                                            <strong><?php echo e($item->user->name); ?></strong></span>
                                     </td>
                                     <td>
                                         <p><strong>أنشأت</strong></p>
                                         <p><span class="mr-1"><i class="fa fa-calendar"></i>
-                                                {{ $item->permission_date }}</span> <span><i class="fa fa-building"></i>
-                                                {{ $item->user->branch->name ?? '' }}</span></p>
-                                        <small class="text-muted">{{ Str::limit($item->details, 80) }}</small>
+                                                <?php echo e($item->permission_date); ?></span> <span><i class="fa fa-building"></i>
+                                                <?php echo e($item->user->branch->name ?? ''); ?></span></p>
+                                        <small class="text-muted"><?php echo e(Str::limit($item->details, 80)); ?></small>
                                     </td>
                                     <td style="width: 20%">
                                         <span class="badge badge badge-success badge-pill float-right"
@@ -356,7 +363,7 @@
                                                     </li>
                                                     <li>
                                                         <a class="dropdown-item"
-                                                            href="{{ route('store_permits_management.edit', $item->id) }}">
+                                                            href="<?php echo e(route('store_permits_management.edit', $item->id)); ?>">
                                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                         </a>
                                                     </li>
@@ -364,7 +371,7 @@
                                                     <li>
                                                         <a class="dropdown-item text-danger" href="#"
                                                             data-toggle="modal"
-                                                            data-target="#modal_DELETE{{ $item->id }}">
+                                                            data-target="#modal_DELETE<?php echo e($item->id); ?>">
                                                             <i class="fa fa-trash me-2"></i>حذف
                                                         </a>
                                                     </li>
@@ -373,7 +380,7 @@
                                         </div>
                                     </td>
                                     <!-- Modal delete -->
-                                    <div class="modal fade text-left" id="modal_DELETE{{ $item->id }}"
+                                    <div class="modal fade text-left" id="modal_DELETE<?php echo e($item->id); ?>"
                                         tabindex="-1" role="dialog" aria-labelledby="myModalLabel1"
                                         aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable" role="document">
@@ -394,7 +401,7 @@
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-light waves-effect waves-light"
                                                         data-dismiss="modal">الغاء</button>
-                                                    <a href="{{ route('store_permits_management.delete', $item->id) }}"
+                                                    <a href="<?php echo e(route('store_permits_management.delete', $item->id)); ?>"
                                                         class="btn btn-danger waves-effect waves-light">تأكيد</a>
                                                 </div>
                                             </div>
@@ -403,26 +410,28 @@
                                     <!--end delete-->
                                 </tr>
                             </tbody>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </table>
 
                 </div>
             </div>
-        @else
+        <?php else: ?>
             <div class="alert alert-danger text-xl-center" role="alert">
                 <p class="mb-0">
                     لا توجد أذون مخزنية مضافه حتى الان !!
                 </p>
             </div>
-        @endif
-        {{-- {{ $shifts->links('pagination::bootstrap-5') }} --}}
+        <?php endif; ?>
+        
     </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 
 
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/stock/store_permits_management/index.blade.php ENDPATH**/ ?>

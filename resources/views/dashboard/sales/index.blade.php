@@ -200,11 +200,11 @@
                         <div class="d-flex align-items-center">
                             <span class="text-success me-2">{{ $card['percentage'] }}%</span>
                             <div class="progress" style="width: 100%; height: 8px;">
-                                <div class="progress-bar bg-success" 
+                                <div class="progress-bar bg-success"
                                      role="progressbar"
                                      style="width: {{ $card['percentage'] }}%;"
                                      aria-valuenow="{{ $card['percentage'] }}"
-                                     aria-valuemin="0" 
+                                     aria-valuemin="0"
                                      aria-valuemax="100">
                                 </div>
                             </div>

@@ -200,15 +200,19 @@
                             </button>
                             <div class="dropdown-menu custom-dropdown" aria-labelledby="dropdownMenuButton200">
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <li><a href="<?php echo e(route('invoices.label', $invoice->id)); ?>" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-file-pdf me-1"></i> تحميل ملصق الطرد
-                                    </a>
-                                    
-                                    <li><a class="dropdown-item" href="<?php echo e(route('invoices.picklist', $invoice->id)); ?>"><i class="fas fa-list me-1"></i> قائمة
+                                    <li><a href="<?php echo e(route('invoices.label', $invoice->id)); ?>"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-file-pdf me-1"></i> تحميل ملصق الطرد
+                                        </a>
+
+                                    <li><a class="dropdown-item" href="<?php echo e(route('invoices.picklist', $invoice->id)); ?>"><i
+                                                class="fas fa-list me-1"></i> قائمة
                                             الاستلام</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo e(route('invoices.shipping_label', $invoice->id)); ?>"><i class="fas fa-truck me-1"></i> ملصق
+                                    <li><a class="dropdown-item"
+                                            href="<?php echo e(route('invoices.shipping_label', $invoice->id)); ?>"><i
+                                                class="fas fa-truck me-1"></i> ملصق
                                             التوصيل</a></li>
-                                   
+
                                 </ul>
                             </div>
                         </div>
@@ -660,10 +664,32 @@
     <?php $__env->stopSection(); ?>
 
     <?php $__env->startSection('scripts'); ?>
+
         <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
         <script src="<?php echo e(asset('assets/js/applmintion.js')); ?>"></script>
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+// استقبال الرسائل من نافذة الطباعة لتحديث الإطار
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'signatureSaved' && event.data.invoiceId == <?php echo e($invoice->id); ?>) {
+        // إعادة تحميل الإطار الداخلي
+        const iframe = document.querySelector('.pdf-iframe');
+        if (iframe) {
+            // إضافة timestamp لمنع الكاش
+            iframe.src = iframe.src.split('?')[0] + '?t=' + new Date().getTime();
+
+            // أو يمكنك إعادة تحميل الصفحة كاملة إذا لزم الأمر
+            // window.location.reload();
+        }
+    }
+});
+</script>
+        <!-- تأكد أنك استوردت SweetAlert -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/invoices/show.blade.php ENDPATH**/ ?>

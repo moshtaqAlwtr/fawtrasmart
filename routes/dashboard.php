@@ -110,7 +110,7 @@ Route::group(
             ->groupBy('created_by')
             ->get();
 
-       
+
         // إنشاء البيانات للمخطط البياني
         $chartData = $employeesSales->map(function ($employee) use ($totalSales) {
             $user = User::find($employee->created_by);
@@ -120,7 +120,7 @@ Route::group(
                 'percentage' => ($totalSales > 0) ? round(($employee->sales / $totalSales) * 100, 2) : 0
             ];
         });
-      
+
         $defaultTarget = Target::find(1)->value ?? 35000;
         // الشهر المحدد
     $month = $request->input('month', now()->format('Y-m'));
@@ -187,7 +187,7 @@ $excludedInvoiceIds = array_unique(array_merge(
 $cards = $cards->sortByDesc('total')->values();
 
 
-    
+
         $totalSales    = $groups->sum('total_sales');
         $totalPayments = $payments->sum('total_payments');
         $totalReceipts = $receipts->sum('total_receipts');

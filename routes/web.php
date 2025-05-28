@@ -97,6 +97,8 @@ Route::group(
 
                         Route::get('/notifications/mark/show/{id}', [InvoicesController::class, 'markAsReadid'])->name('notifications.markAsReadid');
                         Route::get('/notifications', [InvoicesController::class, 'notifications'])->name('notifications.index');
+                        Route::post('/invoices/{invoice}/signatures', [InvoicesController::class, 'storeSignatures'])
+    ->name('invoices.signatures.store');
                     });
 
                 Route::prefix('ReturnIInvoices')->group(function () {
