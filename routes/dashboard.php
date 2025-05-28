@@ -9,9 +9,11 @@ use App\Models\Neighborhood;
 use App\Models\Visit;
 use App\Models\User;
 use App\Models\PaymentsProcess;
+use App\Models\ClientEmployee;
 use App\Models\Receipt;
 use Illuminate\Http\Request;
 use App\Models\Target;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -40,21 +42,6 @@ Route::group(
         $ClientCount = Client::count();
         $Invoice = Invoice::where('type','normal')->sum('grand_total');
         $Visit = Visit::count();
-
-       // زيارات اليوم
-            $today = Carbon::today();
-            $TodayVisits = Visit::with(['employee', 'client'])
-                ->whereDate('visit_date', $today)
-                ->get()
-                ->map(function ($visit) {
-                    return [
-                        'client_name' => $visit->client->name ?? '---',
-                        'employee_name' => $visit->employee->name ?? '---',
-                        'arrival_time' => $visit->arrival_time ? $visit->arrival_time->format('H:i') : '--',
-                        'departure_time' => $visit->departure_time ? $visit->departure_time->format('H:i') : '--',
-                        'visit_date' => $visit->visit_date,
-                    ];
-                });
 
 
 
@@ -103,7 +90,7 @@ Route::group(
 
         ///
         // حساب إجمالي المبيعات
-        $totalSales = Invoice::where('type','normal')->sum('grand_total');
+        $totalSales = Invoice::where('type', 'normal')->sum('grand_total');
 
         // الحصول على مبيعات الموظفين
         $employeesSales = Invoice::selectRaw('created_by, COALESCE(SUM(grand_total), 0) as sales')
@@ -123,75 +110,275 @@ Route::group(
 
         $defaultTarget = Target::find(1)->value ?? 35000;
         // الشهر المحدد
-    $month = $request->input('month', now()->format('Y-m'));
-    [$year, $monthNum] = explode('-', $month);
+        $month = $request->input('month', now()->format('Y-m'));
+        [$year, $monthNum] = explode('-', $month);
 
-    // الموظفون الذين لديهم فواتير هذا الشهر (لتحديد من له مدفوعات)
-    $invoiceEmployeeIds = Invoice::whereMonth('created_at', $monthNum)
-        ->whereYear('created_at', $year)
-        ->pluck('created_by')
-        ->unique();
+        // الموظفون الذين لديهم فواتير هذا الشهر (لتحديد من له مدفوعات)
+        $invoiceEmployeeIds = Invoice::whereMonth('created_at', $monthNum)
+            ->whereYear('created_at', $year)
+            ->pluck('created_by')
+            ->unique();
 
-    // الموظفون الذين أنشؤوا سندات قبض هذا الشهر
-    $receiptEmployeeIds = Receipt::whereMonth('created_at', $monthNum)
-        ->whereYear('created_at', $year)
-        ->pluck('created_by')
-        ->unique();
+        // الموظفون الذين أنشؤوا سندات قبض هذا الشهر
+        $receiptEmployeeIds = Receipt::whereMonth('created_at', $monthNum)
+            ->whereYear('created_at', $year)
+            ->pluck('created_by')
+            ->unique();
 
-    // دمج كل من لديه نشاط في هذا الشهر
-    $employeeIds = $invoiceEmployeeIds->merge($receiptEmployeeIds)->unique();
+        // دمج كل من لديه نشاط في هذا الشهر
+        $employeeIds = $invoiceEmployeeIds->merge($receiptEmployeeIds)->unique();
 
-    // استخراج بيانات الأداء
-$cards = $employeeIds->map(function ($userId) use ($defaultTarget, $monthNum, $year) {
-    $user = User::find($userId);
+        // استخراج بيانات الأداء
+        $cards = $employeeIds->map(function ($userId) use ($defaultTarget, $monthNum, $year) {
+            $user = User::find($userId);
+
+            $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
+                ->pluck('reference_number')
+                ->toArray();
+
+            // الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
+            // بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
+            $excludedInvoiceIds = array_unique(array_merge(
+                $returnedInvoiceIds,
+                Invoice::where('type', 'returned')->pluck('id')->toArray()
+            ));
+
+
+
+            $invoiceIds = Invoice::where('created_by', $userId)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds) // ✅ استبعاد الفواتير التي لها راجع
+                ->pluck('id');
+
+            $paymentsTotal = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)->sum('amount');
+
+            $receiptsTotal = Receipt::where('created_by', $userId)
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)
+                ->sum('amount');
+
+            $totalCollected = $paymentsTotal + $receiptsTotal;
+
+            $target = $user->target?->monthly_target ?? $defaultTarget;
+            $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+
+            $clientCount = ClientEmployee::where('employee_id', $user->employee_id)->count();
+
+            return [
+                'name' => $user?->name ?? 'غير معروف',
+                'payments' => $paymentsTotal,
+                'receipts' => $receiptsTotal,
+                'total' => $totalCollected,
+                'target' => $target,
+                'percentage' => $percentage,
+                'clients_count' => $clientCount,
+            ];
+        });
+
+        // ✅ الترتيب تنازليًا حسب المبلغ المحصل
+        $cards = $cards->sortByDesc('total')->values();
+
  $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
-    ->pluck('reference_number')
-    ->toArray();
+                ->pluck('reference_number')
+                ->toArray();
 
-// الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
-// بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
-$excludedInvoiceIds = array_unique(array_merge(
-    $returnedInvoiceIds,
-    Invoice::where('type', 'return')->pluck('id')->toArray()
-));
+            // الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
+            // بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
+            $excludedInvoiceIds = array_unique(array_merge(
+                $returnedInvoiceIds,
+                Invoice::where('type', 'returned')->pluck('id')->toArray()
+            ));
+
+$branchesPerformance = Client::with('branch')
+    ->whereNotNull('branch_id')
+    ->get()
+    ->groupBy('branch_id')
+    ->map(function ($clientsInBranch, $branchId) use ($excludedInvoiceIds) {
+        $branchName = optional($clientsInBranch->first()->branch)->name ?? 'غير معروف';
+
+        $totalPayments = 0;
+        $totalReceipts = 0;
+
+        foreach ($clientsInBranch as $client) {
+            // الفواتير الصالحة
+            $invoiceIds = Invoice::where('client_id', $client->id)
+                ->where('type', 'normal')
+                ->whereNotIn('id', $excludedInvoiceIds)
+                ->pluck('id');
+
+            // مجموع المدفوعات
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+
+            // مجموع سندات القبض
+            $receipts = Receipt::whereHas('account', function ($q) use ($client) {
+                $q->where('client_id', $client->id);
+            })->sum('amount');
+
+            $totalPayments += $payments;
+            $totalReceipts += $receipts;
+        }
+
+        $totalCollected = $totalPayments + $totalReceipts;
+
+        return (object)[
+            'branch_id' => $branchId,
+            'branch_name' => $branchName,
+            'total_collected' => $totalCollected,
+            'payments' => $totalPayments,
+            'receipts' => $totalReceipts,
+        ];
+    })
+    ->sortByDesc('total_collected')
+    ->values();
 
 
+    // افضل الاحياء الأداء
+    $neighborhoodPerformance = Client::with(['Neighborhoodname'])
+    ->whereHas('Neighborhoodname')
+    ->get()
+    ->groupBy(fn($client) => $client->Neighborhoodname->name ?? 'غير معروف')
+    ->map(function ($clientsInNeighborhood, $neighborhoodName) use ($excludedInvoiceIds) {
+        $totalPayments = 0;
+        $totalReceipts = 0;
 
-   $invoiceIds = Invoice::where('created_by', $userId)->where('type','normal')->whereNotIn('id', $excludedInvoiceIds) // ✅ استبعاد الفواتير التي لها راجع
-    ->pluck('id');
+        foreach ($clientsInNeighborhood as $client) {
+            $invoiceIds = Invoice::where('client_id', $client->id)
+                ->where('type', 'normal')
+                ->whereNotIn('id', $excludedInvoiceIds)
+                ->pluck('id');
 
-    $paymentsTotal = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->whereMonth('created_at', $monthNum)
-        ->whereYear('created_at', $year)->sum('amount');
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
 
-    $receiptsTotal = Receipt::where('created_by', $userId)
-        ->whereMonth('created_at', $monthNum)
-        ->whereYear('created_at', $year)
-        ->sum('amount');
+            $receipts = Receipt::whereHas('account', function ($q) use ($client) {
+                $q->where('client_id', $client->id);
+            })->sum('amount');
 
-    $totalCollected = $paymentsTotal + $receiptsTotal;
+            $totalPayments += $payments;
+            $totalReceipts += $receipts;
+        }
 
-    $target = $user->target?->monthly_target ?? $defaultTarget;
-    $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+        $totalCollected = $totalPayments + $totalReceipts;
 
-    return [
-        'name' => $user?->name ?? 'غير معروف',
-        'payments' => $paymentsTotal,
-        'receipts' => $receiptsTotal,
-        'total' => $totalCollected,
-        'target' => $target,
-        'percentage' => $percentage,
-    ];
+        return (object)[
+            'neighborhood_name' => $neighborhoodName,
+            'total_collected' => $totalCollected,
+            'payments' => $totalPayments,
+            'receipts' => $totalReceipts,
+        ];
+    })
+    ->sortByDesc('total_collected') // ✅ الأفضل أولاً
+    ->values();
+
+
+// إضافة النسبة لكل فرع (مقارنة بأعلى تحصيل)
+$maxTotal = $branchesPerformance->max('total_collected') ?: 1;
+
+$branchesPerformance = $branchesPerformance->map(function ($branch) use ($maxTotal) {
+    $branch->percentage = round(($branch->total_collected / $maxTotal) * 100, 2);
+    return $branch;
 });
 
-// ✅ الترتيب تنازليًا حسب المبلغ المحصل
-$cards = $cards->sortByDesc('total')->values();
+// المناطق او المجموعات
+$regionPerformance = Client::with('Neighborhoodname.Region')
+    ->whereHas('Neighborhoodname.Region')
+    ->get()
+    ->groupBy(function ($client) {
+        return $client->Neighborhoodname->Region->name ?? 'غير معروف';
+    })
+    ->map(function ($clientsInRegion, $regionName) use ($excludedInvoiceIds) {
+        $totalPayments = 0;
+        $totalReceipts = 0;
+
+        foreach ($clientsInRegion as $client) {
+            $invoiceIds = Invoice::where('client_id', $client->id)
+                ->where('type', 'normal')
+                ->whereNotIn('id', $excludedInvoiceIds)
+                ->pluck('id');
+
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+
+            $receipts = Receipt::whereHas('account', function ($q) use ($client) {
+                $q->where('client_id', $client->id);
+            })->sum('amount');
+
+            $totalPayments += $payments;
+            $totalReceipts += $receipts;
+        }
+
+        $totalCollected = $totalPayments + $totalReceipts;
+
+        return (object)[
+            'region_name' => $regionName,
+            'total_collected' => $totalCollected,
+            'payments' => $totalPayments,
+            'receipts' => $totalReceipts,
+        ];
+    })
+    ->sortByDesc('total_collected')
+    ->values();
+
+// 1. الفواتير المرجعة (لا تحتسب ضمن التحصيل)
+$excludedInvoiceIds = array_unique(array_merge(
+    Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray(),
+    Invoice::where('type', 'returned')->pluck('id')->toArray()
+));
+
+// 2. حساب أداء الفروع
+$branchesPerformance = Client::with('branch')
+    ->whereNotNull('branch_id')
+    ->get()
+    ->groupBy('branch_id')
+    ->map(function (Collection $clientsInBranch) use ($excludedInvoiceIds) {
+        $branchName = optional($clientsInBranch->first()->branch)->name ?? 'غير معروف';
+
+        $totalPayments = 0;
+        $totalReceipts = 0;
+
+        foreach ($clientsInBranch as $client) {
+            $invoiceIds = Invoice::where('client_id', $client->id)
+                ->where('type', 'normal')
+                ->whereNotIn('id', $excludedInvoiceIds)
+                ->pluck('id');
+
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+
+            $receipts = Receipt::whereHas('account', function ($q) use ($client) {
+                $q->where('client_id', $client->id);
+            })->sum('amount');
+
+            $totalPayments += $payments;
+            $totalReceipts += $receipts;
+        }
+
+        return (object)[
+            'branch_id' => $clientsInBranch->first()->branch_id,
+            'branch_name' => $branchName,
+            'total_collected' => $totalPayments + $totalReceipts,
+            'payments' => $totalPayments,
+            'receipts' => $totalReceipts,
+        ];
+    })->sortByDesc('total_collected')->values();
+
+// 3. متوسط التحصيل على مستوى الفروع
+$averageBranchCollection = $branchesPerformance->avg('total_collected');
+
+
+
 
 
 
         $totalSales    = $groups->sum('total_sales');
         $totalPayments = $payments->sum('total_payments');
         $totalReceipts = $receipts->sum('total_receipts');
-            return view('dashboard.sales.index', compact('ClientCount','cards','month','groupChartData','totalReceipts','totalSales','totalPayments','receipts', 'Invoice', 'groups', 'Visit', 'chartData', 'TodayVisits'));
+
+        $averageRegionCollection = $regionPerformance->avg('total_collected');
+
+        $lowestRegions = $regionPerformance->sortBy('total_collected')->take(3)->values();
+        $averageBranchCollection = $branchesPerformance->avg('total_collected');
+
+
+
+        return view('dashboard.sales.index', compact('ClientCount', 'cards','averageBranchCollection', 'month','averageRegionCollection','lowestRegions','branchesPerformance','regionPerformance','neighborhoodPerformance', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts'));
+
         })->middleware(['auth']);
 
         Route::prefix('dashboard')->middleware(['auth'])->group(function () {
@@ -200,5 +387,8 @@ $cards = $cards->sortByDesc('total')->values();
                 Route::get('/index', [DashboardSalesController::class, 'index'])->name('dashboard_sales.index');
             });
         });
+
     }
+
+
 );

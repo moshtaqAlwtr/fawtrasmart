@@ -1,13 +1,11 @@
-
-
 @extends('master')
 
 @section('title')
-     احصائيات هدف العملاء
+    احصائيات هدف العملاء
 @stop
 
 @section('content')
-  <style>
+ <style>
 .hover-effect:hover {
     background-color: #f8f9fa;
     transform: translateY(-1px);
@@ -44,7 +42,7 @@
 
 <style>
     /* تنسيق DataTables */
-    #clientsTable_filter input {
+    #clientsTable1_filter input {
         border-radius: 5px;
         padding: 5px 10px;
         border: 1px solid #ddd;
@@ -56,7 +54,7 @@
     .badge.bg-danger { background-color: #dc3545!important; }
     
     /* تأثيرات الصفوف */
-    #clientsTable tbody tr:hover {
+    #clientsTable1 tbody tr:hover {
         background-color: #f8f9fa;
         transition: background-color 0.2s;
     }
@@ -112,23 +110,15 @@
             <!-- حقل البحث -->
             <div class="col-md-4 col-12">
                 <label for="nameFilter" class="form-label">البحث السريع</label>
-                <input type="text" id="nameFilter" class="form-control" placeholder="ابحث بالاسم، الكود، الموظف...">
+                <input type="text" id="nameFilter" class="form-control" placeholder="ابحث  بالاسم او المبلغ...">
+
+               
             </div>
 
             <!-- فلترة الفئة -->
-           <div class="col-md-3 col-12">
-    <label for="groupFilter" class="form-label">تصفية حسب الفئة</label>
-    <select id="groupFilter" class="form-control">
-        <option value="">جميع الفئات</option>
-        <option value="G">الفئة A++ (أكبر من 100%)</option>
-        <option value="K">الفئة A (60% - 100%)</option>
-        <option value="B">الفئة B (30% - 60%)</option>
-        <option value="C">الفئة C (10% - 30%)</option>
-        <option value="D">الفئة D (أقل من 10%)</option>
-    </select>
-</div>
+          
             <!-- ترتيب النتائج -->
-            <div class="col-md-3 col-12">
+            <div class="col-md-6 col-12">
                 <label for="sortFilter" class="form-label">ترتيب النتائج</label>
                 <select id="sortFilter" class="form-control">
                     <option value="high">الأعلى تحصيلاً</option>
@@ -147,7 +137,7 @@
 
     <!-- الجزء السفلي: تصفية حسب التاريخ -->
     <div class="card p-3 mb-4">
-        <form method="GET" action="{{ route('target.client') }}" id="dateFilterForm">
+        <form method="GET" action="{{route('statistics.neighborhood')}}" id="dateFilterForm">
             <div class="row g-3">
                 <div class="col-md-4 col-12">
                     <label for="date_from" class="form-label">من تاريخ</label>
@@ -172,109 +162,59 @@
     </div>
 </div>
 
-<!-- JavaScript للتحكم في الوظائف -->
 
-
-        <!-- جدول العملاء -->
-        @if (isset($clients) && $clients->count() > 0)
-            <div class="card">
+<div class="card">
     <div class="card-body">
+        <h5 class="text-center mb-4 fw-bold">📊 إحصائيات تحصيل الاحياء</h5>
+
+        @if($neighborhoodPerformance->count())
         <div class="table-responsive">
-            <table id="clientsTable" class="table table-hover" style="width:100%">
-                <thead>
+            <table id="clientsTable1" class="table table-bordered table-striped">
+
+            
+                <thead class="table-light">
                     <tr>
-                        <th>معلومات العميل</th>
-                        <th>الفرع</th>
                         <th>الحي</th>
-                        <th>المجموعة</th>
-                        <th>التصنيف</th>
-                        <th>نسبة تحقيق الهدف</th>
+                        <th>المدفوعات</th>
+                        <th>السندات</th>
+                        <th>الإجمالي</th>
+                        <th>نسبة من الإجمالي</th>
                     </tr>
                 </thead>
                 <tbody>
-                   @foreach ($clients as $client)
-<tr data-url="{{ route('clients.show', $client->id) }}">
-    <td>
-        <h6 class="mb-0">{{ $client->trade_name ?? ""}}</h6>
-        <small class="text-muted">{{ $client->code ?? ""}}</small>
-        <p class="text-muted mb-0">
-            <i class="fas fa-user me-1"></i>
-            {{ $client->first_name ?? "" }} {{ $client->last_name ?? "" }}
-        </p>
-         @if ($client->employees && $client->employees->count() > 0)
-        @foreach ($client->employees as $employee)
-            <p class="text-muted mb-0">
-                <i class="fas fa-user-tie me-1"></i>
-                 {{ $employee->full_name }}
-            </p>
-        @endforeach
-                                @else
-                                    <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون بهذا العميل') }}</span>
-                                @endif
-    </td>
-    <td>{{ $client->branch->name ?? '' }}</td>
-     <td>{{ $client->Neighborhoodname->name ?? '' }}</td>
-     <td>{{ $client->Neighborhoodname->Region->name ?? '' }}</td>
- <td data-search="{{ $client->group }}">
-    <span class="badge bg-{{ $client->group_class }}">
-        @switch($client->group)
-            @case('G')
-                الفئة A++
-                @break
-            @case('K')
-                الفئة A
-                @break
-            @default
-                الفئة {{ $client->group }}
-        @endswitch
-    </span>
-</td>
+                    @php
+                        $grandTotal = $neighborhoodPerformance->sum('total_collected');
+                    @endphp
 
-   
-
-    <td data-order="{{ $client->percentage }}">
-        <div class="d-flex align-items-center mb-1">
-            <span class="me-2">{{ $client->percentage }}%</span>
-            <div class="progress w-100" style="height: 8px;">
-                <div class="progress-bar {{ $client->percentage >= 100 ? 'bg-success' : 'bg-primary' }}" 
-                     style="width: {{ $client->percentage }}%;"></div>
-            </div>
-        </div>
-        <small class="text-muted d-block">
-            🔹 المدفوعات: {{ number_format($client->payments) }} ريال<br>
-            🔹 السندات: {{ number_format($client->receipts) }} ريال<br>
-            🔸 الإجمالي: {{ number_format($client->collected) }} / {{ number_format($target) }} ريال
-        </small>
-    </td>
-</tr>
-@endforeach
+                    @foreach ($neighborhoodPerformance as $neigh)
+                        <tr>
+                            <td>{{  $neigh->neighborhood_name  ?? 'غير معروف' }}</td>
+                            <td>{{ number_format($neigh->payments) }} ريال</td>
+                            <td>{{ number_format($neigh->receipts) }} ريال</td>
+                            <td>{{ number_format($neigh->total_collected) }} ريال</td>
+                            <td>
+                                @php
+                                    $percentage = $grandTotal > 0 
+                                        ? round(($neigh->total_collected / $grandTotal) * 100, 2)
+                                        : 0;
+                                @endphp
+                                <span class="badge bg-{{ $percentage >= 60 ? 'success' : ($percentage >= 30 ? 'warning' : 'danger') }}">
+                                    {{ $percentage }}%
+                                </span>
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
+        @else
+            <div class="alert alert-info text-center mt-4">
+                لا توجد بيانات متاحة لعرض التحصيل.
+            </div>
+        @endif
     </div>
 </div>
-        @else
-            <div class="alert alert-danger text-xl-center" role="alert">
-                <p class="mb-0">
-                    لا توجد عملاء !!
-                </p>
-            </div>
-
-
-        @endif
-        
-      
-  <!-- زر الانتقال إلى آخر صفحة -->
-                 
-        
-
-    </div>
-
-
-
 @endsection
-
-
 
 @section('scripts')
 <script>
@@ -328,78 +268,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 $(document).ready(function() {
-    // تهيئة DataTable مع إعدادات مخصصة
-    var table = $('#clientsTable').DataTable({
+    var table = $('#clientsTable1').DataTable({
         dom: '<"top"f>rt<"bottom"lip><"clear">',
         language: {
             url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/ar.json'
         },
         columnDefs: [
             { 
+                targets: 4, // عمود النسبة المئوية
                 type: 'num', 
-                targets: 3, // العمود الرابع (نسبة التحصيل)
-                render: function(data, type) {
-                    if (type === 'sort') {
-                        return parseFloat(data.split('%')[0]) || 0;
+                render: function(data, type, row) {
+                    if (type === 'sort' || type === 'type') {
+                        // استخراج الرقم من النسبة المئوية للترتيب
+                        return parseFloat(data.match(/\d+\.?\d*/)[0]) || 0;
                     }
                     return data;
                 }
             },
-            { orderable: false, targets: [0, 1, 2] } // تعطيل الترتيب لهذه الأعمدة
+            { 
+                targets: [0, 1, 2, 3], // تعطيل الترتيب لهذه الأعمدة
+                orderable: false
+            }
         ],
+        order: [[4, 'desc']], // الترتيب الافتراضي تنازلي حسب النسبة
         initComplete: function() {
-            $('.dataTables_filter').hide();
+            $('.dataTables_filter input').attr('placeholder', 'ابحث هنا...');
         }
     });
 
-    // فلترة مخصصة تعمل مع DataTables
-    function applyCustomFilters() {
-        var groupValue = $('#groupFilter').val();
-        var sortValue = $('#sortFilter').val();
-        
-        // فلترة حسب الفئة
-        if (groupValue) {
-            table.column(4).search(groupValue, true, false).draw();
-        } else {
-            table.column(4).search('').draw();
-        }
-        
-        // ترتيب حسب النسبة
-        if (sortValue === 'high') {
-            table.order([5, 'desc']).draw();
-        } else {
-            table.order([5, 'asc']).draw();
-        }
-    }
-    
-    // بحث بالاسم (يشمل جميع الأعمدة)
+    // البحث السريع
     $('#nameFilter').on('keyup', function() {
         table.search(this.value).draw();
     });
-    
-    // أحداث الفلترة المخصصة
-    $('#groupFilter, #sortFilter').on('change', applyCustomFilters);
-    
-    // إعادة تعيين الفلاتر
+
+    // ترتيب النتائج
+    $('#sortFilter').on('change', function() {
+        if(this.value === 'high') {
+            table.order([4, 'desc']).draw();
+        } else {
+            table.order([4, 'asc']).draw();
+        }
+    });
+
+    // إعادة التعيين
     $('#resetFilters').click(function() {
         $('#nameFilter').val('');
-        $('#groupFilter').val('');
         $('#sortFilter').val('high');
-        table.search('').columns().search('').order([3, 'desc']).draw();
-    });
-    
-    // التفعيل الأولي
-    applyCustomFilters();
-    
-    // حل مشكلة النقر على الصفوف مع وجود DataTables
-    $('#clientsTable tbody').on('click', 'tr', function(e) {
-        if ($(e.target).is('a, button, input, select, textarea, .no-click')) {
-            return;
-        }
-        var data = table.row(this).data();
-        if (data && data._url) {
-            window.location.href = data._url;
-        }
+        table.search('').order([4, 'desc']).draw();
     });
 });
 
@@ -435,75 +350,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @endsection
 @endsection
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -25,6 +25,7 @@ use App\Http\Controllers\Sales\PaymentProcessController;
 use App\Http\Controllers\Sales\ReturnInvoiceController;
 use App\Http\Controllers\Sales\ShippingOptionsController;
 use App\Http\Controllers\Sales\SittingInvoiceController;
+use App\Http\Controllers\StatisticsController;
 use App\Models\Client;
 use App\Models\Offer;
 use Illuminate\Support\Facades\Http;
@@ -61,8 +62,20 @@ Route::group(
             Route::post('/general-target', [EmployeeTargetController::class, 'updateGeneralTarget'])->name('target.update');
             Route::get('/client-target', [EmployeeTargetController::class, 'client_target'])->name('target.client');
             Route::get('/client-target-create', [EmployeeTargetController::class, 'client_target_create'])->name('target.client.create');
-             Route::post('/client-target-create', [EmployeeTargetController::class, 'client_target_store'])->name('target.client.update');
+            Route::post('/client-target-create', [EmployeeTargetController::class, 'client_target_store'])->name('target.client.update');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
+            
+            //احصائيات الفروع
+            
+            Route::get('/statistics_branch', [StatisticsController::class, 'StatisticsGroup'])->name('statistics.group');
+            
+            //احصائيات المجموعات 
+            
+            Route::get('/statistics_group', [StatisticsController::class, 'Group'])->name('statistics.groupall');
+            
+            // احصائيات الاحياء
+            
+            Route::get('/statistics_neighborhood', [StatisticsController::class, 'neighborhood'])->name('statistics.neighborhood');
         });
         Route::prefix('sales')
             ->middleware(['auth', 'check.branch'])
