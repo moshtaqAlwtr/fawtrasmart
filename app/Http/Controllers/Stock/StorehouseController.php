@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorehouseRequest;
+use App\Models\Account;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Employee;
@@ -94,6 +95,18 @@ class StorehouseController extends Controller
             }
 
             $storehouse->save();
+
+        $account = new Account();
+        $account->name = $request->name;
+        $account->type_accont = 0; // نوع الحساب (خزينة)
+        $account->is_active = $request->is_active ?? 1; // حالة الحساب (افتراضي: نشط)
+        $account->parent_id = 16; // الأب الافتراضي
+        $account->balance_type = 'debit'; // نوع الرصيد (مدين)
+        $account->code = 0;
+        $account->save();
+
+        $account->code = $account->id;
+        $account->save();
 
             // تسجيل اشعار نظام جديد
             Log::create([
