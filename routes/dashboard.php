@@ -160,8 +160,8 @@ Route::group(
 
             $target = $user->target?->monthly_target ?? $defaultTarget;
             $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+$clientCount = ClientEmployee::where('employee_id', $user?->employee_id)->count();
 
-            $clientCount = ClientEmployee::where('employee_id', $user->employee_id)->count();
 
             return [
                 'name' => $user?->name ?? 'غير معروف',

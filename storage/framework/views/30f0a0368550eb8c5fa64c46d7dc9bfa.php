@@ -1,10 +1,13 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>فاتورة #<?php echo e($invoice->id); ?></title>
     <!-- Import Arabic font -->
     <style>
@@ -103,7 +106,6 @@
             margin-bottom: 5px;
         }
 
-
         /* QR Code */
         .qr-code {
             margin: 15px 0;
@@ -119,75 +121,9 @@
             text-align: center;
         }
 
-        .signature-pad {
-            border: 1px dashed #000;
-            width: 100%;
-            height: 100px;
-            margin: 10px 0;
-        }
-
-        .signature-controls {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 10px;
-        }
-
-        .signature-btn {
-            padding: 5px 10px;
-            font-size: 12px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        .signature-save {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .signature-clear {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .signature-history {
-            margin-top: 10px;
-            font-size: 12px;
-        }
-
-        .signature-item {
-            margin-bottom: 5px;
-            padding: 5px;
-            border: 1px dashed #ccc;
-        }
-
         .thank-you {
             font-style: italic;
             margin-top: 5px;
-        }
-
-        /* Toastr Styles */
-        #toast-container>.toast {
-            background-image: none !important;
-        }
-
-        #toast-container>.toast:before {
-            position: fixed;
-            font-family: FontAwesome;
-            font-size: 24px;
-            line-height: 18px;
-            float: right;
-            color: #FFF;
-            padding-right: 0.5em;
-            margin: auto 0.5em auto -1.5em;
-        }
-
-        #toast-container>.toast-success:before {
-            content: "\f00c";
-        }
-
-        #toast-container>.toast-error:before {
-            content: "\f00d";
         }
 
         /* Print Styles */
@@ -217,16 +153,6 @@
                 width: 70px !important;
                 height: 70px !important;
             }
-
-            .no-print,
-            .signature-pad,
-            .signature-controls {
-                display: none !important;
-            }
-
-            .no-print {
-                display: none !important;
-            }
         }
 
         /* Responsive Styles */
@@ -236,8 +162,6 @@
             }
         }
     </style>
-    <!-- Toastr CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
 
 <body>
@@ -246,7 +170,7 @@
             <div class="receipt">
                 <!-- Receipt Header -->
                 <div class="receipt-header">
-                    <h1 class="receipt-title">فاتورة ضريبية</h1>
+                    <h1 class="receipt-title">فاتورة</h1>
                     <p class="mb-0">مؤسسة أعمال خاصة للتجارة</p>
                     <p class="mb-0">الرياض - الرياض</p>
                     <p>رقم المسؤول: 0509992803</p>
@@ -254,15 +178,12 @@
 
                 <!-- Invoice To -->
                 <div class="invoice-to">
-                    <p class="mb-0">فاتورة الى:
-                        <?php echo e($invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name); ?>
-
-                    </p>
+                    <p class="mb-0">فاتورة الى: <?php echo e($invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name); ?></p>
                     <p class="mb-0"><?php echo e($invoice->client->street1 ?? 'غير متوفر'); ?></p>
                     <p class="mb-0">كود العميل: <?php echo e($invoice->client->code ?? 'غير متوفر'); ?></p>
                     <p class="mb-0">الرقم الضريبي: <?php echo e($invoice->client->tax_number ?? 'غير متوفر'); ?></p>
                     <?php if($invoice->client->phone): ?>
-                        <p class="mb-0">رقم جوال العميل: <?php echo e($invoice->client->phone); ?></p>
+                    <p class="mb-0">رقم جوال العميل: <?php echo e($invoice->client->phone); ?></p>
                     <?php endif; ?>
                 </div>
 
@@ -276,10 +197,6 @@
                         <span>تاريخ الفاتورة:</span>
                         <span><?php echo e(\Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y H:i')); ?></span>
                     </div>
-                    <div class="summary-row">
-                        <span>تاريخ التسليم:</span>
-                        <span><?php echo e(\Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y')); ?></span>
-                    </div>
                 </div>
 
                 <!-- Invoice Items -->
@@ -287,22 +204,20 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th width="5%">#</th>
-                                <th width="45%">وصف السلعة/الخدمة</th>
+                                <th width="40%">البند</th>
                                 <th width="15%">الكمية</th>
-                                <th width="15%">السعر</th>
-                                <th width="20%">المجموع</th>
+                                <th width="20%">السعر</th>
+                                <th width="25%">المجموع</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <tr>
-                                    <td><?php echo e($index + 1); ?></td>
-                                    <td style="text-align: right;"><?php echo e($item->description); ?></td>
-                                    <td><?php echo e($item->quantity); ?></td>
-                                    <td><?php echo e(number_format($item->unit_price, 2)); ?></td>
-                                    <td><?php echo e(number_format($item->total, 2)); ?></td>
-                                </tr>
+                            <?php $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr>
+                                <td style="text-align: right;"><?php echo e($item->item); ?></td>
+                                <td><?php echo e($item->quantity); ?></td>
+                                <td><?php echo e(number_format($item->unit_price, 2)); ?></td>
+                                <td><?php echo e(number_format($item->total, 2)); ?></td>
+                            </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
@@ -311,236 +226,67 @@
                 <!-- Invoice Summary -->
                 <div class="invoice-summary">
                     <div class="summary-row">
-                        <span>المجموع الفرعي:</span>
-                        <span><?php echo e(number_format($invoice->sub_total, 2)); ?> ر.س</span>
-                    </div>
-
-                    <?php if($invoice->discount > 0): ?>
-                        <div class="summary-row">
-                            <span>الخصم:</span>
-                            <span><?php echo e(number_format($invoice->discount, 2)); ?> ر.س</span>
-                        </div>
-                    <?php endif; ?>
-                    <?php if($invoice->tax > 0): ?>
-                        <div class="summary-row">
-                            <span>ضريبة القيمة المضافة (15%):</span>
-                            <span><?php echo e(number_format($invoice->tax, 2)); ?> ر.س</span>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if($invoice->shipping > 0): ?>
-                        <div class="summary-row">
-                            <span>مصاريف الشحن:</span>
-                            <span><?php echo e(number_format($invoice->shipping, 2)); ?> ر.س</span>
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="summary-row" style="font-weight: bold;">
-                        <span>المبلغ الإجمالي:</span>
+                        <span>المجموع الكلي:</span>
                         <span><?php echo e(number_format($invoice->grand_total, 2)); ?> ر.س</span>
                     </div>
 
-                    <?php if($invoice->paid_amount > 0): ?>
-                        <div class="summary-row">
-                            <span>المبلغ المدفوع:</span>
-                            <span><?php echo e(number_format($invoice->paid_amount, 2)); ?> ر.س</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>المبلغ المتبقي:</span>
-                            <span><?php echo e(number_format($invoice->due_value, 2)); ?> ر.س</span>
-                        </div>
+                    <?php if($invoice->total_discount > 0): ?>
+                    <div class="summary-row">
+                        <span>الخصم:</span>
+                        <span><?php echo e(number_format($invoice->total_discount, 2)); ?> ر.س</span>
+                    </div>
                     <?php endif; ?>
+
+                    <?php if($invoice->shipping_cost > 0): ?>
+                    <div class="summary-row">
+                        <span>تكلفة الشحن:</span>
+                        <span><?php echo e(number_format($invoice->shipping_cost, 2)); ?> ر.س</span>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if($invoice->advance_payment > 0): ?>
+                    <div class="summary-row">
+                        <span>الدفعة المقدمة:</span>
+                        <span><?php echo e(number_format($invoice->advance_payment, 2)); ?> ر.س</span>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="summary-row">
+                        <span>المبلغ المستحق:</span>
+                        <span><?php echo e(number_format($invoice->due_value, 2)); ?> ر.س</span>
+                    </div>
                 </div>
 
                 <!-- QR Code -->
                 <div class="qr-code">
                     <?php echo $qrCodeSvg; ?>
 
-                    <p>مسح الكود للتحقق من الفاتورة</p>
                 </div>
 
-                <!-- Signature Section -->
+                <!-- Signature -->
                 <div class="signature">
-                    <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
-
-                    <!-- Signature Input Fields -->
-                    <form action="<?php echo e(route('invoices.signatures.store', $invoice->id)); ?>" method="POST"
-                        id="signature-form" class="no-print">
-                        <?php echo csrf_field(); ?>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <!-- الاسم الكامل -->
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 12px;">الاسم الكامل:</label>
-                                <input type="text" name="signer_name" id="signer-name"
-                                    style="width: 100%; padding: 3px; font-size: 12px;" placeholder="ادخل اسمك بالكامل">
-                            </div>
-
-                            <!-- الصفة/المنصب -->
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 12px;">الصفة:</label>
-                                <input type="text" name="signer_role" id="signer-role"
-                                    style="width: 100%; padding: 3px; font-size: 12px;"
-                                    placeholder="مثال: مدير المبيعات، ممثل الشركة">
-                            </div>
-
-                            <!-- المبلغ المدفوع -->
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 12px;">المبلغ المدفوع:</label>
-                                <input type="number" name="amount_paid"
-                                    style="width: 100%; padding: 3px; font-size: 12px;"
-                                    placeholder="ادخل المبلغ المدفوع">
-                            </div>
-                        </div>
-
-                        <canvas id="signature-pad" class="signature-pad"></canvas>
-                        <input type="hidden" name="signature_data" id="signature-data">
-
-                        <div class="signature-controls">
-                            <button type="button" id="clear-signature" class="signature-btn signature-clear">مسح
-                                التوقيع</button>
-                            <button type="submit" id="save-signature" class="signature-btn signature-save">حفظ
-                                التوقيع</button>
-                        </div>
-                    </form>
-
-                    <!-- Signature History -->
-                    <div class="signature-history">
-                        <?php $__currentLoopData = $invoice->signatures; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $signature): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <div class="signature-item">
-                                <div><strong>الاسم:</strong> <?php echo e($signature->signer_name); ?></div>
-                                <?php if(!empty($signature->signer_role)): ?>
-                                    <div><strong>الصفة:</strong> <?php echo e($signature->signer_role); ?></div>
-                                <?php endif; ?>
-                                <?php if(!empty($signature->amount_paid)): ?>
-                                    <div><strong>المبلغ المدفوع:</strong>
-                                        <?php echo e(number_format($signature->amount_paid, 2)); ?> ريال</div>
-                                <?php endif; ?>
-                                <img src="<?php echo e($signature->signature_data); ?>"
-                                    style="max-width: 100%; height: auto; margin-top: 5px;">
-                            </div>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </div>
-
+                    <p>الاسم: ________________</p>
+                    <p>التوقيع: _______________</p>
                     <p class="thank-you">شكراً لتعاملكم معنا</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- مكتبات JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    const canvas = document.getElementById('signature-pad');
-    const signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255, 255, 255)',
-        penColor: 'rgb(0, 0, 0)'
-    });
+    <script>
+        // طباعة تلقائية عند تحميل الصفحة
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        };
 
-    function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-        signaturePad.clear();
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    document.getElementById('clear-signature')?.addEventListener('click', () => {
-        signaturePad.clear();
-    });
-
-    document.getElementById('signature-form')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const signerName = document.getElementById('signer-name')?.value.trim();
-        const signerRole = document.getElementById('signer-role')?.value.trim();
-        const amountPaid = document.querySelector('input[name="amount_paid"]')?.value.trim();
-
-        if (!signerName) {
-            toastr.error('الرجاء إدخال الاسم الكامل');
-            return;
-        }
-
-        if (!amountPaid || isNaN(amountPaid)) {
-            toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
-            return;
-        }
-
-        if (signaturePad.isEmpty()) {
-            toastr.error('الرجاء تقديم التوقيع أولاً');
-            return;
-        }
-
-        Swal.fire({
-            title: 'تأكيد الحفظ',
-            text: 'هل أنت متأكد أنك تريد حفظ التوقيع؟',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'نعم، احفظ',
-            cancelButtonText: 'إلغاء',
-            reverseButtons: true
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const signatureData = signaturePad.toDataURL();
-                    document.getElementById('signature-data').value = signatureData;
-
-                    const formData = new FormData(this);
-                    const response = await axios.post(this.action, formData);
-
-                    if (response.data.success) {
-                        toastr.success('تم حفظ التوقيع بنجاح');
-
-                        // ✨ إضافة التوقيع الجديد إلى الصفحة بدون تحديث
-                        const newSignature = response.data.signature;
-                        const container = document.querySelector('.signature-history');
-
-                        const signatureItem = document.createElement('div');
-                        signatureItem.classList.add('signature-item');
-                        signatureItem.innerHTML = `
-                            <div><strong>الاسم:</strong> ${newSignature.signer_name}</div>
-                            ${newSignature.signer_role ? `<div><strong>الصفة:</strong> ${newSignature.signer_role}</div>` : ''}
-                            ${newSignature.amount_paid ? `<div><strong>المبلغ المدفوع:</strong> ${parseFloat(newSignature.amount_paid).toFixed(2)} ريال</div>` : ''}
-                            <img src="${newSignature.signature_data}" style="max-width: 100%; height: auto; margin-top: 5px;">
-                        `;
-                        container.prepend(signatureItem); // أضف التوقيع في الأعلى
-
-                        // ✨ مسح الحقول
-                        document.getElementById('signer-name').value = '';
-                        document.getElementById('signer-role').value = '';
-                        document.querySelector('input[name="amount_paid"]').value = '';
-                        signaturePad.clear();
-
-                        // ✨ إشعار النافذة الأصلية (إذا كانت موجودة)
-                        if (window.opener) {
-                            window.opener.postMessage({
-                                type: 'signatureSaved',
-                                invoiceId: <?php echo e($invoice->id); ?>
-
-                            }, '*');
-                        }
-
-                    } else {
-                        toastr.error(response.data.message || 'حدث خطأ في حفظ التوقيع');
-                    }
-
-                } catch (error) {
-                    let errorMessage = 'حدث خطأ في حفظ التوقيع. يرجى المحاولة مرة أخرى.';
-                    if (error.response?.data?.message) {
-                        errorMessage = error.response.data.message;
-                    }
-                    toastr.error(errorMessage);
-                }
-            }
-        });
-    });
-</script>
-
+        // إعادة الطباعة عند محاولة الإغلاق
+        window.onbeforeunload = function() {
+            window.print();
+        };
+    </script>
 </body>
+
 </html>
 <?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/invoices/print.blade.php ENDPATH**/ ?>
