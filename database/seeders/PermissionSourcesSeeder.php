@@ -16,7 +16,7 @@ class PermissionSourcesSeeder extends Seeder
             ['name' => 'أمر تصنيع طلب توريد المواد الهالكة', 'category' => 'تصنيع'],
             ['name' => 'ورقة جرد منصرف',                  'category' => 'جرد'],
             ['name' => 'ورقة جرد وارد',                   'category' => 'جرد'],
-            ['name' => 'فاتورة',                          'category' => 'مبيعات'],
+            ['name' => 'فاتورة مبيعات',                          'category' => 'مبيعات'],
             ['name' => 'فاتورة مرتجعة',                   'category' => 'مرتجع مبيعات'],
             ['name' => 'إشعار دائن',                      'category' => 'مبيعات'],
             ['name' => 'فاتورة شراء',                     'category' => 'مشتريات'],

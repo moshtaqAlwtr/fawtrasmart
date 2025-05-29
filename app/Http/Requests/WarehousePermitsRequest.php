@@ -22,7 +22,7 @@ class WarehousePermitsRequest extends FormRequest
     public function rules()
     {
         return [
-            'permission_type'   => 'required|integer|in:1,2,3',
+               'permission_type' => 'required|exists:permission_sources,id',
             'permission_date'   => 'required|date',
             'sub_account'       => 'required|string',
             'number'            => 'required|string|unique:warehouse_permits,number,' . $this->id,

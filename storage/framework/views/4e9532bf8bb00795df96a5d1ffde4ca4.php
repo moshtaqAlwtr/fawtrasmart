@@ -165,32 +165,21 @@
 
                             <div class="form-group col-md-4">
                                 <label for="">مصدر الاذن</label>
-                                <select name="permission_type" class="form-control">
+                                <select name="permission_type" class="form-control select2">
                                     <option value="">الكل</option>
-                                    <option value="1">إذن إضافة مخزن</option>
-                                    <option value="2">إذن صرف مخزن</option>
-                                    <option value="22">أمر تصنيع المنتج الرئيسي</option>
-                                    <option value="21">أمر تصنيع طلب توريد المواد الهالكة</option>
-                                    <option value="13">ورقة جرد منصرف</option>
-                                    <option value="14">ورقة جرد وارد</option>
-                                    <option value="3">فاتورة</option>
-                                    <option value="4">فاتورة مرتجعة</option>
-                                    <option value="5">إشعار دائن</option>
-                                    <option value="6">فاتورة شراء</option>
-                                    <option value="7">مرتجع مشتريات</option>
-                                    <option value="15">اشعار مدين المشتريات</option>
-                                    <option value="8">تحويل يدوي</option>
-                                    <option value="12">POS Shift Outbound</option>
-                                    <option value="11">POS Shift Inbound</option>
-                                    <option value="16">أمر تصنيع البنود المرتجعة</option>
-                                    <option value="18">أمر تصنيع لصرف المواد</option>
+                                    <?php $__currentLoopData = $permissionSources; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $source): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($source->id); ?>"
+                                            <?php echo e(request('permission_type') == $source->id ? 'selected' : ''); ?>>
+                                            <?php echo e($source->name); ?>
+
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
-
                             <div class="form-group col-md-4">
                                 <label for="">الرقم المعرف</label>
-                                <input type="text" class="form-control" placeholder="ادخل الرقم المعرف"
-                                    name="id" value="<?php echo e(request('id')); ?>">
+                                <input type="text" class="form-control" placeholder="ادخل الرقم المعرف" name="id"
+                                    value="<?php echo e(request('id')); ?>">
                             </div>
 
                             <div class="form-group col-md-4">
@@ -318,7 +307,7 @@
                                     <td>
                                         <p>#<?php echo e($item->number); ?> - <?php echo e($item->created_at); ?></p>
                                         <p><strong class="mr-1">مؤسسة اعمال خاصة</strong> <small
-                                                class="text-muted">فاتوره مبيعات 2</small></p>
+                                                class="text-muted"><?php echo e($item->permissionSource->name ?? ''); ?></small></p>
                                         <span class="mr-1"> <i class="fa fa-arrow-down"></i>
                                             <?php if($item->permission_type == 1): ?>
                                                 إذن إضافة مخزن

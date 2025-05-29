@@ -7,6 +7,7 @@ use App\Http\Requests\WarehousePermitsRequest;
 use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Log;
+use App\Models\PermissionSource;
 use App\Models\Product;
 use App\Models\ProductDetails;
 use App\Models\StoreHouse;
@@ -41,9 +42,8 @@ class StorePermitsManagementController extends Controller
 
     // فلترة حسب نوع الإذن (مصدر الإذن)
     if ($request->filled('permission_type')) {
-        $query->where('permission_type', $request->permission_type);
-    }
-
+    $query->where('permission_type', $request->permission_type);
+}
     // فلترة حسب الرقم المعرف
     if ($request->filled('id')) {
         $query->where('id', $request->id);
@@ -94,11 +94,12 @@ class StorePermitsManagementController extends Controller
     $storeHouses = StoreHouse::where('status', 0)->select('id', 'name')->get();
     $branches = Branch::where('status', 0)->select('id', 'name')->get();
     $clients = Client::all();
+   $permissionSources = PermissionSource::all();
     $suppliers = Supplier::all();
     $users = User::where('role','employee')->get();
     $products = Product::all();
 
-    return view('stock.store_permits_management.index', compact('wareHousePermits', 'storeHouses', 'branches', 'clients', 'suppliers', 'users', 'products'));
+    return view('stock.store_permits_management.index', compact('wareHousePermits','permissionSources', 'storeHouses', 'branches', 'clients', 'suppliers', 'users', 'products'));
 }
     public function create()
     {

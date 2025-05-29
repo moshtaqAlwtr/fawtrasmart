@@ -40,6 +40,114 @@
         }
 
     </style>
+  
+
+<style>
+    .branch-card {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        padding: 15px;
+        background: #fff;
+    }
+    
+    .attention-item {
+        background-color: #fff9f9;
+        border-left: 3px solid #ff6b6b;
+        transition: all 0.3s ease;
+    }
+    
+    .attention-item:hover {
+        background-color: #fff0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .attention-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    
+    /* Scrollbar styling */
+    .attention-list::-webkit-scrollbar {
+        width: 5px;
+    }
+    
+    .attention-list::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 10px;
+    }
+    
+    .smaller {
+        font-size: 0.8em;
+    }
+</style>
+    <style>
+.district-performance-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 250px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.district-header {
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    font-weight: bold;
+    font-size: 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.district-main {
+    padding: 16px;
+    text-align: center;
+    background-color: #ffffff;
+}
+
+.district-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.district-secondary {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.district-sub {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.district-sub:last-child {
+    border-bottom: none;
+}
+
+.district-sub-name {
+    font-size: 14px;
+    color: #555;
+}
+
+.district-sub-percentage {
+    font-weight: bold;
+    color: #28a745; /* اللون الأخضر للنسبة */
+}
+
+.district-sub-count {
+    font-weight: bold;
+    color: #333;
+}
+
+/* التصميم للفئة C */
+.district-sub-name:contains("C") {
+    color: #dc3545; /* اللون الأحمر للفئة C */
+}
+</style>
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -130,6 +238,198 @@
                     </div>
                 </div>
             </div>
+   
+           
+            
+           
+<div class="row g-3">
+    <?php if($branchesPerformance->count() >= 3): ?>
+  <div class="col-md-4">
+    <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+            <!-- العنوان مع زر عرض الكل بجواره -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
+                    ⭐ أفضل الفروع أداءً
+                </h5>
+                <a href="<?php echo e(route('statistics.group')); ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> عرض الكل
+                </a>
+            </div>
+
+            <?php $__currentLoopData = $branchesPerformance->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <?php
+                $max = $branchesPerformance->max('total_collected') ?: 1;
+                $percentage = round($branch->total_collected / $max * 100, 2);
+                $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                $color = $colors[$index] ?? '#ccc';
+              ?>
+
+              <div class="mb-4 position-relative">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                      <div class="fw-bold fs-6 text-truncate"><?php echo e($branch->branch_name); ?></div>
+                      <span class="badge rounded-circle text-white fw-bold"
+                          style="background-color: <?php echo e($color); ?>; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                          <?php echo e($index + 1); ?>
+
+                      </span>
+                  </div>
+
+                  <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                      <div class="progress-bar"
+                          role="progressbar"
+                          style="width: <?php echo e(min($percentage, 100)); ?>%;"
+                          aria-valuenow="<?php echo e($percentage); ?>"
+                          aria-valuemin="0"
+                          aria-valuemax="100">
+                      </div>
+                  </div>
+
+                  <div class="text-end mb-2 text-muted small">
+                      <?php echo e($percentage); ?>٪ من التحصيل الأعلى
+                  </div>
+
+                  <div class="text-muted small">
+                      🔹 المدفوعات: <strong><?php echo e(number_format($branch->payments)); ?></strong> ر.س<br>
+                      🔹 السندات: <strong><?php echo e(number_format($branch->receipts)); ?></strong> ر.س<br>
+                      🔸 الإجمالي: <strong><?php echo e(number_format($branch->total_collected)); ?></strong> ر.س
+                  </div>
+                  
+                  <!-- زر عرض التفاصيل -->
+                 
+              </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+    </div>
+</div>
+    <?php endif; ?>
+
+    <?php if($regionPerformance->count() >= 3): ?>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+               
+ <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
+                    🗺️ أفضل المجموعات أداءً
+                </h5>
+                <a href="<?php echo e(route('statistics.groupall')); ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> عرض الكل
+                </a>
+            </div>
+                <?php $__currentLoopData = $regionPerformance->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $region): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                    $max = $regionPerformance->max('total_collected') ?: 1;
+                    $percent = round($region->total_collected / $max * 100, 2);
+                    $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                    $color = $colors[$index] ?? '#ccc';
+                ?>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-bold fs-6 text-truncate"><?php echo e($region->region_name); ?></div>
+                        <span class="badge text-white fw-bold rounded-circle"
+                            style="background-color: <?php echo e($color); ?>; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            <?php echo e($index + 1); ?>
+
+                        </span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                        <div class="progress-bar"
+                            role="progressbar"
+                            style="width: <?php echo e($percent); ?>%; background-color: <?php echo e($color); ?>;"
+                            aria-valuenow="<?php echo e($percent); ?>"
+                            aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="text-end mb-2 text-muted small">
+                        <?php echo e($percent); ?>٪ من الأعلى
+                    </div>
+
+                    <div class="text-muted small">
+                        🔹 المدفوعات: <strong><?php echo e(number_format($region->payments)); ?></strong> ر.س<br>
+                        🔹 السندات: <strong><?php echo e(number_format($region->receipts)); ?></strong> ر.س<br>
+                        🔸 الإجمالي: <strong><?php echo e(number_format($region->total_collected)); ?></strong> ر.س
+                    </div>
+                </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <?php if($neighborhoodPerformance->count() >= 3): ?>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body">
+              
+<div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">
+                     🏘️ أفضل الأحياء أداءً
+                </h5>
+                <a href="<?php echo e(route('statistics.neighborhood')); ?>" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i> عرض الكل
+                </a>
+            </div>
+                <?php $__currentLoopData = $neighborhoodPerformance->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $neigh): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                    $max = $neighborhoodPerformance->max('total_collected') ?: 1;
+                    $percent = round($neigh->total_collected / $max * 100, 2);
+                    $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
+                    $color = $colors[$index] ?? '#ccc';
+                ?>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-bold fs-6 text-truncate"><?php echo e($neigh->neighborhood_name); ?></div>
+                        <span class="badge text-white fw-bold rounded-circle"
+                            style="background-color: <?php echo e($color); ?>; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            <?php echo e($index + 1); ?>
+
+                        </span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
+                        <div class="progress-bar"
+                            role="progressbar"
+                            style="width: <?php echo e($percent); ?>%; background-color: <?php echo e($color); ?>;"
+                            aria-valuenow="<?php echo e($percent); ?>"
+                            aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+
+                    <div class="text-end mb-2 text-muted small">
+                        <?php echo e($percent); ?>٪ من الأعلى
+                    </div>
+
+                    <div class="text-muted small">
+                        🔹 المدفوعات: <strong><?php echo e(number_format($neigh->payments)); ?></strong> ر.س<br>
+                        🔹 السندات: <strong><?php echo e(number_format($neigh->receipts)); ?></strong> ر.س<br>
+                        🔸 الإجمالي: <strong><?php echo e(number_format($neigh->total_collected)); ?></strong> ر.س
+                    </div>
+                </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<br>
+<br>
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body text-center">
+        <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
+        <div class="display-6 text-primary fw-bold">
+            <?php echo e(number_format($averageBranchCollection)); ?> <small class="fs-5">ريال</small>
+        </div>
+        <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
+    </div>
+</div>
+
+
 
 
 <div class="container py-4">
@@ -176,8 +476,9 @@
             <thead class="table-light">
                 <tr>
                     <th width="25%">الموظف</th>
-                    <th width="25%" class="text-end">المبالغ المحصله</th>
-                    <th width="25%" class="text-end">الهدف</th>
+                     <th width="15%">العملاء</th>
+                    <th width="15%" class="text-end">المبالغ المحصله</th>
+                    <th width="15%" class="text-end">الهدف</th>
                     <th width="25%">النسبة</th>
                 </tr>
             </thead>
@@ -189,9 +490,11 @@
                         <div class="text-muted small mt-1">
                             المدفوعات: <?php echo e(number_format($card['payments'])); ?> ريال<br>
                             السندات: <?php echo e(number_format($card['receipts'])); ?> ريال<br>
+                             
                             الإجمالي: <?php echo e(number_format($card['total'])); ?> / الهدف: <?php echo e(number_format($card['target'])); ?> ريال
                         </div>
                     </td>
+                     <td class="text-end"><?php echo e($card['clients_count']); ?></td>
                     <td class="text-end"><?php echo e(number_format($card['total'])); ?> ريال</td>
                     <td class="text-end"><?php echo e(number_format($card['target'])); ?> ريال</td>
                     <td>

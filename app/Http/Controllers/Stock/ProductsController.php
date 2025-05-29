@@ -11,6 +11,7 @@ use App\Models\Category;
 use App\Models\CompiledProducts;
 use App\Models\GeneralSettings;
 use App\Models\Log;
+use App\Models\PermissionSource;
 use App\Models\PriceList;
 use App\Models\PriceListItems;
 use App\Models\Product;
@@ -46,7 +47,9 @@ class ProductsController extends Controller
             if ($shareProductsStatus && $shareProductsStatus->pivot->status == 0) {
                 $products = Product::whereHas('creator', function ($query) use ($branch) {
                     $query->where('branch_id', $branch->id);
-                })->orderBy('id', 'DESC')->paginate(5);
+                })
+                    ->orderBy('id', 'DESC')
+                    ->paginate(5);
             } else {
                 // إذا كانت الصلاحية مفعلة أو غير موجودة، عرض جميع المنتجات
                 $products = Product::orderBy('id', 'DESC')->paginate(5);
@@ -64,15 +67,12 @@ class ProductsController extends Controller
         return view('stock.products.index', compact('products', 'account_setting', 'role'));
     }
 
-
-
     public function search(Request $request)
     {
         $query = Product::query();
 
         if ($request->filled('keywords')) {
-            $query->where('name', 'LIKE', "%{$request->keywords}%")
-                ->orWhere('barcode', 'LIKE', "%{$request->keywords}%");
+            $query->where('name', 'LIKE', "%{$request->keywords}%")->orWhere('barcode', 'LIKE', "%{$request->keywords}%");
         }
 
         if ($request->filled('brand')) {
@@ -144,21 +144,17 @@ class ProductsController extends Controller
     {
         $Products = Product::where('track_inventory', '!=', null)->get();
 
-
         return view('stock.products.track', compact('Products'));
     }
-
 
     public function create_services()
     {
         $record_count = DB::table('products')->count();
         $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
 
-
         $categories = Category::select('id', 'name')->get();
         return view('stock.products.create_services', compact('categories', 'serial_number'));
     }
-
 
     public function edit($id)
     {
@@ -172,9 +168,7 @@ class ProductsController extends Controller
     {
         $product = Product::findOrFail($id);
         $total_quantity = DB::table('product_details')->where('product_id', $id)->sum('quantity');
-        $storeQuantities = ProductDetails::where('product_id', $id)->selectRaw('store_house_id, SUM(quantity) as total_quantity')
-            ->groupBy('store_house_id')->with('storeHouse')
-            ->get();
+        $storeQuantities = ProductDetails::where('product_id', $id)->selectRaw('store_house_id, SUM(quantity) as total_quantity')->groupBy('store_house_id')->with('storeHouse')->get();
         $total_sold = $product->totalSold();
         $sold_last_28_days = $product->totalSoldLast28Days();
         $sold_last_7_days = $product->totalSoldLast7Days();
@@ -185,9 +179,12 @@ class ProductsController extends Controller
         $logs = Log::where('type', 'product')->where('type_id', $id)->get();
 
         $stock_movements = WarehousePermitsProducts::where('product_id', $id)
-            ->with(['warehousePermits' => function ($query) {
-                $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
-            }])->get();
+            ->with([
+                'warehousePermits' => function ($query) {
+                    $query->with(['storeHouse', 'fromStoreHouse', 'toStoreHouse']);
+                },
+            ])
+            ->get();
 
         return view('stock.products.show', compact('product', 'logs', 'CompiledProducts', 'firstTemplateUnit', 'total_quantity', 'storeQuantities', 'total_sold', 'sold_last_28_days', 'sold_last_7_days', 'average_cost', 'stock_movements'));
     }
@@ -212,14 +209,8 @@ class ProductsController extends Controller
 
     public function store(ProductsRequest $request)
     {
-
-
-
         try {
-
             DB::beginTransaction();
-
-
 
             $product = new Product();
 
@@ -251,10 +242,9 @@ class ProductsController extends Controller
             $product->discount_type = $request->discount_type;
             $product->type = $request->type;
             $product->profit_margin = $request->profit_margin;
-            $product->expiry_date   = $request->expiry_date;
+            $product->expiry_date = $request->expiry_date;
             $product->notify_before_days = $request->notify_before_days;
             $product->created_by = Auth::user()->id;
-
 
             if ($request->has('available_online')) {
                 $product->available_online = 1;
@@ -279,8 +269,6 @@ class ProductsController extends Controller
             if ($request->hasFile('images')) {
                 $product->images = $this->UploadImage('assets/uploads/product', $request->images);
             } # End If
-
-
             $product->save();
 
             ProductDetails::create([
@@ -317,30 +305,35 @@ class ProductsController extends Controller
 
             DB::commit();
 
-
-            if ($product->type == "services") {
-                return redirect()->route('products.index')->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
+            if ($product->type == 'services') {
+                return redirect()
+                    ->route('products.index')
+                    ->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
             }
 
-            return redirect()->route('products.index')->with(['success' => 'تم إضافة المنتج بنجاح !!']);
+            return redirect()
+                ->route('products.index')
+                ->with(['success' => 'تم إضافة المنتج بنجاح !!']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
+            return redirect()
+                ->back()
+                ->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
         }
 
-
-        if ($product->type == "services") {
-            return redirect()->route('products.index')->with(['success' => 'تم اضافه الخدمة بنجاج !!']);
+        if ($product->type == 'services') {
+            return redirect()
+                ->route('products.index')
+                ->with(['success' => 'تم اضافه الخدمة بنجاج !!']);
         }
-        return redirect()->route('products.index')->with(['success' => 'تم اضافه المنتج بنجاج !!']);
+        return redirect()
+            ->route('products.index')
+            ->with(['success' => 'تم اضافه المنتج بنجاج !!']);
     } # End Stor
-
-
     // اضافة الخدمة
     public function update(ProductsRequest $request, $id)
     {
         try {
-
             DB::beginTransaction();
             $product = Product::findOrFail($id);
             $oldName = $product->name;
@@ -380,7 +373,6 @@ class ProductsController extends Controller
             if ($request->hasFile('images')) {
                 $product->images = $this->UploadImage('assets/uploads/product', $request->images);
             } # End If
-
             $product->update();
 
             Log::create([
@@ -388,7 +380,7 @@ class ProductsController extends Controller
                 'type_id' => $product->id, // ID النشاط المرتبط
                 'type_log' => 'edit', // نوع النشاط
                 'description' => 'تم تعديل المنتج',
-                'old_value' =>  $oldName,
+                'old_value' => $oldName,
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
 
@@ -401,15 +393,18 @@ class ProductsController extends Controller
                 'created_by' => auth()->id(), // ID المستخدم الحالي
             ]);
             DB::commit();
-            return redirect()->route('products.index')->with(['success' => 'تم تحديث المنتج بنجاج !!']);
-        } # End Try
-        catch (\Exception $ex) {
+            return redirect()
+                ->route('products.index')
+                ->with(['success' => 'تم تحديث المنتج بنجاج !!']);
+        } catch (\Exception $ex) {
+            # End Try
             DB::rollback();
-            return redirect()->back()->with(['error' => 'حدث خطاء ما يرجى المحاوله مره اخره'])->withInput();
+            return redirect()
+                ->back()
+                ->with(['error' => 'حدث خطاء ما يرجى المحاوله مره اخره'])
+                ->withInput();
         }
     } # End Stor
-
-
     // اضافة منتج تجميعي
 
     public function compiled()
@@ -432,8 +427,6 @@ class ProductsController extends Controller
     }
     public function compiled_store(Request $request)
     {
-
-
         try {
             DB::beginTransaction();
 
@@ -466,7 +459,7 @@ class ProductsController extends Controller
             $product->type = $request->type;
             $product->profit_margin = $request->profit_margin;
             $product->storehouse_id = $request->storehouse_id; // مخزن المنتجات الاوليه للمنتج التجميعي
-            $product->compile_type = "Instant";  // نوع التجميعه معد مسبقا او فوري
+            $product->compile_type = 'Instant'; // نوع التجميعه معد مسبقا او فوري
             $product->created_by = Auth::user()->id;
 
             if ($request->has('available_online')) {
@@ -485,24 +478,22 @@ class ProductsController extends Controller
 
             // تحقق من صحة البيانات
             $request->validate([
-
                 'products' => 'required|array', // تأكد من وجود بيانات المنتجات
                 'products.*.product_id' => 'required|exists:products,id', // تأكد من وجود product_id في جدول products
                 'products.*.quantity' => 'required|numeric|min:1', // تأكد من أن الكمية رقم صحيح أكبر من 0
             ]);
 
-
             foreach ($request->products as $productData) {
                 $compiledProduct = new CompiledProducts();
 
                 // تعيين compile_id إلى المنتج التجميعي
-                $compiledProduct->compile_id = $product->id;  // هذا هو المنتج التجميعي ويجب أن يتكرر لجميع المنتجات المرتبطة به
+                $compiledProduct->compile_id = $product->id; // هذا هو المنتج التجميعي ويجب أن يتكرر لجميع المنتجات المرتبطة به
 
                 // تعيين product_id إلى المنتج الفرعي
-                $compiledProduct->product_id = $productData['product_id'];  // معرّف المنتج الفردي
+                $compiledProduct->product_id = $productData['product_id']; // معرّف المنتج الفردي
 
                 // تعيين الكمية
-                $compiledProduct->qyt = $productData['quantity'];  // الكمية الخاصة بالمنتج
+                $compiledProduct->qyt = $productData['quantity']; // الكمية الخاصة بالمنتج
 
                 // حفظ البيانات في جدول CompiledProducts
                 $compiledProduct->save();
@@ -516,19 +507,22 @@ class ProductsController extends Controller
                 'product_id' => $product->id,
             ]);
 
-
-
-
             DB::commit();
 
-            if ($product->type == "services") {
-                return redirect()->route('products.index')->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
+            if ($product->type == 'services') {
+                return redirect()
+                    ->route('products.index')
+                    ->with(['success' => 'تم إضافة الخدمة بنجاح !!']);
             }
 
-            return redirect()->route('products.index')->with(['success' => 'تم إضافة المنتج بنجاح !!']);
+            return redirect()
+                ->route('products.index')
+                ->with(['success' => 'تم إضافة المنتج بنجاح !!']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
+            return redirect()
+                ->back()
+                ->with(['error' => 'حدث خطأ أثناء إضافة المنتج: ' . $e->getMessage()]);
         }
     }
     public function delete($id)
@@ -546,7 +540,9 @@ class ProductsController extends Controller
         ProductDetails::where('product_id', $id)->delete();
         Product::findOrFail($id)->delete();
 
-        return redirect()->route('products.index')->with(['error' => 'تم حذف المنتج بنجاح المنتج بنجاج !!']);
+        return redirect()
+            ->route('products.index')
+            ->with(['error' => 'تم حذف المنتج بنجاح المنتج بنجاج !!']);
     }
 
     public function manual_stock_adjust($id)
@@ -563,7 +559,6 @@ class ProductsController extends Controller
 
     public function add_manual_stock_adjust(Request $request, $id)
     {
-
         $request->validate([
             'quantity' => 'required|numeric|min:1',
             'type' => 'required|in:1,2',
@@ -581,12 +576,13 @@ class ProductsController extends Controller
             $product = ProductDetails::where('product_id', $id)->firstOrFail();
 
             if ($request->type == 2) {
-                $product = ProductDetails::where('product_id', $id)
-                    ->where('store_house_id', $request->store_house_id)
-                    ->first();
+                $product = ProductDetails::where('product_id', $id)->where('store_house_id', $request->store_house_id)->first();
 
                 if (!$product) {
-                    return redirect()->back()->with(['error' => 'المنتج غير موجود في المخزن المحدد.'])->withInput();
+                    return redirect()
+                        ->back()
+                        ->with(['error' => 'المنتج غير موجود في المخزن المحدد.'])
+                        ->withInput();
                 }
             }
 
@@ -594,7 +590,8 @@ class ProductsController extends Controller
 
             // التحقق من توفر الكمية قبل السحب
             if ($request->type == 2 && $old_quantity_in_stock < $request->quantity) {
-                return redirect()->route('products.manual_stock_adjust', $id)
+                return redirect()
+                    ->route('products.manual_stock_adjust', $id)
                     ->withInput()
                     ->with(['error' => 'الكميه غير متوفره في المخزن المحدد.']);
             }
@@ -604,181 +601,157 @@ class ProductsController extends Controller
             DB::commit();
 
             $message = $request->type == 2 ? 'تم سحب الكميه من المخزون بنجاح' : 'تم اضافه الكميه الي المخزون بنجاح';
-            return redirect()->route('products.show', $id)->withInput()->with(['success' => $message]);
+            return redirect()
+                ->route('products.show', $id)
+                ->withInput()
+                ->with(['success' => $message]);
         } catch (\Exception $ex) {
             DB::rollback();
-            return redirect()->back()->with(['error' => $ex->getMessage()])->withInput();
+            return redirect()
+                ->back()
+                ->with(['error' => $ex->getMessage()])
+                ->withInput();
         }
     }
 
+private function updateProductAndCreatePermit($product, $request, $type, $id)
+{
+    if ($request->hasFile('attachments')) {
+        $product->attachments = $this->UploadImage('assets/uploads/product/attachments', $request->attachments);
+    }
 
-    private function updateProductAndCreatePermit($product, $request, $type, $id)
-    {
-        if ($request->hasFile('attachments')) {
-            $product->attachments = $this->UploadImage('assets/uploads/product/attachments', $request->attachments);
-        }
+    // التحقق من المخزون قبل التحديث
+    if ($type == 2 && $product->quantity < $request->quantity) {
+        return redirect()
+            ->back()
+            ->with(['error' => 'الكميه غير متوفره في المخزن المحدد.'])
+            ->withInput();
+    }
 
-        // التحقق من المخزون قبل التحديث
-        if ($type == 2 && $product->quantity < $request->quantity) {
-            return redirect()->back()->with(['error' => 'الكميه غير متوفره في المخزن المحدد.'])->withInput();
-        }
+    // تحديث الكمية بناءً على العملية (إضافة أو سحب)
+    $SubUnit = SubUnit::find($request->sub_unit_id);
 
-        // تحديث الكمية بناءً على العملية (إضافة أو سحب)
-        $SubUnit = SubUnit::find($request->sub_unit_id);
+    if ($SubUnit) {
+        $conversionFactor = $SubUnit->conversion_factor;
+    } else {
+        $conversionFactor = 1; // قيمة افتراضية في حالة عدم وجود الوحدة
+    }
 
-        if ($SubUnit) {
-            $conversionFactor = $SubUnit->conversion_factor;
-        } else {
-            $conversionFactor = 1; // قيمة افتراضية في حالة عدم وجود الوحدة
-        }
+    $product->quantity = $type == 2 ? $product->quantity - $request->quantity * $conversionFactor : $product->quantity + $request->quantity * $conversionFactor;
+    $product->type = $request->type;
+    $product->unit_price = $request->unit_price;
+    $product->date = $request->date;
+    $product->time = $request->time;
+    $product->type_of_operation = $request->type_of_operation;
+    $product->comments = $request->comments;
+    $product->subaccount = $request->subaccount;
+    $product->duration = $request->duration;
+    $product->status = $request->status;
+    $product->store_house_id = $request->store_house_id;
+    $product->product_id = $id;
 
-        $product->quantity = ($type == 2)
-            ? $product->quantity - ($request->quantity * $conversionFactor)
-            : $product->quantity + ($request->quantity * $conversionFactor);
-        $product->type = $request->type;
-        $product->unit_price = $request->unit_price;
-        $product->date = $request->date;
-        $product->time = $request->time;
-        $product->type_of_operation = $request->type_of_operation;
-        $product->comments = $request->comments;
-        $product->subaccount = $request->subaccount;
-        $product->duration = $request->duration;
-        $product->status = $request->status;
-        $product->store_house_id = $request->store_house_id;
-        $product->product_id = $id;
+    $product->update();
 
-        $product->update();
+    // تحديد نوع إذن المخزن (إضافة أو سحب)
+    $permissionSourceName = $type == 2 ? 'اذن سحب مخزني' : 'اذن اضافة مخزن';
+    $permissionSource = PermissionSource::where('name', $permissionSourceName)->first();
 
-        // إنشاء إذن المخزن
-        $wareHousePermits = new WarehousePermits();
-        $wareHousePermits->store_houses_id = $request->store_house_id;
-        $wareHousePermits->permission_type = $type;
-        $record_count = DB::table('warehouse_permits')->count();
-        $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
-        $wareHousePermits->number = $serial_number;
-        $wareHousePermits->grand_total = $request->quantity * $request->unit_price;
-        $wareHousePermits->created_by = auth()->user()->id;
-        $wareHousePermits->sub_account = $request->subaccount;
-        $wareHousePermits->details = $request->comments;
-        $wareHousePermits->permission_date = $request->has('date') && $request->has('time')
-            ? Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time)
-            : Carbon::now();
-        $wareHousePermits->save();
+    if (!$permissionSource) {
+        throw new \Exception("مصدر إذن '{$permissionSourceName}' غير موجود في قاعدة البيانات.");
+    }
 
-        // حفظ تفاصيل المنتج في إذن المخزن
-        $warehousePermitProduct = WarehousePermitsProducts::create([
-            'quantity' => $request->quantity,
-            'total' => $request->quantity * $request->unit_price,
-            'unit_price' => $request->unit_price,
-            'product_id' => $id,
-            'warehouse_permits_id' => $wareHousePermits->id,
-            'stock_before' => $product->quantity, // المخزون قبل التحديث
-            'stock_after' => ($type == 2)
-                ? $product->quantity - ($request->quantity * $conversionFactor)
-                : $product->quantity + ($request->quantity * $conversionFactor), // المخزون بعد التحديث
-        ]);
+    $wareHousePermits = new WarehousePermits();
+    $wareHousePermits->store_houses_id = $request->store_house_id;
+    $wareHousePermits->permission_type = $permissionSource->id;
+    $record_count = DB::table('warehouse_permits')->count();
+    $serial_number = str_pad($record_count + 1, 6, '0', STR_PAD_LEFT);
+    $wareHousePermits->number = $serial_number;
+    $wareHousePermits->grand_total = $request->quantity * $request->unit_price;
+    $wareHousePermits->created_by = auth()->user()->id;
+    $wareHousePermits->sub_account = $request->subaccount;
+    $wareHousePermits->details = $request->comments;
+    $wareHousePermits->permission_date = $request->has('date') && $request->has('time') ? Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time) : Carbon::now();
+    $wareHousePermits->save();
 
-        // إذا كان المنتج تجميعيًا
-        if ($product->type == "compiled" && $product->compile_type !== "Instant") {
-            // ** الحصول على المنتجات التابعة للمنتج التجميعي **
-            $CompiledProducts = CompiledProducts::where('compile_id', $id)->get();
+    // حفظ تفاصيل المنتج في إذن المخزن
+    $warehousePermitProduct = WarehousePermitsProducts::create([
+        'quantity' => $request->quantity,
+        'total' => $request->quantity * $request->unit_price,
+        'unit_price' => $request->unit_price,
+        'product_id' => $id,
+        'warehouse_permits_id' => $wareHousePermits->id,
+        'stock_before' => $product->quantity, // المخزون قبل التحديث
+        'stock_after' => $type == 2 ? $product->quantity - $request->quantity * $conversionFactor : $product->quantity + $request->quantity * $conversionFactor, // المخزون بعد التحديث
+    ]);
 
-            foreach ($CompiledProducts as $compiledProduct) {
-                // ** حساب المخزون قبل وبعد التعديل للمنتج التابع **
-                $total_quantity = DB::table('product_details')->where('product_id', $compiledProduct->product_id)->sum('quantity');
-                $stock_before = $total_quantity;
-                $stock_after = $stock_before - ($compiledProduct->qyt * $request->quantity); // خصم الكمية المطلوبة
+    // إذا كان المنتج تجميعيًا
+    if ($product->type == 'compiled' && $product->compile_type !== 'Instant') {
+        // ** الحصول على المنتجات التابعة للمنتج التجميعي **
+        $CompiledProducts = CompiledProducts::where('compile_id', $id)->get();
 
-                // ** تسجيل المبيعات في حركة المخزون للمنتج التابع **
-                $wareHousePermits = new WarehousePermits();
-                $wareHousePermits->permission_type = 2; // خصم من الفاتورة
-                $wareHousePermits->permission_date =  $request->has('date') && $request->has('time')
-                    ? Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time)
-                    : Carbon::now();
-                $wareHousePermits->number = $product->id;
-                $wareHousePermits->grand_total = $request->quantity * $request->unit_price;
-                $wareHousePermits->store_houses_id = $request->store_house_id;
-                $wareHousePermits->created_by = auth()->user()->id;
-                $wareHousePermits->save();
+        foreach ($CompiledProducts as $compiledProduct) {
+            // ** حساب المخزون قبل وبعد التعديل للمنتج التابع **
+            $total_quantity = DB::table('product_details')->where('product_id', $compiledProduct->product_id)->sum('quantity');
+            $stock_before = $total_quantity;
+            $stock_after = $stock_before - $compiledProduct->qyt * $request->quantity; // خصم الكمية المطلوبة
 
-                // ** تسجيل البيانات في WarehousePermitsProducts للمنتج التابع **
-                WarehousePermitsProducts::create([
-                    'quantity' => $compiledProduct->qyt * $request->quantity,
-                    'total' => $request->quantity * $request->unit_price,
-                    'unit_price' => $request->unit_price,
+            // ** تسجيل المبيعات في حركة المخزون للمنتج التابع **
+            $wareHousePermits = new WarehousePermits();
+            $wareHousePermits->permission_type = $permissionSource->id; // استخدام نفس نوع الإذن (سحب أو إضافة)
+            $wareHousePermits->permission_date = $request->has('date') && $request->has('time') ? Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time) : Carbon::now();
+            $wareHousePermits->number = $product->id;
+            $wareHousePermits->grand_total = $request->quantity * $request->unit_price;
+            $wareHousePermits->store_houses_id = $request->store_house_id;
+            $wareHousePermits->created_by = auth()->user()->id;
+            $wareHousePermits->save();
+
+            // ** تسجيل البيانات في WarehousePermitsProducts للمنتج التابع **
+            WarehousePermitsProducts::create([
+                'quantity' => $compiledProduct->qyt * $request->quantity,
+                'total' => $request->quantity * $request->unit_price,
+                'unit_price' => $request->unit_price,
+                'product_id' => $compiledProduct->product_id,
+                'stock_before' => $stock_before, // المخزون قبل التحديث
+                'stock_after' => $stock_after, // المخزون بعد التحديث
+                'warehouse_permits_id' => $wareHousePermits->id,
+            ]);
+
+            // ** تحديث المخزون للمنتج التابع **
+            $compiledProductDetails = ProductDetails::where('store_house_id', $request->store_house_id)->where('product_id', $compiledProduct->product_id)->first();
+
+            if (!$compiledProductDetails) {
+                $compiledProductDetails = ProductDetails::create([
+                    'store_house_id' => $request->store_house_id,
                     'product_id' => $compiledProduct->product_id,
-                    'stock_before' => $stock_before, // المخزون قبل التحديث
-                    'stock_after' => $stock_after,   // المخزون بعد التحديث
-                    'warehouse_permits_id' => $wareHousePermits->id,
+                    'quantity' => 0,
                 ]);
-
-                // ** تحديث المخزون للمنتج التابع **
-                $compiledProductDetails = ProductDetails::where('store_house_id', $request->store_house_id)
-                    ->where('product_id', $compiledProduct->product_id)
-                    ->first();
-
-                if (!$compiledProductDetails) {
-                    $compiledProductDetails = ProductDetails::create([
-                        'store_house_id' => $request->store_house_id,
-                        'product_id' => $compiledProduct->product_id,
-                        'quantity' => 0,
-                    ]);
-                }
-
-                $compiledProductDetails->decrement('quantity', $compiledProduct->qyt * $request->quantity);
             }
+
+            $compiledProductDetails->decrement('quantity', $compiledProduct->qyt * $request->quantity);
         }
-
-        // تسجيل الإشعار في جدول logs
-        $product = Product::findOrFail($id);
-        $movement = $warehousePermitProduct; // استخدام البيانات المسجلة حديثًا
-        $average_cost = $product->averageCost();
-
-        $description = '';
-
-        if ($movement->warehousePermits->permission_type == 2) {
-            $description = sprintf(
-                'أنقص **%s** **%d** وحدة من مخزون **[#%s (%s)](%s)** يدويا (رقم العملية: **#%s**)، وسعر الوحدة: **%s ر.س**، وأصبح المخزون الباقي من المنتج: **%d** وأصبح المخزون **%s** رصيده **%d**, متوسط السعر: **%s ر.س**',
-                $movement->warehousePermits->user->name,
-                $movement->quantity,
-                $product->serial_number,
-                $product->name,
-                route('products.show', $id),
-                $movement->warehousePermits->number,
-                $movement->unit_price,
-                $movement->stock_after,
-                $movement->warehousePermits->storeHouse->name,
-                $movement->stock_after,
-                $average_cost
-            );
-        } else {
-            $description = sprintf(
-                'أضاف **%s** **%d** وحدة إلى مخزون **[#%s (%s)](%s)** يدويا (رقم العملية: **#%s**)، وسعر الوحدة: **%s ر.س**، وأصبح المخزون الباقي من المنتج: **%d** وأصبح المخزون **%s** رصيده **%d**, متوسط السعر: **%s ر.س**',
-                $movement->warehousePermits->user->name,
-                $movement->quantity,
-                $product->serial_number,
-                $product->name,
-                route('products.show', $id),
-                $movement->warehousePermits->number,
-                $movement->unit_price,
-                $product->quantity,
-                $movement->warehousePermits->storeHouse->name,
-                $product->quantity,
-                $average_cost
-            );
-        }
-
-        Log::create([
-            'type' => 'product_log',
-            'type_id' => $id, // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
-            'description' => $description, // النص المنسق
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
     }
 
+    // تسجيل الإشعار في جدول logs
+    $product = Product::findOrFail($id);
+    $movement = $warehousePermitProduct; // استخدام البيانات المسجلة حديثًا
+    $average_cost = $product->averageCost();
 
+    $description = '';
 
+    if ($type == 2) {
+        $description = sprintf('أنقص **%s** **%d** وحدة من مخزون **[#%s (%s)](%s)** يدويا (رقم العملية: **#%s**)، وسعر الوحدة: **%s ر.س**، وأصبح المخزون الباقي من المنتج: **%d** وأصبح المخزون **%s** رصيده **%d**, متوسط السعر: **%s ر.س**', $movement->warehousePermits->user->name, $movement->quantity, $product->serial_number, $product->name, route('products.show', $id), $movement->warehousePermits->number, $movement->unit_price, $movement->stock_after, $movement->warehousePermits->storeHouse->name, $movement->stock_after, $average_cost);
+    } else {
+        $description = sprintf('أضاف **%s** **%d** وحدة إلى مخزون **[#%s (%s)](%s)** يدويا (رقم العملية: **#%s**)، وسعر الوحدة: **%s ر.س**، وأصبح المخزون الباقي من المنتج: **%d** وأصبح المخزون **%s** رصيده **%d**, متوسط السعر: **%s ر.س**', $movement->warehousePermits->user->name, $movement->quantity, $product->serial_number, $product->name, route('products.show', $id), $movement->warehousePermits->number, $movement->unit_price, $product->quantity, $movement->warehousePermits->storeHouse->name, $product->quantity, $average_cost);
+    }
+
+    Log::create([
+        'type' => 'product_log',
+        'type_id' => $id, // ID النشاط المرتبط
+        'type_log' => 'log', // نوع النشاط
+        'description' => $description, // النص المنسق
+        'created_by' => auth()->id(), // ID المستخدم الحالي
+    ]);
+}
     # Helper Function
     public function GenerateImage($image, $imageName)
     {
@@ -803,27 +776,18 @@ class ProductsController extends Controller
         $img = Image::read($image->path());
 
         $img->cover(540, 689, 'top');
-        $img->resize(
-            540,
-            689,
-            function ($constraint) {
-                $constraint->aspectRatio();
-            }
-        )->save($destinationsPath . '/' . $imageName);
+        $img->resize(540, 689, function ($constraint) {
+            $constraint->aspectRatio();
+        })->save($destinationsPath . '/' . $imageName);
     }
 
     public function import(Request $request)
     {
-
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv,txt',
         ]);
 
         Excel::import(new ProductsImport(), $request->file('file'));
-
-
-
-
 
         return redirect()->back()->with('success', 'تم استيراد المنتجات بنجاح!');
     }

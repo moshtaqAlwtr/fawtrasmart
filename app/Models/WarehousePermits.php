@@ -40,5 +40,9 @@ class WarehousePermits extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+public function permissionSource()
+{
+    return $this->belongsTo(PermissionSource::class, 'permission_type', 'id');
+}
 
 }

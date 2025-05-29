@@ -38,6 +38,7 @@ use App\Models\TreasuryEmployee;
 use App\Models\User;
 use App\Models\CreditLimit;
 use App\Models\Location;
+use App\Models\PermissionSource;
 use App\Models\Signature;
 use App\Models\TaxSitting;
 use GuzzleHttp\Client as GuzzleClient;
@@ -837,106 +838,105 @@ public function notifications(Request $request)
                     }
                 }
 
-                if ($proudect->type == 'products') {
-                    // ** حساب المخزون قبل وبعد التعديل **
-                    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
-                    $stock_before = $total_quantity;
-                    $stock_after = $stock_before - $item['quantity'];
+if ($proudect->type == 'products') {
+    // ** حساب المخزون قبل وبعد التعديل **
+    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+    $stock_before = $total_quantity;
+    $stock_after = $stock_before - $item['quantity'];
 
-                    // ** تحديث المخزون **
-                    $productDetails->decrement('quantity', $item['quantity']);
+    // ** تحديث المخزون **
+    $productDetails->decrement('quantity', $item['quantity']);
 
-                    // ** تسجيل المبيعات في حركة المخزون **
-                    $wareHousePermits = new WarehousePermits();
-                    $wareHousePermits->permission_type = 10;
-                    $wareHousePermits->permission_date = $invoice->created_at;
-                    $wareHousePermits->number = $invoice->id;
-                    $wareHousePermits->grand_total = $invoice->grand_total;
-                    $wareHousePermits->store_houses_id = $storeHouse->id;
-                    $wareHousePermits->created_by = auth()->user()->id;
-                    $wareHousePermits->save();
+    // ** جلب مصدر إذن المخزون المناسب (فاتورة مبيعات) **
+    $permissionSource = PermissionSource::where('name', 'فاتورة مبيعات')->first();
 
-                    // ** تسجيل البيانات في WarehousePermitsProducts **
-                    WarehousePermitsProducts::create([
-                        'quantity' => $item['quantity'],
-                        'total' => $item['total'],
-                        'unit_price' => $item['unit_price'],
-                        'product_id' => $item['product_id'],
-                        'stock_before' => $stock_before, // المخزون قبل التحديث
-                        'stock_after' => $stock_after, // المخزون بعد التحديث
-                        'warehouse_permits_id' => $wareHousePermits->id,
-                    ]);
+    if (!$permissionSource) {
+        // لو ما وجدنا مصدر إذن، ممكن ترمي استثناء أو ترجع خطأ
+        throw new \Exception("مصدر إذن 'فاتورة مبيعات' غير موجود في قاعدة البيانات.");
+    }
 
-                    if ($productDetails->quantity < $product['low_stock_alert']) {
-                        // إنشاء إشعار للكمية
-                        notifications::create([
-                            'type' => 'Products',
-                            'title' => 'تنبيه الكمية',
-                            'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
-                        ]);
+    // ** تسجيل المبيعات في حركة المخزون **
+    $wareHousePermits = new WarehousePermits();
+    $wareHousePermits->permission_type = $permissionSource->id; // جلب id المصدر الديناميكي
+    $wareHousePermits->permission_date = $invoice->created_at;
+    $wareHousePermits->number = $invoice->id;
+    $wareHousePermits->grand_total = $invoice->grand_total;
+    $wareHousePermits->store_houses_id = $storeHouse->id;
+    $wareHousePermits->created_by = auth()->user()->id;
+    $wareHousePermits->save();
 
-                        // رابط API Telegram
+    // ** تسجيل البيانات في WarehousePermitsProducts **
+    WarehousePermitsProducts::create([
+        'quantity' => $item['quantity'],
+        'total' => $item['total'],
+        'unit_price' => $item['unit_price'],
+        'product_id' => $item['product_id'],
+        'stock_before' => $stock_before, // المخزون قبل التحديث
+        'stock_after' => $stock_after,   // المخزون بعد التحديث
+        'warehouse_permits_id' => $wareHousePermits->id,
+    ]);
 
-                        $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+    // ** تنبيه انخفاض الكمية **
+    if ($productDetails->quantity < $product['low_stock_alert']) {
+        notifications::create([
+            'type' => 'Products',
+            'title' => 'تنبيه الكمية',
+            'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
+        ]);
 
-                        // تنسيق الرسالة بـ Markdown
-                        $message = "🚨 *تنبيه جديد!* 🚨\n";
-                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-                        $message .= "📌 *العنوان:* 🔔 `تنبيه الكمية`\n";
-                        $message .= '📦 *المنتج:* `' . $product['name'] . "`\n";
-                        $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
-                        $message .= '📅 *التاريخ:* `' . now()->format('Y-m-d H:i') . "`\n";
-                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
 
-                        // إرسال الرسالة إلى التلقرام
-                        $response = Http::post($telegramApiUrl, [
-                            'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
-                            'text' => $message,
-                            'parse_mode' => 'Markdown',
-                            'timeout' => 60,
-                        ]);
-                    }
+        $message = "🚨 *تنبيه جديد!* 🚨\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+        $message .= "📌 *العنوان:* 🔔 `تنبيه الكمية`\n";
+        $message .= '📦 *المنتج:* `' . $product['name'] . "`\n";
+        $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
+        $message .= '📅 *التاريخ:* `' . now()->format('Y-m-d H:i') . "`\n";
+        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
 
-                    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) {
-                        $expiryDate = Carbon::parse($product['expiry_date']); // تاريخ الانتهاء
-                        $daysBeforeExpiry = (int) $product['notify_before_days']; // الأيام المحددة من قبل المستخدم
+        $response = Http::post($telegramApiUrl, [
+            'chat_id' => '@Salesfatrasmart',
+            'text' => $message,
+            'parse_mode' => 'Markdown',
+            'timeout' => 60,
+        ]);
+    }
 
-                        // التحقق مما إذا كان تاريخ الانتهاء في المستقبل
-                        if ($expiryDate->greaterThan(now())) {
-                            $remainingDays = floor($expiryDate->diffInDays(now())); // حساب الأيام المتبقية بدون كسور
+    // ** تنبيه تاريخ انتهاء الصلاحية **
+    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) {
+        $expiryDate = Carbon::parse($product['expiry_date']);
+        $daysBeforeExpiry = (int) $product['notify_before_days'];
 
-                            if ($remainingDays <= $daysBeforeExpiry) {
-                                // إنشاء إشعار لتاريخ الانتهاء
-                                notifications::create([
-                                    'type' => 'Products',
-                                    'title' => 'تاريخ الانتهاء',
-                                    'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
-                                ]);
+        if ($expiryDate->greaterThan(now())) {
+            $remainingDays = floor($expiryDate->diffInDays(now()));
 
-                                // إرسال الإشعار إلى تيليغرام
-                                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+            if ($remainingDays <= $daysBeforeExpiry) {
+                notifications::create([
+                    'type' => 'Products',
+                    'title' => 'تاريخ الانتهاء',
+                    'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
+                ]);
 
-                                $chatId = '@Salesfatrasmart'; // تأكد من أن لديك صلاحية الإرسال للقناة
+                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
 
-                                // تصميم الرسالة
-                                $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
-                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-                                $message .= '📌 *اسم المنتج:* ' . $product['name'] . "\n";
-                                $message .= '📅 *تاريخ الانتهاء:* ' . $expiryDate->format('Y-m-d') . "\n";
-                                $message .= '⏳ *المدة المتبقية:* ' . $remainingDays . " يوم\n";
-                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
+                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                $message .= '📌 *اسم المنتج:* ' . $product['name'] . "\n";
+                $message .= '📅 *تاريخ الانتهاء:* ' . $expiryDate->format('Y-m-d') . "\n";
+                $message .= '⏳ *المدة المتبقية:* ' . $remainingDays . " يوم\n";
+                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
 
-                                // إرسال الرسالة إلى التلقرام
-                                $response = Http::post($telegramApiUrl, [
-                                    'chat_id' => '@Salesfatrasmart', // تأكد من أنك تملك صلاحيات الإرسال للقناة
-                                    'text' => $message,
-                                    'parse_mode' => 'Markdown',
-                                    'timeout' => 60,
-                                ]);
-                            }
-                        }
-                    }
-                }
+                $response = Http::post($telegramApiUrl, [
+                    'chat_id' => '@Salesfatrasmart',
+                    'text' => $message,
+                    'parse_mode' => 'Markdown',
+                    'timeout' => 60,
+                ]);
+            }
+        }
+    }
+}
+
 
                 if ($proudect->type == 'compiled' && $proudect->compile_type == 'Instant') {
                     // ** حساب المخزون قبل وبعد التعديل للمنتج التجميعي **
