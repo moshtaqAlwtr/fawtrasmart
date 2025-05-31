@@ -45,7 +45,9 @@ use App\Models\Expense;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
 use App\Models\Location;
+use App\Models\Receipt;
 use App\Models\Revenue;
+use App\Models\Target;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
@@ -105,25 +107,90 @@ public function index(Request $request)
     $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
 
     // حساب due لكل العملاء
-
-
-
-    // موقع الموظف
-    $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
-
-
     $clientIds = $baseQuery->pluck('id');
+
+    // الحصول على الهدف العام
+    $target = Target::find(2)->value ?? 648;
+
+    // جلب بيانات الفواتير والمدفوعات وسندات القبض لكل عميل
+    $clientsData = $noClients ? collect() : $baseQuery->get()->map(function ($client) use ($target) {
+        // حساب المدفوعات
+        $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+        $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
+
+        $invoiceIds = Invoice::where('client_id', $client->id)
+            ->where('type', 'normal')
+            ->whereNotIn('id', $excludedInvoiceIds)
+            ->pluck('id');
+
+        $paymentsTotal = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+
+        // حساب سندات القبض
+        $receiptsTotal = Receipt::whereHas('account', function($query) use ($client) {
+            $query->where('client_id', $client->id);
+        })->sum('amount');
+
+        $collected = $paymentsTotal + $receiptsTotal;
+        $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
+
+        // تحديد المجموعة حسب النسبة
+        if ($percentage > 100) {
+            $group = 'A++';
+            $group_class = 'primary';
+        } elseif ($percentage >= 60) {
+            $group = 'A';
+            $group_class = 'success';
+        } elseif ($percentage >= 30) {
+            $group = 'B';
+            $group_class = 'warning';
+        } elseif ($percentage >= 10) {
+            $group = 'C';
+            $group_class = 'danger';
+        } else {
+            $group = 'D';
+            $group_class = 'secondary';
+        }
+
+        // حساب عدد الفواتير
+        $invoicesCount = Invoice::where('client_id', $client->id)
+            ->where('type', 'normal')
+            ->whereNotIn('id', $excludedInvoiceIds)
+            ->count();
+
+        // حساب عدد المدفوعات
+        $paymentsCount = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->count();
+
+        // حساب عدد سندات القبض
+        $receiptsCount = Receipt::whereHas('account', function($query) use ($client) {
+            $query->where('client_id', $client->id);
+        })->count();
+
+        return [
+            'id' => $client->id,
+            'collected' => $collected,
+            'percentage' => $percentage,
+            'payments' => $paymentsTotal,
+            'receipts' => $receiptsTotal,
+            'group' => $group,
+            'group_class' => $group_class,
+            'invoices_count' => $invoicesCount,
+            'payments_count' => $paymentsCount,
+            'receipts_count' => $receiptsCount
+        ];
+    })->keyBy('id');
+
     // تنفيذ الاستعلام مع التقسيم
     $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
-$clientDueBalances = Account::whereIn('client_id', $clientIds)
-    ->selectRaw('client_id, SUM(balance) as total_due')
-    ->groupBy('client_id')
-    ->pluck('total_due', 'client_id');
+
+    $clientDueBalances = Account::whereIn('client_id', $clientIds)
+        ->selectRaw('client_id, SUM(balance) as total_due')
+        ->groupBy('client_id')
+        ->pluck('total_due', 'client_id');
 
     // بيانات إضافية للعرض
     return view('client.index', [
-'clientDueBalances'=>$clientDueBalances,
-
+        'clientDueBalances' => $clientDueBalances,
+        'clientsData' => $clientsData,
         'clients' => $clients,
         'allClients' => $allClients,
         'Neighborhoods' => Neighborhood::all(),
@@ -132,10 +199,10 @@ $clientDueBalances = Account::whereIn('client_id', $clientIds)
         'creditLimit' => CreditLimit::first(),
         'statuses' => Statuses::select('id', 'name', 'color')->get(),
         'Region_groups' => Region_groub::all(),
-        'userLocation' => $userLocation,
+        'userLocation',
+        'target' => $target,
     ]);
 }
-
     public function updateCreditLimit(Request $request)
     {
         $request->validate([

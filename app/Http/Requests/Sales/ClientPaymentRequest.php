@@ -23,7 +23,7 @@ class ClientPaymentRequest extends FormRequest
     {
         $rules = [
             'invoice_id' => 'nullable|exists:invoices,id',
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id' => 'required|exists:users,id',
             'installments_id' => 'nullable|exists:installment,id',
             'payment_date' => 'nullable|date',
             'type' => 'nullable|string',

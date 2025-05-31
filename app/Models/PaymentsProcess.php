@@ -28,11 +28,11 @@ class PaymentsProcess extends Model
     {
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
-    
+
 
     public function employee()
     {
-        return $this->belongsTo(Employee::class, 'employee_id');
+        return $this->belongsTo(User::class, 'employee_id');
     }
 
 
