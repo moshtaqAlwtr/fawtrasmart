@@ -283,11 +283,11 @@
         .card {
             transition: all 0.3s ease;
             border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .btn {
@@ -310,7 +310,7 @@
 
         .dropdown-menu {
             border-radius: 0.25rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         #clientSearch {
@@ -379,60 +379,53 @@
         </div>
 
         <!-- بطاقة الإجراءات -->
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-body p-3">
-                <div class="row align-items-center gy-2">
-                    <!-- زر إضافة عميل -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="{{ route('clients.create') }}"
-                            class="btn btn-hover-shine btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-user-plus me-2 fs-6"></i>
-                            <span class="fw-medium">إضافة عميل</span>
-                        </a>
-                    </div>
+     <div class="card shadow-sm border-0 rounded-3">
+    <div class="card-body p-3">
+        <div class="row align-items-center gy-2">
+            <!-- زر إضافة عميل -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <a href="{{ route('clients.create') }}"
+                    class="btn btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
+                    style="height: 36px;">
+                    <i class="fas fa-user-plus me-2 fs-6"></i>
+                    <span class="fw-medium">إضافة عميل</span>
+                </a>
+            </div>
 
-                    <!-- زر تحميل ملف Excel -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="d-flex flex-column flex-md-row gap-2">
-                            <label
-                                class="btn btn-hover-shine btn-indigo btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
-                                <span class="fw-medium">تحميل</span>
-                                <input type="file" name="file" class="d-none" required>
-                            </label>
-                            <button type="submit"
-                                class="btn btn-hover-shine btn-primary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-database me-2 fs-6"></i>
-                                <span class="fw-medium">استيراد</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- زر إضافة حد ائتماني -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="javascript:void(0);"
-                            class="btn btn-hover-shine btn-violet btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
-                            <i class="fas fa-credit-card me-2 fs-6"></i>
-                            <span class="fw-medium">حد ائتماني</span>
-                        </a>
-                    </div>
-
-                    <!-- زر التقارير -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="#"
-                            class="btn btn-hover-shine btn-orange btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-chart-pie me-2 fs-6"></i>
-                            <span class="fw-medium">تقارير</span>
-                        </a>
-                    </div>
+            <!-- زر تحميل ملف Excel -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="d-flex flex-column flex-md-row gap-2">
+                    <label
+                        class="btn btn-info btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
+                        style="height: 36px;">
+                        <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
+                        <span class="fw-medium">تحميل</span>
+                        <input type="file" name="file" class="d-none" required>
+                    </label>
+                    <button type="submit"
+                        class="btn btn-secondary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
+                        style="height: 36px;">
+                        <i class="fas fa-database me-2 fs-6"></i>
+                        <span class="fw-medium">استيراد</span>
+                    </button>
                 </div>
             </div>
+
+            <!-- زر إضافة حد ائتماني -->
+            <div class="col-12 col-md-6 col-lg-3">
+                <a href="javascript:void(0);"
+                    class="btn btn-danger btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
+                    style="height: 36px;" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
+                    <i class="fas fa-credit-card me-2 fs-6"></i>
+                    <span class="fw-medium">حد ائتماني</span>
+                </a>
+            </div>
+
+            <!-- زر التقارير -->
+
         </div>
+    </div>
+</div>
 
 
         <!-- بطاقة البحث -->
@@ -606,197 +599,240 @@
         </div>
 
         <!-- جدول العملاء -->
+        <!-- جدول العملاء -->
         @if (isset($clients) && $clients->count() > 0)
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table" id="fawtra">
-                            <thead>
-                                <tr>
-                                    <th width="50">#</th>
-                                    <th>معلومات العميل</th>
-                                    <th>العنوان</th>
-                                    <th>المجموعة</th>
-                                    <th>الحي</th>
-                                    <th>الفرع</th>
-                                    <th>نوع الزيارة</th>
-                                    <th>الحالة</th>
-                                    <th>الكود</th>
-                                    <th>رقم الهاتف</th>
-                                    <th style="width: 10%">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($clients as $client)
-                                    <tr onclick="handleRowClick(event, '{{ route('clients.show', $client->id) }}')"
-                                        style="cursor: pointer;" class="hover-effect">
-                                        <td>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox"
-                                                    value="{{ $client->id }}">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <h6 class="mb-0">{{ $client->trade_name }}</h6>
-                                            <small class="text-muted">{{ $client->code }}</small>
-                                            <p class="text-muted mb-0">
-                                                <i class="fas fa-user me-1"></i>
-                                                {{ $client->first_name }} {{ $client->last_name }}
-                                            </p>
-                                            @if ($client->employee)
-                                                <p class="text-muted mb-0">
-                                                    <i class="fas fa-user-tie me-1"></i>
-                                                    {{ $client->employee->first_name }} {{ $client->employee->last_name }}
-                                                </p>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <p class="mb-0">
-                                                <i class="fas fa-map-marker-alt text-primary me-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="openMap({{ $client->locations->latitude ?? 0 }}, {{ $client->locations->longitude ?? 0 }}, '{{ $client->trade_name }}')"></i>
-                                                {{ $client->city }}, {{ $client->region }}
-                                            </p>
-                                        </td>
-                                        <td>{{ $client->Neighborhoodname->Region->name ?? '' }}</td>
-                                        <td>{{ $client->Neighborhoodname->name ?? '' }}</td>
+    <div class="row">
+        @foreach ($clients as $client)
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card shadow-sm border border-1 rounded-3 h-100">
+                    <div class="card-body d-flex flex-column">
+                        <!-- Card Header Section -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <!-- Progress Circle -->
 
 
-                                        <td>{{ $client->branch->name ?? '' }}</td>
-                                        <td>
-                                            @if ($client->visit_type == 'am')
-                                                <span class="badge badge-success">
-                                                    ☀️ صباحية
-                                                </span>
-                                            @else
-                                                <span class="badge badge-primary">
-                                                    🌙 مسائية
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($client->status_client)
-                                                <span
-                                                    style="background-color: {{ $client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    {{ $client->status_client->name }}
-                                                </span>
-                                            @else
-                                                <span
-                                                    style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    غير محدد
-                                                </span>
-                                            @endif
-                                        </td>
+                            <!-- Status & Visit Type -->
+                            <div class="client-meta">
+                                @if ($client->status_client)
+                                    <span class="client-status" style="background-color: {{ $client->status_client->color }};">
+                                        {{ $client->status_client->name }}
+                                    </span>
+                                @else
+                                    <span class="client-status" style="background-color: #6c757d;">
+                                        غير محدد
+                                    </span>
+                                @endif
 
+                                @if ($client->visit_type == 'am')
+                                    <span class="visit-badge morning">
+                                        ☀️ صباحية
+                                    </span>
+                                @else
+                                    <span class="visit-badge evening">
+                                        🌙 مسائية
+                                    </span>
+                                @endif
 
-                                        <td>{{ $client->code ?? '' }}</td>
-                                        <td>
-                                            <strong class="text-primary">
-                                                <i class="fas fa-phone me-2"></i>{{ $client->phone }}
-                                            </strong>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <div class="dropdown">
-                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                        type="button" id="dropdownMenuButton303" data-toggle="dropdown"
-                                                        aria-haspopup="true" aria-expanded="false"></button>
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('clients.show', $client->id) }}">
-                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                            </a>
-                                                        </li>
-                                                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                                                            <li>
-                                                                <a class="dropdown-item"
-                                                                    href="{{ route('clients.edit', $client->id) }}">
-                                                                    <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
-                                                                </a>
-                                                            </li>
-                                                        @endif
+                                <a href="{{ route('clients.show', $client->id) }}" class="details-link">التفاصيل</a>
+                            </div>
 
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('clients.send_info', $client->id) }}">
-                                                            <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
-                                                            الدخول
-                                                        </a>
+                            <div class="progress-circle-container">
+                                <svg width="60" height="60" viewBox="0 0 36 36" class="circular-chart">
+                                    <path class="circle-bg" d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle" stroke-dasharray="30, 100" d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <text x="18" y="20.5" class="percentage">10</text>
+                                </svg>
+                                <div class="small text-muted mt-1">التقدم</div>
+                            </div>
+                        </div>
 
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('clients.edit', $client->id) }}">
-                                                                <i class="fa fa-copy me-2 text-info"></i>نسخ
-                                                            </a>
-                                                        </li>
-                                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="#"
-                                                                    data-toggle="modal"
-                                                                    data-target="#modal_DELETE{{ $client->id }}">
-                                                                    <i class="fa fa-trash-alt me-2"></i>حذف
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('clients.statement', $client->id) }}">
-                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
-                                                                حساب
-                                                            </a>
-                                                        </li>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
+                        <!-- Client Info Section -->
+                        <div class="client-info">
+                            <div class="text-muted small mb-2">
+                                <i class="far fa-calendar-alt me-1"></i>
+                                تاريخ الإضافة: {{ $client->created_at->format('d-m-Y') }}
+                            </div>
 
-                                        <!-- Modal Delete -->
-                                        <div class="modal fade" id="modal_DELETE{{ $client->id }}" tabindex="-1"
-                                            role="dialog" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-danger">
-                                                        <h5 class="modal-title text-white">تأكيد الحذف</h5>
-                                                        <button type="button" class="close" data-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <form action="{{ route('clients.destroy', $client->id) }}"
-                                                        method="POST">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <div class="modal-body">
-                                                            <p>هل أنت متأكد من الحذف "{{ $client->trade_name }}"؟</p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-dismiss="modal">إلغاء</button>
-                                                            <button type="submit" class="btn btn-danger">تأكيد
-                                                                الحذف</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
+                            <h6 class="client-name text-success mb-1">{{ $client->trade_name }}</h6>
+                            @if($client->code)
+                                <div class="client-code text-muted small mb-2">
+                                    <i class="fas fa-hashtag me-1"></i>
+                                    {{ $client->code }}
+                                </div>
+                            @endif
 
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                            <div class="client-contact text-muted small mb-3">
+                                <div class="mb-1">
+                                    <i class="fas fa-user me-1"></i>
+                                    {{ $client->first_name }} {{ $client->last_name }}
+                                </div>
+                                @if($client->email)
+                                    <div class="mb-1">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        {{ $client->email }}
+                                    </div>
+                                @endif
+                                @if($client->phone)
+                                    <div>
+                                        <i class="fas fa-phone me-1"></i>
+                                        {{ $client->phone }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Balance Section -->
+                        @php
+                            $due = \App\Models\Account::where('client_id', $client->id)->sum('balance');
+                        @endphp
+                        <div class="client-balance mt-auto">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-wallet me-2"></i>
+                                <span class="me-2">الرصيد:</span>
+                                <span class="{{ $due < 0 ? 'text-danger' : 'text-success' }} fw-bold">
+                                    {{ number_format($due, 2) }} ريال
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Actions Section -->
+                        <div class="client-actions d-flex justify-content-between mt-3 pt-2 border-top">
+                            <a href="{{ route('clients.show', $client->id) }}" class="btn btn-outline-primary btn-sm px-3">
+                                <i class="far fa-eye me-1"></i> عرض
+                            </a>
+                            @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-outline-secondary btn-sm px-3">
+                                    <i class="far fa-edit me-1"></i> تعديل
+                                </a>
+                            @endif
+                            @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                <a href="{{ route('clients.destroy', $client->id) }}" class="btn btn-outline-danger btn-sm px-3">
+                                    <i class="far fa-trash-alt me-1"></i> حذف
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
-        @else
-            <div class="alert alert-danger text-xl-center" role="alert">
-                <p class="mb-0">
-                    لا توجد عملاء !!
-                </p>
-            </div>
+        @endforeach
+    </div>
+@else
+    <div class="alert alert-info text-center py-4" role="alert">
+        <i class="fas fa-info-circle fa-2x mb-3"></i>
+        <h5 class="mb-0">لا توجد عملاء مسجلين حالياً</h5>
+    </div>
+@endif
 
+<style>
+    /* Progress Circle Styles */
+    .progress-circle-container {
+        text-align: center;
+    }
 
-        @endif
+    .circular-chart {
+        display: block;
+        margin: 0 auto;
+        width: 60px;
+        height: 60px;
+    }
 
+    .circle-bg {
+        fill: none;
+        stroke: #f3f4f6;
+        stroke-width: 2.8;
+    }
+
+    .circle {
+        fill: none;
+        stroke: #4CC790;
+        stroke-width: 2.8;
+        stroke-linecap: round;
+        animation: progress 1s ease-out forwards;
+    }
+
+    .percentage {
+        fill: #4a5568;
+        font-size: 0.5em;
+        text-anchor: middle;
+        font-weight: bold;
+    }
+
+    @keyframes progress {
+        0% { stroke-dasharray: 0 100; }
+    }
+
+    /* Client Meta Styles */
+    .client-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .client-status {
+        color: #fff;
+        padding: 2px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    .visit-badge {
+        padding: 2px 8px;
+        font-size: 12px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    .visit-badge.morning {
+        background-color: #e6fffa;
+        color: #38b2ac;
+        border: 1px solid #38b2ac;
+    }
+
+    .visit-badge.evening {
+        background-color: #ebf4ff;
+        color: #4299e1;
+        border: 1px solid #4299e1;
+    }
+
+    .details-link {
+        color: #4a5568;
+        font-size: 13px;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .details-link:hover {
+        color: #3182ce;
+    }
+
+    /* Client Info Styles */
+    .client-name {
+        font-weight: 600;
+    }
+
+    .client-contact div {
+        line-height: 1.5;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 767.98px) {
+        .client-meta {
+            align-items: flex-start;
+            margin-top: 10px;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+    }
+</style>
         @if ($clients->hasPages())
             <nav aria-label="Page navigation">
                 <ul class="pagination pagination-sm mb-0">
@@ -1073,7 +1109,7 @@
             @endforeach
 
             // إضافة ماركر موقع المستخدم
-            @if(isset($userLocation))
+            @if (isset($userLocation))
                 var userLocation = {
                     lat: parseFloat('{{ $userLocation->latitude }}'),
                     lng: parseFloat('{{ $userLocation->longitude }}')

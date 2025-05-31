@@ -719,12 +719,18 @@
 
                 <!-- Invoice To -->
                 <div class="invoice-to">
-                    <p class="mb-0">فاتورة الى: {{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}</p>
+                    <p class="mb-0">فاتورة الى:
+                        {{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}
+                    </p>
                     <p class="mb-0">{{ $invoice->client->street1 ?? 'غير متوفر' }}</p>
-                    <p class="mb-0">كود العميل: {{ $invoice->client->code ?? 'غير متوفر' }}</p>
+                    <h3 class="text-center display-3 mb-0">
+                        {{ $invoice->client->code ?? 'غير متوفر' }}
+                    </h3>
+
+
                     <p class="mb-0">الرقم الضريبي: {{ $invoice->client->tax_number ?? 'غير متوفر' }}</p>
-                    @if($invoice->client->phone)
-                    <p class="mb-0">رقم جوال العميل: {{ $invoice->client->phone }}</p>
+                    @if ($invoice->client->phone)
+                        <p class="mb-0">رقم جوال العميل: {{ $invoice->client->phone }}</p>
                     @endif
                 </div>
 
@@ -752,13 +758,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($invoice->items as $item)
-                            <tr>
-                                <td style="text-align: right;">{{ $item->item }}</td>
-                                <td>{{ $item->quantity }}</td>
-                                <td>{{ number_format($item->unit_price, 2) }}</td>
-                                <td>{{ number_format($item->total, 2) }}</td>
-                            </tr>
+                            @foreach ($invoice->items as $item)
+                                <tr>
+                                    <td style="text-align: right;">{{ $item->item }}</td>
+                                    <td>{{ $item->quantity }}</td>
+                                    <td>{{ number_format($item->unit_price, 2) }}</td>
+                                    <td>{{ number_format($item->total, 2) }}</td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -771,25 +777,25 @@
                         <span>{{ number_format($invoice->grand_total, 2) }} ر.س</span>
                     </div>
 
-                    @if($invoice->total_discount > 0)
-                    <div class="summary-row">
-                        <span>الخصم:</span>
-                        <span>{{ number_format($invoice->total_discount, 2) }} ر.س</span>
-                    </div>
+                    @if ($invoice->total_discount > 0)
+                        <div class="summary-row">
+                            <span>الخصم:</span>
+                            <span>{{ number_format($invoice->total_discount, 2) }} ر.س</span>
+                        </div>
                     @endif
 
-                    @if($invoice->shipping_cost > 0)
-                    <div class="summary-row">
-                        <span>تكلفة الشحن:</span>
-                        <span>{{ number_format($invoice->shipping_cost, 2) }} ر.س</span>
-                    </div>
+                    @if ($invoice->shipping_cost > 0)
+                        <div class="summary-row">
+                            <span>تكلفة الشحن:</span>
+                            <span>{{ number_format($invoice->shipping_cost, 2) }} ر.س</span>
+                        </div>
                     @endif
 
-                    @if($invoice->advance_payment > 0)
-                    <div class="summary-row">
-                        <span>الدفعة المقدمة:</span>
-                        <span>{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
-                    </div>
+                    @if ($invoice->advance_payment > 0)
+                        <div class="summary-row">
+                            <span>الدفعة المقدمة:</span>
+                            <span>{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
+                        </div>
                     @endif
 
                     <div class="summary-row">

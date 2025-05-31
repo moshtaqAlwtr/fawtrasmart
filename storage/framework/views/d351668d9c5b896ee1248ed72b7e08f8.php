@@ -88,11 +88,11 @@
                         </a>
                         <ul class="menu-content">
 
-                                <li><a href="<?php echo e(route('invoices.index')); ?>"><i
-                                            class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/invoices/index") ? 'active' : ''); ?>"></i><span
-                                            class="menu-item"
-                                            data-i18n="Analytics"><?php echo e(trans('main_trans.invoice_management')); ?></span></a>
-                                </li>
+                            <li><a href="<?php echo e(route('invoices.index')); ?>"><i
+                                        class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/invoices/index") ? 'active' : ''); ?>"></i><span
+                                        class="menu-item"
+                                        data-i18n="Analytics"><?php echo e(trans('main_trans.invoice_management')); ?></span></a>
+                            </li>
 
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sales_add_invoices')): ?>
@@ -128,18 +128,18 @@
                             <?php endif; ?>
 
 
-                                <li><a href="<?php echo e(route('ReturnIInvoices.index')); ?>"><i
-                                            class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/invoices/invoices_returned") ? 'active' : ''); ?>"></i><span
-                                            class="menu-item"
-                                            data-i18n="eCommerce"><?php echo e(trans('main_trans.Returned_invoices')); ?></span></a>
-                                </li>
+                            <li><a href="<?php echo e(route('ReturnIInvoices.index')); ?>"><i
+                                        class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/invoices/invoices_returned") ? 'active' : ''); ?>"></i><span
+                                        class="menu-item"
+                                        data-i18n="eCommerce"><?php echo e(trans('main_trans.Returned_invoices')); ?></span></a>
+                            </li>
 
 
-                                <li><a href="<?php echo e(route('periodic_invoices.index')); ?>"><i
-                                            class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/periodic-invoices/*") ? 'active' : ''); ?>"></i><span
-                                            class="menu-item"
-                                            data-i18n="Analytics"><?php echo e(trans('main_trans.Periodic_invoices')); ?></span></a>
-                                </li>
+                            <li><a href="<?php echo e(route('periodic_invoices.index')); ?>"><i
+                                        class="feather icon-circle <?php echo e(request()->is("$getLocal/sales/periodic-invoices/*") ? 'active' : ''); ?>"></i><span
+                                        class="menu-item"
+                                        data-i18n="Analytics"><?php echo e(trans('main_trans.Periodic_invoices')); ?></span></a>
+                            </li>
 
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sales_add_payments_all')): ?>
@@ -157,10 +157,10 @@
                                 </li>
                             <?php endif; ?>
                             <?php if(auth()->user()->role != 'employee'): ?>
-                            <li><a href="<?php echo e(route('templates.test_print')); ?>"><i class="feather icon-circle"></i><span
-                                class="menu-item"
-                                data-i18n="eCommerce">اختبار  الطباعة على الفواتير</span></a>
-                         </li>
+                                <li><a href="<?php echo e(route('templates.test_print')); ?>"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
+                                            data-i18n="eCommerce">اختبار الطباعة على الفواتير</span></a>
+                                </li>
                             <?php endif; ?>
                         </ul>
 
@@ -168,44 +168,40 @@
                 <?php endif; ?>
             <?php endif; ?>
 
-        
+
             <li class="nav-item">
-                        <a href="#">
-                            <i class="feather icon-monitor"></i>
-                            <span class="menu-title">اعدادات الاحصائيات</span>
+                <a href="#">
+                    <i class="feather icon-monitor"></i>
+                    <span class="menu-title">اعدادات الاحصائيات</span>
+                </a>
+                <ul class="menu-content">
+                    <li>
+                        <a href="<?php echo e(route('employee_targets.index')); ?>">
+                            <i class="feather icon-circle"></i>
+                            <span class="menu-item" data-i18n="Start Sale">اضافة الاهداف للمناديب</span>
                         </a>
-                        <ul class="menu-content">
-                            <li>
-                                <a href="<?php echo e(route('employee_targets.index')); ?>">
-                                    <i class="feather icon-circle"></i>
-                                    <span class="menu-item"
-                                        data-i18n="Start Sale">اضافة الاهداف للمناديب</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="<?php echo e(route('target.show')); ?>">
-                                    <i class="feather icon-circle"></i>
-                                    <span class="menu-item"
-                                        data-i18n="Sessions">اضافة الهدف الشهري للمناديب</span>
-                                </a>
-                            </li>
-                             <li>
-                                <a href="<?php echo e(route('target.client.create')); ?>">
-                                    <i class="feather icon-circle"></i>
-                                    <span class="menu-item"
-                                        data-i18n="Sessions">اضافة الهدف  للعملاء</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="<?php echo e(route('target.client')); ?>">
-                                    <i class="feather icon-circle"></i>
-                                    <span class="menu-item"
-                                        data-i18n="POS Reports">احصائيات وتصنيف العملاء</span>
-                                </a>
-                            </li>
-                           
-                        </ul>
                     </li>
+                    <li>
+                        <a href="<?php echo e(route('target.show')); ?>">
+                            <i class="feather icon-circle"></i>
+                            <span class="menu-item" data-i18n="Sessions">اضافة الهدف الشهري للمناديب</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo e(route('target.client.create')); ?>">
+                            <i class="feather icon-circle"></i>
+                            <span class="menu-item" data-i18n="Sessions">اضافة الهدف للعملاء</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo e(route('target.client')); ?>">
+                            <i class="feather icon-circle"></i>
+                            <span class="menu-item" data-i18n="POS Reports">احصائيات وتصنيف العملاء</span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
 
 
             <!-- نقاط  البيع -->
@@ -589,20 +585,24 @@
                                         data-i18n="eCommerce"><?php echo e(trans('main_trans.Customer_relationship_management')); ?></span>
                                 </a>
                             </li>
-
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_edit_client_settings')): ?>
-                                <li><a href="<?php echo e(route('clients.setting')); ?>"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="eCommerce"><?php echo e(trans('main_trans.Client_settings')); ?></span>
+                                <li><a href="<?php echo e(route('groups.group_client')); ?>"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
+                                            data-i18n="eCommerce">اعدادات المجموعات</span>
                                     </a>
                                 </li>
-                                 
+                    <?php endif; ?>
 
-                            <?php endif; ?>
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_edit_client_settings')): ?>
+                        <li><a href="<?php echo e(route('clients.setting')); ?>"><i class="feather icon-circle"></i><span
+                                    class="menu-item" data-i18n="eCommerce"><?php echo e(trans('main_trans.Client_settings')); ?></span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
 
-                        </ul>
-                    </li>
-                <?php endif; ?>
+            </ul>
+            </li>
+            <?php endif; ?>
             <?php endif; ?>
 
             <!-- نقاط الارصدة -->
@@ -668,16 +668,16 @@
                         </a>
                         <ul class="menu-content">
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('customer_loyalty_points_managing_customer_bases')): ?>
-                                <li><a href="<?php echo e(route('loyalty_points.index')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
+                                <li><a href="<?php echo e(route('loyalty_points.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
                                             data-i18n="Analytics"><?php echo e(trans('main_trans.Customer_loyalty_rules')); ?></span>
                                     </a>
                                 </li>
                             <?php endif; ?>
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('customer_loyalty_points_redeem_loyalty_points')): ?>
-                                <li><a href="<?php echo e(route('sittingLoyalty.sitting')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
+                                <li><a href="<?php echo e(route('sittingLoyalty.sitting')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Sittings')); ?></span>
                                     </a>
                                 </li>
@@ -764,8 +764,8 @@
                         </a>
                         <ul class="menu-content">
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('customer_attendance_display')): ?>
-                                <li><a href="<?php echo e(route('customer_attendance.index')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
+                                <li><a href="<?php echo e(route('customer_attendance.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
                                             data-i18n="Analytics"><?php echo e(trans('main_trans.Customer_attendance_records')); ?></span></a>
                                 </li>
                             <?php endif; ?>
@@ -784,8 +784,8 @@
 
                         </a>
                         <ul class="menu-content">
-                            <li><a href="<?php echo e(route('Insurance_Agents.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="<?php echo e(route('Insurance_Agents.index')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item"
                                         data-i18n="Analytics"><?php echo e(trans('main_trans.Insurance_Agents_Management')); ?></span></a>
                             </li>
 
@@ -891,9 +891,9 @@
                         </a>
                         <ul class="menu-content">
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('purchase_cycle_orders_manage_orders')): ?>
-                                <li><a href="<?php echo e(route('OrdersPurchases.index')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="Analytics"> <?php echo e(trans('main_trans.Purchase_Orders')); ?></span></a>
+                                <li><a href="<?php echo e(route('OrdersPurchases.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item" data-i18n="Analytics">
+                                            <?php echo e(trans('main_trans.Purchase_Orders')); ?></span></a>
                                 </li>
                             <?php endif; ?>
 
@@ -905,23 +905,21 @@
                                     </span></a>
                             </li>
 
-                            <li><a href="<?php echo e(route('pricesPurchase.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce">
+                            <li><a href="<?php echo e(route('pricesPurchase.index')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item" data-i18n="eCommerce">
                                         <?php echo e(trans('main_trans.Purchase_Quotations')); ?></span></a>
                             </li>
-                            <li><a href="<?php echo e(route('OrdersRequests.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce">أوامر الشراء</span></a>
+                            <li><a href="<?php echo e(route('OrdersRequests.index')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item" data-i18n="eCommerce">أوامر الشراء</span></a>
                             </li>
-                            <li><a href="<?php echo e(route('invoicePurchases.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="<?php echo e(route('invoicePurchases.index')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item"
                                         data-i18n="eCommerce"><?php echo e(trans('main_trans.Purchase_Invoices')); ?>
 
                                     </span></a>
                             </li>
-                            <li><a href="<?php echo e(route('ReturnsInvoice.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="<?php echo e(route('ReturnsInvoice.index')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item"
                                         data-i18n="eCommerce"><?php echo e(trans('main_trans.Purchase_Returns')); ?></span></a>
                             </li>
                             <li><a href="<?php echo e(route('CityNotices.index')); ?>"><i class="feather icon-circle"></i><span
@@ -929,14 +927,13 @@
                                         <?php echo e(trans('main_trans.Creditor_notices')); ?></span></a>
                             </li>
                             <li><a href="<?php echo e(route('SupplierManagement.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce"> <?php echo e(trans('main_trans.Supplier_Management')); ?>
+                                        class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">
+                                        <?php echo e(trans('main_trans.Supplier_Management')); ?>
 
                                     </span></a>
                             </li>
                             <li><a href="<?php echo e(route('PaymentSupplier.indexPurchase')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce">
+                                        class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">
                                         <?php echo e(trans('main_trans.Supplier_Payments')); ?>
 
 
@@ -1079,12 +1076,10 @@
                                             class="menu-item"
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Cost_Centers')); ?></span></a>
                                 </li>
-                                 <li><a href=""><i
+                                <li><a href=""><i
                                             class="feather icon-circle <?php echo e(request()->is("$getLocal/finance/expenses/*") ? 'active' : ''); ?>"></i><span
-                                            class="menu-item"
-                                            data-i18n="Analytics">حساب الاستاذ</span></a>
+                                            class="menu-item" data-i18n="Analytics">حساب الاستاذ</span></a>
                                 </li>
-
                             <?php endif; ?>
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('g_a_d_r_add_new_assets')): ?>
@@ -1150,8 +1145,8 @@
                             <?php endif; ?>
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('orders_setting_management')): ?>
-                                <li><a href="<?php echo e(route('orders.Settings.index')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
+                                <li><a href="<?php echo e(route('orders.Settings.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Sittings')); ?></span></a>
                                 </li>
                             <?php endif; ?>
@@ -1202,8 +1197,7 @@
             
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('hr_system_management')): ?>
                 <?php if(isset($settings['organizational_structure']) && $settings['organizational_structure'] === 'active'): ?>
-                    <li
-                        class=" nav-item <?php echo e(request()->is("$getLocal/OrganizationalStructure/*") ? 'active open' : ''); ?>">
+                    <li class=" nav-item <?php echo e(request()->is("$getLocal/OrganizationalStructure/*") ? 'active open' : ''); ?>">
                         <a href="index.html">
                             <i class="feather icon-layers">
                             </i><span class="menu-title" data-i18n="Dashboard">
@@ -1344,8 +1338,8 @@
                             <?php endif; ?>
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('salaries_payroll_view')): ?>
-                                <li><a href="<?php echo e(route('PayrollProcess.index')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
+                                <li><a href="<?php echo e(route('PayrollProcess.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Payroll')); ?></span></a>
                                 </li>
                             <?php endif; ?>
@@ -1369,14 +1363,14 @@
                                         data-i18n="eCommerce"><?php echo e(trans('main_trans.Salary_Items')); ?></span></a>
                             </li>
 
-                            <li><a href="<?php echo e(route('SalaryTemplates.index')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
+                            <li><a href="<?php echo e(route('SalaryTemplates.index')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item"
                                         data-i18n="eCommerce"><?php echo e(trans('main_trans.Salary_Templates')); ?></span></a>
                             </li>
 
                             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('salaries_payroll_settings_manage')): ?>
-                                <li><a href="<?php echo e(route('SalarySittings.index')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
+                                <li><a href="<?php echo e(route('SalarySittings.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
                                             data-i18n="eCommerce"><?php echo e(trans('main_trans.Sittings')); ?></span></a>
                                 </li>
                             <?php endif; ?>
@@ -1402,8 +1396,8 @@
                                 class="menu-item"
                                 data-i18n="eCommerce"><?php echo e(trans('main_trans.Purchases_Report')); ?></span></a>
                     </li>
-                    <li><a href="<?php echo e(route('GeneralAccountReports.index')); ?>"><i
-                                class="feather icon-circle"></i><span class="menu-item"
+                    <li><a href="<?php echo e(route('GeneralAccountReports.index')); ?>"><i class="feather icon-circle"></i><span
+                                class="menu-item"
                                 data-i18n="eCommerce"><?php echo e(trans('main_trans.General_Accounts_Report')); ?></span></a>
                     </li>
 
@@ -1414,7 +1408,8 @@
                                 data-i18n="eCommerce"><?php echo e(trans('main_trans.SMS_Report')); ?></span></a>
                     </li>
 
-                    <li><a href="<?php echo e(route('ClientReport.BalancesClient')); ?>"><i class="feather icon-circle"></i><span class="menu-item"
+                    <li><a href="<?php echo e(route('ClientReport.BalancesClient')); ?>"><i class="feather icon-circle"></i><span
+                                class="menu-item"
                                 data-i18n="eCommerce"><?php echo e(trans('main_trans.Points_and_Balances_Report')); ?></span></a>
                     </li>
 
@@ -1444,8 +1439,7 @@
                     <li><a href=""><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce"><?php echo e(trans('main_trans.Units_Tracking_Report')); ?></span></a></li>
 
-                    <li><a href="<?php echo e(route('logs.index')); ?>"><i class="feather icon-circle"></i><span
-                                class="menu-item"
+                    <li><a href="<?php echo e(route('logs.index')); ?>"><i class="feather icon-circle"></i><span class="menu-item"
                                 data-i18n="eCommerce"><?php echo e(trans('main_trans.Account_Activity_Log')); ?></span></a></li>
 
 
@@ -1497,17 +1491,14 @@
 
                     </a>
                     <ul class="menu-content">
-                        <li><a href="dashboard-analytics.html"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="dashboard-analytics.html"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="Analytics"><?php echo e(trans('main_trans.Print_Templates')); ?></span></a>
                         </li>
 
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Ready_Invoice_Templates')); ?></span></a>
                         </li>
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Emails')); ?></span></a>
                         </li>
                         <?php if(isset($settings['sms']) && $settings['sms'] === 'active'): ?>
@@ -1516,16 +1507,13 @@
                                         data-i18n="eCommerce"><?php echo e(trans('main_trans.SMS_Models')); ?></span></a>
                             </li>
                         <?php endif; ?>
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Terms_and_Conditions')); ?></span></a>
                         </li>
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.File_Management_and_Documents')); ?></span></a>
                         </li>
-                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="dashboard-ecommerce.html"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Auto_Send_Rules')); ?></span></a>
                         </li>
 
@@ -1535,82 +1523,82 @@
                 </li>
             <?php endif; ?>
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('settings_edit_general_settings')): ?>
-            <li class="nav-item">
-                <a href="#">
-                    <i class="feather icon-check-circle"></i>
-                    <span class="menu-title" data-i18n="Dashboard">
-                        <?php echo e(trans('main_trans.tasks')); ?>
+                <li class="nav-item">
+                    <a href="#">
+                        <i class="feather icon-check-circle"></i>
+                        <span class="menu-title" data-i18n="Dashboard">
+                            <?php echo e(trans('main_trans.tasks')); ?>
 
-                    </span>
-                </a>
-                <ul class="menu-content">
-                    <!-- إدارة المهام -->
-                    <li>
-                        <a href="">
-                            <i class="feather icon-list"></i>
-                            <span class="menu-item" data-i18n="Analytics">
-                                <?php echo e(trans('main_trans.management_Tasks')); ?>
+                        </span>
+                    </a>
+                    <ul class="menu-content">
+                        <!-- إدارة المهام -->
+                        <li>
+                            <a href="">
+                                <i class="feather icon-list"></i>
+                                <span class="menu-item" data-i18n="Analytics">
+                                    <?php echo e(trans('main_trans.management_Tasks')); ?>
 
-                            </span>
-                        </a>
-                    </li>
+                                </span>
+                            </a>
+                        </li>
 
-                    <!-- إنشاء مهمة جديدة -->
-                    <li>
-                        <a href="">
-                            <i class="feather icon-plus"></i>
-                            <span class="menu-item" data-i18n="Analytics">
-                                <?php echo e(trans('main_trans.create_Task')); ?>
+                        <!-- إنشاء مهمة جديدة -->
+                        <li>
+                            <a href="">
+                                <i class="feather icon-plus"></i>
+                                <span class="menu-item" data-i18n="Analytics">
+                                    <?php echo e(trans('main_trans.create_Task')); ?>
 
-                            </span>
-                        </a>
-                    </li>
+                                </span>
+                            </a>
+                        </li>
 
-                    <!-- إدارة المشاريع -->
-                    <li>
-                        <a href="">
-                            <i class="feather icon-folder"></i>
-                            <span class="menu-item" data-i18n="eCommerce">
-                                <?php echo e(trans('main_trans.Management_Projects')); ?>
+                        <!-- إدارة المشاريع -->
+                        <li>
+                            <a href="">
+                                <i class="feather icon-folder"></i>
+                                <span class="menu-item" data-i18n="eCommerce">
+                                    <?php echo e(trans('main_trans.Management_Projects')); ?>
 
-                            </span>
-                        </a>
-                    </li>
+                                </span>
+                            </a>
+                        </li>
 
-                    <!-- التقويم -->
-                    <li>
-                        <a href="">
-                            <i class="feather icon-calendar"></i>
-                            <span class="menu-item" data-i18n="eCommerce">
-                                <?php echo e(trans('main_trans.Calendar')); ?>
+                        <!-- التقويم -->
+                        <li>
+                            <a href="">
+                                <i class="feather icon-calendar"></i>
+                                <span class="menu-item" data-i18n="eCommerce">
+                                    <?php echo e(trans('main_trans.Calendar')); ?>
 
-                            </span>
-                        </a>
-                    </li>
+                                </span>
+                            </a>
+                        </li>
 
-                    <!-- الفئات (الأقسام) -->
-                    <li>
-                        <a href="">
-                            <i class="feather icon-tag"></i>
-                            <span class="menu-item" data-i18n="eCommerce">
-                                <?php echo e(trans('main_trans.Task_Categories')); ?>
+                        <!-- الفئات (الأقسام) -->
+                        <li>
+                            <a href="">
+                                <i class="feather icon-tag"></i>
+                                <span class="menu-item" data-i18n="eCommerce">
+                                    <?php echo e(trans('main_trans.Task_Categories')); ?>
 
-                            </span>
-                        </a>
-                    </li>
-                    <!-- الإعدادات -->
-                    <li>
-                        <a href="">
-                            <i class="feather icon-settings"></i>
-                            <span class="menu-item" data-i18n="eCommerce">
-                                <?php echo e(trans('main_trans.Task_Settings')); ?>
+                                </span>
+                            </a>
+                        </li>
+                        <!-- الإعدادات -->
+                        <li>
+                            <a href="">
+                                <i class="feather icon-settings"></i>
+                                <span class="menu-item" data-i18n="eCommerce">
+                                    <?php echo e(trans('main_trans.Task_Settings')); ?>
 
-                            </span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-        <?php endif; ?>
+                                </span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            <?php endif; ?>
 
             
             <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('settings_edit_general_settings')): ?>
@@ -1629,8 +1617,7 @@
                                     class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Account_Settings')); ?></span></a>
                         </li>
-                        <li><a href="<?php echo e(route('SMPT.index')); ?>"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="<?php echo e(route('SMPT.index')); ?>"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.SMTP_Settings')); ?></span></a>
                         </li>
 
@@ -1638,8 +1625,7 @@
                                     class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Payment_Methods')); ?></span></a></li>
 
-                        <li><a href="<?php echo e(route('Sms.index')); ?>"><i class="feather icon-circle"></i><span
-                                    class="menu-item"
+                        <li><a href="<?php echo e(route('Sms.index')); ?>"><i class="feather icon-circle"></i><span class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.SMS_Settings')); ?></span></a></li>
 
                         <li><a href="<?php echo e(route('SequenceNumbering.index', 'section')); ?>"><i
@@ -1655,8 +1641,8 @@
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.Applications_Management')); ?></span></a>
                         </li>
 
-                        <li><a href="<?php echo e(route('AccountInfo.backgroundColor')); ?>"><i
-                                    class="feather icon-circle"></i><span class="menu-item"
+                        <li><a href="<?php echo e(route('AccountInfo.backgroundColor')); ?>"><i class="feather icon-circle"></i><span
+                                    class="menu-item"
                                     data-i18n="eCommerce"><?php echo e(trans('main_trans.System_Logo_and_Colors')); ?></span></a>
                         </li>
 
@@ -1668,269 +1654,268 @@
                 </li>
             <?php endif; ?>
 
-        </ul>
+            </ul>
+        </div>
     </div>
-</div>
-<?php $__env->startSection('scripts'); ?>
+    <?php $__env->startSection('scripts'); ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // عناصر واجهة المستخدم
+                const statusElement = document.getElementById('location-status');
+                const lastUpdateElement = document.getElementById('last-update');
+                const nearbyClientsElement = document.getElementById('nearby-clients');
+                const startTrackingBtn = document.getElementById('start-tracking');
+                const stopTrackingBtn = document.getElementById('stop-tracking');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // عناصر واجهة المستخدم
-            const statusElement = document.getElementById('location-status');
-            const lastUpdateElement = document.getElementById('last-update');
-            const nearbyClientsElement = document.getElementById('nearby-clients');
-            const startTrackingBtn = document.getElementById('start-tracking');
-            const stopTrackingBtn = document.getElementById('stop-tracking');
+                // متغيرات التتبع
+                let watchId = null;
+                let lastLocation = null;
+                let isTracking = false;
+                let trackingInterval = null;
 
-            // متغيرات التتبع
-            let watchId = null;
-            let lastLocation = null;
-            let isTracking = false;
-            let trackingInterval = null;
+                // ========== دوال الواجهة ========== //
 
-            // ========== دوال الواجهة ========== //
+                // تحديث حالة الواجهة
+                function updateUI(status, message) {
+                    statusElement.textContent = message;
+                    statusElement.className = `alert alert-${status}`;
+                    lastUpdateElement.textContent = new Date().toLocaleTimeString();
+                }
 
-            // تحديث حالة الواجهة
-            function updateUI(status, message) {
-                statusElement.textContent = message;
-                statusElement.className = `alert alert-${status}`;
-                lastUpdateElement.textContent = new Date().toLocaleTimeString();
-            }
-
-            // عرض العملاء القريبين
-            function displayNearbyClients(count) {
-                if (count > 0) {
-                    nearbyClientsElement.innerHTML = `
+                // عرض العملاء القريبين
+                function displayNearbyClients(count) {
+                    if (count > 0) {
+                        nearbyClientsElement.innerHTML = `
                 <div class="alert alert-info mt-3">
                     <i class="feather icon-users mr-2"></i>
                     يوجد ${count} عميل قريب من موقعك الحالي
                 </div>
             `;
-                } else {
-                    nearbyClientsElement.innerHTML = '';
-                }
-            }
-
-            // ========== دوال التتبع ========== //
-
-            // إرسال بيانات الموقع إلى الخادم
-            async function sendLocationToServer(position) {
-                const {
-                    latitude,
-                    longitude,
-                    accuracy
-                } = position.coords;
-
-                try {
-                    const response = await fetch("<?php echo e(route('visits.storeLocationEnhanced')); ?>", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "<?php echo e(csrf_token()); ?>"
-                        },
-                        body: JSON.stringify({
-                            latitude,
-                            longitude,
-                            accuracy: accuracy || null
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        updateUI('success', 'تم تحديث موقعك بنجاح');
-                        displayNearbyClients(data.nearby_clients || 0);
-                        return true;
                     } else {
-                        throw new Error(data.message || 'خطأ في الخادم');
+                        nearbyClientsElement.innerHTML = '';
                     }
-                } catch (error) {
-                    console.error('❌ خطأ في إرسال الموقع:', error);
-                    updateUI('danger', `خطأ في تحديث الموقع: ${error.message}`);
-                    return false;
-                }
-            }
-
-            // معالجة أخطاء الموقع
-            function handleGeolocationError(error) {
-                let errorMessage;
-                switch (error.code) {
-                    case error.PERMISSION_DENIED:
-                        errorMessage = "تم رفض إذن الوصول إلى الموقع. يرجى تفعيله في إعدادات المتصفح.";
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        errorMessage = "معلومات الموقع غير متوفرة حالياً.";
-                        break;
-                    case error.TIMEOUT:
-                        errorMessage = "انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى.";
-                        break;
-                    case error.UNKNOWN_ERROR:
-                        errorMessage = "حدث خطأ غير معروف أثناء محاولة الحصول على الموقع.";
-                        break;
                 }
 
-                updateUI('danger', errorMessage);
-                if (isTracking) stopTracking();
-            }
+                // ========== دوال التتبع ========== //
 
-            // بدء تتبع الموقع
-            function startTracking() {
-                if (!navigator.geolocation) {
-                    updateUI('danger', 'المتصفح لا يدعم ميزة تحديد الموقع');
-                    return;
-                }
+                // إرسال بيانات الموقع إلى الخادم
+                async function sendLocationToServer(position) {
+                    const {
+                        latitude,
+                        longitude,
+                        accuracy
+                    } = position.coords;
 
-                updateUI('info', 'جاري طلب إذن الموقع...');
-
-                // طلب الموقع الحالي أولاً
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                            const {
+                    try {
+                        const response = await fetch("<?php echo e(route('visits.storeLocationEnhanced')); ?>", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": "<?php echo e(csrf_token()); ?>"
+                            },
+                            body: JSON.stringify({
                                 latitude,
-                                longitude
-                            } = position.coords;
-                            lastLocation = {
-                                latitude,
-                                longitude
-                            };
+                                longitude,
+                                accuracy: accuracy || null
+                            })
+                        });
 
-                            // إرسال الموقع الأولي
-                            await sendLocationToServer(position);
+                        const data = await response.json();
 
-                            // بدء التتبع المستمر
-                            watchId = navigator.geolocation.watchPosition(
-                                async (position) => {
-                                        const {
-                                            latitude,
-                                            longitude
-                                        } = position.coords;
+                        if (response.ok) {
+                            updateUI('success', 'تم تحديث موقعك بنجاح');
+                            displayNearbyClients(data.nearby_clients || 0);
+                            return true;
+                        } else {
+                            throw new Error(data.message || 'خطأ في الخادم');
+                        }
+                    } catch (error) {
+                        console.error('❌ خطأ في إرسال الموقع:', error);
+                        updateUI('danger', `خطأ في تحديث الموقع: ${error.message}`);
+                        return false;
+                    }
+                }
 
-                                        // التحقق من تغير الموقع بشكل كافي (أكثر من 10 أمتار)
-                                        if (!lastLocation ||
-                                            getDistance(latitude, longitude, lastLocation.latitude,
-                                                lastLocation.longitude) > 10) {
+                // معالجة أخطاء الموقع
+                function handleGeolocationError(error) {
+                    let errorMessage;
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = "تم رفض إذن الوصول إلى الموقع. يرجى تفعيله في إعدادات المتصفح.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = "معلومات الموقع غير متوفرة حالياً.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = "انتهت مهلة طلب الموقع. يرجى المحاولة مرة أخرى.";
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            errorMessage = "حدث خطأ غير معروف أثناء محاولة الحصول على الموقع.";
+                            break;
+                    }
 
-                                            lastLocation = {
+                    updateUI('danger', errorMessage);
+                    if (isTracking) stopTracking();
+                }
+
+                // بدء تتبع الموقع
+                function startTracking() {
+                    if (!navigator.geolocation) {
+                        updateUI('danger', 'المتصفح لا يدعم ميزة تحديد الموقع');
+                        return;
+                    }
+
+                    updateUI('info', 'جاري طلب إذن الموقع...');
+
+                    // طلب الموقع الحالي أولاً
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                                const {
+                                    latitude,
+                                    longitude
+                                } = position.coords;
+                                lastLocation = {
+                                    latitude,
+                                    longitude
+                                };
+
+                                // إرسال الموقع الأولي
+                                await sendLocationToServer(position);
+
+                                // بدء التتبع المستمر
+                                watchId = navigator.geolocation.watchPosition(
+                                    async (position) => {
+                                            const {
                                                 latitude,
                                                 longitude
-                                            };
-                                            await sendLocationToServer(position);
+                                            } = position.coords;
+
+                                            // التحقق من تغير الموقع بشكل كافي (أكثر من 10 أمتار)
+                                            if (!lastLocation ||
+                                                getDistance(latitude, longitude, lastLocation.latitude,
+                                                    lastLocation.longitude) > 10) {
+
+                                                lastLocation = {
+                                                    latitude,
+                                                    longitude
+                                                };
+                                                await sendLocationToServer(position);
+                                            }
+                                        },
+                                        (error) => {
+                                            console.error('❌ خطأ في تتبع الموقع:', error);
+                                            handleGeolocationError(error);
+                                        }, {
+                                            enableHighAccuracy: true,
+                                            timeout: 10000,
+                                            maximumAge: 0,
+                                            distanceFilter: 10 // تحديث عند التحرك أكثر من 10 أمتار
                                         }
-                                    },
-                                    (error) => {
-                                        console.error('❌ خطأ في تتبع الموقع:', error);
-                                        handleGeolocationError(error);
-                                    }, {
-                                        enableHighAccuracy: true,
-                                        timeout: 10000,
-                                        maximumAge: 0,
-                                        distanceFilter: 10 // تحديث عند التحرك أكثر من 10 أمتار
+                                );
+
+                                // بدء التتبع الدوري (كل دقيقة)
+                                trackingInterval = setInterval(async () => {
+                                    if (lastLocation) {
+                                        const fakePosition = {
+                                            coords: {
+                                                latitude: lastLocation.latitude,
+                                                longitude: lastLocation.longitude,
+                                                accuracy: 20
+                                            }
+                                        };
+                                        await sendLocationToServer(fakePosition);
                                     }
-                            );
+                                }, 60000);
 
-                            // بدء التتبع الدوري (كل دقيقة)
-                            trackingInterval = setInterval(async () => {
-                                if (lastLocation) {
-                                    const fakePosition = {
-                                        coords: {
-                                            latitude: lastLocation.latitude,
-                                            longitude: lastLocation.longitude,
-                                            accuracy: 20
-                                        }
-                                    };
-                                    await sendLocationToServer(fakePosition);
-                                }
-                            }, 60000);
-
-                            isTracking = true;
-                            updateUI('success', 'جاري تتبع موقعك...');
-                            if (startTrackingBtn) startTrackingBtn.disabled = true;
-                            if (stopTrackingBtn) stopTrackingBtn.disabled = false;
-                        },
-                        (error) => {
-                            console.error('❌ خطأ في الحصول على الموقع:', error);
-                            handleGeolocationError(error);
-                        }, {
-                            enableHighAccuracy: true,
-                            timeout: 15000,
-                            maximumAge: 0
-                        }
-                );
-            }
-
-            // إيقاف تتبع الموقع
-            function stopTracking() {
-                if (watchId) {
-                    navigator.geolocation.clearWatch(watchId);
-                    watchId = null;
-                }
-
-                if (trackingInterval) {
-                    clearInterval(trackingInterval);
-                    trackingInterval = null;
-                }
-
-                isTracking = false;
-                updateUI('warning', 'تم إيقاف تتبع الموقع');
-                if (startTrackingBtn) startTrackingBtn.disabled = false;
-                if (stopTrackingBtn) stopTrackingBtn.disabled = true;
-                nearbyClientsElement.innerHTML = '';
-            }
-
-            // حساب المسافة بين موقعين (بالمتر)
-            function getDistance(lat1, lon1, lat2, lon2) {
-                const R = 6371000; // نصف قطر الأرض بالمتر
-                const φ1 = lat1 * Math.PI / 180;
-                const φ2 = lat2 * Math.PI / 180;
-                const Δφ = (lat2 - lat1) * Math.PI / 180;
-                const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-                const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                    Math.cos(φ1) * Math.cos(φ2) *
-                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-                return R * c;
-            }
-
-            // ========== تهيئة الأحداث ========== //
-
-            // أحداث الأزرار
-            if (startTrackingBtn) {
-                startTrackingBtn.addEventListener('click', startTracking);
-            }
-
-            if (stopTrackingBtn) {
-                stopTrackingBtn.addEventListener('click', stopTracking);
-            }
-
-            // بدء التتبع تلقائياً عند تحميل الصفحة
-            startTracking();
-
-            // إيقاف التتبع عند إغلاق الصفحة
-            window.addEventListener('beforeunload', function() {
-                if (isTracking) {
-                    // إرسال بيانات الإغلاق إلى الخادم إذا لزم الأمر
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const fakePosition = {
-                                coords: {
-                                    latitude: position.coords.latitude,
-                                    longitude: position.coords.longitude,
-                                    accuracy: position.coords.accuracy,
-                                    isExit: true
-                                }
-                            };
-                            sendLocationToServer(fakePosition);
-                        },
-                        () => {}, {
-                            enableHighAccuracy: true
-                        }
+                                isTracking = true;
+                                updateUI('success', 'جاري تتبع موقعك...');
+                                if (startTrackingBtn) startTrackingBtn.disabled = true;
+                                if (stopTrackingBtn) stopTrackingBtn.disabled = false;
+                            },
+                            (error) => {
+                                console.error('❌ خطأ في الحصول على الموقع:', error);
+                                handleGeolocationError(error);
+                            }, {
+                                enableHighAccuracy: true,
+                                timeout: 15000,
+                                maximumAge: 0
+                            }
                     );
-                    stopTracking();
                 }
+
+                // إيقاف تتبع الموقع
+                function stopTracking() {
+                    if (watchId) {
+                        navigator.geolocation.clearWatch(watchId);
+                        watchId = null;
+                    }
+
+                    if (trackingInterval) {
+                        clearInterval(trackingInterval);
+                        trackingInterval = null;
+                    }
+
+                    isTracking = false;
+                    updateUI('warning', 'تم إيقاف تتبع الموقع');
+                    if (startTrackingBtn) startTrackingBtn.disabled = false;
+                    if (stopTrackingBtn) stopTrackingBtn.disabled = true;
+                    nearbyClientsElement.innerHTML = '';
+                }
+
+                // حساب المسافة بين موقعين (بالمتر)
+                function getDistance(lat1, lon1, lat2, lon2) {
+                    const R = 6371000; // نصف قطر الأرض بالمتر
+                    const φ1 = lat1 * Math.PI / 180;
+                    const φ2 = lat2 * Math.PI / 180;
+                    const Δφ = (lat2 - lat1) * Math.PI / 180;
+                    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+                    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                        Math.cos(φ1) * Math.cos(φ2) *
+                        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+                    return R * c;
+                }
+
+                // ========== تهيئة الأحداث ========== //
+
+                // أحداث الأزرار
+                if (startTrackingBtn) {
+                    startTrackingBtn.addEventListener('click', startTracking);
+                }
+
+                if (stopTrackingBtn) {
+                    stopTrackingBtn.addEventListener('click', stopTracking);
+                }
+
+                // بدء التتبع تلقائياً عند تحميل الصفحة
+                startTracking();
+
+                // إيقاف التتبع عند إغلاق الصفحة
+                window.addEventListener('beforeunload', function() {
+                    if (isTracking) {
+                        // إرسال بيانات الإغلاق إلى الخادم إذا لزم الأمر
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const fakePosition = {
+                                    coords: {
+                                        latitude: position.coords.latitude,
+                                        longitude: position.coords.longitude,
+                                        accuracy: position.coords.accuracy,
+                                        isExit: true
+                                    }
+                                };
+                                sendLocationToServer(fakePosition);
+                            },
+                            () => {}, {
+                                enableHighAccuracy: true
+                            }
+                        );
+                        stopTracking();
+                    }
+                });
             });
-        });
-    </script>
-<?php $__env->stopSection(); ?>
+        </script>
+    <?php $__env->stopSection(); ?>
 <?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/layouts/sidebar.blade.php ENDPATH**/ ?>

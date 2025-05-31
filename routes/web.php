@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
 use App\Http\Controllers\Client\ClientSettingController;
+use App\Http\Controllers\Client\GroupsController;
 use App\Http\Controllers\Client\VisitController;
 use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\EmployeeTargetController;
@@ -64,17 +65,17 @@ Route::group(
             Route::get('/client-target-create', [EmployeeTargetController::class, 'client_target_create'])->name('target.client.create');
             Route::post('/client-target-create', [EmployeeTargetController::class, 'client_target_store'])->name('target.client.update');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
-            
+
             //احصائيات الفروع
-            
+
             Route::get('/statistics_branch', [StatisticsController::class, 'StatisticsGroup'])->name('statistics.group');
-            
-            //احصائيات المجموعات 
-            
+
+            //احصائيات المجموعات
+
             Route::get('/statistics_group', [StatisticsController::class, 'Group'])->name('statistics.groupall');
-            
+
             // احصائيات الاحياء
-            
+
             Route::get('/statistics_neighborhood', [StatisticsController::class, 'neighborhood'])->name('statistics.neighborhood');
         });
         Route::prefix('sales')
@@ -256,9 +257,7 @@ Route::group(
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
-                    Route::get('/group', [ClientController::class, 'group_client'])->name('clients.group_client');
-                    Route::get('/group/create', [ClientController::class, 'group_client_create'])->name('clients.group_client_create');
-                    Route::post('/group/store', [ClientController::class, 'group_client_store'])->name('clients.group_client_store');
+
                     Route::post('/addnotes', [ClientController::class, 'addnotes'])->name('clients.addnotes');
                     Route::post('/store', [ClientController::class, 'store'])->name('clients.store');
                     Route::get('/clients/{client_id}/notes', [ClientController::class, 'getClientNotes']);
@@ -297,6 +296,16 @@ Route::group(
                         return response()->json($clients);
                     });
                 });
+                Route::prefix('group')->group(function () {
+  Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
+                    Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
+                    Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
+                    Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
+                    Route::put('/group/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
+                    Route::delete('/group/delete/{id}', [GroupsController::class, 'group_client_destroy'])->name('groups.group_client_destroy');
+
+                });
+
                 Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                 Route::get('/mang_client/{id}', [ClientController::class, 'mang_client_details'])->name('clients.mang_client_details');
                 Route::prefix('paymentsClient')->group(function () {
