@@ -16,12 +16,19 @@ use App\Models\User;
 use App\Models\TaxSitting;
 use App\Models\AccountSetting;
 use App\Models\TaxInvoice;
+use App\Models\StoreHouse;
+use App\Models\ProductDetails;
+use App\Models\PermissionSource;
+use App\Models\WarehousePermitsProducts;
+use App\Models\WarehousePermits;
+use App\Models\DefaultWarehouses;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+
 
 class CreditNotificationController extends Controller
 {
@@ -263,6 +270,66 @@ class CreditNotificationController extends Controller
                     'total' => $item_total - $item_discount,
                 ];
             }
+            $user = Auth::user();
+             if ($user && $user->employee_id) {
+                        $defaultWarehouse = DefaultWarehouses::where('employee_id', $user->employee_id)->first();
+
+                        // التحقق مما إذا كان هناك مستودع افتراضي واستخدام storehouse_id إذا وجد
+                        if ($defaultWarehouse && $defaultWarehouse->storehouse_id) {
+                            $storeHouse = StoreHouse::find($defaultWarehouse->storehouse_id);
+                        } else {
+                            $storeHouse = StoreHouse::where('major', 1)->first();
+                        }
+                    } else {
+                        // إذا لم يكن لديه employee_id، يتم تعيين storehouse الافتراضي
+                        $storeHouse = StoreHouse::where('major', 1)->first();
+                    }
+                    $store_house_id = $storeHouse ? $storeHouse->id : null;
+
+        $productDetails = ProductDetails::where('store_house_id', $storeHouse->id)
+            ->where('product_id', $item['product_id'])
+            ->first();
+
+        if (!$productDetails) {
+            $productDetails = ProductDetails::create([
+                'store_house_id' => $storeHouse->id,
+                'product_id' => $item['product_id'],
+                'quantity' => 0,
+            ]);
+        }
+
+        $proudect = Product::where('id', $item['product_id'])->first();
+
+        if ($proudect->type == 'products') {
+            // حساب المخزون قبل وبعد التعديل
+            $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+            $stock_before = $total_quantity;
+            $stock_after = $stock_before + $quantity;
+
+            // زيادة كمية المنتج في المخزون
+            $productDetails->increment('quantity', $quantity);
+
+           
+
+            $wareHousePermits = new WarehousePermits();
+            $wareHousePermits->permission_type = 11;
+            $wareHousePermits->permission_date = now();
+            $wareHousePermits->number = $credit_number; // استخدام رقم إشعار الدائن
+            $wareHousePermits->grand_total = $item_total;
+            $wareHousePermits->store_houses_id = $storeHouse->id;
+            $wareHousePermits->created_by = auth()->user()->id;
+            $wareHousePermits->save();
+
+            WarehousePermitsProducts::create([
+                'quantity' => $quantity,
+                'total' => $item_total,
+                'unit_price' => $unit_price,
+                'product_id' => $item['product_id'],
+                'stock_before' => $stock_before,
+                'stock_after' => $stock_after,
+                'warehouse_permits_id' => $wareHousePermits->id,
+            ]);
+        }
 
             // ** الخطوة الثالثة: حساب الخصم الإضافي للعرض ككل **
             $quote_discount = floatval($validated['discount_amount'] ?? 0);
@@ -398,6 +465,7 @@ class CreditNotificationController extends Controller
             if (!$mainAccount) {
                 throw new \Exception('حساب  الخزينة الرئيسية غير موجود');
             }
+
 
             $clientaccounts = Account::where('client_id', $creditNot->client_id)->first();
             // القيد الاول
@@ -562,3 +630,16 @@ class CreditNotificationController extends Controller
         return ""; // قم بتنفيذ المنطق المناسب هنا
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
