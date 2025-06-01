@@ -94,7 +94,7 @@
                         <!-- عدد العهدة -->
                         <div class="form-group col-md-4">
                             <label for="deposit_count" class="form-label">عدد العهدة الموجودة</label>
-                            <input type="number" class="form-control" id="deposit_count" name="deposit_count" min="0">
+                            <input type="number" class="form-control" id="deposit_count" name="deposit_count" min="0" required>
                         </div>
 
                         <!-- نوع الموقع -->

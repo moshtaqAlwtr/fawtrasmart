@@ -336,7 +336,7 @@ public function store(ClientPaymentRequest $request)
 
         $client = Client::find($invoice->client_id); // تعديل هنا إن كان $invoice->id غير صحيح
         $user = auth()->user(); // استخدمنا auth()->user() مباشرة
-        
+
         notifications::create([
             'type' => 'invoice_payment',
             'title' => $user->name . ' أنشأ عملية دفع',

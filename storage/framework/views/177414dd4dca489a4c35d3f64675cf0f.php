@@ -281,11 +281,11 @@
         .card {
             transition: all 0.3s ease;
             border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .btn {
@@ -308,7 +308,7 @@
 
         .dropdown-menu {
             border-radius: 0.25rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         #clientSearch {
@@ -383,7 +383,7 @@
                     <!-- زر إضافة عميل -->
                     <div class="col-12 col-md-6 col-lg-3">
                         <a href="<?php echo e(route('clients.create')); ?>"
-                            class="btn btn-hover-shine btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
+                            class="btn btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
                             style="height: 36px;">
                             <i class="fas fa-user-plus me-2 fs-6"></i>
                             <span class="fw-medium">إضافة عميل</span>
@@ -394,14 +394,14 @@
                     <div class="col-12 col-md-6 col-lg-3">
                         <div class="d-flex flex-column flex-md-row gap-2">
                             <label
-                                class="btn btn-hover-shine btn-indigo btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
+                                class="btn btn-info btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
                                 style="height: 36px;">
                                 <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
                                 <span class="fw-medium">تحميل</span>
                                 <input type="file" name="file" class="d-none" required>
                             </label>
                             <button type="submit"
-                                class="btn btn-hover-shine btn-primary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
+                                class="btn btn-secondary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
                                 style="height: 36px;">
                                 <i class="fas fa-database me-2 fs-6"></i>
                                 <span class="fw-medium">استيراد</span>
@@ -412,7 +412,7 @@
                     <!-- زر إضافة حد ائتماني -->
                     <div class="col-12 col-md-6 col-lg-3">
                         <a href="javascript:void(0);"
-                            class="btn btn-hover-shine btn-violet btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
+                            class="btn btn-danger btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
                             style="height: 36px;" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
                             <i class="fas fa-credit-card me-2 fs-6"></i>
                             <span class="fw-medium">حد ائتماني</span>
@@ -420,14 +420,7 @@
                     </div>
 
                     <!-- زر التقارير -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="#"
-                            class="btn btn-hover-shine btn-orange btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-chart-pie me-2 fs-6"></i>
-                            <span class="fw-medium">تقارير</span>
-                        </a>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -609,202 +602,178 @@
         </div>
 
         <!-- جدول العملاء -->
-        <?php if(isset($clients) && $clients->count() > 0): ?>
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table" id="fawtra">
-                            <thead>
-                                <tr>
-                                    <th width="50">#</th>
-                                    <th>معلومات العميل</th>
-                                    <th>العنوان</th>
-                                    <th>المجموعة</th>
-                                    <th>الحي</th>
-                                    <th>الفرع</th>
-                                    <th>نوع الزيارة</th>
-                                    <th>الحالة</th>
-                                    <th>الكود</th>
-                                    <th>رقم الهاتف</th>
-                                    <th style="width: 10%">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <tr onclick="handleRowClick(event, '<?php echo e(route('clients.show', $client->id)); ?>')"
-                                        style="cursor: pointer;" class="hover-effect">
-                                        <td>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox"
-                                                    value="<?php echo e($client->id); ?>">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <h6 class="mb-0"><?php echo e($client->trade_name); ?></h6>
-                                            <small class="text-muted"><?php echo e($client->code); ?></small>
-                                            <p class="text-muted mb-0">
-                                                <i class="fas fa-user me-1"></i>
-                                                <?php echo e($client->first_name); ?> <?php echo e($client->last_name); ?>
+        <!-- جدول العملاء -->
+      <?php if(isset($clients) && $clients->count() > 0): ?>
+    <div class="row">
+        <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <?php
+                $clientData = $clientsData[$client->id] ?? null;
+                $due = $clientDueBalances[$client->id] ?? 0;
+            ?>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="<?php echo e(route('clients.show', $client->id)); ?>" class="text-decoration-none text-dark">
+                    <div class="card shadow-sm border border-1 rounded-3" style="height: 380px; overflow: hidden;"> <!-- زيادة الارتفاع قليلاً وإضافة overflow -->
+                        <div class="card-body">
+                            <!-- Card Header Section -->
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="client-meta">
+                                    <?php if($client->status_client): ?>
+                                        <span class="client-status" style="background-color: <?php echo e($client->status_client->color); ?>; font-size: 11px; padding: 1px 6px;">
+                                            <?php echo e($client->status_client->name); ?>
 
-                                            </p>
-                                            <?php if($client->employee): ?>
-                                                <p class="text-muted mb-0">
-                                                    <i class="fas fa-user-tie me-1"></i>
-                                                    <?php echo e($client->employee->first_name); ?> <?php echo e($client->employee->last_name); ?>
-
-                                                </p>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="client-status" style="background-color: #6c757d; font-size: 11px; padding: 1px 6px;">
+                                            غير محدد
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="ms-auto" style="transform: scale(0.8); transform-origin: top right;"> <!-- تصغير حجم الدائرة -->
+                                    <svg width="70" height="70" viewBox="0 0 36 36" class="circular-chart">
+                                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="circle" stroke-dasharray="<?php echo e($clientData['percentage'] ?? 0); ?>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <text x="18" y="21" text-anchor="middle" class="percentage" font-size="7" fill="#333">
+                                            <?php if(!empty($clientData['group'])): ?>
+                                                <tspan x="18" dy="0" font-size="7" fill="#333">
+                                                    <?php echo e($clientData['group']); ?></tspan>
                                             <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <p class="mb-0">
-                                                <i class="fas fa-map-marker-alt text-primary me-2"
-                                                    style="cursor: pointer;"
-                                                    onclick="openMap(<?php echo e($client->locations->latitude ?? 0); ?>, <?php echo e($client->locations->longitude ?? 0); ?>, '<?php echo e($client->trade_name); ?>')"></i>
-                                                <?php echo e($client->city); ?>, <?php echo e($client->region); ?>
+                                        </text>
+                                    </svg>
+                                </div>
+                            </div>
 
-                                            </p>
-                                        </td>
-                                        <td><?php echo e($client->Neighborhoodname->Region->name ?? ''); ?></td>
-                                        <td><?php echo e($client->Neighborhoodname->name ?? ''); ?></td>
+                            <!-- Client Info Section -->
+                            <div class="client-info" style="overflow: hidden; flex-grow: 1;">
+                                <div class="text-muted small mb-1" style="font-size: 11px;">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    تاريخ الإضافة: <?php echo e($client->created_at->format('d-m-Y')); ?>
 
+                                </div>
 
-                                        <td><?php echo e($client->branch->name ?? ''); ?></td>
-                                        <td>
-                                            <?php if($client->visit_type == 'am'): ?>
-                                                <span class="badge badge-success">
-                                                    ☀️ صباحية
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="badge badge-primary">
-                                                    🌙 مسائية
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if($client->status_client): ?>
-                                                <span
-                                                    style="background-color: <?php echo e($client->status_client->color); ?>; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    <?php echo e($client->status_client->name); ?>
+                                <h6 class="client-name text-primary mb-1" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo e($client->trade_name); ?></h6>
+                                <?php if($client->code): ?>
+                                    <div class="client-code text-muted small mb-1" style="font-size: 11px;">
+                                        <i class="fas fa-hashtag me-1"></i>
+                                        <?php echo e($client->code); ?>
 
-                                                </span>
-                                            <?php else: ?>
-                                                <span
-                                                    style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                    غير محدد
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
+                                    </div>
+                                <?php endif; ?>
 
+                                <div class="client-contact text-muted small mb-2" style="font-size: 11px; line-height: 1.4;">
+                                    <div class="mb-1">
+                                        <i class="fas fa-user me-1"></i>
+                                        <?php echo e($client->first_name); ?> <?php echo e($client->last_name); ?>
 
-                                        <td><?php echo e($client->code ?? ''); ?></td>
-                                        <td>
-                                            <strong class="text-primary">
-                                                <i class="fas fa-phone me-2"></i><?php echo e($client->phone); ?>
+                                    </div>
+                                    <?php if($client->email): ?>
+                                        <div class="mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <i class="fas fa-envelope me-1"></i>
+                                            <?php echo e($client->email); ?>
 
-                                            </strong>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <div class="dropdown">
-                                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                        type="button" id="dropdownMenuButton303" data-toggle="dropdown"
-                                                        aria-haspopup="true" aria-expanded="false"></button>
-                                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="<?php echo e(route('clients.show', $client->id)); ?>">
-                                                                <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                            </a>
-                                                        </li>
-                                                        <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
-                                                            <li>
-                                                                <a class="dropdown-item"
-                                                                    href="<?php echo e(route('clients.edit', $client->id)); ?>">
-                                                                    <i class="fa fa-pencil-alt me-2 text-success"></i>تعديل
-                                                                </a>
-                                                            </li>
-                                                        <?php endif; ?>
-
-                                                        <a class="dropdown-item"
-                                                            href="<?php echo e(route('clients.send_info', $client->id)); ?>">
-                                                            <i class="fa fa-pencil-alt me-2 text-success"></i> إرسال بيانات
-                                                            الدخول
-                                                        </a>
-
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="<?php echo e(route('clients.edit', $client->id)); ?>">
-                                                                <i class="fa fa-copy me-2 text-info"></i>نسخ
-                                                            </a>
-                                                        </li>
-                                                        <?php if(auth()->user()->hasPermissionTo('Delete_Client')): ?>
-                                                            <li>
-                                                                <a class="dropdown-item text-danger" href="#"
-                                                                    data-toggle="modal"
-                                                                    data-target="#modal_DELETE<?php echo e($client->id); ?>">
-                                                                    <i class="fa fa-trash-alt me-2"></i>حذف
-                                                                </a>
-                                                            </li>
-                                                        <?php endif; ?>
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="<?php echo e(route('clients.statement', $client->id)); ?>">
-                                                                <i class="fa fa-file-invoice me-2 text-warning"></i>كشف
-                                                                حساب
-                                                            </a>
-                                                        </li>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-
-                                        <!-- Modal Delete -->
-                                        <div class="modal fade" id="modal_DELETE<?php echo e($client->id); ?>" tabindex="-1"
-                                            role="dialog" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-danger">
-                                                        <h5 class="modal-title text-white">تأكيد الحذف</h5>
-                                                        <button type="button" class="close" data-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
-                                                    </div>
-                                                    <form action="<?php echo e(route('clients.destroy', $client->id)); ?>"
-                                                        method="POST">
-                                                        <?php echo csrf_field(); ?>
-                                                        <?php echo method_field('DELETE'); ?>
-                                                        <div class="modal-body">
-                                                            <p>هل أنت متأكد من الحذف "<?php echo e($client->trade_name); ?>"؟</p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary"
-                                                                data-dismiss="modal">إلغاء</button>
-                                                            <button type="submit" class="btn btn-danger">تأكيد
-                                                                الحذف</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
                                         </div>
+                                    <?php endif; ?>
+                                    <?php if($client->phone): ?>
+                                        <div class="mb-1">
+                                            <i class="fas fa-phone me-1"></i>
+                                            <?php echo e($client->phone); ?>
 
-                                    </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </tbody>
-                        </table>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div>
+                                        <i class="fas fa-users me-1"></i>
+                                        <?php echo e($client->Neighborhoodname->Region->name ?? ''); ?>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Client Actions -->
+                            <div class="client-actions d-flex justify-content-between mt-auto pt-2 border-top">
+                                <a href="<?php echo e(route('clients.show', $client->id)); ?>" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;">
+                                    <i class="far fa-eye me-1"></i> عرض
+                                </a>
+                                <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
+                                    <a href="<?php echo e(route('clients.edit', $client->id)); ?>" class="btn btn-outline-secondary btn-sm px-2 py-1" style="font-size: 11px;">
+                                        <i class="far fa-edit me-1"></i> تعديل
+                                    </a>
+                                <?php endif; ?>
+                                <?php if(auth()->user()->hasPermissionTo('Delete_Client')): ?>
+                                    <a href="<?php echo e(route('clients.destroy', $client->id)); ?>" class="btn btn-outline-danger btn-sm px-2 py-1" style="font-size: 11px;">
+                                        <i class="far fa-trash-alt me-1"></i> حذف
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
-        <?php else: ?>
-            <div class="alert alert-danger text-xl-center" role="alert">
-                <p class="mb-0">
-                    لا توجد عملاء !!
-                </p>
-            </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+<?php else: ?>
+    <div class="alert alert-info text-center py-3" role="alert" style="font-size: 14px;">
+        <i class="fas fa-info-circle fa-lg mb-2"></i>
+        <h5 class="mb-0" style="font-size: 16px;">لا توجد عملاء مسجلين حالياً</h5>
+    </div>
+<?php endif; ?>
 
+<style>
+    /* Progress Circle Styles */
+    .circular-chart {
+        display: block;
+        width: 80px;
+        height: 80px;
+    }
 
-        <?php endif; ?>
+    .circle-bg {
+        fill: none;
+        stroke: #f3f4f6;
+        stroke-width: 2.8;
+    }
 
+    .circle {
+        fill: none;
+        stroke: #4CC790;
+        stroke-width: 2.8;
+        stroke-linecap: round;
+        animation: progress 1s ease-out forwards;
+    }
+
+    .percentage {
+        fill: #4a5568;
+        font-size: 0.5em;
+        text-anchor: middle;
+        font-weight: bold;
+    }
+
+    @keyframes progress {
+        0% {
+            stroke-dasharray: 0 100;
+        }
+    }
+
+    /* Client Status */
+    .client-status {
+        color: #fff;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 767.98px) {
+        .card {
+            height: auto !important;
+        }
+
+        .client-meta {
+            align-items: flex-start;
+        }
+
+        .circular-chart {
+            width: 60px;
+            height: 60px;
+        }
+    }
+</style>
         <?php if($clients->hasPages()): ?>
             <nav aria-label="Page navigation">
                 <ul class="pagination pagination-sm mb-0">

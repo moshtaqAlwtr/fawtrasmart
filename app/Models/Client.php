@@ -7,11 +7,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Client extends Model
 {
-
     protected $table = 'clients';
     protected $primaryKey = 'id';
     public $timestamps = true;
-
     // الحقول القابلة للتعبئة
     protected $fillable = ['trade_name','classification_id ', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
 
@@ -63,10 +61,7 @@ public function Balance()
 
         return implode(', ', $address);
     }
-     public function accounts(): HasMany
-    {
-        return $this->hasMany(Account::class, 'client_id');
-    }
+
     // العلاقة مع ملاحظات المواعيد
     public function appointmentNotes()
     {
@@ -341,5 +336,10 @@ public function formattedAddress(): Attribute
 public function group()
 {
     return $this->belongsTo(Region_groub::class, 'group_id');
+}
+
+public function accounts()
+{
+    return $this->hasMany(Account::class, 'client_id');
 }
 }

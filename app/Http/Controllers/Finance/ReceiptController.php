@@ -194,27 +194,156 @@ class ReceiptController extends Controller
      * تحديث السند
      */
     public function update(Request $request, $id)
-    {
+{
+    try {
+        DB::beginTransaction();
+
+        // التحقق من البيانات المدخلة
         $validatedData = $request->validate([
-            'amount' => 'required|numeric',
-            'description' => 'required|string',
-            'code' => 'required|string|unique:receipts,code,' . $id,
-            'account_id' => 'required|exists:chart_of_accounts,id',
-            'treasury_id' => 'required|exists:treasuries,id',
-            'employee_id' => 'required|exists:employees,employee_id',
-            'client_id' => 'required|exists:clients,id',
+            'code' => 'required|string|unique:receipts,code,'.$id,
+            'amount' => 'required|numeric|min:0',
             'date' => 'required|date',
-            'currency' => 'required|string',
-            'status' => 'required|in:draft,approved,cancelled',
-            'notes' => 'nullable|string',
-            'reference' => 'nullable|string',
+            'incomes_category_id' => 'required|exists:incomes_categories,id',
+            'account_id' => 'required|exists:accounts,id',
+            'treasury_id' => 'required|exists:accounts,id',
+            'description' => 'nullable|string',
+            'seller' => 'nullable|string',
+            'tax1' => 'nullable|numeric|min:0|max:100',
+            'tax2' => 'nullable|numeric|min:0|max:100',
+            'tax1_amount' => 'nullable|numeric|min:0',
+            'tax2_amount' => 'nullable|numeric|min:0',
+            'is_recurring' => 'nullable|boolean',
+            'recurring_frequency' => 'nullable|string',
+            'end_date' => 'nullable|date',
+            'cost_centers_enabled' => 'nullable|boolean',
+            'attachments' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $receipt = Receipt::findOrFail($id);
-        $receipt->update($validatedData);
+        // البحث عن سند القبض المطلوب تحديثه
+        $income = Receipt::findOrFail($id);
 
-        return redirect()->route('receipts.index')->with('success', 'تم تحديث السند بنجاح');
+        // حفظ القيم القديمة للقيود المحاسبية
+        $oldAmount = $income->amount;
+        $oldAccountId = $income->account_id;
+        $oldTreasuryId = $income->treasury_id;
+
+        // تحديث الحقول الأساسية
+        $income->code = $validatedData['code'];
+        $income->amount = $validatedData['amount'];
+        $income->description = $validatedData['description'] ?? '';
+        $income->date = $validatedData['date'];
+        $income->incomes_category_id = $validatedData['incomes_category_id'];
+        $income->seller = $validatedData['seller'] ?? '';
+        $income->account_id = $validatedData['account_id'];
+        $income->treasury_id = $validatedData['treasury_id'];
+        $income->is_recurring = $validatedData['is_recurring'] ?? 0;
+        $income->recurring_frequency = $validatedData['recurring_frequency'] ?? null;
+        $income->end_date = $validatedData['end_date'] ?? null;
+        $income->tax1 = $validatedData['tax1'] ?? 0;
+        $income->tax2 = $validatedData['tax2'] ?? 0;
+        $income->tax1_amount = $validatedData['tax1_amount'] ?? 0;
+        $income->tax2_amount = $validatedData['tax2_amount'] ?? 0;
+        $income->cost_centers_enabled = $validatedData['cost_centers_enabled'] ?? 0;
+
+        // معالجة المرفقات إذا تم تحميل ملف جديد
+        if ($request->hasFile('attachments')) {
+            // حذف المرفق القديم إذا كان موجوداً
+            if ($income->attachments) {
+                Storage::delete('assets/uploads/incomes/' . $income->attachments);
+            }
+            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
+        }
+
+        // حفظ التحديثات
+        $income->save();
+
+        // تحديث أرصدة الحسابات (التراجع عن القيود القديمة)
+        $oldAccount = Account::find($oldAccountId);
+        $oldTreasury = Account::find($oldTreasuryId);
+
+        if ($oldAccount) {
+            $oldAccount->balance += $oldAmount; // التراجع عن الخصم القديم
+            $oldAccount->save();
+        }
+
+        if ($oldTreasury) {
+            $oldTreasury->balance -= $oldAmount; // التراجع عن الإضافة القديمة
+            $oldTreasury->save();
+        }
+
+        // تحديث أرصدة الحسابات الجديدة
+        $newAccount = Account::find($income->account_id);
+        $newTreasury = Account::find($income->treasury_id);
+
+        if ($newAccount) {
+            $newAccount->balance -= $income->amount; // خصم المبلغ الجديد
+            $newAccount->save();
+        }
+
+        if ($newTreasury) {
+            $newTreasury->balance += $income->amount; // إضافة المبلغ الجديد
+            $newTreasury->save();
+        }
+
+        // البحث عن القيود المحاسبية القديمة وتحديثها
+        $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
+
+        if ($journalEntry) {
+            // تحديث معلومات القيد الأساسي
+            $journalEntry->update([
+                'date' => $income->date,
+                'description' => 'سند قبض رقم ' . $income->code,
+            ]);
+
+            // تحديث تفاصيل القيد (حساب الخزينة)
+            JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
+                ->where('is_debit', true)
+                ->update([
+                    'account_id' => $income->treasury_id,
+                    'debit' => $income->amount,
+                    'description' => 'استلام مبلغ من سند قبض'
+                ]);
+
+            // تحديث تفاصيل القيد (حساب العميل)
+            JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
+                ->where('is_debit', false)
+                ->update([
+                    'account_id' => $income->account_id,
+                    'credit' => $income->amount,
+                    'description' => 'إيرادات من سند قبض'
+                ]);
+        }
+
+        // إرسال إشعار بالتحديث
+        $user = auth()->user();
+        notifications::create([
+            'user_id' => $user->id,
+            'type' => 'Receipt',
+            'title' => $user->name . ' قام بتحديث سند قبض',
+            'description' => 'تم تحديث سند قبض رقم ' . $income->code . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
+        ]);
+
+        // تسجيل النشاط في السجل
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf('تم تحديث سند قبض رقم %s بقيمة %s', $income->code, number_format($income->amount, 2)),
+            'created_by' => auth()->id(),
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('incomes.index')->with('success', 'تم تحديث سند القبض بنجاح!');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في تحديث سند قبض: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء تحديث سند القبض: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     /**
      * حذف السند

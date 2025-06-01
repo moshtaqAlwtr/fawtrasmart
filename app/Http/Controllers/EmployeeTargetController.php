@@ -19,8 +19,6 @@ use App\Models\Invoice;
 use App\Models\Receipt;
 use Carbon\Carbon;
 
-
-
 class EmployeeTargetController extends Controller
 {
     public function index()
@@ -31,10 +29,7 @@ class EmployeeTargetController extends Controller
     public function showGeneralTarget()
     {
         // جلب الهدف الأول أو إنشائه إذا لم يكن موجوداً
-        $target = Target::firstOrCreate(
-            ['id' => 1],
-            ['value' => 30000]
-        );
+        $target = Target::firstOrCreate(['id' => 1], ['value' => 30000]);
 
         return view('employee_targets.general', compact('target'));
     }
@@ -42,10 +37,7 @@ class EmployeeTargetController extends Controller
     public function client_target_create()
     {
         // جلب الهدف الأول أو إنشائه إذا لم يكن موجوداً
-        $target = Target::firstOrCreate(
-            ['id' => 2],
-            ['value' => 648]
-        );
+        $target = Target::firstOrCreate(['id' => 2], ['value' => 648]);
 
         return view('client_target.index', compact('target'));
     }
@@ -53,13 +45,9 @@ class EmployeeTargetController extends Controller
     {
         $request->validate([
             'value' => 'required|numeric',
-
         ]);
 
-        $target = Target::updateOrCreate(
-            ['id' => 2],
-            $request->only(['value'])
-        );
+        $target = Target::updateOrCreate(['id' => 2], $request->only(['value']));
 
         return redirect()->back()->with('success', 'تم تحديث الهدف بنجاح');
     }
@@ -67,21 +55,14 @@ class EmployeeTargetController extends Controller
     {
         $user = auth()->user();
 
-        $baseQuery = Client::with([
-            'employee',
-            'status:id,name,color',
-            'locations',
-            'Neighborhoodname.Region',
-            'branch:id,name'
-        ]);
+        $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name']);
 
         $noClients = false;
 
         // تحديد الصلاحيات حسب الدور
         if ($user->role === 'employee') {
             // الموظف يرى فقط العملاء المرتبطين بالمجموعات الخاصة به
-            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)
-                ->pluck('group_id');
+            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
             if ($employeeGroupIds->isNotEmpty()) {
                 $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
@@ -116,133 +97,104 @@ class EmployeeTargetController extends Controller
 
         if ($request->filled('neighborhood')) {
             $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->neighborhood . '%')
-                    ->orWhere('id', $request->neighborhood);
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
             });
         }
 
         // استعلام الخريطة
         $mapQuery = clone $baseQuery;
-        $allClients = $noClients ? collect() : $mapQuery->with([
-            'status_client:id,name,color',
-            'locations:id,client_id,latitude,longitude',
-            'Neighborhoodname.Region',
-            'branch:id,name'
-        ])->get();
+        $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
 
         // موقع الموظف
         $userLocation = Location::where('employee_id', $user->employee_id)->latest()->first();
 
         // تنفيذ الاستعلام مع التقسيم
 
-
-
         $target = Target::find(2)->value ?? 648; // الهدف العام لتحصيل كل عميل
 
         // الحصول على الشهر (أو NULL في البداية لجلب كل الشهور)
         $month = $request->input('month');
-        $year  = null;
+        $year = null;
         $monthNum = null;
 
         if ($month) {
             [$year, $monthNum] = explode('-', $month);
         }
-              $dateFrom = $request->input('date_from');
-$dateTo   = $request->input('date_to');
+        $dateFrom = $request->input('date_from');
+        $dateTo = $request->input('date_to');
         // جلب جميع العملاء
         //  $clientsRaw = $noClients ? collect() : $baseQuery->get();
-        $clients = Client::with(['employee', 'Neighborhoodname.Region', 'branch', 'locations'])->whereNotIn('status_id', ['2', '6'])->get();
-        $clients = $clients->map(function ($client) use ($target, $monthNum, $year,$dateFrom , $dateTo) {
-            // مجموع المدفوعات
-        
+        $clients = Client::with(['employee', 'Neighborhoodname.Region', 'branch', 'locations'])
+            ->whereNotIn('status_id', ['2', '6'])
+            ->get();
+        $clients = $clients
+            ->map(function ($client) use ($target, $monthNum, $year, $dateFrom, $dateTo) {
+                // مجموع المدفوعات
 
-                $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
-    ->pluck('reference_number')
-    ->toArray();
+                $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
 
-// الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
-// بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
-$excludedInvoiceIds = array_unique(array_merge(
-    $returnedInvoiceIds,
-    Invoice::where('type', 'returned')->pluck('id')->toArray()
-));
+                // الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
+                // بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
+                $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
 
-            
-            
+                $invoiceIds = Invoice::where('client_id', $client->id)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->pluck('id');
 
+                $paymentsQuery = PaymentsProcess::whereIn('invoice_id', $invoiceIds);
 
-            $invoiceIds = Invoice::where('client_id', $client->id)->where('type','normal')
-                ->whereNotIn('id', $excludedInvoiceIds)
-                ->pluck('id');
+                if ($monthNum && $year) {
+                    $paymentsQuery->whereMonth('created_at', $monthNum)->whereYear('created_at', $year);
+                }
 
-            $paymentsQuery = PaymentsProcess::whereIn('invoice_id', $invoiceIds);
+                if ($dateFrom && $dateTo) {
+                    $paymentsQuery->whereBetween('created_at', [$dateFrom, $dateTo]);
+                }
+                $paymentsTotal = $paymentsQuery->sum('amount');
 
-            if ($monthNum && $year) {
-                $paymentsQuery->whereMonth('created_at', $monthNum)
-                    ->whereYear('created_at', $year);
-            }
-
-if ($dateFrom && $dateTo) {
-    $paymentsQuery->whereBetween('created_at', [$dateFrom, $dateTo]);
-}
-            $paymentsTotal = $paymentsQuery->sum('amount');
-
-            // مجموع سندات القبض
-            $receiptsTotal = Receipt::whereHas('account', function ($query) use ($client) {
-                $query->where('client_id', $client->id);
-            })
-                ->when($monthNum && $year, function ($query) use ($monthNum, $year) {
-                    $query->whereMonth('created_at', $monthNum)
-                        ->whereYear('created_at', $year);
+                // مجموع سندات القبض
+                $receiptsTotal = Receipt::whereHas('account', function ($query) use ($client) {
+                    $query->where('client_id', $client->id);
+                })->when($monthNum && $year, function ($query) use ($monthNum, $year) {
+                    $query->whereMonth('created_at', $monthNum)->whereYear('created_at', $year);
                 });
-                
-            
 
+                if ($dateFrom && $dateTo) {
+                    $receiptsTotal->whereBetween('created_at', [$dateFrom, $dateTo]);
+                }
+                $receipts = $receiptsTotal->sum('amount');
 
+                $collected = $paymentsTotal + $receipts;
+                $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
 
-if ($dateFrom && $dateTo) {
-    $receiptsTotal->whereBetween('created_at', [$dateFrom, $dateTo]);
-}
-$receipts = $receiptsTotal->sum('amount');
+                // تحديد المجموعة حسب النسبة
+                if ($percentage > 100) {
+                    $group = 'G';
+                    $group_class = 'primary';
+                } elseif ($percentage >= 60) {
+                    $group = 'K';
+                    $group_class = 'success';
+                } elseif ($percentage >= 30) {
+                    $group = 'B';
+                    $group_class = 'warning';
+                } elseif ($percentage >= 10) {
+                    $group = 'C';
+                    $group_class = 'danger';
+                } else {
+                    $group = 'D';
+                    $group_class = 'secondary'; // أو dark إن أردت
+                }
 
+                // إضافة الخصائص للعميل
+                $client->collected = $collected;
+                $client->percentage = $percentage;
+                $client->payments = $paymentsTotal;
+                $client->receipts = $receipts;
+                $client->group = $group;
+                $client->group_class = $group_class;
 
-            $collected = $paymentsTotal + $receipts;
-            $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
-
-// تحديد المجموعة حسب النسبة
-if ($percentage > 100) {
-    $group = 'G';
-    $group_class = 'primary';
-} elseif ($percentage >= 60) {
-    $group = 'K';
-    $group_class = 'success';
-} elseif ($percentage >= 30) {
-    $group = 'B';
-    $group_class = 'warning';
-} elseif ($percentage >= 10) {
-    $group = 'C';
-    $group_class = 'danger';
-} else {
-    $group = 'D';
-    $group_class = 'secondary'; // أو dark إن أردت
-}
-
-
-            // إضافة الخصائص للعميل
-            $client->collected = $collected;
-            $client->percentage = $percentage;
-            $client->payments = $paymentsTotal;
-            $client->receipts = $receipts;
-            $client->group = $group;
-            $client->group_class = $group_class;
-
-
-            return $client;
-        })->sortByDesc('collected')->values(); // ✅ الترتيب من الأعلى للأقل
-
-
-
-
+                return $client;
+            })
+            ->sortByDesc('collected')
+            ->values(); // ✅ الترتيب من الأعلى للأقل
 
         // بيانات إضافية للعرض
         return view('employee_targets.client', [
@@ -256,7 +208,7 @@ if ($percentage > 100) {
             'creditLimit' => CreditLimit::first(),
             'statuses' => Statuses::select('id', 'name', 'color')->get(),
             'Region_groups' => Region_groub::all(),
-            'userLocation' => $userLocation
+            'userLocation' => $userLocation,
             // تم إزالة: 'percentage'، 'group'، 'group_class'، 'collected'
         ]);
     }
@@ -264,13 +216,9 @@ if ($percentage > 100) {
     {
         $request->validate([
             'value' => 'required|numeric',
-
         ]);
 
-        $target = Target::updateOrCreate(
-            ['id' => 1],
-            $request->only(['value'])
-        );
+        $target = Target::updateOrCreate(['id' => 1], $request->only(['value']));
 
         return redirect()->back()->with('success', 'تم تحديث الهدف بنجاح');
     }
@@ -279,7 +227,7 @@ if ($percentage > 100) {
         $request->validate([
             'targets' => 'required|array',
             'targets.*.user_id' => 'required|exists:users,id',
-            'targets.*.monthly_target' => 'nullable|numeric|min:0'
+            'targets.*.monthly_target' => 'nullable|numeric|min:0',
         ]);
 
         foreach ($request->targets as $targetData) {
@@ -288,10 +236,7 @@ if ($percentage > 100) {
                 continue;
             }
 
-            EmployeeTarget::updateOrCreate(
-                ['user_id' => $targetData['user_id']],
-                ['monthly_target' => $targetData['monthly_target']]
-            );
+            EmployeeTarget::updateOrCreate(['user_id' => $targetData['user_id']], ['monthly_target' => $targetData['monthly_target']]);
         }
 
         return redirect()->route('employee_targets.index')->with('success', 'تم تحديث التارقت بنجاح!');

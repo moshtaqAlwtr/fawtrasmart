@@ -424,9 +424,11 @@
             <div class="card-body">
                 <!-- أزرار القائمة (تظهر فقط على الشاشات الكبيرة) -->
                 <div class="d-grid d-md-flex flex-wrap gap-2 d-none d-md-block">
+                    <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
                     <a href="<?php echo e(route('clients.edit', $client->id)); ?>" class="btn btn-sm btn-info col-md-auto">
                         <i class="fas fa-user-edit me-1"></i> تعديل
                     </a>
+                    <?php endif; ?>
                     <a href="<?php echo e(route('appointment.notes.create', $client->id)); ?>"
                         class="btn btn-sm btn-secondary col-md-auto">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
@@ -898,6 +900,7 @@
                                                                 data-bs-toggle="dropdown" data-bs-auto-close="outside"
                                                                 aria-haspopup="true" aria-expanded="false"></button>
                                                             <div class="dropdown-menu">
+
                                                                 <a class="dropdown-item"
                                                                     href="<?php echo e(route('invoices.edit', $invoice->id)); ?>">
                                                                     <i class="fa fa-edit me-2 text-success"></i>تعديل
