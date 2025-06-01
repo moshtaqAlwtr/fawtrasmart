@@ -34,7 +34,7 @@
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>بحث</div>
                         <div>
-                            <a href="" class="btn btn-outline-primary">
+                            <a href="{{route('inventory_management.create')}}" class="btn btn-outline-primary">
                                 <i class="fa fa-plus me-2"></i>جديد
                             </a>
                         </div>
@@ -79,16 +79,16 @@
         {{-- @if (@isset($price_lists) && !@empty($price_lists) && count($price_lists) > 0) --}}
             <div class="card">
                 <table class="table">
-                    {{-- @foreach ($price_lists as $price_list) --}}
+                    @foreach ($adjustments as $adjustment)
                     <tr>
-                        <td>المستودع الرئيسي</td>
+                        <td>{{$adjustment->storeHouse->name ?? ""}}</td>
                         <td>
-                            مسوده
-                            {{-- @if ($price_list->status == 0)
-                                <span class="badge badge-pill badge badge-success">نشط</span>
+                            
+                             @if ($adjustment->status == "draft")
+                                <span class="badge badge-pill badge badge-success">مسودة</span>
                             @else
-                                <span class="badge badge-pill badge badge-danger">معطل</span>
-                            @endif --}}
+                                <span class="badge badge-pill badge badge-danger">تمت التسوية</span>
+                            @endif
                         </td>
                         <td>
                             <div class="btn-group">
@@ -96,7 +96,7 @@
                                     <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"id="dropdownMenuButton303" data-toggle="dropdown" aria-haspopup="true"aria-expanded="false"></button>
                                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton303">
                                         <li>
-                                            <a class="dropdown-item" href="">
+                                            <a class="dropdown-item" href="{{ route('inventory.show', $adjustment->id) }}">
                                                 <i class="fa fa-eye me-2 text-primary"></i>عرض
                                             </a>
                                         </li>
@@ -140,7 +140,7 @@
                         </div> --}}
                         <!--end delete-->
                     </tr>
-                    {{-- @endforeach --}}
+                     @endforeach 
                 </table>
             </div>
 
