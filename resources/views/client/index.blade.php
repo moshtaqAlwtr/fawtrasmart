@@ -600,230 +600,170 @@
 
         <!-- جدول العملاء -->
         <!-- جدول العملاء -->
-        @if (isset($clients) && $clients->count() > 0)
-            <div class="row">
-                @foreach ($clients as $client)
-                    @php
-                        $clientData = $clientsData[$client->id] ?? null;
-                        $due = $clientDueBalances[$client->id] ?? 0;
-                    @endphp
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <a href="{{ route('clients.show', $client->id) }}" class="text-decoration-none text-dark">
-                            <div class="card shadow-sm border border-1 rounded-3 h-100">
-                                <div class="card-body d-flex flex-column">
-                                    <!-- Card Header Section -->
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-
-                                        <div class="client-meta">
-                                            @if ($client->status_client)
-                                                <span class="client-status"
-                                                    style="background-color: {{ $client->status_client->color }};">
-                                                    {{ $client->status_client->name }}
-                                                </span>
-                                            @else
-                                                <span class="client-status" style="background-color: #6c757d;">
-                                                    غير محدد
-                                                </span>
+      @if (isset($clients) && $clients->count() > 0)
+    <div class="row">
+        @foreach ($clients as $client)
+            @php
+                $clientData = $clientsData[$client->id] ?? null;
+                $due = $clientDueBalances[$client->id] ?? 0;
+            @endphp
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ route('clients.show', $client->id) }}" class="text-decoration-none text-dark">
+                    <div class="card shadow-sm border border-1 rounded-3" style="height: 380px; overflow: hidden;"> <!-- زيادة الارتفاع قليلاً وإضافة overflow -->
+                        <div class="card-body">
+                            <!-- Card Header Section -->
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="client-meta">
+                                    @if ($client->status_client)
+                                        <span class="client-status" style="background-color: {{ $client->status_client->color }}; font-size: 11px; padding: 1px 6px;">
+                                            {{ $client->status_client->name }}
+                                        </span>
+                                    @else
+                                        <span class="client-status" style="background-color: #6c757d; font-size: 11px; padding: 1px 6px;">
+                                            غير محدد
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="ms-auto" style="transform: scale(0.8); transform-origin: top right;"> <!-- تصغير حجم الدائرة -->
+                                    <svg width="70" height="70" viewBox="0 0 36 36" class="circular-chart">
+                                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <path class="circle" stroke-dasharray="{{ $clientData['percentage'] ?? 0 }}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                        <text x="18" y="21" text-anchor="middle" class="percentage" font-size="7" fill="#333">
+                                            @if (!empty($clientData['group']))
+                                                <tspan x="18" dy="0" font-size="7" fill="#333">
+                                                    {{ $clientData['group'] }}</tspan>
                                             @endif
+                                        </text>
+                                    </svg>
+                                </div>
+                            </div>
 
+                            <!-- Client Info Section -->
+                            <div class="client-info" style="overflow: hidden; flex-grow: 1;">
+                                <div class="text-muted small mb-1" style="font-size: 11px;">
+                                    <i class="far fa-calendar-alt me-1"></i>
+                                    تاريخ الإضافة: {{ $client->created_at->format('d-m-Y') }}
+                                </div>
+
+                                <h6 class="client-name text-primary mb-1" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $client->trade_name }}</h6>
+                                @if ($client->code)
+                                    <div class="client-code text-muted small mb-1" style="font-size: 11px;">
+                                        <i class="fas fa-hashtag me-1"></i>
+                                        {{ $client->code }}
+                                    </div>
+                                @endif
+
+                                <div class="client-contact text-muted small mb-2" style="font-size: 11px; line-height: 1.4;">
+                                    <div class="mb-1">
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ $client->first_name }} {{ $client->last_name }}
+                                    </div>
+                                    @if ($client->email)
+                                        <div class="mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <i class="fas fa-envelope me-1"></i>
+                                            {{ $client->email }}
                                         </div>
-                                        <div class="ms-auto">
-                                            <svg width="90" height="90" viewBox="0 0 36 36"
-                                                class="circular-chart">
-                                                <path class="circle-bg" d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                                <path class="circle"
-                                                    stroke-dasharray="{{ $clientData['percentage'] }}, 100" d="M18 2.0845
-                            a 15.9155 15.9155 0 0 1 0 31.831
-                            a 15.9155 15.9155 0 0 1 0 -31.831" />
-
-                                                <text x="18" y="21" text-anchor="middle" class="percentage"
-                                                    font-size="8" fill="#333">
-                                                    <!-- التصنيف في منتصف الدائرة -->
-                                                    @if (!empty($clientData['group']))
-                                                        <tspan x="18" dy="0" font-size="9" fill="#333">
-                                                            {{ $clientData['group'] }}</tspan>
-                                                    @endif
-                                                </text>
-                                            </svg>
+                                    @endif
+                                    @if ($client->phone)
+                                        <div class="mb-1">
+                                            <i class="fas fa-phone me-1"></i>
+                                            {{ $client->phone }}
                                         </div>
-
-
-                                        </div>
-
-                                        <!-- Client Info Section -->
-                                        <div class="client-info">
-                                            <div class="text-muted small mb-2">
-                                                <i class="far fa-calendar-alt me-1"></i>
-                                                تاريخ الإضافة: {{ $client->created_at->format('d-m-Y') }}
-                                            </div>
-
-                                            <h6 class="client-name text-primary mb-1">{{ $client->trade_name }}</h6>
-                                            @if ($client->code)
-                                                <div class="client-code text-muted small mb-2">
-                                                    <i class="fas fa-hashtag me-1"></i>
-                                                    {{ $client->code }}
-                                                </div>
-                                            @endif
-
-                                            <div class="client-contact text-muted small mb-3">
-                                                <div class="mb-1">
-                                                    <i class="fas fa-user me-1"></i>
-                                                    {{ $client->first_name }} {{ $client->last_name }}
-                                                </div>
-                                                @if ($client->email)
-                                                    <div class="mb-1">
-                                                        <i class="fas fa-envelope me-1"></i>
-                                                        {{ $client->email }}
-                                                    </div>
-                                                @endif
-                                                @if ($client->phone)
-                                                    <div>
-                                                        <i class="fas fa-phone me-1"></i>
-                                                        {{ $client->phone }}
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="client-actions d-flex justify-content-between mt-3 pt-2 border-top">
-                                            <a href="{{ route('clients.show', $client->id) }}"
-                                                class="btn btn-outline-primary btn-sm px-3">
-                                                <i class="far fa-eye me-1"></i> عرض
-                                            </a>
-                                            @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                                                <a href="{{ route('clients.edit', $client->id) }}"
-                                                    class="btn btn-outline-secondary btn-sm px-3">
-                                                    <i class="far fa-edit me-1"></i> تعديل
-                                                </a>
-                                            @endif
-                                            @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                                <a href="{{ route('clients.destroy', $client->id) }}"
-                                                    class="btn btn-outline-danger btn-sm px-3">
-                                                    <i class="far fa-trash-alt me-1"></i> حذف
-                                                </a>
-                                            @endif
-                                        </div>
+                                    @endif
+                                    <div>
+                                        <i class="fas fa-users me-1"></i>
+                                        {{ $client->Neighborhoodname->Region->name ?? '' }}
                                     </div>
                                 </div>
-                        </a>
+                            </div>
+
+                            <!-- Client Actions -->
+                            <div class="client-actions d-flex justify-content-between mt-auto pt-2 border-top">
+                                <a href="{{ route('clients.show', $client->id) }}" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;">
+                                    <i class="far fa-eye me-1"></i> عرض
+                                </a>
+                                @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                    <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-outline-secondary btn-sm px-2 py-1" style="font-size: 11px;">
+                                        <i class="far fa-edit me-1"></i> تعديل
+                                    </a>
+                                @endif
+                                @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                    <a href="{{ route('clients.destroy', $client->id) }}" class="btn btn-outline-danger btn-sm px-2 py-1" style="font-size: 11px;">
+                                        <i class="far fa-trash-alt me-1"></i> حذف
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                @endforeach
+                </a>
             </div>
-        @else
-            <div class="alert alert-info text-center py-4" role="alert">
-                <i class="fas fa-info-circle fa-2x mb-3"></i>
-                <h5 class="mb-0">لا توجد عملاء مسجلين حالياً</h5>
-            </div>
-        @endif
-        <style>
-            /* Progress Circle Styles */
-            .progress-circle-container {
-                text-align: center;
-            }
+        @endforeach
+    </div>
+@else
+    <div class="alert alert-info text-center py-3" role="alert" style="font-size: 14px;">
+        <i class="fas fa-info-circle fa-lg mb-2"></i>
+        <h5 class="mb-0" style="font-size: 16px;">لا توجد عملاء مسجلين حالياً</h5>
+    </div>
+@endif
 
-            .circular-chart {
-                display: block;
-                margin: 0 auto;
-                width: 60px;
-                height: 60px;
-            }
+<style>
+    /* Progress Circle Styles */
+    .circular-chart {
+        display: block;
+        width: 80px;
+        height: 80px;
+    }
 
-            .circle-bg {
-                fill: none;
-                stroke: #f3f4f6;
-                stroke-width: 2.8;
-            }
+    .circle-bg {
+        fill: none;
+        stroke: #f3f4f6;
+        stroke-width: 2.8;
+    }
 
-            .circle {
-                fill: none;
-                stroke: #4CC790;
-                stroke-width: 2.8;
-                stroke-linecap: round;
-                animation: progress 1s ease-out forwards;
-            }
+    .circle {
+        fill: none;
+        stroke: #4CC790;
+        stroke-width: 2.8;
+        stroke-linecap: round;
+        animation: progress 1s ease-out forwards;
+    }
 
-            .percentage {
-                fill: #4a5568;
-                font-size: 0.5em;
-                text-anchor: middle;
-                font-weight: bold;
-            }
+    .percentage {
+        fill: #4a5568;
+        font-size: 0.5em;
+        text-anchor: middle;
+        font-weight: bold;
+    }
 
-            @keyframes progress {
-                0% {
-                    stroke-dasharray: 0 100;
-                }
-            }
+    @keyframes progress {
+        0% {
+            stroke-dasharray: 0 100;
+        }
+    }
 
-            /* Client Meta Styles */
-            .client-meta {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-end;
-            }
+    /* Client Status */
+    .client-status {
+        color: #fff;
+        border-radius: 4px;
+        display: inline-block;
+    }
 
-            .client-status {
-                color: #fff;
-                padding: 2px 8px;
-                font-size: 12px;
-                border-radius: 4px;
-                display: inline-block;
-                margin-bottom: 5px;
-            }
+    /* Responsive Adjustments */
+    @media (max-width: 767.98px) {
+        .card {
+            height: auto !important;
+        }
 
-            .visit-badge {
-                padding: 2px 8px;
-                font-size: 12px;
-                border-radius: 4px;
-                display: inline-block;
-                margin-bottom: 5px;
-            }
+        .client-meta {
+            align-items: flex-start;
+        }
 
-            .visit-badge.morning {
-                background-color: #e6fffa;
-                color: #38b2ac;
-                border: 1px solid #38b2ac;
-            }
-
-            .visit-badge.evening {
-                background-color: #ebf4ff;
-                color: #4299e1;
-                border: 1px solid #4299e1;
-            }
-
-            .details-link {
-                color: #4a5568;
-                font-size: 13px;
-                text-decoration: none;
-                transition: color 0.3s;
-            }
-
-            .details-link:hover {
-                color: #3182ce;
-            }
-
-            /* Client Info Styles */
-            .client-name {
-                font-weight: 600;
-            }
-
-            .client-contact div {
-                line-height: 1.5;
-            }
-
-            /* Responsive Adjustments */
-            @media (max-width: 767.98px) {
-                .client-meta {
-                    align-items: flex-start;
-                    margin-top: 10px;
-                }
-
-                .card-body {
-                    padding: 1rem;
-                }
-            }
-        </style>
+        .circular-chart {
+            width: 60px;
+            height: 60px;
+        }
+    }
+</style>
         @if ($clients->hasPages())
             <nav aria-label="Page navigation">
                 <ul class="pagination pagination-sm mb-0">
