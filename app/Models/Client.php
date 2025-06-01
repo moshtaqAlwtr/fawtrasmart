@@ -75,10 +75,7 @@ public function Balance()
         ->select('id', 'client_id', 'description as content', 'created_at')
         ->orderBy('created_at', 'desc');
     }
-    public function neighborhood()
-    {
-        return $this->belongsTo(Neighborhood::class);
-    }
+    
 
 
     // العلاقات
@@ -260,6 +257,10 @@ public function locations()
     return $this->hasOne(Location::class, 'client_id');
 }
 
+public function neighborhood()
+{
+    return $this->hasOne(Neighborhood::class);
+}
 
 public function visits()
 {
