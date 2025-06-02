@@ -92,12 +92,29 @@
                                 {{ $item->quantity_difference > 0 ? '+' : '' }}{{ $item->quantity_difference }}
                             </td>
                             <td>
-                                @if($item->image)
-                                    <img src="{{ asset('storage/'.$item->image) }}" width="50" height="50" class="img-thumbnail">
-                                @else
-                                    <span class="text-muted">لا يوجد</span>
-                                @endif
-                            </td>
+    @if($item->image)
+        <img src="{{ asset($item->image) }}"
+             width="50" height="50"
+             class="img-thumbnail"
+             data-bs-toggle="modal"
+             data-bs-target="#imageModal{{ $item->id }}">
+    @else
+        <span class="text-muted">لا يوجد</span>
+    @endif
+</td>
+@if($item->image)
+<div class="modal fade" id="imageModal{{ $item->id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <img src="{{ asset($item->image) }}" class="img-fluid" style="max-height: 80vh;">
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
+
                             <td>{{ $item->note ?? 'لا توجد ملاحظات' }}</td>
                         </tr>
                         @endforeach

@@ -81,10 +81,27 @@ public function saveFinal(Request $request, $id)
         }
 
         foreach ($items as $item) {
-            $imagePath = null;
-            if ($request->hasFile('items.'.$item['product_id'].'.image')) {
-                $imagePath = $request->file('items.'.$item['product_id'].'.image')->store('inventory_images', 'public');
-            }
+$imagePath = null;
+
+if ($request->hasFile('items.' . $item['product_id'] . '.image')) {
+    $image = $request->file('items.' . $item['product_id'] . '.image');
+
+    $filename = uniqid() . '.' . $image->getClientOriginalExtension(); // اسم فريد
+
+    $destinationPath = public_path('inventory_images');
+
+    // إنشاء المجلد إذا لم يكن موجود
+    if (!file_exists($destinationPath)) {
+        mkdir($destinationPath, 0755, true);
+    }
+
+    // نقل الصورة إلى المجلد المطلوب
+    $image->move($destinationPath, $filename);
+
+    // حفظ المسار في قاعدة البيانات إن أردت (نسبي إلى public)
+    $imagePath = 'inventory_images/' . $filename;
+}
+
 
             $adjustment->items()->create([
                 'product_id' => $item['product_id'],
@@ -118,6 +135,7 @@ public function show($id)
 }
     public function adjustment($id)
 {
+   
     $adjustment = InventoryAdjustment::with('items')->findOrFail($id); // جلب الجرد مع العناصر
 
     if ($adjustment->status === 'adjusted') {
