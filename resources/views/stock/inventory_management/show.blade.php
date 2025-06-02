@@ -13,7 +13,7 @@
                 <i class="fas fa-check-circle"></i> تسوية
             </a>
             @else
-             <a href="{{route('inventory.adjustment', $adjustment->id)}}" class="btn btn-danger btn-sm">
+             <a href="{{route('inventory.Canceladjustment', $adjustment->id)}}" class="btn btn-danger btn-sm">
                 <i class="fas fa-check-circle"></i> الغاء التسوية
             </a>
             @endif

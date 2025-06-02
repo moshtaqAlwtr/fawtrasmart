@@ -36,5 +36,8 @@ class Branch extends Model
         return $this->hasMany(Employee::class, 'branch_id');
     }
 
-    
+     public function clients()
+    {
+        return $this->hasMany(Client::class, 'branch_id');
+    }
 }

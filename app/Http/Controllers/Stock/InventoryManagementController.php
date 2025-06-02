@@ -38,9 +38,7 @@ class InventoryManagementController extends Controller
     $adjustment = InventoryAdjustment::create([
         'stock_id' => $validated['storehouse_id'], // سيتم ملؤها لاحقًا حسب نوع الجرد
         'inventory_time' => $validated['inventory_time'],
-        'quantity_in_system' => 0,
-        'quantity_in_stock' => 0,
-        'quantity_difference' => 0,
+       
         'status' => 'draft',
         'calculation_type' => $validated['calculation_type'],
     ]);
