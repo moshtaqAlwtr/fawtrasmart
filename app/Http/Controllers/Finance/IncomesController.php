@@ -166,7 +166,7 @@ public function store(Request $request)
         // إنشاء سند القبض
         $income = new Receipt();
 
-        // تعبئة الحقول الأساسية
+        // تعبئة الحقول
         $income->code = $request->input('code');
         $income->amount = $request->input('amount');
         $income->description = $request->input('description');
@@ -193,7 +193,7 @@ public function store(Request $request)
         // حفظ سند القبض
         $income->save();
 
-        // إشعار إنشاء سند القبض
+        // إشعار الإنشاء
         $user = auth()->user();
         $income_account_name = Account::find($income->account_id);
 
@@ -204,7 +204,7 @@ public function store(Request $request)
             'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
         ]);
 
-        // تسجيل النشاط في السجل
+        // تسجيل النشاط
         ModelsLog::create([
             'type' => 'finance_log',
             'type_id' => $income->id,
@@ -213,17 +213,15 @@ public function store(Request $request)
             'created_by' => auth()->id(),
         ]);
 
-        // تحديد الخزينة المستهدفة بناءً على الموظف
+        // تحديد الخزينة المناسبة
         $MainTreasury = null;
         $user = Auth::user();
 
         if ($user && $user->employee_id) {
             $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-            } else {
-                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            }
+            $MainTreasury = $TreasuryEmployee && $TreasuryEmployee->treasury_id
+                ? Account::find($TreasuryEmployee->treasury_id)
+                : Account::where('name', 'الخزينة الرئيسية')->first();
         } else {
             $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
         }
@@ -236,31 +234,33 @@ public function store(Request $request)
         $MainTreasury->balance += $income->amount;
         $MainTreasury->save();
 
-        // البحث عن حساب العميل المرتبط بالحساب
+        // تحديث رصيد حساب العميل مباشرة
         $clientAccount = Account::find($income->account_id);
+        if ($clientAccount) {
+            $clientAccount->balance -= $income->amount;
+            $clientAccount->save();
+        }
+
+        // تطبيق السداد على الفاتورة الأقدم (إن وجدت)
         if ($clientAccount && $clientAccount->client_id) {
-            // البحث عن أقدم فاتورة غير مدفوعة لهذا العميل
             $unpaidInvoice = Invoice::where('client_id', $clientAccount->client_id)
                 ->where('is_paid', false)
                 ->orderBy('created_at', 'asc')
                 ->first();
 
             if ($unpaidInvoice) {
-                // حساب المبلغ المتبقي على الفاتورة
                 $totalPaid = PaymentsProcess::where('invoice_id', $unpaidInvoice->id)
-                    ->where('payment_status', '!=', 5) // استثناء المدفوعات الفاشلة
+                    ->where('payment_status', '!=', 5)
                     ->sum('amount');
 
                 $remainingAmount = $unpaidInvoice->grand_total - $totalPaid;
                 $paymentAmount = min($income->amount, $remainingAmount);
 
                 if ($paymentAmount > 0) {
-                    // تحديد حالة الدفع
                     $isFullPayment = ($paymentAmount >= $remainingAmount);
-                    $paymentStatus = $isFullPayment ? 1 : 2; // 1 مكتمل، 2 غير مكتمل
+                    $paymentStatus = $isFullPayment ? 1 : 2;
 
-                    // إنشاء سجل الدفعة
-                    $payment = PaymentsProcess::create([
+                    PaymentsProcess::create([
                         'invoice_id' => $unpaidInvoice->id,
                         'amount' => $paymentAmount,
                         'payment_date' => $income->date,
@@ -272,26 +272,20 @@ public function store(Request $request)
                         'notes' => 'دفع عبر سند القبض رقم ' . $income->code
                     ]);
 
-                    // تحديث حالة الفاتورة
                     $unpaidInvoice->advance_payment += $paymentAmount;
                     $unpaidInvoice->is_paid = $isFullPayment;
-                    $unpaidInvoice->payment_status = $paymentStatus; // تحديث حالة الفاتورة
+                    $unpaidInvoice->payment_status = $paymentStatus;
                     $unpaidInvoice->due_value = max(0, $remainingAmount - $paymentAmount);
                     $unpaidInvoice->save();
 
-                    // إنشاء إشعار بالدفع
                     notifications::create([
                         'user_id' => auth()->id(),
                         'type' => 'invoice_payment',
                         'title' => 'سداد فاتورة',
                         'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
-                                       ' من فاتورة رقم ' . $unpaidInvoice->code .
-                                       ' عبر سند القبض رقم ' . $income->code
+                                         ' من فاتورة رقم ' . $unpaidInvoice->code .
+                                         ' عبر سند القبض رقم ' . $income->code
                     ]);
-
-                    // تحديث رصيد حساب العميل
-                    $clientAccount->balance -= $paymentAmount;
-                    $clientAccount->save();
                 }
             }
         }
@@ -329,7 +323,7 @@ public function store(Request $request)
 
         DB::commit();
 
-        return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح وتطبيقه على فاتورة العميل!');
+        return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح وتحديث رصيد العميل!');
 
     } catch (\Exception $e) {
         DB::rollback();
@@ -339,20 +333,30 @@ public function store(Request $request)
             ->withInput();
     }
 }
- public function update(Request $request, $id)
+
+public function update(Request $request, $id)
 {
     try {
         DB::beginTransaction();
 
-        // البحث عن سند القبض المطلوب
+        $request->validate([
+            'code' => 'required',
+            'amount' => 'required|numeric',
+            'date' => 'required|date',
+            'account_id' => 'required',
+
+            'incomes_category_id' => 'required',
+        ]);
+
+        // البحث باستخدام النموذج الصحيح (Receipt بدلاً من Income)
         $income = Receipt::findOrFail($id);
 
-        // حفظ القيم القديمة للمقارنة
+        // حفظ القيم القديمة
         $oldAmount = $income->amount;
         $oldAccountId = $income->account_id;
         $oldTreasuryId = $income->treasury_id;
 
-        // تعبئة الحقول الأساسية
+        // تحديث البيانات
         $income->code = $request->input('code');
         $income->amount = $request->input('amount');
         $income->description = $request->input('description');
@@ -360,7 +364,6 @@ public function store(Request $request)
         $income->incomes_category_id = $request->input('incomes_category_id');
         $income->seller = $request->input('seller');
         $income->account_id = $request->input('account_id');
-        $income->treasury_id = $request->input('treasury_id');
         $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
         $income->recurring_frequency = $request->input('recurring_frequency');
         $income->end_date = $request->input('end_date');
@@ -375,163 +378,108 @@ public function store(Request $request)
             $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
         }
 
-        // حفظ سند القبض
         $income->save();
 
-        // تسجيل النشاط في السجل
-        ModelsLog::create([
-            'type' => 'finance_log',
-            'type_id' => $income->id,
-            'type_log' => 'log',
-            'description' => sprintf('تم تعديل سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
-            'created_by' => auth()->id(),
-        ]);
+        // تحديث أرصدة الحسابات
+        $this->updateAccountBalances($income, $oldAmount, $oldAccountId, $oldTreasuryId);
 
-        // تحديد الخزينة المستهدفة بناءً على الموظف
-        $MainTreasury = null;
-        $user = Auth::user();
+        // تحديث القيد المحاسبي
+        $this->updateJournalEntry($income);
 
-        if ($user && $user->employee_id) {
-            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-            } else {
-                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            }
-        } else {
-            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        DB::commit();
+
+        return redirect()->route('incomes.index')->with('success', 'تم تعديل سند القبض بنجاح');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في تعديل سند قبض: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء تعديل سند القبض: ' . $e->getMessage())
+            ->withInput();
+    }
+}
+
+private function updateAccountBalances($income, $oldAmount, $oldAccountId, $oldTreasuryId)
+{
+    // تحديث رصيد الحساب (العميل)
+    if ($oldAccountId == $income->account_id) {
+        $account = Account::find($income->account_id);
+        if ($account) {
+            $account->balance += $oldAmount;  // نرجع المبلغ القديم
+            $account->balance -= $income->amount; // نطرح المبلغ الجديد
+            $account->save();
         }
-
-        if (!$MainTreasury) {
-            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
-        }
-
-        // التراجع عن التغييرات القديمة في الأرصدة
+    } else {
+        // رجع المبلغ للحساب القديم
         $oldAccount = Account::find($oldAccountId);
         if ($oldAccount) {
             $oldAccount->balance += $oldAmount;
             $oldAccount->save();
         }
 
+        // خصم المبلغ من الحساب الجديد
+        $newAccount = Account::find($income->account_id);
+        if ($newAccount) {
+            $newAccount->balance -= $income->amount;
+            $newAccount->save();
+        }
+    }
+
+    // تحديث الخزينة
+    if ($oldTreasuryId == $income->treasury_id) {
+        $treasury = Account::find($income->treasury_id);
+        if ($treasury) {
+            $treasury->balance -= $oldAmount; // نقص القديم
+            $treasury->balance += $income->amount; // أضف الجديد
+            $treasury->save();
+        }
+    } else {
+        // طرح المبلغ من الخزينة القديمة
         $oldTreasury = Account::find($oldTreasuryId);
         if ($oldTreasury) {
             $oldTreasury->balance -= $oldAmount;
             $oldTreasury->save();
         }
 
-        // تطبيق التغييرات الجديدة على الأرصدة
-        $MainTreasury->balance += $income->amount;
-        $MainTreasury->save();
+        // إضافة المبلغ للخزينة الجديدة
+        $newTreasury = Account::find($income->treasury_id);
+        if ($newTreasury) {
+            $newTreasury->balance += $income->amount;
+            $newTreasury->save();
+        }
+    }
+}
 
-        $newAccount = Account::find($income->account_id);
-        if ($newAccount) {
-            $newAccount->balance -= $income->amount;
-            $newAccount->save();
+private function updateJournalEntry($income)
+{
+    // البحث عن القيد المحاسبي المرتبط
+    $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
+
+    if ($journalEntry) {
+        // تحديث بيانات القيد الأساسي
+        $journalEntry->date = $income->date;
+        $journalEntry->description = 'سند قبض رقم ' . $income->code;
+        $journalEntry->save();
+
+        // تحديث التفاصيل (الحساب المدين - الخزينة)
+        $debitEntry = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
+            ->where('is_debit', true)
+            ->first();
+        if ($debitEntry) {
+            $debitEntry->account_id = $income->treasury_id;
+            $debitEntry->debit = $income->amount;
+            $debitEntry->save();
         }
 
-        // البحث عن حساب العميل المرتبط بالحساب
-        $clientAccount = Account::find($income->account_id);
-        if ($clientAccount && $clientAccount->client_id) {
-            // البحث عن أقدم فاتورة غير مدفوعة لهذا العميل
-            $unpaidInvoice = Invoice::where('client_id', $clientAccount->client_id)
-                ->where('is_paid', false)
-                ->orderBy('created_at', 'asc')
-                ->first();
-
-            // حذف جميع عمليات الدفع القديمة المرتبطة بهذا السند
-            PaymentsProcess::where('reference_number', $income->code)->delete();
-
-            if ($unpaidInvoice) {
-                // حساب المبلغ المتبقي على الفاتورة
-                $totalPaid = PaymentsProcess::where('invoice_id', $unpaidInvoice->id)
-                    ->where('payment_status', '!=', 5) // استثناء المدفوعات الفاشلة
-                    ->sum('amount');
-
-                $remainingAmount = $unpaidInvoice->grand_total - $totalPaid;
-                $paymentAmount = min($income->amount, $remainingAmount);
-
-                if ($paymentAmount > 0) {
-                    // تحديد حالة الدفع
-                    $isFullPayment = ($paymentAmount >= $remainingAmount);
-                    $paymentStatus = $isFullPayment ? 1 : 2; // 1 مكتمل، 2 غير مكتمل
-
-                    // إنشاء سجل الدفعة
-                    $payment = PaymentsProcess::create([
-                        'invoice_id' => $unpaidInvoice->id,
-                        'amount' => $paymentAmount,
-                        'payment_date' => $income->date,
-                        'Payment_method' => 'cash',
-                        'reference_number' => $income->code,
-                        'type' => 'client payments',
-                        'payment_status' => $paymentStatus,
-                        'employee_id' => auth()->id(),
-                        'notes' => 'دفع عبر سند القبض رقم ' . $income->code
-                    ]);
-
-                    // تحديث حالة الفاتورة
-                    $unpaidInvoice->advance_payment = $totalPaid + $paymentAmount;
-                    $unpaidInvoice->is_paid = $isFullPayment;
-                    $unpaidInvoice->payment_status = $paymentStatus;
-                    $unpaidInvoice->due_value = max(0, $remainingAmount - $paymentAmount);
-                    $unpaidInvoice->save();
-
-                    // إنشاء إشعار بالدفع
-                    notifications::create([
-                        'user_id' => auth()->id(),
-                        'type' => 'invoice_payment',
-                        'title' => 'تحديث سداد فاتورة',
-                        'description' => 'تم تحديث سداد مبلغ ' . number_format($paymentAmount, 2) .
-                                       ' من فاتورة رقم ' . $unpaidInvoice->code .
-                                       ' عبر سند القبض رقم ' . $income->code
-                    ]);
-                }
-            }
+        // تحديث التفاصيل (الحساب الدائن - العميل)
+        $creditEntry = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)
+            ->where('is_debit', false)
+            ->first();
+        if ($creditEntry) {
+            $creditEntry->account_id = $income->account_id;
+            $creditEntry->credit = $income->amount;
+            $creditEntry->save();
         }
-
-        // تحديث القيد المحاسبي
-        $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
-
-        if ($journalEntry) {
-            $journalEntry->update([
-                'date' => $income->date,
-                'description' => 'سند قبض رقم ' . $income->code,
-                'client_id' => $clientAccount->client_id ?? null,
-            ]);
-
-            // حذف التفاصيل القديمة وإضافة الجديدة
-            JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->delete();
-
-            // إدخال حساب الخزينة (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $MainTreasury->id,
-                'description' => 'استلام مبلغ من سند قبض',
-                'debit' => $income->amount,
-                'credit' => 0,
-                'is_debit' => true,
-            ]);
-
-            // إدخال حساب العميل (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $income->account_id,
-                'description' => 'إيرادات من سند قبض',
-                'debit' => 0,
-                'credit' => $income->amount,
-                'is_debit' => false,
-            ]);
-        }
-
-        DB::commit();
-
-        return redirect()->route('incomes.index')->with('success', 'تم تحديث سند القبض بنجاح وتطبيقه على فاتورة العميل!');
-
-    } catch (\Exception $e) {
-        DB::rollback();
-        Log::error('خطأ في تحديث سند قبض: ' . $e->getMessage());
-        return back()
-            ->with('error', 'حدث خطأ أثناء تحديث سند القبض: ' . $e->getMessage())
-            ->withInput();
     }
 }
     public function show($id)

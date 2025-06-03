@@ -466,10 +466,13 @@
                         <i class="fas fa-bars me-1"></i> خيارات
                     </button>
                     <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center"
+                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('clients.edit', $client->id) }}">
                                 <i class="fas fa-user-edit me-2 text-info"></i> تعديل
                             </a></li>
+                            @endif
                         <li><a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق

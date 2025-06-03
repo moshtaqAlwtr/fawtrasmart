@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container mt-4">
-        <form id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
+        <form onsubmit="return validateAttachments()" id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="current_latitude" id="current_latitude">
             <input type="hidden" name="current_longitude" id="current_longitude">
@@ -100,7 +100,7 @@
                         <!-- نوع الموقع -->
                         <div class="form-group col-md-4">
                             <label for="site_type" class="form-label">نوع الموقع</label>
-                            <select class="form-control" id="site_type" name="site_type">
+                            <select class="form-control" id="site_type" name="site_type" required>
                                 <option value="">اختر نوع الموقع</option>
                                 <option value="independent_booth">بسطة مستقلة</option>
                                 <option value="grocery">بقالة</option>
@@ -113,14 +113,14 @@
                         <!-- عدد استندات المنافسين -->
                         <div class="form-group col-md-4">
                             <label for="competitor_documents" class="form-label">عدد استندات المنافسين</label>
-                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents" min="0">
+                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents" min="0" required>
                         </div>
                     </div>
 
                     <!-- Notes -->
                     <div class="mb-3">
                         <label for="notes" class="form-label">ملاحظة</label>
-                        <textarea class="form-control" name="description" rows="4"></textarea>
+                        <textarea class="form-control" name="description" rows="4" required></textarea>
                     </div>
 
                     <!-- Attachments -->
@@ -128,7 +128,7 @@
                         <div class="form-group">
                             <label for="attachments" class="form-label">المرفقات</label>
                             <input type="file" name="attachments[]" multiple id="attachments" class="form-control d-none"
-                                onchange="previewSelectedFiles()">
+                                onchange="previewSelectedFiles()" required>
                             <div class="upload-area border rounded p-4 text-center position-relative bg-light"
                                 onclick="document.getElementById('attachments').click()" style="cursor: pointer;">
                                 <div class="d-flex flex-column align-items-center justify-content-center gap-2">
@@ -339,5 +339,28 @@
         }
     }
 </script>
+<script>
+function validateAttachments() {
+    const files = document.getElementById('attachments').files;
+    if (files.length === 0) {
+        alert('يرجى إرفاق ملف واحد على الأقل قبل إرسال النموذج.');
+        return false; // يمنع الإرسال
+    }
+    return true; // يسمح بالإرسال
+}
+
+function previewSelectedFiles() {
+    const input = document.getElementById('attachments');
+    const preview = document.getElementById('selected-files');
+    preview.innerHTML = '';
+    for (const file of input.files) {
+        const fileDiv = document.createElement('div');
+        fileDiv.textContent = file.name;
+        fileDiv.classList.add('border', 'p-2', 'rounded', 'mb-2', 'bg-white');
+        preview.appendChild(fileDiv);
+    }
+}
+</script>
+
 
 @endsection

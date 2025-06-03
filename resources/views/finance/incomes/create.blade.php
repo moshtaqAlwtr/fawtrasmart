@@ -111,7 +111,7 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
-                            <input type="date" class="form-control" id="date" name="date">
+                            <input type="date" class="form-control" id="date" name="date" value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
 
