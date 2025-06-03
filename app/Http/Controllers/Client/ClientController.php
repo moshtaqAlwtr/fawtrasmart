@@ -515,6 +515,10 @@ public function index(Request $request)
 
             $data_request = $request->except('_token', 'contacts', 'latitude', 'longitude');
             $client->update($data_request);
+ if ($client->wasChanged('trade_name')) {
+            Account::where('client_id', $client->id)
+                ->update(['name' => $client->trade_name]);
+        }
 
         if ($client->wasChanged('trade_name')) {
             Account::where('client_id', $client->id)
