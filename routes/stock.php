@@ -140,6 +140,8 @@ Route::group(
                 Route::get('/inventory/show/{id}', [InventoryManagementController::class, 'show'])->name('inventory.show');
                 Route::get('/inventory/adjustment/{id}', [InventoryManagementController::class, 'adjustment'])->name('inventory.adjustment');
                 Route::get('/inventory/cancel/adjustment/{id}', [InventoryManagementController::class, 'Canceladjustment'])->name('inventory.Canceladjustment');
+                Route::get('/inventory/edit/{id}', [InventoryManagementController::class, 'edit'])->name('inventory.edit');
+                Route::put('/inventory/edit/{id}', [InventoryManagementController::class, 'update'])->name('inventory.update');
             });
 
             #price Store permits Management routes
