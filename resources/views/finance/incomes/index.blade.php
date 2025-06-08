@@ -382,6 +382,19 @@
                                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                         </a>
                                                     </li>
+
+                                                    <li>
+                                                        <form id="cancel-income-form-{{ $income->id }}"
+                                                            action="{{ route('incomes.cancel', $income->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="button" class="dropdown-item text-danger"
+                                                                onclick="@if (auth()->user()->role === 'employee') showPermissionError() @else confirmCancel({{ $income->id }}) @endif">
+                                                                <i class="fa fa-times me-2"></i>إلغاء
+                                                            </button>
+                                                        </form>
+                                                    </li>
+
                                                     <li>
                                                         <a class="dropdown-item"
                                                             href="{{ route('incomes.print', ['id' => $income->id, 'type' => 'thermal']) }}">
@@ -447,5 +460,27 @@
 @endsection
 @section('scripts')
     <script src="{{ asset('assets/js/search.js') }}"></script>
+    <!-- داخل layout.blade.php أو ملف الـ master -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function confirmCancel(id) {
+            Swal.fire({
+                title: 'هل أنت متأكد؟',
+                text: 'سيتم استعادة جميع الأرصدة كما كانت قبل السند',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، إلغاء السند',
+                cancelButtonText: 'لا، إلغاء العملية',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('cancel-income-form-' + id).submit();
+                }
+            });
+        }
+    </script>
+
 
 @endsection

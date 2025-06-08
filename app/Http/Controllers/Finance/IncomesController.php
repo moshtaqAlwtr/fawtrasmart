@@ -305,16 +305,21 @@ private function applyPaymentToInvoices(Receipt $income, $user)
     foreach ($unpaidInvoices as $invoice) {
         if ($remainingAmount <= 0) break;
 
+        // حساب المبلغ المدفوع سابقاً لهذه الفاتورة (باستثناء المدفوعات الملغاة)
         $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
                                     ->where('payment_status', '!=', 5)
                                     ->sum('amount');
 
+        // حساب المبلغ المتبقي للفاتورة
         $invoiceRemaining = $invoice->grand_total - $paidAmount;
+
+        // المبلغ الذي سنطبقه على هذه الفاتورة
         $paymentAmount = min($remainingAmount, $invoiceRemaining);
 
         if ($paymentAmount > 0) {
             $isFullPayment = ($paidAmount + $paymentAmount) >= $invoice->grand_total;
 
+            // إنشاء سجل الدفع الجديد
             PaymentsProcess::create([
                 'invoice_id' => $invoice->id,
                 'amount' => $paymentAmount,
@@ -327,25 +332,34 @@ private function applyPaymentToInvoices(Receipt $income, $user)
                 'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
             ]);
 
-            $invoice->advance_payment += $paymentAmount;
-            $invoice->is_paid = $isFullPayment;
-            $invoice->payment_status = $isFullPayment ? 1 : 2;
-            $invoice->due_value = max(0, $invoice->grand_total - ($paidAmount + $paymentAmount));
-            $invoice->save();
+            // تحديث حالة الفاتورة والمبلغ المتبقي
+            $newPaidAmount = $paidAmount + $paymentAmount;
+            $newDueValue = max(0, $invoice->grand_total - $newPaidAmount);
 
+            $invoice->update([
+                'advance_payment' => $newPaidAmount,
+                'is_paid' => $isFullPayment,
+                'payment_status' => $isFullPayment ? 1 : 2,
+                'due_value' => $newDueValue
+            ]);
+
+            // إرسال إشعار بالسداد
             notifications::create([
                 'user_id' => $user->id,
                 'type' => 'invoice_payment',
                 'title' => 'سداد فاتورة',
                 'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
                                 ' من فاتورة رقم ' . $invoice->code .
+                                ' (المتبقي: ' . number_format($newDueValue, 2) . ')' .
                                 ' عبر سند القبض رقم ' . $income->code,
             ]);
 
+            // تخفيض المبلغ المتبقي للتوزيع
             $remainingAmount -= $paymentAmount;
         }
     }
 
+    // إذا بقي مبلغ ولم تكفيه الفواتير
     if ($remainingAmount > 0) {
         notifications::create([
             'user_id' => $user->id,
@@ -355,6 +369,81 @@ private function applyPaymentToInvoices(Receipt $income, $user)
                             ' من سند القبض رقم ' . $income->code .
                             ' لم يتم تطبيقه على أي فاتورة',
         ]);
+    }
+}
+public function cancel($id)
+{
+    try {
+        DB::beginTransaction();
+
+        $user = Auth::user();
+        $income = Receipt::findOrFail($id);
+
+        // 1. استعادة رصيد الخزينة
+        $treasury = Account::find($income->treasury_id);
+        if ($treasury) {
+            $treasury->balance -= $income->amount;
+            $treasury->save();
+        }
+
+        // 2. استعادة رصيد العميل
+        $clientAccount = Account::find($income->account_id);
+        if ($clientAccount) {
+            $clientAccount->balance += $income->amount;
+            $clientAccount->save();
+        }
+
+        // 3. حذف المدفوعات المرتبطة بهذا السند
+        $payments = PaymentsProcess::where('reference_number', $income->code)->get();
+        foreach ($payments as $payment) {
+            // استعادة حالة الفاتورة
+            $invoice = Invoice::find($payment->invoice_id);
+            if ($invoice) {
+                $invoice->advance_payment -= $payment->amount;
+                $invoice->due_value += $payment->amount;
+
+                // إذا كانت الفاتورة أصبحت مدفوعة بالكامل بسبب هذا السند
+                if ($invoice->is_paid && $invoice->advance_payment < $invoice->grand_total) {
+                    $invoice->is_paid = false;
+                    $invoice->payment_status = $invoice->advance_payment > 0 ? 2 : 0; // جزئي أو غير مدفوع
+                }
+
+                $invoice->save();
+            }
+
+            // حذف سجل الدفع
+            $payment->delete();
+        }
+
+        // 4. حذف القيد المحاسبي
+        $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
+        if ($journalEntry) {
+            JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->delete();
+            $journalEntry->delete();
+        }
+
+        // 5. حذف الإشعارات المرتبطة
+        notifications::where('description', 'like', '%سند قبض رقم ' . $income->code . '%')->delete();
+
+        // 6. تسجيل النشاط
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf('تم إلغاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+            'created_by' => auth()->id(),
+        ]);
+
+        // 7. حذف سند القبض
+        $income->delete();
+
+        DB::commit();
+
+        return redirect()->route('incomes.index')->with('success', 'تم إلغاء سند القبض بنجاح واستعادة جميع الأرصدة!');
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في إلغاء سند قبض: ' . $e->getMessage());
+        return back()->with('error', 'حدث خطأ أثناء الإلغاء: ' . $e->getMessage());
     }
 }
 
@@ -520,51 +609,155 @@ private function updateRelatedPaymentsAndInvoices(Receipt $income, $oldAmount)
         return;
     }
 
-    // حذف المدفوعات القديمة المرتبطة بهذا السند
-    PaymentsProcess::where('reference_number', $income->code)->delete();
+    DB::beginTransaction();
+    try {
+        // 1. حذف المدفوعات القديمة المرتبطة بهذا السند فقط
+        PaymentsProcess::where('reference_number', $income->code)->delete();
 
-    // إعادة تطبيق المبلغ الجديد على الفواتير
-    $this->applyPaymentToInvoices($income, Auth::user());
+        // 2. إعادة حساب جميع المدفوعات للعميل (من الأحدث للأقدم)
+        $allInvoices = Invoice::where('client_id', $clientAccount->client_id)
+                             ->orderBy('created_at', 'desc') // ترتيب عكسي
+                             ->get();
+
+        // 3. إعادة تعيين جميع الفواتير
+        foreach ($allInvoices as $invoice) {
+            $invoice->update([
+                'advance_payment' => 0,
+                'is_paid' => false,
+                'payment_status' => 0,
+                'due_value' => $invoice->grand_total
+            ]);
+        }
+
+        // 4. إعادة تطبيق جميع سندات القبض حسب الأقدمية (من الأقدم للأحدث)
+        $allReceipts = Receipt::where('account_id', $income->account_id)
+                            ->orderBy('created_at', 'asc')
+                            ->get();
+
+        foreach ($allReceipts as $receipt) {
+            $this->applySingleReceiptToInvoices($receipt, true); // true للتطبيق من الأحدث
+        }
+
+        DB::commit();
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('Error updating invoices: '.$e->getMessage());
+        throw $e;
+    }
 }
+public function edit($id)
+{
+    $user = Auth::user();
+
+    // التحقق من أن المستخدم ليس موظف فقط
+    if ($user->role == 'employee') {
+        return abort(403, 'ليس لديك صلاحية الوصول إلى هذه الصفحة.');
+    }
+
+    $income = Receipt::findOrFail($id);
+
+    $incomes_categories = ReceiptCategory::select('id', 'name')->get();
+    $treas = Treasury::select('id', 'name')->get();
+    $accounts = Account::all();
+    $account_storage = Account::where('parent_id', 13)->get();
+    $taxs = TaxSitting::all();
+
+    $MainTreasury = null;
+
+    if ($user && $user->employee_id) {
+        $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+        if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+            $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+        } else {
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+    } else {
+        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+    }
+
+    if (!$MainTreasury) {
+        throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+    }
+
+    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+
+    return view('finance.incomes.edit', compact(
+        'income',
+        'incomes_categories',
+        'treas',
+        'accounts',
+        'account_storage',
+        'taxs',
+        'account_setting',
+        'MainTreasury'
+    ));
+}
+
+
+private function applySingleReceiptToInvoices(Receipt $receipt, $reverseOrder = false)
+{
+    $clientAccount = Account::find($receipt->account_id);
+    $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)
+                           ->where('is_paid', false)
+                           ->orderBy('created_at', $reverseOrder ? 'desc' : 'asc') // ترتيب حسب الطلب
+                           ->get();
+
+    $remainingAmount = $receipt->amount;
+    $user = Auth::user();
+
+    foreach ($unpaidInvoices as $invoice) {
+        if ($remainingAmount <= 0) break;
+
+        $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
+                                    ->where('payment_status', '!=', 5)
+                                    ->sum('amount');
+
+        $invoiceRemaining = $invoice->grand_total - $paidAmount;
+        $paymentAmount = min($remainingAmount, $invoiceRemaining);
+
+        if ($paymentAmount > 0) {
+            $isFullPayment = ($paidAmount + $paymentAmount) >= $invoice->grand_total;
+
+            PaymentsProcess::updateOrCreate(
+                [
+                    'invoice_id' => $invoice->id,
+                    'reference_number' => $receipt->code
+                ],
+                [
+                    'amount' => $paymentAmount,
+                    'payment_date' => $receipt->date,
+                    'Payment_method' => 'cash',
+                    'type' => 'client payments',
+                    'payment_status' => $isFullPayment ? 1 : 2,
+                    'employee_id' => $user->id,
+                    'notes' => 'دفع عبر سند القبض رقم '.$receipt->code
+                ]
+            );
+
+            $newPaidAmount = $paidAmount + $paymentAmount;
+            $newDueValue = $invoice->grand_total - $newPaidAmount;
+
+            $invoice->update([
+                'advance_payment' => $newPaidAmount,
+                'is_paid' => $isFullPayment,
+                'payment_status' => $isFullPayment ? 1 : 2,
+                'due_value' => max(0, $newDueValue)
+            ]);
+
+            $remainingAmount -= $paymentAmount;
+        }
+    }
+}
+
     public function show($id)
     {
         $income = Receipt::findOrFail($id);
         return view('finance.incomes.show', compact('income'));
     }
 
-    public function edit($id)
-    {
-        $income = Receipt::findOrFail($id);
 
-        $incomes_categories = ReceiptCategory::select('id', 'name')->get();
-        $treas = Treasury::select('id', 'name')->get();
-        $accounts = Account::all();
-        $account_storage = Account::where('parent_id', 13)->get();
-        $taxs = TaxSitting::all();
 
-        $user = Auth::user();
-        $MainTreasury = null;
-
-        if ($user && $user->employee_id) {
-            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-
-            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-            } else {
-                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            }
-        } else {
-            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-        }
-
-        if (!$MainTreasury) {
-            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
-        }
-
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-        return view('finance.incomes.edit', compact('income', 'incomes_categories', 'treas', 'accounts', 'account_storage', 'taxs', 'account_setting', 'MainTreasury'));
-    }
 
     public function delete($id)
     {

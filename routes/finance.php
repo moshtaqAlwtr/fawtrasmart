@@ -58,6 +58,7 @@ Route::group(
                     Route::put('/update/{id}', [IncomesController::class, 'update'])->name('incomes.update');
                     Route::get('/delete/{id}', [IncomesController::class, 'delete'])->name('incomes.delete');
                     Route::get('/incomes/print/{id}/{type}', [IncomesController::class, 'print'])->name('incomes.print');
+                    Route::post('/incomes/{id}/cancel', [IncomesController::class, 'cancel'])->name('incomes.cancel');
                 });
 
                 #treasury routes
