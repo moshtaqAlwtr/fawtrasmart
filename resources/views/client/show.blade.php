@@ -425,9 +425,9 @@
                 <!-- أزرار القائمة (تظهر فقط على الشاشات الكبيرة) -->
                 <div class="d-grid d-md-flex flex-wrap gap-2 d-none d-md-block">
                     @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                    <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-info col-md-auto">
-                        <i class="fas fa-user-edit me-1"></i> تعديل
-                    </a>
+                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-info col-md-auto">
+                            <i class="fas fa-user-edit me-1"></i> تعديل
+                        </a>
                     @endif
                     <a href="{{ route('appointment.notes.create', $client->id) }}"
                         class="btn btn-sm btn-secondary col-md-auto">
@@ -467,12 +467,13 @@
                     </button>
                     <ul class="dropdown-menu w-100">
                         @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center"
-                                href="{{ route('clients.edit', $client->id) }}">
-                                <i class="fas fa-user-edit me-2 text-info"></i> تعديل
-                            </a></li>
-                            @endif
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center"
+                                    href="{{ route('clients.edit', $client->id) }}">
+                                    <i class="fas fa-user-edit me-2 text-info"></i> تعديل
+                                </a>
+                            </li>
+                        @endif
                         <li><a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق
@@ -957,123 +958,148 @@
                         </button>
                         <!-- محتوى الملاحظات -->
                         <div id="notes" class="collapse mt-2">
-    <div class="card card-body">
-    <!-- الملاحظات -->
-    <div class="timeline">
-        @foreach ($ClientRelations as $note)
-            <div class="timeline-item mb-4">
-                <div class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
-                    <!-- الحالة -->
-                    <span class="badge mb-2 mb-md-0"
-                        style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
-                        {{ $statuses->find($client->status_id)->name ?? '' }}
-                    </span>
+                            <div class="card card-body">
+                                <!-- الملاحظات -->
+                                <div class="timeline">
+                                    @foreach ($ClientRelations as $note)
+                                        <div class="timeline-item mb-4">
+                                            <div
+                                                class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
+                                                <!-- الحالة -->
+                                                <span class="badge mb-2 mb-md-0"
+                                                    style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
+                                                    {{ $statuses->find($client->status_id)->name ?? '' }}
+                                                </span>
 
-                    <!-- مربع الملاحظة -->
-                    <div class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
-                        <!-- الرأس -->
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
-                            <h6 class="mb-2 mb-sm-0">
-                                <i class="fas fa-user me-1"></i> {{ $note->employee->name ?? '' }}
-                            </h6>
-                            <small class="text-muted">
-                                <i class="fas fa-clock me-1"></i>
-                                {{ $note->created_at->format('H:i d/m/Y') }} -
-                                <span class="text-primary">{{ $note->status ?? '' }}</span>
-                            </small>
-                        </div>
+                                                <!-- مربع الملاحظة -->
+                                                <div
+                                                    class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
+                                                    <!-- الرأس -->
+                                                    <div
+                                                        class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                                                        <h6 class="mb-2 mb-sm-0">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            {{ $note->employee->name ?? '' }}
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            {{ $note->created_at->format('H:i d/m/Y') }} -
+                                                            <span class="text-primary">{{ $note->status ?? '' }}</span>
+                                                        </small>
+                                                    </div>
 
-                        <hr class="my-2">
+                                                    <hr class="my-2">
 
-                        <!-- النص -->
-                        <p class="mb-2">
-                            <i class="far fa-user me-1"></i> {{ $note->process ?? '' }}
-                        </p>
-                        <small class="text-muted d-block mb-2">{{ $note->description ?? '' }}</small>
+                                                    <!-- النص -->
+                                                    <p class="mb-2">
+                                                        <i class="far fa-user me-1"></i> {{ $note->process ?? '' }}
+                                                    </p>
+                                                    <small
+                                                        class="text-muted d-block mb-2">{{ $note->description ?? '' }}</small>
 
-                        <!-- عرض البيانات الجديدة -->
-                        @if($note->deposit_count || $note->site_type || $note->competitor_documents)
-                        <div class="additional-data mt-3 p-2 bg-light rounded">
-                            <div class="row">
-                                @if($note->deposit_count)
-                                <div class="col-md-4 mb-2">
-                                    <span class="d-block text-primary">
-                                        <i class="fas fa-boxes me-1"></i> عدد العهدة:
-                                    </span>
-                                    <span class="fw-bold">{{ $note->deposit_count }}</span>
+                                                    <!-- عرض البيانات الجديدة -->
+                                                    @if ($note->deposit_count || $note->site_type || $note->competitor_documents)
+                                                        <div class="additional-data mt-3 p-2 bg-light rounded">
+                                                            <div class="row">
+                                                                @if ($note->deposit_count)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-boxes me-1"></i> عدد العهدة:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold">{{ $note->deposit_count }}</span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($note->site_type)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-store me-1"></i> نوع الموقع:
+                                                                        </span>
+                                                                        <span class="fw-bold">
+                                                                            @switch($note->site_type)
+                                                                                @case('independent_booth')
+                                                                                    بسطة مستقلة
+                                                                                @break
+
+                                                                                @case('grocery')
+                                                                                    بقالة
+                                                                                @break
+
+                                                                                @case('supplies')
+                                                                                    تموينات
+                                                                                @break
+
+                                                                                @case('markets')
+                                                                                    أسواق
+                                                                                @break
+
+                                                                                @case('station')
+                                                                                    محطة
+                                                                                @break
+
+                                                                                @default
+                                                                                    {{ $note->site_type }}
+                                                                            @endswitch
+                                                                        </span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($note->competitor_documents)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-file-contract me-1"></i>
+                                                                            استندات المنافسين:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold">{{ $note->competitor_documents }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    <!-- عرض المرفقات -->
+                                                    @php
+                                                        $files = json_decode($note->attachments, true);
+                                                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                                    @endphp
+
+                                                    @if (is_array($files) && count($files))
+                                                        <div class="attachment mt-3 d-flex flex-wrap gap-2">
+                                                            @foreach ($files as $file)
+                                                                @php
+                                                                    $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                                                    $fileUrl = asset('assets/uploads/notes/' . $file);
+                                                                @endphp
+
+                                                                @if (in_array(strtolower($ext), $imageExtensions))
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="d-block">
+                                                                        <img src="{{ $fileUrl }}" alt="مرفق صورة"
+                                                                            class="img-fluid rounded border"
+                                                                            style="max-width: 180px; height: auto;">
+                                                                    </a>
+                                                                @else
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                                                        <i class="fas fa-file-alt me-2"></i> عرض الملف:
+                                                                        {{ $file }}
+                                                                    </a>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <!-- نقطة الخط الزمني -->
+                                                <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                                @endif
-
-                                @if($note->site_type)
-                                <div class="col-md-4 mb-2">
-                                    <span class="d-block text-primary">
-                                        <i class="fas fa-store me-1"></i> نوع الموقع:
-                                    </span>
-                                    <span class="fw-bold">
-                                        @switch($note->site_type)
-                                            @case('independent_booth') بسطة مستقلة @break
-                                            @case('grocery') بقالة @break
-                                            @case('supplies') تموينات @break
-                                            @case('markets') أسواق @break
-                                            @case('station') محطة @break
-                                            @default {{ $note->site_type }}
-                                        @endswitch
-                                    </span>
-                                </div>
-                                @endif
-
-                                @if($note->competitor_documents)
-                                <div class="col-md-4 mb-2">
-                                    <span class="d-block text-primary">
-                                        <i class="fas fa-file-contract me-1"></i> استندات المنافسين:
-                                    </span>
-                                    <span class="fw-bold">{{ $note->competitor_documents }}</span>
-                                </div>
-                                @endif
                             </div>
                         </div>
-                        @endif
-
-                        <!-- عرض المرفقات -->
-                        @php
-                            $files = json_decode($note->attachments, true);
-                            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                        @endphp
-
-                        @if (is_array($files) && count($files))
-                            <div class="attachment mt-3 d-flex flex-wrap gap-2">
-                                @foreach ($files as $file)
-                                    @php
-                                        $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                        $fileUrl = asset('assets/uploads/notes/' . $file);
-                                    @endphp
-
-                                    @if (in_array(strtolower($ext), $imageExtensions))
-                                        <a href="{{ $fileUrl }}" target="_blank" class="d-block">
-                                            <img src="{{ $fileUrl }}"
-                                                alt="مرفق صورة"
-                                                class="img-fluid rounded border"
-                                                style="max-width: 180px; height: auto;">
-                                        </a>
-                                    @else
-                                        <a href="{{ $fileUrl }}" target="_blank"
-                                            class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                                            <i class="fas fa-file-alt me-2"></i> عرض الملف: {{ $file }}
-                                        </a>
-                                    @endif
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- نقطة الخط الزمني -->
-                    <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
-                </div>
-            </div>
-        @endforeach
-    </div>
-</div>
-</div>
 
                     </div>
 
@@ -1088,28 +1114,88 @@
                             <div class="card card-body">
                                 <!-- محتوى المدفوعات هنا -->
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead>
+                                    <table class="table">
+                                        <thead class="bg-light">
                                             <tr>
-                                                <th>#</th>
-                                                <th>رقم الفاتورة</th>
-                                                <th>ملاحظات</th>
-                                                <th>تاريخ الدفع</th>
-                                                <th>بواسطة</th>
-                                                <th>المبلغ</th>
-                                                <th>الحالة</th>
-                                                <th>الإجراءات</th>
+                                                <th width="20%">البيانات الأساسية</th>
+                                                <th width="15%">العميل</th>
+                                                <th width="15%">التاريخ والموظف</th>
+                                                <th width="15%" class="text-center">المبلغ</th>
+                                                <th width="15%" class="text-center">الحالة</th>
+                                                <th width="20%" class="text-end">الإجراءات</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach ($client->payments as $payment)
+                                            @foreach ($payments->where('type', 'client payments') as $payment)
                                                 <tr>
-                                                    <td>{{ $payment->id }}</td>
-                                                    <td>{{ $payment->invoice->code ?? 'غير محدد' }}</td>
-                                                    <td>{{ $payment->notes }}</td>
-                                                    <td>{{ $payment->payment_date }}</td>
-                                                    <td>{{ $payment->employee->full_name ?? 'غير محدد' }}</td>
-                                                    <td class="text-end">{{ number_format($payment->amount, 2) }} ر.س
+                                                    <td
+                                                        style="white-space: normal; word-wrap: break-word; min-width: 200px;">
+                                                        <div class="d-flex flex-column">
+                                                            <strong>#{{ $payment->id }}</strong>
+
+                                                            <small class="text-muted">
+                                                                @if ($payment->invoice)
+                                                                    الفاتورة: #{{ $payment->invoice->code ?? '--' }}
+                                                                @endif
+                                                            </small>
+
+                                                            @if ($payment->notes)
+                                                                <small class="text-muted mt-1"
+                                                                    style="white-space: normal;">
+                                                                    <i class="fas fa-comment-alt"></i>
+                                                                    {{ $payment->notes }}
+                                                                </small>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+
+                                                    <td>
+                                                        @if ($payment->invoice->client)
+                                                            <div class="d-flex flex-column">
+                                                                <strong>{{ $payment->invoice->client->trade_name ?? '' }}</strong>
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-phone"></i>
+                                                                    {{ $payment->invoice->client->phone ?? '' }}
+                                                                </small>
+
+                                                            </div>
+                                                        @else
+                                                            <span class="text-danger">لا يوجد عميل</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex flex-column">
+                                                            <small><i class="fas fa-calendar"></i>
+                                                                {{ $payment->payment_date }}</small>
+                                                            @if ($payment->employee)
+                                                                <small class="text-muted mt-1">
+                                                                    <i class="fas fa-user"></i>
+                                                                    {{ $payment->employee->name ?? '' }}
+                                                                </small>
+                                                            @endif
+                                                            <small class="text-muted mt-1">
+                                                                <i class="fas fa-clock"></i>
+                                                                {{ $payment->created_at->format('H:i') }}
+                                                            </small>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @php
+                                                            $currency = $account_setting->currency ?? 'SAR';
+                                                            $currencySymbol =
+                                                                $currency == 'SAR' || empty($currency)
+                                                                    ? '<img src="' .
+                                                                        asset('assets/images/Saudi_Riyal.svg') .
+                                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                                    : $currency;
+                                                        @endphp
+                                                        <h6 class="mb-0 font-weight-bold">
+                                                            {{ number_format($payment->amount, 2) }}
+                                                            {!! $currencySymbol !!}
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            {{ $payment->payment_method ?? 'غير محدد' }}
+                                                        </small>
                                                     </td>
                                                     <td class="text-center">
                                                         @php
@@ -1143,59 +1229,93 @@
                                                                 $statusIcon = 'fa-question-circle';
                                                             }
                                                         @endphp
-                                                        <span class="badge {{ $statusClass }}">
+                                                        <span class="badge {{ $statusClass }} rounded-pill">
                                                             <i class="fas {{ $statusIcon }} me-1"></i>
                                                             {{ $statusText }}
                                                         </span>
+                                                        @if ($payment->payment_status == 1)
+                                                            <small class="d-block text-muted mt-1">
+                                                                <i class="fas fa-check-circle"></i> تم التأكيد
+                                                            </small>
+                                                        @endif
                                                     </td>
-                                                    <td class="text-center">
+                                                    <td class="text-end">
                                                         <div class="btn-group">
                                                             <div class="dropdown">
                                                                 <button
-                                                                    class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
-                                                                    type="button" id="dropdownMenuButton303"
-                                                                    data-toggle="dropdown" aria-haspopup="true"
-                                                                    aria-expanded="false"></button>
+                                                                    class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                                    type="button"id="dropdownMenuButton303"
+                                                                    data-toggle="dropdown"
+                                                                    aria-haspopup="true"aria-expanded="false"></button>
                                                                 <div class="dropdown-menu"
                                                                     aria-labelledby="dropdownMenuButton303">
-                                                                    <li>
-                                                                        <a class="dropdown-item"
-                                                                            href="{{ route('paymentsClient.show', $payment->id) }}">
-                                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a class="dropdown-item"
-                                                                            href="{{ route('paymentsClient.edit', $payment->id) }}">
-                                                                            <i
-                                                                                class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                        </a>
-                                                                    </li>
-                                                                    <form
-                                                                        action="{{ route('paymentsClient.destroy', $payment->id) }}"
-                                                                        method="POST">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit" class="dropdown-item"
-                                                                            style="border: none; background: none;">
-                                                                            <i class="fa fa-trash me-2 text-danger"></i>
-                                                                            حذف
-                                                                        </button>
-                                                                    </form>
-                                                                    <li>
-                                                                        <a class="dropdown-item" href="#">
-                                                                            <i
-                                                                                class="fa fa-envelope me-2 text-warning"></i>ايصال
-                                                                            مدفوعات
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a class="dropdown-item" href="#">
-                                                                            <i
-                                                                                class="fa fa-envelope me-2 text-warning"></i>ايصال
-                                                                            مدفوعات حراري
-                                                                        </a>
-                                                                    </li>
+                                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="{{ route('paymentsClient.show', $payment->id) }}">
+                                                                                <i
+                                                                                    class="fas fa-eye me-2 text-primary"></i>عرض
+                                                                                التفاصيل
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="{{ route('paymentsClient.edit', $payment->id) }}">
+                                                                                <i
+                                                                                    class="fas fa-edit me-2 text-success"></i>تعديل
+                                                                                الدفع
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <form
+                                                                                action="{{ route('paymentsClient.destroy', $payment->id) }}"
+                                                                                method="POST">
+                                                                                @csrf
+                                                                                @method('DELETE')
+                                                                                <button type="submit"
+                                                                                    class="dropdown-item text-danger"
+                                                                                    onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟')">
+                                                                                    <i class="fas fa-trash me-2"></i>حذف
+                                                                                    العملية
+                                                                                </button>
+                                                                            </form>
+                                                                        </li>
+                                                                        <li>
+                                                                            <hr class="dropdown-divider">
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=a4"
+                                                                                target="_blank">
+                                                                                <i
+                                                                                    class="fas fa-file-pdf me-2 text-warning"></i>إيصال
+                                                                                (A4)
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="{{ route('paymentsClient.rereceipt', ['id' => $payment->id]) }}?type=thermal"
+                                                                                target="_blank">
+                                                                                <i
+                                                                                    class="fas fa-receipt me-2 text-warning"></i>إيصال
+                                                                                (حراري)
+                                                                            </a>
+                                                                        </li>
+                                                                        @if ($payment->client)
+                                                                            <li>
+                                                                                <hr class="dropdown-divider">
+                                                                            </li>
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="{{ route('clients.show', $payment->client->id) }}">
+                                                                                    <i
+                                                                                        class="fas fa-user me-2 text-info"></i>عرض
+                                                                                    بيانات
+                                                                                    العميل
+                                                                                </a>
+                                                                            </li>
+                                                                        @endif
+                                                                    </ul>
                                                                 </div>
                                                             </div>
                                                         </div>

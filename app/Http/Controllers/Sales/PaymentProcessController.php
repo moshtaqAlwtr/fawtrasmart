@@ -91,7 +91,8 @@ class PaymentProcessController extends Controller
         }
 
         // تنفيذ الاستعلام مع Pagination لعرض 25 عنصر في الصفحة
-        $payments = $query->paginate(25);
+        $payments = $query->orderBy('created_at', 'desc')->paginate(25);
+
         $employees = Employee::all();
        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('sales.payment.index', compact('payments', 'employees','account_setting'));

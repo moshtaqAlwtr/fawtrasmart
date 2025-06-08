@@ -310,47 +310,36 @@
                 <!-- Invoice Summary -->
                 <div class="invoice-summary">
                     <div class="summary-row">
-                        <span>المجموع الفرعي:</span>
-                        <span>{{ number_format($invoice->sub_total, 2) }} ر.س</span>
-                    </div>
-
-                    @if ($invoice->discount > 0)
-                        <div class="summary-row">
-                            <span>الخصم:</span>
-                            <span>{{ number_format($invoice->discount, 2) }} ر.س</span>
-                        </div>
-                    @endif
-                    @if ($invoice->tax > 0)
-                        <div class="summary-row">
-                            <span>ضريبة القيمة المضافة (15%):</span>
-                            <span>{{ number_format($invoice->tax, 2) }} ر.س</span>
-                        </div>
-                    @endif
-
-                    @if ($invoice->shipping > 0)
-                        <div class="summary-row">
-                            <span>مصاريف الشحن:</span>
-                            <span>{{ number_format($invoice->shipping, 2) }} ر.س</span>
-                        </div>
-                    @endif
-
-                    <div class="summary-row" style="font-weight: bold;">
-                        <span>المبلغ الإجمالي:</span>
+                        <span>المجموع الكلي:</span>
                         <span>{{ number_format($invoice->grand_total, 2) }} ر.س</span>
                     </div>
 
-                    @if ($invoice->paid_amount > 0)
+                    @if ($invoice->total_discount > 0)
                         <div class="summary-row">
-                            <span>المبلغ المدفوع:</span>
-                            <span>{{ number_format($invoice->paid_amount, 2) }} ر.س</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>المبلغ المتبقي:</span>
-                            <span>{{ number_format($invoice->due_value, 2) }} ر.س</span>
+                            <span>الخصم:</span>
+                            <span>{{ number_format($invoice->total_discount, 2) }} ر.س</span>
                         </div>
                     @endif
-                </div>
 
+                    @if ($invoice->shipping_cost > 0)
+                        <div class="summary-row">
+                            <span>تكلفة الشحن:</span>
+                            <span>{{ number_format($invoice->shipping_cost, 2) }} ر.س</span>
+                        </div>
+                    @endif
+
+                    @if ($invoice->advance_payment > 0)
+                        <div class="summary-row">
+                            <span>الدفعة المقدمة:</span>
+                            <span>{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
+                        </div>
+                    @endif
+
+                    <div class="summary-row">
+                        <span>المبلغ المستحق:</span>
+                        <span>{{ number_format($invoice->due_value, 2) }} ر.س</span>
+                    </div>
+                </div>
                 <!-- QR Code -->
                 <div class="qr-code">
                     {!! $qrCodeSvg !!}
@@ -430,115 +419,116 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    const canvas = document.getElementById('signature-pad');
-    const signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255, 255, 255)',
-        penColor: 'rgb(0, 0, 0)'
-    });
+    <script>
+        const canvas = document.getElementById('signature-pad');
+        const signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'rgb(0, 0, 0)'
+        });
 
-    function resizeCanvas() {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-        signaturePad.clear();
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
-
-    document.getElementById('clear-signature')?.addEventListener('click', () => {
-        signaturePad.clear();
-    });
-
-    document.getElementById('signature-form')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const signerName = document.getElementById('signer-name')?.value.trim();
-        const signerRole = document.getElementById('signer-role')?.value.trim();
-        const amountPaid = document.querySelector('input[name="amount_paid"]')?.value.trim();
-
-        if (!signerName) {
-            toastr.error('الرجاء إدخال الاسم الكامل');
-            return;
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+            signaturePad.clear();
         }
 
-        if (!amountPaid || isNaN(amountPaid)) {
-            toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
-            return;
-        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        if (signaturePad.isEmpty()) {
-            toastr.error('الرجاء تقديم التوقيع أولاً');
-            return;
-        }
+        document.getElementById('clear-signature')?.addEventListener('click', () => {
+            signaturePad.clear();
+        });
 
-        Swal.fire({
-            title: 'تأكيد الحفظ',
-            text: 'هل أنت متأكد أنك تريد حفظ التوقيع؟',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'نعم، احفظ',
-            cancelButtonText: 'إلغاء',
-            reverseButtons: true
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const signatureData = signaturePad.toDataURL();
-                    document.getElementById('signature-data').value = signatureData;
+        document.getElementById('signature-form')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-                    const formData = new FormData(this);
-                    const response = await axios.post(this.action, formData);
+            const signerName = document.getElementById('signer-name')?.value.trim();
+            const signerRole = document.getElementById('signer-role')?.value.trim();
+            const amountPaid = document.querySelector('input[name="amount_paid"]')?.value.trim();
 
-                    if (response.data.success) {
-                        toastr.success('تم حفظ التوقيع بنجاح');
+            if (!signerName) {
+                toastr.error('الرجاء إدخال الاسم الكامل');
+                return;
+            }
 
-                        // ✨ إضافة التوقيع الجديد إلى الصفحة بدون تحديث
-                        const newSignature = response.data.signature;
-                        const container = document.querySelector('.signature-history');
+            if (!amountPaid || isNaN(amountPaid)) {
+                toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
+                return;
+            }
 
-                        const signatureItem = document.createElement('div');
-                        signatureItem.classList.add('signature-item');
-                        signatureItem.innerHTML = `
+            if (signaturePad.isEmpty()) {
+                toastr.error('الرجاء تقديم التوقيع أولاً');
+                return;
+            }
+
+            Swal.fire({
+                title: 'تأكيد الحفظ',
+                text: 'هل أنت متأكد أنك تريد حفظ التوقيع؟',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، احفظ',
+                cancelButtonText: 'إلغاء',
+                reverseButtons: true
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const signatureData = signaturePad.toDataURL();
+                        document.getElementById('signature-data').value = signatureData;
+
+                        const formData = new FormData(this);
+                        const response = await axios.post(this.action, formData);
+
+                        if (response.data.success) {
+                            toastr.success('تم حفظ التوقيع بنجاح');
+
+                            // ✨ إضافة التوقيع الجديد إلى الصفحة بدون تحديث
+                            const newSignature = response.data.signature;
+                            const container = document.querySelector('.signature-history');
+
+                            const signatureItem = document.createElement('div');
+                            signatureItem.classList.add('signature-item');
+                            signatureItem.innerHTML = `
                             <div><strong>الاسم:</strong> ${newSignature.signer_name}</div>
                             ${newSignature.signer_role ? `<div><strong>الصفة:</strong> ${newSignature.signer_role}</div>` : ''}
                             ${newSignature.amount_paid ? `<div><strong>المبلغ المدفوع:</strong> ${parseFloat(newSignature.amount_paid).toFixed(2)} ريال</div>` : ''}
                             <img src="${newSignature.signature_data}" style="max-width: 100%; height: auto; margin-top: 5px;">
                         `;
-                        container.prepend(signatureItem); // أضف التوقيع في الأعلى
+                            container.prepend(signatureItem); // أضف التوقيع في الأعلى
 
-                        // ✨ مسح الحقول
-                        document.getElementById('signer-name').value = '';
-                        document.getElementById('signer-role').value = '';
-                        document.querySelector('input[name="amount_paid"]').value = '';
-                        signaturePad.clear();
+                            // ✨ مسح الحقول
+                            document.getElementById('signer-name').value = '';
+                            document.getElementById('signer-role').value = '';
+                            document.querySelector('input[name="amount_paid"]').value = '';
+                            signaturePad.clear();
 
-                        // ✨ إشعار النافذة الأصلية (إذا كانت موجودة)
-                        if (window.opener) {
-                            window.opener.postMessage({
-                                type: 'signatureSaved',
-                                invoiceId: {{ $invoice->id }}
-                            }, '*');
+                            // ✨ إشعار النافذة الأصلية (إذا كانت موجودة)
+                            if (window.opener) {
+                                window.opener.postMessage({
+                                    type: 'signatureSaved',
+                                    invoiceId: {{ $invoice->id }}
+                                }, '*');
+                            }
+
+                        } else {
+                            toastr.error(response.data.message || 'حدث خطأ في حفظ التوقيع');
                         }
 
-                    } else {
-                        toastr.error(response.data.message || 'حدث خطأ في حفظ التوقيع');
+                    } catch (error) {
+                        let errorMessage = 'حدث خطأ في حفظ التوقيع. يرجى المحاولة مرة أخرى.';
+                        if (error.response?.data?.message) {
+                            errorMessage = error.response.data.message;
+                        }
+                        toastr.error(errorMessage);
                     }
-
-                } catch (error) {
-                    let errorMessage = 'حدث خطأ في حفظ التوقيع. يرجى المحاولة مرة أخرى.';
-                    if (error.response?.data?.message) {
-                        errorMessage = error.response.data.message;
-                    }
-                    toastr.error(errorMessage);
                 }
-            }
+            });
         });
-    });
-</script>
+    </script>
 
 </body>
+
 </html>
 
 {{--
