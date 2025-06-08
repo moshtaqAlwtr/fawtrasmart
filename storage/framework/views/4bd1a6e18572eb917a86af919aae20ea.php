@@ -250,21 +250,95 @@
                                     <tbody>
                                         <?php $__currentLoopData = $operationsPaginator; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $operation): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <tr>
-                                                <td><?php echo e($operation['operation']); ?></td>
-                                                <td><?php echo e(number_format($operation['deposit'], 2)); ?></td>
-                                                <td><?php echo e(number_format($operation['withdraw'], 2)); ?></td>
-                                                <td><?php echo e(number_format($operation['balance_after'], 2)); ?></td>
-                                                <td><?php echo e($operation['date']); ?></td>
+                                                <td><?php echo e($operation['operation'] ?? '---'); ?></td>
+                                                <td><?php echo e(number_format($operation['deposit'] ?? 0, 2)); ?></td>
+                                                <td><?php echo e(number_format($operation['withdraw'] ?? 0, 2)); ?></td>
+                                                <td><?php echo e(number_format($operation['balance_after'] ?? 0, 2)); ?></td>
+                                                <td><?php echo e($operation['date'] ?? '---'); ?></td>
                                             </tr>
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                     </tbody>
                                 </table>
 
                                 <!-- Pagination -->
-                                <div class="d-flex justify-content-center mt-3">
-                                    <?php echo e($operationsPaginator->links()); ?>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <!-- زر الانتقال إلى أول صفحة -->
+                                        <?php if($operationsPaginator->onFirstPage()): ?>
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="First">
+                                                    <i class="fas fa-angle-double-right"></i>
+                                                </span>
+                                            </li>
+                                        <?php else: ?>
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="<?php echo e($operationsPaginator->url(1)); ?>" aria-label="First">
+                                                    <i class="fas fa-angle-double-right"></i>
+                                                </a>
+                                            </li>
+                                        <?php endif; ?>
 
-                                </div>
+                                        <!-- زر الانتقال إلى الصفحة السابقة -->
+                                        <?php if($operationsPaginator->onFirstPage()): ?>
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                                    <i class="fas fa-angle-right"></i>
+                                                </span>
+                                            </li>
+                                        <?php else: ?>
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="<?php echo e($operationsPaginator->previousPageUrl()); ?>"
+                                                    aria-label="Previous">
+                                                    <i class="fas fa-angle-right"></i>
+                                                </a>
+                                            </li>
+                                        <?php endif; ?>
+
+                                        <!-- عرض رقم الصفحة الحالية -->
+                                        <li class="page-item">
+                                            <span class="page-link border-0 bg-light rounded-pill px-3">
+                                                صفحة <?php echo e($operationsPaginator->currentPage()); ?> من
+                                                <?php echo e($operationsPaginator->lastPage()); ?>
+
+                                            </span>
+                                        </li>
+
+                                        <!-- زر الانتقال إلى الصفحة التالية -->
+                                        <?php if($operationsPaginator->hasMorePages()): ?>
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="<?php echo e($operationsPaginator->nextPageUrl()); ?>" aria-label="Next">
+                                                    <i class="fas fa-angle-left"></i>
+                                                </a>
+                                            </li>
+                                        <?php else: ?>
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                                    <i class="fas fa-angle-left"></i>
+                                                </span>
+                                            </li>
+                                        <?php endif; ?>
+
+                                        <!-- زر الانتقال إلى آخر صفحة -->
+                                        <?php if($operationsPaginator->hasMorePages()): ?>
+                                            <li class="page-item">
+                                                <a class="page-link border-0 rounded-pill"
+                                                    href="<?php echo e($operationsPaginator->url($operationsPaginator->lastPage())); ?>"
+                                                    aria-label="Last">
+                                                    <i class="fas fa-angle-double-left"></i>
+                                                </a>
+                                            </li>
+                                        <?php else: ?>
+                                            <li class="page-item disabled">
+                                                <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                                    <i class="fas fa-angle-double-left"></i>
+                                                </span>
+                                            </li>
+                                        <?php endif; ?>
+                                    </ul>
+                                </nav>
 
 
                             </div>
@@ -324,13 +398,74 @@
                                     <tr>
                                         <th>رقم القيد</th>
                                         <th>التاريخ</th>
-                                        <th>من خزينة الى خزينة </th>
-
+                                        <th>من خزينة الى خزينة</th>
                                         <th>المبلغ</th>
                                         <th style="width: 10%">الإجراءات</th>
                                     </tr>
                                 </thead>
-                                
+                                <tbody>
+                                    <?php $__currentLoopData = $formattedTransfers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transfer): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <!-- استخدم $formattedTransfers هنا -->
+                                        <tr>
+                                            <td><?php echo e($transfer['reference_number'] ?? '---'); ?></td>
+                                            <td><?php echo e(\Carbon\Carbon::parse($transfer['date'])->format('d/m/Y')); ?></td>
+                                            <td>
+                                                <div class="account-flow d-flex justify-content-center align-items-center">
+                                                    <?php if($transfer['from_account']): ?>
+                                                        <a href="<?php echo e(route('accounts_chart.index', $transfer['from_account']->id)); ?>"
+                                                            class="btn btn-outline-primary mx-2">
+                                                            <?php echo e($transfer['from_account']->name ?? '---'); ?>
+
+                                                        </a>
+                                                        <i class="fas fa-long-arrow-alt-right text-muted mx-2"></i>
+                                                    <?php endif; ?>
+                                                    <?php if($transfer['to_account']): ?>
+                                                        <a href="<?php echo e(route('accounts_chart.index', $transfer['to_account']->id)); ?>"
+                                                            class="btn btn-outline-primary mx-2">
+                                                            <?php echo e($transfer['to_account']->name ?? '---'); ?>
+
+                                                        </a>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span
+                                                        class="font-weight-bold"><?php echo e(number_format($transfer['amount'] ?? 0, 2)); ?></span>
+                                                    <small class="text-muted">الرصيد:
+                                                        <?php echo e(number_format($transfer['balance_after'] ?? 0, 2)); ?></small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <div class="dropdown">
+                                                        <button
+                                                            class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                            type="button" id="dropdownMenuButton<?php echo e($transfer['id']); ?>"
+                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false"></button>
+                                                        <div class="dropdown-menu"
+                                                            aria-labelledby="dropdownMenuButton<?php echo e($transfer['id']); ?>">
+                                                            <li>
+                                                                <a class="dropdown-item"
+                                                                    href="<?php echo e(route('treasury.transferEdit', $transfer['id'])); ?>">
+                                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                </a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item text-danger" href="#"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modal_DELETE_<?php echo e($transfer['id']); ?>">
+                                                                    <i class="fa fa-trash me-2"></i>حذف
+                                                                </a>
+                                                            </li>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </tbody>
                             </table>
                         </div>
                         <!-- 🔹 تبويب سجل النشاطات -->

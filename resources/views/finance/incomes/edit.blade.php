@@ -22,9 +22,9 @@
             </div>
         </div>
     </div>
-    @include('layouts.alerts.error')
-    @include('layouts.alerts.success')
 
+  @include('layouts.alerts.error')
+        @include('layouts.alerts.success')
 
     <div class="content-body">
 

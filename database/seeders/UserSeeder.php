@@ -56,7 +56,7 @@ class UserSeeder extends Seeder
         $ownerUser2 = User::updateOrCreate(
             ['email' => 'owner2@example.com'],
             [
-                'name' => 'مالك اثنين',
+                'name' => ' عبد الرحمن مصطفى',
                 'email' => 'owner2@example.com',
                 'password' => Hash::make('123456'),
                 'role' => 'owner',
