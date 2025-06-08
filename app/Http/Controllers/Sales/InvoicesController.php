@@ -8,6 +8,7 @@ use App\Models\Account;
 use App\Models\AccountSetting;
 use App\Models\Client;
 use App\Models\Commission;
+use App\Models\Notification;
 use App\Models\Commission_Products;
 use App\Models\CommissionUsers;
 use App\Models\CompiledProducts;
@@ -40,6 +41,7 @@ use App\Models\CreditLimit;
 use App\Models\Location;
 use App\Models\PermissionSource;
 use App\Models\Signature;
+use App\Models\Receipt;
 use App\Models\TaxSitting;
 use GuzzleHttp\Client as GuzzleClient;
 use App\Models\WarehousePermits;
@@ -1503,9 +1505,14 @@ if ($proudect->type == 'products') {
 
         // إنشاء رابط الباركود باستخدام خدمة Barcode Generator
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
+ $nextCode = Receipt::max('code') ?? 0;
 
+        // نحاول تكرار البحث حتى نحصل على كود غير مكرر
+        while (Receipt::where('code', $nextCode)->exists()) {
+            $nextCode++;
+        }
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
+        return view('sales.invoices.show', compact('invoice_number', 'account_setting','nextCode', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
     }
 
     public function print($id)
@@ -1538,9 +1545,14 @@ if (auth()->check()) {
 
         // إنشاء رابط الباركود باستخدام خدمة Barcode Generator
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
+ $nextCode = Receipt::max('code') ?? 0;
 
+        // نحاول تكرار البحث حتى نحصل على كود غير مكرر
+        while (Receipt::where('code', $nextCode)->exists()) {
+            $nextCode++;
+        }
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.print', compact('invoice_number', 'account_setting', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
+        return view('sales.invoices.print', compact('invoice_number', 'account_setting','nextCode', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
     }
     public function edit($id)
     {
@@ -1741,6 +1753,77 @@ public function storeSignatures(Request $request, $invoiceId)
         'amount_paid' => $validated['amount_paid'],
         'signed_at' => now(),
     ]);
+ // إنشاء سند القبض
+ 
+ 
+ $invoiceaccount = invoice::find($invoiceId);
+ 
+ $account = Account::where('client_id',$invoiceaccount->client_id)->first();
+        $income = new Receipt();
+
+        // تعبئة الحقول
+        $income->code = $request->input('code');
+        $income->amount = $validated['amount_paid'];
+        $income->description = "مدفوعات لفاتورة رقم " . $invoiceId;
+        $income->date = now();
+        $income->incomes_category_id = 1;
+        $income->seller = 1;
+        $income->account_id = $account->id;
+        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+        $income->recurring_frequency = $request->input('recurring_frequency');
+        $income->end_date = $request->input('end_date');
+        $income->tax1 = 1;
+        $income->tax2 = 1;
+        $income->created_by = auth()->id();
+        $income->tax1_amount = 0;
+        $income->tax2_amount = 0;
+        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
+
+        
+
+        // تحديد الخزينة المناسبة
+        $MainTreasury = $this->determineTreasury();
+        $income->treasury_id = $MainTreasury->id;
+
+        // حفظ سند القبض
+        $income->save();
+
+        // إشعار الإنشاء
+        $income_account_name = Account::find($income->account_id);
+        $user = Auth::user();
+
+        notifications::create([
+            'user_id' => $user->id,
+            'type' => 'Receipt',
+            'title' => $user->name . ' أنشأ سند قبض',
+            'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
+        ]);
+
+        // تسجيل النشاط
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+            'created_by' => auth()->id(),
+        ]);
+
+        // تحديث رصيد الخزينة
+        $MainTreasury->balance += $income->amount;
+        $MainTreasury->save();
+
+        // تحديث رصيد حساب العميل
+        $clientAccount = Account::find($income->account_id);
+        if ($clientAccount) {
+            $clientAccount->balance -= $income->amount;
+            $clientAccount->save();
+        }
+
+        // تطبيق السداد على الفواتير (المنطق المعدل)
+        $this->applyPaymentToInvoices($income, $user,$invoiceId);
+
+        // إنشاء القيد المحاسبي
+        $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
 
     // إرجاع البيانات
     return response()->json([
@@ -1754,4 +1837,139 @@ public function storeSignatures(Request $request, $invoiceId)
     ]);
 }
 
+private function determineTreasury()
+{
+    $user = Auth::user();
+    $treasury = null;
+
+    if ($user && $user->employee_id) {
+        $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+        if ($treasuryEmployee && $treasuryEmployee->treasury_id) {
+            $treasury = Account::find($treasuryEmployee->treasury_id);
+        }
+    }
+
+    if (!$treasury) {
+        $treasury = Account::where('name', 'الخزينة الرئيسية')->first();
+    }
+
+    if (!$treasury) {
+        throw new \Exception('لم يتم العثور على خزينة صالحة');
+    }
+
+    return $treasury;
 }
+
+private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
+{
+    $invoice = Invoice::findOrFail($invoiceId);
+    $paymentAmount = $income->amount;
+
+    // حساب المبلغ المدفوع سابقاً لهذه الفاتورة فقط (باستثناء الملغاة)
+    $previousPaymentsForThisInvoice = PaymentsProcess::where('invoice_id', $invoice->id)
+                                                  ->where('payment_status', '!=', 5)
+                                                  ->sum('amount');
+
+    // المبلغ الإجمالي المدفوع للفاتورة بعد هذه العملية
+    $totalPaidForInvoice = $previousPaymentsForThisInvoice + $paymentAmount;
+
+    // التحقق من عدم تجاوز المبلغ الإجمالي المدفوع قيمة الفاتورة الحالية
+    if ($totalPaidForInvoice > $invoice->grand_total) {
+        $excessAmount = $totalPaidForInvoice - $invoice->grand_total;
+        throw new \Exception("المبلغ يتجاوز إجمالي الفاتورة الحالية بمقدار ".number_format($excessAmount, 2));
+    }
+
+    // تحديد حالة السداد للفاتورة الحالية
+    $isFullPaymentForInvoice = ($totalPaidForInvoice >= $invoice->grand_total);
+
+    // إنشاء سجل الدفع الجديد لهذه الفاتورة
+    PaymentsProcess::create([
+        'invoice_id' => $invoice->id,
+        'amount' => $paymentAmount,
+        'payment_date' => $income->date,
+        'Payment_method' => 'cash',
+        'reference_number' => $income->code,
+        'type' => 'client payments',
+        'payment_status' => $isFullPaymentForInvoice ? 1 : 2,
+        'employee_id' => $user->id,
+        'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
+    ]);
+
+    // تحديث حالة الفاتورة الحالية فقط
+    $invoice->update([
+        'advance_payment' => $totalPaidForInvoice,
+        'is_paid' => $isFullPaymentForInvoice,
+        'payment_status' => $isFullPaymentForInvoice ? 1 : 2,
+        'due_value' => $invoice->grand_total - $totalPaidForInvoice
+    ]);
+
+    // إرسال إشعار خاص بهذه الفاتورة
+    Notification::create([
+        'user_id' => $user->id,
+        'type' => 'invoice_payment',
+        'title' => 'سداد فاتورة #' . $invoice->code,
+        'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
+                        ' (إجمالي مدفوعات هذه الفاتورة: ' . number_format($totalPaidForInvoice, 2) .
+                        ' - المتبقي: ' . number_format($invoice->grand_total - $totalPaidForInvoice, 2) . ')',
+        'metadata' => ['invoice_id' => $invoice->id]
+    ]);
+}
+    private function createJournalEntry(Receipt $income, $user, $clientAccount, $treasury)
+{
+    $journalEntry = JournalEntry::create([
+        'reference_number' => $income->code,
+        'date' => $income->date,
+        'description' => 'سند قبض رقم ' . $income->code,
+        'status' => 1,
+        'currency' => 'SAR',
+        'client_id' => $clientAccount->client_id ?? null,
+        'created_by_employee' => $user->id,
+    ]);
+
+    JournalEntryDetail::create([
+        'journal_entry_id' => $journalEntry->id,
+        'account_id' => $treasury->id,
+        'description' => 'استلام مبلغ من سند قبض',
+        'debit' => $income->amount,
+        'credit' => 0,
+        'is_debit' => true,
+    ]);
+
+    JournalEntryDetail::create([
+        'journal_entry_id' => $journalEntry->id,
+        'account_id' => $income->account_id,
+        'description' => 'إيرادات من سند قبض',
+        'debit' => 0,
+        'credit' => $income->amount,
+        'is_debit' => false,
+    ]);
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
