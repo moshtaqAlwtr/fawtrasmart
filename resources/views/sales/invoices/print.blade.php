@@ -1,4 +1,4 @@
-{{-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -539,9 +539,9 @@
 </script>
 
 </body>
-</html> --}}
+</html>
 
-
+{{--
 
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -834,4 +834,4 @@
     </script>
 </body>
 
-</html>
+</html> --}}

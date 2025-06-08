@@ -344,7 +344,6 @@ public function update(Request $request, $id)
             'amount' => 'required|numeric',
             'date' => 'required|date',
             'account_id' => 'required',
-
             'incomes_category_id' => 'required',
         ]);
 

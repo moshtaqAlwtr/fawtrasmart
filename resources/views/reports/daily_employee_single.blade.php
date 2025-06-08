@@ -10,6 +10,19 @@
             font-weight: normal;
             src: url('{{ storage_path('fonts/dejavu-sans/DejaVuSans.ttf') }}') format('truetype');
         }
+
+        .text-danger {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    .low-stock-warning {
+        color: white;
+        background-color: #dc3545;
+        border-radius: 50%;
+        padding: 2px 5px;
+        font-size: 10px;
+        margin-right: 5px;
+    }
         body {
             font-family: 'DejaVu Sans', sans-serif;
             direction: rtl;
@@ -249,6 +262,70 @@
             </div>
         </div>
     </div>
+
+<!-- قسم المخزون والمتبقي في المستودعات -->
+<div class="section">
+    <div class="section-title">
+        <span>حركة المخزون والمتبقي</span>
+        <span class="section-count">{{ $invoices->sum('items.count') }}</span>
+    </div>
+    @php
+        $inventoryItems = [];
+        foreach ($invoices as $invoice) {
+            foreach ($invoice->items as $item) {
+                if ($item->product_id && $item->storeHouse) {
+                    $key = $item->product_id.'-'.$item->store_house_id;
+                    if (!isset($inventoryItems[$key])) {
+                        $inventoryItems[$key] = [
+                            'product' => $item->product,
+                            'storehouse' => $item->storeHouse,
+                            'sold_quantity' => 0,
+                            'remaining_quantity' => $item->remaining_quantity,
+                            'unit_price' => $item->unit_price
+                        ];
+                    }
+                    $inventoryItems[$key]['sold_quantity'] += $item->quantity;
+                }
+            }
+        }
+    @endphp
+
+    @if(count($inventoryItems) > 0)
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-25">المنتج</th>
+                    <th class="col-20">المستودع</th>
+                    <th class="col-15">الكمية المباعة</th>
+                    <th class="col-15">السعر</th>
+                    <th class="col-15">الإجمالي</th>
+                    <th class="col-10">المتبقي</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($inventoryItems as $item)
+                    <tr>
+                        <td class="wrap-text">{{ $item['product']->name ?? 'غير محدد' }}</td>
+                        <td class="wrap-text">{{ $item['storehouse']->name ?? 'غير محدد' }}</td>
+                        <td class="text-center">{{ $item['sold_quantity'] }}</td>
+                        <td class="currency">{{ number_format($item['unit_price'], 2, '.', ',') }} ر.س</td>
+                        <td class="currency">{{ number_format($item['sold_quantity'] * $item['unit_price'], 2, '.', ',') }} ر.س</td>
+                        <td class="text-center {{ $item['remaining_quantity'] < 10 ? 'text-danger' : '' }}">
+                            {{ $item['remaining_quantity'] }}
+                            @if($item['remaining_quantity'] < 10)
+                                <span class="low-stock-warning">!</span>
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @else
+        <div class="no-data">لا يوجد حركة مخزون مسجلة اليوم</div>
+    @endif
+</div>
+
+<!-- إضافة إلى قسم CSS -->
 
     <!-- الفواتير -->
     <div class="section">

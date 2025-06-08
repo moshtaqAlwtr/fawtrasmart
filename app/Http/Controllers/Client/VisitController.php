@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\ClientRelation;
 use App\Models\Expense;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Location;
 use App\Models\notifications;
 use App\Models\PaymentsProcess;
@@ -719,114 +720,161 @@ public function getWeeksData(Request $request)
             'weeks' => $weeks,
         ]);
     }
+public function sendDailyReport()
+{
+    $date = Carbon::today();
 
-    public function sendDailyReport()
-    {
-        $date = Carbon::today();
+    // جلب الموظفين مع العلاقات المطلوبة مسبقاً لتحسين الأداء
+    $users = User::with(['invoices' => function($query) use ($date) {
+            $query->whereDate('created_at', $date);
+        }])
+        ->where('role', 'employee')
+        ->get();
 
-        // جلب فقط الموظفين الذين لديهم دور employee
-        $users = User::where('role', 'employee')->get();
+    foreach ($users as $user) {
+        // الفواتير مع العلاقات المطلوبة
+        $invoices = Invoice::with(['client', 'items.product', 'items.storeHouse'])
+            ->where('created_by', $user->id)
+            ->whereDate('created_at', $date)
+            ->get();
 
-        foreach ($users as $user) {
-            // الفواتير التي أنشأها الموظف اليوم (العادية والمرتجعة)
-            $invoices = Invoice::with('client')->where('created_by', $user->id)->whereDate('created_at', $date)->get();
+        // حساب الفواتير العادية والمرتجعة
+        $normalInvoices = $invoices->where('type', '!=', 'returned')->reject(function ($invoice) use ($invoices) {
+            return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+        });
 
-            // جلب أرقام الفواتير العادية فقط (غير المرتجعة) والتي ليس لها فواتير مرتجعة
-            $normalInvoiceIds = $invoices
-                ->where('type', '!=', 'returned')
-                ->reject(function ($invoice) use ($invoices) {
-                    // استبعاد الفواتير التي لها فواتير مرتجعة
-                    return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
-                })
-                ->pluck('id')
-                ->toArray();
+        // المدفوعات للفواتير العادية
+        $normalInvoiceIds = $normalInvoices->pluck('id')->toArray();
+        $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)
+            ->whereDate('payment_date', $date)
+            ->get();
 
-            // المدفوعات المرتبطة بالفواتير العادية فقط والتي ليس لها فواتير مرتجعة
-            $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)->whereDate('payment_date', $date)->get();
+        // الزيارات والإيصالات والمصروفات والملاحظات
+        $visits = Visit::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
+        $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
+        $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
+        $notes = ClientRelation::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
 
-            // باقي الكود كما هو...
-            $visits = Visit::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
+        // التحقق من وجود أي نشاط
+        $hasActivity = $invoices->isNotEmpty() ||
+                      $payments->isNotEmpty() ||
+                      $visits->isNotEmpty() ||
+                      $receipts->isNotEmpty() ||
+                      $expenses->isNotEmpty() ||
+                      $notes->isNotEmpty();
 
-            $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
-
-            $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
-
-            $notes = ClientRelation::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
-
-            // حساب المجاميع
-            $totalNormalInvoices = $invoices
-                ->where('type', '!=', 'returned')
-                ->reject(function ($invoice) use ($invoices) {
-                    return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
-                })
-                ->sum('grand_total');
-
-            $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
-            $netSales = $totalNormalInvoices - $totalReturnedInvoices;
-            $totalPayments = $payments->sum('amount');
-            $totalReceipts = $receipts->sum('amount');
-            $totalExpenses = $expenses->sum('amount');
-            $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
-
-            // باقي الكود كما هو...
-            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-            $pdf->SetCreator(config('app.name'));
-            $pdf->SetAuthor($user->name);
-            $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
-            $pdf->SetSubject('التقرير اليومي');
-            $pdf->AddPage();
-
-            $html = view('reports.daily_employee_single', [
-                'user' => $user,
-                'invoices' => $invoices,
-                'visits' => $visits,
-                'payments' => $payments,
-                'receipts' => $receipts,
-                'expenses' => $expenses,
-                'notes' => $notes,
-                'total_normal_invoices' => $totalNormalInvoices,
-                'total_returned_invoices' => $totalReturnedInvoices,
-                'net_sales' => $netSales,
-                'total_payments' => $totalPayments,
-                'total_receipts' => $totalReceipts,
-                'total_expenses' => $totalExpenses,
-                'net_collection' => $netCollection,
-                'date' => $date->format('Y-m-d'),
-            ])->render();
-
-            $pdf->writeHTML($html, true, false, true, false, 'R');
-
-            $pdfPath = storage_path('app/public/daily_report_' . $user->id . '_' . $date->format('Y-m-d') . '.pdf');
-            $pdf->Output($pdfPath, 'F');
-
-            $caption = "📊 التقرير اليومي للموظف\n" . '👤 اسم الموظف: ' . $user->name . "\n" . '📅 التاريخ: ' . $date->format('Y-m-d') . "\n" . '🛒 إجمالي الفواتير: ' . number_format($netSales, 2) . " ر.س\n" . '💵 صافي التحصيل: ' . number_format($netCollection, 2) . " ر.س\n" . '🔄 الفواتير المرتجعة: ' . number_format($totalReturnedInvoices, 2) . ' ر.س';
-
-            $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
-            $chatId = '@Salesfatrasmart';
-
-            $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
-                'chat_id' => $chatId,
-                'caption' => '📊 تقرير الموظف اليومي - ' . $user->name . ' - ' . $date->format('Y-m-d')
-                . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n"
-                . '🔄 المرتجعات: ' . number_format($totalReturnedInvoices, 2) . ' ر.س' .
-                 '💰 صافي  التحصيل : ' . number_format($netCollection, 2) . " ر.س\n",
-            ]);
-
-            if (file_exists($pdfPath)) {
-                unlink($pdfPath);
-            }
-
-            if ($response->successful()) {
-                Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
-            } else {
-                Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
-                    'error' => $response->body(),
-                ]);
-            }
+        // إذا لم يكن هناك أي نشاط، تخطي هذا الموظف
+        if (!$hasActivity) {
+            Log::info('لا يوجد نشاط للموظف: ' . $user->name . ' في تاريخ: ' . $date->format('Y-m-d') . ' - تم تخطي إرسال التقرير');
+            continue;
         }
 
-        return true;
+        // حساب المجاميع
+        $totalNormalInvoices = $normalInvoices->sum('grand_total');
+        $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
+        $netSales = $totalNormalInvoices - $totalReturnedInvoices;
+        $totalPayments = $payments->sum('amount');
+        $totalReceipts = $receipts->sum('amount');
+        $totalExpenses = $expenses->sum('amount');
+        $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
+
+        // إضافة معلومات المخزون لكل بند في الفاتورة
+        $invoices->each(function ($invoice) {
+            $invoice->items->each(function ($item) {
+                $item->remaining_quantity = $this->calculateRemainingQuantity($item);
+                return $item;
+            });
+            return $invoice;
+        });
+
+        // إنشاء التقرير PDF
+        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+        $pdf->SetCreator(config('app.name'));
+        $pdf->SetAuthor($user->name);
+        $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
+        $pdf->SetSubject('التقرير اليومي');
+        $pdf->AddPage();
+
+        $html = view('reports.daily_employee_single', [
+            'user' => $user,
+            'invoices' => $invoices,
+            'visits' => $visits,
+            'payments' => $payments,
+            'receipts' => $receipts,
+            'expenses' => $expenses,
+            'notes' => $notes,
+            'total_normal_invoices' => $totalNormalInvoices,
+            'total_returned_invoices' => $totalReturnedInvoices,
+            'net_sales' => $netSales,
+            'total_payments' => $totalPayments,
+            'total_receipts' => $totalReceipts,
+            'total_expenses' => $totalExpenses,
+            'net_collection' => $netCollection,
+            'date' => $date->format('Y-m-d'),
+        ])->render();
+
+        $pdf->writeHTML($html, true, false, true, false, 'R');
+
+        // حفظ وإرسال التقرير
+        $pdfPath = storage_path('app/public/daily_report_' . $user->id . '_' . $date->format('Y-m-d') . '.pdf');
+        $pdf->Output($pdfPath, 'F');
+
+        // نص الرسالة
+        $caption = "📊 التقرير اليومي للموظف\n" .
+                  '👤 اسم الموظف: ' . $user->name . "\n" .
+                  '📅 التاريخ: ' . $date->format('Y-m-d') . "\n" .
+                  '🛒 إجمالي الفواتير: ' . number_format($netSales, 2) . " ر.س\n" .
+                  '💵 صافي التحصيل: ' . number_format($netCollection, 2) . " ر.س\n" .
+                  '🔄 الفواتير المرتجعة: ' . number_format($totalReturnedInvoices, 2) . ' ر.س';
+
+        // إرسال عبر التليجرام
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.report_channel');
+
+        $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_' . $user->name . '.pdf')
+            ->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+                'chat_id' => $chatId,
+                'caption' => $caption
+            ]);
+
+        // تنظيف الملف المؤقت
+        if (file_exists($pdfPath)) {
+            unlink($pdfPath);
+        }
+
+        // تسجيل النتيجة
+        if ($response->successful()) {
+            Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
+        } else {
+            Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
+                'error' => $response->body(),
+            ]);
+        }
     }
+
+    return true;
+}
+/**
+ * حساب الكمية المتبقية في المستودع
+ */
+private function calculateRemainingQuantity($item)
+{
+    if (!$item->product_id || !$item->store_house_id) {
+        return 0;
+    }
+
+    // الكمية الأولية في المستودع
+    $initialQuantity = $item->storeHouse->products()
+        ->where('product_id', $item->product_id)
+        ->value('quantity') ?? 0;
+
+    // الكمية المستهلكة (كل الفواتير لهذا المنتج في هذا المستودع)
+    $consumedQuantity = InvoiceItem::where('product_id', $item->product_id)
+        ->where('store_house_id', $item->store_house_id)
+        ->sum('quantity');
+
+    return max(0, $initialQuantity - $consumedQuantity); // تجنب القيم السالبة
+}
     public function sendWeeklyReport()
     {
         $endDate = Carbon::today();
