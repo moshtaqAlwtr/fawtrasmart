@@ -722,16 +722,16 @@ public function index(Request $request)
         // تحميل العميل المحدد مع جميع العلاقات الضرورية
         $client = Client::with([
             'invoices' => function ($query) {
-                $query->orderBy('invoice_date', 'desc');
+                $query->orderBy('created_at', 'desc');
             },
             'invoices.payments',
             'appointments' => function ($query) {
-                $query->orderBy('appointment_date', 'desc');
+                $query->orderBy('created_at', 'desc');
             },
             'employee',
             'account',
             'payments' => function ($query) {
-                $query->orderBy('payment_date', 'desc');
+                $query->orderBy('created_at', 'desc');
             },
             'appointmentNotes' => function ($query) {
                 $query->orderBy('created_at', 'desc');

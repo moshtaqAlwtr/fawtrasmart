@@ -168,6 +168,72 @@
                 @endif
             @endif
 
+            @if (auth()->user()->hasAnyPermission([
+                        'clients_view_all_clients',
+                        'client_follow_up_add_notes_attachments_appointments_all',
+                        'clients_edit_client_settings',
+                    ]))
+                @if (isset($settings['customers']) && $settings['customers'] === 'active')
+                    <li class="nav-item">
+                        <a href="#">
+                            <i class="feather icon-user"></i> <!-- أيقونة العملاء -->
+                            <span class="menu-title"
+                                data-i18n="Dashboard">{{ trans('main_trans.Customers') }}</span>
+                        </a>
+                        <ul class="menu-content">
+                            @can('clients_view_all_clients')
+                                <li><a href="{{ route('clients.index') }}"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="Analytics">{{ trans('main_trans.Customer_management') }}</span>
+                                    </a>
+                                </li>
+                            @endcan
+
+                            @can('clients_add_client')
+                                <li><a href="{{ route('clients.create') }}"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="eCommerce">{{ trans('main_trans.Add_a_new_customer') }}</span>
+                                    </a>
+                                </li>
+                            @endcan
+
+                            @can('client_follow_up_add_notes_attachments_appointments_all')
+                                <li><a href="{{ route('appointments.index') }}"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="eCommerce">{{ trans('main_trans.Appointments') }}</span>
+                                    </a>
+                                </li>
+                            @endcan
+
+                            <li><a href="{{ route('clients.contacts') }}"><i class="feather icon-circle"></i><span
+                                        class="menu-item"
+                                        data-i18n="eCommerce">{{ trans('main_trans.Contact_list') }}</span>
+                                </a>
+                            </li>
+
+                            <li><a href="{{ route('clients.mang_client') }}"><i
+                                        class="feather icon-circle"></i><span class="menu-item"
+                                        data-i18n="eCommerce">{{ trans('main_trans.Customer_relationship_management') }}</span>
+                                </a>
+                            </li>
+                            @can('clients_edit_client_settings')
+                                <li><a href="{{ route('groups.group_client') }}"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
+                                            data-i18n="eCommerce">اعدادات المجموعات</span>
+                                    </a>
+                                </li>
+                    @endif
+
+                    @can('clients_edit_client_settings')
+                        <li><a href="{{ route('clients.setting') }}"><i class="feather icon-circle"></i><span
+                                    class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Client_settings') }}</span>
+                            </a>
+                        </li>
+                    @endcan
+
+            </ul>
+            </li>
+            @endif
 
             <li class="nav-item">
                 <a href="#">
@@ -537,72 +603,7 @@
                 @endif
             @endif
             <!-- العملاء -->
-            @if (auth()->user()->hasAnyPermission([
-                        'clients_view_all_clients',
-                        'client_follow_up_add_notes_attachments_appointments_all',
-                        'clients_edit_client_settings',
-                    ]))
-                @if (isset($settings['customers']) && $settings['customers'] === 'active')
-                    <li class="nav-item">
-                        <a href="#">
-                            <i class="feather icon-user"></i> <!-- أيقونة العملاء -->
-                            <span class="menu-title"
-                                data-i18n="Dashboard">{{ trans('main_trans.Customers') }}</span>
-                        </a>
-                        <ul class="menu-content">
-                            @can('clients_view_all_clients')
-                                <li><a href="{{ route('clients.index') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="Analytics">{{ trans('main_trans.Customer_management') }}</span>
-                                    </a>
-                                </li>
-                            @endcan
 
-                            @can('clients_add_client')
-                                <li><a href="{{ route('clients.create') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Add_a_new_customer') }}</span>
-                                    </a>
-                                </li>
-                            @endcan
-
-                            @can('client_follow_up_add_notes_attachments_appointments_all')
-                                <li><a href="{{ route('appointments.index') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="eCommerce">{{ trans('main_trans.Appointments') }}</span>
-                                    </a>
-                                </li>
-                            @endcan
-
-                            <li><a href="{{ route('clients.contacts') }}"><i class="feather icon-circle"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Contact_list') }}</span>
-                                </a>
-                            </li>
-
-                            <li><a href="{{ route('clients.mang_client') }}"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce">{{ trans('main_trans.Customer_relationship_management') }}</span>
-                                </a>
-                            </li>
-                            @can('clients_edit_client_settings')
-                                <li><a href="{{ route('groups.group_client') }}"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="eCommerce">اعدادات المجموعات</span>
-                                    </a>
-                                </li>
-                    @endif
-
-                    @can('clients_edit_client_settings')
-                        <li><a href="{{ route('clients.setting') }}"><i class="feather icon-circle"></i><span
-                                    class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Client_settings') }}</span>
-                            </a>
-                        </li>
-                    @endcan
-
-            </ul>
-            </li>
-            @endif
             @endif
 
             <!-- نقاط الارصدة -->
