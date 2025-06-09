@@ -331,7 +331,21 @@
         <span id="advance-payment-amount">{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
     </div>
 @endif
+@php
+                                                $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
+                                                    ->where('reference_number', $invoice->id)
+                                                    ->first();
+                                            @endphp
 
+                                            @if ($returnedInvoice)
+                                              
+                                                        
+                                                          <div class="summary-row">
+                            <span> مرتجع:</span>
+                            <span>  {{ number_format($invoice->returned_payment, 2) ?? '' }}
+                                                    ر.س</span> 
+                        </div>
+                        @endif
 <div class="summary-row">
     <span>المبلغ المستحق:</span>
     <span id="due-value-amount">{{ number_format($invoice->due_value, 2) }} ر.س</span>
