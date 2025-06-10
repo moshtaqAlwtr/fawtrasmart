@@ -238,6 +238,12 @@
 </head>
 
 <body>
+    @php
+                                                $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
+                                                    ->where('reference_number', $invoice->id)
+                                                    ->first();
+                                            @endphp
+
     <div class="container">
         <div class="receipt-container">
             <div class="receipt">
@@ -331,11 +337,6 @@
         <span id="advance-payment-amount">{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
     </div>
 @endif
-@php
-                                                $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
-                                                    ->where('reference_number', $invoice->id)
-                                                    ->first();
-                                            @endphp
 
                                             @if ($returnedInvoice)
                                               
@@ -425,6 +426,15 @@
             </div>
         </div>
     </div>
+       <script>
+    toastr.success('تم التحميل بنجاح');
+</script>
+
+ 
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
+
+     
+
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <script>
     const canvas = document.getElementById('signature-pad');
@@ -448,76 +458,85 @@
     });
 
     document.getElementById('signature-form').addEventListener('submit', async function (e) {
-        e.preventDefault();
+    e.preventDefault();
 
-        const signerName = document.getElementById('signer-name').value.trim();
-        const signerRole = document.getElementById('signer-role').value.trim();
-        const amountPaid = document.querySelector('input[name="amount_paid"]').value.trim();
+    const signerName = document.getElementById('signer-name').value.trim();
+    const signerRole = document.getElementById('signer-role').value.trim();
+    const amountPaid = document.querySelector('input[name="amount_paid"]').value.trim();
 
-        if (!signerName) {
-            toastr.error('الرجاء إدخال الاسم الكامل');
-            return;
-        }
+    if (!signerName) {
+        toastr.error('الرجاء إدخال الاسم الكامل');
+        return;
+    }
 
-        if (!amountPaid || isNaN(amountPaid)) {
-            toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
-            return;
-        }
+    if (!amountPaid || isNaN(amountPaid)) {
+        toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
+        return;
+    }
 
-        if (signaturePad.isEmpty()) {
-            toastr.error('الرجاء تقديم التوقيع أولاً');
-            return;
-        }
+    // ✅ تحقق من تجاوز المبلغ المستحق
+    const dueAmountText = document.getElementById('due-value-amount')?.textContent || '0';
+    const dueAmount = parseFloat(dueAmountText.replace(/[^\d.]/g, '') || 0);
 
-        Swal.fire({
-            title: 'تأكيد الحفظ',
-            text: 'هل أنت متأكد من حفظ التوقيع؟',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'نعم، احفظ',
-            cancelButtonText: 'إلغاء'
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const signatureData = signaturePad.toDataURL();
-                    document.getElementById('signature-data').value = signatureData;
+    if (parseFloat(amountPaid) > dueAmount) {
+        toastr.error('المبلغ المدفوع أكبر من المبلغ المستحق');
+        return;
+    }
 
-                    const formData = new FormData(this);
-                    const response = await axios.post(this.action, formData);
+    if (signaturePad.isEmpty()) {
+        toastr.error('الرجاء تقديم التوقيع أولاً');
+        return;
+    }
 
-                    if (response.data.success) {
-                        const newSignature = response.data.signature;
-                        const container = document.querySelector('.signature-history');
+    Swal.fire({
+        title: 'تأكيد الحفظ',
+        text: 'هل أنت متأكد من حفظ التوقيع؟',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احفظ',
+        cancelButtonText: 'إلغاء'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const signatureData = signaturePad.toDataURL();
+                document.getElementById('signature-data').value = signatureData;
 
-                        const signatureItem = document.createElement('div');
-                        signatureItem.classList.add('signature-item');
-                        signatureItem.innerHTML = `
-                            <div><strong>الاسم:</strong> ${newSignature.signer_name}</div>
-                            ${newSignature.signer_role ? `<div><strong>الصفة:</strong> ${newSignature.signer_role}</div>` : ''}
-                            ${newSignature.amount_paid ? `<div><strong>المبلغ المدفوع:</strong> ${parseFloat(newSignature.amount_paid).toFixed(2)} ريال</div>` : ''}
-                            <img src="${newSignature.signature_data}" style="max-width: 100%; height: auto; margin-top: 5px;">
-                        `;
-                        container.prepend(signatureItem);
+                const formData = new FormData(this);
+                const response = await axios.post(this.action, formData);
 
-                        // ✅ تحديث القيم المالية
-                        updatePaymentSummary(newSignature.amount_paid);
+                if (response.data.success) {
+                    const newSignature = response.data.signature;
+                    const container = document.querySelector('.signature-history');
 
-                        // تنظيف النموذج
-                        document.getElementById('signer-name').value = '';
-                        document.getElementById('signer-role').value = '';
-                        document.querySelector('input[name="amount_paid"]').value = '';
-                        signaturePad.clear();
-                        toastr.success('تم حفظ التوقيع بنجاح');
-                    } else {
-                        toastr.error(response.data.message || 'حدث خطأ في الحفظ');
-                    }
-                } catch (error) {
-                    toastr.error('فشل في الحفظ. يرجى المحاولة لاحقًا.');
-                    console.error(error);
+                    const signatureItem = document.createElement('div');
+                    signatureItem.classList.add('signature-item');
+                    signatureItem.innerHTML = `
+                        <div><strong>الاسم:</strong> ${newSignature.signer_name}</div>
+                        ${newSignature.signer_role ? `<div><strong>الصفة:</strong> ${newSignature.signer_role}</div>` : ''}
+                        ${newSignature.amount_paid ? `<div><strong>المبلغ المدفوع:</strong> ${parseFloat(newSignature.amount_paid).toFixed(2)} ريال</div>` : ''}
+                        <img src="${newSignature.signature_data}" style="max-width: 100%; height: auto; margin-top: 5px;">
+                    `;
+                    container.prepend(signatureItem);
+
+                    updatePaymentSummary(newSignature.amount_paid);
+
+                    // تنظيف الحقول
+                    document.getElementById('signer-name').value = '';
+                    document.getElementById('signer-role').value = '';
+                    document.querySelector('input[name="amount_paid"]').value = '';
+                    signaturePad.clear();
+                    toastr.success('تم حفظ التوقيع بنجاح');
+                } else {
+                    toastr.error(response.data.message || 'حدث خطأ في الحفظ');
                 }
+            } catch (error) {
+                toastr.error('فشل في الحفظ. يرجى المحاولة لاحقًا.');
+                console.error(error);
             }
-        });
+        }
     });
+});
+
 
     // ✅ دالة لتحديث المبلغ المدفوع والمستحق
     function updatePaymentSummary(amountPaid) {
@@ -558,11 +577,15 @@
 </script>
 
     <!-- مكتبات JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+  <!-- ✅ مكتبة Axios -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<!-- ✅ مكتبة Toastr -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<!-- ✅ مكتبة SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
 </body>
  <script>
