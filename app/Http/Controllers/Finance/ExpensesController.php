@@ -15,6 +15,7 @@ use App\Models\Treasury;
 use App\Models\TaxSitting;
 use App\Models\AccountSetting;
 use App\Models\TreasuryEmployee;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,7 +37,9 @@ class ExpensesController extends Controller
         })
         ->when($request->from_date, function ($query, $from_date) {
             return $query->where('date', '>=', $from_date);
-        })
+        })->when($request->added_by, function ($query, $added_by) {
+    return $query->where('created_by', $added_by); // أو employee_id إذا كانت هي الحقل الصحيح
+})
         ->when($request->to_date, function ($query, $to_date) {
             return $query->where('date', '<=', $to_date);
         })
@@ -68,7 +71,7 @@ class ExpensesController extends Controller
             return $query->where('account_id', $sub_account);
         })
         ->when($request->added_by, function ($query, $added_by) {
-            return $query->where('employee_id', $added_by);
+            return $query->where('created_by', $added_by);
         });
 
     // إذا كان المستخدم موظفاً، نضيف شرطاً لرؤية سنداته فقط
@@ -92,12 +95,14 @@ class ExpensesController extends Controller
     $totalLast7Days = $totalLast7DaysQuery->sum('amount');
     $totalLast30Days = $totalLast30DaysQuery->sum('amount');
     $totalLast365Days = $totalLast365DaysQuery->sum('amount');
+$employees=User::where('role','employee')->get();
 
     $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
     return view('finance.expenses.index', compact(
         'expenses',
         'categories',
+'employees',
         'account_setting',
         'totalLast7Days',
         'totalLast30Days',

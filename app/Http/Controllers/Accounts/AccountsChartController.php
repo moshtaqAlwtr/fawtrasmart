@@ -185,7 +185,7 @@ class AccountsChartController extends Controller
         $accounts = $accounts->get();
         $branches = Branch::all();
 
-        return view('Accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
+        return view('accounts.accounts_chart.tree', compact('accounts', 'branches', 'searchText', 'branchId'));
     }
 
     public function search(Request $request)

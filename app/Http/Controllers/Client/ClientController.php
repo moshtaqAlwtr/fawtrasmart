@@ -1095,7 +1095,6 @@ public function addnotes(Request $request)
         'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
         'competitor_documents' => 'nullable|integer|min:0',
         'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:102400',
-
     ]);
 
     DB::beginTransaction();
@@ -1116,7 +1115,7 @@ public function addnotes(Request $request)
             throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
         }
 
-        // 2. إنشاء الملاحظة
+        // 2. إنشاء الملاحظة وتسجيل وقت آخر تحديث
         $clientRelation = ClientRelation::create([
             'employee_id' => auth()->id(),
             'client_id' => $request->client_id,
@@ -1133,7 +1132,12 @@ public function addnotes(Request $request)
             ]),
         ]);
 
-        // 3. حفظ المرفقات
+        // 3. تحديث سجل العميل بوقت آخر ملاحظة
+        $client = Client::find($request->client_id);
+        $client->last_note_at = now();
+        $client->save();
+
+        // 4. حفظ المرفقات
         if ($request->hasFile('attachments')) {
             $attachments = [];
             foreach ($request->file('attachments') as $file) {
@@ -1147,13 +1151,13 @@ public function addnotes(Request $request)
             $clientRelation->save();
         }
 
-        // 4. تحديث موقع الموظف
+        // 5. تحديث موقع الموظف
         $employeeLocation->update([
             'client_relation_id' => $clientRelation->id,
             'client_id' => $request->client_id,
         ]);
 
-        // 5. الإشعارات والسجل
+        // 6. الإشعارات والسجل
         ModelsLog::create([
             'type' => 'notes',
             'type_log' => 'log',
@@ -1165,10 +1169,9 @@ public function addnotes(Request $request)
             'user_id' => auth()->id(),
             'type' => 'notes',
             'title' => auth()->user()->name . ' أضاف ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . (Client::find($request->client_id)->trade_name ?? 'عميل غير معروف') . ' - ' . $request->description,
+            'description' => 'ملاحظة للعميل ' . $client->trade_name . ' - ' . $request->description,
         ]);
 
-        // 6. إنهاء العملية
         DB::commit();
 
         return redirect()->route('clients.show', $request->client_id)
@@ -1180,6 +1183,28 @@ public function addnotes(Request $request)
         DB::rollBack();
         return redirect()->back()->with('error', 'فشل إضافة الملاحظة: ' . $e->getMessage())->withInput();
     }
+}
+public function forceShow(Client $client)
+{
+    // السماح فقط للمديرين
+    if (auth()->user()->role !== 'manager') {
+        abort(403, 'أنت لا تملك الصلاحية لتنفيذ هذا الإجراء.');
+    }
+
+    $client->update([
+        'force_show' => true,
+        'last_note_at' => null
+    ]);
+
+    // تسجيل في سجل النظام
+    ModelsLog::create([
+        'type' => 'client',
+        'type_log' => 'update',
+        'description' => 'تم إظهار العميل ' . $client->trade_name . ' في الخريطة قبل انتهاء المدة',
+        'created_by' => auth()->id(),
+    ]);
+
+    return back()->with('success', 'تم إظهار العميل في الخريطة بنجاح');
 }
 
 // دالة مساعدة لحساب المسافة

@@ -32,17 +32,17 @@
 
     <div class="content-body">
         <div class="card">
-            @if(session('error'))
-    <div class="alert alert-danger">
-        {{ session('error') }}
-    </div>
-@endif
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
 
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
 
@@ -109,12 +109,12 @@
                             <label for="employee_search">البحث بواسطة الموظف</label>
 
 
-                            <select class="form-control"name="employee_search" value="{{ request('employee_search') }}">
+                            <select class="form-control select2"name="employee_search" value="{{ request('employee_search') }}">
                                 <option>اختر الموظف</option>
                                 @foreach ($employees as $employee)
                                     <option value="{{ $employee->id }}"
                                         {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                        {{ $employee->first_name }}</option>
+                                        {{ $employee->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -199,7 +199,7 @@
                             <th>موظف</th>
                             <th>الأقساط المدفوعة</th>
                             <th>الدفعة القادمة</th>
-                      
+
                             <th>وسوم</th>
                             <th>ترتيب بواسطة</th>
 
@@ -207,11 +207,12 @@
                     </thead>
                     <tbody>
                         @forelse($ancestors as $ancestor)
-                          @php
-        $totalPaid = $ancestor->payments->where('status', 'paid')->sum('amount');
-        $paidInstallments = $ancestor->payments->where('status', 'paid')->count();
-        $progressPercentage = $ancestor->amount > 0 ? ($totalPaid / $ancestor->amount) * 100 : 0;
-    @endphp
+                            @php
+                                $totalPaid = $ancestor->payments->where('status', 'paid')->sum('amount');
+                                $paidInstallments = $ancestor->payments->where('status', 'paid')->count();
+                                $progressPercentage =
+                                    $ancestor->amount > 0 ? ($totalPaid / $ancestor->amount) * 100 : 0;
+                            @endphp
                             <tr>
                                 <td>{{ $ancestor->id }}</td>
                                 <td>
@@ -221,51 +222,61 @@
                                             {{ mb_substr($ancestor->employee->full_name ?? 'غ', 0, 1, 'UTF-8') }}
                                         </div>
                                         <span class="text-primary" style="color: #0d6efd !important;">
-                                            {{ $ancestor->employee->full_name }}
+                                            {{ $ancestor->employee->name??'--' }}
                                             <span style="margin-right: 4px;">#{{ $ancestor->employee->id }}</span>
                                         </span>
                                     </div>
                                 </td>
-                                     @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
+                                @php
+                                    $currency = $account_setting->currency ?? 'SAR';
+                                    $currencySymbol =
+                                        $currency == 'SAR' || empty($currency)
+                                            ? '<img src="' .
+                                                asset('assets/images/Saudi_Riyal.svg') .
+                                                '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                            : $currency;
+                                @endphp
 
                                 <!-- عمود الأقساط المدفوعة -->
-                             <td>
-        <div class="mb-2">
-            <label class="text-muted">حالة السداد:</label>
-            <div class="mt-1">
-                <div style="width: fit-content;">
-                    <div style="font-weight: bold; margin-bottom: 4px; position: relative;">
-                        <div style="border-bottom: 2px solid #ffc107; width: {{ $progressPercentage }}%; position: absolute; bottom: -2px;"></div>
-                        <div style="border-bottom: 1px solid #dee2e6; width: fit-content;">
-                            {{ number_format($ancestor->amount, 2) }} {!! $currencySymbol !!} (إجمالي السلفة)
-                        </div>
-                    </div>
-                    <div style="color: #666; font-size: 0.9em;">
-                        <span>{{ number_format($totalPaid, 2) }} {!! $currencySymbol !!} مدفوعة ({{ $paidInstallments }} قسط)</span>
-                        <span class="mx-2">|</span>
-                        <span>{{ number_format($ancestor->amount - $totalPaid, 2) }} {!! $currencySymbol !!} متبقي</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </td>
-                            <td>
-    @if($ancestor->next_payment)
-        {{ $ancestor->next_payment->due_date }}
-        <span class="badge badge-warning">قادم</span>
-    @else
-        @if($ancestor->payments->where('status', 'unpaid')->isEmpty())
-            <span class="badge badge-success">مكتمل</span>
-        @else
-            <span class="badge badge-danger">متأخر</span>
-        @endif
-    @endif
-</td>
+                                <td>
+                                    <div class="mb-2">
+                                        <label class="text-muted">حالة السداد:</label>
+                                        <div class="mt-1">
+                                            <div style="width: fit-content;">
+                                                <div style="font-weight: bold; margin-bottom: 4px; position: relative;">
+                                                    <div
+                                                        style="border-bottom: 2px solid #ffc107; width: {{ $progressPercentage }}%; position: absolute; bottom: -2px;">
+                                                    </div>
+                                                    <div style="border-bottom: 1px solid #dee2e6; width: fit-content;">
+                                                        {{ number_format($ancestor->amount, 2) }} {!! $currencySymbol !!}
+                                                        (إجمالي السلفة)
+                                                    </div>
+                                                </div>
+                                                <div style="color: #666; font-size: 0.9em;">
+                                                    <span>{{ number_format($totalPaid, 2) }} {!! $currencySymbol !!} مدفوعة
+                                                        ({{ $paidInstallments }} قسط)</span>
+                                                    <span class="mx-2">|</span>
+                                                    <span>{{ number_format($ancestor->amount - $totalPaid, 2) }}
+                                                        {!! $currencySymbol !!} متبقي</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if ($ancestor->next_payment)
+                                        {{ $ancestor->next_payment->due_date }}
+                                        <span class="badge badge-warning">قادم</span>
+                                    @else
+                                        @if ($ancestor->payments->where('status', 'unpaid')->isEmpty())
+                                            <span class="badge badge-success">مكتمل</span>
+                                        @else
+                                            <span class="badge badge-danger">متأخر</span>
+                                        @endif
+                                    @endif
+                                </td>
 
-                         
+
                                 <td></td>
                                 <td>
                                     <div class="btn-group">

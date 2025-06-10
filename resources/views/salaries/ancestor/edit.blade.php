@@ -26,7 +26,8 @@
     </div>
 
     <div class="content-body">
-        <form class="form" action="{{ route('ancestor.update', $ancestor->id) }}" method="post" enctype="multipart/form-data">
+        <form class="form" action="{{ route('ancestor.update', $ancestor->id) }}" method="post"
+            enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -76,27 +77,34 @@
                             <!-- موظف -->
                             <div class="col-md-6 mb-3">
                                 <label for="employee">موظف<span class="text-danger">*</span></label>
-                             <select class="form-control" id="employee" name="employee_id" disabled>
-    <option value="{{ $employee->id }}" selected>{{ $employee->full_name }}</option>
-</select>
-<input type="hidden" name="employee_id" value="{{ $employee->id }}">
+                                <select class="form-control" id="employee" name="employee_id" disabled>
+                                    @foreach ($employees as $employee)
+                                        <option value="{{ $employee->id }}"
+                                            {{ old('employee_id', $ancestor->employee_id) == $employee->id ? 'selected' : '' }}>
+                                            {{ $employee->name }}</option>
+                                    @endforeach
+                                </select>
+                                {{-- <input type="hidden" name="employee_id" value="{{ $employee->id }}"> --}}
                             </div>
 
                             <!-- تاريخ التقديم -->
                             <div class="col-md-6 mb-3">
                                 <label for="submission_date">تاريخ التقديم<span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="submission_date" name="submission_date"
-                                    placeholder="DD/MM/YYYY" value="{{ old('submission_date', $ancestor->submission_date) }}">
+                                    placeholder="DD/MM/YYYY"
+                                    value="{{ old('submission_date', $ancestor->submission_date) }}">
                             </div>
 
                             <!-- المبلغ -->
                             <div class="col-md-6 mb-3">
                                 <label for="amount">المبلغ<span class="text-danger">*</span></label>
                                 <div class="input-group border rounded" style="height: 50px;">
-                                    <input type="number" class="form-control border-0 text-center"
-                                        id="amount" name="amount" style="height: 100%; font-size: 1rem;" value="{{ old('amount', $ancestor->amount) }}">
+                                    <input type="number" class="form-control border-0 text-center" id="amount"
+                                        name="amount" style="height: 100%; font-size: 1rem;"
+                                        value="{{ old('amount', $ancestor->amount) }}">
 
-                                    <select name="currency" id="" class="form-select border-0 h-100 text-center "value  = "{{ old('currency', $ancestor->currency) }}"
+                                    <select name="currency" id=""
+                                        class="form-select border-0 h-100 text-center "value="{{ old('currency', $ancestor->currency) }}"
                                         style="font-size: 1rem;">
                                         <option value="1">SAR</option>
                                         <option value="2">USD</option>
@@ -114,15 +122,16 @@
                                     <input type="number"
                                         class="form-control border-0 text-center @error('installment_amount') is-invalid @enderror"
                                         id="installment_amount" name="installment_amount"
-                                        value="{{ old('installment_amount', $ancestor->installment_amount) }}" step="0.01"
-                                        style="height: 100%; font-size: 1rem;">
+                                        value="{{ old('installment_amount', $ancestor->installment_amount) }}"
+                                        step="0.01" style="height: 100%; font-size: 1rem;">
 
                                     <div class="input-group-prepend" style="min-width: 120px;">
                                         <div class="input-group-text border-0 w-100 bg-white h-100">
                                             <div class="text-center w-100">
                                                 <label for="installment_count" class="form-label"> عدد الاقساط</label>
                                                 <input type="number" class="form-control border-0 text-center"
-                                                    value="{{ old('installment_count', $ancestor->installment_count) }}" readonly id="installment_count"
+                                                    value="{{ old('installment_count', $ancestor->installment_count) }}"
+                                                    readonly id="installment_count"
                                                     style="background: transparent; font-size: 1rem;">
                                             </div>
                                         </div>
@@ -141,7 +150,8 @@
                             <div class="col-md-6 mb-3">
                                 <label for="payment_rate">معدل السداد<span class="text-danger">*</span></label>
 
-                                <select name="payment_rate" id="payment_rate" class="form-control"  value="{{ old('payment_rate', $ancestor->payment_rate) }}">
+                                <select name="payment_rate" id="payment_rate" class="form-control"
+                                    value="{{ old('payment_rate', $ancestor->payment_rate) }}">
                                     <option value="">اختر معدل الدفع</option>
                                     <option value="monthly" {{ old('payment_rate') == 'monthly' ? 'selected' : '' }}>شهري
                                     </option>
@@ -157,17 +167,18 @@
                                 <label for="installment_start_date">تاريخ بدء الأقساط<span
                                         class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="installment_start_date"
-                                    name="installment_start_date" placeholder="DD/MM/YYYY" value="{{ old('installment_start_date', $ancestor->installment_start_date) }}">
+                                    name="installment_start_date" placeholder="DD/MM/YYYY"
+                                    value="{{ old('installment_start_date', $ancestor->installment_start_date) }}">
                             </div>
 
                             <!-- الخزنة -->
                             <div class="col-md-6 mb-3">
                                 <label for="treasury">الخزنة<span class="text-danger">*</span></label>
-                              <!-- Treasury Select - غير قابل للتعديل -->
-<select class="form-control" id="treasury" name="treasury_id" required disabled>
-    <option value="{{ $treasure->id }}" selected>{{ $treasure->name }}</option>
-</select>
-<input type="hidden" name="treasury_id" value="{{ $treasure->id }}">
+                                <!-- Treasury Select - غير قابل للتعديل -->
+                                <select class="form-control" id="treasury" name="treasury_id" required disabled>
+                                    <option value="{{ $treasure->id }}" selected>{{ $treasure->name }}</option>
+                                </select>
+                                <input type="hidden" name="treasury_id" value="{{ $treasure->id }}">
                             </div>
 
                             <!-- الدفع من قسيمة الراتب -->
@@ -178,7 +189,8 @@
                                         <div
                                             class="custom-control custom-checkbox d-flex justify-content-start align-items-center w-100">
                                             <input id="duration_check" class="custom-control-input" type="checkbox"
-                                                name="pay_from_salary" value="{{ old('pay_from_salary', $ancestor->pay_from_salary ? '1' : '0' )}}">
+                                                name="pay_from_salary"
+                                                value="{{ old('pay_from_salary', $ancestor->pay_from_salary ? '1' : '0') }}">
                                             <label for="duration_check" class="custom-control-label ml-2">
                                                 التحقق من الحضور <span class="required">*</span>
                                             </label>
@@ -191,8 +203,8 @@
                             <!-- رسوم -->
                             <div class="col-md-6 mb-3">
                                 <label for="fees">وسوم</label>
-                                <input type="text" class="form-control" id="fees" name="tag" value="{{ old('tag', $ancestor->tag) }}"
-                                    placeholder="الوسوم">
+                                <input type="text" class="form-control" id="fees" name="tag"
+                                    value="{{ old('tag', $ancestor->tag) }}" placeholder="الوسوم">
                             </div>
 
                             <!-- ملاحظة -->

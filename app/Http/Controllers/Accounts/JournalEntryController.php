@@ -83,13 +83,14 @@ class JournalEntryController extends Controller
         }
 
         // تقسيم النتائج إلى صفحات، مع عرض 15 عنصرًا في كل صفحة
-        $entries = $query->paginate(50);
+    $entries = $query->orderBy('created_at', 'desc')->paginate(50);
+
         $entryDetails = JournalEntryDetail::with('account')->get();
         $users = User::all();
         $costCenters = CostCenter::all();
         $accounts = Account::all();
 
-        return view('Accounts.journal.index', compact('entries', 'entryDetails', 'users', 'costCenters', 'accounts'));
+        return view('accounts.journal.index', compact('entries', 'entryDetails', 'users', 'costCenters', 'accounts'));
     }
     public function create()
     {
@@ -105,7 +106,7 @@ class JournalEntryController extends Controller
         // بناء شجرة الحسابات
         $sortedAccounts = $this->buildAccountTree($accounts);
 
-        return view('Accounts.journal.create', compact('sortedAccounts', 'accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
+        return view('accounts.journal.create', compact('sortedAccounts', 'accounts', 'clients', 'employees', 'costCenters', 'journalEntry', 'entryDetails'));
     }
     private function buildAccountTree($accounts, $parentId = null, $level = 0)
     {
@@ -214,7 +215,7 @@ class JournalEntryController extends Controller
     {
         $entry = JournalEntry::with(['details.account'])->findOrFail($id);
         $entryDetails = JournalEntryDetail::with('account')->get();
-        return view('Accounts.journal.show', compact('entry', 'entryDetails'));
+        return view('accounts.journal.show', compact('entry', 'entryDetails'));
     }
 
     public function edit($id)
@@ -226,7 +227,7 @@ class JournalEntryController extends Controller
         $employees = Employee::all();
         $costCenters = CostCenter::all();
 
-        return view('Accounts.journal.edit', compact('entry', 'journal', 'accounts', 'clients', 'employees', 'costCenters'));
+        return view('accounts.journal.edit', compact('entry', 'journal', 'accounts', 'clients', 'employees', 'costCenters'));
     }
 
     public function update(Request $request, JournalEntry $entry)
@@ -410,6 +411,6 @@ class JournalEntryController extends Controller
         $accounts = ChartOfAccount::all();
         $employees = Employee::all();
 
-        return view('Accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
+        return view('accounts.journal.record_modifications', compact('entries', 'accounts', 'employees'));
     }
 }
