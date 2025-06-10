@@ -28,99 +28,90 @@ use Illuminate\Support\Facades\Log;
 
 class IncomesController extends Controller
 {
-public function index(Request $request)
-{
-    // جلب البيانات مع تطبيق شروط البحث
-    $query = Receipt::orderBy('id', 'DESC')
-        ->when($request->keywords, function ($query, $keywords) {
-            return $query->where('code', 'like', '%' . $keywords . '%')
-                         ->orWhere('description', 'like', '%' . $keywords . '%');
-        })
-        ->when($request->from_date, function ($query, $from_date) {
-            return $query->where('date', '>=', $from_date);
-        })
-        ->when($request->to_date, function ($query, $to_date) {
-            return $query->where('date', '<=', $to_date);
-        })
-        ->when($request->category, function ($query, $category) {
-            return $query->where('receipt_category_id', $category);
-        })
-        ->when($request->status, function ($query, $status) {
-            return $query->where('status', $status);
-        })
-        ->when($request->description, function ($query, $description) {
-            return $query->where('description', 'like', '%' . $description . '%');
-        })
-        ->when($request->vendor, function ($query, $vendor) {
-            return $query->where('supplier_id', $vendor);
-        })
-        ->when($request->amount_from, function ($query, $amount_from) {
-            return $query->where('amount', '>=', $amount_from);
-        })
-        ->when($request->amount_to, function ($query, $amount_to) {
-            return $query->where('amount', '<=', $amount_to);
-        })
-        ->when($request->created_at_from, function ($query, $created_at_from) {
-            return $query->where('created_at', '>=', $created_at_from);
-        })
-        ->when($request->created_at_to, function ($query, $created_at_to) {
-            return $query->where('created_at', '<=', $created_at_to);
-        })
-        ->when($request->sub_account, function ($query, $sub_account) {
-            return $query->where('account_id', $sub_account);
-        })
-        ->when($request->created_by, function ($query, $created_by) {
-            return $query->where('created_by', $created_by);
-        });
+    public function index(Request $request)
+    {
+        // جلب البيانات مع تطبيق شروط البحث
+        $query = Receipt::orderBy('id', 'DESC')
+            ->when($request->keywords, function ($query, $keywords) {
+                return $query->where('code', 'like', '%' . $keywords . '%')->orWhere('description', 'like', '%' . $keywords . '%');
+            })
+            ->when($request->from_date, function ($query, $from_date) {
+                return $query->where('date', '>=', $from_date);
+            })
+            ->when($request->to_date, function ($query, $to_date) {
+                return $query->where('date', '<=', $to_date);
+            })
+            ->when($request->category, function ($query, $category) {
+                return $query->where('receipt_category_id', $category);
+            })
+            ->when($request->status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->when($request->description, function ($query, $description) {
+                return $query->where('description', 'like', '%' . $description . '%');
+            })
+            ->when($request->vendor, function ($query, $vendor) {
+                return $query->where('supplier_id', $vendor);
+            })
+            ->when($request->amount_from, function ($query, $amount_from) {
+                return $query->where('amount', '>=', $amount_from);
+            })
+            ->when($request->amount_to, function ($query, $amount_to) {
+                return $query->where('amount', '<=', $amount_to);
+            })
+            ->when($request->created_at_from, function ($query, $created_at_from) {
+                return $query->where('created_at', '>=', $created_at_from);
+            })
+            ->when($request->created_at_to, function ($query, $created_at_to) {
+                return $query->where('created_at', '<=', $created_at_to);
+            })
+            ->when($request->sub_account, function ($query, $sub_account) {
+                return $query->where('account_id', $sub_account);
+            })
+            ->when($request->created_by, function ($query, $created_by) {
+                return $query->where('created_by', $created_by);
+            });
 
-    // إذا كان المستخدم موظفاً، نضيف شرطاً لرؤية سنداته فقط
-    if (auth()->user()->role == 'employee') {
-        $query->where('created_by', auth()->id());
+        // إذا كان المستخدم موظفاً، نضيف شرطاً لرؤية سنداته فقط
+        if (auth()->user()->role == 'employee') {
+            $query->where('created_by', auth()->id());
+        }
+
+        $incomes = $query->paginate(20);
+
+        // حساب إجمالي الإيرادات لفترات مختلفة مع مراعاة دور المستخدم
+        $totalQuery = Receipt::query();
+        $totalLast7DaysQuery = Receipt::where('date', '>=', now()->subDays(7));
+        $totalLast30DaysQuery = Receipt::where('date', '>=', now()->subDays(30));
+        $totalLast365DaysQuery = Receipt::where('date', '>=', now()->subDays(365));
+
+        if (auth()->user()->role == 'employee') {
+            $totalQuery->where('created_by', auth()->id());
+            $totalLast7DaysQuery->where('created_by', auth()->id());
+            $totalLast30DaysQuery->where('created_by', auth()->id());
+            $totalLast365DaysQuery->where('created_by', auth()->id());
+        }
+
+        $totalLast7Days = $totalLast7DaysQuery->sum('amount');
+        $totalLast30Days = $totalLast30DaysQuery->sum('amount');
+        $totalLast365Days = $totalLast365DaysQuery->sum('amount');
+
+        // جلب البيانات المرتبطة (مثل التصنيفات والبائعين)
+        $categories = ReceiptCategory::all();
+        $suppliers = Supplier::all();
+        $Accounts = Account::whereNotNull('client_id')->get();
+
+        $users = User::select('id', 'name')->where('role', 'employee')->get();
+
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+
+        return view('finance.incomes.index', compact('incomes', 'categories', 'Accounts', 'users', 'account_setting', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
     }
-
-    $incomes = $query->paginate(20);
-
-    // حساب إجمالي الإيرادات لفترات مختلفة مع مراعاة دور المستخدم
-    $totalQuery = Receipt::query();
-    $totalLast7DaysQuery = Receipt::where('date', '>=', now()->subDays(7));
-    $totalLast30DaysQuery = Receipt::where('date', '>=', now()->subDays(30));
-    $totalLast365DaysQuery = Receipt::where('date', '>=', now()->subDays(365));
-
-    if (auth()->user()->role == 'employee') {
-        $totalQuery->where('created_by', auth()->id());
-        $totalLast7DaysQuery->where('created_by', auth()->id());
-        $totalLast30DaysQuery->where('created_by', auth()->id());
-        $totalLast365DaysQuery->where('created_by', auth()->id());
-    }
-
-    $totalLast7Days = $totalLast7DaysQuery->sum('amount');
-    $totalLast30Days = $totalLast30DaysQuery->sum('amount');
-    $totalLast365Days = $totalLast365DaysQuery->sum('amount');
-
-    // جلب البيانات المرتبطة (مثل التصنيفات والبائعين)
-    $categories = ReceiptCategory::all();
-    $suppliers = Supplier::all();
-    $Accounts = Account::all();
-    $users = User::select('id', 'name')->where('role', 'employee')->get();
-
-    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-    return view('finance.incomes.index', compact(
-        'incomes',
-        'categories',
-        'Accounts',
-        'users',
-        'account_setting',
-        'totalLast7Days',
-        'totalLast30Days',
-        'totalLast365Days'
-    ));
-}
     public function create()
     {
         $incomes_categories = ReceiptCategory::select('id', 'name')->get();
         $treas = Treasury::select('id', 'name')->get();
-        $accounts = Account::all();
+        $accounts = Account::whereNotNull('client_id')->get();
         $account_storage = Account::where('parent_id', 13)->get();
 
         // حساب الرقم التلقائي
@@ -158,147 +149,88 @@ public function index(Request $request)
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('finance.incomes.create', compact('incomes_categories', 'account_storage', 'taxs', 'treas', 'accounts', 'account_setting', 'nextCode', 'MainTreasury'));
     }
-    public function store(Request $request)
-    {
-        try {
-            DB::beginTransaction();
+public function store(Request $request)
+{
+    try {
+        DB::beginTransaction();
 
-            // إنشاء سند القبض
-            $income = new Receipt();
+        // إنشاء سند القبض
+        $income = new Receipt();
 
-            // تعبئة الحقول الأساسية
-            $income->code = $request->input('code');
-            $income->amount = $request->input('amount');
-            $income->description = $request->input('description');
-            $income->date = $request->input('date');
-            $income->incomes_category_id = $request->input('incomes_category_id');
-            $income->seller = $request->input('seller');
-            // $income->client_id = $request->input('client_id');
-            $income->account_id = $request->input('account_id');
-            $income->treasury_id = $request->input('treasury_id');
-            $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
-            $income->recurring_frequency = $request->input('recurring_frequency');
-            $income->end_date = $request->input('end_date');
-            $income->tax1 = $request->input('tax1');
-            $income->tax2 = $request->input('tax2');
-            $income->created_by = auth()->id();
-            $income->tax1_amount = $request->input('tax1_amount');
-            $income->tax2_amount = $request->input('tax2_amount');
-            $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
+        // تعبئة الحقول
+        $income->code = $request->input('code');
+        $income->amount = $request->input('amount');
+        $income->description = $request->input('description');
+        $income->date = $request->input('date');
+        $income->incomes_category_id = $request->input('incomes_category_id');
+        $income->seller = $request->input('seller');
+        $income->account_id = $request->input('account_id');
+        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+        $income->recurring_frequency = $request->input('recurring_frequency');
+        $income->end_date = $request->input('end_date');
+        $income->tax1 = $request->input('tax1');
+        $income->tax2 = $request->input('tax2');
+        $income->created_by = auth()->id();
+        $income->tax1_amount = $request->input('tax1_amount');
+        $income->tax2_amount = $request->input('tax2_amount');
+        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-            // معالجة المرفقات
-            if ($request->hasFile('attachments')) {
-                $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
-            }
-
-            // حفظ سند القبض
-            $income->save();
-
-
-            $user = auth()->user();
-            $income_account_name = Account::find($income->account_id);
-
-            notifications::create([
-                'user_id' => auth()->user()->id,
-                'type' => 'Receipt',
-                'title' => $user->name . ' أنشأ سند قبض',
-                'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
-            ]);
-
-
-
-            // تسجيل النشاط في السجل
-            ModelsLog::create([
-                'type' => 'finance_log',
-                'type_id' => $income->id,
-                'type_log' => 'log',
-                'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
-                'created_by' => auth()->id(),
-            ]);
-
-            // تحديد الخزينة المستهدفة بناءً على الموظف
-            $MainTreasury = null;
-            $user = Auth::user();
-
-            if ($user && $user->employee_id) {
-                // البحث عن الخزينة المرتبطة بالموظف
-                $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-
-                if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                    // إذا كان الموظف لديه خزينة مرتبطة
-                    $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-                } else {
-                    // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
-                    $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-                }
-            } else {
-                // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
-                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            }
-
-            // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
-            if (!$MainTreasury) {
-                throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
-            }
-
-            // تحديث رصيد الخزينة
-            // $MainTreasury->balance += $income->amount;
-            // $MainTreasury->save();
-
-            // إنشاء قيد محاسبي لسند القبض
-            $journalEntry = JournalEntry::create([
-                'reference_number' => $income->code,
-                'date' => $income->date,
-                'description' => 'سند قبض رقم ' . $income->code,
-                'status' => 1,
-                'currency' => 'SAR',
-                'client_id' => $income->client_id, // استخدام client_id بدلاً من seller
-                'created_by_employee' => $user->id,
-            ]);
-
-            // إضافة تفاصيل القيد المحاسبي لسند القبض
-            // 1. حساب الخزينة المستهدفة (مدين)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $MainTreasury->id,
-                'description' => 'استلام مبلغ من سند قبض',
-                'debit' => $income->amount,
-                'credit' => 0,
-                'is_debit' => true,
-            ]);
-
-            // 2. حساب الإيرادات (دائن)
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $income->account_id, // استخدام account_id بدلاً من sup_account
-                'description' => 'إيرادات من سند قبض',
-                'debit' => 0,
-                'credit' => $income->amount,
-                'is_debit' => false,
-            ]);
-            $income_account = Account::find($income->account_id);
-
-            if ($income_account) {
-                $income_account->balance -= $income->amount; // المبلغ الكلي (المبيعات + الضريبة)
-                $income_account->save();
-            }
-
-            if ($MainTreasury) {
-                $MainTreasury->balance += $income->amount; // المبلغ الكلي (المبيعات + الضريبة)
-                $MainTreasury->save();
-            }
-            DB::commit();
-
-            return redirect()->route('incomes.index')->with('success', 'تم إضافة سند قبض بنجاح!');
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
-            return back()
-                ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
-                ->withInput();
+        // معالجة المرفقات
+        if ($request->hasFile('attachments')) {
+            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
         }
-    }
 
+        // تحديد الخزينة المناسبة
+        $MainTreasury = $this->determineTreasury();
+        $income->treasury_id = $MainTreasury->id;
+
+        // حفظ سند القبض
+        $income->save();
+
+        // إشعار الإنشاء
+        $income_account_name = Account::find($income->account_id);
+        $user = Auth::user();
+
+        notifications::create([
+            'user_id' => $user->id,
+            'type' => 'Receipt',
+            'title' => $user->name . ' أنشأ سند قبض',
+            'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
+        ]);
+
+        // تسجيل النشاط
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+            'created_by' => auth()->id(),
+        ]);
+
+        // تحديث رصيد الخزينة
+        $MainTreasury->balance += $income->amount;
+        $MainTreasury->save();
+
+        // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
+        $clientAccount = Account::find($income->account_id);
+
+        // تطبيق السداد على الفواتير (المنطق المعدل)
+        $this->applyPaymentToInvoices($income, $user);
+
+        // إنشاء القيد المحاسبي
+        $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
+
+        DB::commit();
+
+        return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح وتحديث رصيد العميل!');
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
+            ->withInput();
+    }
+}
 
 private function applyPaymentToInvoices(Receipt $income, $user)
 {
@@ -309,7 +241,8 @@ private function applyPaymentToInvoices(Receipt $income, $user)
 
     $remainingAmount = $income->amount;
 
-    // 🧾 أولاً: خصم من الرصيد الافتتاحي إن وجد
+    // 🧾 أولاً: خصم من الرصيد الدائن (إذا كان العميل مديناً لك)
+    // نغير الشرط للتحقق من أن الرصيد موجب (أي العميل مدين لك)
     if ($clientAccount->balance > 0) {
         $fromBalance = min($remainingAmount, $clientAccount->balance);
         $clientAccount->balance -= $fromBalance;
@@ -334,15 +267,16 @@ private function applyPaymentToInvoices(Receipt $income, $user)
         foreach ($unpaidInvoices as $invoice) {
             if ($remainingAmount <= 0) break;
 
+            // احتساب المبلغ المدفوع والملبغ المتبقي للفاتورة
             $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
                                         ->where('payment_status', '!=', 5)
                                         ->sum('amount');
 
             $invoiceRemaining = $invoice->grand_total - $paidAmount;
-            $paymentAmount = min($remainingAmount, $invoiceRemaining);
 
-            if ($paymentAmount > 0) {
-                $isFullPayment = ($paidAmount + $paymentAmount) >= $invoice->grand_total;
+            // نتحقق أن هناك مبلغ متبقي للفاتورة
+            if ($invoiceRemaining > 0) {
+                $paymentAmount = min($remainingAmount, $invoiceRemaining);
 
                 PaymentsProcess::create([
                     'invoice_id' => $invoice->id,
@@ -351,19 +285,20 @@ private function applyPaymentToInvoices(Receipt $income, $user)
                     'Payment_method' => 'cash',
                     'reference_number' => $income->code,
                     'type' => 'client payments',
-                    'payment_status' => $isFullPayment ? 1 : 2,
+                    'payment_status' => ($paidAmount + $paymentAmount) >= $invoice->grand_total ? 1 : 2,
                     'employee_id' => $user->id,
                     'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
                 ]);
 
+                // تحديث حالة الفاتورة
                 $newPaidAmount = $paidAmount + $paymentAmount;
-                $newDueValue = max(0, $invoice->grand_total - $newPaidAmount);
+                $isFullPayment = ($newPaidAmount >= $invoice->grand_total);
 
                 $invoice->update([
                     'advance_payment' => $newPaidAmount,
                     'is_paid' => $isFullPayment,
                     'payment_status' => $isFullPayment ? 1 : 2,
-                    'due_value' => $newDueValue
+                    'due_value' => max(0, $invoice->grand_total - $newPaidAmount)
                 ]);
 
                 notifications::create([
@@ -372,7 +307,7 @@ private function applyPaymentToInvoices(Receipt $income, $user)
                     'title' => 'سداد فاتورة',
                     'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
                                     ' من فاتورة رقم ' . $invoice->code .
-                                    ' (المتبقي: ' . number_format($newDueValue, 2) . ')' .
+                                    ' (المتبقي: ' . number_format(max(0, $invoice->grand_total - $newPaidAmount), 2) . ')' .
                                     ' عبر سند القبض رقم ' . $income->code,
                 ]);
 
@@ -381,7 +316,7 @@ private function applyPaymentToInvoices(Receipt $income, $user)
         }
     }
 
-    // 🧾 ثالثاً: إذا بقي مبلغ ولم تكفه الفواتير، لا يُسجل كرصيد، فقط إشعار
+    // 🧾 ثالثاً: إذا بقي مبلغ ولم تكفه الفواتير
     if ($remainingAmount > 0) {
         notifications::create([
             'user_id' => $user->id,
@@ -392,7 +327,7 @@ private function applyPaymentToInvoices(Receipt $income, $user)
         ]);
     }
 
-    // 🧾 حفظ الرصيد الجديد في الحساب
+    // حفظ التغييرات في رصيد الحساب
     $clientAccount->save();
 }
 public function update(Request $request, $id)
@@ -443,6 +378,8 @@ public function update(Request $request, $id)
         return back()->with('error', 'حدث خطأ أثناء التعديل: ' . $e->getMessage())->withInput();
     }
 }
+
+// الدوال المساعدة الجديدة والمعدلة
 
 
 
@@ -736,14 +673,15 @@ private function updateRelatedPaymentsAndInvoices(Receipt $income, $oldAmount)
         throw $e;
     }
 }
-    public function show($id)
-    {
-        $income = Receipt::findOrFail($id);
-        return view('finance.incomes.show', compact('income'));
+public function edit($id)
+{
+    $user = Auth::user();
+
+    // التحقق من أن المستخدم ليس موظف فقط
+    if ($user->role == 'employee') {
+        return abort(403, 'ليس لديك صلاحية الوصول إلى هذه الصفحة.');
     }
 
-    public function edit($id)
-{
     $income = Receipt::findOrFail($id);
 
     $incomes_categories = ReceiptCategory::select('id', 'name')->get();
@@ -752,7 +690,6 @@ private function updateRelatedPaymentsAndInvoices(Receipt $income, $oldAmount)
     $account_storage = Account::where('parent_id', 13)->get();
     $taxs = TaxSitting::all();
 
-    $user = Auth::user();
     $MainTreasury = null;
 
     if ($user && $user->employee_id) {
@@ -784,6 +721,70 @@ private function updateRelatedPaymentsAndInvoices(Receipt $income, $oldAmount)
         'MainTreasury'
     ));
 }
+
+
+private function applySingleReceiptToInvoices(Receipt $receipt, $reverseOrder = false)
+{
+    $clientAccount = Account::find($receipt->account_id);
+    $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)
+                           ->where('is_paid', false)
+                           ->orderBy('created_at', $reverseOrder ? 'desc' : 'asc') // ترتيب حسب الطلب
+                           ->get();
+
+    $remainingAmount = $receipt->amount;
+    $user = Auth::user();
+
+    foreach ($unpaidInvoices as $invoice) {
+        if ($remainingAmount <= 0) break;
+
+        $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
+                                    ->where('payment_status', '!=', 5)
+                                    ->sum('amount');
+
+        $invoiceRemaining = $invoice->grand_total - $paidAmount;
+        $paymentAmount = min($remainingAmount, $invoiceRemaining);
+
+        if ($paymentAmount > 0) {
+            $isFullPayment = ($paidAmount + $paymentAmount) >= $invoice->grand_total;
+
+            PaymentsProcess::updateOrCreate(
+                [
+                    'invoice_id' => $invoice->id,
+                    'reference_number' => $receipt->code
+                ],
+                [
+                    'amount' => $paymentAmount,
+                    'payment_date' => $receipt->date,
+                    'Payment_method' => 'cash',
+                    'type' => 'client payments',
+                    'payment_status' => $isFullPayment ? 1 : 2,
+                    'employee_id' => $user->id,
+                    'notes' => 'دفع عبر سند القبض رقم '.$receipt->code
+                ]
+            );
+
+            $newPaidAmount = $paidAmount + $paymentAmount;
+            $newDueValue = $invoice->grand_total - $newPaidAmount;
+
+            $invoice->update([
+                'advance_payment' => $newPaidAmount,
+                'is_paid' => $isFullPayment,
+                'payment_status' => $isFullPayment ? 1 : 2,
+                'due_value' => max(0, $newDueValue)
+            ]);
+
+            $remainingAmount -= $paymentAmount;
+        }
+    }
+}
+
+    public function show($id)
+    {
+        $income = Receipt::findOrFail($id);
+        return view('finance.incomes.show', compact('income'));
+    }
+
+
 
 
     public function delete($id)
