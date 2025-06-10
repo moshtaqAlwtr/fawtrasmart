@@ -18,6 +18,11 @@
             direction: rtl;
             font-weight: bold;
         }
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
 
         /* Receipt Container */
         .receipt-container {
@@ -218,15 +223,7 @@
                 height: 70px !important;
             }
 
-            .no-print,
-            .signature-pad,
-            .signature-controls {
-                display: none !important;
-            }
-
-            .no-print {
-                display: none !important;
-            }
+           
         }
 
         /* Responsive Styles */
@@ -328,207 +325,259 @@
                         </div>
                     @endif
 
-                    @if ($invoice->advance_payment > 0)
-                        <div class="summary-row">
-                            <span>الدفعة المقدمة:</span>
-                            <span>{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
-                        </div>
-                    @endif
+                  @if ($invoice->advance_payment > 0)
+    <div class="summary-row" id="advance-payment-row">
+        <span>الدفعة المقدمة:</span>
+        <span id="advance-payment-amount">{{ number_format($invoice->advance_payment, 2) }} ر.س</span>
+    </div>
+@endif
+@php
+                                                $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
+                                                    ->where('reference_number', $invoice->id)
+                                                    ->first();
+                                            @endphp
 
-                    <div class="summary-row">
-                        <span>المبلغ المستحق:</span>
-                        <span>{{ number_format($invoice->due_value, 2) }} ر.س</span>
-                    </div>
+                                            @if ($returnedInvoice)
+                                              
+                                                        
+                                                          <div class="summary-row">
+                            <span> مرتجع:</span>
+                            <span>  {{ number_format($invoice->returned_payment, 2) ?? '' }}
+                                                    ر.س</span> 
+                        </div>
+                        @endif
+<div class="summary-row">
+    <span>المبلغ المستحق:</span>
+    <span id="due-value-amount">{{ number_format($invoice->due_value, 2) }} ر.س</span>
+</div>
+
                 </div>
                 <!-- QR Code -->
                 <div class="qr-code">
                     {!! $qrCodeSvg !!}
-                    <p>مسح الكود للتحقق من الفاتورة</p>
+                  
                 </div>
 
                 <!-- Signature Section -->
-                <div class="signature">
-                    <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
+           <div class="signature">
+    <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
 
-                    <!-- Signature Input Fields -->
-                    <form action="{{ route('invoices.signatures.store', $invoice->id) }}" method="POST"
-                        id="signature-form" class="no-print">
-                        @csrf
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <!-- الاسم الكامل -->
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 12px;">الاسم الكامل:</label>
-                                <input type="text" name="signer_name" id="signer-name"
-                                    style="width: 100%; padding: 3px; font-size: 12px;" placeholder="ادخل اسمك بالكامل">
-                            </div>
+   <form action="{{ route('invoices.signatures.store', $invoice->id) }}" method="POST"
+    id="signature-form" class="no-print" style="width: 100%;">
+    @csrf
 
-                            <!-- الصفة/المنصب -->
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 12px;">الصفة:</label>
-                                <input type="text" name="signer_role" id="signer-role"
-                                    style="width: 100%; padding: 3px; font-size: 12px;"
-                                    placeholder="مثال: مدير المبيعات، ممثل الشركة">
-                            </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+        <div style="flex: 1 1 100%; min-width: 200px;">
+            <label style="display: block; font-size: 12px;">الاسم الكامل:</label>
+            <input type="text" name="signer_name" id="signer-name"
+                style="width: 100%; padding: 6px; font-size: 14px;" placeholder="ادخل اسمك بالكامل">
+        </div>
 
-                            <!-- المبلغ المدفوع -->
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 12px;">المبلغ المدفوع:</label>
-                                <input type="number" name="amount_paid"
-                                    style="width: 100%; padding: 3px; font-size: 12px;"
-                                    placeholder="ادخل المبلغ المدفوع">
-                            </div>
-                        </div>
+        <div style="flex: 1 1 100%; min-width: 200px;">
+            <label style="display: block; font-size: 12px;">الصفة:</label>
+            <input type="text" name="signer_role" id="signer-role"
+                style="width: 100%; padding: 6px; font-size: 14px;" placeholder="مثال: مدير المبيعات">
+        </div>
 
-                        <canvas id="signature-pad" class="signature-pad"></canvas>
-                        <input type="hidden" name="signature_data" id="signature-data">
+        <div style="flex: 1 1 100%; min-width: 200px;">
+            <label style="display: block; font-size: 12px;">المبلغ المدفوع:</label>
+            <input type="number" name="amount_paid"
+                style="width: 100%; padding: 6px; font-size: 14px;" placeholder="ادخل المبلغ المدفوع">
+        </div>
+    </div>
 
-                        <div class="signature-controls">
-                            <button type="button" id="clear-signature" class="signature-btn signature-clear">مسح
-                                التوقيع</button>
-                            <button type="submit" id="save-signature" class="signature-btn signature-save">حفظ
-                                التوقيع</button>
-                        </div>
-                    </form>
+    <div style="width: 100%; margin-bottom: 10px;">
+        <canvas id="signature-pad" class="signature-pad"
+            style="border: 1px solid #ccc; width: 100%; height: 150px; touch-action: none;"></canvas>
+        <input type="hidden" name="signature_data" id="signature-data">
+    </div>
 
-                    <!-- Signature History -->
-                    <div class="signature-history">
-                        @foreach ($invoice->signatures as $signature)
-                            <div class="signature-item">
-                                <div><strong>الاسم:</strong> {{ $signature->signer_name }}</div>
-                                @if (!empty($signature->signer_role))
-                                    <div><strong>الصفة:</strong> {{ $signature->signer_role }}</div>
-                                @endif
-                                @if (!empty($signature->amount_paid))
-                                    <div><strong>المبلغ المدفوع:</strong>
-                                        {{ number_format($signature->amount_paid, 2) }} ريال</div>
-                                @endif
-                                <img src="{{ $signature->signature_data }}"
-                                    style="max-width: 100%; height: auto; margin-top: 5px;">
-                            </div>
-                        @endforeach
-                    </div>
+    <div class="signature-controls" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button type="button" id="clear-signature" class="signature-btn signature-clear"
+            style="padding: 6px 12px; font-size: 14px;">مسح التوقيع</button>
+        <button type="submit" id="save-signature" class="signature-btn signature-save"
+            style="padding: 6px 12px; font-size: 14px;">حفظ التوقيع</button>
+    </div>
+</form>
 
-                    <p class="thank-you">شكراً لتعاملكم معنا</p>
-                </div>
+
+    <!-- مكان عرض التواقيع -->
+    <div class="signature-history" style="margin-top: 20px;">
+        @foreach ($invoice->signatures as $signature)
+            <div class="signature-item">
+                <div><strong>الاسم:</strong> {{ $signature->signer_name }}</div>
+                @if ($signature->signer_role)
+                    <div><strong>الصفة:</strong> {{ $signature->signer_role }}</div>
+                @endif
+                @if ($signature->amount_paid)
+                    <div><strong>المبلغ المدفوع:</strong> {{ number_format($signature->amount_paid, 2) }} ريال</div>
+                @endif
+                <img src="{{ $signature->signature_data }}" style="max-width: 100%; height: auto; margin-top: 5px;">
+            </div>
+        @endforeach
+    </div>
+
+    <p class="thank-you">شكراً لتعاملكم معنا</p>
+</div>
+
+
+
             </div>
         </div>
     </div>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+<script>
+    const canvas = document.getElementById('signature-pad');
+    const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(255,255,255)',
+        penColor: 'rgb(0,0,0)'
+    });
+
+    function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext('2d').scale(ratio, ratio);
+        signaturePad.clear();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    document.getElementById('clear-signature').addEventListener('click', () => {
+        signaturePad.clear();
+    });
+
+    document.getElementById('signature-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const signerName = document.getElementById('signer-name').value.trim();
+        const signerRole = document.getElementById('signer-role').value.trim();
+        const amountPaid = document.querySelector('input[name="amount_paid"]').value.trim();
+
+        if (!signerName) {
+            toastr.error('الرجاء إدخال الاسم الكامل');
+            return;
+        }
+
+        if (!amountPaid || isNaN(amountPaid)) {
+            toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
+            return;
+        }
+
+        if (signaturePad.isEmpty()) {
+            toastr.error('الرجاء تقديم التوقيع أولاً');
+            return;
+        }
+
+        Swal.fire({
+            title: 'تأكيد الحفظ',
+            text: 'هل أنت متأكد من حفظ التوقيع؟',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، احفظ',
+            cancelButtonText: 'إلغاء'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const signatureData = signaturePad.toDataURL();
+                    document.getElementById('signature-data').value = signatureData;
+
+                    const formData = new FormData(this);
+                    const response = await axios.post(this.action, formData);
+
+                    if (response.data.success) {
+                        const newSignature = response.data.signature;
+                        const container = document.querySelector('.signature-history');
+
+                        const signatureItem = document.createElement('div');
+                        signatureItem.classList.add('signature-item');
+                        signatureItem.innerHTML = `
+                            <div><strong>الاسم:</strong> ${newSignature.signer_name}</div>
+                            ${newSignature.signer_role ? `<div><strong>الصفة:</strong> ${newSignature.signer_role}</div>` : ''}
+                            ${newSignature.amount_paid ? `<div><strong>المبلغ المدفوع:</strong> ${parseFloat(newSignature.amount_paid).toFixed(2)} ريال</div>` : ''}
+                            <img src="${newSignature.signature_data}" style="max-width: 100%; height: auto; margin-top: 5px;">
+                        `;
+                        container.prepend(signatureItem);
+
+                        // ✅ تحديث القيم المالية
+                        updatePaymentSummary(newSignature.amount_paid);
+
+                        // تنظيف النموذج
+                        document.getElementById('signer-name').value = '';
+                        document.getElementById('signer-role').value = '';
+                        document.querySelector('input[name="amount_paid"]').value = '';
+                        signaturePad.clear();
+                        toastr.success('تم حفظ التوقيع بنجاح');
+                    } else {
+                        toastr.error(response.data.message || 'حدث خطأ في الحفظ');
+                    }
+                } catch (error) {
+                    toastr.error('فشل في الحفظ. يرجى المحاولة لاحقًا.');
+                    console.error(error);
+                }
+            }
+        });
+    });
+
+    // ✅ دالة لتحديث المبلغ المدفوع والمستحق
+    function updatePaymentSummary(amountPaid) {
+        const paidAmount = parseFloat(amountPaid);
+
+        const currentAdvance = parseFloat(
+            (document.getElementById('advance-payment-amount')?.textContent.replace(/[^\d.]/g, '') || 0)
+        );
+        const currentDue = parseFloat(
+            (document.getElementById('due-value-amount')?.textContent.replace(/[^\d.]/g, '') || 0)
+        );
+
+        const newAdvance = currentAdvance + paidAmount;
+        const newDue = currentDue - paidAmount;
+
+        // تحديث الدفعة المقدمة
+        const advanceAmountEl = document.getElementById('advance-payment-amount');
+        if (advanceAmountEl) {
+            advanceAmountEl.textContent = newAdvance.toFixed(2) + ' ر.س';
+        } else {
+            const summaryContainer = document.querySelector('.summary-row').parentElement;
+            const newAdvanceRow = document.createElement('div');
+            newAdvanceRow.className = 'summary-row';
+            newAdvanceRow.id = 'advance-payment-row';
+            newAdvanceRow.innerHTML = `
+                <span>الدفعة المقدمة:</span>
+                <span id="advance-payment-amount">${newAdvance.toFixed(2)} ر.س</span>
+            `;
+            summaryContainer.insertBefore(newAdvanceRow, summaryContainer.firstChild);
+        }
+
+        // تحديث المبلغ المستحق
+        const dueAmountEl = document.getElementById('due-value-amount');
+        if (dueAmountEl) {
+            dueAmountEl.textContent = Math.max(0, newDue).toFixed(2) + ' ر.س';
+        }
+    }
+</script>
 
     <!-- مكتبات JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        const canvas = document.getElementById('signature-pad');
-        const signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext('2d').scale(ratio, ratio);
-            signaturePad.clear();
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        document.getElementById('clear-signature')?.addEventListener('click', () => {
-            signaturePad.clear();
-        });
-
-        document.getElementById('signature-form')?.addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const signerName = document.getElementById('signer-name')?.value.trim();
-            const signerRole = document.getElementById('signer-role')?.value.trim();
-            const amountPaid = document.querySelector('input[name="amount_paid"]')?.value.trim();
-
-            if (!signerName) {
-                toastr.error('الرجاء إدخال الاسم الكامل');
-                return;
-            }
-
-            if (!amountPaid || isNaN(amountPaid)) {
-                toastr.error('الرجاء إدخال مبلغ مدفوع صحيح');
-                return;
-            }
-
-            if (signaturePad.isEmpty()) {
-                toastr.error('الرجاء تقديم التوقيع أولاً');
-                return;
-            }
-
-            Swal.fire({
-                title: 'تأكيد الحفظ',
-                text: 'هل أنت متأكد أنك تريد حفظ التوقيع؟',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'نعم، احفظ',
-                cancelButtonText: 'إلغاء',
-                reverseButtons: true
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        const signatureData = signaturePad.toDataURL();
-                        document.getElementById('signature-data').value = signatureData;
-
-                        const formData = new FormData(this);
-                        const response = await axios.post(this.action, formData);
-
-                        if (response.data.success) {
-                            toastr.success('تم حفظ التوقيع بنجاح');
-
-                            // ✨ إضافة التوقيع الجديد إلى الصفحة بدون تحديث
-                            const newSignature = response.data.signature;
-                            const container = document.querySelector('.signature-history');
-
-                            const signatureItem = document.createElement('div');
-                            signatureItem.classList.add('signature-item');
-                            signatureItem.innerHTML = `
-                            <div><strong>الاسم:</strong> ${newSignature.signer_name}</div>
-                            ${newSignature.signer_role ? `<div><strong>الصفة:</strong> ${newSignature.signer_role}</div>` : ''}
-                            ${newSignature.amount_paid ? `<div><strong>المبلغ المدفوع:</strong> ${parseFloat(newSignature.amount_paid).toFixed(2)} ريال</div>` : ''}
-                            <img src="${newSignature.signature_data}" style="max-width: 100%; height: auto; margin-top: 5px;">
-                        `;
-                            container.prepend(signatureItem); // أضف التوقيع في الأعلى
-
-                            // ✨ مسح الحقول
-                            document.getElementById('signer-name').value = '';
-                            document.getElementById('signer-role').value = '';
-                            document.querySelector('input[name="amount_paid"]').value = '';
-                            signaturePad.clear();
-
-                            // ✨ إشعار النافذة الأصلية (إذا كانت موجودة)
-                            if (window.opener) {
-                                window.opener.postMessage({
-                                    type: 'signatureSaved',
-                                    invoiceId: {{ $invoice->id }}
-                                }, '*');
-                            }
-
-                        } else {
-                            toastr.error(response.data.message || 'حدث خطأ في حفظ التوقيع');
-                        }
-
-                    } catch (error) {
-                        let errorMessage = 'حدث خطأ في حفظ التوقيع. يرجى المحاولة مرة أخرى.';
-                        if (error.response?.data?.message) {
-                            errorMessage = error.response.data.message;
-                        }
-                        toastr.error(errorMessage);
-                    }
-                }
-            });
-        });
-    </script>
+  
 
 </body>
+ <script>
+        // طباعة تلقائية عند تحميل الصفحة
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        };
 
+        // إعادة الطباعة عند محاولة الإغلاق
+        window.onbeforeunload = function() {
+            window.print();
+        };
+    </script>
 </html>
 
 {{--

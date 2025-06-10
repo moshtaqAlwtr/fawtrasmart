@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Stock;
 
 use App\Http\Controllers\Controller;
 use App\Models\InventoryAdjustment;
+use App\Models\InventoryItem;
 use App\Models\PermissionSource;
 use App\Models\StoreHouse;
 use App\Models\Product;
@@ -67,6 +68,12 @@ public function doStock($id)
     return view('stock.inventory_management.doStock', compact('adjustment', 'products'));
 }
 
+public function edit($id)
+{
+    $item = InventoryItem::where('adjustment_id',$id)->get();
+
+    return view('stock.inventory_management.edit', compact('item'));
+}
 public function saveFinal(Request $request, $id)
 {
     DB::beginTransaction();
