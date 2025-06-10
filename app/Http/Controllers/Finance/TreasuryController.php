@@ -96,7 +96,7 @@ class TreasuryController extends Controller
         $account->parent_id = 13; // الأب الافتراضي
 
 
-        $account->code = $this->generateNextCode(13);
+        // $account->code = $this->generateNextCode(13);
 
         $account->balance_type = 'debit'; // نوع الرصيد (مدين)
 
