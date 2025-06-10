@@ -8,10 +8,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Client extends Model
 {
     protected $table = 'clients';
+    protected $dates = ['last_note_at'];
+    protected $casts = [
+    'force_show' => 'boolean'
+];
+
+
     protected $primaryKey = 'id';
     public $timestamps = true;
     // الحقول القابلة للتعبئة
-    protected $fillable = ['trade_name','classification_id ', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
+    protected $fillable = ['trade_name','classification_id ','force_show','last_note_at', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -70,7 +76,7 @@ public function Balance()
         ->select('id', 'client_id', 'description as content', 'created_at')
         ->orderBy('created_at', 'desc');
     }
-    
+
 
 
     // العلاقات

@@ -74,10 +74,10 @@
                             <!-- موظف -->
                             <div class="col-md-6 mb-3">
                                 <label for="employee">موظف<span class="text-danger">*</span></label>
-                                <select class="form-control" id="employee" name="employee_id">
+                                <select class="form-control select2" id="employee" name="employee_id">
                                     <option value="">إختر موظف...</option>
                                     @foreach ($employees as $employee)
-                                        <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                                        <option value="{{ $employee->id }}">{{ $employee->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -163,8 +163,8 @@
                             <!-- الخزنة -->
                             <div class="col-md-6 mb-3">
                               <label for="treasury_id" class="form-label">الخزينة المستخدمة </label>
-                    
-                        <input type="text" name="treasury_id" class="form-control" 
+
+                        <input type="text" name="treasury_id" class="form-control"
        placeholder="رقم المعرف"
        value="{{ $mainTreasuryAccount->id ?? '' }}" readonly>
 

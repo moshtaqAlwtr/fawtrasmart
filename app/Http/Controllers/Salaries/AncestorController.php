@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\InstallmentPayment;
 use App\Models\AccountSetting;
+use App\Models\User;
 
 class AncestorController extends Controller
 {
@@ -88,7 +89,8 @@ class AncestorController extends Controller
 
         // احضار الفروع والوسوم المتاحة
         $branches = Branch::all();
-        $employees = Employee::all();
+$employees = User::whereIn('role', ['manager', 'employee'])->get();
+
         $tags = SalaryAdvance::distinct('tag')->whereNotNull('tag')->pluck('tag');
        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         // حساب إجمالي المدفوعات من جدول installment_payments
@@ -116,7 +118,7 @@ $displayedProgressPercentage = $displayedTotalAmount > 0 ? ($displayedTotalPaid 
 
     public function create()
     {
-        $employees = Employee::all();
+        $employees = User::whereIn('role', ['manager', 'employee'])->get();
         $treasuries = Treasury::all();
           $mainTreasuryAccount = null;
         $user = Auth::user();
@@ -138,7 +140,7 @@ $displayedProgressPercentage = $displayedTotalAmount > 0 ? ($displayedTotalPaid 
         }
         return view('salaries.ancestor.create', compact('employees', 'treasuries','mainTreasuryAccount'));
     }
-    
+
 
 
 protected function calculateInstallments($salaryAdvance)
@@ -147,23 +149,23 @@ protected function calculateInstallments($salaryAdvance)
     $installmentAmount = $salaryAdvance->installment_amount;
     $totalInstallments = $salaryAdvance->total_installments;
     $startDate = Carbon::parse($salaryAdvance->installment_start_date);
-    
+
     for ($i = 1; $i <= $totalInstallments; $i++) {
         $dueDate = clone $startDate;
-        
+
         switch ($salaryAdvance->payment_rate) {
             case 1: $dueDate->addMonths($i - 1); break; // شهري
             case 2: $dueDate->addWeeks($i - 1); break;  // أسبوعي
             case 3: $dueDate->addMonths(($i - 1) * 3); break; // ربع سنوي
         }
-        
+
         $installments[] = [
             'number' => $i,
             'amount' => $installmentAmount,
             'due_date' => $dueDate->format('Y-m-d')
         ];
     }
-    
+
     return $installments;
 }
 
@@ -202,7 +204,7 @@ $InstallmentPayments = InstallmentPayment::select(
 
     // حساب الأقساط الغير مدفوعة فقط
     $unpaidInstallments = $this->getUnpaidInstallments($salaryAdvance);
-    
+
     return view('salaries.ancestor.pay', compact('salaryAdvance', 'accounts', 'unpaidInstallments','InstallmentPayments','mainTreasuryAccount','id'));
 }
 
@@ -210,10 +212,10 @@ protected function getUnpaidInstallments($salaryAdvance)
 {
     // الأقساط المدفوعة (من جدول installment_payments)
     $paidInstallments = $salaryAdvance->payments->pluck('installment_number')->toArray();
-    
+
     // جميع الأقساط المفترضة
     $allInstallments = $this->calculateInstallments($salaryAdvance);
-    
+
     // تصفية الأقساط الغير مدفوعة
     return array_filter($allInstallments, function($installment) use ($paidInstallments) {
         return !in_array($installment['number'], $paidInstallments);
@@ -222,10 +224,10 @@ protected function getUnpaidInstallments($salaryAdvance)
 
 public function storePayments(Request $request, $id)
 {
-    
-  
+
+
     DB::beginTransaction();
-    
+
     try {
        $salaryAdvance = SalaryAdvance::findOrFail($id);
        $installment = InstallmentPayment::find($request->installmentId);
@@ -235,8 +237,8 @@ public function storePayments(Request $request, $id)
 ]);
    $MainTreasury = null;
         $user = Auth::user();
-        
-       
+
+
 
         if ($user && $user->employee_id) {
             // البحث عن الخزينة المرتبطة بالموظف
@@ -263,11 +265,11 @@ public function storePayments(Request $request, $id)
         if (!$salaryadvanc) {
             throw new \Exception('لا يوجد حساب سلف يرجى التحقق من شجرة الحسابات.');
         }
-        
+
         // تحديث رصيد الخزينة
         $MainTreasury->balance += $installment->amount;
         $MainTreasury->save();
-        
+
         $salaryadvanc->balance -= $installment->amount;
         $salaryadvanc->save();
 
@@ -306,12 +308,12 @@ public function storePayments(Request $request, $id)
 
 // لا داعي لاستدعاء $payment->save(); لأن create() يقوم بالحفظ تلقائيًا
 
-        
+
         DB::commit();
-        
+
        return redirect()->route('ancestor.show', $id)->with('success', 'تم حفظ الدفعة بنجاح');
 
-        
+
     } catch (\Exception $e) {
         DB::rollBack();
         return redirect()->back()->with('error', 'فشل في حفظ الدفعة: ' . $e->getMessage());
@@ -327,7 +329,7 @@ public function update(Request $request, $id)
 
         // التحقق من البيانات
         $request->validate([
-            'employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'required|exists:users,id',
             'submission_date' => 'nullable|date',
             'amount' => 'nullable|numeric|min:0.01',
             'installment_amount' => 'nullable|numeric|min:0.01',
@@ -451,7 +453,7 @@ protected function updateInstallments($salaryAdvance)
     // إنشاء الأقساط الجديدة
     for ($i = 1; $i <= $totalInstallments; $i++) {
         $dueDate = clone $startDate;
-        
+
         switch ($salaryAdvance->payment_rate) {
             case 1: // شهري
                 $dueDate->addMonths($i - 1);
@@ -465,7 +467,7 @@ protected function updateInstallments($salaryAdvance)
         }
 
         // تعديل مبلغ القسط الأخير لضمان المساواة مع المبلغ المتبقي
-        $currentAmount = ($i == $totalInstallments) 
+        $currentAmount = ($i == $totalInstallments)
             ? $remainingAmount - ($installmentAmount * ($totalInstallments - 1))
             : $installmentAmount;
 
@@ -487,14 +489,14 @@ protected function updateInstallments($salaryAdvance)
 }
 public function store(Request $request)
 {
- 
+
     try {
         DB::beginTransaction();
 
         // التحقق من البيانات
         $validated = $request->validate(
             [
-                'employee_id' => 'required',
+                'employee_id' => 'required|exists:users,id',
                 'submission_date' => 'required|date',
                 'amount' => 'required|numeric|min:0.01',
                 'installment_amount' => 'required|numeric|min:0.01|lte:amount',
@@ -549,7 +551,7 @@ public function store(Request $request)
 
         $MainTreasury = null;
         $user = Auth::user();
-        
+
         // إنشاء السلفة
         $advance = SalaryAdvance::create($data);
 
@@ -581,11 +583,11 @@ public function store(Request $request)
         if (!$salaryadvanc) {
             throw new \Exception('لا يوجد حساب سلف يرجى التحقق من شجرة الحسابات.');
         }
-        
+
         // تحديث رصيد الخزينة
         $MainTreasury->balance -= $advance->amount;
         $MainTreasury->save();
-        
+
         $salaryadvanc->balance += $advance->amount;
         $salaryadvanc->save();
 
@@ -596,7 +598,7 @@ public function store(Request $request)
             'description' => 'سلفية رقم ' . $advance->id,
             'status' => 1,
             'currency' => 'SAR',
-            'employee_id' => $advance->employee_id,
+            // 'employee_id' => $advance->employee_id,
             'created_by_employee' => Auth::id(),
         ]);
 
@@ -643,7 +645,7 @@ protected function createInstallments($salaryAdvance, $totalInstallments, $insta
 
     for ($i = 1; $i <= $totalInstallments; $i++) {
         $dueDate = clone $startDate;
-        
+
         // تحديد تاريخ الاستحقاق بناء على معدل الدفع
         switch ($salaryAdvance->payment_rate) {
             case 1: // شهري
@@ -658,7 +660,7 @@ protected function createInstallments($salaryAdvance, $totalInstallments, $insta
         }
 
         // تعديل مبلغ القسط الأخير لضمان المساواة مع المبلغ الكلي
-        $currentInstallmentAmount = ($i == $totalInstallments) 
+        $currentInstallmentAmount = ($i == $totalInstallments)
             ? $salaryAdvance->amount - ($installmentAmount * ($totalInstallments - 1))
             : $installmentAmount;
 
@@ -668,7 +670,7 @@ protected function createInstallments($salaryAdvance, $totalInstallments, $insta
             'amount' => $currentInstallmentAmount,
             'due_date' => $dueDate,
             'account_id' =>  $salaryAdvance->treasury_id,
-            'status' => 'unpaid', // حالة غير مدفوعة               
+            'status' => 'unpaid', // حالة غير مدفوعة
             'created_by' => auth()->id(),
             'created_at' => now(),
             'updated_at' => now()
@@ -683,11 +685,11 @@ protected function createInstallments($salaryAdvance, $totalInstallments, $insta
 {
     try {
         $ancestor = SalaryAdvance::with(['employee', 'treasury', 'payments'])->findOrFail($id);
-        
+
         // حساب إجمالي المدفوعات من جدول installment_payments
         $totalPaid = $ancestor->payments()->where('status', 'paid')->sum('amount');
         $paidInstallments = $ancestor->payments()->where('status', 'paid')->count();
-        
+
         // حساب نسبة التقدم
         $progressPercentage = $ancestor->amount > 0 ? ($totalPaid / $ancestor->amount) * 100 : 0;
           $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
@@ -708,16 +710,16 @@ protected function createInstallments($salaryAdvance, $totalInstallments, $insta
     public function edit($id)
     {
         try {
-            
+
             $hasPaidInstallments = InstallmentPayment::where('salary_advance_id', $id)
             ->where('status', 'paid')
             ->exists();
-            
+
         if ($hasPaidInstallments) {
             return redirect()->route('ancestor.index')->with('error', 'لا يمكن التعديل لأنه تم سداد من السلفة');
         }
             $ancestor = SalaryAdvance::findOrFail($id);
-            $employee = Employee::find($ancestor->employee_id);
+            $employees = Employee::find($ancestor->employee_id);
             $treasure = Account::find($ancestor->treasury_id);
 
             return view('salaries.ancestor.edit', compact('ancestor', 'employee', 'treasure'));

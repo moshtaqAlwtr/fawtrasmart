@@ -230,6 +230,19 @@
                             <input type="date" id="to_date" class="form-control" name="to_date"
                                 value="{{ request('to_date') }}">
                         </div>
+                        <div class="col-md-4">
+                            <label for="added_by">أضيفت بواسطة</label>
+                            <select name="added_by" class="form-control select2" id="added_by">
+                                <option value="">-- الكل --</option> {{-- خيار إظهار الكل --}}
+                                @foreach ($employees as $employee)
+                                    <option value="{{ $employee->id }}"
+                                        {{ request('added_by') == $employee->id ? 'selected' : '' }}>
+                                        {{ $employee->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                        </div>
 
                         <!-- 4. Category -->
                         <div class="col-md-4">
@@ -315,16 +328,7 @@
                             </div>
 
                             <!-- 13. Added By -->
-                            <div class="col-md-4">
-                                <label for="added_by">أضيفت بواسطة</label>
-                                <select name="added_by" class="form-control" id="added_by">
-                                    <option value="">أي موظف</option>
-                                    <option value="1" {{ request('added_by') == 1 ? 'selected' : '' }}>موظف 1
-                                    </option>
-                                    <option value="2" {{ request('added_by') == 2 ? 'selected' : '' }}>موظف 2
-                                    </option>
-                                </select>
-                            </div>
+
                         </div>
                     </div>
 

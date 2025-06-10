@@ -32,9 +32,9 @@
                     </div>
 
                     <div>
-                        <a href="{{ route('incomes.edit', $income->id) }}" class="btn btn-outline-primary">
+                        {{-- <a href="{{ route('incomes.edit', $income->id) }}" class="btn btn-outline-primary">
                             <i class="fa fa-edit"></i>تعديل
-                        </a>
+                        </a> --}}
                     </div>
 
                 </div>
@@ -149,7 +149,7 @@
                           عفوا لا يمكن الحذف يمكنك اصدار سند صرف
                         </strong>
                     </div>
-                  
+
                 </div>
             </div>
         </div>

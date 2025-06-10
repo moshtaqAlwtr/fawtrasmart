@@ -13,8 +13,8 @@ return new class extends Migration {
         Schema::create('salary_advances', function (Blueprint $table) {
             $table->id();
             // Employee relationship (موظف)
-            $table->unsignedBigInteger('employee_id');
-            $table->foreign('employee_id')->references('id')->on('employees');
+            $table->unsignedBigInteger('employee_id')->nullable();
+
 
             // Submission date (تاريخ التقديم)
             $table->date('submission_date');

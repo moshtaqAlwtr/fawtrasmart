@@ -429,6 +429,15 @@
                             <i class="fas fa-user-edit me-1"></i> تعديل
                         </a>
                     @endif
+                    @if (auth()->user()->role === 'manager')
+                        <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-warning btn-sm">
+                                <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
+                            </button>
+                        </form>
+                    @endif
+
                     <a href="{{ route('appointment.notes.create', $client->id) }}"
                         class="btn btn-sm btn-secondary col-md-auto">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
@@ -474,6 +483,15 @@
                                 </a>
                             </li>
                         @endif
+                        @if (auth()->user()->role === 'manager')
+                            <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-warning btn-sm">
+                                    <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
+                                </button>
+                            </form>
+                        @endif
+
                         <li><a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق

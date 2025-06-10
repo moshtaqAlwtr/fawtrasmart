@@ -149,7 +149,7 @@ class IncomesController extends Controller
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('finance.incomes.create', compact('incomes_categories', 'account_storage', 'taxs', 'treas', 'accounts', 'account_setting', 'nextCode', 'MainTreasury'));
     }
- public function store(Request $request)
+public function store(Request $request)
 {
     try {
         DB::beginTransaction();
@@ -211,12 +211,8 @@ class IncomesController extends Controller
         $MainTreasury->balance += $income->amount;
         $MainTreasury->save();
 
-        // تحديث رصيد حساب العميل
+        // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
         $clientAccount = Account::find($income->account_id);
-        if ($clientAccount) {
-            $clientAccount->balance -= $income->amount;
-            $clientAccount->save();
-        }
 
         // تطبيق السداد على الفواتير (المنطق المعدل)
         $this->applyPaymentToInvoices($income, $user);
@@ -236,6 +232,104 @@ class IncomesController extends Controller
     }
 }
 
+private function applyPaymentToInvoices(Receipt $income, $user)
+{
+    $clientAccount = Account::find($income->account_id);
+    if (!$clientAccount || !$clientAccount->client_id) {
+        return;
+    }
+
+    $remainingAmount = $income->amount;
+
+    // 🧾 أولاً: خصم من الرصيد الدائن (إذا كان العميل مديناً لك)
+    // نغير الشرط للتحقق من أن الرصيد موجب (أي العميل مدين لك)
+    if ($clientAccount->balance > 0) {
+        $fromBalance = min($remainingAmount, $clientAccount->balance);
+        $clientAccount->balance -= $fromBalance;
+        $remainingAmount -= $fromBalance;
+
+        notifications::create([
+            'user_id' => $user->id,
+            'type' => 'balance_payment',
+            'title' => 'سداد من الرصيد الافتتاحي',
+            'description' => 'تم سداد مبلغ ' . number_format($fromBalance, 2) .
+                            ' من الرصيد الافتتاحي عبر سند القبض رقم ' . $income->code,
+        ]);
+    }
+
+    // 🧾 ثانياً: سداد الفواتير فقط إذا تبقى مبلغ بعد الرصيد
+    if ($remainingAmount > 0) {
+        $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)
+                                ->where('is_paid', false)
+                                ->orderBy('created_at', 'asc')
+                                ->get();
+
+        foreach ($unpaidInvoices as $invoice) {
+            if ($remainingAmount <= 0) break;
+
+            // احتساب المبلغ المدفوع والملبغ المتبقي للفاتورة
+            $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
+                                        ->where('payment_status', '!=', 5)
+                                        ->sum('amount');
+
+            $invoiceRemaining = $invoice->grand_total - $paidAmount;
+
+            // نتحقق أن هناك مبلغ متبقي للفاتورة
+            if ($invoiceRemaining > 0) {
+                $paymentAmount = min($remainingAmount, $invoiceRemaining);
+
+                PaymentsProcess::create([
+                    'invoice_id' => $invoice->id,
+                    'amount' => $paymentAmount,
+                    'payment_date' => $income->date,
+                    'Payment_method' => 'cash',
+                    'reference_number' => $income->code,
+                    'type' => 'client payments',
+                    'payment_status' => ($paidAmount + $paymentAmount) >= $invoice->grand_total ? 1 : 2,
+                    'employee_id' => $user->id,
+                    'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
+                ]);
+
+                // تحديث حالة الفاتورة
+                $newPaidAmount = $paidAmount + $paymentAmount;
+                $isFullPayment = ($newPaidAmount >= $invoice->grand_total);
+
+                $invoice->update([
+                    'advance_payment' => $newPaidAmount,
+                    'is_paid' => $isFullPayment,
+                    'payment_status' => $isFullPayment ? 1 : 2,
+                    'due_value' => max(0, $invoice->grand_total - $newPaidAmount)
+                ]);
+
+                notifications::create([
+                    'user_id' => $user->id,
+                    'type' => 'invoice_payment',
+                    'title' => 'سداد فاتورة',
+                    'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
+                                    ' من فاتورة رقم ' . $invoice->code .
+                                    ' (المتبقي: ' . number_format(max(0, $invoice->grand_total - $newPaidAmount), 2) . ')' .
+                                    ' عبر سند القبض رقم ' . $income->code,
+                ]);
+
+                $remainingAmount -= $paymentAmount;
+            }
+        }
+    }
+
+    // 🧾 ثالثاً: إذا بقي مبلغ ولم تكفه الفواتير
+    if ($remainingAmount > 0) {
+        notifications::create([
+            'user_id' => $user->id,
+            'type' => 'excess_payment',
+            'title' => 'فائض في السداد',
+            'description' => 'بقي مبلغ ' . number_format($remainingAmount, 2) .
+                            ' من سند القبض رقم ' . $income->code . ' لم يتم تطبيقه على أي فاتورة أو رصيد.',
+        ]);
+    }
+
+    // حفظ التغييرات في رصيد الحساب
+    $clientAccount->save();
+}
 public function update(Request $request, $id)
 {
     try {
@@ -287,90 +381,8 @@ public function update(Request $request, $id)
 
 // الدوال المساعدة الجديدة والمعدلة
 
-private function applyPaymentToInvoices(Receipt $income, $user)
-{
-    $clientAccount = Account::find($income->account_id);
-    if (!$clientAccount || !$clientAccount->client_id) {
-        return;
-    }
 
-    // الحصول على الفواتير غير المدفوعة مرتبة حسب الأقدمية
-    $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)
-                            ->where('is_paid', false)
-                            ->orderBy('created_at', 'asc')
-                            ->get();
 
-    $remainingAmount = $income->amount;
-
-    foreach ($unpaidInvoices as $invoice) {
-        if ($remainingAmount <= 0) break;
-
-        // حساب المبلغ المدفوع سابقاً لهذه الفاتورة (باستثناء المدفوعات الملغاة)
-        $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
-                                    ->where('payment_status', '!=', 5)
-                                    ->sum('amount');
-
-        // حساب المبلغ المتبقي للفاتورة
-        $invoiceRemaining = $invoice->grand_total - $paidAmount;
-
-        // المبلغ الذي سنطبقه على هذه الفاتورة
-        $paymentAmount = min($remainingAmount, $invoiceRemaining);
-
-        if ($paymentAmount > 0) {
-            $isFullPayment = ($paidAmount + $paymentAmount) >= $invoice->grand_total;
-
-            // إنشاء سجل الدفع الجديد
-            PaymentsProcess::create([
-                'invoice_id' => $invoice->id,
-                'amount' => $paymentAmount,
-                'payment_date' => $income->date,
-                'Payment_method' => 'cash',
-                'reference_number' => $income->code,
-                'type' => 'client payments',
-                'payment_status' => $isFullPayment ? 1 : 2,
-                'employee_id' => $user->id,
-                'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
-            ]);
-
-            // تحديث حالة الفاتورة والمبلغ المتبقي
-            $newPaidAmount = $paidAmount + $paymentAmount;
-            $newDueValue = max(0, $invoice->grand_total - $newPaidAmount);
-
-            $invoice->update([
-                'advance_payment' => $newPaidAmount,
-                'is_paid' => $isFullPayment,
-                'payment_status' => $isFullPayment ? 1 : 2,
-                'due_value' => $newDueValue
-            ]);
-
-            // إرسال إشعار بالسداد
-            notifications::create([
-                'user_id' => $user->id,
-                'type' => 'invoice_payment',
-                'title' => 'سداد فاتورة',
-                'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
-                                ' من فاتورة رقم ' . $invoice->code .
-                                ' (المتبقي: ' . number_format($newDueValue, 2) . ')' .
-                                ' عبر سند القبض رقم ' . $income->code,
-            ]);
-
-            // تخفيض المبلغ المتبقي للتوزيع
-            $remainingAmount -= $paymentAmount;
-        }
-    }
-
-    // إذا بقي مبلغ ولم تكفيه الفواتير
-    if ($remainingAmount > 0) {
-        notifications::create([
-            'user_id' => $user->id,
-            'type' => 'excess_payment',
-            'title' => 'فائض في السداد',
-            'description' => 'بقي مبلغ ' . number_format($remainingAmount, 2) .
-                            ' من سند القبض رقم ' . $income->code .
-                            ' لم يتم تطبيقه على أي فاتورة',
-        ]);
-    }
-}
 public function cancel($id)
 {
     try {
@@ -393,25 +405,32 @@ public function cancel($id)
             $clientAccount->save();
         }
 
-        // 3. حذف المدفوعات المرتبطة بهذا السند
+        // 3. معالجة الفواتير المرتبطة بالسند
         $payments = PaymentsProcess::where('reference_number', $income->code)->get();
         foreach ($payments as $payment) {
-            // استعادة حالة الفاتورة
             $invoice = Invoice::find($payment->invoice_id);
             if ($invoice) {
+                // استعادة المبلغ المدفوع
                 $invoice->advance_payment -= $payment->amount;
-                $invoice->due_value += $payment->amount;
 
-                // إذا كانت الفاتورة أصبحت مدفوعة بالكامل بسبب هذا السند
-                if ($invoice->is_paid && $invoice->advance_payment < $invoice->grand_total) {
+                // حساب المبلغ المستحق بدقة
+                $invoice->due_value = $invoice->grand_total - $invoice->advance_payment;
+
+                // تحديث حالة الفاتورة حسب القيم الجديدة (باستخدام الأرقام الصحيحة لديك)
+                if ($invoice->advance_payment == 0) {
                     $invoice->is_paid = false;
-                    $invoice->payment_status = $invoice->advance_payment > 0 ? 2 : 0; // جزئي أو غير مدفوع
+                    $invoice->payment_status = 3; // غير مدفوعة
+                } elseif ($invoice->advance_payment == $invoice->grand_total) {
+                    $invoice->is_paid = true;
+                    $invoice->payment_status = 1; // مدفوعة بالكامل
+                } else {
+                    $invoice->is_paid = false;
+                    $invoice->payment_status = 2; // مدفوعة جزئياً
                 }
 
                 $invoice->save();
             }
 
-            // حذف سجل الدفع
             $payment->delete();
         }
 
@@ -422,7 +441,7 @@ public function cancel($id)
             $journalEntry->delete();
         }
 
-        // 5. حذف الإشعارات المرتبطة
+        // 5. حذف الإشعارات
         notifications::where('description', 'like', '%سند قبض رقم ' . $income->code . '%')->delete();
 
         // 6. تسجيل النشاط
@@ -430,7 +449,11 @@ public function cancel($id)
             'type' => 'finance_log',
             'type_id' => $income->id,
             'type_log' => 'log',
-            'description' => sprintf('تم إلغاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+            'description' => sprintf(
+                'تم إلغاء سند قبض رقم **%s** بقيمة **%s** ريال',
+                $income->code,
+                number_format($income->amount, 2)
+            ),
             'created_by' => auth()->id(),
         ]);
 
@@ -439,14 +462,19 @@ public function cancel($id)
 
         DB::commit();
 
-        return redirect()->route('incomes.index')->with('success', 'تم إلغاء سند القبض بنجاح واستعادة جميع الأرصدة!');
+        return redirect()->route('incomes.index')->with(
+            'success',
+            'تم إلغاء سند القبض بنجاح، وتم استعادة الفواتير والحسابات كما كانت!'
+        );
     } catch (\Exception $e) {
         DB::rollback();
-        Log::error('خطأ في إلغاء سند قبض: ' . $e->getMessage());
-        return back()->with('error', 'حدث خطأ أثناء الإلغاء: ' . $e->getMessage());
+        Log::error('فشل في إلغاء سند القبض: ' . $e->getMessage());
+        return back()->with(
+            'error',
+            'حدث خطأ أثناء الإلغاء: ' . $e->getMessage()
+        );
     }
 }
-
 private function createJournalEntry(Receipt $income, $user, $clientAccount, $treasury)
 {
     $journalEntry = JournalEntry::create([

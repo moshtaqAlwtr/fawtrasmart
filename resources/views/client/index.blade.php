@@ -989,56 +989,63 @@
             }
 
             // إضافة علامات العملاء
-            let allMarkers = [];
+// إضافة علامات العملاء
+let allMarkers = [];
 
-            @foreach ($allClients as $client)
-                @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
-                    const marker{{ $client->id }} = new google.maps.Marker({
-                        position: {
-                            lat: {{ $client->locations->latitude }},
-                            lng: {{ $client->locations->longitude }}
-                        },
-                        map: map,
-                        title: "{{ $client->trade_name }}",
-                        icon: {
-                            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
-                                    <!-- Background bubble -->
-                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
-                                    <!-- Bottom triangle -->
-                                    <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
-                                    <!-- Text -->
-                                    <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white">{{ $client->code }}</text>
-                                </svg>
-                            `),
-                            scaledSize: new google.maps.Size(60, 24),
-                            anchor: new google.maps.Point(12, 22)
-                        },
-                        animation: google.maps.Animation.DROP
-                    });
+@foreach ($allClients as $client)
+    @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
+        @php
+            $lastNoteTime = $client->last_note_at ? \Carbon\Carbon::parse($client->last_note_at) : null;
+            $shouldShow = !$lastNoteTime || $lastNoteTime->diffInHours(now()) >= 24 || $client->force_show;
+        @endphp
 
-                    // إضافة الماركر للمصفوفة
-                    allMarkers.push({
-                        marker: marker{{ $client->id }},
-                        clientName: "{{ $client->trade_name }}".toLowerCase(),
-                        clientCode: "{{ $client->code }}".toLowerCase(),
-                        data: {
-                            id: {{ $client->id }},
-                            name: "{{ $client->trade_name }}",
-                            status: "{{ optional($client->status_client)->color ?? '#CCCCCC' }}",
-                            phone: "{{ $client->phone }}",
-                            region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
-                            balance: "{{ $client->Balance() }}"
-                        }
-                    });
+        @if ($shouldShow)
+            const marker{{ $client->id }} = new google.maps.Marker({
+                position: {
+                    lat: {{ $client->locations->latitude }},
+                    lng: {{ $client->locations->longitude }}
+                },
+                map: map,
+                title: "{{ $client->trade_name }}",
+                icon: {
+                    url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
+                            <!-- Background bubble -->
+                            <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
+                            <!-- Bottom triangle -->
+                            <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
+                            <!-- Text -->
+                            <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white">{{ $client->code }}</text>
+                        </svg>
+                    `),
+                    scaledSize: new google.maps.Size(60, 24),
+                    anchor: new google.maps.Point(12, 22)
+                },
+                animation: google.maps.Animation.DROP
+            });
 
-                    // إضافة مستمع حدث النقر
-                    marker{{ $client->id }}.addListener('click', () => {
-                        showClientInfo(allMarkers.find(m => m.marker === marker{{ $client->id }}));
-                    });
-                @endif
-            @endforeach
+            // إضافة الماركر للمصفوفة
+            allMarkers.push({
+                marker: marker{{ $client->id }},
+                clientName: "{{ $client->trade_name }}".toLowerCase(),
+                clientCode: "{{ $client->code }}".toLowerCase(),
+                data: {
+                    id: {{ $client->id }},
+                    name: "{{ $client->trade_name }}",
+                    status: "{{ optional($client->status_client)->color ?? '#CCCCCC' }}",
+                    phone: "{{ $client->phone }}",
+                    region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
+                    balance: "{{ $client->Balance() }}"
+                }
+            });
 
+            // إضافة مستمع حدث النقر
+            marker{{ $client->id }}.addListener('click', () => {
+                showClientInfo(allMarkers.find(m => m.marker === marker{{ $client->id }}));
+            });
+        @endif
+    @endif
+@endforeach
             // إضافة ماركر موقع المستخدم
             @if (isset($userLocation))
                 var userLocation = {

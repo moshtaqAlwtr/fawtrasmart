@@ -376,12 +376,12 @@
                                                             <i class="fa fa-eye me-2 text-primary"></i>عرض
                                                         </a>
                                                     </li>
-                                                    <li>
+                                                    {{-- <li>
                                                         <a class="dropdown-item"
                                                             href="{{ route('incomes.edit', $income->id) }}">
                                                             <i class="fa fa-edit me-2 text-success"></i>تعديل
                                                         </a>
-                                                    </li>
+                                                    </li> --}}
 
                                                     <li>
                                                         <form id="cancel-income-form-{{ $income->id }}"
@@ -463,24 +463,36 @@
     <!-- داخل layout.blade.php أو ملف الـ master -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <script>
-        function confirmCancel(id) {
-            Swal.fire({
-                title: 'هل أنت متأكد؟',
-                text: 'سيتم استعادة جميع الأرصدة كما كانت قبل السند',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'نعم، إلغاء السند',
-                cancelButtonText: 'لا، إلغاء العملية',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('cancel-income-form-' + id).submit();
-                }
-            });
-        }
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function confirmCancel(id) {
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: 'سيتم استعادة جميع الأرصدة كما كانت قبل السند',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، إلغاء السند',
+            cancelButtonText: 'لا، تراجع',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancel-income-form-' + id).submit();
+            }
+        });
+    }
+
+    function showPermissionError() {
+        Swal.fire({
+            icon: 'error',
+            title: 'صلاحيات غير كافية',
+            text: 'أنت لا تملك صلاحية لإلغاء هذا السند.',
+            confirmButtonText: 'موافق'
+        });
+    }
+</script>
+
 
 
 @endsection
