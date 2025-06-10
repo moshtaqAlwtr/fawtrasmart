@@ -189,6 +189,7 @@ public function store(Request $request)
 
         // إشعار الإنشاء
         $income_account_name = Account::find($income->account_id);
+        
         $user = Auth::user();
 
         notifications::create([
@@ -213,7 +214,10 @@ public function store(Request $request)
 
         // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
         $clientAccount = Account::find($income->account_id);
-        
+        if ($clientAccount) {
+            $clientAccount->balance -= $income->amount;
+            $clientAccount->save();
+        }
         // تطبيق السداد على الفواتير (المنطق المعدل)
         $this->applyPaymentToInvoices($income, $user);
 
