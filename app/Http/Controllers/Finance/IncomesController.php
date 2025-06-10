@@ -213,7 +213,7 @@ public function store(Request $request)
 
         // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
         $clientAccount = Account::find($income->account_id);
-
+        
         // تطبيق السداد على الفواتير (المنطق المعدل)
         $this->applyPaymentToInvoices($income, $user);
 
@@ -234,28 +234,22 @@ public function store(Request $request)
 
 private function applyPaymentToInvoices(Receipt $income, $user)
 {
+    
+   
     $clientAccount = Account::find($income->account_id);
+   
     if (!$clientAccount || !$clientAccount->client_id) {
         return;
     }
+      
+    
+   
 
     $remainingAmount = $income->amount;
 
     // 🧾 أولاً: خصم من الرصيد الدائن (إذا كان العميل مديناً لك)
     // نغير الشرط للتحقق من أن الرصيد موجب (أي العميل مدين لك)
-    if ($clientAccount->balance > 0) {
-        $fromBalance = min($remainingAmount, $clientAccount->balance);
-        $clientAccount->balance -= $fromBalance;
-        $remainingAmount -= $fromBalance;
-
-        notifications::create([
-            'user_id' => $user->id,
-            'type' => 'balance_payment',
-            'title' => 'سداد من الرصيد الافتتاحي',
-            'description' => 'تم سداد مبلغ ' . number_format($fromBalance, 2) .
-                            ' من الرصيد الافتتاحي عبر سند القبض رقم ' . $income->code,
-        ]);
-    }
+    
 
     // 🧾 ثانياً: سداد الفواتير فقط إذا تبقى مبلغ بعد الرصيد
     if ($remainingAmount > 0) {
