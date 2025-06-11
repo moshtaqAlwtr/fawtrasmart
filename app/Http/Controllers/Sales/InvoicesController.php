@@ -83,8 +83,11 @@ public function index(Request $request)
     $query = auth()->user()->hasAnyPermission(['sales_view_all_invoices'])
         ? Invoice::with(['client', 'createdByUser', 'updatedByUser'])->where('type', 'normal')
         : Invoice::with(['client', 'createdByUser', 'updatedByUser'])
-            ->where('created_by', auth()->user()->id)
-            ->where('type', 'normal');
+    ->where(function ($query) {
+        $query->where('created_by', auth()->id())
+              ->orWhere('employee_id', auth()->user()->employee_id);
+    })
+    ->where('type', 'normal');
 
     // تطبيق جميع شروط البحث
     $this->applySearchFilters($query, $request);
@@ -256,12 +259,18 @@ protected function applySearchFilters($query, $request)
         $treasury = Treasury::all();
 
         $user = auth()->user();
+if ($user->employee_id !== null) {
+    if (auth()->user()->hasAnyPermission(['sales_view_all_invoices'])) {
+        $employees = Employee::all()->sortBy(function ($employee) use ($user) {
+            return $employee->id === $user->employee_id ? 0 : 1;
+        })->values(); // ← إعادة فهرسة النتائج
+    } else {
+        $employees = Employee::where('id', $user->employee_id)->get();
+    }
+} else {
+    $employees = Employee::all();
+}
 
-        if ($user->employee_id != null) {
-            $employees = Employee::where('id', $user->employee_id)->get(); // get بدل first
-        } else {
-            $employees = Employee::all();
-        }
 
 
 
@@ -1741,7 +1750,7 @@ public function storeSignatures(Request $request, $invoiceId)
         'signer_name' => 'required|string|max:255',
         'signer_role' => 'nullable|string|max:255',
         'signature_data' => 'required|string',
-        'amount_paid' => 'required|numeric|min:0',
+        'amount_paid' => 'nullable|numeric|min:0',
     ]);
 
     // حفظ التوقيع في متغير
@@ -1754,10 +1763,10 @@ public function storeSignatures(Request $request, $invoiceId)
         'signed_at' => now(),
     ]);
  // إنشاء سند القبض
- 
- 
+
+
  $invoiceaccount = invoice::find($invoiceId);
- 
+
  $account = Account::where('client_id',$invoiceaccount->client_id)->first();
         $income = new Receipt();
 
@@ -1779,7 +1788,7 @@ public function storeSignatures(Request $request, $invoiceId)
         $income->tax2_amount = 0;
         $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-        
+
 
         // تحديد الخزينة المناسبة
         $MainTreasury = $this->determineTreasury();
