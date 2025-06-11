@@ -228,6 +228,7 @@ class IncomesController extends Controller
         }
     }
 
+
     private function applyPaymentToInvoices(Receipt $income, $user)
     {
         $clientAccount = Account::find($income->account_id);
@@ -326,7 +327,6 @@ class IncomesController extends Controller
 
         // حفظ التغييرات في رصيد الحساب
         $clientAccount->save();
-
     }
     public function update(Request $request, $id)
     {
