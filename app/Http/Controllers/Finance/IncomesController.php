@@ -82,7 +82,7 @@ class IncomesController extends Controller
 
 $incomes = $query->paginate(20);
 
-        $incomes = $query->paginate(20);
+       
 
         // حساب إجمالي الإيرادات لفترات مختلفة مع مراعاة دور المستخدم
         $totalQuery = Receipt::query();
