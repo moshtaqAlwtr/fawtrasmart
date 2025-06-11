@@ -747,7 +747,6 @@ public function index(Request $request)
         $account = Account::all();
         $statuses = Statuses::all();
 
-
         // تحميل الحجوزات والعضويات
         $bookings = Booking::where('client_id', $id)->get();
         $packages = Package::all();

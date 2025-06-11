@@ -617,6 +617,8 @@
                                             <i class="fas fa-user text-muted me-1"></i>
                                             <span class="text-muted small">بواسطة:
                                                 {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
+                                                <span class="text-muted small">
+                                                للمندوب {{ $invoice->employee->first_name ?? 'غير محدد' }} </span>
                                         </div>
                                     </td>
                                     <td>
