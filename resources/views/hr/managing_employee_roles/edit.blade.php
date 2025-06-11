@@ -3291,6 +3291,7 @@ id="storeButton">
                                 <div class="row">
                                     <!-- العمود الأول -->
                                     <div class="col-md-6 col-lg-4">
+                                    
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
                                             <input name="settings_edit_general_settings" {{ $role->settings_edit_general_settings == 1 ? 'checked' : '' }} type="checkbox" class="select-all-settings permission-main-checkbox setting-checkbox">
                                             <span class="vs-checkbox">
@@ -3301,7 +3302,7 @@ id="storeButton">
                                             <span class="">تعديل الإعدادات العامه</span>
                                         </div>
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
-                                            <input name="settings_edit_tax_settings" {{ $role->settings_edit_tax_settings == 1 ? 'checked' : '' }} type="checkbox" class="select-all-settings permission-main-checkbox setting-checkbox">
+                                            <input name="settings_edit_tax_settings" {{ $role->view_notifications == 1 ? 'checked' : '' }} type="checkbox" class="select-all-settings permission-main-checkbox setting-checkbox">
                                             <span class="vs-checkbox">
                                                 <span class="vs-checkbox--check">
                                                     <i class="vs-icon feather icon-check"></i>
@@ -3326,7 +3327,7 @@ id="storeButton">
                                                     <i class="vs-icon feather icon-check"></i>
                                                 </span>
                                             </span>
-                                            <span class="">الفروع</span>
+                                            <span class="">عرض اشعارات النظام</span>
                                         </div>
                                         {{-- //القوالب  --}}
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">

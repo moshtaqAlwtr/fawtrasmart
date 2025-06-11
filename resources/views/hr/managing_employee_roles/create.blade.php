@@ -3291,7 +3291,7 @@
                                                     <i class="vs-icon feather icon-check"></i>
                                                 </span>
                                             </span>
-                                            <span class="">الفروع</span>
+                                            <span class="">عرض اشعارات النظام</span>
                                         </div>
                                       
                                         <div class="vs-checkbox-con vs-checkbox-primary mb-1">
