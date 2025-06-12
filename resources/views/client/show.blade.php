@@ -442,6 +442,9 @@
                         class="btn btn-sm btn-secondary col-md-auto">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
+                    <a href="{{ route('incomes.create') }}" class="btn btn-sm btn-secondary col-md-auto">
+                        <i class="fas fa-paperclip me-1"></i>اضافة سند قبض
+                    </a>
                     <a href="{{ route('appointments.create') }}" class="btn btn-sm btn-success col-md-auto">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
@@ -496,6 +499,13 @@
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق
                             </a></li>
+
+
+
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('incomes.create') }}">
+                            <i class="fas fa-paperclip me-2 text-secondary"></i> اضافة سند قبض
+                        </a></li>
+
                         <li><a class="dropdown-item d-flex align-items-center" href="{{ route('appointments.create') }}">
                                 <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
                             </a></li>
