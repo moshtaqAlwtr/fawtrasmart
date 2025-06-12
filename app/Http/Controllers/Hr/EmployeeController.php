@@ -132,6 +132,7 @@ class EmployeeController extends Controller
         );
 
         $new_employee = $employee->create($employee_data);
+        
 
         // حفظ المجموعات والاتجاهات
         if ($request->has('groups')) {
@@ -246,6 +247,14 @@ public function update(EmployeeRequest $request, $id)
         }
 
         $employee->update($employee_data);
+
+// تحديث الدور للمستخدم المرتبط
+ $user = User::where('employee_id', $employee->id)->first();
+ $jobRole = JobRole::where('role_name',$employee->job_role->role_name)->first();  
+
+if ($user && $jobRole) {
+    $user->syncRoles([$jobRole->role_name]);
+}
 
         // تحديث المجموعات والاتجاهات
         if ($request->has('groups')) {

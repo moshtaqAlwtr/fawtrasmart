@@ -82,9 +82,12 @@ public function index(Request $request)
     // بدء بناء الاستعلام الأساسي حسب الصلاحيات
     $query = auth()->user()->hasAnyPermission(['sales_view_all_invoices'])
         ? Invoice::with(['client', 'createdByUser', 'updatedByUser'])->where('type', 'normal')
-        : Invoice::with(['client', 'createdByUser', 'updatedByUser'])
-            ->where('created_by', auth()->user()->id)
-            ->where('type', 'normal');
+        :  Invoice::with(['client', 'createdByUser', 'updatedByUser'])
+    ->where(function ($query) {
+        $query->where('created_by', auth()->id())
+              ->orWhere('employee_id', auth()->user()->employee_id);
+    })
+    ->where('type', 'normal');
 
     // تطبيق جميع شروط البحث
     $this->applySearchFilters($query, $request);
@@ -256,13 +259,17 @@ protected function applySearchFilters($query, $request)
         $treasury = Treasury::all();
 
         $user = auth()->user();
-
-        if ($user->employee_id != null) {
-            $employees = Employee::where('id', $user->employee_id)->get(); // get بدل first
-        } else {
-            $employees = Employee::all();
-        }
-
+if ($user->employee_id !== null) {
+    if (auth()->user()->hasAnyPermission(['sales_view_all_invoices'])) {
+        $employees = Employee::all()->sortBy(function ($employee) use ($user) {
+            return $employee->id === $user->employee_id ? 0 : 1;
+        })->values(); // ← إعادة فهرسة النتائج
+    } else {
+        $employees = Employee::where('id', $user->employee_id)->get();
+    }
+} else {
+    $employees = Employee::all();
+}
 
 
 

@@ -74,10 +74,14 @@ class IncomesController extends Controller
             });
 
         // إذا كان المستخدم موظفاً، نضيف شرطاً لرؤية سنداته فقط
-        if (auth()->user()->role == 'employee') {
-            $query->where('created_by', auth()->id());
-        }
+        
 
+          if (auth()->user()->role == 'employee') {
+    // إذا لم يكن لديه صلاحية رؤية كل السندات
+    if (!auth()->user()->hasPermissionTo('finance_view_all_receipts')) {
+        $query->where('created_by', auth()->id());
+    }
+}
         $incomes = $query->paginate(20);
 
         // حساب إجمالي الإيرادات لفترات مختلفة مع مراعاة دور المستخدم
@@ -86,11 +90,15 @@ class IncomesController extends Controller
         $totalLast30DaysQuery = Receipt::where('date', '>=', now()->subDays(30));
         $totalLast365DaysQuery = Receipt::where('date', '>=', now()->subDays(365));
 
-        if (auth()->user()->role == 'employee') {
+        
+
+         if (auth()->user()->role == 'employee') {
+             if (!auth()->user()->hasPermissionTo('finance_view_all_receipts')) {
             $totalQuery->where('created_by', auth()->id());
             $totalLast7DaysQuery->where('created_by', auth()->id());
             $totalLast30DaysQuery->where('created_by', auth()->id());
             $totalLast365DaysQuery->where('created_by', auth()->id());
+        }
         }
 
         $totalLast7Days = $totalLast7DaysQuery->sum('amount');
