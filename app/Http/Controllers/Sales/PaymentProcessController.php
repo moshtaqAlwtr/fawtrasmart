@@ -97,6 +97,8 @@ class PaymentProcessController extends Controller
        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('sales.payment.index', compact('payments', 'employees','account_setting'));
     }
+
+
     public function indexPurchase(Request $request)
     {
         $employees = Employee::all();
@@ -192,6 +194,7 @@ class PaymentProcessController extends Controller
 
         return view('Purchases.Supplier_Payments.index', compact('payments', 'employees'));
     }
+
     public function create($id, $type = 'invoice') // $type يحدد إذا كان الدفع لفاتورة أو قسط
     {
         if ($type === 'installment') {
@@ -233,6 +236,7 @@ class PaymentProcessController extends Controller
           $user = User::find(auth()->user()->id);
         return view('sales.payment.create', compact('invoiceId', 'payments', 'amount', 'treasury', 'employees', 'type','mainTreasuryAccount','user'));
     }
+
 public function store(ClientPaymentRequest $request)
 {
     try {
@@ -457,6 +461,7 @@ public function store(ClientPaymentRequest $request)
             'is_debit' => false,
         ]);
     }
+
     public function getInvoiceDetails($invoice_id)
 {
     try {
@@ -817,11 +822,7 @@ public function createPurchase($id)
     }
 
 
-    public function destroy($id)
-    {
-        PaymentsProcess::destroy($id);
-        return redirect()->route('paymentsClient.index')->with('success', 'تم حذف عملية الدفع بنجاح');
-    }
+
 
     public function rereceipt($id)
     {

@@ -324,7 +324,16 @@
 
                                             <small class="text-muted">
                                                 @if ($payment->invoice)
-                                                    الفاتورة: #{{ $payment->invoice->code??'--' }}
+                                                    @if ($payment->invoice->id??'')
+                                                        <span class="badge bg-light text-dark">
+                                                            <i class="fas fa-file-invoice"></i> عملية دفع من الفاتورة
+                                                            #{{ $payment->invoice->code }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted">فاتورة غير مرقمة</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-danger">-- لا توجد فاتورة مرتبطة --</span>
                                                 @endif
                                             </small>
 
@@ -335,7 +344,6 @@
                                             @endif
                                         </div>
                                     </td>
-
                                     <td>
                                         @if ($payment->invoice->client)
                                             <div class="d-flex flex-column">
@@ -442,18 +450,7 @@
                                                                 <i class="fas fa-edit me-2 text-success"></i>تعديل الدفع
                                                             </a>
                                                         </li>
-                                                        <li>
-                                                            <form
-                                                                action="{{ route('paymentsClient.destroy', $payment->id) }}"
-                                                                method="POST">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="dropdown-item text-danger"
-                                                                    onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟')">
-                                                                    <i class="fas fa-trash me-2"></i>حذف العملية
-                                                                </button>
-                                                            </form>
-                                                        </li>
+
                                                         <li>
                                                             <hr class="dropdown-divider">
                                                         </li>

@@ -94,7 +94,8 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
-                    <?php if(auth()->user()->role != 'employee'): ?>
+                   
+                   <?php if( auth()->user()->hasPermissionTo('branches')): ?>
                         <li class="dropdown dropdown-notification nav-item">
                             <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                                 <i class="ficon feather icon-calendar"></i>
@@ -178,7 +179,7 @@
                     $userRole = Auth::user()->role;
                 ?>
 
-                <?php if($userRole != 'employee'): ?>
+                <?php if( auth()->user()->hasPermissionTo('branches')): ?>
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                             <i class="ficon feather icon-bell"></i>

@@ -18,11 +18,13 @@
             direction: rtl;
             font-weight: bold;
         }
-  @media print {
-        #signature-form {
-            display: none !important;
+
+        @media print {
+            #signature-form {
+                display: none !important;
+            }
         }
-    }
+
         @media print {
             .no-print {
                 display: none !important;
@@ -255,7 +257,7 @@
                 <!-- Receipt Header -->
                 <div class="receipt-header">
                     <h1 class="receipt-title">فاتورة ضريبية</h1>
-                    <p class="mb-0">مؤسسة الطيب الافضل للتجارة</p>
+                    <p class="mb-0">مؤسسة اعمال خاصة </p>
                     <p class="mb-0">الرياض - الرياض</p>
                     <p>رقم المسؤول: 0509992803</p>
                 </div>
@@ -388,7 +390,7 @@
                 </div>
 
 
-                 <div class="qr-code">
+                <div class="qr-code">
                     {!! $qrCodeSvg !!}
 
                 </div>

@@ -168,6 +168,72 @@
                 <?php endif; ?>
             <?php endif; ?>
 
+            <?php if(auth()->user()->hasAnyPermission([
+                        'clients_view_all_clients',
+                        'client_follow_up_add_notes_attachments_appointments_all',
+                        'clients_edit_client_settings',
+                    ])): ?>
+                <?php if(isset($settings['customers']) && $settings['customers'] === 'active'): ?>
+                    <li class="nav-item">
+                        <a href="#">
+                            <i class="feather icon-user"></i> <!-- أيقونة العملاء -->
+                            <span class="menu-title"
+                                data-i18n="Dashboard"><?php echo e(trans('main_trans.Customers')); ?></span>
+                        </a>
+                        <ul class="menu-content">
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_view_all_clients')): ?>
+                                <li><a href="<?php echo e(route('clients.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="Analytics"><?php echo e(trans('main_trans.Customer_management')); ?></span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_add_client')): ?>
+                                <li><a href="<?php echo e(route('clients.create')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="eCommerce"><?php echo e(trans('main_trans.Add_a_new_customer')); ?></span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('client_follow_up_add_notes_attachments_appointments_all')): ?>
+                                <li><a href="<?php echo e(route('appointments.index')); ?>"><i class="feather icon-circle"></i><span
+                                            class="menu-item"
+                                            data-i18n="eCommerce"><?php echo e(trans('main_trans.Appointments')); ?></span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+
+                            <li><a href="<?php echo e(route('clients.contacts')); ?>"><i class="feather icon-circle"></i><span
+                                        class="menu-item"
+                                        data-i18n="eCommerce"><?php echo e(trans('main_trans.Contact_list')); ?></span>
+                                </a>
+                            </li>
+
+                            <li><a href="<?php echo e(route('clients.mang_client')); ?>"><i
+                                        class="feather icon-circle"></i><span class="menu-item"
+                                        data-i18n="eCommerce"><?php echo e(trans('main_trans.Customer_relationship_management')); ?></span>
+                                </a>
+                            </li>
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_edit_client_settings')): ?>
+                                <li><a href="<?php echo e(route('groups.group_client')); ?>"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
+                                            data-i18n="eCommerce">اعدادات المجموعات</span>
+                                    </a>
+                                </li>
+                    <?php endif; ?>
+
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_edit_client_settings')): ?>
+                        <li><a href="<?php echo e(route('clients.setting')); ?>"><i class="feather icon-circle"></i><span
+                                    class="menu-item" data-i18n="eCommerce"><?php echo e(trans('main_trans.Client_settings')); ?></span>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+            </ul>
+            </li>
+            <?php endif; ?>
 
             <li class="nav-item">
                 <a href="#">
@@ -537,72 +603,7 @@
                 <?php endif; ?>
             <?php endif; ?>
             <!-- العملاء -->
-            <?php if(auth()->user()->hasAnyPermission([
-                        'clients_view_all_clients',
-                        'client_follow_up_add_notes_attachments_appointments_all',
-                        'clients_edit_client_settings',
-                    ])): ?>
-                <?php if(isset($settings['customers']) && $settings['customers'] === 'active'): ?>
-                    <li class="nav-item">
-                        <a href="#">
-                            <i class="feather icon-user"></i> <!-- أيقونة العملاء -->
-                            <span class="menu-title"
-                                data-i18n="Dashboard"><?php echo e(trans('main_trans.Customers')); ?></span>
-                        </a>
-                        <ul class="menu-content">
-                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_view_all_clients')): ?>
-                                <li><a href="<?php echo e(route('clients.index')); ?>"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="Analytics"><?php echo e(trans('main_trans.Customer_management')); ?></span>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
 
-                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_add_client')): ?>
-                                <li><a href="<?php echo e(route('clients.create')); ?>"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="eCommerce"><?php echo e(trans('main_trans.Add_a_new_customer')); ?></span>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-
-                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('client_follow_up_add_notes_attachments_appointments_all')): ?>
-                                <li><a href="<?php echo e(route('appointments.index')); ?>"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
-                                            data-i18n="eCommerce"><?php echo e(trans('main_trans.Appointments')); ?></span>
-                                    </a>
-                                </li>
-                            <?php endif; ?>
-
-                            <li><a href="<?php echo e(route('clients.contacts')); ?>"><i class="feather icon-circle"></i><span
-                                        class="menu-item"
-                                        data-i18n="eCommerce"><?php echo e(trans('main_trans.Contact_list')); ?></span>
-                                </a>
-                            </li>
-
-                            <li><a href="<?php echo e(route('clients.mang_client')); ?>"><i
-                                        class="feather icon-circle"></i><span class="menu-item"
-                                        data-i18n="eCommerce"><?php echo e(trans('main_trans.Customer_relationship_management')); ?></span>
-                                </a>
-                            </li>
-                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_edit_client_settings')): ?>
-                                <li><a href="<?php echo e(route('groups.group_client')); ?>"><i
-                                            class="feather icon-circle"></i><span class="menu-item"
-                                            data-i18n="eCommerce">اعدادات المجموعات</span>
-                                    </a>
-                                </li>
-                    <?php endif; ?>
-
-                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('clients_edit_client_settings')): ?>
-                        <li><a href="<?php echo e(route('clients.setting')); ?>"><i class="feather icon-circle"></i><span
-                                    class="menu-item" data-i18n="eCommerce"><?php echo e(trans('main_trans.Client_settings')); ?></span>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-
-            </ul>
-            </li>
-            <?php endif; ?>
             <?php endif; ?>
 
             <!-- نقاط الارصدة -->
