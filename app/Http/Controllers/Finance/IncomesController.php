@@ -73,16 +73,15 @@ class IncomesController extends Controller
             });
 
         // إذا كان المستخدم موظفاً، نضيف شرطاً لرؤية سنداته فقط
-      if (auth()->user()->role == 'employee') {
+        
+
+          if (auth()->user()->role == 'employee') {
     // إذا لم يكن لديه صلاحية رؤية كل السندات
     if (!auth()->user()->hasPermissionTo('finance_view_all_receipts')) {
         $query->where('created_by', auth()->id());
     }
 }
-
-$incomes = $query->paginate(20);
-
-       
+        $incomes = $query->paginate(20);
 
         // حساب إجمالي الإيرادات لفترات مختلفة مع مراعاة دور المستخدم
         $totalQuery = Receipt::query();
@@ -90,7 +89,9 @@ $incomes = $query->paginate(20);
         $totalLast30DaysQuery = Receipt::where('date', '>=', now()->subDays(30));
         $totalLast365DaysQuery = Receipt::where('date', '>=', now()->subDays(365));
 
-        if (auth()->user()->role == 'employee') {
+        
+
+         if (auth()->user()->role == 'employee') {
              if (!auth()->user()->hasPermissionTo('finance_view_all_receipts')) {
             $totalQuery->where('created_by', auth()->id());
             $totalLast7DaysQuery->where('created_by', auth()->id());
@@ -235,113 +236,106 @@ $incomes = $query->paginate(20);
         }
     }
 
+
     private function applyPaymentToInvoices(Receipt $income, $user)
-{
-    $clientAccount = Account::find($income->account_id);
+    {
+        $clientAccount = Account::find($income->account_id);
 
-    if (!$clientAccount || !$clientAccount->client_id) {
-        return;
-    }
+        if (!$clientAccount || !$clientAccount->client_id) {
+            return;
+        }
 
-    $remainingAmount = $income->amount;
-    $totalPaymentAmount = $income->amount;
-    $processedInvoices = [];
-    $paymentDetails = [];
+        $remainingAmount = $income->amount;
+        $totalPaymentAmount = $income->amount;
+        $processedInvoices = [];
+        $paymentDetails = [];
 
-    // معالجة الفواتير
-    if ($remainingAmount > 0) {
-        $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)
-                                ->where('is_paid', false)
-                                ->orderBy('created_at', 'asc')
-                                ->get();
+        // معالجة الفواتير
+        if ($remainingAmount > 0) {
+            $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)->where('is_paid', false)->orderBy('created_at', 'asc')->get();
 
-        foreach ($unpaidInvoices as $invoice) {
-            if ($remainingAmount <= 0) {
-                break;
-            }
+            foreach ($unpaidInvoices as $invoice) {
+                if ($remainingAmount <= 0) {
+                    break;
+                }
 
-            $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)
-                                       ->where('payment_status', '!=', 5)
-                                       ->sum('amount');
+                $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)->where('payment_status', '!=', 5)->sum('amount');
 
-            $invoiceRemaining = $invoice->grand_total - $paidAmount;
+                $invoiceRemaining = $invoice->grand_total - $paidAmount;
 
-            if ($invoiceRemaining > 0) {
-                $paymentAmount = min($remainingAmount, $invoiceRemaining);
-                $newPaidAmount = $paidAmount + $paymentAmount;
-                $isFullPayment = $newPaidAmount >= $invoice->grand_total;
+                if ($invoiceRemaining > 0) {
+                    $paymentAmount = min($remainingAmount, $invoiceRemaining);
+                    $newPaidAmount = $paidAmount + $paymentAmount;
+                    $isFullPayment = $newPaidAmount >= $invoice->grand_total;
 
-                // تسجيل الدفعة
-                PaymentsProcess::create([
-                    'invoice_id' => $invoice->id,
-                    'amount' => $paymentAmount,
-                    'payment_date' => $income->date,
-                    'Payment_method' => 'cash',
-                    'reference_number' => $income->code,
-                    'type' => 'client payments',
-                    'payment_status' => $isFullPayment ? 1 : 2,
-                    'employee_id' => $user->employee_id,
-                    'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
-                ]);
+                    // تسجيل الدفعة
+                    PaymentsProcess::create([
+                        'invoice_id' => $invoice->id,
+                        'amount' => $paymentAmount,
+                        'payment_date' => $income->date,
+                        'Payment_method' => 'cash',
+                        'reference_number' => $income->code,
+                        'type' => 'client payments',
+                        'payment_status' => $isFullPayment ? 1 : 2,
+                        'employee_id' => $user->id,
+                        'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
+                    ]);
 
-                // تحديث الفاتورة
-                $invoice->update([
-                    'advance_payment' => $newPaidAmount,
-                    'is_paid' => $isFullPayment,
-                    'payment_status' => $isFullPayment ? 1 : 2,
-                    'due_value' => max(0, $invoice->grand_total - $newPaidAmount),
-                ]);
+                    // تحديث الفاتورة
+                    $invoice->update([
+                        'advance_payment' => $newPaidAmount,
+                        'is_paid' => $isFullPayment,
+                        'payment_status' => $isFullPayment ? 1 : 2,
+                        'due_value' => max(0, $invoice->grand_total - $newPaidAmount),
+                    ]);
 
-                // تخزين تفاصيل الدفع للإشعار
-                $paymentType = $paymentAmount == $invoice->grand_total ? 'سداد كامل' :
-                              ($isFullPayment ? 'تكملة سداد' : 'سداد جزئي');
+                    // تخزين تفاصيل الدفع للإشعار
+                    $paymentType = $paymentAmount == $invoice->grand_total ? 'سداد كامل' : ($isFullPayment ? 'تكملة سداد' : 'سداد جزئي');
 
-                $processedInvoices[] = [
-                    'code' => $invoice->code,
-                    'amount' => $paymentAmount,
-                    'remaining' => max(0, $invoice->grand_total - $newPaidAmount),
-                    'type' => $paymentType
-                ];
+                    $processedInvoices[] = [
+                        'code' => $invoice->code,
+                        'amount' => $paymentAmount,
+                        'remaining' => max(0, $invoice->grand_total - $newPaidAmount),
+                        'type' => $paymentType,
+                    ];
 
-                $remainingAmount -= $paymentAmount;
+                    $remainingAmount -= $paymentAmount;
+                }
             }
         }
-    }
 
-    // إنشاء إشعار واحد شامل
-    $notificationTitle = $user->name . ' قام بتسديد دفعة';
-    $notificationDescription = '';
+        // إنشاء إشعار واحد شامل
+        $notificationTitle = $user->name . ' قام بتسديد دفعة';
+        $notificationDescription = '';
 
-    // تفاصيل الفواتير
-    if (!empty($processedInvoices)) {
-        $notificationDescription .= "تفاصيل السداد:\n";
+        // تفاصيل الفواتير
+        if (!empty($processedInvoices)) {
+            $notificationDescription .= "تفاصيل السداد:\n";
 
-        foreach ($processedInvoices as $invoice) {
-            $notificationDescription .= "- {$invoice['type']} للفاتورة {$invoice['code']} بمبلغ " .
-                                     number_format($invoice['amount'], 2) . " ر.س (متبقي: " .
-                                     number_format($invoice['remaining'], 2) . " ر.س)\n";
+            foreach ($processedInvoices as $invoice) {
+                $notificationDescription .= "- {$invoice['type']} للفاتورة {$invoice['code']} بمبلغ " . number_format($invoice['amount'], 2) . ' ر.س (متبقي: ' . number_format($invoice['remaining'], 2) . " ر.س)\n";
+            }
         }
+
+        // الفائض المتبقي
+        if ($remainingAmount > 0) {
+            $notificationDescription .= "\nفائض سداد: " . number_format($remainingAmount, 2) . ' ر.س';
+        }
+
+        // إجماليات
+        $notificationDescription .= "\n\nإجمالي السند: " . number_format($totalPaymentAmount, 2) . ' ر.س';
+        $notificationDescription .= "\nالرصيد المتبقي: " . number_format($clientAccount->balance, 2) . ' ر.س';
+
+        notifications::create([
+            'user_id' => $user->id,
+            'type' => 'invoice_payment_summary',
+            'title' => $notificationTitle,
+            'description' => $notificationDescription,
+        ]);
+
+        // حفظ التغييرات في رصيد الحساب
+        $clientAccount->save();
     }
-
-    // الفائض المتبقي
-    if ($remainingAmount > 0) {
-        $notificationDescription .= "\nفائض سداد: " . number_format($remainingAmount, 2) . " ر.س";
-    }
-
-    // إجماليات
-    $notificationDescription .= "\n\nإجمالي السند: " . number_format($totalPaymentAmount, 2) . " ر.س";
-    $notificationDescription .= "\nالرصيد المتبقي: " . number_format($clientAccount->balance, 2) . " ر.س";
-
-    notifications::create([
-        'user_id' => $user->id,
-        'type' => 'invoice_payment_summary',
-        'title' => $notificationTitle,
-        'description' => $notificationDescription,
-    ]);
-
-    // حفظ التغييرات في رصيد الحساب
-    $clientAccount->save();
-}
     public function update(Request $request, $id)
     {
         try {
@@ -392,8 +386,6 @@ $incomes = $query->paginate(20);
                 ->withInput();
         }
     }
-
-    // الدوال المساعدة الجديدة والمعدلة
 
     public function cancel($id)
     {

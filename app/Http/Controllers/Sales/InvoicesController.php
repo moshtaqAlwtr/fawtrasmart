@@ -82,7 +82,7 @@ public function index(Request $request)
     // بدء بناء الاستعلام الأساسي حسب الصلاحيات
     $query = auth()->user()->hasAnyPermission(['sales_view_all_invoices'])
         ? Invoice::with(['client', 'createdByUser', 'updatedByUser'])->where('type', 'normal')
-        : Invoice::with(['client', 'createdByUser', 'updatedByUser'])
+        :  Invoice::with(['client', 'createdByUser', 'updatedByUser'])
     ->where(function ($query) {
         $query->where('created_by', auth()->id())
               ->orWhere('employee_id', auth()->user()->employee_id);
@@ -270,8 +270,6 @@ if ($user->employee_id !== null) {
 } else {
     $employees = Employee::all();
 }
-
-
 
 
 
@@ -1753,24 +1751,23 @@ public function storeSignatures(Request $request, $invoiceId)
         'amount_paid' => 'nullable|numeric|min:0',
     ]);
 
-    // حفظ التوقيع في متغير
+    // حفظ التوقيع فقط (بدون amount_paid)
     $signature = Signature::create([
         'invoice_id' => $invoiceId,
         'signer_name' => $validated['signer_name'],
         'signer_role' => $validated['signer_role'],
         'signature_data' => $validated['signature_data'],
         'amount_paid' => $validated['amount_paid'],
+
         'signed_at' => now(),
     ]);
- // إنشاء سند القبض
 
+    // إذا كان هناك مبلغ مدفوع، ننشئ سند القبض
+    if (!empty($validated['amount_paid']) && $validated['amount_paid'] > 0) {
+        $invoiceaccount = invoice::find($invoiceId);
+        $account = Account::where('client_id', $invoiceaccount->client_id)->first();
 
- $invoiceaccount = invoice::find($invoiceId);
-
- $account = Account::where('client_id',$invoiceaccount->client_id)->first();
         $income = new Receipt();
-
-        // تعبئة الحقول
         $income->code = $request->input('code');
         $income->amount = $validated['amount_paid'];
         $income->description = "مدفوعات لفاتورة رقم " . $invoiceId;
@@ -1788,16 +1785,11 @@ public function storeSignatures(Request $request, $invoiceId)
         $income->tax2_amount = 0;
         $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-
-
-        // تحديد الخزينة المناسبة
         $MainTreasury = $this->determineTreasury();
         $income->treasury_id = $MainTreasury->id;
-
-        // حفظ سند القبض
         $income->save();
 
-        // إشعار الإنشاء
+        // باقي العمليات المتعلقة بسند القبض
         $income_account_name = Account::find($income->account_id);
         $user = Auth::user();
 
@@ -1808,7 +1800,6 @@ public function storeSignatures(Request $request, $invoiceId)
             'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
         ]);
 
-        // تسجيل النشاط
         ModelsLog::create([
             'type' => 'finance_log',
             'type_id' => $income->id,
@@ -1817,30 +1808,25 @@ public function storeSignatures(Request $request, $invoiceId)
             'created_by' => auth()->id(),
         ]);
 
-        // تحديث رصيد الخزينة
         $MainTreasury->balance += $income->amount;
         $MainTreasury->save();
 
-        // تحديث رصيد حساب العميل
         $clientAccount = Account::find($income->account_id);
         if ($clientAccount) {
             $clientAccount->balance -= $income->amount;
             $clientAccount->save();
         }
 
-        // تطبيق السداد على الفواتير (المنطق المعدل)
-        $this->applyPaymentToInvoices($income, $user,$invoiceId);
-
-        // إنشاء القيد المحاسبي
+        $this->applyPaymentToInvoices($income, $user, $invoiceId);
         $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
+    }
 
-    // إرجاع البيانات
+    // إرجاع بيانات التوقيع فقط
     return response()->json([
         'success' => true,
         'signature' => [
             'signer_name' => $signature->signer_name,
             'signer_role' => $signature->signer_role,
-            'amount_paid' => $signature->amount_paid,
             'signature_data' => $signature->signature_data,
         ]
     ]);
