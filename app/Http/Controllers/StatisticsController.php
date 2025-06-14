@@ -86,62 +86,70 @@ $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
     
     }
     
-    public function Group(Request $request)
-    {
-          $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
-                ->pluck('reference_number')
-                ->toArray();
+public function Group(Request $request)
+{
+    $year = $request->input('year', now()->year);
 
-            // الفواتير الأصلية التي يجب استبعادها = كل فاتورة تم عمل راجع لها
-            // بالإضافة إلى الفواتير التي تم تصنيفها صراحةً على أنها راجعة
-            $excludedInvoiceIds = array_unique(array_merge(
-                $returnedInvoiceIds,
-                Invoice::where('type', 'returned')->pluck('id')->toArray()
-            ));
+    // استبعاد الفواتير المرجعة
+    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+    $excludedInvoiceIds = array_unique(array_merge(
+        $returnedInvoiceIds,
+        Invoice::where('type', 'returned')->pluck('id')->toArray()
+    ));
 
-        // المناطق او المجموعات 
-$regionPerformance = Client::with('Neighborhoodname.Region')
-    ->whereHas('Neighborhoodname.Region')
-    ->get()
-    ->groupBy(function ($client) {
-        return $client->Neighborhoodname->Region->name ?? 'غير معروف';
-    })
-    ->map(function ($clientsInRegion, $regionName) use ($excludedInvoiceIds , $request) {
-        $totalPayments = 0;
-        $totalReceipts = 0;
+    $regionPerformance = Client::with('Neighborhoodname.Region')
+        ->whereHas('Neighborhoodname.Region')
+        ->get()
+        ->groupBy(function ($client) {
+            return $client->Neighborhoodname->Region->name ?? 'غير معروف';
+        })
+        ->map(function ($clientsInRegion, $regionName) use ($excludedInvoiceIds, $year) {
+            $monthlyTotals = array_fill(1, 12, 0); // من 1 إلى 12
 
-$dateFrom = $request->input('date_from');
-$dateTo = $request->input('date_to');
-        foreach ($clientsInRegion as $client) {
-            $invoiceIds = Invoice::where('client_id', $client->id)
-                ->where('type', 'normal')
-                ->whereNotIn('id', $excludedInvoiceIds)
-                ->pluck('id');
+            foreach ($clientsInRegion as $client) {
+                $invoiceIds = Invoice::where('client_id', $client->id)
+                    ->where('type', 'normal')
+                    ->whereNotIn('id', $excludedInvoiceIds)
+                    ->pluck('id');
 
-            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->when($dateFrom && $dateTo, fn($q) => $q->whereBetween('created_at', [$dateFrom, $dateTo]))->sum('amount');
+                for ($month = 1; $month <= 12; $month++) {
+                    $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
+                        ->whereYear('created_at', $year)
+                        ->whereMonth('created_at', $month)
+                        ->sum('amount');
 
-            $receipts = Receipt::whereHas('account', function ($q) use ($client) {
-                $q->where('client_id', $client->id);
-            })->when($dateFrom && $dateTo, fn($q) => $q->whereBetween('created_at', [$dateFrom, $dateTo]))->sum('amount');
+                    $receipts = Receipt::whereHas('account', function ($q) use ($client) {
+                        $q->where('client_id', $client->id);
+                    })
+                        ->whereYear('created_at', $year)
+                        ->whereMonth('created_at', $month)
+                        ->sum('amount');
 
-            $totalPayments += $payments;
-            $totalReceipts += $receipts;
+                    $monthlyTotals[$month] += ($payments + $receipts);
+                }
+            }
+
+            return (object)[
+                'region_name' => $regionName,
+                'monthly' => $monthlyTotals,
+                'total_collected' => array_sum($monthlyTotals),
+            ];
+        })
+        ->sortByDesc('total_collected')
+        ->values();
+
+    // لحساب الإجمالي لكل شهر عبر كل المناطق
+    $monthlyTotals = array_fill(1, 12, 0);
+    foreach ($regionPerformance as $region) {
+        foreach ($region->monthly as $month => $value) {
+            $monthlyTotals[$month] += $value;
         }
-
-        $totalCollected = $totalPayments + $totalReceipts;
-
-        return (object)[
-            'region_name' => $regionName,
-            'total_collected' => $totalCollected,
-            'payments' => $totalPayments,
-            'receipts' => $totalReceipts,
-        ];
-    })
-    ->sortByDesc('total_collected')
-    ->values();
-    
-      return view('Statistics.Group', compact('regionPerformance'));
     }
+
+    return view('Statistics.Group', compact('regionPerformance', 'monthlyTotals', 'year'));
+}
+
+
     
     public function neighborhood (Request $request)
     {
