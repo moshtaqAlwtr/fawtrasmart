@@ -7,6 +7,7 @@ use App\Models\Account;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\AccountSetting;
+use App\Models\ClientRelation;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
@@ -157,85 +158,134 @@ class IncomesController extends Controller
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('finance.incomes.create', compact('incomes_categories', 'account_storage', 'taxs', 'treas', 'accounts', 'account_setting', 'nextCode', 'MainTreasury'));
     }
-    public function store(Request $request)
-    {
-        try {
-            DB::beginTransaction();
+public function store(Request $request)
+{
+    try {
+        DB::beginTransaction();
 
-            // إنشاء سند القبض
-            $income = new Receipt();
+        // إنشاء سند القبض
+        $income = new Receipt();
 
-            // تعبئة الحقول
-            $income->code = $request->input('code');
-            $income->amount = $request->input('amount');
-            $income->description = $request->input('description');
-            $income->date = $request->input('date');
-            $income->incomes_category_id = $request->input('incomes_category_id');
-            $income->seller = $request->input('seller');
-            $income->account_id = $request->input('account_id');
-            $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
-            $income->recurring_frequency = $request->input('recurring_frequency');
-            $income->end_date = $request->input('end_date');
-            $income->tax1 = $request->input('tax1');
-            $income->tax2 = $request->input('tax2');
-            $income->created_by = auth()->id();
-            $income->tax1_amount = $request->input('tax1_amount');
-            $income->tax2_amount = $request->input('tax2_amount');
-            $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
+        // تعبئة الحقول
+        $income->code = $request->input('code');
+        $income->amount = $request->input('amount');
+        $income->description = $request->input('description');
+        $income->date = $request->input('date');
+        $income->incomes_category_id = $request->input('incomes_category_id');
+        $income->seller = $request->input('seller');
+        $income->account_id = $request->input('account_id');
+        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+        $income->recurring_frequency = $request->input('recurring_frequency');
+        $income->end_date = $request->input('end_date');
+        $income->tax1 = $request->input('tax1');
+        $income->tax2 = $request->input('tax2');
+        $income->created_by = auth()->id();
+        $income->tax1_amount = $request->input('tax1_amount');
+        $income->tax2_amount = $request->input('tax2_amount');
+        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-            // معالجة المرفقات
-            if ($request->hasFile('attachments')) {
-                $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
-            }
+        // معالجة المرفقات
+        if ($request->hasFile('attachments')) {
+            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
+        }
 
-            // تحديد الخزينة المناسبة
-            $MainTreasury = $this->determineTreasury();
-            $income->treasury_id = $MainTreasury->id;
+        // تحديد الخزينة المناسبة
+        $MainTreasury = $this->determineTreasury();
+        $income->treasury_id = $MainTreasury->id;
 
-            // حفظ سند القبض
-            $income->save();
+        // حفظ سند القبض
+        $income->save();
 
-            // إشعار الإنشاء
+        // إشعار الإنشاء
+        $user = Auth::user();
 
-            $user = Auth::user();
+        // تسجيل النشاط
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $income->id,
+            'type_log' => 'log',
+            'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+            'created_by' => auth()->id(),
+        ]);
 
-            // تسجيل النشاط
-            ModelsLog::create([
-                'type' => 'finance_log',
-                'type_id' => $income->id,
-                'type_log' => 'log',
-                'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
-                'created_by' => auth()->id(),
+        // تحديث رصيد الخزينة
+        $MainTreasury->balance += $income->amount;
+        $MainTreasury->save();
+
+        // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
+        $clientAccount = Account::find($income->account_id);
+        if ($clientAccount) {
+            $clientAccount->balance -= $income->amount;
+            $clientAccount->save();
+
+            // إضافة ملاحظة تلقائية للعميل
+            $this->addAutomaticNoteForIncome($income, $clientAccount);
+        }
+
+        // تطبيق السداد على الفواتير (المنطق المعدل)
+        $this->applyPaymentToInvoices($income, $user);
+
+        // إنشاء القيد المحاسبي
+        $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
+
+        DB::commit();
+
+        return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح وتحديث رصيد العميل!');
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
+        return back()
+            ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
+            ->withInput();
+    }
+}
+
+/**
+ * إضافة ملاحظة تلقائية عند إنشاء سند قبض للعميل
+ */
+protected function addAutomaticNoteForIncome($income, $clientAccount)
+{
+    try {
+        // الحصول على العميل المرتبط بالحساب
+        $client = Client::where('account_id', $clientAccount->id)->first();
+
+        if ($client) {
+            // إنشاء الملاحظة
+            $noteDescription = sprintf(
+                "تم إنشاء سند قبض رقم %s بقيمة %s %s بتاريخ %s. %s",
+                $income->code,
+                number_format($income->amount, 2),
+                'ريال', // أو العملة المستخدمة في النظام
+                $income->date,
+                $income->description ? 'ملاحظات: ' . $income->description : ''
+            );
+
+            ClientRelation::create([
+                'employee_id' => auth()->id(),
+                'client_id' => $client->id,
+                'status' => 'completed',
+                'process' => 'سند قبض',
+                'description' => $noteDescription,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
 
-            // تحديث رصيد الخزينة
-            $MainTreasury->balance += $income->amount;
-            $MainTreasury->save();
+            // تحديث وقت آخر ملاحظة للعميل
+            $client->last_note_at = now();
+            $client->save();
 
-            // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
-            $clientAccount = Account::find($income->account_id);
-            if ($clientAccount) {
-                $clientAccount->balance -= $income->amount;
-                $clientAccount->save();
-            }
-            // تطبيق السداد على الفواتير (المنطق المعدل)
-            $this->applyPaymentToInvoices($income, $user);
-
-            // إنشاء القيد المحاسبي
-            $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
-
-            DB::commit();
-
-            return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح وتحديث رصيد العميل!');
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
-            return back()
-                ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
-                ->withInput();
+            // تسجيل في سجل النظام
+            ModelsLog::create([
+                'type' => 'notes',
+                'type_log' => 'log',
+                'description' => 'تم اضافة ملاحظة تلقائية لسند القبض **' . $income->code . '**',
+                'created_by' => auth()->id(),
+            ]);
         }
+    } catch (\Exception $e) {
+        Log::error('فشل في إضافة ملاحظة تلقائية لسند القبض: ' . $e->getMessage());
     }
-
+}
 
     private function applyPaymentToInvoices(Receipt $income, $user)
     {
