@@ -334,35 +334,36 @@
                     </div>
 
                     @if (auth()->user()->role === 'manager')
-    <div class="row align-items-center">
-        <div id="assignedEmployeesList" class="col-12">
-            @if ($client->employees && $client->employees->count() > 0)
-                <div class="row g-2">
-                    @foreach ($client->employees as $employee)
-                        <div class="col-auto">
-                            <div class="badge bg-primary d-flex align-items-center">
-                                <a href="{{ route('employee.show', $employee->id) }}"
-                                    class="text-white text-decoration-none me-2">
-                                    {{ $employee->full_name }}
-                                </a>
-                                <form action="{{ route('clients.remove-employee', $client->id) }}"
-                                    method="POST" class="mb-0">
-                                    @csrf
-                                    <input type="hidden" name="employee_id" value="{{ $employee->id }}">
-                                    <button type="submit" class="btn btn-sm btn-link text-white p-0">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </form>
+                        <div class="row align-items-center">
+                            <div id="assignedEmployeesList" class="col-12">
+                                @if ($client->employees && $client->employees->count() > 0)
+                                    <div class="row g-2">
+                                        @foreach ($client->employees as $employee)
+                                            <div class="col-auto">
+                                                <div class="badge bg-primary d-flex align-items-center">
+                                                    <a href="{{ route('employee.show', $employee->id) }}"
+                                                        class="text-white text-decoration-none me-2">
+                                                        {{ $employee->full_name }}
+                                                    </a>
+                                                    <form action="{{ route('clients.remove-employee', $client->id) }}"
+                                                        method="POST" class="mb-0">
+                                                        @csrf
+                                                        <input type="hidden" name="employee_id"
+                                                            value="{{ $employee->id }}">
+                                                        <button type="submit" class="btn btn-sm btn-link text-white p-0">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون') }}</span>
+                                @endif
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون') }}</span>
-            @endif
-        </div>
-    </div>
-@endif
+                    @endif
 
                 </div>
 
@@ -377,62 +378,67 @@
                 <!-- أزرار القائمة (تظهر فقط على الشاشات الكبيرة) -->
                 <div class="d-grid d-md-flex flex-wrap gap-2 d-none d-md-block">
                     @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-info col-md-auto">
+                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm text-white"
+                            style="background-color: #17a2b8;">
                             <i class="fas fa-user-edit me-1"></i> تعديل
                         </a>
                     @endif
+
                     @if (auth()->user()->role === 'manager')
                         <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-warning btn-sm">
+                            <button type="submit" class="btn btn-sm text-white" style="background-color: #ffc107;">
                                 <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
                             </button>
                         </form>
                     @endif
 
-                    <a href="{{ route('appointment.notes.create', $client->id) }}"
-                        class="btn btn-sm btn-secondary col-md-auto">
+                    <a href="{{ route('appointment.notes.create', $client->id) }}" class="btn btn-sm text-white"
+                        style="background-color: #6c757d;">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
-                    <a href="{{ route('incomes.create') }}" class="btn btn-sm btn-info col-md-auto">
-                        <i class="fas fa-user-edit me-1"></i>سند القبض
+
+                    <a href="{{ route('incomes.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #20c997;">
+                        <i class="fas fa-receipt me-1"></i> سند القبض
                     </a>
-                    <a href="{{ route('appointments.create') }}" class="btn btn-sm btn-success col-md-auto">
+
+                    <a href="{{ route('appointments.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #28a745;">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-                    <a href="{{ route('clients.statement', $client->id) }}" class="btn btn-sm btn-warning col-md-auto">
+
+                    <a href="{{ route('clients.statement', $client->id) }}" class="btn btn-sm text-white"
+                        style="background-color: #fd7e14;">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
-                    <a class="btn btn-sm btn-success align-items-center" href="#" data-bs-toggle="modal"
-                        data-bs-target="#openingBalanceModal">
-                        <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
+
+                    <a class="btn btn-sm text-white" style="background-color: #6f42c1;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
+                        <i class="fas fa-wallet me-2"></i> إضافة رصيد افتتاحي
                     </a>
 
-                    <a class="btn btn-sm btn-success align-items-center" href="#" data-bs-toggle="modal"
-                        data-bs-target="#assignEmployeeModal">
-                        <i class="fas fa-wallet me-2 text-success"></i> تعيين موظفين
-
+                    <a class="btn btn-sm text-white" style="background-color: #6610f2;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
+                        <i class="fas fa-user-plus me-2"></i> تعيين موظفين
                     </a>
 
-                    <a href="{{ route('questions.create') }}" class="btn btn-sm btn-warning col-md-auto">
-                        <i class="fas fa-file-signature me-1"></i> إنشاء عرض سعر
-                    </a>
-                    <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-danger col-md-auto">
+                    <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #dc3545;">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
 
-
-
-                    <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}"
-                        class="btn btn-sm btn-dark col-md-auto">
-
+                    <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}" class="btn btn-sm text-white"
+                        style="background-color: #343a40;">
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
+
                     <a href="{{ route('Reservations.client', $client->id) }}"
-                        class="btn btn-sm btn-light text-dark col-md-auto">
+                        class="btn btn-sm btn-outline-dark bg-white text-dark">
                         <i class="fas fa-calendar-check me-1"></i> الحجوزات
                     </a>
                 </div>
+
 
                 <!-- زر واحد يحتوي على القائمة المنسدلة (يظهر فقط على الشاشات الصغيرة) -->
                 <div class="dropdown d-md-none">
@@ -448,59 +454,81 @@
                                 </a>
                             </li>
                         @endif
+
                         @if (auth()->user()->role === 'manager')
-                            <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
-                                </button>
-                            </form>
+                            <li>
+                                <form action="{{ route('clients.force-show', $client) }}" method="POST"
+                                    class="dropdown-item p-0">
+                                    @csrf
+                                    <button type="submit" class="btn w-100 text-start d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-warning"></i> إظهار في الخريطة الآن
+                                    </button>
+                                </form>
+                            </li>
                         @endif
 
-
-                        <li><a class="dropdown-item d-flex align-items-center"
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('appointments.create') }}">
-                                <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
-                            </a></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" href="{{ route('incomes.create') }}">
-                                <i class="fas fa-user-edit me-2 text-info"></i> سند قبض
                             </a>
                         </li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('appointments.create') }}">
+                                <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('incomes.create') }}">
+                                <i class="fas fa-receipt me-2 text-info"></i> سند قبض
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('clients.statement', $client->id) }}">
                                 <i class="fas fa-file-invoice me-2 text-warning"></i> كشف حساب
-                            </a></li>
+                            </a>
+                        </li>
+
                         <li>
                             <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
                                 data-bs-target="#openingBalanceModal">
                                 <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
                             </a>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center" data-bs-toggle="modal"
-                                data-bs-target="#assignEmployeeModal">
-                                <i class="fas fa-wallet me-2 text-success"></i> تعيين موظفين
+                        </li>
 
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
+                                data-bs-target="#assignEmployeeModal">
+                                <i class="fas fa-user-plus me-2 text-primary"></i> تعيين موظفين
                             </a>
                         </li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('questions.create') }}">
-                                <i class="fas fa-file-signature me-2 text-warning"></i> إنشاء عرض سعر
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('CreditNotes.create') }}">
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('CreditNotes.create') }}">
                                 <i class="fas fa-file-invoice-dollar me-2 text-danger"></i> إنشاء إشعار دائن
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('invoices.create') }}">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
+                                href="{{ route('invoices.create', ['client_id' => $client->id]) }}">
                                 <i class="fas fa-file-invoice me-2 text-dark"></i> إنشاء فاتورة
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('Reservations.client', $client->id) }}">
                                 <i class="fas fa-calendar-check me-2 text-dark"></i> الحجوزات
-                            </a></li>
+                            </a>
+                        </li>
                     </ul>
                 </div>
+
             </div>
         </div>
 
