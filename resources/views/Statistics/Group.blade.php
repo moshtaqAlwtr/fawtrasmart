@@ -136,75 +136,108 @@
     </div>
 
     <!-- الجزء السفلي: تصفية حسب التاريخ -->
-    <div class="card p-3 mb-4">
-        <form method="GET" action="{{route('statistics.groupall')}}" id="dateFilterForm">
-            <div class="row g-3">
-                <div class="col-md-4 col-12">
-                    <label for="date_from" class="form-label">من تاريخ</label>
-                    <input type="date" name="date_from" id="date_from" class="form-control" value="{{ request('date_from') }}">
-                </div>
-                <div class="col-md-4 col-12">
-                    <label for="date_to" class="form-label">إلى تاريخ</label>
-                    <input type="date" name="date_to" id="date_to" class="form-control" value="{{ request('date_to') }}">
-                </div>
-                <div class="col-md-2 col-12 d-flex align-items-end">
-                    <button class="btn btn-primary w-100" type="submit">
-                        <i class="fas fa-filter me-1"></i> تطبيق
-                    </button>
-                </div>
-                <div class="col-md-2 col-12 d-flex align-items-end">
-                    <button class="btn btn-outline-danger w-100" type="button" id="resetDateFilter">
-                        <i class="fas fa-times me-1"></i> إلغاء
-                    </button>
-                </div>
+   <div class="card p-3 mb-4">
+    <form method="GET" action="{{ route('statistics.groupall') }}" id="yearFilterForm">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4 col-12">
+                <label for="year" class="form-label">السنة</label>
+                <select name="year" id="year" class="form-control">
+                    @php
+                        $currentYear = now()->year;
+                        $startYear = 2022; // غيّرها حسب أقدم سنة عندك في البيانات
+                    @endphp
+                    @for ($y = $currentYear; $y >= $startYear; $y--)
+                        <option value="{{ $y }}" {{ request('year', $currentYear) == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endfor
+                </select>
             </div>
-        </form>
-    </div>
+            <div class="col-md-2 col-12 d-grid">
+                <button class="btn btn-primary w-100" type="submit">
+                    <i class="fas fa-filter me-1"></i> تطبيق
+                </button>
+            </div>
+            <div class="col-md-2 col-12 d-grid">
+                <a href="{{ route('statistics.groupall') }}" class="btn btn-outline-danger w-100">
+                    <i class="fas fa-times me-1"></i> إلغاء
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
 </div>
 
 
 <div class="card">
     <div class="card-body">
         <h5 class="text-center mb-4 fw-bold">📊 إحصائيات تحصيل المجموعات</h5>
+<div class="alert alert-info d-flex align-items-center" role="alert">
+    <i class="fas fa-info-circle me-2"></i>
+    <div>
+        <strong>شرح الرموز:</strong>
+        <ul class="mb-0 mt-1 ps-4">
+            <li><span class="text-success">↑</span> زيادة في التحصيل مقارنة بالشهر السابق</li>
+            <li><span class="text-danger">↓</span> انخفاض في التحصيل مقارنة بالشهر السابق</li>
+            <li><span class="text-muted">→</span> لا تغيير في التحصيل مقارنة بالشهر السابق</li>
+        </ul>
+    </div>
+</div>
 
         @if($regionPerformance->count())
-        <div class="table-responsive">
+        <div class="table-responsive" style="overflow-x: auto;">
             <table id="clientsTable1" class="table table-bordered table-striped">
 
             
-                <thead class="table-light">
-                    <tr>
-                        <th>المجموعات</th>
-                        <th>المدفوعات</th>
-                        <th>السندات</th>
-                        <th>الإجمالي</th>
-                        <th>نسبة من الإجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $grandTotal = $regionPerformance->sum('total_collected');
-                    @endphp
+               <thead>
+    <tr>
+        <th>المجموعة</th>
+        @for($m = 1; $m <= 12; $m++)
+            <th>{{ \Carbon\Carbon::create()->month($m)->locale('ar')->translatedFormat('F') }}</th>
+        @endfor
+          <th>الإجمالي</th>
+    </tr>
+</thead>
+<tbody>
+@foreach ($regionPerformance as $region)
+    <tr>
+        <td>{{ $region->region_name }}</td>
+        @php
+            $previous = null;
+        @endphp
+        
+        @for ($m = 1; $m <= 12; $m++)
+            @php
+                $current = $region->monthly[$m];
+                $icon = '';
+                $color = '';
 
-                    @foreach ($regionPerformance as $region)
-                        <tr>
-                            <td>{{ $region->region_name ?? 'غير معروف' }}</td>
-                            <td>{{ number_format($region->payments) }} ريال</td>
-                            <td>{{ number_format($region->receipts) }} ريال</td>
-                            <td>{{ number_format($region->total_collected) }} ريال</td>
-                            <td>
-                                @php
-                                    $percentage = $grandTotal > 0 
-                                        ? round(($region->total_collected / $grandTotal) * 100, 2)
-                                        : 0;
-                                @endphp
-                                <span class="badge bg-{{ $percentage >= 60 ? 'success' : ($percentage >= 30 ? 'warning' : 'danger') }}">
-                                    {{ $percentage }}%
-                                </span>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
+                if (!is_null($previous)) {
+                    if ($current > $previous) {
+                        $icon = '↑'; $color = 'text-success';
+                    } elseif ($current < $previous) {
+                        $icon = '↓'; $color = 'text-danger';
+                    } else {
+                        $icon = '→'; $color = 'text-muted';
+                    }
+                }
+
+                $previous = $current;
+            @endphp
+            <td>
+                {{ number_format($current) }}
+                @if ($icon)
+                    <span class="{{ $color }}" style="font-size: 14px;">{{ $icon }}</span>
+                @endif
+            </td>
+        @endfor
+        <td class="fw-bold">{{ $region->total_collected }}</td>
+    </tr>
+@endforeach
+</tbody>
+
+
             </table>
         </div>
         @else
@@ -218,30 +251,56 @@
 
 @section('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // 1. تعطيل أي إعادة ترتيب تلقائية
-    if ($.fn.DataTable) {
-        $('#clients-table').DataTable({
-            ordering: false,  // تعطيل الترتيب التلقائي
-            paging: false,
-            info: false,
-            searching: false
-        });
-    }
-
-    // 2. تأكيد الترتيب يدوياً
-    const rows = Array.from(document.querySelectorAll('#clients-table tbody tr'));
-    rows.sort((a, b) => {
-        const aVal = parseFloat(a.querySelector('td:nth-child(3)').textContent);
-        const bVal = parseFloat(b.querySelector('td:nth-child(3)').textContent);
-        return bVal - aVal;
+$(document).ready(function() {
+    var table = $('#clientsTable1').DataTable({
+        paging: false,
+        info: false,
+        searching: true,
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/ar.json'
+        },
+        order: [[13, 'desc']], // الترتيب حسب عمود الإجمالي
+        columnDefs: [
+            {
+                targets: 13, // عمود الإجمالي
+                type: 'num',
+                render: function(data, type, row) {
+                    if (type === 'sort' || type === 'type') {
+                        return parseFloat(data.replace(/,/g, '')) || 0;
+                    }
+                    return data;
+                }
+            }
+        ],
+        initComplete: function() {
+            $('.dataTables_filter input').attr('placeholder', 'ابحث هنا...');
+        }
     });
 
-    const tbody = document.querySelector('#clients-table tbody');
-    tbody.innerHTML = '';
-    rows.forEach(row => tbody.appendChild(row));
+    // البحث السريع
+    $('#nameFilter').on('keyup', function() {
+        table.search(this.value).draw();
+    });
+
+    // الترتيب
+    $('#sortFilter').on('change', function() {
+        if (this.value === 'high') {
+            table.order([13, 'desc']).draw();
+        } else {
+            table.order([13, 'asc']).draw();
+        }
+    });
+
+    // إعادة التصفية
+    $('#resetFilters').click(function() {
+        $('#nameFilter').val('');
+        $('#sortFilter').val('high');
+        table.search('').order([13, 'desc']).draw();
+    });
 });
+
 </script>
+
 <script>
     
         function handleRowClick(event, url) {
@@ -265,7 +324,6 @@ document.addEventListener('DOMContentLoaded', function() {
 @section('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
 <script>
 $(document).ready(function() {
     var table = $('#clientsTable1').DataTable({
@@ -273,53 +331,31 @@ $(document).ready(function() {
         language: {
             url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/ar.json'
         },
-        columnDefs: [
-            { 
-                targets: 4, // عمود النسبة المئوية
-                type: 'num', 
-                render: function(data, type, row) {
-                    if (type === 'sort' || type === 'type') {
-                        // استخراج الرقم من النسبة المئوية للترتيب
-                        return parseFloat(data.match(/\d+\.?\d*/)[0]) || 0;
-                    }
-                    return data;
-                }
-            },
-            { 
-                targets: [0, 1, 2, 3], // تعطيل الترتيب لهذه الأعمدة
-                orderable: false
-            }
-        ],
-        order: [[4, 'desc']], // الترتيب الافتراضي تنازلي حسب النسبة
+        order: [[13, 'desc']],
         initComplete: function() {
             $('.dataTables_filter input').attr('placeholder', 'ابحث هنا...');
         }
     });
 
-    // البحث السريع
     $('#nameFilter').on('keyup', function() {
         table.search(this.value).draw();
     });
 
-    // ترتيب النتائج
     $('#sortFilter').on('change', function() {
-        if(this.value === 'high') {
-            table.order([4, 'desc']).draw();
+        const index = 13;
+        if (this.value === 'high') {
+            table.order([index, 'desc']).draw();
         } else {
-            table.order([4, 'asc']).draw();
+            table.order([index, 'asc']).draw();
         }
     });
 
-    // إعادة التعيين
     $('#resetFilters').click(function() {
         $('#nameFilter').val('');
         $('#sortFilter').val('high');
-        table.search('').order([4, 'desc']).draw();
+        table.search('').order([13, 'desc']).draw();
     });
 });
-
-
-
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
