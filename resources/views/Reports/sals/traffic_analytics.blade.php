@@ -304,23 +304,48 @@
                                                                             })
                                                                             ->toArray();
                                                                     }
-                                                                    // فحص الزيارات
-                                                                    if (
-                                                                        $client->visits
-                                                                            ->whereBetween('created_at', [
-                                                                                $week['start'],
-                                                                                $week['end'],
-                                                                            ])
-                                                                            ->count()
-                                                                    ) {
-                                                                        $activities[] = [
-                                                                            'icon' => 'fas fa-shoe-prints',
-                                                                            'title' => 'زيارة',
-                                                                            'color' => '#e74a3b',
-                                                                        ];
-                                                                        $activityTypes[] = 'visit';
-                                                                        $hasActivity = true;
-                                                                    }
+                                                          $weekVisits = $client->visits->whereBetween('created_at', [$week['start'], $week['end']]);
+
+if ($weekVisits->count()) {
+    // تجميع الزيارات حسب السنة-الشهر-اليوم-الساعة، ثم أخذ الأخيرة
+    $filteredVisits = $weekVisits
+        ->sortBy('created_at') // تأكد أن الترتيب حسب الزمن
+        ->groupBy(function ($visit) {
+            return $visit->created_at->format('Y-m-d H'); // تجميع حسب التاريخ + الساعة
+        })
+        ->map(function ($group) {
+            return $group->last(); // نأخذ آخر زيارة لكل مجموعة
+        });
+
+    foreach ($filteredVisits as $visit) {
+        $color = '#e74a3b'; // الافتراضي
+        $visitorName = optional($visit->employee)->name ?? 'غير معروف';
+        $visitTime = $visit->created_at->format('Y-m-d H:i');
+
+        if ($visit->employee && $visit->employee->role === 'manager') {
+            $color = '#007bff'; // مدير
+        } elseif ($visit->employee && $visit->employee->role === 'employee') {
+            $employeeModel = $visit->employee->employee;
+            if ($employeeModel) {
+                if ($employeeModel->Job_role_id == 1) {
+                    $color = '#28a745'; // مندوب
+                } elseif ($employeeModel->Job_role_id == 2) {
+                    $color = '#fd7e14'; // مشرف
+                }
+            }
+        }
+
+        $activities[] = [
+            'icon' => 'fas fa-shoe-prints',
+            'title' => 'زيارة بواسطة: ' . $visitorName . ' في ' . $visitTime,
+            'color' => $color,
+        ];
+        $activityTypes[] = 'visit';
+        $hasActivity = true;
+    }
+}
+
+
 
                                                                     // فحص سندات القبض
                                                                     $receiptsCount = $client->accounts
@@ -399,6 +424,61 @@
                                                             </td>
                                                         </tr>
                                                     @endforeach
+                                                    <tfoot>
+    <tr>
+        <td class="text-center fw-bold align-middle">الإجمالي</td>
+
+        @foreach ($weeks as $week)
+            @php
+                $totalVisitsForWeek = 0;
+                $totalCollectedForWeek = 0;
+
+                foreach ($clients as $client) {
+                    // زيارات الأسبوع
+                    $visits = $client->visits->whereBetween('created_at', [$week['start'], $week['end']]);
+
+                    // تجميع حسب الساعة واختيار الأخيرة فقط
+                    $groupedVisits = $visits->groupBy(function ($visit) {
+                        return $visit->created_at->format('Y-m-d H');
+                    });
+                    $totalVisitsForWeek += $groupedVisits->count();
+
+                    // حساب المدفوعات
+                    $returnedInvoiceIds = \App\Models\Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+                    $excludedInvoiceIds = array_unique(array_merge(
+                        $returnedInvoiceIds,
+                        \App\Models\Invoice::where('type', 'returned')->pluck('id')->toArray()
+                    ));
+                    $invoiceIds = \App\Models\Invoice::where('client_id', $client->id)
+                        ->where('type', 'normal')
+                        ->whereNotIn('id', $excludedInvoiceIds)
+                        ->pluck('id');
+
+                    $paymentsSum = \App\Models\PaymentsProcess::whereIn('invoice_id', $invoiceIds)
+                        ->whereBetween('created_at', [$week['start'], $week['end']])
+                        ->sum('amount');
+
+                    // حساب سندات القبض
+                    $receiptsSum = \App\Models\Receipt::whereHas('account', function ($query) use ($client) {
+                            $query->where('client_id', $client->id);
+                        })
+                        ->whereBetween('created_at', [$week['start'], $week['end']])
+                        ->sum('amount');
+
+                    $totalCollectedForWeek += $paymentsSum + $receiptsSum;
+                }
+            @endphp
+
+            <td class="text-center fw-bold align-middle" style="background: #f1f1f1;">
+                <div>زيارات: {{ $totalVisitsForWeek }}</div>
+                <div>تحصيل: {{ number_format($totalCollectedForWeek, 2) }}</div>
+            </td>
+        @endforeach
+
+        <td></td> <!-- الخلية الأخيرة للمجموع الكلي -->
+    </tr>
+</tfoot>
+
                                                 </tbody>
                                             </table>
                                         </div>

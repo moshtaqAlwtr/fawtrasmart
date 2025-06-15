@@ -58,12 +58,22 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Branch::find($this->branch_id);
     }
-
+public function invoices()
+{
+    return $this->hasMany(Invoice::class, 'created_by');
+}
     public function target()
 {
     return $this->hasOne(EmployeeTarget::class);
 }
-
+public function receipts()
+{
+    return $this->hasMany(Receipt::class, 'created_by');
+}
+public function employeeClients()
+{
+    return $this->hasMany(ClientEmployee::class, 'employee_id');
+}
 
     public function isEmployee()
     {
@@ -73,6 +83,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsTo(Branch::class);
     }
+
+// داخل App\Models\User
+public function employee()
+{
+    return $this->belongsTo(Employee::class, 'employee_id');
+}
+
+
     public function notifications()
 {
     return $this->hasMany(Notification::class);
