@@ -237,73 +237,69 @@
                                                                     $notesData = [];
 
                                                                     // فحص الفواتير
-                                                                    if (
-                                                                        $client->invoices
-                                                                            ->whereBetween('created_at', [
-                                                                                $week['start'],
-                                                                                $week['end'],
-                                                                            ])
-                                                                            ->count()
-                                                                    ) {
-                                                                        $activities[] = [
-                                                                            'icon' => 'fas fa-file-invoice',
-                                                                            'title' => 'فاتورة',
-                                                                            'color' => '#4e73df',
-                                                                        ];
-                                                                        $activityTypes[] = 'invoice';
-                                                                        $hasActivity = true;
-                                                                    }
+                                                                   $weekInvoices = $client->invoices->whereBetween('created_at', [$week['start'], $week['end']]);
+if ($weekInvoices->count()) {
+    foreach ($weekInvoices as $invoice) {
+        $activities[] = [
+            'icon' => 'fas fa-file-invoice',
+            'title' => 'فاتورة #' . $invoice->id . ' بتاريخ ' . $invoice->created_at->format('Y-m-d'),
+            'color' => '#4e73df',
+        ];
+    }
+    $activityTypes[] = 'invoice';
+    $hasActivity = true;
+}
+
 
                                                                     // فحص المدفوعات
-                                                                    if (
-                                                                        $client->payments
-                                                                            ->whereBetween('created_at', [
-                                                                                $week['start'],
-                                                                                $week['end'],
-                                                                            ])
-                                                                            ->count()
-                                                                    ) {
-                                                                        $activities[] = [
-                                                                            'icon' => 'fas fa-money-bill-wave',
-                                                                            'title' => 'دفعة',
-                                                                            'color' => '#1cc88a',
-                                                                        ];
-                                                                        $activityTypes[] = 'payment';
-                                                                        $hasActivity = true;
-                                                                    }
+                                                                 $weekPayments = $client->payments->whereBetween('created_at', [$week['start'], $week['end']]);
+if ($weekPayments->count()) {
+    foreach ($weekPayments as $payment) {
+        $activities[] = [
+            'icon' => 'fas fa-money-bill-wave',
+            'title' => 'دفعة بـ ' . number_format($payment->amount, 2) . ' بتاريخ ' . $payment->created_at->format('Y-m-d') . 'لفاتورة رقم ' . $payment->invoice_id,
+            'color' => '#1cc88a',
+        ];
+    }
+    $activityTypes[] = 'payment';
+    $hasActivity = true;
+}
+
 
                                                                     // فحص الملاحظات
                                                                     // فحص الملاحظات
-                                                                    $weekNotes = $client->appointmentNotes->whereBetween(
-                                                                        'created_at',
-                                                                        [$week['start'], $week['end']],
-                                                                    );
-                                                                    if ($weekNotes->count()) {
-                                                                        foreach ($weekNotes as $note) {
-                                                                            $activities[] = [
-                                                                                'icon' => 'fas fa-sticky-note',
-                                                                                'title' => $note->description, // هنا نستخدم الوصف الفعلي
-                                                                                'color' => '#f6c23e',
-                                                                                'note_details' => $note, // نمرر كائن الملاحظة كاملاً
-                                                                            ];
-                                                                        }
-                                                                        $activityTypes[] = 'note';
-                                                                        $hasActivity = true;
-                                                                        $notesData = $weekNotes
-                                                                            ->map(function ($note) {
-                                                                                return [
-                                                                                    'status' => $note->status,
-                                                                                    'process' => $note->process,
-                                                                                    'time' => $note->time,
-                                                                                    'date' => $note->date,
-                                                                                    'description' => $note->description,
-                                                                                    'created_at' => $note->created_at->format(
-                                                                                        'Y-m-d H:i',
-                                                                                    ),
-                                                                                ];
-                                                                            })
-                                                                            ->toArray();
-                                                                    }
+                                                                $weekNotes = $client->appointmentNotes->whereBetween(
+    'created_at',
+    [$week['start'], $week['end']],
+);
+
+if ($weekNotes->count()) {
+    foreach ($weekNotes as $note) {
+        $noteDateTime = $note->created_at->format('Y-m-d H:i');
+        $activities[] = [
+            'icon' => 'fas fa-sticky-note',
+            'title' => 'ملاحظة: ' . $note->content . ' بتاريخ ' . $noteDateTime,
+            'color' => '#f6c23e',
+            'note_details' => $note,
+        ];
+    }
+
+    $activityTypes[] = 'note';
+    $hasActivity = true;
+
+    // تمرير الملاحظات بالتفصيل للـ Tooltip أو Modal مثلاً
+    $notesData = $weekNotes->map(function ($note) {
+        return [
+            'status' => $note->status,
+            'process' => $note->process,
+            'time' => $note->time,
+            'date' => $note->date,
+            'description' => $note->description,
+            'created_at' => $note->created_at->format('Y-m-d H:i'),
+        ];
+    })->toArray();
+}
+
                                                           $weekVisits = $client->visits->whereBetween('created_at', [$week['start'], $week['end']]);
 
 if ($weekVisits->count()) {
@@ -348,24 +344,23 @@ if ($weekVisits->count()) {
 
 
                                                                     // فحص سندات القبض
-                                                                    $receiptsCount = $client->accounts
-                                                                        ->flatMap(function ($account) use ($week) {
-                                                                            return $account->receipts->whereBetween(
-                                                                                'created_at',
-                                                                                [$week['start'], $week['end']],
-                                                                            );
-                                                                        })
-                                                                        ->count();
+                                                                  $weekReceipts = $client->accounts
+    ->flatMap(function ($account) use ($week) {
+        return $account->receipts->whereBetween('created_at', [$week['start'], $week['end']]);
+    });
 
-                                                                    if ($receiptsCount > 0) {
-                                                                        $activities[] = [
-                                                                            'icon' => 'fas fa-hand-holding-usd',
-                                                                            'title' => 'سند قبض',
-                                                                            'color' => '#36b9cc',
-                                                                        ];
-                                                                        $activityTypes[] = 'receipt';
-                                                                        $hasActivity = true;
-                                                                    }
+if ($weekReceipts->count()) {
+    foreach ($weekReceipts as $receipt) {
+        $activities[] = [
+            'icon' => 'fas fa-hand-holding-usd',
+            'title' => 'سند بـ ' . number_format($receipt->amount, 2) . ' بتاريخ ' . $receipt->created_at->format('Y-m-d'),
+            'color' => '#36b9cc',
+        ];
+    }
+    $activityTypes[] = 'receipt';
+    $hasActivity = true;
+}
+
 
                                                                     // تحديد لون الخلية بناء على نوع النشاط
                                                                     $cellColorClass = '';
