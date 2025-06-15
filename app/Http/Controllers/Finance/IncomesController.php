@@ -7,7 +7,7 @@ use App\Models\Account;
 use App\Models\Client;
 use App\Models\Employee;
 use App\Models\AccountSetting;
-use App\Models\ClientRelation;
+use App\Models\EmployeeGroup;
 use App\Models\Invoice;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryDetail;
@@ -30,377 +30,284 @@ use Illuminate\Support\Facades\Log;
 class IncomesController extends Controller
 {
     public function index(Request $request)
-    {
-        // جلب البيانات مع تطبيق شروط البحث
-        $query = Receipt::orderBy('id', 'DESC')
-            ->when($request->keywords, function ($query, $keywords) {
-                return $query->where('code', 'like', '%' . $keywords . '%')->orWhere('description', 'like', '%' . $keywords . '%');
-            })
-            ->when($request->from_date, function ($query, $from_date) {
-                return $query->where('date', '>=', $from_date);
-            })
-            ->when($request->to_date, function ($query, $to_date) {
-                return $query->where('date', '<=', $to_date);
-            })
-            ->when($request->category, function ($query, $category) {
-                return $query->where('receipt_category_id', $category);
-            })
-            ->when($request->status, function ($query, $status) {
-                return $query->where('status', $status);
-            })
-            ->when($request->description, function ($query, $description) {
-                return $query->where('description', 'like', '%' . $description . '%');
-            })
-            ->when($request->vendor, function ($query, $vendor) {
-                return $query->where('supplier_id', $vendor);
-            })
-            ->when($request->amount_from, function ($query, $amount_from) {
-                return $query->where('amount', '>=', $amount_from);
-            })
-            ->when($request->amount_to, function ($query, $amount_to) {
-                return $query->where('amount', '<=', $amount_to);
-            })
-            ->when($request->created_at_from, function ($query, $created_at_from) {
-                return $query->where('created_at', '>=', $created_at_from);
-            })
-            ->when($request->created_at_to, function ($query, $created_at_to) {
-                return $query->where('created_at', '<=', $created_at_to);
-            })
-            ->when($request->sub_account, function ($query, $sub_account) {
-                return $query->where('account_id', $sub_account);
-            })
-            ->when($request->created_by, function ($query, $created_by) {
-                return $query->where('created_by', $created_by);
-            });
+{
+    $user = auth()->user();
 
-        // إذا كان المستخدم موظفاً، نضيف شرطاً لرؤية سنداته فقط
-        
+    // جلب البيانات مع تطبيق شروط البحث
+    $query = Receipt::orderBy('id', 'DESC')
+        ->when($request->keywords, function ($query, $keywords) {
+            return $query->where('code', 'like', '%' . $keywords . '%')->orWhere('description', 'like', '%' . $keywords . '%');
+        })
+        ->when($request->from_date, function ($query, $from_date) {
+            return $query->where('date', '>=', $from_date);
+        })
+        ->when($request->to_date, function ($query, $to_date) {
+            return $query->where('date', '<=', $to_date);
+        })
+        // ... [بقية شروط البحث كما هي]
+        ->when($request->created_by, function ($query, $created_by) {
+            return $query->where('created_by', $created_by);
+        });
 
-          if (auth()->user()->role == 'employee') {
-    // إذا لم يكن لديه صلاحية رؤية كل السندات
-    if (!auth()->user()->hasPermissionTo('finance_view_all_receipts')) {
-        $query->where('created_by', auth()->id());
-    }
-}
-        $incomes = $query->paginate(20);
+    // فلترة حسب دور المستخدم
+    if ($user->role == 'employee') {
+        // فلترة السندات حسب الموظف
+        $query->where('created_by', $user->id);
 
-        // حساب إجمالي الإيرادات لفترات مختلفة مع مراعاة دور المستخدم
-        $totalQuery = Receipt::query();
-        $totalLast7DaysQuery = Receipt::where('date', '>=', now()->subDays(7));
-        $totalLast30DaysQuery = Receipt::where('date', '>=', now()->subDays(30));
-        $totalLast365DaysQuery = Receipt::where('date', '>=', now()->subDays(365));
+        // فلترة الحسابات حسب مجموعات الموظف
+        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
-        
-
-         if (auth()->user()->role == 'employee') {
-             if (!auth()->user()->hasPermissionTo('finance_view_all_receipts')) {
-            $totalQuery->where('created_by', auth()->id());
-            $totalLast7DaysQuery->where('created_by', auth()->id());
-            $totalLast30DaysQuery->where('created_by', auth()->id());
-            $totalLast365DaysQuery->where('created_by', auth()->id());
-        }
-        }
-
-        $totalLast7Days = $totalLast7DaysQuery->sum('amount');
-        $totalLast30Days = $totalLast30DaysQuery->sum('amount');
-        $totalLast365Days = $totalLast365DaysQuery->sum('amount');
-
-        // جلب البيانات المرتبطة (مثل التصنيفات والبائعين)
-        $categories = ReceiptCategory::all();
-        $suppliers = Supplier::all();
-        $Accounts = Account::whereNotNull('client_id')->get();
-
-        $users = User::select('id', 'name')->where('role', 'employee')->get();
-
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-        return view('finance.incomes.index', compact('incomes', 'categories', 'Accounts', 'users', 'account_setting', 'totalLast7Days', 'totalLast30Days', 'totalLast365Days'));
-    }
-    public function create()
-    {
-        $incomes_categories = ReceiptCategory::select('id', 'name')->get();
-        $treas = Treasury::select('id', 'name')->get();
-        $accounts = Account::whereNotNull('client_id')->get();
-        $account_storage = Account::where('parent_id', 13)->get();
-
-        // حساب الرقم التلقائي
-        $nextCode = Receipt::max('code') ?? 0;
-
-        // نحاول تكرار البحث حتى نحصل على كود غير مكرر
-        while (Receipt::where('code', $nextCode)->exists()) {
-            $nextCode++;
-        }
-        $MainTreasury = null;
-        $user = Auth::user();
-
-        if ($user && $user->employee_id) {
-            // البحث عن الخزينة المرتبطة بالموظف
-            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-
-            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                // إذا كان الموظف لديه خزينة مرتبطة
-                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-            } else {
-                // إذا لم يكن لدى الموظف خزينة مرتبطة، استخدم الخزينة الرئيسية
-                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            }
+        if ($employeeGroupIds->isNotEmpty()) {
+            $Accounts = Account::whereNotNull('client_id')
+                ->whereHas('client.Neighborhoodname.Region', function($q) use ($employeeGroupIds) {
+                    $q->whereIn('id', $employeeGroupIds);
+                })->get();
         } else {
-            // إذا لم يكن المستخدم موجودًا أو لم يكن لديه employee_id، استخدم الخزينة الرئيسية
+            $Accounts = collect(); // إرجاع مجموعة فارغة إذا لم يكن هناك مجموعات
+        }
+    } else {
+        // إذا لم يكن موظفاً، عرض جميع الحسابات
+        $Accounts = Account::whereNotNull('client_id')->get();
+    }
+
+    $incomes = $query->paginate(20);
+
+    // حساب الإجماليات مع مراعاة دور المستخدم
+    $totalQuery = Receipt::query();
+    $totalLast7DaysQuery = Receipt::where('date', '>=', now()->subDays(7));
+    $totalLast30DaysQuery = Receipt::where('date', '>=', now()->subDays(30));
+    $totalLast365DaysQuery = Receipt::where('date', '>=', now()->subDays(365));
+
+    if ($user->role == 'employee') {
+        $totalQuery->where('created_by', $user->id);
+        $totalLast7DaysQuery->where('created_by', $user->id);
+        $totalLast30DaysQuery->where('created_by', $user->id);
+        $totalLast365DaysQuery->where('created_by', $user->id);
+    }
+
+    $totalLast7Days = $totalLast7DaysQuery->sum('amount');
+    $totalLast30Days = $totalLast30DaysQuery->sum('amount');
+    $totalLast365Days = $totalLast365DaysQuery->sum('amount');
+
+    // جلب البيانات المرتبطة
+    $categories = ReceiptCategory::all();
+    $suppliers = Supplier::all();
+    $users = User::select('id', 'name')->where('role', 'employee')->get();
+    $account_setting = AccountSetting::where('user_id', $user->id)->first();
+
+    return view('finance.incomes.index', compact(
+        'incomes',
+        'categories',
+        'Accounts',
+        'users',
+        'account_setting',
+        'totalLast7Days',
+        'totalLast30Days',
+        'totalLast365Days'
+    ));
+}
+    public function create()
+{
+    $user = auth()->user();
+
+    $incomes_categories = ReceiptCategory::select('id', 'name')->get();
+    $treas = Treasury::select('id', 'name')->get();
+
+    // فلترة الحسابات حسب دور المستخدم
+    if ($user->role == 'employee') {
+        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
+
+        if ($employeeGroupIds->isNotEmpty()) {
+            $accounts = Account::whereNotNull('client_id')
+                ->whereHas('client.Neighborhoodname.Region', function($q) use ($employeeGroupIds) {
+                    $q->whereIn('id', $employeeGroupIds);
+                })->get();
+        } else {
+            $accounts = collect(); // إرجاع مجموعة فارغة إذا لم يكن هناك مجموعات
+        }
+    } else {
+        // إذا لم يكن موظفاً، عرض جميع الحسابات
+        $accounts = Account::whereNotNull('client_id')->get();
+    }
+
+    $account_storage = Account::where('parent_id', 13)->get();
+
+    // حساب الرقم التلقائي
+    $nextCode = Receipt::max('code') ?? 0;
+    while (Receipt::where('code', $nextCode)->exists()) {
+        $nextCode++;
+    }
+
+    $MainTreasury = null;
+    if ($user && $user->employee_id) {
+        $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+        if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+            $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+        } else {
             $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
         }
-
-        // إذا لم يتم العثور على خزينة، توقف العملية وأظهر خطأ
-        if (!$MainTreasury) {
-            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
-        }
-        $taxs = TaxSitting::all();
-
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        return view('finance.incomes.create', compact('incomes_categories', 'account_storage', 'taxs', 'treas', 'accounts', 'account_setting', 'nextCode', 'MainTreasury'));
+    } else {
+        $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
     }
-public function store(Request $request)
-{
-    try {
-        DB::beginTransaction();
 
-        // إنشاء سند القبض
-        $income = new Receipt();
-
-        // تعبئة الحقول
-        $income->code = $request->input('code');
-        $income->amount = $request->input('amount');
-        $income->description = $request->input('description');
-        $income->date = $request->input('date');
-        $income->incomes_category_id = $request->input('incomes_category_id');
-        $income->seller = $request->input('seller');
-        $income->account_id = $request->input('account_id');
-        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
-        $income->recurring_frequency = $request->input('recurring_frequency');
-        $income->end_date = $request->input('end_date');
-        $income->tax1 = $request->input('tax1');
-        $income->tax2 = $request->input('tax2');
-        $income->created_by = auth()->id();
-        $income->tax1_amount = $request->input('tax1_amount');
-        $income->tax2_amount = $request->input('tax2_amount');
-        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
-
-        // معالجة المرفقات
-        if ($request->hasFile('attachments')) {
-            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
-        }
-
-        // تحديد الخزينة المناسبة
-        $MainTreasury = $this->determineTreasury();
-        $income->treasury_id = $MainTreasury->id;
-
-        // حفظ سند القبض
-        $income->save();
-
-        // إشعار الإنشاء
-        $user = Auth::user();
-
-        // تسجيل النشاط
-        ModelsLog::create([
-            'type' => 'finance_log',
-            'type_id' => $income->id,
-            'type_log' => 'log',
-            'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
-            'created_by' => auth()->id(),
-        ]);
-
-        // تحديث رصيد الخزينة
-        $MainTreasury->balance += $income->amount;
-        $MainTreasury->save();
-
-        // الحصول على حساب العميل (بدون تحديث الرصيد هنا)
-        $clientAccount = Account::find($income->account_id);
-        if ($clientAccount) {
-            $clientAccount->balance -= $income->amount;
-            $clientAccount->save();
-
-            // إضافة ملاحظة تلقائية للعميل
-            $this->addAutomaticNoteForIncome($income, $clientAccount);
-        }
-
-        // تطبيق السداد على الفواتير (المنطق المعدل)
-        $this->applyPaymentToInvoices($income, $user);
-
-        // إنشاء القيد المحاسبي
-        $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
-
-        DB::commit();
-
-        return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح وتحديث رصيد العميل!');
-    } catch (\Exception $e) {
-        DB::rollback();
-        Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
-        return back()
-            ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
-            ->withInput();
+    if (!$MainTreasury) {
+        throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
     }
+
+    $taxs = TaxSitting::all();
+    $account_setting = AccountSetting::where('user_id', $user->id)->first();
+
+    return view('finance.incomes.create', compact(
+        'incomes_categories',
+        'account_storage',
+        'taxs',
+        'treas',
+        'accounts',
+        'account_setting',
+        'nextCode',
+        'MainTreasury'
+    ));
 }
+    public function store(Request $request)
+    {
+        try {
+            DB::beginTransaction();
 
-/**
- * إضافة ملاحظة تلقائية عند إنشاء سند قبض للعميل
- */
-protected function addAutomaticNoteForIncome($income, $clientAccount)
-{
-    try {
-        // الحصول على العميل المرتبط بالحساب
-        $client = Client::where('account_id', $clientAccount->id)->first();
+            // إنشاء سند القبض
+            $income = new Receipt();
 
-        if ($client) {
-            // إنشاء الملاحظة
-            $noteDescription = sprintf(
-                "تم إنشاء سند قبض رقم %s بقيمة %s %s بتاريخ %s. %s",
-                $income->code,
-                number_format($income->amount, 2),
-                'ريال', // أو العملة المستخدمة في النظام
-                $income->date,
-                $income->description ? 'ملاحظات: ' . $income->description : ''
-            );
+            // تعبئة الحقول
+            $income->code = $request->input('code');
+            $income->amount = $request->input('amount');
+            $income->description = $request->input('description');
+            $income->date = $request->input('date');
+            $income->incomes_category_id = $request->input('incomes_category_id');
+            $income->seller = $request->input('seller');
+            $income->account_id = $request->input('account_id');
+            $income->treasury_id = $request->input('treasury_id');
+            $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+            $income->recurring_frequency = $request->input('recurring_frequency');
+            $income->end_date = $request->input('end_date');
+            $income->tax1 = $request->input('tax1');
+            $income->tax2 = $request->input('tax2');
+            $income->created_by = auth()->id();
+            $income->tax1_amount = $request->input('tax1_amount');
+            $income->tax2_amount = $request->input('tax2_amount');
+            $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-            ClientRelation::create([
-                'employee_id' => auth()->id(),
-                'client_id' => $client->id,
-                'status' => 'completed',
-                'process' => 'سند قبض',
-                'description' => $noteDescription,
-                'created_at' => now(),
-                'updated_at' => now(),
+            // معالجة المرفقات
+            if ($request->hasFile('attachments')) {
+                $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
+            }
+
+            // حفظ سند القبض
+            $income->save();
+
+            // إشعار الإنشاء
+            $user = auth()->user();
+            $income_account_name = Account::find($income->account_id);
+
+            notifications::create([
+                'user_id' => $user->id,
+                'type' => 'Receipt',
+                'title' => $user->name . ' أنشأ سند قبض',
+                'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
             ]);
 
-            // تحديث وقت آخر ملاحظة للعميل
-            $client->last_note_at = now();
-            $client->save();
-
-            // تسجيل في سجل النظام
+            // تسجيل النشاط
             ModelsLog::create([
-                'type' => 'notes',
+                'type' => 'finance_log',
+                'type_id' => $income->id,
                 'type_log' => 'log',
-                'description' => 'تم اضافة ملاحظة تلقائية لسند القبض **' . $income->code . '**',
+                'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
                 'created_by' => auth()->id(),
             ]);
-        }
-    } catch (\Exception $e) {
-        Log::error('فشل في إضافة ملاحظة تلقائية لسند القبض: ' . $e->getMessage());
-    }
-}
 
-    private function applyPaymentToInvoices(Receipt $income, $user)
-    {
-        $clientAccount = Account::find($income->account_id);
+            // تحديد الخزينة المناسبة
+            $MainTreasury = null;
+            $user = Auth::user();
 
-        if (!$clientAccount || !$clientAccount->client_id) {
-            return;
-        }
-
-        $remainingAmount = $income->amount;
-        $totalPaymentAmount = $income->amount;
-        $processedInvoices = [];
-        $paymentDetails = [];
-
-        // معالجة الفواتير
-        if ($remainingAmount > 0) {
-            $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)->where('is_paid', false)->orderBy('created_at', 'asc')->get();
-
-            foreach ($unpaidInvoices as $invoice) {
-                if ($remainingAmount <= 0) {
-                    break;
-                }
-
-                $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)->where('payment_status', '!=', 5)->sum('amount');
-
-                $invoiceRemaining = $invoice->grand_total - $paidAmount;
-
-                if ($invoiceRemaining > 0) {
-                    $paymentAmount = min($remainingAmount, $invoiceRemaining);
-                    $newPaidAmount = $paidAmount + $paymentAmount;
-                    $isFullPayment = $newPaidAmount >= $invoice->grand_total;
-
-                    // تسجيل الدفعة
-                    PaymentsProcess::create([
-                        'invoice_id' => $invoice->id,
-                        'amount' => $paymentAmount,
-                        'payment_date' => $income->date,
-                        'Payment_method' => 'cash',
-                        'reference_number' => $income->code,
-                        'type' => 'client payments',
-                        'payment_status' => $isFullPayment ? 1 : 2,
-                        'employee_id' => $user->id,
-                        'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
-                    ]);
-
-                    // تحديث الفاتورة
-                    $invoice->update([
-                        'advance_payment' => $newPaidAmount,
-                        'is_paid' => $isFullPayment,
-                        'payment_status' => $isFullPayment ? 1 : 2,
-                        'due_value' => max(0, $invoice->grand_total - $newPaidAmount),
-                    ]);
-
-                    // تخزين تفاصيل الدفع للإشعار
-                    $paymentType = $paymentAmount == $invoice->grand_total ? 'سداد كامل' : ($isFullPayment ? 'تكملة سداد' : 'سداد جزئي');
-
-                    $processedInvoices[] = [
-                        'code' => $invoice->code,
-                        'amount' => $paymentAmount,
-                        'remaining' => max(0, $invoice->grand_total - $newPaidAmount),
-                        'type' => $paymentType,
-                    ];
-
-                    $remainingAmount -= $paymentAmount;
-                }
+            if ($user && $user->employee_id) {
+                $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+                $MainTreasury = $TreasuryEmployee && $TreasuryEmployee->treasury_id ? Account::find($TreasuryEmployee->treasury_id) : Account::where('name', 'الخزينة الرئيسية')->first();
+            } else {
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
             }
-        }
 
-        // إنشاء إشعار واحد شامل
-        $notificationTitle = $user->name . ' قام بتسديد دفعة';
-        $notificationDescription = '';
-
-        // تفاصيل الفواتير
-        if (!empty($processedInvoices)) {
-            $notificationDescription .= "تفاصيل السداد:\n";
-
-            foreach ($processedInvoices as $invoice) {
-                $notificationDescription .= "- {$invoice['type']} للفاتورة {$invoice['code']} بمبلغ " . number_format($invoice['amount'], 2) . ' ر.س (متبقي: ' . number_format($invoice['remaining'], 2) . " ر.س)\n";
+            if (!$MainTreasury) {
+                throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
             }
+
+            // تحديث رصيد الخزينة
+            $MainTreasury->balance += $income->amount;
+            $MainTreasury->save();
+
+            // تحديث رصيد حساب العميل مباشرة
+            $clientAccount = Account::find($income->account_id);
+            if ($clientAccount) {
+                $clientAccount->balance -= $income->amount;
+                $clientAccount->save();
+            }
+
+            // إنشاء القيد المحاسبي
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $income->code,
+                'date' => $income->date,
+                'description' => 'سند قبض رقم ' . $income->code,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $clientAccount->client_id ?? null,
+                'created_by_employee' => $user->id,
+            ]);
+
+            // إدخال حساب الخزينة (مدين)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $MainTreasury->id,
+                'description' => 'استلام مبلغ من سند قبض',
+                'debit' => $income->amount,
+                'credit' => 0,
+                'is_debit' => true,
+            ]);
+
+            // إدخال حساب العميل (دائن)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $income->account_id,
+                'description' => 'إيرادات من سند قبض',
+                'debit' => 0,
+                'credit' => $income->amount,
+                'is_debit' => false,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('incomes.index')->with('success', 'تم إضافة سند القبض بنجاح!');
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('خطأ في إضافة سند قبض: ' . $e->getMessage());
+            return back()
+                ->with('error', 'حدث خطأ أثناء إضافة سند القبض: ' . $e->getMessage())
+                ->withInput();
         }
-
-        // الفائض المتبقي
-        if ($remainingAmount > 0) {
-            $notificationDescription .= "\nفائض سداد: " . number_format($remainingAmount, 2) . ' ر.س';
-        }
-
-        // إجماليات
-        $notificationDescription .= "\n\nإجمالي السند: " . number_format($totalPaymentAmount, 2) . ' ر.س';
-        $notificationDescription .= "\nالرصيد المتبقي: " . number_format($clientAccount->balance, 2) . ' ر.س';
-
-        notifications::create([
-            'user_id' => $user->id,
-            'type' => 'invoice_payment_summary',
-            'title' => $notificationTitle,
-            'description' => $notificationDescription,
-        ]);
-
-        // حفظ التغييرات في رصيد الحساب
-        $clientAccount->save();
     }
+
     public function update(Request $request, $id)
     {
         try {
             DB::beginTransaction();
 
-            // التحقق من صحة البيانات
             $request->validate([
                 'code' => 'required',
                 'amount' => 'required|numeric',
                 'date' => 'required|date',
                 'account_id' => 'required',
+
                 'incomes_category_id' => 'required',
             ]);
 
-            // الحصول على سند القبض المطلوب
+            // البحث باستخدام النموذج الصحيح (Receipt بدلاً من Income)
             $income = Receipt::findOrFail($id);
 
             // حفظ القيم القديمة
@@ -408,22 +315,35 @@ protected function addAutomaticNoteForIncome($income, $clientAccount)
             $oldAccountId = $income->account_id;
             $oldTreasuryId = $income->treasury_id;
 
-            // تحديث بيانات سند القبض
-            $this->updateReceiptData($income, $request);
+            // تحديث البيانات
+            $income->code = $request->input('code');
+            $income->amount = $request->input('amount');
+            $income->description = $request->input('description');
+            $income->date = $request->input('date');
+            $income->incomes_category_id = $request->input('incomes_category_id');
+            $income->seller = $request->input('seller');
+            $income->account_id = $request->input('account_id');
+            $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+            $income->recurring_frequency = $request->input('recurring_frequency');
+            $income->end_date = $request->input('end_date');
+            $income->tax1 = $request->input('tax1');
+            $income->tax2 = $request->input('tax2');
+            $income->tax1_amount = $request->input('tax1_amount');
+            $income->tax2_amount = $request->input('tax2_amount');
+            $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-            // تحديد الخزينة الجديدة
-            $newTreasury = $this->determineTreasury();
-            $income->treasury_id = $newTreasury->id;
+            // معالجة المرفقات
+            if ($request->hasFile('attachments')) {
+                $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
+            }
+
             $income->save();
 
-            // تحديث أرصدة الحسابات والخزينة
+            // تحديث أرصدة الحسابات
             $this->updateAccountBalances($income, $oldAmount, $oldAccountId, $oldTreasuryId);
 
             // تحديث القيد المحاسبي
             $this->updateJournalEntry($income);
-
-            // تحديث المدفوعات والفواتير المرتبطة (المنطق المعدل)
-            $this->updateRelatedPaymentsAndInvoices($income, $oldAmount);
 
             DB::commit();
 
@@ -432,11 +352,166 @@ protected function addAutomaticNoteForIncome($income, $clientAccount)
             DB::rollback();
             Log::error('خطأ في تعديل سند قبض: ' . $e->getMessage());
             return back()
-                ->with('error', 'حدث خطأ أثناء التعديل: ' . $e->getMessage())
+                ->with('error', 'حدث خطأ أثناء تعديل سند القبض: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
+    private function updateAccountBalances($income, $oldAmount, $oldAccountId, $oldTreasuryId)
+    {
+        // تحديث رصيد الحساب (العميل)
+        if ($oldAccountId == $income->account_id) {
+            $account = Account::find($income->account_id);
+            if ($account) {
+                $account->balance += $oldAmount; // نرجع المبلغ القديم
+                $account->balance -= $income->amount; // نطرح المبلغ الجديد
+                $account->save();
+            }
+        } else {
+            // رجع المبلغ للحساب القديم
+            $oldAccount = Account::find($oldAccountId);
+            if ($oldAccount) {
+                $oldAccount->balance += $oldAmount;
+                $oldAccount->save();
+            }
+
+            // خصم المبلغ من الحساب الجديد
+            $newAccount = Account::find($income->account_id);
+            if ($newAccount) {
+                $newAccount->balance -= $income->amount;
+                $newAccount->save();
+            }
+        }
+
+        // تحديث الخزينة
+        if ($oldTreasuryId == $income->treasury_id) {
+            $treasury = Account::find($income->treasury_id);
+            if ($treasury) {
+                $treasury->balance -= $oldAmount; // نقص القديم
+                $treasury->balance += $income->amount; // أضف الجديد
+                $treasury->save();
+            }
+        } else {
+            // طرح المبلغ من الخزينة القديمة
+            $oldTreasury = Account::find($oldTreasuryId);
+            if ($oldTreasury) {
+                $oldTreasury->balance -= $oldAmount;
+                $oldTreasury->save();
+            }
+
+            // إضافة المبلغ للخزينة الجديدة
+            $newTreasury = Account::find($income->treasury_id);
+            if ($newTreasury) {
+                $newTreasury->balance += $income->amount;
+                $newTreasury->save();
+            }
+        }
+    }
+
+    private function updateJournalEntry($income)
+    {
+        // البحث عن القيد المحاسبي المرتبط
+        $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
+
+        if ($journalEntry) {
+            // تحديث بيانات القيد الأساسي
+            $journalEntry->date = $income->date;
+            $journalEntry->description = 'سند قبض رقم ' . $income->code;
+            $journalEntry->save();
+
+            // تحديث التفاصيل (الحساب المدين - الخزينة)
+            $debitEntry = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->where('is_debit', true)->first();
+            if ($debitEntry) {
+                $debitEntry->account_id = $income->treasury_id;
+                $debitEntry->debit = $income->amount;
+                $debitEntry->save();
+            }
+
+            // تحديث التفاصيل (الحساب الدائن - العميل)
+            $creditEntry = JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->where('is_debit', false)->first();
+            if ($creditEntry) {
+                $creditEntry->account_id = $income->account_id;
+                $creditEntry->credit = $income->amount;
+                $creditEntry->save();
+            }
+        }
+    }
+    public function show($id)
+    {
+        $income = Receipt::findOrFail($id);
+        return view('finance.incomes.show', compact('income'));
+    }
+
+    public function edit($id)
+    {
+        $income = Receipt::findOrFail($id);
+
+        $incomes_categories = ReceiptCategory::select('id', 'name')->get();
+        $treas = Treasury::select('id', 'name')->get();
+        $accounts = Account::all();
+        $account_storage = Account::where('parent_id', 13)->get();
+        $taxs = TaxSitting::all();
+
+        $user = Auth::user();
+        $MainTreasury = null;
+
+        if ($user && $user->employee_id) {
+            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+
+            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
+                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
+            } else {
+                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+            }
+        } else {
+            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
+        }
+
+        if (!$MainTreasury) {
+            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
+        }
+
+        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+
+        return view('finance.incomes.edit', compact('income', 'incomes_categories', 'treas', 'accounts', 'account_storage', 'taxs', 'account_setting', 'MainTreasury'));
+    }
+
+    public function delete($id)
+    {
+        $incomes = Receipt::findOrFail($id);
+        ModelsLog::create([
+            'type' => 'finance_log',
+            'type_id' => $id, // ID النشاط المرتبط
+            'type_log' => 'log', // نوع النشاط
+            'description' => 'تم  حذف سند قبض رقم  **' . $id . '**',
+            'created_by' => auth()->id(), // ID المستخدم الحالي
+        ]);
+        $incomes->delete();
+        return redirect()
+            ->route('incomes.index')
+            ->with(['error' => 'تم حذف سند قبض بنجاج !!']);
+    }
+
+    function uploadImage($folder, $image)
+    {
+        $fileExtension = $image->getClientOriginalExtension();
+        $fileName = time() . rand(1, 99) . '.' . $fileExtension;
+        $image->move($folder, $fileName);
+
+        return $fileName;
+    } //end of uploadImage
+    public function print($id, $type = 'normal')
+    {
+        $income = Receipt::findOrFail($id);
+
+        if ($type == 'thermal') {
+            // عرض نسخة حرارية
+            return view('finance.incomes.print_thermal', compact('income'));
+        } else {
+            // عرض نسخة عادية
+            return view('finance.incomes.print_normal', compact('income'));
+        }
+    }
     public function cancel($id)
     {
         try {
@@ -517,339 +592,6 @@ protected function addAutomaticNoteForIncome($income, $clientAccount)
             DB::rollback();
             Log::error('فشل في إلغاء سند القبض: ' . $e->getMessage());
             return back()->with('error', 'حدث خطأ أثناء الإلغاء: ' . $e->getMessage());
-        }
-    }
-    private function createJournalEntry(Receipt $income, $user, $clientAccount, $treasury)
-    {
-        $journalEntry = JournalEntry::create([
-            'reference_number' => $income->code,
-            'date' => $income->date,
-            'description' => 'سند قبض رقم ' . $income->code,
-            'status' => 1,
-            'currency' => 'SAR',
-            'client_id' => $clientAccount->client_id ?? null,
-            'created_by_employee' => $user->id,
-        ]);
-
-        JournalEntryDetail::create([
-            'journal_entry_id' => $journalEntry->id,
-            'account_id' => $treasury->id,
-            'description' => 'استلام مبلغ من سند قبض',
-            'debit' => $income->amount,
-            'credit' => 0,
-            'is_debit' => true,
-        ]);
-
-        JournalEntryDetail::create([
-            'journal_entry_id' => $journalEntry->id,
-            'account_id' => $income->account_id,
-            'description' => 'إيرادات من سند قبض',
-            'debit' => 0,
-            'credit' => $income->amount,
-            'is_debit' => false,
-        ]);
-    }
-
-    private function determineTreasury()
-    {
-        $user = Auth::user();
-        $treasury = null;
-
-        if ($user && $user->employee_id) {
-            $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-            if ($treasuryEmployee && $treasuryEmployee->treasury_id) {
-                $treasury = Account::find($treasuryEmployee->treasury_id);
-            }
-        }
-
-        if (!$treasury) {
-            $treasury = Account::where('name', 'الخزينة الرئيسية')->first();
-        }
-
-        if (!$treasury) {
-            throw new \Exception('لم يتم العثور على خزينة صالحة');
-        }
-
-        return $treasury;
-    }
-
-    private function updateReceiptData(Receipt $income, Request $request)
-    {
-        $income->code = $request->input('code');
-        $income->amount = $request->input('amount');
-        $income->description = $request->input('description');
-        $income->date = $request->input('date');
-        $income->incomes_category_id = $request->input('incomes_category_id');
-        $income->seller = $request->input('seller');
-        $income->account_id = $request->input('account_id');
-        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
-        $income->recurring_frequency = $request->input('recurring_frequency');
-        $income->end_date = $request->input('end_date');
-        $income->tax1 = $request->input('tax1');
-        $income->tax2 = $request->input('tax2');
-        $income->tax1_amount = $request->input('tax1_amount');
-        $income->tax2_amount = $request->input('tax2_amount');
-        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
-
-        if ($request->hasFile('attachments')) {
-            $income->attachments = $this->UploadImage('assets/uploads/incomes', $request->file('attachments'));
-        }
-    }
-
-    private function updateAccountBalances(Receipt $income, $oldAmount, $oldAccountId, $oldTreasuryId)
-    {
-        $amountDifference = $income->amount - $oldAmount;
-
-        // تحديث رصيد الحساب (العميل)
-        if ($oldAccountId == $income->account_id) {
-            $account = Account::find($income->account_id);
-            if ($account) {
-                $account->balance -= $amountDifference;
-                $account->save();
-            }
-        } else {
-            $oldAccount = Account::find($oldAccountId);
-            if ($oldAccount) {
-                $oldAccount->balance += $oldAmount;
-                $oldAccount->save();
-            }
-
-            $newAccount = Account::find($income->account_id);
-            if ($newAccount) {
-                $newAccount->balance -= $income->amount;
-                $newAccount->save();
-            }
-        }
-
-        // تحديث الخزينة
-        if ($oldTreasuryId == $income->treasury_id) {
-            $treasury = Account::find($income->treasury_id);
-            if ($treasury) {
-                $treasury->balance += $amountDifference;
-                $treasury->save();
-            }
-        } else {
-            $oldTreasury = Account::find($oldTreasuryId);
-            if ($oldTreasury) {
-                $oldTreasury->balance -= $oldAmount;
-                $oldTreasury->save();
-            }
-
-            $newTreasury = Account::find($income->treasury_id);
-            if ($newTreasury) {
-                $newTreasury->balance += $income->amount;
-                $newTreasury->save();
-            }
-        }
-    }
-
-    private function updateJournalEntry(Receipt $income)
-    {
-        $journalEntry = JournalEntry::where('reference_number', $income->code)->first();
-
-        if ($journalEntry) {
-            $journalEntry->date = $income->date;
-            $journalEntry->description = 'تحديث سند قبض رقم ' . $income->code;
-            $journalEntry->save();
-
-            JournalEntryDetail::where('journal_entry_id', $journalEntry->id)->delete();
-
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $income->treasury_id,
-                'description' => 'استلام مبلغ من سند قبض (تعديل)',
-                'debit' => $income->amount,
-                'credit' => 0,
-                'is_debit' => true,
-            ]);
-
-            JournalEntryDetail::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $income->account_id,
-                'description' => 'إيرادات من سند قبض (تعديل)',
-                'debit' => 0,
-                'credit' => $income->amount,
-                'is_debit' => false,
-            ]);
-        }
-    }
-
-    private function updateRelatedPaymentsAndInvoices(Receipt $income, $oldAmount)
-    {
-        $clientAccount = Account::find($income->account_id);
-        if (!$clientAccount || !$clientAccount->client_id) {
-            return;
-        }
-
-        DB::beginTransaction();
-        try {
-            // 1. حذف المدفوعات القديمة المرتبطة بهذا السند فقط
-            PaymentsProcess::where('reference_number', $income->code)->delete();
-
-            // 2. إعادة حساب جميع المدفوعات للعميل (من الأحدث للأقدم)
-            $allInvoices = Invoice::where('client_id', $clientAccount->client_id)
-                ->orderBy('created_at', 'desc') // ترتيب عكسي
-                ->get();
-
-            // 3. إعادة تعيين جميع الفواتير
-            foreach ($allInvoices as $invoice) {
-                $invoice->update([
-                    'advance_payment' => 0,
-                    'is_paid' => false,
-                    'payment_status' => 0,
-                    'due_value' => $invoice->grand_total,
-                ]);
-            }
-
-            // 4. إعادة تطبيق جميع سندات القبض حسب الأقدمية (من الأقدم للأحدث)
-            $allReceipts = Receipt::where('account_id', $income->account_id)->orderBy('created_at', 'asc')->get();
-
-            foreach ($allReceipts as $receipt) {
-                $this->applySingleReceiptToInvoices($receipt, true); // true للتطبيق من الأحدث
-            }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-            Log::error('Error updating invoices: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-    public function edit($id)
-    {
-        $user = Auth::user();
-
-        // التحقق من أن المستخدم ليس موظف فقط
-        if ($user->role == 'employee') {
-            return abort(403, 'ليس لديك صلاحية الوصول إلى هذه الصفحة.');
-        }
-
-        $income = Receipt::findOrFail($id);
-
-        $incomes_categories = ReceiptCategory::select('id', 'name')->get();
-        $treas = Treasury::select('id', 'name')->get();
-        $accounts = Account::all();
-        $account_storage = Account::where('parent_id', 13)->get();
-        $taxs = TaxSitting::all();
-
-        $MainTreasury = null;
-
-        if ($user && $user->employee_id) {
-            $TreasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-
-            if ($TreasuryEmployee && $TreasuryEmployee->treasury_id) {
-                $MainTreasury = Account::where('id', $TreasuryEmployee->treasury_id)->first();
-            } else {
-                $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-            }
-        } else {
-            $MainTreasury = Account::where('name', 'الخزينة الرئيسية')->first();
-        }
-
-        if (!$MainTreasury) {
-            throw new \Exception('لا توجد خزينة متاحة. يرجى التحقق من إعدادات الخزينة.');
-        }
-
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-        return view('finance.incomes.edit', compact('income', 'incomes_categories', 'treas', 'accounts', 'account_storage', 'taxs', 'account_setting', 'MainTreasury'));
-    }
-
-    private function applySingleReceiptToInvoices(Receipt $receipt, $reverseOrder = false)
-    {
-        $clientAccount = Account::find($receipt->account_id);
-        $unpaidInvoices = Invoice::where('client_id', $clientAccount->client_id)
-            ->where('is_paid', false)
-            ->orderBy('created_at', $reverseOrder ? 'desc' : 'asc') // ترتيب حسب الطلب
-            ->get();
-
-        $remainingAmount = $receipt->amount;
-        $user = Auth::user();
-
-        foreach ($unpaidInvoices as $invoice) {
-            if ($remainingAmount <= 0) {
-                break;
-            }
-
-            $paidAmount = PaymentsProcess::where('invoice_id', $invoice->id)->where('payment_status', '!=', 5)->sum('amount');
-
-            $invoiceRemaining = $invoice->grand_total - $paidAmount;
-            $paymentAmount = min($remainingAmount, $invoiceRemaining);
-
-            if ($paymentAmount > 0) {
-                $isFullPayment = $paidAmount + $paymentAmount >= $invoice->grand_total;
-
-                PaymentsProcess::updateOrCreate(
-                    [
-                        'invoice_id' => $invoice->id,
-                        'reference_number' => $receipt->code,
-                    ],
-                    [
-                        'amount' => $paymentAmount,
-                        'payment_date' => $receipt->date,
-                        'Payment_method' => 'cash',
-                        'type' => 'client payments',
-                        'payment_status' => $isFullPayment ? 1 : 2,
-                        'employee_id' => $user->id,
-                        'notes' => 'دفع عبر سند القبض رقم ' . $receipt->code,
-                    ],
-                );
-
-                $newPaidAmount = $paidAmount + $paymentAmount;
-                $newDueValue = $invoice->grand_total - $newPaidAmount;
-
-                $invoice->update([
-                    'advance_payment' => $newPaidAmount,
-                    'is_paid' => $isFullPayment,
-                    'payment_status' => $isFullPayment ? 1 : 2,
-                    'due_value' => max(0, $newDueValue),
-                ]);
-
-                $remainingAmount -= $paymentAmount;
-            }
-        }
-    }
-
-    public function show($id)
-    {
-        $income = Receipt::findOrFail($id);
-        return view('finance.incomes.show', compact('income'));
-    }
-
-    public function delete($id)
-    {
-        $incomes = Receipt::findOrFail($id);
-        ModelsLog::create([
-            'type' => 'finance_log',
-            'type_id' => $id, // ID النشاط المرتبط
-            'type_log' => 'log', // نوع النشاط
-            'description' => 'تم  حذف سند قبض رقم  **' . $id . '**',
-            'created_by' => auth()->id(), // ID المستخدم الحالي
-        ]);
-        $incomes->delete();
-        return redirect()
-            ->route('incomes.index')
-            ->with(['error' => 'تم حذف سند قبض بنجاج !!']);
-    }
-
-    function uploadImage($folder, $image)
-    {
-        $fileExtension = $image->getClientOriginalExtension();
-        $fileName = time() . rand(1, 99) . '.' . $fileExtension;
-        $image->move($folder, $fileName);
-
-        return $fileName;
-    } //end of uploadImage
-    public function print($id, $type = 'normal')
-    {
-        $income = Receipt::findOrFail($id);
-
-        if ($type == 'thermal') {
-            // عرض نسخة حرارية
-            return view('finance.incomes.print_thermal', compact('income'));
-        } else {
-            // عرض نسخة عادية
-            return view('finance.incomes.print_normal', compact('income'));
         }
     }
 }

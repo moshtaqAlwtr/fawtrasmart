@@ -35,4 +35,9 @@ public function region_groubs()
     return $this->belongsToMany(Region_groub::class); // اسم الجدول الوسيط حسب مشروعك
 }
 
+
+public function users()
+{
+    return $this->belongsToMany(User::class);
+}
 }

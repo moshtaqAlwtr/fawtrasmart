@@ -268,7 +268,7 @@
                         {{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}
                     </p>
                     <p class="mb-0">{{ $invoice->client->street1 ?? 'غير متوفر' }}</p>
-                    <p class="mb-0">كود العميل: {{ $invoice->client->code ?? 'غير متوفر' }}</p>
+                    <h1 class="mb-0"> {{ $invoice->client->code ?? 'غير متوفر' }}</h1>
                     <p class="mb-0">الرقم الضريبي: {{ $invoice->client->tax_number ?? 'غير متوفر' }}</p>
                     @if ($invoice->client->phone)
                         <p class="mb-0">رقم جوال العميل: {{ $invoice->client->phone }}</p>
@@ -283,12 +283,9 @@
                     </div>
                     <div class="summary-row">
                         <span>تاريخ الفاتورة:</span>
-                        <span>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y H:i') }}</span>
+                        <span>{{ $invoice->invoice_date }}</span>
                     </div>
-                    <div class="summary-row">
-                        <span>تاريخ التسليم:</span>
-                        <span>{{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }}</span>
-                    </div>
+
                 </div>
 
                 <!-- Invoice Items -->
@@ -364,8 +361,8 @@
 
                 <!-- Signature Section -->
                 <div class="signature">
-                    <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
-
+                    {{-- <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
+ --}}
 
 
                     <!-- مكان عرض التواقيع -->
@@ -386,9 +383,14 @@
                         @endforeach
                     </div>
 
-                    <p class="thank-you">شكراً لتعاملكم معنا</p>
+
                 </div>
 
+                                <div class="signature">
+                    <p>الاسم: ________________</p>
+                    <p>التوقيع: _______________</p>
+                    <p class="thank-you">شكراً لتعاملكم معنا</p>
+                </div>
 
                 <div class="qr-code">
                     {!! $qrCodeSvg !!}

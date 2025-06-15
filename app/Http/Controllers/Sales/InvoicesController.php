@@ -79,30 +79,45 @@ class InvoicesController extends Controller
      */
 public function index(Request $request)
 {
-    // بدء بناء الاستعلام الأساسي حسب الصلاحيات
-    $query = auth()->user()->hasAnyPermission(['sales_view_all_invoices'])
-        ? Invoice::with(['client', 'createdByUser', 'updatedByUser'])->where('type', 'normal')
-        :  Invoice::with(['client', 'createdByUser', 'updatedByUser'])
-    ->where(function ($query) {
-        $query->where('created_by', auth()->id())
-              ->orWhere('employee_id', auth()->user()->employee_id);
-    })
-    ->where('type', 'normal');
+    $user = auth()->user();
 
-    // تطبيق جميع شروط البحث
+    // ابدأ استعلام الفواتير
+    $query = Invoice::with(['client', 'createdByUser', 'updatedByUser'])
+        ->where('type', 'normal');
+
+    // صلاحية عرض كل الفواتير
+    if (!$user->hasAnyPermission(['sales_view_all_invoices'])) {
+
+        $query->where(function ($q) use ($user) {
+            $q->where('created_by', $user->id)
+              ->orWhere('employee_id', $user->employee_id);
+        });
+
+        // جلب مجموعات الموظف
+        $groupIds = \App\Models\EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
+
+        // جلب معرفات العملاء المرتبطين بهذه المجموعات
+        $clientIds = \App\Models\Client::whereHas('neighborhood', function ($q) use ($groupIds) {
+            $q->whereIn('region_id', $groupIds);
+        })->pluck('id');
+
+        // تصفية الفواتير لتكون فقط للعملاء المرتبطين بالمجموعات
+        $query->whereIn('client_id', $clientIds);
+    }
+
+    // تطبيق فلتر البحث
     $this->applySearchFilters($query, $request);
 
-    // جلب النتائج مع التقسيم (30 فاتورة لكل صفحة) مرتبة من الأحدث إلى الأقدم
+    // جلب النتائج
     $invoices = $query->orderBy('created_at', 'desc')->paginate(30);
 
-    // البيانات الأخرى المطلوبة للواجهة
-    $clients = Client::all();
+    // بيانات الواجهة
+    $clients = Client::all(); // حسب الصلاحيات ممكن فلترتها أيضًا
     $users = User::all();
     $employees = Employee::all();
     $invoice_number = $this->generateInvoiceNumber();
-
-    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-    $client = Client::where('user_id', auth()->user()->id)->first();
+    $account_setting = AccountSetting::where('user_id', $user->id)->first();
+    $client = Client::where('user_id', $user->id)->first();
 
     return view('sales.invoices.index', compact(
         'invoices',
@@ -115,222 +130,237 @@ public function index(Request $request)
     ));
 }
 
-/**
- * تطبيق شروط البحث على الاستعلام
- */
-protected function applySearchFilters($query, $request)
-{
-    // 1. البحث حسب العميل
-    if ($request->filled('client_id')) {
-        $query->where('client_id', $request->client_id);
-    }
-
-    // 2. البحث حسب رقم الفاتورة
-    if ($request->filled('invoice_number')) {
-        $query->where('id', $request->invoice_number);
-    }
-
-    // 3. البحث حسب حالة الفاتورة
-    if ($request->filled('status')) {
-        $query->where('payment_status', $request->status);
-    }
-
-    // 4. البحث حسب البند
-    if ($request->filled('item')) {
-        $query->whereHas('items', function ($q) use ($request) {
-            $q->where('item', 'like', '%' . $request->item . '%');
-        });
-    }
-
-    // 5. البحث حسب العملة
-    if ($request->filled('currency')) {
-        $query->where('currency', $request->currency);
-    }
-
-    // 6. البحث حسب الإجمالي (من)
-    if ($request->filled('total_from')) {
-        $query->where('grand_total', '>=', $request->total_from);
-    }
-
-    // 7. البحث حسب الإجمالي (إلى)
-    if ($request->filled('total_to')) {
-        $query->where('grand_total', '<=', $request->total_to);
-    }
-
-    // 8. البحث حسب حالة الدفع
-    if ($request->filled('payment_status')) {
-        $query->where('payment_status', $request->payment_status);
-    }
-
-    // 9. البحث حسب التخصيص (شهريًا، أسبوعيًا، يوميًا)
-    if ($request->filled('custom_period')) {
-        switch ($request->custom_period) {
-            case 'monthly':
-                $query->whereMonth('created_at', now()->month);
-                break;
-            case 'weekly':
-                $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                break;
-            case 'daily':
-                $query->whereDate('created_at', now()->toDateString());
-                break;
-        }
-    }
-
-    // 10. البحث حسب التاريخ (من)
-    if ($request->filled('from_date')) {
-        $query->whereDate('created_at', '>=', $request->from_date);
-    }
-
-    // 11. البحث حسب التاريخ (إلى)
-    if ($request->filled('to_date')) {
-        $query->whereDate('created_at', '<=', $request->to_date);
-    }
-
-    // 12. البحث حسب تاريخ الاستحقاق (من)
-    if ($request->filled('due_date_from')) {
-        $query->whereDate('due_date', '>=', $request->due_date_from);
-    }
-
-    // 13. البحث حسب تاريخ الاستحقاق (إلى)
-    if ($request->filled('due_date_to')) {
-        $query->whereDate('due_date', '<=', $request->due_date_to);
-    }
-
-    // 14. البحث حسب المصدر
-    if ($request->filled('source')) {
-        $query->where('source', $request->source);
-    }
-
-    // 15. البحث حسب الحقل المخصص
-    if ($request->filled('custom_field')) {
-        $query->where('custom_field', 'like', '%' . $request->custom_field . '%');
-    }
-
-    // 16. البحث حسب تاريخ الإنشاء (من)
-    if ($request->filled('created_at_from')) {
-        $query->whereDate('created_at', '>=', $request->created_at_from);
-    }
-
-    // 17. البحث حسب تاريخ الإنشاء (إلى)
-    if ($request->filled('created_at_to')) {
-        $query->whereDate('created_at', '<=', $request->created_at_to);
-    }
-
-    // 18. البحث حسب حالة التسليم
-    if ($request->filled('delivery_status')) {
-        $query->where('delivery_status', $request->delivery_status);
-    }
-
-    // 19. البحث حسب "أضيفت بواسطة" (الموظفين)
-    if ($request->filled('added_by_employee')) {
-        $query->where('created_by', $request->added_by_employee);
-    }
-
-    // 20. البحث حسب مسؤول المبيعات
-    if ($request->filled('sales_person_user')) {
-        $query->where('created_by', $request->sales_person_user);
-    }
-
-    // 21. البحث حسب Post Shift
-    if ($request->filled('post_shift')) {
-        $query->where('post_shift', 'like', '%' . $request->post_shift . '%');
-    }
-
-    // 22. البحث حسب خيارات الشحن
-    if ($request->filled('shipping_option')) {
-        $query->where('shipping_option', $request->shipping_option);
-    }
-
-    // 23. البحث حسب مصدر الطلب
-    if ($request->filled('order_source')) {
-        $query->where('order_source', $request->order_source);
-    }
-}
-    public function create(Request $request)
+    /**
+     * تطبيق شروط البحث على الاستعلام
+     */
+    protected function applySearchFilters($query, $request)
     {
-        // توليد رقم الفاتورة
-        $invoice_number = $this->generateInvoiceNumber();
-
-        // جلب جميع البيانات المطلوبة
-        $items = Product::all();
-        $clients = Client::all();
-        $users = User::all();
-        $treasury = Treasury::all();
-
-        $user = auth()->user();
-if ($user->employee_id !== null) {
-    if (auth()->user()->hasAnyPermission(['sales_view_all_invoices'])) {
-        $employees = Employee::all()->sortBy(function ($employee) use ($user) {
-            return $employee->id === $user->employee_id ? 0 : 1;
-        })->values(); // ← إعادة فهرسة النتائج
-    } else {
-        $employees = Employee::where('id', $user->employee_id)->get();
-    }
-} else {
-    $employees = Employee::all();
-}
-
-
-
-        $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
-        $price_sales = PriceListItems::all();
-
-        // تحديد نوع الفاتورة
-        $invoiceType = 'normal';
-
-        // جلب الإعدادات الضريبية
-        $taxs = TaxSitting::all();
-
-        // إعدادات الحساب
-        $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-
-        // معالجة العميل
-        $client_id = $request->client_id;
-        $client = null;
-
-        if ($client_id) {
-            $client = Client::find($client_id);
+        // 1. البحث حسب العميل
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->client_id);
         }
 
-        return view('sales.invoices.create', [
-            'clients' => $clients,
-            'account_setting' => $account_setting,
-            'price_lists' => $price_lists,
-            'taxs' => $taxs,
-            'treasury' => $treasury,
-            'users' => $users,
-            'items' => $items,
-            'invoice_number' => $invoice_number,
-            'invoiceType' => $invoiceType,
-            'employees' => $employees,
-            'client' => $client,
-            'client_id' => $client_id,
-        ]);
+        // 2. البحث حسب رقم الفاتورة
+        if ($request->filled('invoice_number')) {
+            $query->where('id', $request->invoice_number);
+        }
+
+        // 3. البحث حسب حالة الفاتورة
+        if ($request->filled('status')) {
+            $query->where('payment_status', $request->status);
+        }
+
+        // 4. البحث حسب البند
+        if ($request->filled('item')) {
+            $query->whereHas('items', function ($q) use ($request) {
+                $q->where('item', 'like', '%' . $request->item . '%');
+            });
+        }
+
+        // 5. البحث حسب العملة
+        if ($request->filled('currency')) {
+            $query->where('currency', $request->currency);
+        }
+
+        // 6. البحث حسب الإجمالي (من)
+        if ($request->filled('total_from')) {
+            $query->where('grand_total', '>=', $request->total_from);
+        }
+
+        // 7. البحث حسب الإجمالي (إلى)
+        if ($request->filled('total_to')) {
+            $query->where('grand_total', '<=', $request->total_to);
+        }
+
+        // 8. البحث حسب حالة الدفع
+        if ($request->filled('payment_status')) {
+            $query->where('payment_status', $request->payment_status);
+        }
+
+        // 9. البحث حسب التخصيص (شهريًا، أسبوعيًا، يوميًا)
+        if ($request->filled('custom_period')) {
+            switch ($request->custom_period) {
+                case 'monthly':
+                    $query->whereMonth('created_at', now()->month);
+                    break;
+                case 'weekly':
+                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                    break;
+                case 'daily':
+                    $query->whereDate('created_at', now()->toDateString());
+                    break;
+            }
+        }
+
+        // 10. البحث حسب التاريخ (من)
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        // 11. البحث حسب التاريخ (إلى)
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        // 12. البحث حسب تاريخ الاستحقاق (من)
+        if ($request->filled('due_date_from')) {
+            $query->whereDate('due_date', '>=', $request->due_date_from);
+        }
+
+        // 13. البحث حسب تاريخ الاستحقاق (إلى)
+        if ($request->filled('due_date_to')) {
+            $query->whereDate('due_date', '<=', $request->due_date_to);
+        }
+
+        // 14. البحث حسب المصدر
+        if ($request->filled('source')) {
+            $query->where('source', $request->source);
+        }
+
+        // 15. البحث حسب الحقل المخصص
+        if ($request->filled('custom_field')) {
+            $query->where('custom_field', 'like', '%' . $request->custom_field . '%');
+        }
+
+        // 16. البحث حسب تاريخ الإنشاء (من)
+        if ($request->filled('created_at_from')) {
+            $query->whereDate('created_at', '>=', $request->created_at_from);
+        }
+
+        // 17. البحث حسب تاريخ الإنشاء (إلى)
+        if ($request->filled('created_at_to')) {
+            $query->whereDate('created_at', '<=', $request->created_at_to);
+        }
+
+        // 18. البحث حسب حالة التسليم
+        if ($request->filled('delivery_status')) {
+            $query->where('delivery_status', $request->delivery_status);
+        }
+
+        // 19. البحث حسب "أضيفت بواسطة" (الموظفين)
+        if ($request->filled('added_by_employee')) {
+            $query->where('created_by', $request->added_by_employee);
+        }
+
+        // 20. البحث حسب مسؤول المبيعات
+        if ($request->filled('sales_person_user')) {
+            $query->where('created_by', $request->sales_person_user);
+        }
+
+        // 21. البحث حسب Post Shift
+        if ($request->filled('post_shift')) {
+            $query->where('post_shift', 'like', '%' . $request->post_shift . '%');
+        }
+
+        // 22. البحث حسب خيارات الشحن
+        if ($request->filled('shipping_option')) {
+            $query->where('shipping_option', $request->shipping_option);
+        }
+
+        // 23. البحث حسب مصدر الطلب
+        if ($request->filled('order_source')) {
+            $query->where('order_source', $request->order_source);
+        }
     }
-
-
-public function getPrice(Request $request)
+  public function create(Request $request)
 {
-    $priceListId = $request->input('price_list_id');
-    $productId = $request->input('product_id');
+    // توليد رقم الفاتورة
+    $invoice_number = $this->generateInvoiceNumber();
 
-    $proudect = Product::where('id',$productId)->get();
+    // جلب المنتجات والخزائن والمستخدمين
+    $items = Product::all();
+    $users = User::all();
+    $treasury = Treasury::all();
 
-    $priceItem = PriceListItems::where('price_list_id', $priceListId)
-                              ->where('product_id', $productId)
-                              ->first();
+    $user = auth()->user();
+    $clients = collect(); // سنملأها حسب الصلاحيات
 
-    if ($priceItem) {
-        return response()->json([
-            'price' => $priceItem->sale_price
-        ]);
+    // الموظف مرتبط بمجموعات
+    if ($user->employee_id !== null) {
+
+        // جلب معرفات المجموعات التي ينتمي لها الموظف
+        $groupIds = \App\Models\EmployeeGroup::where('employee_id', $user->employee_id)
+            ->pluck('group_id');
+
+        // جلب العملاء المرتبطين بأحياء تنتمي لتلك المجموعات
+        $clients = \App\Models\Client::whereHas('neighborhood', function ($query) use ($groupIds) {
+            $query->whereIn('region_id', $groupIds);
+        })->get();
+
+        // الموظفين
+        if ($user->hasAnyPermission(['sales_view_all_invoices'])) {
+            $employees = Employee::all()->sortBy(function ($employee) use ($user) {
+                return $employee->id === $user->employee_id ? 0 : 1;
+            })->values();
+        } else {
+            $employees = Employee::where('id', $user->employee_id)->get();
+        }
+
     } else {
-        return response()->json([
-            'price' => null
-        ]);
+        // إذا لم يكن له موظف أو عنده صلاحية لعرض كل العملاء
+        if ($user->hasPermissionTo('clients_view_all')) {
+            $clients = Client::all();
+        }
+
+        $employees = Employee::all();
     }
+
+    // قوائم الأسعار
+    $price_lists = PriceList::orderBy('id', 'DESC')->paginate(10);
+    $price_sales = PriceListItems::all();
+
+    // نوع الفاتورة
+    $invoiceType = 'normal';
+
+    // الضرائب
+    $taxs = TaxSitting::all();
+
+    // إعدادات الحساب
+    $account_setting = AccountSetting::where('user_id', $user->id)->first();
+
+    // جلب بيانات العميل في حال تم تمرير client_id
+    $client_id = $request->client_id;
+    $client = null;
+
+    if ($client_id) {
+        $client = Client::find($client_id);
+    }
+
+    return view('sales.invoices.create', [
+        'clients' => $clients,
+        'account_setting' => $account_setting,
+        'price_lists' => $price_lists,
+        'taxs' => $taxs,
+        'treasury' => $treasury,
+        'users' => $users,
+        'items' => $items,
+        'invoice_number' => $invoice_number,
+        'invoiceType' => $invoiceType,
+        'employees' => $employees,
+        'client' => $client,
+        'client_id' => $client_id,
+    ]);
 }
+
+    public function getPrice(Request $request)
+    {
+        $priceListId = $request->input('price_list_id');
+        $productId = $request->input('product_id');
+
+        $proudect = Product::where('id', $productId)->get();
+
+        $priceItem = PriceListItems::where('price_list_id', $priceListId)->where('product_id', $productId)->first();
+
+        if ($priceItem) {
+            return response()->json([
+                'price' => $priceItem->sale_price,
+            ]);
+        } else {
+            return response()->json([
+                'price' => null,
+            ]);
+        }
+    }
     public function sendVerificationCode(Request $request)
     {
         $client = Client::find($request->client_id);
@@ -416,24 +446,22 @@ public function getPrice(Request $request)
         return response()->json(['error' => 'رمز التحقق غير صحيح.'], 400);
     }
 
-public function notifications(Request $request)
-{
-    $query = notifications::with('user')
-        ->where('read', 0)
-        ->orderBy('created_at', 'desc');
+    public function notifications(Request $request)
+    {
+        $query = notifications::with('user')->where('read', 0)->orderBy('created_at', 'desc');
 
-    // إضافة فلتر البحث حسب الموظف إذا تم توفيره
-    if ($request->has('user_id') && $request->user_id != '') {
-        $query->where('user_id', $request->user_id);
+        // إضافة فلتر البحث حسب الموظف إذا تم توفيره
+        if ($request->has('user_id') && $request->user_id != '') {
+            $query->where('user_id', $request->user_id);
+        }
+
+        // استبدال get() بـ paginate() لإضافة التقسيم للصفحات
+        $notifications = $query->paginate(100, ['id', 'user_id', 'title', 'description', 'created_at']);
+
+        $users = User::where('role', 'employee')->get(); // جلب جميع الموظفين للبحث
+
+        return view('notifications.index', compact('notifications', 'users'));
     }
-
-    // استبدال get() بـ paginate() لإضافة التقسيم للصفحات
-    $notifications = $query->paginate(100, ['id', 'user_id', 'title', 'description', 'created_at']);
-
-    $users = User::where('role', 'employee')->get(); // جلب جميع الموظفين للبحث
-
-    return view('notifications.index', compact('notifications', 'users'));
-}
     public function markAsReadid($id)
     {
         $notifications = notifications::find($id);
@@ -442,9 +470,6 @@ public function notifications(Request $request)
 
         return back();
     }
-
-
-
 
     // private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     // {
@@ -847,105 +872,104 @@ public function notifications(Request $request)
                     }
                 }
 
-if ($proudect->type == 'products') {
-    // ** حساب المخزون قبل وبعد التعديل **
-    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
-    $stock_before = $total_quantity;
-    $stock_after = $stock_before - $item['quantity'];
+                if ($proudect->type == 'products') {
+                    // ** حساب المخزون قبل وبعد التعديل **
+                    $total_quantity = DB::table('product_details')->where('product_id', $item['product_id'])->sum('quantity');
+                    $stock_before = $total_quantity;
+                    $stock_after = $stock_before - $item['quantity'];
 
-    // ** تحديث المخزون **
-    $productDetails->decrement('quantity', $item['quantity']);
+                    // ** تحديث المخزون **
+                    $productDetails->decrement('quantity', $item['quantity']);
 
-    // ** جلب مصدر إذن المخزون المناسب (فاتورة مبيعات) **
-    $permissionSource = PermissionSource::where('name', 'فاتورة مبيعات')->first();
+                    // ** جلب مصدر إذن المخزون المناسب (فاتورة مبيعات) **
+                    $permissionSource = PermissionSource::where('name', 'فاتورة مبيعات')->first();
 
-    if (!$permissionSource) {
-        // لو ما وجدنا مصدر إذن، ممكن ترمي استثناء أو ترجع خطأ
-        throw new \Exception("مصدر إذن 'فاتورة مبيعات' غير موجود في قاعدة البيانات.");
-    }
+                    if (!$permissionSource) {
+                        // لو ما وجدنا مصدر إذن، ممكن ترمي استثناء أو ترجع خطأ
+                        throw new \Exception("مصدر إذن 'فاتورة مبيعات' غير موجود في قاعدة البيانات.");
+                    }
 
-    // ** تسجيل المبيعات في حركة المخزون **
-    $wareHousePermits = new WarehousePermits();
-    $wareHousePermits->permission_type = $permissionSource->id; // جلب id المصدر الديناميكي
-    $wareHousePermits->permission_date = $invoice->created_at;
-    $wareHousePermits->number = $invoice->id;
-    $wareHousePermits->grand_total = $invoice->grand_total;
-    $wareHousePermits->store_houses_id = $storeHouse->id;
-    $wareHousePermits->created_by = auth()->user()->id;
-    $wareHousePermits->save();
+                    // ** تسجيل المبيعات في حركة المخزون **
+                    $wareHousePermits = new WarehousePermits();
+                    $wareHousePermits->permission_type = $permissionSource->id; // جلب id المصدر الديناميكي
+                    $wareHousePermits->permission_date = $invoice->created_at;
+                    $wareHousePermits->number = $invoice->id;
+                    $wareHousePermits->grand_total = $invoice->grand_total;
+                    $wareHousePermits->store_houses_id = $storeHouse->id;
+                    $wareHousePermits->created_by = auth()->user()->id;
+                    $wareHousePermits->save();
 
-    // ** تسجيل البيانات في WarehousePermitsProducts **
-    WarehousePermitsProducts::create([
-        'quantity' => $item['quantity'],
-        'total' => $item['total'],
-        'unit_price' => $item['unit_price'],
-        'product_id' => $item['product_id'],
-        'stock_before' => $stock_before, // المخزون قبل التحديث
-        'stock_after' => $stock_after,   // المخزون بعد التحديث
-        'warehouse_permits_id' => $wareHousePermits->id,
-    ]);
+                    // ** تسجيل البيانات في WarehousePermitsProducts **
+                    WarehousePermitsProducts::create([
+                        'quantity' => $item['quantity'],
+                        'total' => $item['total'],
+                        'unit_price' => $item['unit_price'],
+                        'product_id' => $item['product_id'],
+                        'stock_before' => $stock_before, // المخزون قبل التحديث
+                        'stock_after' => $stock_after, // المخزون بعد التحديث
+                        'warehouse_permits_id' => $wareHousePermits->id,
+                    ]);
 
-    // ** تنبيه انخفاض الكمية **
-    if ($productDetails->quantity < $product['low_stock_alert']) {
-        notifications::create([
-            'type' => 'Products',
-            'title' => 'تنبيه الكمية',
-            'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
-        ]);
+                    // ** تنبيه انخفاض الكمية **
+                    if ($productDetails->quantity < $product['low_stock_alert']) {
+                        notifications::create([
+                            'type' => 'Products',
+                            'title' => 'تنبيه الكمية',
+                            'description' => 'كمية المنتج ' . $product['name'] . ' قاربت على الانتهاء.',
+                        ]);
 
-        $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+                        $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
 
-        $message = "🚨 *تنبيه جديد!* 🚨\n";
-        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-        $message .= "📌 *العنوان:* 🔔 `تنبيه الكمية`\n";
-        $message .= '📦 *المنتج:* `' . $product['name'] . "`\n";
-        $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
-        $message .= '📅 *التاريخ:* `' . now()->format('Y-m-d H:i') . "`\n";
-        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                        $message = "🚨 *تنبيه جديد!* 🚨\n";
+                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                        $message .= "📌 *العنوان:* 🔔 `تنبيه الكمية`\n";
+                        $message .= '📦 *المنتج:* `' . $product['name'] . "`\n";
+                        $message .= "⚠️ *الوصف:* _كمية المنتج قاربت على الانتهاء._\n";
+                        $message .= '📅 *التاريخ:* `' . now()->format('Y-m-d H:i') . "`\n";
+                        $message .= "━━━━━━━━━━━━━━━━━━━━\n";
 
-        $response = Http::post($telegramApiUrl, [
-            'chat_id' => '@Salesfatrasmart',
-            'text' => $message,
-            'parse_mode' => 'Markdown',
-            'timeout' => 60,
-        ]);
-    }
+                        $response = Http::post($telegramApiUrl, [
+                            'chat_id' => '@Salesfatrasmart',
+                            'text' => $message,
+                            'parse_mode' => 'Markdown',
+                            'timeout' => 60,
+                        ]);
+                    }
 
-    // ** تنبيه تاريخ انتهاء الصلاحية **
-    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) {
-        $expiryDate = Carbon::parse($product['expiry_date']);
-        $daysBeforeExpiry = (int) $product['notify_before_days'];
+                    // ** تنبيه تاريخ انتهاء الصلاحية **
+                    if ($product['track_inventory'] == 2 && !empty($product['expiry_date']) && !empty($product['notify_before_days'])) {
+                        $expiryDate = Carbon::parse($product['expiry_date']);
+                        $daysBeforeExpiry = (int) $product['notify_before_days'];
 
-        if ($expiryDate->greaterThan(now())) {
-            $remainingDays = floor($expiryDate->diffInDays(now()));
+                        if ($expiryDate->greaterThan(now())) {
+                            $remainingDays = floor($expiryDate->diffInDays(now()));
 
-            if ($remainingDays <= $daysBeforeExpiry) {
-                notifications::create([
-                    'type' => 'Products',
-                    'title' => 'تاريخ الانتهاء',
-                    'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
-                ]);
+                            if ($remainingDays <= $daysBeforeExpiry) {
+                                notifications::create([
+                                    'type' => 'Products',
+                                    'title' => 'تاريخ الانتهاء',
+                                    'description' => 'المنتج ' . $product['name'] . ' قارب على الانتهاء في خلال ' . $remainingDays . ' يوم.',
+                                ]);
 
-                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
+                                $telegramApiUrl = 'https://api.telegram.org/bot7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU/sendMessage';
 
-                $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
-                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
-                $message .= '📌 *اسم المنتج:* ' . $product['name'] . "\n";
-                $message .= '📅 *تاريخ الانتهاء:* ' . $expiryDate->format('Y-m-d') . "\n";
-                $message .= '⏳ *المدة المتبقية:* ' . $remainingDays . " يوم\n";
-                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                                $message = "⚠️ *تنبيه انتهاء صلاحية المنتج* ⚠️\n";
+                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
+                                $message .= '📌 *اسم المنتج:* ' . $product['name'] . "\n";
+                                $message .= '📅 *تاريخ الانتهاء:* ' . $expiryDate->format('Y-m-d') . "\n";
+                                $message .= '⏳ *المدة المتبقية:* ' . $remainingDays . " يوم\n";
+                                $message .= "━━━━━━━━━━━━━━━━━━━━\n";
 
-                $response = Http::post($telegramApiUrl, [
-                    'chat_id' => '@Salesfatrasmart',
-                    'text' => $message,
-                    'parse_mode' => 'Markdown',
-                    'timeout' => 60,
-                ]);
-            }
-        }
-    }
-}
-
+                                $response = Http::post($telegramApiUrl, [
+                                    'chat_id' => '@Salesfatrasmart',
+                                    'text' => $message,
+                                    'parse_mode' => 'Markdown',
+                                    'timeout' => 60,
+                                ]);
+                            }
+                        }
+                    }
+                }
 
                 if ($proudect->type == 'compiled' && $proudect->compile_type == 'Instant') {
                     // ** حساب المخزون قبل وبعد التعديل للمنتج التجميعي **
@@ -1093,7 +1117,6 @@ if ($proudect->type == 'products') {
                 'description' => 'فاتورة للعميل ' . $client_name->trade_name . ' بقيمة ' . number_format($invoice->grand_total, 2) . ' ر.س',
             ]);
 
-
             // التحقق مما إذا كان للمستخدم قاعدة عمولة
             $userHasCommission = CommissionUsers::where('employee_id', auth()->user()->id)->exists();
 
@@ -1188,118 +1211,117 @@ if ($proudect->type == 'products') {
             if (!$clientaccounts) {
                 throw new \Exception('حساب العميل غير موجود');
             }
-                // استرجاع حساب القيمة المضافة المحصلة
-                $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
-                if (!$vatAccount) {
-                    throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
-                }
-                $salesAccount = Account::where('name', 'المبيعات')->first();
-                if (!$salesAccount) {
-                    throw new \Exception('حساب المبيعات غير موجود');
-                }
+            // استرجاع حساب القيمة المضافة المحصلة
+            $vatAccount = Account::where('name', 'القيمة المضافة المحصلة')->first();
+            if (!$vatAccount) {
+                throw new \Exception('حساب القيمة المضافة المحصلة غير موجود');
+            }
+            $salesAccount = Account::where('name', 'المبيعات')->first();
+            if (!$salesAccount) {
+                throw new \Exception('حساب المبيعات غير موجود');
+            }
 
-                //     // إنشاء القيد المحاسبي للفاتورة
-                $journalEntry = JournalEntry::create([
-                    'reference_number' => $invoice->code,
-                    'date' => now(),
-                    'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
-                    'status' => 1,
-                    'currency' => 'SAR',
-                    'client_id' => $invoice->client_id,
-                    'invoice_id' => $invoice->id,
-                    // 'created_by_employee' => Auth::id(),
-                ]);
+            //     // إنشاء القيد المحاسبي للفاتورة
+            $journalEntry = JournalEntry::create([
+                'reference_number' => $invoice->code,
+                'date' => now(),
+                'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
+                'status' => 1,
+                'currency' => 'SAR',
+                'client_id' => $invoice->client_id,
+                'invoice_id' => $invoice->id,
+                // 'created_by_employee' => Auth::id(),
+            ]);
 
-                // // إضافة تفاصيل القيد المحاسبي
-                // // 1. حساب العميل (مدين)
-                JournalEntryDetail::create([
-                    'journal_entry_id' => $journalEntry->id,
-                    'account_id' => $clientaccounts->id, // حساب العميل
-                    'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
-                    'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
-                    'credit' => 0,
-                    'is_debit' => true,
-                ]);
+            // // إضافة تفاصيل القيد المحاسبي
+            // // 1. حساب العميل (مدين)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $clientaccounts->id, // حساب العميل
+                'description' => 'فاتورة مبيعات رقم ' . $invoice->code,
+                'debit' => $total_with_tax, // المبلغ الكلي للفاتورة (مدين)
+                'credit' => 0,
+                'is_debit' => true,
+            ]);
 
-                // // 2. حساب المبيعات (دائن)
-                JournalEntryDetail::create([
-                    'journal_entry_id' => $journalEntry->id,
-                    'account_id' => $salesAccount->id, // حساب المبيعات
-                    'description' => 'إيرادات مبيعات',
-                    'debit' => 0,
-                    'credit' => $amount_after_discount, // المبلغ بعد الخصم (دائن)
-                    'is_debit' => false,
-                ]);
+            // // 2. حساب المبيعات (دائن)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $salesAccount->id, // حساب المبيعات
+                'description' => 'إيرادات مبيعات',
+                'debit' => 0,
+                'credit' => $amount_after_discount, // المبلغ بعد الخصم (دائن)
+                'is_debit' => false,
+            ]);
 
-                // // 3. حساب القيمة المضافة المحصلة (دائن)
-                JournalEntryDetail::create([
-                    'journal_entry_id' => $journalEntry->id,
-                    'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
-                    'description' => 'ضريبة القيمة المضافة',
-                    'debit' => 0,
-                    'credit' => $tax_total, // قيمة الضريبة (دائن)
-                    'is_debit' => false,
-                ]);
+            // // 3. حساب القيمة المضافة المحصلة (دائن)
+            JournalEntryDetail::create([
+                'journal_entry_id' => $journalEntry->id,
+                'account_id' => $vatAccount->id, // حساب القيمة المضافة المحصلة
+                'description' => 'ضريبة القيمة المضافة',
+                'debit' => 0,
+                'credit' => $tax_total, // قيمة الضريبة (دائن)
+                'is_debit' => false,
+            ]);
 
-                // ** تحديث رصيد حساب المبيعات (إيرادات) **
-                //  if ($salesAccount) {
-                //     $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
-                //     $salesAccount->save();
-                // }
+            // ** تحديث رصيد حساب المبيعات (إيرادات) **
+            //  if ($salesAccount) {
+            //     $salesAccount->balance += $amount_after_discount; // إضافة المبلغ بعد الخصم
+            //     $salesAccount->save();
+            // }
 
-                // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
-                if ($salesAccount) {
-                    $amount = $amount_after_discount;
-                    $salesAccount->balance += $amount;
-                    $salesAccount->save();
+            // ** تحديث رصيد حساب المبيعات والحسابات المرتبطة به (إيرادات) **
+            if ($salesAccount) {
+                $amount = $amount_after_discount;
+                $salesAccount->balance += $amount;
+                $salesAccount->save();
 
-                    // تحديث جميع الحسابات الرئيسية المتصلة به
-                    // $this->updateParentBalanceSalesAccount($salesAccount->parent_id, $amount);
-                }
+                // تحديث جميع الحسابات الرئيسية المتصلة به
+                // $this->updateParentBalanceSalesAccount($salesAccount->parent_id, $amount);
+            }
 
-                // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
-                $revenueAccount = Account::where('name', 'الإيرادات')->first();
-                if ($revenueAccount) {
-                    $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
-                    $revenueAccount->save();
-                }
+            // تحديث رصيد حساب الإيرادات (المبيعات + الضريبة)
+            $revenueAccount = Account::where('name', 'الإيرادات')->first();
+            if ($revenueAccount) {
+                $revenueAccount->balance += $amount_after_discount; // المبلغ بعد الخصم (بدون الضريبة)
+                $revenueAccount->save();
+            }
 
-                // $vatAccount->balance += $tax_total; // قيمة الضريبة
-                // $vatAccount->save();
+            // $vatAccount->balance += $tax_total; // قيمة الضريبة
+            // $vatAccount->save();
 
-                //تحديث رصيد حساب القيمة المضافة (الخصوم)
-                if ($vatAccount) {
-                    $amount = $tax_total;
-                    $vatAccount->balance += $amount;
-                    $vatAccount->save();
+            //تحديث رصيد حساب القيمة المضافة (الخصوم)
+            if ($vatAccount) {
+                $amount = $tax_total;
+                $vatAccount->balance += $amount;
+                $vatAccount->save();
 
-                    // تحديث جميع الحسابات الرئيسية المتصلة به
-                    $this->updateParentBalance($vatAccount->parent_id, $amount);
-                }
+                // تحديث جميع الحسابات الرئيسية المتصلة به
+                $this->updateParentBalance($vatAccount->parent_id, $amount);
+            }
 
-                // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
-                $assetsAccount = Account::where('name', 'الأصول')->first();
-                if ($assetsAccount) {
-                    $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-                    $assetsAccount->save();
-                }
-                // تحديث رصيد حساب الخزينة الرئيسية
+            // تحديث رصيد حساب الأصول (المبيعات + الضريبة)
+            $assetsAccount = Account::where('name', 'الأصول')->first();
+            if ($assetsAccount) {
+                $assetsAccount->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+                $assetsAccount->save();
+            }
+            // تحديث رصيد حساب الخزينة الرئيسية
 
-                // if ($MainTreasury) {
-                //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
-                //     $MainTreasury->save();
-                // }
+            // if ($MainTreasury) {
+            //     $MainTreasury->balance += $total_with_tax; // المبلغ الكلي (المبيعات + الضريبة)
+            //     $MainTreasury->save();
+            // }
 
-                if ($clientaccounts) {
-                    $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                    $clientaccounts->save();
-                }
-
+            if ($clientaccounts) {
+                $clientaccounts->balance += $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                $clientaccounts->save();
+            }
 
             // تحديث رصيد حساب الخزينة الرئيسية
 
             // ** الخطوة السابعة: إنشاء سجل الدفع إذا كان هناك دفعة مقدمة أو دفع كامل **
-           if ($advance_payment > 0 || $is_paid) {
+            if ($advance_payment > 0 || $is_paid) {
                 $payment_amount = $is_paid ? $total_with_tax : $advance_payment;
 
                 // تحديد الخزينة المستهدفة بناءً على الموظف
@@ -1345,18 +1367,17 @@ if ($proudect->type == 'products') {
                     $MainTreasury->save();
                 }
 
-              if($advance_payment > 0 ){
-
-                   if ($clientaccounts) {
-                    $clientaccounts->balance -= $payment_amount; // المبلغ الكلي (المبيعات + الضريبة)
-                    $clientaccounts->save();
-                }
-              }else{
+                if ($advance_payment > 0) {
                     if ($clientaccounts) {
-                    $clientaccounts->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
-                    $clientaccounts->save();
+                        $clientaccounts->balance -= $payment_amount; // المبلغ الكلي (المبيعات + الضريبة)
+                        $clientaccounts->save();
+                    }
+                } else {
+                    if ($clientaccounts) {
+                        $clientaccounts->balance -= $invoice->grand_total; // المبلغ الكلي (المبيعات + الضريبة)
+                        $clientaccounts->save();
+                    }
                 }
-              }
 
                 // إنشاء قيد محاسبي للدفعة
                 $paymentJournalEntry = JournalEntry::create([
@@ -1512,14 +1533,14 @@ if ($proudect->type == 'products') {
 
         // إنشاء رابط الباركود باستخدام خدمة Barcode Generator
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
- $nextCode = Receipt::max('code') ?? 0;
+        $nextCode = Receipt::max('code') ?? 0;
 
         // نحاول تكرار البحث حتى نحصل على كود غير مكرر
         while (Receipt::where('code', $nextCode)->exists()) {
             $nextCode++;
         }
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.show', compact('invoice_number', 'account_setting','nextCode', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
+        return view('sales.invoices.show', compact('invoice_number', 'account_setting', 'nextCode', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
     }
 
     public function print($id)
@@ -1538,13 +1559,13 @@ if ($proudect->type == 'products') {
         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
         $account_setting = null;
 
-if (auth()->check()) {
-    $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-}
-$client =  null;
-if (auth()->check()) {
-        $client = Client::where('user_id', auth()->user()->id)->first();
-}
+        if (auth()->check()) {
+            $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+        }
+        $client = null;
+        if (auth()->check()) {
+            $client = Client::where('user_id', auth()->user()->id)->first();
+        }
         $invoice_number = $this->generateInvoiceNumber();
 
         // إنشاء رقم الباركود من رقم الفاتورة
@@ -1552,14 +1573,14 @@ if (auth()->check()) {
 
         // إنشاء رابط الباركود باستخدام خدمة Barcode Generator
         $barcodeImage = 'https://barcodeapi.org/api/128/' . $barcodeNumber;
- $nextCode = Receipt::max('code') ?? 0;
+        $nextCode = Receipt::max('code') ?? 0;
 
         // نحاول تكرار البحث حتى نحصل على كود غير مكرر
         while (Receipt::where('code', $nextCode)->exists()) {
             $nextCode++;
         }
         // تغيير اسم المتغير من qrCodeImage إلى barcodeImage
-        return view('sales.invoices.print', compact('invoice_number', 'account_setting','nextCode', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
+        return view('sales.invoices.print', compact('invoice_number', 'account_setting', 'nextCode', 'client', 'clients', 'employees', 'invoice', 'barcodeImage', 'TaxsInvoice', 'qrCodeSvg'));
     }
     public function edit($id)
     {
@@ -1666,305 +1687,215 @@ if (auth()->check()) {
         return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
     }
 
+    public function label($id)
+    {
+        $invoice = Invoice::findOrFail($id);
 
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4', // تغيير من A6 إلى A4
+            'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
+            'default_font' => 'dejavusans',
+            'default_font_size' => 12, // تصغير حجم الخط قليلاً
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_left' => 10,
+            'margin_right' => 10,
+        ]);
 
+        $html = view('sales.invoices.label', compact('invoice'))->render();
 
+        $mpdf->WriteHTML($html);
+        return response($mpdf->Output('shipping-label.pdf', 'S'))->header('Content-Type', 'application/pdf');
+    }
 
-public function label($id)
-{
-    $invoice = Invoice::findOrFail($id);
+    // قائمة الاستلام
+    public function picklist($id)
+    {
+        $invoice = Invoice::findOrFail($id);
 
-    $mpdf = new Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4', // تغيير من A6 إلى A4
-        'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
-        'default_font' => 'dejavusans',
-        'default_font_size' => 12, // تصغير حجم الخط قليلاً
-        'margin_top' => 10,
-        'margin_bottom' => 10,
-        'margin_left' => 10,
-        'margin_right' => 10,
-    ]);
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4', // تغيير من A6 إلى A4
+            'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
+            'default_font' => 'dejavusans',
+            'default_font_size' => 12, // تصغير حجم الخط قليلاً
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_left' => 10,
+            'margin_right' => 10,
+        ]);
 
-    $html = view('sales.invoices.label', compact('invoice'))->render();
+        $html = view('sales.invoices.picklist', compact('invoice'))->render();
 
-    $mpdf->WriteHTML($html);
-    return response($mpdf->Output('shipping-label.pdf', 'S'))
-           ->header('Content-Type', 'application/pdf');
-}
+        $mpdf->WriteHTML($html);
+        return response($mpdf->Output('shipping-picklist.pdf', 'S'))->header('Content-Type', 'application/pdf');
+    }
 
-// قائمة الاستلام
-public function picklist($id)
-{
-    $invoice = Invoice::findOrFail($id);
+    // ملصق التوصيل
 
-    $mpdf = new Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4', // تغيير من A6 إلى A4
-        'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
-        'default_font' => 'dejavusans',
-        'default_font_size' => 12, // تصغير حجم الخط قليلاً
-        'margin_top' => 10,
-        'margin_bottom' => 10,
-        'margin_left' => 10,
-        'margin_right' => 10,
-    ]);
+    public function shipping_label($id)
+    {
+        $invoice = Invoice::findOrFail($id);
 
-    $html = view('sales.invoices.picklist', compact('invoice'))->render();
+        $mpdf = new App\Http\Controllers\Sales\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4', // تغيير من A6 إلى A4
+            'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
+            'default_font' => 'dejavusans',
+            'default_font_size' => 12, // تصغير حجم الخط قليلاً
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_left' => 10,
+            'margin_right' => 10,
+        ]);
 
-    $mpdf->WriteHTML($html);
-    return response($mpdf->Output('shipping-picklist.pdf', 'S'))
-           ->header('Content-Type', 'application/pdf');
-}
+        $html = view('sales.invoices.shipping_label', compact('invoice'))->render();
 
-// ملصق التوصيل
+        $mpdf->WriteHTML($html);
+        return response($mpdf->Output('shipping-shipping_label.pdf', 'S'))->header('Content-Type', 'application/pdf');
+    }
 
-public function shipping_label($id)
-{
-    $invoice = Invoice::findOrFail($id);
+    public function storeSignatures(Request $request, $invoiceId)
+    {
+        $validated = $request->validate([
+            'signer_name' => 'required|string|max:255',
+            'signer_role' => 'nullable|string|max:255',
+            'signature_data' => 'required|string',
+            'amount_paid' => 'nullable|numeric|min:0',
+        ]);
 
-    $mpdf = new App\Http\Controllers\Sales\Mpdf([
-        'mode' => 'utf-8',
-        'format' => 'A4', // تغيير من A6 إلى A4
-        'orientation' => 'portrait', // أو 'landscape' إذا أردت الوضع الأفقي
-        'default_font' => 'dejavusans',
-        'default_font_size' => 12, // تصغير حجم الخط قليلاً
-        'margin_top' => 10,
-        'margin_bottom' => 10,
-        'margin_left' => 10,
-        'margin_right' => 10,
-    ]);
+        // حفظ التوقيع فقط (بدون amount_paid)
+        $signature = Signature::create([
+            'invoice_id' => $invoiceId,
+            'signer_name' => $validated['signer_name'],
+            'signer_role' => $validated['signer_role'],
+            'signature_data' => $validated['signature_data'],
+            'amount_paid' => $validated['amount_paid'],
 
-    $html = view('sales.invoices.shipping_label', compact('invoice'))->render();
+            'signed_at' => now(),
+        ]);
 
-    $mpdf->WriteHTML($html);
-    return response($mpdf->Output('shipping-shipping_label.pdf', 'S'))
-           ->header('Content-Type', 'application/pdf');
-}
+        // إذا كان هناك مبلغ مدفوع، ننشئ سند القبض
+        if (!empty($validated['amount_paid']) && $validated['amount_paid'] > 0) {
+            $invoiceaccount = invoice::find($invoiceId);
+            $account = Account::where('client_id', $invoiceaccount->client_id)->first();
 
-public function storeSignatures(Request $request, $invoiceId)
-{
-    $validated = $request->validate([
-        'signer_name' => 'required|string|max:255',
-        'signer_role' => 'nullable|string|max:255',
-        'signature_data' => 'required|string',
-        'amount_paid' => 'nullable|numeric|min:0',
-    ]);
+            $income = new Receipt();
+            $income->code = $request->input('code');
+            $income->amount = $validated['amount_paid'];
+            $income->description = 'مدفوعات لفاتورة رقم ' . $invoiceId;
+            $income->date = now();
+            $income->incomes_category_id = 1;
+            $income->seller = 1;
+            $income->account_id = $account->id;
+            $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
+            $income->recurring_frequency = $request->input('recurring_frequency');
+            $income->end_date = $request->input('end_date');
+            $income->tax1 = 1;
+            $income->tax2 = 1;
+            $income->created_by = auth()->id();
+            $income->tax1_amount = 0;
+            $income->tax2_amount = 0;
+            $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
 
-    // حفظ التوقيع فقط (بدون amount_paid)
-    $signature = Signature::create([
-        'invoice_id' => $invoiceId,
-        'signer_name' => $validated['signer_name'],
-        'signer_role' => $validated['signer_role'],
-        'signature_data' => $validated['signature_data'],
-        'amount_paid' => $validated['amount_paid'],
+            $MainTreasury = $this->determineTreasury();
+            $income->treasury_id = $MainTreasury->id;
+            $income->save();
 
-        'signed_at' => now(),
-    ]);
+            // باقي العمليات المتعلقة بسند القبض
+            $income_account_name = Account::find($income->account_id);
+            $user = Auth::user();
 
-    // إذا كان هناك مبلغ مدفوع، ننشئ سند القبض
-    if (!empty($validated['amount_paid']) && $validated['amount_paid'] > 0) {
-        $invoiceaccount = invoice::find($invoiceId);
-        $account = Account::where('client_id', $invoiceaccount->client_id)->first();
+            notifications::create([
+                'user_id' => $user->id,
+                'type' => 'Receipt',
+                'title' => $user->name . ' أنشأ سند قبض',
+                'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
+            ]);
 
-        $income = new Receipt();
-        $income->code = $request->input('code');
-        $income->amount = $validated['amount_paid'];
-        $income->description = "مدفوعات لفاتورة رقم " . $invoiceId;
-        $income->date = now();
-        $income->incomes_category_id = 1;
-        $income->seller = 1;
-        $income->account_id = $account->id;
-        $income->is_recurring = $request->has('is_recurring') ? 1 : 0;
-        $income->recurring_frequency = $request->input('recurring_frequency');
-        $income->end_date = $request->input('end_date');
-        $income->tax1 = 1;
-        $income->tax2 = 1;
-        $income->created_by = auth()->id();
-        $income->tax1_amount = 0;
-        $income->tax2_amount = 0;
-        $income->cost_centers_enabled = $request->has('cost_centers_enabled') ? 1 : 0;
+            ModelsLog::create([
+                'type' => 'finance_log',
+                'type_id' => $income->id,
+                'type_log' => 'log',
+                'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
+                'created_by' => auth()->id(),
+            ]);
 
-        $MainTreasury = $this->determineTreasury();
-        $income->treasury_id = $MainTreasury->id;
-        $income->save();
+            $MainTreasury->balance += $income->amount;
+            $MainTreasury->save();
 
-        // باقي العمليات المتعلقة بسند القبض
-        $income_account_name = Account::find($income->account_id);
+            $clientAccount = Account::find($income->account_id);
+            if ($clientAccount) {
+                $clientAccount->balance -= $income->amount;
+                $clientAccount->save();
+            }
+
+            $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
+        }
+
+        // إرجاع بيانات التوقيع فقط
+        return response()->json([
+            'success' => true,
+            'signature' => [
+                'signer_name' => $signature->signer_name,
+                'signer_role' => $signature->signer_role,
+                'signature_data' => $signature->signature_data,
+            ],
+        ]);
+    }
+
+    private function determineTreasury()
+    {
         $user = Auth::user();
+        $treasury = null;
 
-        notifications::create([
-            'user_id' => $user->id,
-            'type' => 'Receipt',
-            'title' => $user->name . ' أنشأ سند قبض',
-            'description' => 'سند قبض رقم ' . $income->code . ' لـ ' . $income_account_name->name . ' بقيمة ' . number_format($income->amount, 2) . ' ر.س',
-        ]);
-
-        ModelsLog::create([
-            'type' => 'finance_log',
-            'type_id' => $income->id,
-            'type_log' => 'log',
-            'description' => sprintf('تم انشاء سند قبض رقم **%s** بقيمة **%d**', $income->code, $income->amount),
-            'created_by' => auth()->id(),
-        ]);
-
-        $MainTreasury->balance += $income->amount;
-        $MainTreasury->save();
-
-        $clientAccount = Account::find($income->account_id);
-        if ($clientAccount) {
-            $clientAccount->balance -= $income->amount;
-            $clientAccount->save();
+        if ($user && $user->employee_id) {
+            $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
+            if ($treasuryEmployee && $treasuryEmployee->treasury_id) {
+                $treasury = Account::find($treasuryEmployee->treasury_id);
+            }
         }
 
-        $this->applyPaymentToInvoices($income, $user, $invoiceId);
-        $this->createJournalEntry($income, $user, $clientAccount, $MainTreasury);
-    }
-
-    // إرجاع بيانات التوقيع فقط
-    return response()->json([
-        'success' => true,
-        'signature' => [
-            'signer_name' => $signature->signer_name,
-            'signer_role' => $signature->signer_role,
-            'signature_data' => $signature->signature_data,
-        ]
-    ]);
-}
-
-private function determineTreasury()
-{
-    $user = Auth::user();
-    $treasury = null;
-
-    if ($user && $user->employee_id) {
-        $treasuryEmployee = TreasuryEmployee::where('employee_id', $user->employee_id)->first();
-        if ($treasuryEmployee && $treasuryEmployee->treasury_id) {
-            $treasury = Account::find($treasuryEmployee->treasury_id);
+        if (!$treasury) {
+            $treasury = Account::where('name', 'الخزينة الرئيسية')->first();
         }
+
+        if (!$treasury) {
+            throw new \Exception('لم يتم العثور على خزينة صالحة');
+        }
+
+        return $treasury;
     }
 
-    if (!$treasury) {
-        $treasury = Account::where('name', 'الخزينة الرئيسية')->first();
-    }
-
-    if (!$treasury) {
-        throw new \Exception('لم يتم العثور على خزينة صالحة');
-    }
-
-    return $treasury;
-}
-
-private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
-{
-    $invoice = Invoice::findOrFail($invoiceId);
-    $paymentAmount = $income->amount;
-
-    // حساب المبلغ المدفوع سابقاً لهذه الفاتورة فقط (باستثناء الملغاة)
-    $previousPaymentsForThisInvoice = PaymentsProcess::where('invoice_id', $invoice->id)
-                                                  ->where('payment_status', '!=', 5)
-                                                  ->sum('amount');
-
-    // المبلغ الإجمالي المدفوع للفاتورة بعد هذه العملية
-    $totalPaidForInvoice = $previousPaymentsForThisInvoice + $paymentAmount;
-
-    // التحقق من عدم تجاوز المبلغ الإجمالي المدفوع قيمة الفاتورة الحالية
-    if ($totalPaidForInvoice > $invoice->grand_total) {
-        $excessAmount = $totalPaidForInvoice - $invoice->grand_total;
-        throw new \Exception("المبلغ يتجاوز إجمالي الفاتورة الحالية بمقدار ".number_format($excessAmount, 2));
-    }
-
-    // تحديد حالة السداد للفاتورة الحالية
-    $isFullPaymentForInvoice = ($totalPaidForInvoice >= $invoice->grand_total);
-
-    // إنشاء سجل الدفع الجديد لهذه الفاتورة
-    PaymentsProcess::create([
-        'invoice_id' => $invoice->id,
-        'amount' => $paymentAmount,
-        'payment_date' => $income->date,
-        'Payment_method' => 'cash',
-        'reference_number' => $income->code,
-        'type' => 'client payments',
-        'payment_status' => $isFullPaymentForInvoice ? 1 : 2,
-        'employee_id' => $user->id,
-        'notes' => 'دفع عبر سند القبض رقم ' . $income->code,
-    ]);
-
-    // تحديث حالة الفاتورة الحالية فقط
-    $invoice->update([
-        'advance_payment' => $totalPaidForInvoice,
-        'is_paid' => $isFullPaymentForInvoice,
-        'payment_status' => $isFullPaymentForInvoice ? 1 : 2,
-        'due_value' => $invoice->grand_total - $totalPaidForInvoice
-    ]);
-
-    // إرسال إشعار خاص بهذه الفاتورة
-    Notification::create([
-        'user_id' => $user->id,
-        'type' => 'invoice_payment',
-        'title' => 'سداد فاتورة #' . $invoice->code,
-        'description' => 'تم سداد مبلغ ' . number_format($paymentAmount, 2) .
-                        ' (إجمالي مدفوعات هذه الفاتورة: ' . number_format($totalPaidForInvoice, 2) .
-                        ' - المتبقي: ' . number_format($invoice->grand_total - $totalPaidForInvoice, 2) . ')',
-        'metadata' => ['invoice_id' => $invoice->id]
-    ]);
-}
     private function createJournalEntry(Receipt $income, $user, $clientAccount, $treasury)
-{
-    $journalEntry = JournalEntry::create([
-        'reference_number' => $income->code,
-        'date' => $income->date,
-        'description' => 'سند قبض رقم ' . $income->code,
-        'status' => 1,
-        'currency' => 'SAR',
-        'client_id' => $clientAccount->client_id ?? null,
-        'created_by_employee' => $user->id,
-    ]);
+    {
+        $journalEntry = JournalEntry::create([
+            'reference_number' => $income->code,
+            'date' => $income->date,
+            'description' => 'سند قبض رقم ' . $income->code,
+            'status' => 1,
+            'currency' => 'SAR',
+            'client_id' => $clientAccount->client_id ?? null,
+            'created_by_employee' => $user->id,
+        ]);
 
-    JournalEntryDetail::create([
-        'journal_entry_id' => $journalEntry->id,
-        'account_id' => $treasury->id,
-        'description' => 'استلام مبلغ من سند قبض',
-        'debit' => $income->amount,
-        'credit' => 0,
-        'is_debit' => true,
-    ]);
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $treasury->id,
+            'description' => 'استلام مبلغ من سند قبض',
+            'debit' => $income->amount,
+            'credit' => 0,
+            'is_debit' => true,
+        ]);
 
-    JournalEntryDetail::create([
-        'journal_entry_id' => $journalEntry->id,
-        'account_id' => $income->account_id,
-        'description' => 'إيرادات من سند قبض',
-        'debit' => 0,
-        'credit' => $income->amount,
-        'is_debit' => false,
-    ]);
+        JournalEntryDetail::create([
+            'journal_entry_id' => $journalEntry->id,
+            'account_id' => $income->account_id,
+            'description' => 'إيرادات من سند قبض',
+            'debit' => 0,
+            'credit' => $income->amount,
+            'is_debit' => false,
+        ]);
+    }
 }
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

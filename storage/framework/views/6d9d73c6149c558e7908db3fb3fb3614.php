@@ -218,33 +218,24 @@
 
     <!-- ملخص المدفوعات -->
     <div class="payment-summary">
-        <div class="payment-summary-title">ملخص المدفوعات</div>
+        <div class="payment-summary-title">ملخص التحصيل</div>
         <div class="payment-summary-grid">
-            <div class="payment-summary-item">
-                <div class="payment-summary-label">إجمالي المدفوعات المستلمة</div>
-                <div class="payment-summary-value">
-                    <?php echo e($payments->sum('amount'), 2, '.', ','); ?> ر.س
-                </div>
-            </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات القبض</div>
                 <div class="payment-summary-value">
-                    <?php echo e($receipts->sum('amount'), 2, '.', ','); ?> ر.س
+                    <?php echo e(number_format($receipts->sum('amount'), 2, '.', ',')); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item">
                 <div class="payment-summary-label">إجمالي سندات الصرف</div>
                 <div class="payment-summary-value">
-                    <?php echo e($expenses->sum('amount'), 2, '.', ','); ?> ر.س
+                    <?php echo e(number_format($expenses->sum('amount'), 2, '.', ',')); ?> ر.س
                 </div>
             </div>
             <div class="payment-summary-item grand-total">
                 <div class="payment-summary-label">صافي التحصيل النقدي</div>
                 <div class="payment-summary-value">
-                    <?php
-                        $totalCollection = $payments->sum('amount') + $receipts->sum('amount') - $expenses->sum('amount');
-                    ?>
-                    <?php echo e($totalCollection, 2, '.', ','); ?> ر.س
+                    <?php echo e(number_format($receipts->sum('amount') - $expenses->sum('amount'), 2, '.', ',')); ?> ر.س
                 </div>
             </div>
         </div>
@@ -309,64 +300,23 @@
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">إجمالي الفواتير العادية</td>
-                        <td class="currency"><?php echo e($totalNormal, 2, '.', ','); ?> ر.س</td>
+                        <td class="currency"><?php echo e(number_format($totalNormal, 2, '.', ',')); ?> ر.س</td>
                         <td colspan="4"></td>
                     </tr>
                     <tr class="total-row" style="background-color: #f8d7da;">
                         <td colspan="2">إجمالي الفواتير المرتجعة</td>
-                        <td class="currency">-<?php echo e($totalReturned, 2, '.', ','); ?> ر.س</td>
+                        <td class="currency">-<?php echo e(number_format($totalReturned, 2, '.', ',')); ?> ر.س</td>
                         <td colspan="4"></td>
                     </tr>
                     <tr class="total-row" style="background-color: #e7f1ff;">
                         <td colspan="2">صافي المبيعات</td>
-                        <td class="currency"><?php echo e($totalNormal - $totalReturned, 2, '.', ','); ?> ر.س</td>
+                        <td class="currency"><?php echo e(number_format($totalNormal - $totalReturned, 2, '.', ',')); ?> ر.س</td>
                         <td colspan="4"></td>
                     </tr>
                 </tbody>
             </table>
         <?php else: ?>
             <div class="no-data">لا يوجد فواتير مسجلة</div>
-        <?php endif; ?>
-    </div>
-
-    <!-- المدفوعات -->
-    <div class="section">
-        <div class="section-title">
-            <span>المدفوعات المستلمة</span>
-            <span class="section-count"><?php echo e($payments->count()); ?></span>
-        </div>
-        <?php if($payments->count() > 0): ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th class="col-10">رقم العملية</th>
-                        <th class="col-25">العميل</th>
-                        <th class="col-15">المبلغ</th>
-                        <th class="col-20">طريقة الدفع</th>
-                        <th class="col-15">التاريخ</th>
-                        <th class="col-15">رقم الفاتورة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <tr>
-                            <td class="nowrap text-center">#<?php echo e($payment->id); ?></td>
-                            <td class="wrap-text"><?php echo e($payment->invoice->client->trade_name ?? 'غير محدد'); ?></td>
-                            <td class="currency"><?php echo e($payment->amount, 2, '.', ','); ?> ر.س</td>
-                            <td class="wrap-text"><?php echo e($payment->payment_method); ?></td>
-                            <td class="nowrap text-center"><?php echo e($payment->payment_date); ?></td>
-                            <td class="nowrap text-center">#<?php echo e($payment->invoice_id); ?></td>
-                        </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    <tr class="total-row">
-                        <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e($payments->sum('amount'), 2, '.', ','); ?> ر.س</td>
-                        <td colspan="3"></td>
-                    </tr>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <div class="no-data">لا يوجد مدفوعات مسجلة</div>
         <?php endif; ?>
     </div>
 
@@ -392,14 +342,14 @@
                         <tr>
                             <td class="nowrap text-center">#<?php echo e($receipt->id); ?></td>
                             <td class="wrap-text"><?php echo e($receipt->account->name ?? 'غير محدد'); ?></td>
-                            <td class="currency"><?php echo e($receipt->amount, 2, '.', ','); ?> ر.س</td>
+                            <td class="currency"><?php echo e(number_format($receipt->amount, 2, '.', ',')); ?> ر.س</td>
                             <td class="nowrap text-center"><?php echo e($receipt->created_at->format('H:i')); ?></td>
                             <td class="wrap-text"><?php echo e($receipt->description ?? '--'); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e($receipts->sum('amount'), 2, '.', ','); ?> ر.س</td>
+                        <td class="currency"><?php echo e(number_format($receipts->sum('amount'), 2, '.', ',')); ?> ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
@@ -431,14 +381,14 @@
                         <tr>
                             <td class="nowrap text-center">#<?php echo e($expense->id); ?></td>
                             <td class="wrap-text"><?php echo e($expense->name); ?></td>
-                            <td class="currency"><?php echo e($expense->amount, 2, '.', ','); ?> ر.س</td>
+                            <td class="currency"><?php echo e(number_format($expense->amount, 2, '.', ',')); ?> ر.س</td>
                             <td class="nowrap text-center"><?php echo e($expense->created_at->format('H:i')); ?></td>
                             <td class="wrap-text"><?php echo e($expense->description ?? '--'); ?></td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     <tr class="total-row">
                         <td colspan="2">المجموع</td>
-                        <td class="currency"><?php echo e($expenses->sum('amount'), 2, '.', ','); ?> ر.س</td>
+                        <td class="currency"><?php echo e(number_format($expenses->sum('amount'), 2, '.', ',')); ?> ر.س</td>
                         <td colspan="2"></td>
                     </tr>
                 </tbody>
