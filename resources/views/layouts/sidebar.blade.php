@@ -1008,13 +1008,13 @@
                                 </li>
                             @endcan
 
-
+                            @can('finance_view_all_receipts')
                                 <li><a href="{{ route('incomes.index') }}"><i
                                             class="feather icon-circle {{ request()->is("$getLocal/finance/incomes/*") ? 'active' : '' }}"></i><span
                                             class="menu-item"
                                             data-i18n="eCommerce">{{ trans('main_trans.Receipts') }}</span></a>
                                 </li>
-
+                            @endcan
 
                             @can('finance_view_own_cashboxes')
                                 <li><a href="{{ route('treasury.index') }}"><i class="feather icon-circle"></i><span
