@@ -19,11 +19,11 @@
             font-weight: bold;
         }
 
-  @media print {
-        #signature-form {
-            display: none !important;
+        @media print {
+            #signature-form {
+                display: none !important;
+            }
         }
-    }
 
 
         @media print {
@@ -266,7 +266,7 @@
                 <div class="receipt-header">
                     <h1 class="receipt-title">فاتورة ضريبية</h1>
 
-                    <p class="mb-0">مؤسسة الطيب الافضل للتجارة</p>
+
 
                     <p class="mb-0">مؤسسة اعمال خاصة </p>
 
@@ -280,7 +280,7 @@
                         {{ $invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name }}
                     </p>
                     <p class="mb-0">{{ $invoice->client->street1 ?? 'غير متوفر' }}</p>
-                    <p class="mb-0">كود العميل: {{ $invoice->client->code ?? 'غير متوفر' }}</p>
+                    <h1 class="mb-0"> {{ $invoice->client->code ?? 'غير متوفر' }}</h1>
                     <p class="mb-0">الرقم الضريبي: {{ $invoice->client->tax_number ?? 'غير متوفر' }}</p>
                     @if ($invoice->client->phone)
                         <p class="mb-0">رقم جوال العميل: {{ $invoice->client->phone }}</p>
@@ -295,12 +295,9 @@
                     </div>
                     <div class="summary-row">
                         <span>تاريخ الفاتورة:</span>
-                        <span>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y H:i') }}</span>
+                        <span>{{ $invoice->invoice_date??'غير متوفر' }}</span>
                     </div>
-                    <div class="summary-row">
-                        <span>تاريخ التسليم:</span>
-                        <span>{{ \Carbon\Carbon::parse($invoice->due_date)->format('d/m/Y') }}</span>
-                    </div>
+
                 </div>
 
                 <!-- Invoice Items -->
@@ -398,12 +395,16 @@
                         @endforeach
                     </div>
 
-                    <p class="thank-you">شكراً لتعاملكم معنا</p>
+
                 </div>
 
 
 
-                 <div class="qr-code">
+                <div class="signature">
+                    <p>الاسم: ________________</p>
+                    <p>التوقيع: _______________</p>
+                    <p class="thank-you">شكراً لتعاملكم معنا</p>
+                </div>
 
                 <div class="qr-code">
 
