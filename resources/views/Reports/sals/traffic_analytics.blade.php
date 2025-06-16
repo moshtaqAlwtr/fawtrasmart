@@ -5,6 +5,26 @@
 @stop
 
 @section('content')
+<style>
+    .period-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.period-selector .btn {
+    min-width: 200px;
+    text-align: center;
+}
+
+.table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+</style>
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
@@ -93,21 +113,22 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                    <button id="prev-period" class="btn btn-outline-primary">
-                        <i class="fas fa-chevron-right"></i> الأسابيع السابقة
-                    </button>
-                    <h4 id="current-period" class="text-center my-2 px-3 py-1 bg-light rounded">
-                        {{ $weeks[0]['month_week'] ?? '' }} - {{ $weeks[7]['month_week'] ?? '' }}
-                    </h4>
-                    <button id="next-period" class="btn btn-outline-primary">
-                        الأسابيع التالية <i class="fas fa-chevron-left"></i>
-                    </button>
-                </div>
-
+               
+  <div class="period-selector mb-4">
+    @foreach($periods as $p)
+        <a href="?period={{ $p['number'] }}" 
+           class="btn btn-sm {{ $p['active'] ? 'btn-primary' : 'btn-outline-primary' }}">
+           الفترة {{ $p['number'] }}: 
+           {{ \Carbon\Carbon::parse($p['start_date'])->format('d/m/Y') }} - 
+           {{ \Carbon\Carbon::parse($p['end_date'])->format('d/m/Y') }}
+        </a>
+    @endforeach
+</div>
                 <div id="weeks-container" data-current-weeks="{{ json_encode($weeks) }}"></div>
 
-
+<div id="loading-spinner" style="display:none;">
+    <i class="fas fa-spinner fa-spin"></i> جاري تحميل البيانات...
+</div>
                 <div class="accordion custom-accordion" id="groups-accordion">
                     @foreach ($groups as $group)
                         @php
@@ -163,26 +184,27 @@
                             <div id="collapse-{{ $group->id }}" class="collapse"
                                 aria-labelledby="heading-{{ $group->id }}" data-parent="#groups-accordion">
                                 <div class="card-body p-0">
+                                    
                                     @if ($clients->count() > 0)
-                                        <div class="table-responsive">
-                                            <table class="table table-hover table-bordered text-center mb-0 client-table">
-                                                <thead class="thead-light">
-                                                    <tr>
-                                                        <th class="align-middle" style="min-width: 220px;">العميل</th>
-                                                        @foreach ($weeks as $week)
-                                                            <th class="week-header align-middle" style="min-width: 80px;">
-                                                                <div class="week-number">الأسبوع
-                                                                    {{ $week['week_number'] }}
-                                                                </div>
-                                                                <div class="week-dates">
-                                                                    {{ \Carbon\Carbon::parse($week['start'])->format('d/m') }}
-                                                                    -
-                                                                    {{ \Carbon\Carbon::parse($week['end'])->format('d/m') }}
-                                                                </div>
-                                                            </th>
-                                                        @endforeach
-                                                        <th class="align-middle">إجمالي النشاط</th>
-                                                    </tr>
+                                        <div class="table-responsive" style="overflow-x: auto; max-width: 100%;">
+                                          
+    <table id="clientsTable" class="table table-hover table-bordered text-center mb-0 client-table" style="white-space: nowrap;">
+        
+                                               <thead class="thead-light">
+        <tr>
+            <th class="align-middle" style="min-width: 220px;">العميل</th>
+            @foreach ($weeks as $week)
+                <th class="week-header align-middle" style="min-width: 80px;">
+                    <div class="week-number">الأسبوع {{ $week['week_number'] }}</div>
+                    <div class="week-dates">
+                        {{ \Carbon\Carbon::parse($week['start'])->format('d/m') }} -
+                        {{ \Carbon\Carbon::parse($week['end'])->format('d/m') }}
+                    </div>
+                </th>
+            @endforeach
+            
+            <th class="align-middle">إجمالي النشاط</th>
+        </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($clients as $client)
@@ -419,7 +441,7 @@ if ($weekReceipts->count()) {
                                                             </td>
                                                         </tr>
                                                     @endforeach
-                                                    <tfoot>
+                                                                        <tfoot>
     <tr>
         <td class="text-center fw-bold align-middle">الإجمالي</td>
 
@@ -484,6 +506,8 @@ if ($weekReceipts->count()) {
                             </div>
                         </div>
                     @endforeach
+
+
                 </div>
             </div>
             <div class="card-footer">
@@ -514,3 +538,25 @@ if ($weekReceipts->count()) {
         <script src="{{ asset('assets/js/noteReport.js') }}"></script>
 
     @endsection
+<script>
+function scrollTable(direction) {
+    const tableWrapper = document.querySelector('.table-responsive');
+    const scrollAmount = 300;
+    if (direction === 'right') {
+        tableWrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    } else {
+        tableWrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    }
+}
+</script>
+<script>
+    // بحث بسيط
+$('#client-search').on('input', function() {
+    var searchTerm = $(this).val().toLowerCase();
+    
+    $('.client-row').each(function() {
+        var clientName = $(this).data('client').toLowerCase();
+        $(this).toggle(clientName.includes(searchTerm));
+    });
+});
+</script>

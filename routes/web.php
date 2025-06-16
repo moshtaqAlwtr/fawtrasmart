@@ -412,6 +412,7 @@ Route::group(
                     ->name('visits.today');
 
 
+    
                 Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
                 Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
                 Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
