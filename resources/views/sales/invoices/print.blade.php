@@ -19,11 +19,11 @@
             font-weight: bold;
         }
 
-  @media print {
-        #signature-form {
-            display: none !important;
+        @media print {
+            #signature-form {
+                display: none !important;
+            }
         }
-    }
 
 
         @media print {
@@ -266,7 +266,7 @@
                 <div class="receipt-header">
                     <h1 class="receipt-title">فاتورة ضريبية</h1>
 
-                    <p class="mb-0">مؤسسة الطيب الافضل للتجارة</p>
+
 
                     <p class="mb-0">مؤسسة اعمال خاصة </p>
 
@@ -295,7 +295,11 @@
                     </div>
                     <div class="summary-row">
                         <span>تاريخ الفاتورة:</span>
+
                         <span>{{ $invoice->invoice_date }}</span>
+
+                        <span>{{ $invoice->invoice_date??'غير متوفر' }}</span>
+
                     </div>
 
                 </div>
@@ -405,7 +409,11 @@
                 </div>
 
 
-                 <div class="qr-code">
+                <div class="signature">
+                    <p>الاسم: ________________</p>
+                    <p>التوقيع: _______________</p>
+                    <p class="thank-you">شكراً لتعاملكم معنا</p>
+                </div>
 
                 <div class="qr-code">
 
