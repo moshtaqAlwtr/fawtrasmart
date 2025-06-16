@@ -599,87 +599,81 @@ class VisitController extends Controller
     }
 
     // تحليلات حركة الزيارات
-public function tracktaff()
-{
-    $groups = Region_groub::with([
-        'neighborhoods.client' => function ($query) {
-            $query->with([
-                'invoices',
-                'payments',
-                'appointmentNotes',
-                'visits',
-                'accounts.receipts',
-                'status_client'
-            ]);
-        },
-    ])->get();
+    public function tracktaff()
+    {
+        $groups = Region_groub::with([
+            'neighborhoods.client' => function ($query) {
+                $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts', 'status_client']);
+            },
+        ])->get();
 
-    // تحديد آخر 4 أسابيع
-    $now = now();
-    $weeks = [];
+        // تحديد آخر 4 أسابيع
+        $now = now();
+        $weeks = [];
 
-    for ($i = 3; $i >= 0; $i--) {
-        $startDate = $now->copy()->subWeeks($i)->startOfWeek();
-        $endDate = $now->copy()->subWeeks($i)->endOfWeek();
+        for ($i = 3; $i >= 0; $i--) {
+            $startDate = $now->copy()->subWeeks($i)->startOfWeek();
+            $endDate = $now->copy()->subWeeks($i)->endOfWeek();
 
-        $weeks[] = [
-            'start' => $startDate->format('Y-m-d'),
-            'end' => $endDate->format('Y-m-d'),
-            'month_year' => $startDate->translatedFormat('F Y'),
-            'week_number' => $startDate->weekOfMonth,
-            'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
-        ];
-    }
+            $weeks[] = [
+                'start' => $startDate->format('Y-m-d'),
+                'end' => $endDate->format('Y-m-d'),
+                'month_year' => $startDate->translatedFormat('F Y'),
+                'week_number' => $startDate->weekOfMonth,
+                'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
+            ];
+        }
 
-    $totalClients = 0;
-    foreach ($groups as $group) {
-        $totalClients += $group->neighborhoods->flatMap(function ($neigh) {
-            return $neigh->client ? [$neigh->client] : [];
-        })->unique('id')->count();
-    }
-
-    return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalClients'));
-}
-public function getWeeksData(Request $request)
-{
-    $offset = $request->input('offset', 0);
-    $limit = $request->input('limit', 8);
-
-    // جلب بيانات الأسابيع
-    $weeks = Week::orderBy('start_date', 'DESC')
-                ->skip($offset)
-                ->take($limit)
-                ->get()
-                ->toArray();
-
-    // جلب بيانات العملاء والأنشطة
-    $clients = Client::with(['activities' => function($query) use ($weeks) {
-                    $query->whereIn('week_id', array_column($weeks, 'id'));
-                }])
-                ->get()
-                ->map(function($client) use ($weeks) {
-                    $activities = [];
-                    foreach ($client->activities as $activity) {
-                        $activities[$activity->week_id] = true;
-                    }
-
-                    return [
-                        'id' => $client->id,
-                        'name' => $client->name,
-                        'area' => $client->area,
-                        'status' => $client->status,
-                        'activities' => $activities,
-                        'total_activities' => count($client->activities)
-                    ];
+        $totalClients = 0;
+        foreach ($groups as $group) {
+            $totalClients += $group->neighborhoods
+                ->flatMap(function ($neigh) {
+                    return $neigh->client ? [$neigh->client] : [];
                 })
-                ->toArray();
+                ->unique('id')
+                ->count();
+        }
 
-    return response()->json([
-        'success' => true,
-        'weeks' => $weeks,
-        'clients' => $clients
-    ]);
-}
+        return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalClients'));
+    }
+    public function getWeeksData(Request $request)
+    {
+        $offset = $request->input('offset', 0);
+        $limit = $request->input('limit', 8);
+
+        // جلب بيانات الأسابيع
+        $weeks = Week::orderBy('start_date', 'DESC')->skip($offset)->take($limit)->get()->toArray();
+
+        // جلب بيانات العملاء والأنشطة
+        $clients = Client::with([
+            'activities' => function ($query) use ($weeks) {
+                $query->whereIn('week_id', array_column($weeks, 'id'));
+            },
+        ])
+            ->get()
+            ->map(function ($client) use ($weeks) {
+                $activities = [];
+                foreach ($client->activities as $activity) {
+                    $activities[$activity->week_id] = true;
+                }
+
+                return [
+                    'id' => $client->id,
+                    'name' => $client->name,
+                    'area' => $client->area,
+                    'status' => $client->status,
+                    'activities' => $activities,
+                    'total_activities' => count($client->activities),
+                ];
+            })
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'weeks' => $weeks,
+            'clients' => $clients,
+        ]);
+    }
     public function getTrafficData(Request $request)
     {
         $weeks = $request->input('weeks');
@@ -806,10 +800,7 @@ public function getWeeksData(Request $request)
 
             $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
                 'chat_id' => $chatId,
-                'caption' => '📊 تقرير الموظف اليومي - ' . $user->name . ' - ' . $date->format('Y-m-d')
-                . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n"
-                . '🔄 المرتجعات: ' . number_format($totalReturnedInvoices, 2) . ' ر.س' .
-                 '💰 صافي  التحصيل : ' . number_format($netCollection, 2) . " ر.س\n",
+                'caption' => '📊 تقرير الموظف اليومي - ' . $user->name . ' - ' . $date->format('Y-m-d') . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n" . '🔄 المرتجعات: ' . number_format($totalReturnedInvoices, 2) . ' ر.س' . '💰 صافي  التحصيل : ' . number_format($netCollection, 2) . " ر.س\n",
             ]);
 
             if (file_exists($pdfPath)) {

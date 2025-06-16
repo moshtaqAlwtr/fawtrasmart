@@ -1418,19 +1418,44 @@ private function calculateDistance($lat1, $lon1, $lat2, $lon2)
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
     public function updateStatusClient(Request $request)
-    {
-        $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'status_id' => 'required|exists:statuses,id',
-        ]);
+{
+    $request->validate([
+        'client_id' => 'required|exists:clients,id',
+        'status_id' => 'required|exists:statuses,id',
+    ]);
 
-        // البحث عن العميل وتحديث حالته مباشرة
-        $client = Client::findOrFail($request->client_id);
-        $client->status_id = $request->status_id;
-        $client->save();
+    $client = Client::findOrFail($request->client_id);
+    $client->status_id = $request->status_id;
+    $client->save();
 
-        return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
+    // الحصول على حالة "موقوف"
+    $suspendedStatus = Statuses::where('name', 'موقوف')->first();
+
+    if ($suspendedStatus && $request->status_id == $suspendedStatus->id) {
+        // البحث عن مجموعة "عملاء موقوفون"
+        $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
+
+        if ($suspendedGroup) {
+            // البحث عن سجل الحي المرتبط بالعميل
+            $neighborhood = Neighborhood::where('client_id', $client->id)->first();
+
+            if ($neighborhood) {
+                // تحديث المنطقة للحي
+                $neighborhood->region_id = $suspendedGroup->id;
+                $neighborhood->save();
+            } else {
+                // أو إنشاء سجل جديد إذا لم يوجد
+                Neighborhood::create([
+                    'client_id' => $client->id,
+                    'region_id' => $suspendedGroup->id,
+                    // أي حقول إضافية مطلوبة
+                ]);
+            }
+        }
     }
+
+    return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
+}
 
     public function statement($id)
     {
