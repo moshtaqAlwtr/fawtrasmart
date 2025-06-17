@@ -65,7 +65,7 @@ Route::group(
             Route::get('/client-target-create', [EmployeeTargetController::class, 'client_target_create'])->name('target.client.create');
             Route::post('/client-target-create', [EmployeeTargetController::class, 'client_target_store'])->name('target.client.update');
             Route::put('/Client/store', [ClientSettingController::class, 'Client_store'])->name('clients.Client_store');
-
+            Route::get('/daily_closing_entry', [EmployeeTargetController::class, 'daily_closing_entry'])->name('daily_closing_entry');
             //احصائيات الفروع
 
             Route::get('/statistics_branch', [StatisticsController::class, 'StatisticsGroup'])->name('statistics.group');
