@@ -66,13 +66,21 @@ class InvoicesController extends Controller
     }
 
     public function getUnreadNotifications()
-    {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
+{
+    $user = auth()->user();
 
-        return response()->json(['notifications' => $notifications]);
+    $query = notifications::where('read', 0);
+
+    // If user is an employee, only show their own notifications
+    if ($user->role === 'employee') {
+        $query->where('user_id', $user->id);
     }
+
+    $notifications = $query->orderBy('created_at', 'desc')
+        ->get(['id', 'title', 'description', 'created_at', 'user_id']);
+
+    return response()->json(['notifications' => $notifications]);
+}
 
     /**
      * Display a listing of invoices.
@@ -422,18 +430,27 @@ public function notifications(Request $request)
         ->where('read', 0)
         ->orderBy('created_at', 'desc');
 
-    // إضافة فلتر البحث حسب الموظف إذا تم توفيره
-    if ($request->has('user_id') && $request->user_id != '') {
+    $currentUser = auth()->user();
+
+    // ✅ إذا كان المستخدم موظف، نعرض فقط إشعاراته
+    if ($currentUser->role === 'employee') {
+        $query->where('user_id', $currentUser->id);
+    } elseif ($request->has('user_id') && $request->user_id != '') {
+        // ✅ إذا كان مدير أو غيره، ويمكنه البحث حسب الموظف
         $query->where('user_id', $request->user_id);
     }
 
-    // استبدال get() بـ paginate() لإضافة التقسيم للصفحات
     $notifications = $query->paginate(100, ['id', 'user_id', 'title', 'description', 'created_at']);
 
-    $users = User::where('role', 'employee')->get(); // جلب جميع الموظفين للبحث
+    // ✅ فقط المديرين يشوفون قائمة الموظفين للبحث
+    $users = [];
+    if ($currentUser->role !== 'employee') {
+        $users = User::where('role', 'employee')->get();
+    }
 
     return view('notifications.index', compact('notifications', 'users'));
 }
+
     public function markAsReadid($id)
     {
         $notifications = notifications::find($id);

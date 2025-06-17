@@ -89,8 +89,8 @@
                             <ul class="search-list search-list-main"></ul>
                         </div>
                     </li>
-                   
-                   @if ( auth()->user()->hasPermissionTo('branches'))
+
+                    @if (auth()->user()->hasPermissionTo('branches'))
                         <li class="dropdown dropdown-notification nav-item">
                             <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                                 <i class="ficon feather icon-calendar"></i>
@@ -166,238 +166,168 @@
 
 
 
-
                 @php
                     $userRole = Auth::user()->role;
                 @endphp
 
-                @if ( auth()->user()->hasPermissionTo('branches'))
-                    <li class="dropdown dropdown-notification nav-item">
-                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
-                            <i class="ficon feather icon-bell"></i>
-                            <span class="badge badge-pill badge-primary badge-up" id="notification-count">0</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
-                            <li class="dropdown-menu-header">
-                                <div class="dropdown-header m-0 p-2">
-                                    <h3 class="white" id="notification-title">إشعارات جديدة</h3>
-                                    <span class="notification-title">التنبيهات</span>
-                                </div>
-                            </li>
-                            <li class="scrollable-container media-list" id="notification-list">
-                                <p class="text-center p-2">لا يوجد إشعارات جديدة</p>
-                            </li>
-                            <li class="dropdown-menu-footer">
-                                <a class="dropdown-item p-1 text-center"
-                                    href="{{ route('notifications.index') }}">عرض كل الإشعارات</a>
-                            </li>
-                        </ul>
-                    </li>
+                <li class="dropdown dropdown-notification nav-item">
+                    <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                        <i class="ficon feather icon-bell"></i>
+                        <span class="badge badge-pill badge-primary badge-up" id="notification-count">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
+                        <li class="dropdown-menu-header">
+                            <div class="dropdown-header m-0 p-2">
+                                <h3 class="white" id="notification-title">إشعارات جديدة</h3>
+                                <span class="notification-title">التنبيهات</span>
+                            </div>
+                        </li>
+                        <li class="scrollable-container media-list" id="notification-list">
+                            <p class="text-center p-2">جاري تحميل الإشعارات...</p>
+                        </li>
+                        <li class="dropdown-menu-footer">
+                            <a class="dropdown-item p-1 text-center" href="{{ route('notifications.index') }}">عرض كل
+                                الإشعارات</a>
+                        </li>
+                    </ul>
+                </li>
 
-                    <script>
-                        $(document).ready(function() {
-                            function formatNotificationTime(dateTime) {
-                                const now = new Date();
-                                const notificationDate = new Date(dateTime);
-                                const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+                <script>
+                    $(document).ready(function() {
+                        // دالة لتنسيق الوقت
+                        function formatNotificationTime(dateTime) {
+                            const now = new Date();
+                            const notificationDate = new Date(dateTime);
+                            const diffInSeconds = Math.floor((now - notificationDate) / 1000);
 
-                                if (diffInSeconds < 60) {
-                                    return 'منذ لحظات';
-                                } else if (diffInSeconds < 3600) {
-                                    const minutes = Math.floor(diffInSeconds / 60);
-                                    return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
-                                } else if (diffInSeconds < 86400) {
-                                    const hours = Math.floor(diffInSeconds / 3600);
-                                    return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
-                                } else if (diffInSeconds < 604800) {
-                                    const days = Math.floor(diffInSeconds / 86400);
-                                    return `منذ ${days} يوم${days > 1 ? '' : ''}`;
-                                } else {
-                                    return notificationDate.toLocaleDateString('ar-SA', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
+                            if (diffInSeconds < 60) {
+                                return 'منذ لحظات';
+                            } else if (diffInSeconds < 3600) {
+                                const minutes = Math.floor(diffInSeconds / 60);
+                                return `منذ ${minutes} دقيقة`;
+                            } else if (diffInSeconds < 86400) {
+                                const hours = Math.floor(diffInSeconds / 3600);
+                                return `منذ ${hours} ساعة`;
+                            } else {
+                                const days = Math.floor(diffInSeconds / 86400);
+                                return `منذ ${days} يوم`;
+                            }
+                        }
+
+                        // دالة جلب الإشعارات
+                        function fetchNotifications() {
+                            $.ajax({
+                                url: "{{ route('notifications.unread') }}",
+                                method: "GET",
+                                success: function(response) {
+                                    let notifications = response.notifications;
+                                    let currentTime = new Date();
+                                    let validNotifications = [];
+
+                                    // تصفية الإشعارات لآخر 24 ساعة فقط
+                                    notifications.forEach(notification => {
+                                        let notificationTime = new Date(notification.created_at);
+                                        let diffInHours = (currentTime - notificationTime) / (1000 * 60 *
+                                            60);
+
+                                        if (diffInHours <= 24) {
+                                            validNotifications.push(notification);
+                                        }
                                     });
+
+                                    let count = validNotifications.length;
+                                    updateNotificationUI(validNotifications, count);
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error("Error fetching notifications:", error);
+                                    $('#notification-list').html(
+                                        '<p class="text-center p-2">حدث خطأ في تحميل الإشعارات</p>');
                                 }
-                            }
-
-                            function fetchNotifications() {
-                                $.ajax({
-                                    url: "{{ route('notifications.unread') }}",
-                                    method: "GET",
-                                    success: function(response) {
-                                        let notifications = response.notifications;
-                                        let count = notifications.length;
-                                        $('#notification-count').text(count);
-                                        $('#notification-title').text(count + " إشعارات جديدة");
-
-                                        let notificationList = $('#notification-list');
-                                        notificationList.empty();
-
-                                        if (count > 0) {
-                                            notifications.forEach(notification => {
-                                                let timeAgo = formatNotificationTime(notification.created_at);
-                                                let listItem = `
-                                <a class="d-flex justify-content-between notification-item"
-                                    href="javascript:void(0)"
-                                    data-id="${notification.id}">
-                                    <div class="media d-flex align-items-start">
-                                        <div class="media-left">
-                                            <i class="feather icon-bell font-medium-5 primary"></i>
-                                        </div>
-                                        <div class="media-body">
-                                            <h6 class="primary media-heading">${notification.title}</h6>
-                                            <p class="notification-text mb-0">${notification.description}</p>
-                                            <small class="text-muted">
-                                                <i class="far fa-clock"></i> ${timeAgo}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </a>
-                                <hr class="my-1">
-                            `;
-                                                notificationList.append(listItem);
-                                            });
-                                        } else {
-                                            notificationList.append(
-                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
-                                        }
-                                    }
-                                });
-                            }
-
-                            fetchNotifications();
-
-                            // تحديث الإشعارات كل دقيقة
-                            setInterval(fetchNotifications, 60000);
-
-                            $(document).on('click', '.notification-item', function() {
-                                let notificationId = $(this).data('id');
-
-                                $.ajax({
-                                    url: "{{ route('notifications.markAsRead') }}",
-                                    method: "POST",
-                                    data: {
-                                        _token: "{{ csrf_token() }}",
-                                        id: notificationId
-                                    },
-                                    success: function() {
-                                        fetchNotifications();
-                                    }
-                                });
                             });
-                        });
-                    </script>
+                        }
 
-                    <script>
-                        $(document).ready(function() {
-                            function formatNotificationTime(dateTime) {
-                                const now = new Date();
-                                const notificationDate = new Date(dateTime);
-                                const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+                        // دالة تحديث واجهة المستخدم
+                        function updateNotificationUI(notifications, count) {
+                            let notificationList = $('#notification-list');
 
-                                // إذا مر أكثر من 24 ساعة (86400 ثانية) لا تعرض الإشعار
-                                if (diffInSeconds > 86400) {
-                                    return null;
-                                }
+                            // تحديث العداد
+                            $('#notification-count').text(count);
 
-                                if (diffInSeconds < 60) {
-                                    return 'منذ لحظات';
-                                } else if (diffInSeconds < 3600) {
-                                    const minutes = Math.floor(diffInSeconds / 60);
-                                    return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
-                                } else if (diffInSeconds < 86400) {
-                                    const hours = Math.floor(diffInSeconds / 3600);
-                                    return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
-                                }
-                            }
+                            if (count > 0) {
+                                $('#notification-title').text(count + " إشعارات جديدة");
+                                let notificationHtml = '';
 
-                            function fetchNotifications() {
-                                $.ajax({
-                                    url: "{{ route('notifications.unread') }}",
-                                    method: "GET",
-                                    success: function(response) {
-                                        let notifications = response.notifications;
-                                        let validNotifications = [];
-                                        let currentTime = new Date();
-
-                                        // تصفية الإشعارات لليوم الحالي فقط
-                                        notifications.forEach(notification => {
-                                            let notificationTime = new Date(notification.created_at);
-                                            let diffInHours = (currentTime - notificationTime) / (1000 * 60 *
-                                                60);
-
-                                            if (diffInHours <= 24) {
-                                                validNotifications.push(notification);
-                                            }
-                                        });
-
-                                        let count = validNotifications.length;
-                                        $('#notification-count').text(count);
-                                        $('#notification-title').text(count + " إشعارات جديدة");
-
-                                        let notificationList = $('#notification-list');
-                                        notificationList.empty();
-
-                                        if (count > 0) {
-                                            validNotifications.forEach(notification => {
-                                                let timeAgo = formatNotificationTime(notification.created_at);
-                                                if (timeAgo !== null) { // فقط إذا كان الوقت ضمن 24 ساعة
-                                                    let listItem = `
-                                                <a class="d-flex justify-content-between notification-item"
-                                                    href="javascript:void(0)"
-                                                    data-id="${notification.id}">
-                                                    <div class="media d-flex align-items-start">
-                                                        <div class="media-left">
-                                                            <i class="feather icon-bell font-medium-5 primary"></i>
-                                                        </div>
-                                                        <div class="media-body">
-                                                            <h6 class="primary media-heading">${notification.title}</h6>
-                                                            <p class="notification-text mb-0">${notification.description}</p>
-                                                            <small class="text-muted">
-                                                                <i class="far fa-clock"></i> ${timeAgo}
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                                <hr class="my-1">
-                                            `;
-                                                    notificationList.append(listItem);
-                                                }
-                                            });
-                                        } else {
-                                            notificationList.append(
-                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
-                                        }
-                                    }
+                                notifications.forEach(notification => {
+                                    let timeAgo = formatNotificationTime(notification.created_at);
+                                    notificationHtml += `
+                    <a class="d-flex justify-content-between notification-item"
+                        href="javascript:void(0)"
+                        data-id="${notification.id}">
+                        <div class="media d-flex align-items-start">
+                            <div class="media-left">
+                                <i class="feather icon-bell font-medium-5 primary"></i>
+                            </div>
+                            <div class="media-body">
+                                <h6 class="primary media-heading">${notification.title}</h6>
+                                <p class="notification-text mb-0">${notification.description}</p>
+                                <small class="text-muted">
+                                    <i class="far fa-clock"></i> ${timeAgo}
+                                </small>
+                            </div>
+                        </div>
+                    </a>
+                    <hr class="my-1">
+                `;
                                 });
+
+                                notificationList.html(notificationHtml);
+                            } else {
+                                $('#notification-title').text("لا توجد إشعارات جديدة");
+                                notificationList.html('<p class="text-center p-2">لا توجد إشعارات جديدة</p>');
                             }
+                        }
 
-                            fetchNotifications();
-
-                            // تحديث الإشعارات كل دقيقة
-                            setInterval(fetchNotifications, 60000);
-
-                            $(document).on('click', '.notification-item', function() {
-                                let notificationId = $(this).data('id');
-
-                                $.ajax({
-                                    url: "{{ route('notifications.markAsRead') }}",
-                                    method: "POST",
-                                    data: {
-                                        _token: "{{ csrf_token() }}",
-                                        id: notificationId
-                                    },
-                                    success: function() {
-                                        fetchNotifications();
-                                    }
-                                });
+                        // تحديث حالة الإشعار كمقروء
+                        function markAsRead(notificationId) {
+                            $.ajax({
+                                url: "{{ route('notifications.markAsRead') }}",
+                                method: "POST",
+                                data: {
+                                    _token: "{{ csrf_token() }}",
+                                    id: notificationId
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error("Error marking notification as read:", error);
+                                }
                             });
+                        }
+
+                        // تحميل الإشعارات أول مرة
+                        fetchNotifications();
+
+                        // تحديث الإشعارات كل دقيقة
+                        setInterval(fetchNotifications, 60000);
+
+                        // التعامل مع النقر على الإشعار
+                        $(document).on('click', '.notification-item', function() {
+                            let notificationId = $(this).data('id');
+                            markAsRead(notificationId);
+                            // إزالة الإشعار من القائمة
+                            $(this).next('hr').remove();
+                            $(this).remove();
+
+                            // تحديث العداد
+                            let count = parseInt($('#notification-count').text()) - 1;
+                            if (count <= 0) {
+                                count = 0;
+                                $('#notification-list').html('<p class="text-center p-2">لا توجد إشعارات جديدة</p>');
+                            }
+                            $('#notification-count').text(count);
+                            $('#notification-title').text(count + " إشعارات جديدة");
                         });
-                    </script>
-                @endif
+                    });
+                </script>
+
                 <li class="dropdown dropdown-user nav-item">
                     <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
                         aria-expanded="false">
