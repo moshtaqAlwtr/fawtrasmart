@@ -599,156 +599,81 @@ class VisitController extends Controller
     }
 
     // تحليلات حركة الزيارات
-public function tracktaff(Request $request)
-{
-    $period = $request->get('period', 1);
-    $allWeeks = $this->generateYearWeeks();
-    $weeksChunks = array_chunk($allWeeks, 13);
-    $currentChunk = $weeksChunks[$period - 1] ?? $weeksChunks[0];
-    
-    // تعريف المتغيرات هنا
-    $startDate = $currentChunk[0]['start'];
-    $endDate = end($currentChunk)['end'];
+    public function tracktaff()
+    {
+        $groups = Region_groub::with([
+            'neighborhoods.client' => function ($query) {
+                $query->with(['invoices', 'payments', 'appointmentNotes', 'visits', 'accounts.receipts', 'status_client']);
+            },
+        ])->get();
 
-    $groups = Region_groub::with([
-        'neighborhoods.client' => function ($query) use ($startDate, $endDate) { // تم التعديل هنا
-            $query->with([
-                'invoices' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
-                    $q->whereBetween('invoices.created_at', [$startDate, $endDate]);
-                },
-                'appointmentNotes' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
-                    $q->whereBetween('client_relations.created_at', [$startDate, $endDate]);
-                },
-                'visits' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
-                    $q->whereBetween('visits.created_at', [$startDate, $endDate]);
-                },
-                'accounts.receipts' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
-                    $q->whereBetween('receipts.created_at', [$startDate, $endDate]);
-                },
-                'payments' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
-                    $q->whereBetween('payments_process.created_at', [$startDate, $endDate]);
-                },
-                'status_client'
-            ]);
-        },
-    ])->get();
+        // تحديد آخر 4 أسابيع
+        $now = now();
+        $weeks = [];
 
-    // إعداد روابط الفترات
-    $periods = [];
-    foreach ($weeksChunks as $index => $chunk) {
-        $periods[] = [
-            'number' => $index + 1,
-            'start_date' => $chunk[0]['start'],
-            'end_date' => end($chunk)['end'],
-            'active' => ($index + 1) == $period
-        ];
-    }
+        for ($i = 3; $i >= 0; $i--) {
+            $startDate = $now->copy()->subWeeks($i)->startOfWeek();
+            $endDate = $now->copy()->subWeeks($i)->endOfWeek();
 
-    $totalClients = $groups->sum(function($group) {
-        return $group->neighborhoods->flatMap(function ($neigh) {
-            return $neigh->client ? [$neigh->client] : [];
-        })->unique('id')->count();
-    });
+            $weeks[] = [
+                'start' => $startDate->format('Y-m-d'),
+                'end' => $endDate->format('Y-m-d'),
+                'month_year' => $startDate->translatedFormat('F Y'),
+                'week_number' => $startDate->weekOfMonth,
+                'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
+            ];
+        }
 
-    return view('reports.sals.traffic_analytics', [
-        'groups' => $groups,
-        'weeks' => $currentChunk,
-        'totalClients' => $totalClients,
-        'periods' => $periods,
-        'currentPeriod' => $period
-    ]);
-}
-
-private function generateYearWeeks()
-{
-    $weeks = [];
-    $startOfYear = now()->startOfYear();
-    $endOfYear = now()->endOfYear();
-    $current = $startOfYear->copy()->startOfWeek();
-
-    while ($current->lessThanOrEqualTo($endOfYear)) {
-        $startDate = $current->copy();
-        $endDate = $current->copy()->endOfWeek();
-
-        $weeks[] = [
-            'start' => $startDate->format('Y-m-d'),
-            'end' => $endDate->format('Y-m-d'),
-            'month_year' => $startDate->translatedFormat('F Y'),
-            'week_number' => $startDate->weekOfYear,
-            'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
-        ];
-
-        $current->addWeek();
-    }
-
-    return $weeks;
-}
-
-// private function generateYearWeeks()
-// {
-//     $weeks = [];
-//     $startOfYear = now()->startOfYear();
-//     $endOfYear = now()->endOfYear();
-//     $current = $startOfYear->copy()->startOfWeek();
-
-//     while ($current->lessThanOrEqualTo($endOfYear)) {
-//         $startDate = $current->copy();
-//         $endDate = $current->copy()->endOfWeek();
-
-//         $weeks[] = [
-//             'start' => $startDate->format('Y-m-d'),
-//             'end' => $endDate->format('Y-m-d'),
-//             'month_year' => $startDate->translatedFormat('F Y'),
-//             'week_number' => $startDate->weekOfYear,
-//             'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
-//         ];
-
-//         $current->addWeek();
-//     }
-
-//     return $weeks;
-// }
-
-public function getWeeksData(Request $request)
-{
-    $offset = $request->input('offset', 0);
-    $limit = $request->input('limit', 8);
-
-    // جلب بيانات الأسابيع
-    $weeks = Week::orderBy('start_date', 'DESC')
-                ->skip($offset)
-                ->take($limit)
-                ->get()
-                ->toArray();
-
-    // جلب بيانات العملاء والأنشطة
-    $clients = Client::with(['activities' => function($query) use ($weeks) {
-                    $query->whereIn('week_id', array_column($weeks, 'id'));
-                }])
-                ->get()
-                ->map(function($client) use ($weeks) {
-                    $activities = [];
-                    foreach ($client->activities as $activity) {
-                        $activities[$activity->week_id] = true;
-                    }
-
-                    return [
-                        'id' => $client->id,
-                        'name' => $client->name,
-                        'area' => $client->area,
-                        'status' => $client->status,
-                        'activities' => $activities,
-                        'total_activities' => count($client->activities)
-                    ];
+        $totalClients = 0;
+        foreach ($groups as $group) {
+            $totalClients += $group->neighborhoods
+                ->flatMap(function ($neigh) {
+                    return $neigh->client ? [$neigh->client] : [];
                 })
-                ->toArray();
+                ->unique('id')
+                ->count();
+        }
 
-    return response()->json([
-        'success' => true,
-        'weeks' => $weeks,
-        'clients' => $clients
-    ]);
-}
+        return view('reports.sals.traffic_analytics', compact('groups', 'weeks', 'totalClients'));
+    }
+    public function getWeeksData(Request $request)
+    {
+        $offset = $request->input('offset', 0);
+        $limit = $request->input('limit', 8);
+
+        // جلب بيانات الأسابيع
+        $weeks = Week::orderBy('start_date', 'DESC')->skip($offset)->take($limit)->get()->toArray();
+
+        // جلب بيانات العملاء والأنشطة
+        $clients = Client::with([
+            'activities' => function ($query) use ($weeks) {
+                $query->whereIn('week_id', array_column($weeks, 'id'));
+            },
+        ])
+            ->get()
+            ->map(function ($client) use ($weeks) {
+                $activities = [];
+                foreach ($client->activities as $activity) {
+                    $activities[$activity->week_id] = true;
+                }
+
+                return [
+                    'id' => $client->id,
+                    'name' => $client->name,
+                    'area' => $client->area,
+                    'status' => $client->status,
+                    'activities' => $activities,
+                    'total_activities' => count($client->activities),
+                ];
+            })
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'weeks' => $weeks,
+            'clients' => $clients,
+        ]);
+    }
     public function getTrafficData(Request $request)
     {
         $weeks = $request->input('weeks');
@@ -790,114 +715,109 @@ public function getWeeksData(Request $request)
     }
 
     public function sendDailyReport()
-{
-    $date = Carbon::today();
-    $users = User::where('role', 'employee')->get();
+    {
+        $date = Carbon::today();
 
-    foreach ($users as $user) {
-        $invoices = Invoice::with('client')->where('created_by', $user->id)->whereDate('created_at', $date)->get();
+        // جلب فقط الموظفين الذين لديهم دور employee
+        $users = User::where('role', 'employee')->get();
 
-        $normalInvoiceIds = $invoices
-            ->where('type', '!=', 'returned')
-            ->reject(function ($invoice) use ($invoices) {
-                return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
-            })
-            ->pluck('id')
-            ->toArray();
+        foreach ($users as $user) {
+            // الفواتير التي أنشأها الموظف اليوم (العادية والمرتجعة)
+            $invoices = Invoice::with('client')->where('created_by', $user->id)->whereDate('created_at', $date)->get();
 
-        $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)->whereDate('payment_date', $date)->get();
-        $visits = Visit::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
-        $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
-        $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
-        $notes = ClientRelation::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
+            // جلب أرقام الفواتير العادية فقط (غير المرتجعة) والتي ليس لها فواتير مرتجعة
+            $normalInvoiceIds = $invoices
+                ->where('type', '!=', 'returned')
+                ->reject(function ($invoice) use ($invoices) {
+                    // استبعاد الفواتير التي لها فواتير مرتجعة
+                    return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+                })
+                ->pluck('id')
+                ->toArray();
 
-        // حساب المجاميع
-        $totalNormalInvoices = $invoices
-            ->where('type', '!=', 'returned')
-            ->reject(function ($invoice) use ($invoices) {
-                return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
-            })
-            ->sum('grand_total');
+            // المدفوعات المرتبطة بالفواتير العادية فقط والتي ليس لها فواتير مرتجعة
+            $payments = PaymentsProcess::whereIn('invoice_id', $normalInvoiceIds)->whereDate('payment_date', $date)->get();
 
-        $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
-        $netSales = $totalNormalInvoices - $totalReturnedInvoices;
-        $totalPayments = $payments->sum('amount');
-        $totalReceipts = $receipts->sum('amount');
-        $totalExpenses = $expenses->sum('amount');
-        $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
+            // باقي الكود كما هو...
+            $visits = Visit::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
 
-        // التحقق من وجود أي أنشطة للموظف
-        $hasActivities = $invoices->isNotEmpty() ||
-                        $visits->isNotEmpty() ||
-                        $payments->isNotEmpty() ||
-                        $receipts->isNotEmpty() ||
-                        $expenses->isNotEmpty() ||
-                        $notes->isNotEmpty();
+            $receipts = Receipt::where('created_by', $user->id)->whereDate('created_at', $date)->get();
 
-        if (!$hasActivities) {
-            Log::info('لا يوجد أنشطة مسجلة للموظف: ' . $user->name . ' في تاريخ: ' . $date->format('Y-m-d') . ' - تم تخطي إنشاء التقرير');
-            continue; // تخطي هذا الموظف والمتابعة مع الموظف التالي
-        }
+            $expenses = Expense::where('created_by', $user->id)->whereDate('created_at', $date)->get();
 
-        // إنشاء التقرير فقط إذا كان هناك أنشطة
-        $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator(config('app.name'));
-        $pdf->SetAuthor($user->name);
-        $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
-        $pdf->SetSubject('التقرير اليومي');
-        $pdf->AddPage();
+            $notes = ClientRelation::with('client')->where('employee_id', $user->id)->whereDate('created_at', $date)->get();
 
-        $html = view('reports.daily_employee_single', [
-            'user' => $user,
-            'invoices' => $invoices,
-            'visits' => $visits,
-            'payments' => $payments,
-            'receipts' => $receipts,
-            'expenses' => $expenses,
-            'notes' => $notes,
-            'total_normal_invoices' => $totalNormalInvoices,
-            'total_returned_invoices' => $totalReturnedInvoices,
-            'net_sales' => $netSales,
-            'total_payments' => $totalPayments,
-            'total_receipts' => $totalReceipts,
-            'total_expenses' => $totalExpenses,
-            'net_collection' => $netCollection,
-            'date' => $date->format('Y-m-d'),
-        ])->render();
+            // حساب المجاميع
+            $totalNormalInvoices = $invoices
+                ->where('type', '!=', 'returned')
+                ->reject(function ($invoice) use ($invoices) {
+                    return $invoices->where('type', 'returned')->where('reference_number', $invoice->id)->isNotEmpty();
+                })
+                ->sum('grand_total');
 
-        $pdf->writeHTML($html, true, false, true, false, 'R');
+            $totalReturnedInvoices = $invoices->where('type', 'returned')->sum('grand_total');
+            $netSales = $totalNormalInvoices - $totalReturnedInvoices;
+            $totalPayments = $payments->sum('amount');
+            $totalReceipts = $receipts->sum('amount');
+            $totalExpenses = $expenses->sum('amount');
+            $netCollection = $totalPayments + $totalReceipts - $totalExpenses;
 
-        $pdfPath = storage_path('app/public/daily_report_' . $user->id . '_' . $date->format('Y-m-d') . '.pdf');
-        $pdf->Output($pdfPath, 'F');
+            // باقي الكود كما هو...
+            $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+            $pdf->SetCreator(config('app.name'));
+            $pdf->SetAuthor($user->name);
+            $pdf->SetTitle('التقرير اليومي للموظف - ' . $user->name . ' - ' . $date->format('Y-m-d'));
+            $pdf->SetSubject('التقرير اليومي');
+            $pdf->AddPage();
 
-        $caption = "📊 التقرير اليومي للموظف\n" . '👤 اسم الموظف: ' . $user->name . "\n" . '📅 التاريخ: ' . $date->format('Y-m-d') . "\n" . '🛒 إجمالي الفواتير: ' . number_format($netSales, 2) . " ر.س\n" . '💵 صافي التحصيل: ' . number_format($netCollection, 2) . " ر.س\n" . '🔄 الفواتير المرتجعة: ' . number_format($totalReturnedInvoices, 2) . ' ر.س';
+            $html = view('reports.daily_employee_single', [
+                'user' => $user,
+                'invoices' => $invoices,
+                'visits' => $visits,
+                'payments' => $payments,
+                'receipts' => $receipts,
+                'expenses' => $expenses,
+                'notes' => $notes,
+                'total_normal_invoices' => $totalNormalInvoices,
+                'total_returned_invoices' => $totalReturnedInvoices,
+                'net_sales' => $netSales,
+                'total_payments' => $totalPayments,
+                'total_receipts' => $totalReceipts,
+                'total_expenses' => $totalExpenses,
+                'net_collection' => $netCollection,
+                'date' => $date->format('Y-m-d'),
+            ])->render();
 
-        $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
-        $chatId = '@Salesfatrasmart';
+            $pdf->writeHTML($html, true, false, true, false, 'R');
 
-        $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
-            'chat_id' => $chatId,
-            'caption' => '📊 تقرير الموظف اليومي - ' . $user->name . ' - ' . $date->format('Y-m-d')
-            . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n"
-            . '🔄 المرتجعات: ' . number_format($totalReturnedInvoices, 2) . ' ر.س' .
-             '💰 صافي التحصيل: ' . number_format($netCollection, 2) . " ر.س\n",
-        ]);
+            $pdfPath = storage_path('app/public/daily_report_' . $user->id . '_' . $date->format('Y-m-d') . '.pdf');
+            $pdf->Output($pdfPath, 'F');
 
-        if (file_exists($pdfPath)) {
-            unlink($pdfPath);
-        }
+            $caption = "📊 التقرير اليومي للموظف\n" . '👤 اسم الموظف: ' . $user->name . "\n" . '📅 التاريخ: ' . $date->format('Y-m-d') . "\n" . '🛒 إجمالي الفواتير: ' . number_format($netSales, 2) . " ر.س\n" . '💵 صافي التحصيل: ' . number_format($netCollection, 2) . " ر.س\n" . '🔄 الفواتير المرتجعة: ' . number_format($totalReturnedInvoices, 2) . ' ر.س';
 
-        if ($response->successful()) {
-            Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
-        } else {
-            Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
-                'error' => $response->body(),
+            $botToken = '7642508596:AAHQ8sST762ErqUpX3Ni0f1WTeGZxiQWyXU';
+            $chatId = '@Salesfatrasmart';
+
+            $response = Http::attach('document', file_get_contents($pdfPath), 'daily_report_' . $user->name . '.pdf')->post("https://api.telegram.org/bot{$botToken}/sendDocument", [
+                'chat_id' => $chatId,
+                'caption' => '📊 تقرير الموظف اليومي - ' . $user->name . ' - ' . $date->format('Y-m-d') . '💰 صافي المبيعات: ' . number_format($netSales, 2) . " ر.س\n" . '🔄 المرتجعات: ' . number_format($totalReturnedInvoices, 2) . ' ر.س' . '💰 صافي  التحصيل : ' . number_format($netCollection, 2) . " ر.س\n",
             ]);
-        }
-    }
 
-    return true;
-}
+            if (file_exists($pdfPath)) {
+                unlink($pdfPath);
+            }
+
+            if ($response->successful()) {
+                Log::info('تم إرسال التقرير اليومي بنجاح للموظف: ' . $user->name);
+            } else {
+                Log::error('فشل إرسال التقرير اليومي للموظف: ' . $user->name, [
+                    'error' => $response->body(),
+                ]);
+            }
+        }
+
+        return true;
+    }
     public function sendWeeklyReport()
     {
         $endDate = Carbon::today();
