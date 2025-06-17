@@ -1101,19 +1101,21 @@ public function addnotes(Request $request)
     DB::beginTransaction();
 
     try {
-        // 1. التحقق من الموقع
-        $employeeLocation = Location::where('employee_id', auth()->id())->latest()->firstOrFail();
-        $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
+        // التحقق من الموقع فقط إذا كان المستخدم employee
+        if (auth()->user()->role === 'employee') {
+            $employeeLocation = Location::where('employee_id', auth()->id())->latest()->firstOrFail();
+            $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
 
-        $distance = $this->calculateDistance(
-            $employeeLocation->latitude,
-            $employeeLocation->longitude,
-            $clientLocation->latitude,
-            $clientLocation->longitude
-        );
+            $distance = $this->calculateDistance(
+                $employeeLocation->latitude,
+                $employeeLocation->longitude,
+                $clientLocation->latitude,
+                $clientLocation->longitude
+            );
 
-        if ($distance > 0.3) {
-            throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+            if ($distance > 0.3) {
+                throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+            }
         }
 
         // 2. إنشاء الملاحظة وتسجيل وقت آخر تحديث
@@ -1152,11 +1154,13 @@ public function addnotes(Request $request)
             $clientRelation->save();
         }
 
-        // 5. تحديث موقع الموظف
-        $employeeLocation->update([
-            'client_relation_id' => $clientRelation->id,
-            'client_id' => $request->client_id,
-        ]);
+        // 5. تحديث موقع الموظف (إذا كان employee)
+        if (auth()->user()->role === 'employee') {
+            $employeeLocation->update([
+                'client_relation_id' => $clientRelation->id,
+                'client_id' => $request->client_id,
+            ]);
+        }
 
         // 6. الإشعارات والسجل
         ModelsLog::create([
