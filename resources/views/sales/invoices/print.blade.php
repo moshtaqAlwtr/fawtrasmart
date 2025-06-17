@@ -295,7 +295,11 @@
                     </div>
                     <div class="summary-row">
                         <span>تاريخ الفاتورة:</span>
+
+                        <span>{{ $invoice->invoice_date }}</span>
+
                         <span>{{ $invoice->invoice_date??'غير متوفر' }}</span>
+
                     </div>
 
                 </div>
@@ -373,8 +377,8 @@
 
                 <!-- Signature Section -->
                 <div class="signature">
-                    <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
-
+                    {{-- <h4 style="font-size: 14px; margin-bottom: 5px;">التوقيع الإلكتروني</h4>
+ --}}
 
 
                     <!-- مكان عرض التواقيع -->
@@ -398,6 +402,11 @@
 
                 </div>
 
+                                <div class="signature">
+                    <p>الاسم: ________________</p>
+                    <p>التوقيع: _______________</p>
+                    <p class="thank-you">شكراً لتعاملكم معنا</p>
+                </div>
 
 
                 <div class="signature">
