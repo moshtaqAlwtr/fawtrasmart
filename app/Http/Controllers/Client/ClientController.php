@@ -52,144 +52,142 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-public function index(Request $request)
-{
-    $user = auth()->user();
+    public function index(Request $request)
+    {
+        $user = auth()->user();
 
-    $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
-    $noClients = false;
+        $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
+        $noClients = false;
 
-    // تحديد الصلاحيات حسب الدور
-    if ($user->role === 'employee') {
-        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
+        // تحديد الصلاحيات حسب الدور
+        if ($user->role === 'employee') {
+            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
-        if ($employeeGroupIds->isNotEmpty()) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
-                $q->whereIn('id', $employeeGroupIds);
-            });
-        } else {
-            $noClients = true;
+            if ($employeeGroupIds->isNotEmpty()) {
+                $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                    $q->whereIn('id', $employeeGroupIds);
+                });
+            } else {
+                $noClients = true;
+            }
         }
+
+        // فلترة حسب الطلب
+        if ($request->filled('client')) {
+            $baseQuery->where('id', $request->client);
+        }
+
+        if ($request->filled('name')) {
+            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->filled('status')) {
+            $baseQuery->where('status_id', $request->status);
+        }
+
+        if ($request->filled('region')) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+                $q->where('id', $request->region);
+            });
+        }
+
+        if ($request->filled('neighborhood')) {
+            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
+            });
+        }
+
+        // استعلام الخريطة
+        $mapQuery = clone $baseQuery;
+        $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
+
+        $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
+
+        $clientIds = $clients->pluck('id');
+
+        // الهدف العام
+        $target = Target::find(2)->value ?? 648;
+
+        // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
+        $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+        $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
+
+        $invoices = Invoice::whereIn('client_id', $clientIds)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->get();
+
+        $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
+
+        $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
+        $receipts = Receipt::with('account')
+            ->whereHas('account', function ($q) use ($clientIds) {
+                $q->whereIn('client_id', $clientIds);
+            })
+            ->get()
+            ->groupBy(fn($receipt) => $receipt->account->client_id);
+
+        $clientsData = $clients
+            ->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $target) {
+                $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
+
+                $paymentsTotal = $invoiceIds->sum(function ($id) use ($payments) {
+                    return isset($payments[$id]) ? $payments[$id]->sum('amount') : 0;
+                });
+
+                $receiptsTotal = isset($receipts[$client->id]) ? $receipts[$client->id]->sum('amount') : 0;
+
+                $collected = $paymentsTotal + $receiptsTotal;
+                $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
+
+                if ($percentage > 100) {
+                    $group = 'A++';
+                    $group_class = 'primary';
+                } elseif ($percentage >= 60) {
+                    $group = 'A';
+                    $group_class = 'success';
+                } elseif ($percentage >= 30) {
+                    $group = 'B';
+                    $group_class = 'warning';
+                } elseif ($percentage >= 10) {
+                    $group = 'C';
+                    $group_class = 'danger';
+                } else {
+                    $group = 'D';
+                    $group_class = 'secondary';
+                }
+
+                return [
+                    'id' => $client->id,
+                    'collected' => $collected,
+                    'percentage' => $percentage,
+                    'payments' => $paymentsTotal,
+                    'receipts' => $receiptsTotal,
+                    'group' => $group,
+                    'group_class' => $group_class,
+                    'invoices_count' => $invoiceIds->count(),
+                    'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
+                        return isset($payments[$id]) ? $payments[$id]->count() : 0;
+                    }),
+                    'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
+                ];
+            })
+            ->keyBy('id');
+
+        $clientDueBalances = Account::whereIn('client_id', $clientIds)->selectRaw('client_id, SUM(balance) as total_due')->groupBy('client_id')->pluck('total_due', 'client_id');
+
+        return view('client.index', [
+            'clientDueBalances' => $clientDueBalances,
+            'clientsData' => $clientsData,
+            'clients' => $clients,
+            'allClients' => $allClients,
+            'Neighborhoods' => Neighborhood::all(),
+            'users' => User::all(),
+            'employees' => Employee::all(),
+            'creditLimit' => CreditLimit::first(),
+            'statuses' => Statuses::select('id', 'name', 'color')->get(),
+            'Region_groups' => Region_groub::all(),
+            'userLocation',
+            'target' => $target,
+        ]);
     }
-
-    // فلترة حسب الطلب
-    if ($request->filled('client')) {
-        $baseQuery->where('id', $request->client);
-    }
-
-    if ($request->filled('name')) {
-        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-    }
-
-    if ($request->filled('status')) {
-        $baseQuery->where('status_id', $request->status);
-    }
-
-    if ($request->filled('region')) {
-        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-            $q->where('id', $request->region);
-        });
-    }
-
-    if ($request->filled('neighborhood')) {
-        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-        });
-    }
-
-    // استعلام الخريطة
-    $mapQuery = clone $baseQuery;
-    $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
-
-    $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
-
-    $clientIds = $clients->pluck('id');
-
-    // الهدف العام
-    $target = Target::find(2)->value ?? 648;
-
-    // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
-    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
-    $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
-
-    $invoices = Invoice::whereIn('client_id', $clientIds)
-        ->where('type', 'normal')
-        ->whereNotIn('id', $excludedInvoiceIds)
-        ->get();
-
-    $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
-
-    $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
-    $receipts = Receipt::with('account')->whereHas('account', function ($q) use ($clientIds) {
-        $q->whereIn('client_id', $clientIds);
-    })->get()->groupBy(fn($receipt) => $receipt->account->client_id);
-
-    $clientsData = $clients->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $target) {
-    $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
-
-    $paymentsTotal = $invoiceIds->sum(function ($id) use ($payments) {
-        return isset($payments[$id]) ? $payments[$id]->sum('amount') : 0;
-    });
-
-    $receiptsTotal = isset($receipts[$client->id]) ? $receipts[$client->id]->sum('amount') : 0;
-
-    $collected = $paymentsTotal + $receiptsTotal;
-    $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
-
-    if ($percentage > 100) {
-        $group = 'A++';
-        $group_class = 'primary';
-    } elseif ($percentage >= 60) {
-        $group = 'A';
-        $group_class = 'success';
-    } elseif ($percentage >= 30) {
-        $group = 'B';
-        $group_class = 'warning';
-    } elseif ($percentage >= 10) {
-        $group = 'C';
-        $group_class = 'danger';
-    } else {
-        $group = 'D';
-        $group_class = 'secondary';
-    }
-
-    return [
-        'id' => $client->id,
-        'collected' => $collected,
-        'percentage' => $percentage,
-        'payments' => $paymentsTotal,
-        'receipts' => $receiptsTotal,
-        'group' => $group,
-        'group_class' => $group_class,
-        'invoices_count' => $invoiceIds->count(),
-        'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
-            return isset($payments[$id]) ? $payments[$id]->count() : 0;
-        }),
-        'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
-    ];
-})->keyBy('id');
-
-
-    $clientDueBalances = Account::whereIn('client_id', $clientIds)
-        ->selectRaw('client_id, SUM(balance) as total_due')
-        ->groupBy('client_id')
-        ->pluck('total_due', 'client_id');
-
-    return view('client.index', [
-        'clientDueBalances' => $clientDueBalances,
-        'clientsData' => $clientsData,
-        'clients' => $clients,
-        'allClients' => $allClients,
-        'Neighborhoods' => Neighborhood::all(),
-        'users' => User::all(),
-        'employees' => Employee::all(),
-        'creditLimit' => CreditLimit::first(),
-        'statuses' => Statuses::select('id', 'name', 'color')->get(),
-        'Region_groups' => Region_groub::all(),
-        'userLocation',
-        'target' => $target,
-    ]);
-}
 
     public function updateCreditLimit(Request $request)
     {
@@ -515,16 +513,13 @@ public function index(Request $request)
 
             $data_request = $request->except('_token', 'contacts', 'latitude', 'longitude');
             $client->update($data_request);
- if ($client->wasChanged('trade_name')) {
-            Account::where('client_id', $client->id)
-                ->update(['name' => $client->trade_name]);
-        }
+            if ($client->wasChanged('trade_name')) {
+                Account::where('client_id', $client->id)->update(['name' => $client->trade_name]);
+            }
 
-        if ($client->wasChanged('trade_name')) {
-            Account::where('client_id', $client->id)
-                ->update(['name' => $client->trade_name]);
-        }
-
+            if ($client->wasChanged('trade_name')) {
+                Account::where('client_id', $client->id)->update(['name' => $client->trade_name]);
+            }
 
             // حذف الموظفين السابقين فقط إذا كان المستخدم مدير
             if (auth()->user()->role === 'manager') {
@@ -746,7 +741,6 @@ public function index(Request $request)
         $employees = Employee::all();
         $account = Account::all();
         $statuses = Statuses::all();
-
 
         // تحميل الحجوزات والعضويات
         $bookings = Booking::where('client_id', $id)->get();
@@ -1086,152 +1080,149 @@ public function index(Request $request)
 
         return redirect()->route('clients.mang_client')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
-public function addnotes(Request $request)
-{
-    $validated = $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'process' => 'required|string|max:255',
-        'description' => 'required|string',
-        'deposit_count' => 'nullable|integer|min:0',
-        'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
-        'competitor_documents' => 'nullable|integer|min:0',
-        'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:102400',
-    ]);
+    public function addnotes(Request $request)
+    {
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'process' => 'required|string|max:255',
+            'description' => 'required|string',
+            'deposit_count' => 'nullable|integer|min:0',
+            'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
+            'competitor_documents' => 'nullable|integer|min:0',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:102400',
+        ]);
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
-    try {
-        // التحقق من الموقع فقط إذا كان المستخدم employee
-        if (auth()->user()->role === 'employee') {
-            $employeeLocation = Location::where('employee_id', auth()->id())->latest()->firstOrFail();
-            $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
+        try {
+            // التحقق من الموقع فقط إذا كان المستخدم employee
+            if (auth()->user()->role === 'employee') {
+                $employeeLocation = Location::where('employee_id', auth()->id())
+                    ->latest()
+                    ->firstOrFail();
+                $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
 
-            $distance = $this->calculateDistance(
-                $employeeLocation->latitude,
-                $employeeLocation->longitude,
-                $clientLocation->latitude,
-                $clientLocation->longitude
-            );
+                $distance = $this->calculateDistance($employeeLocation->latitude, $employeeLocation->longitude, $clientLocation->latitude, $clientLocation->longitude);
 
-            if ($distance > 0.3) {
-                throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+                if ($distance > 0.3) {
+                    throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+                }
             }
-        }
 
-        // 2. إنشاء الملاحظة وتسجيل وقت آخر تحديث
-        $clientRelation = ClientRelation::create([
-            'employee_id' => auth()->id(),
-            'client_id' => $request->client_id,
-            'status' => $request->status ?? 'pending',
-            'process' => $request->process,
-            'description' => $request->description,
-            'deposit_count' => $request->deposit_count,
-            'site_type' => $request->site_type,
-            'competitor_documents' => $request->competitor_documents,
-            'additional_data' => json_encode([
+            // 2. إنشاء الملاحظة وتسجيل وقت آخر تحديث
+            $clientRelation = ClientRelation::create([
+                'employee_id' => auth()->id(),
+                'client_id' => $request->client_id,
+                'status' => $request->status ?? 'pending',
+                'process' => $request->process,
+                'description' => $request->description,
                 'deposit_count' => $request->deposit_count,
                 'site_type' => $request->site_type,
                 'competitor_documents' => $request->competitor_documents,
-            ]),
+                'additional_data' => json_encode([
+                    'deposit_count' => $request->deposit_count,
+                    'site_type' => $request->site_type,
+                    'competitor_documents' => $request->competitor_documents,
+                ]),
+            ]);
+
+            // 3. تحديث سجل العميل بوقت آخر ملاحظة
+            $client = Client::find($request->client_id);
+            $client->last_note_at = now();
+            $client->save();
+
+            // 4. حفظ المرفقات
+            if ($request->hasFile('attachments')) {
+                $attachments = [];
+                foreach ($request->file('attachments') as $file) {
+                    if ($file->isValid()) {
+                        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(public_path('assets/uploads/notes'), $filename);
+                        $attachments[] = $filename;
+                    }
+                }
+                $clientRelation->attachments = json_encode($attachments);
+                $clientRelation->save();
+            }
+
+            // 5. تحديث موقع الموظف (إذا كان employee)
+            if (auth()->user()->role === 'employee') {
+                $employeeLocation->update([
+                    'client_relation_id' => $clientRelation->id,
+                    'client_id' => $request->client_id,
+                ]);
+            }
+
+            // 6. الإشعارات والسجل
+            ModelsLog::create([
+                'type' => 'notes',
+                'type_log' => 'log',
+                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+                'created_by' => auth()->id(),
+            ]);
+
+            notifications::create([
+                'user_id' => auth()->id(),
+                'type' => 'notes',
+                'title' => auth()->user()->name . ' أضاف ملاحظة لعميل',
+                'description' => 'ملاحظة للعميل ' . $client->trade_name . ' - ' . $request->description,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('clients.show', $request->client_id)->with('success', 'تم إضافة الملاحظة بنجاح!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'فشل إضافة الملاحظة: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+    public function forceShow(Client $client)
+    {
+        // السماح فقط للمديرين
+        if (auth()->user()->role !== 'manager') {
+            abort(403, 'أنت لا تملك الصلاحية لتنفيذ هذا الإجراء.');
+        }
+
+        $client->update([
+            'force_show' => true,
+            'last_note_at' => null,
         ]);
 
-        // 3. تحديث سجل العميل بوقت آخر ملاحظة
-        $client = Client::find($request->client_id);
-        $client->last_note_at = now();
-        $client->save();
-
-        // 4. حفظ المرفقات
-        if ($request->hasFile('attachments')) {
-            $attachments = [];
-            foreach ($request->file('attachments') as $file) {
-                if ($file->isValid()) {
-                    $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('assets/uploads/notes'), $filename);
-                    $attachments[] = $filename;
-                }
-            }
-            $clientRelation->attachments = json_encode($attachments);
-            $clientRelation->save();
-        }
-
-        // 5. تحديث موقع الموظف (إذا كان employee)
-        if (auth()->user()->role === 'employee') {
-            $employeeLocation->update([
-                'client_relation_id' => $clientRelation->id,
-                'client_id' => $request->client_id,
-            ]);
-        }
-
-        // 6. الإشعارات والسجل
+        // تسجيل في سجل النظام
         ModelsLog::create([
-            'type' => 'notes',
-            'type_log' => 'log',
-            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+            'type' => 'client',
+            'type_log' => 'update',
+            'description' => 'تم إظهار العميل ' . $client->trade_name . ' في الخريطة قبل انتهاء المدة',
             'created_by' => auth()->id(),
         ]);
 
-        notifications::create([
-            'user_id' => auth()->id(),
-            'type' => 'notes',
-            'title' => auth()->user()->name . ' أضاف ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . $client->trade_name . ' - ' . $request->description,
-        ]);
-
-        DB::commit();
-
-        return redirect()->route('clients.show', $request->client_id)
-            ->with('success', 'تم إضافة الملاحظة بنجاح!');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return redirect()->back()->withErrors($e->validator)->withInput();
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()->back()->with('error', 'فشل إضافة الملاحظة: ' . $e->getMessage())->withInput();
-    }
-}
-public function forceShow(Client $client)
-{
-    // السماح فقط للمديرين
-    if (auth()->user()->role !== 'manager') {
-        abort(403, 'أنت لا تملك الصلاحية لتنفيذ هذا الإجراء.');
+        return back()->with('success', 'تم إظهار العميل في الخريطة بنجاح');
     }
 
-    $client->update([
-        'force_show' => true,
-        'last_note_at' => null
-    ]);
+    // دالة مساعدة لحساب المسافة
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $lat1 = deg2rad($lat1);
+        $lon1 = deg2rad($lon1);
+        $lat2 = deg2rad($lat2);
+        $lon2 = deg2rad($lon2);
 
-    // تسجيل في سجل النظام
-    ModelsLog::create([
-        'type' => 'client',
-        'type_log' => 'update',
-        'description' => 'تم إظهار العميل ' . $client->trade_name . ' في الخريطة قبل انتهاء المدة',
-        'created_by' => auth()->id(),
-    ]);
+        $dlat = $lat2 - $lat1;
+        $dlon = $lon2 - $lon1;
 
-    return back()->with('success', 'تم إظهار العميل في الخريطة بنجاح');
-}
-
-// دالة مساعدة لحساب المسافة
-private function calculateDistance($lat1, $lon1, $lat2, $lon2)
-{
-    $lat1 = deg2rad($lat1);
-    $lon1 = deg2rad($lon1);
-    $lat2 = deg2rad($lat2);
-    $lon2 = deg2rad($lon2);
-
-    $dlat = $lat2 - $lat1;
-    $dlon = $lon2 - $lon1;
-
-    $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
-    $c = 2 * asin(sqrt($a));
-    return (6371000 * $c) / 1000; // بالكيلومتر
-}
+        $a = sin($dlat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dlon / 2) ** 2;
+        $c = 2 * asin(sqrt($a));
+        return (6371000 * $c) / 1000; // بالكيلومتر
+    }
 
     /**
      * حساب المسافة باستخدام Haversine formula
      */
-
 
     public function mang_client_details($id)
     {
@@ -1425,10 +1416,35 @@ private function calculateDistance($lat1, $lon1, $lat2, $lon2)
             'status_id' => 'required|exists:statuses,id',
         ]);
 
-        // البحث عن العميل وتحديث حالته مباشرة
         $client = Client::findOrFail($request->client_id);
         $client->status_id = $request->status_id;
         $client->save();
+
+        // الحصول على حالة "موقوف"
+        $suspendedStatus = Statuses::where('name', 'موقوف')->first();
+
+        if ($suspendedStatus && $request->status_id == $suspendedStatus->id) {
+            // البحث عن مجموعة "عملاء موقوفون"
+            $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
+
+            if ($suspendedGroup) {
+                // البحث عن سجل الحي المرتبط بالعميل
+                $neighborhood = Neighborhood::where('client_id', $client->id)->first();
+
+                if ($neighborhood) {
+                    // تحديث المنطقة للحي
+                    $neighborhood->region_id = $suspendedGroup->id;
+                    $neighborhood->save();
+                } else {
+                    // أو إنشاء سجل جديد إذا لم يوجد
+                    Neighborhood::create([
+                        'client_id' => $client->id,
+                        'region_id' => $suspendedGroup->id,
+                        // أي حقول إضافية مطلوبة
+                    ]);
+                }
+            }
+        }
 
         return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
     }
