@@ -207,6 +207,9 @@
     </div>
     @include('layouts.alerts.error')
     @include('layouts.alerts.success')
+    <!-- الزر الذي سيتم النقر عليه لفتح النموذج -->
+
+    <!-- النموذج (Modal) -->
     <div class="modal fade" id="assignEmployeeModal" tabindex="-1" aria-labelledby="assignEmployeeModalLabel"
         aria-hidden="true">
         <div class="modal-dialog">
@@ -228,10 +231,6 @@
                         </select>
                         <button type="submit" class="btn btn-primary mt-2">تعيين الموظفين</button>
                     </form>
-
-
-                    <!-- Current Assigned Employees -->
-
                 </div>
             </div>
         </div>
@@ -239,7 +238,8 @@
     <div class="content-body">
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <!-- القسم العلوي: معلومات العميل الأساسية -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->code }}</small>
@@ -250,22 +250,19 @@
                         <br>
                         <small class="text-muted">
                             حساب الأستاذ:
-                            <small class="text-muted">
-                                حساب الأستاذ:
-                                @if ($client->account_client && $client->account_client->client_id == $client->id)
-                                    <a
-                                        href="{{ route('journal.generalLedger', ['account_id' => $client->account_client->id]) }}">
-                                        {{ $client->account_client->name ?? '' }}
-                                        #{{ $client->account_client->code ?? '' }}
-                                    </a>
-                                @else
-                                    <span>لا يوجد حساب مرتبط</span>
-                                @endif
-                            </small>
-
+                            @if ($client->account_client && $client->account_client->client_id == $client->id)
+                                <a
+                                    href="{{ route('journal.generalLedger', ['account_id' => $client->account_client->id]) }}">
+                                    {{ $client->account_client->name ?? '' }}
+                                    #{{ $client->account_client->code ?? '' }}
+                                </a>
+                            @else
+                                <span>لا يوجد حساب مرتبط</span>
+                            @endif
                         </small>
-
                     </div>
+
+                    <!-- معلومات الرصيد -->
                     @php
                         $currency = $account_setting->currency ?? 'SAR';
                         $currencySymbol =
@@ -281,143 +278,99 @@
                                 class="text-muted">{!! $currencySymbol !!}</span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
-                        {{-- @if ($invoices->isNotEmpty())
-                            <div class="text-muted">
-                                <strong class="text-dark">{{ $invoice_due ?? 0 }}</strong> <span class="text-muted"></span>
-                                <span class="d-block text-warning">مفتوح</span>
-                            </div>
-                        @endif --}}
                     </div>
-                    @if (auth()->user()->role === 'manager')
-                        <div class="mt-4">
-                            <h6>!</h6>
-                            <div class="d-flex flex-wrap gap-2" id="assignedEmployeesList">
-                                @if ($client->employees && $client->employees->count() > 0)
-                                    @foreach ($client->employees as $employee)
-                                        <span class="badge bg-primary d-flex align-items-center">
-                                            {{ $employee->full_name }}
 
-                                            <form action="{{ route('clients.remove-employee', $client->id) }}"
-                                                method="POST" class="ms-2">
-                                                @csrf
-                                                <input type="hidden" name="employee_id" value="{{ $employee->id }}">
-
-                                                <button type="submit" class="btn btn-sm btn-link text-white p-0">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
-                                        </span>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <!-- تغيير الحالة -->
+                        @php $currentStatus = $client->status; @endphp
+                        <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
+                            style="min-width: 220px;">
+                            @csrf
+                            <input type="hidden" name="client_id" value="{{ $client->id }}">
+                            <div class="dropdown w-100">
+                                <button class="btn w-100 text-start dropdown-toggle" type="button"
+                                    id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                    style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }}; color: #000; border: 1px solid #ccc; height: 42px;">
+                                    {{ $currentStatus->name ?? 'اختر الحالة' }}
+                                </button>
+                                <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
+                                    style="border-radius: 8px;">
+                                    @foreach ($statuses as $status)
+                                        <li>
+                                            <button type="submit"
+                                                class="dropdown-item text-white d-flex align-items-center justify-content-between"
+                                                name="status_id" value="{{ $status->id }}"
+                                                style="background-color: {{ $status->color }};">
+                                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
+                                            </button>
+                                        </li>
                                     @endforeach
+                                    <li>
+                                        <a href="{{ route('SupplyOrders.edit_status') }}"
+                                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                                            style="border-top: 1px solid #ddd; padding: 8px;">
+                                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </form>
+
+                        <!-- الموظفين المعينين -->
+
+                        <!-- قائمة الخيارات -->
+
+                    </div>
+                </div>
+
+                <!-- القسم الأوسط: معلومات الاتصال والعنوان -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                    <div class="text-end">
+                        <strong class="text-dark">{{ $client->first_name }}</strong>
+                        <br>
+                        <span class="text-primary">
+                            <i class="fas fa-map-marker-alt"></i> {{ $client->full_address }}
+                        </span>
+                    </div>
+
+                    @if (auth()->user()->role === 'manager')
+                        <div class="row align-items-center">
+                            <div id="assignedEmployeesList" class="col-12">
+                                @if ($client->employees && $client->employees->count() > 0)
+                                    <div class="row g-2">
+                                        @foreach ($client->employees as $employee)
+                                            <div class="col-auto">
+                                                <div class="badge bg-primary d-flex align-items-center">
+                                                    <a href="{{ route('employee.show', $employee->id) }}"
+                                                        class="text-white text-decoration-none me-2">
+                                                        {{ $employee->full_name }}
+                                                    </a>
+                                                    <form action="{{ route('clients.remove-employee', $client->id) }}"
+                                                        method="POST" class="mb-0">
+                                                        @csrf
+                                                        <input type="hidden" name="employee_id"
+                                                            value="{{ $employee->id }}">
+                                                        <button type="submit" class="btn btn-sm btn-link text-white p-0">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 @else
-                                    <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون بهذا العميل') }}</span>
+                                    <span class="text-muted">{{ __('لا يوجد موظفون مرتبطون') }}</span>
                                 @endif
                             </div>
                         </div>
                     @endif
-                    @php
-                        // جلب الحالة الحالية للعميل من العلاقة
-                        $currentStatus = $client->status;
-                    @endphp
-
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <div class="d-flex flex-wrap gap-2">
-                            <!-- قائمة تغيير الحالة -->
-                            <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
-                                style="min-width: 220px;">
-                                @csrf
-                                <input type="hidden" name="client_id" value="{{ $client->id }}">
-                                <div class="dropdown w-100">
-                                    <button class="btn w-100 text-start dropdown-toggle" type="button"
-                                        id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                        style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }};
-                           color: #000;
-                           border: 1px solid #ccc;
-                           height: 42px;">
-                                        {{ $currentStatus->name ?? 'اختر الحالة' }}
-                                    </button>
-
-                                    <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
-                                        style="border-radius: 8px;">
-                                        @foreach ($statuses as $status)
-                                            <li>
-                                                <button type="submit"
-                                                    class="dropdown-item text-white d-flex align-items-center justify-content-between"
-                                                    name="status_id" value="{{ $status->id }}"
-                                                    style="background-color: {{ $status->color }};">
-                                                    <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
-                                                </button>
-                                            </li>
-                                        @endforeach
-                                        <li>
-                                            <a href="{{ route('SupplyOrders.edit_status') }}"
-                                                class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                                style="border-top: 1px solid #ddd; padding: 8px;">
-                                                <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </form>
-
-                            <!-- قائمة خيارات أخرى -->
-                        </div>
-
-                    </div>
 
                 </div>
+
+                <!-- القسم السفلي: الحالة والموظفين والخيارات -->
+
             </div>
         </div>
-        <div class="card border-0">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <!-- القسم الأيمن (الاسم والموقع) - يظهر فقط في الشاشات الكبيرة -->
-                <div class="text-end d-none d-md-block">
-                    <strong class="text-dark">{{ $client->first_name }}</strong>
-                    <br>
-                    <span class="text-primary">
-                        <i class="fas fa-map-marker-alt"></i> {{ $client->full_address }}
-                    </span>
-                </div>
-
-                <!-- القسم الأيسر (رقم الهاتف) - يظهر فقط في الشاشات الكبيرة -->
-                <div class="d-flex align-items-center d-none d-md-flex">
-                    <button class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <span class="mx-2 text-dark">{{ $client->phone }}</span>
-                    <button class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-mobile-alt"></i>
-                    </button>
-                </div>
-
-
-
-                <!-- القائمة الأصلية (تظهر فقط في الشاشات الكبيرة) -->
-                <div class="dropdown col-12 col-md-auto d-none d-md-block">
-                    <a href="#" class="btn btn-sm btn-outline-dark dropdown-toggle w-100 text-start text-md-center"
-                        role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v me-1"></i> خيارات أخرى
-                    </a>
-                    <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
-                                data-bs-target="#openingBalanceModal">
-                                <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('SupplyOrders.create') }}">
-                                <i class="fas fa-truck me-2 text-info"></i> إضافة أمر توريد
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-user me-2 text-primary"></i> الدخول كعميل
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center text-danger"
-                                href="{{ route('clients.destroy', $client->id) }}">
-                                <i class="fas fa-trash-alt me-2"></i> حذف عميل
-                            </a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
 
 
         <div class="card">
@@ -425,52 +378,67 @@
                 <!-- أزرار القائمة (تظهر فقط على الشاشات الكبيرة) -->
                 <div class="d-grid d-md-flex flex-wrap gap-2 d-none d-md-block">
                     @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm btn-info col-md-auto">
+                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm text-white"
+                            style="background-color: #17a2b8;">
                             <i class="fas fa-user-edit me-1"></i> تعديل
                         </a>
                     @endif
+
                     @if (auth()->user()->role === 'manager')
                         <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-warning btn-sm">
+                            <button type="submit" class="btn btn-sm text-white" style="background-color: #ffc107;">
                                 <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
                             </button>
                         </form>
                     @endif
 
-                    <a href="{{ route('appointment.notes.create', $client->id) }}"
-                        class="btn btn-sm btn-secondary col-md-auto">
+                    <a href="{{ route('appointment.notes.create', $client->id) }}" class="btn btn-sm text-white"
+                        style="background-color: #6c757d;">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
-                    <a href="{{ route('incomes.create') }}" class="btn btn-sm btn-info col-md-auto">
-                            <i class="fas fa-user-edit me-1"></i>سند القبض
-                        </a>
-                    <a href="{{ route('appointments.create') }}" class="btn btn-sm btn-success col-md-auto">
+
+                    <a href="{{ route('incomes.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #20c997;">
+                        <i class="fas fa-receipt me-1"></i> سند القبض
+                    </a>
+
+                    <a href="{{ route('appointments.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #28a745;">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-                    <a href="{{ route('clients.statement', $client->id) }}" class="btn btn-sm btn-warning col-md-auto">
+
+                    <a href="{{ route('clients.statement', $client->id) }}" class="btn btn-sm text-white"
+                        style="background-color: #fd7e14;">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
-                    <a href="{{ route('questions.create') }}" class="btn btn-sm btn-warning col-md-auto">
-                        <i class="fas fa-file-signature me-1"></i> إنشاء عرض سعر
+
+                    <a class="btn btn-sm text-white" style="background-color: #6f42c1;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
+                        <i class="fas fa-wallet me-2"></i> إضافة رصيد افتتاحي
                     </a>
-                    <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-danger col-md-auto">
+
+                    <a class="btn btn-sm text-white" style="background-color: #6610f2;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
+                        <i class="fas fa-user-plus me-2"></i> تعيين موظفين
+                    </a>
+
+                    <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #dc3545;">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
 
-                    <a href="{{ route('invoices.create') }}?client_id={{ $client->id }}"
-                        class="btn btn-sm btn-dark col-md-auto">
+                    <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}" class="btn btn-sm text-white"
+                        style="background-color: #343a40;">
+                        <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
+                    </a>
 
-                        <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}"
-                            class="btn btn-sm btn-dark col-md-auto">
-
-                            <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
-                        </a>
-                        <a href="{{ route('Reservations.client', $client->id) }}"
-                            class="btn btn-sm btn-light text-dark col-md-auto">
-                            <i class="fas fa-calendar-check me-1"></i> الحجوزات
-                        </a>
+                    <a href="{{ route('Reservations.client', $client->id) }}"
+                        class="btn btn-sm btn-outline-dark bg-white text-dark">
+                        <i class="fas fa-calendar-check me-1"></i> الحجوزات
+                    </a>
                 </div>
+
 
                 <!-- زر واحد يحتوي على القائمة المنسدلة (يظهر فقط على الشاشات الصغيرة) -->
                 <div class="dropdown d-md-none">
@@ -486,48 +454,81 @@
                                 </a>
                             </li>
                         @endif
+
                         @if (auth()->user()->role === 'manager')
-                            <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
-                                </button>
-                            </form>
+                            <li>
+                                <form action="{{ route('clients.force-show', $client) }}" method="POST"
+                                    class="dropdown-item p-0">
+                                    @csrf
+                                    <button type="submit" class="btn w-100 text-start d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-warning"></i> إظهار في الخريطة الآن
+                                    </button>
+                                </form>
+                            </li>
                         @endif
 
-
-                        <li><a class="dropdown-item d-flex align-items-center"
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('appointment.notes.create', $client->id) }}">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('appointments.create') }}">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('appointments.create') }}">
                                 <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
-                            </a></li>
-<li>
-                                <a class="dropdown-item d-flex align-items-center"
-                                    href="{{ route('incomes.create') }}">
-                                    <i class="fas fa-user-edit me-2 text-info"></i> سند قبض
-                                </a>
-                            </li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('incomes.create') }}">
+                                <i class="fas fa-receipt me-2 text-info"></i> سند قبض
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('clients.statement', $client->id) }}">
                                 <i class="fas fa-file-invoice me-2 text-warning"></i> كشف حساب
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('questions.create') }}">
-                                <i class="fas fa-file-signature me-2 text-warning"></i> إنشاء عرض سعر
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('CreditNotes.create') }}">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
+                                data-bs-target="#openingBalanceModal">
+                                <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
+                                data-bs-target="#assignEmployeeModal">
+                                <i class="fas fa-user-plus me-2 text-primary"></i> تعيين موظفين
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="{{ route('CreditNotes.create') }}">
                                 <i class="fas fa-file-invoice-dollar me-2 text-danger"></i> إنشاء إشعار دائن
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="{{ route('invoices.create') }}">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
+                                href="{{ route('invoices.create', ['client_id' => $client->id]) }}">
                                 <i class="fas fa-file-invoice me-2 text-dark"></i> إنشاء فاتورة
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="{{ route('Reservations.client', $client->id) }}">
                                 <i class="fas fa-calendar-check me-2 text-dark"></i> الحجوزات
-                            </a></li>
+                            </a>
+                        </li>
                     </ul>
                 </div>
+
             </div>
         </div>
 
@@ -1502,178 +1503,7 @@
                         </div>
                     </div>
 
-                    <!-- زر العضوية -->
-                    <div class="col-lg-12 col-md-12 col-12 mb-2">
-                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#membership">
-                            <i class="fas fa-id-card me-2"></i> العضوية
-                        </button>
-                        <!-- محتوى العضوية -->
-                        <div id="membership" class="collapse mt-2">
-                            <div class="card card-body">
-                                <!-- محتوى العضوية هنا -->
-                                <div class="card">
-                                    <div class="card-body">
-                                        <table class="table" style="font-size: 1.1rem;">
-                                            <thead>
-                                                <tr>
-                                                    <th>المعرف</th>
-                                                    <th>بيانات العميل</th>
-                                                    <th>الباقة الحالية</th>
-                                                    <th>تاريخ الانتهاء</th>
-                                                    <th>الحالة</th>
-                                                    <th>ترتيب بواسطة</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($memberships as $membership)
-                                                    <tr>
-                                                        <td>#{{ $membership->id }}</td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <div class="avatar avatar-sm bg-danger">
-                                                                    <span class="avatar-content">أ</span>
-                                                                </div>
-                                                                <div>
-                                                                    {{ $membership->client->first_name ?? '' }}
-                                                                    <br>
-                                                                    <small class="text-muted"></small>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td><br><small
-                                                                class="text-muted">{{ $membership->packege->commission_name ?? '' }}</small>
-                                                        </td>
-                                                        <td><small
-                                                                class="text-muted">{{ $membership->end_date ?? '' }}</small>
-                                                        </td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <div class="rounded-circle bg-info"
-                                                                    style="width: 8px; height: 8px;"></div>
-                                                                <span class="text-muted">
-                                                                    @if ($membership->status == 'active')
-                                                                        نشط
-                                                                    @else
-                                                                        غير نشط
-                                                                    @endif
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="btn-group">
-                                                                <div class="dropdown">
-                                                                    <button
-                                                                        class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                                        type="button" id="dropdownMenuButton303"
-                                                                        data-toggle="dropdown" aria-haspopup="true"
-                                                                        aria-expanded="false"></button>
-                                                                    <div class="dropdown-menu"
-                                                                        aria-labelledby="dropdownMenuButton303">
-                                                                        <li>
-                                                                            <a class="dropdown-item"
-                                                                                href="{{ route('Memberships.show', $membership->id) }}">
-                                                                                <i
-                                                                                    class="fa fa-eye me-2 text-primary"></i>عرض
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a class="dropdown-item"
-                                                                                href="{{ route('Memberships.edit', $membership->id) }}">
-                                                                                <i
-                                                                                    class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a class="dropdown-item text-danger"
-                                                                                href="{{ route('Memberships.delete', $membership->id) }}">
-                                                                                <i class="fa fa-trash me-2"></i>حذف
-                                                                            </a>
-                                                                        </li>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- زر الحجوزات -->
-                    <div class="col-lg-12 col-md-12 col-12 mb-2">
-                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#reservations">
-                            <i class="fas fa-bookmark me-2"></i> الحجوزات
-                        </button>
-                        <!-- محتوى الحجوزات -->
-                        <div id="reservations" class="collapse mt-2">
-                            <div class="card card-body">
-                                <!-- محتوى الحجوزات هنا -->
-                                <div class="card">
-                                    <div class="card-body">
-                                        @foreach ($bookings as $booking)
-                                            <div class="row">
-                                                <div class="col-auto">
-                                                    <div
-                                                        style="width: 50px; height: 50px; background-color: #f0f0f0; border-radius: 5px;">
-                                                    </div>
-                                                </div>
-                                                <div class="col">
-                                                    <h6>بيانات العميل</h6>
-                                                    <p class="mb-1">{{ $booking->client->first_name ?? '' }}</p>
-                                                    <p class="mb-1">الخدمة: {{ $booking->product->name ?? '' }}</p>
-                                                </div>
-                                                <div class="col-auto text-end">
-                                                    <p class="mb-1">الوقت من {{ $booking->start_time ?? 0 }} الى
-                                                        {{ $booking->end_time ?? 0 }}</p>
-                                                    <p class="text-muted small mb-0">16:45:00</p>
-
-                                                    @if ($booking->status == 'confirm')
-                                                        <span class="badge bg-warning text-dark">مؤكد</span>
-                                                    @elseif ($booking->status == 'review')
-                                                        <span class="badge bg-warning text-dark">تحت المراجعة</span>
-                                                    @elseif ($booking->status == 'bill')
-                                                        <span class="badge bg-warning text-dark">حولت للفاتورة</span>
-                                                    @elseif ($booking->status == 'cancel')
-                                                        <span class="badge bg-warning text-dark">تم الالغاء</span>
-                                                    @else
-                                                        <span class="badge bg-warning text-dark">تم</span>
-                                                    @endif
-
-                                                    <a href="{{ route('Reservations.show', $booking->id) }}"
-                                                        class="badge bg-danger text-dark">عرض</a>
-                                                    <a href="{{ route('Reservations.edit', $booking->id) }}"
-                                                        class="btn btn-sm btn-primary">
-                                                        <i class="fa fa-edit"></i> تعديل
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <hr>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- زر الخدمات -->
-                    <div class="col-lg-12 col-md-12 col-12 mb-2">
-                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#services">
-                            <i class="fas fa-tools me-2"></i> الخدمات
-                        </button>
-                        <!-- محتوى الخدمات -->
-                        <div id="services" class="collapse mt-2">
-                            <div class="card card-body">
-                                <p class="text-muted">خدمات العميل</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
