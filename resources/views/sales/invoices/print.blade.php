@@ -409,11 +409,7 @@
                 </div>
 
 
-                <div class="signature">
-                    <p>الاسم: ________________</p>
-                    <p>التوقيع: _______________</p>
-                    <p class="thank-you">شكراً لتعاملكم معنا</p>
-                </div>
+               
 
                 <div class="qr-code">
 

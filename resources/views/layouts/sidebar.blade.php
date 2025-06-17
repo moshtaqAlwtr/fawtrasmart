@@ -177,7 +177,8 @@
                     <li class="nav-item">
                         <a href="#">
                             <i class="feather icon-user"></i> <!-- أيقونة العملاء -->
-                            <span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Customers') }}</span>
+                            <span class="menu-title"
+                                data-i18n="Dashboard">{{ trans('main_trans.Customers') }}</span>
                         </a>
                         <ul class="menu-content">
                             @can('clients_view_all_clients')
@@ -210,20 +211,15 @@
                                 </a>
                             </li>
 
-                            <li><a href="{{ route('clients.mang_client') }}"><i class="feather icon-circle"></i><span
-                                        class="menu-item"
+                            <li><a href="{{ route('clients.mang_client') }}"><i
+                                        class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="eCommerce">{{ trans('main_trans.Customer_relationship_management') }}</span>
                                 </a>
                             </li>
                             @can('clients_edit_client_settings')
-                                <li><a href="{{ route('visits.tracktaff') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item" data-i18n="eCommerce">تتبع الزيارات </span>
-                                    </a>
-                                </li>
-                            @endcan
-                            @can('clients_edit_client_settings')
-                                <li><a href="{{ route('groups.group_client') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item" data-i18n="eCommerce">اعدادات المجموعات</span>
+                                <li><a href="{{ route('groups.group_client') }}"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
+                                            data-i18n="eCommerce">اعدادات المجموعات</span>
                                     </a>
                                 </li>
                     @endif
@@ -335,7 +331,8 @@
                     <li class=" nav-item {{ request()->is("$getLocal/online_store/*") ? 'active open' : '' }}"><a
                             href="index.html">
                             <i class="feather icon-shopping-cart">
-                            </i><span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Online_store') }}</span>
+                            </i><span class="menu-title"
+                                data-i18n="Dashboard">{{ trans('main_trans.Online_store') }}</span>
                         </a>
                         <ul class="menu-content">
                             <li><a href="{{ route('content_management.index') }}"><i
@@ -345,7 +342,8 @@
                             </li>
                             <li><a href="{{ route('store_settings.index') }}"><i
                                         class="feather icon-circle {{ request()->is("$getLocal/online_store/store_settings/*") ? 'active' : '' }}"></i><span
-                                        class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
+                                        class="menu-item"
+                                        data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span></a>
                             </li>
                         </ul>
                     </li>
@@ -397,7 +395,8 @@
                                 <a href="{{ route('Manufacturing.settings.index') }}">
                                     <i
                                         class="feather icon-circle {{ request()->is("$getLocal/Manufacturing/Settings/*") ? 'active' : '' }}"></i>
-                                    <span class="menu-item" data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span>
+                                    <span class="menu-item"
+                                        data-i18n="eCommerce">{{ trans('main_trans.Sittings') }}</span>
                                 </a>
                             </li>
                         </ul>
@@ -414,7 +413,8 @@
                 @if (isset($settings['booking_management']) && $settings['booking_management'] === 'active')
                     <li class="nav-item"><a href="#">
                             <i class="feather icon-bookmark"></i> <!-- أيقونة الحجز -->
-                            <span class="menu-title" data-i18n="Dashboard">{{ trans('main_trans.Reservations') }}</span>
+                            <span class="menu-title"
+                                data-i18n="Dashboard">{{ trans('main_trans.Reservations') }}</span>
                         </a>
                         <ul class="menu-content">
                             @can('rental_unit_view_booking_orders')
@@ -481,15 +481,15 @@
                         </a>
                         <ul class="menu-content">
                             @can('targeted_sales_commissions_manage_commission_rules')
-                                <li><a href="{{ route('CommissionRules.index') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
+                                <li><a href="{{ route('CommissionRules.index') }}"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
                                             data-i18n="Analytics">{{ trans('main_trans.Commission_rules') }}</span></a>
                                 </li>
                             @endcan
 
                             @can('targeted_sales_commissions_view_all_sales_commissions')
-                                <li><a href="{{ route('SalesCommission.index') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
+                                <li><a href="{{ route('SalesCommission.index') }}"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
                                             data-i18n="eCommerce">{{ trans('main_trans.Sales_commissions') }}</span></a>
                                 </li>
                             @endcan
@@ -570,14 +570,14 @@
                             @endcan
 
                             @can('supply_orders_add')
-                                <li><a href="{{ route('SupplyOrders.create') }}"><i class="feather icon-circle"></i><span
-                                            class="menu-item"
+                                <li><a href="{{ route('SupplyOrders.create') }}"><i
+                                            class="feather icon-circle"></i><span class="menu-item"
                                             data-i18n="eCommerce">{{ trans('main_trans.Add_a_job_order') }}</span></a>
                                 </li>
                             @endcan
 
-                            <li><a href="{{ route('SupplySittings.index') }}"><i class="feather icon-circle"></i><span
-                                        class="menu-item"
+                            <li><a href="{{ route('SupplySittings.index') }}"><i
+                                        class="feather icon-circle"></i><span class="menu-item"
                                         data-i18n="eCommerce">{{ trans('main_trans.Supply_Orders_Settings') }}</span></a>
                             </li>
                         </ul>
@@ -1008,13 +1008,13 @@
                                 </li>
                             @endcan
 
-                            @can('finance_view_all_receipts')
+
                                 <li><a href="{{ route('incomes.index') }}"><i
                                             class="feather icon-circle {{ request()->is("$getLocal/finance/incomes/*") ? 'active' : '' }}"></i><span
                                             class="menu-item"
                                             data-i18n="eCommerce">{{ trans('main_trans.Receipts') }}</span></a>
                                 </li>
-                            @endcan
+
 
                             @can('finance_view_own_cashboxes')
                                 <li><a href="{{ route('treasury.index') }}"><i class="feather icon-circle"></i><span

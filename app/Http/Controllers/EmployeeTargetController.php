@@ -17,7 +17,11 @@ use Illuminate\Http\Request;
 use App\Models\PaymentsProcess;
 use App\Models\Invoice;
 use App\Models\Receipt;
+use App\Models\Expense;
+use App\Models\ClientEmployee;
 use Carbon\Carbon;
+
+
 
 class EmployeeTargetController extends Controller
 {
@@ -212,6 +216,77 @@ class EmployeeTargetController extends Controller
             // تم إزالة: 'percentage'، 'group'، 'group_class'، 'collected'
         ]);
     }
+
+   
+    
+    public function daily_closing_entry(Request $request)
+{
+     $date = $request->date ? Carbon::parse($request->date) : now();
+
+    $employeeIds = User::whereHas('employee')->pluck('id');
+
+    $defaultTarget = 10000; // القيمة الافتراضية للهدف الشهري
+
+    $cards = $employeeIds->map(function ($userId) use ($date, $defaultTarget) {
+        $user = User::find($userId);
+
+        // استبعاد الفواتير المرجعة
+        $returnedInvoiceIds = Invoice::whereNotNull('reference_number')
+            ->pluck('reference_number')->toArray();
+
+        $excludedInvoiceIds = array_unique(array_merge(
+            $returnedInvoiceIds,
+            Invoice::where('type', 'returned')->pluck('id')->toArray()
+        ));
+
+        $invoiceIds = Invoice::where('created_by', $userId)
+            ->where('type', 'normal')
+            ->whereNotIn('id', $excludedInvoiceIds)
+            ->pluck('id');
+
+        // المبالغ المحصلة (من المدفوعات)
+        $paymentsTotal = PaymentsProcess::whereIn('invoice_id', $invoiceIds)
+            ->whereDate('created_at', $date)
+            ->sum('amount');
+
+        // سندات القبض
+        $receiptsTotal = Receipt::where('created_by', $userId)
+            ->whereDate('created_at', $date)
+            ->sum('amount');
+
+        // سندات الصرف
+        $expensesTotal = Expense::where('created_by', $userId)
+            ->whereDate('created_at', $date)
+            ->sum('amount');
+
+        $totalCollected = $paymentsTotal + $receiptsTotal - $expensesTotal;
+
+        $target = $user->target?->monthly_target ?? $defaultTarget;
+        $percentage = $target > 0 ? round(($totalCollected / $target) * 100, 2) : 0;
+
+        $clientCount = ClientEmployee::where('employee_id', $user->employee_id)->count();
+
+        return [
+            'name' => $user?->name ?? 'غير معروف',
+            'payments' => $paymentsTotal,
+            'receipts' => $receiptsTotal,
+            'expenses' => $expensesTotal,
+            'total' => $totalCollected,
+            'target' => $target,
+            'percentage' => $percentage,
+            'clients_count' => $clientCount,
+        ];
+    });
+
+    // ترتيب تنازلي حسب المحصل
+    $cards = $cards->sortByDesc('total')->values();
+
+    return view('daily_closing_entry', [
+        'cards' => $cards,
+        'selectedDate' => $date->toDateString(),
+    ]);
+
+}
     public function updateGeneralTarget(Request $request)
     {
         $request->validate([
