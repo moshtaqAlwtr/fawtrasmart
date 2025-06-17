@@ -281,40 +281,45 @@
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <!-- تغيير الحالة -->
-                        @php $currentStatus = $client->status; @endphp
-                        <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
-                            style="min-width: 220px;">
-                            @csrf
-                            <input type="hidden" name="client_id" value="{{ $client->id }}">
-                            <div class="dropdown w-100">
-                                <button class="btn w-100 text-start dropdown-toggle" type="button"
-                                    id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                    style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }}; color: #000; border: 1px solid #ccc; height: 42px;">
-                                    {{ $currentStatus->name ?? 'اختر الحالة' }}
-                                </button>
-                                <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
-                                    style="border-radius: 8px;">
-                                    @foreach ($statuses as $status)
+                        @php
+                            $currentStatus = $client->status;
+                        @endphp
+
+                        @if (auth()->user()->role !== 'employee')
+                            <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
+                                style="min-width: 220px;">
+                                @csrf
+                                <input type="hidden" name="client_id" value="{{ $client->id }}">
+                                <div class="dropdown w-100">
+                                    <button class="btn w-100 text-start dropdown-toggle" type="button"
+                                        id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                        style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }}; color: #000; border: 1px solid #ccc; height: 42px;">
+                                        {{ $currentStatus->name ?? 'اختر الحالة' }}
+                                    </button>
+                                    <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
+                                        style="border-radius: 8px;">
+                                        @foreach ($statuses as $status)
+                                            <li>
+                                                <button type="submit"
+                                                    class="dropdown-item text-white d-flex align-items-center justify-content-between"
+                                                    name="status_id" value="{{ $status->id }}"
+                                                    style="background-color: {{ $status->color }};">
+                                                    <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
+                                                </button>
+                                            </li>
+                                        @endforeach
                                         <li>
-                                            <button type="submit"
-                                                class="dropdown-item text-white d-flex align-items-center justify-content-between"
-                                                name="status_id" value="{{ $status->id }}"
-                                                style="background-color: {{ $status->color }};">
-                                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
-                                            </button>
+                                            <a href="{{ route('SupplyOrders.edit_status') }}"
+                                                class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                                                style="border-top: 1px solid #ddd; padding: 8px;">
+                                                <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
+                                            </a>
                                         </li>
-                                    @endforeach
-                                    <li>
-                                        <a href="{{ route('SupplyOrders.edit_status') }}"
-                                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                            style="border-top: 1px solid #ddd; padding: 8px;">
-                                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </form>
+                                    </ul>
+                                </div>
+                            </form>
+                        @endif
+
 
                         <!-- الموظفين المعينين -->
 
