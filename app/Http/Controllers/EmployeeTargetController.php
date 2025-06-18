@@ -296,6 +296,17 @@ class EmployeeTargetController extends Controller
     ]);
 
 }
+
+ public function updatevisitTarget(Request $request)
+    {
+        $request->validate([
+            'value' => 'required|numeric',
+        ]);
+
+        $target = Target::updateOrCreate(['id' => 3], $request->only(['value']));
+
+        return redirect()->back()->with('success', 'تم تحديث الهدف بنجاح');
+    }
     public function updateGeneralTarget(Request $request)
     {
         $request->validate([

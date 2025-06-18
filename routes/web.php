@@ -70,6 +70,7 @@ Route::group(
 
             // احصائيات الزيارات 
              Route::get('/visitTarget', [EmployeeTargetController::class, 'visitTarget'])->name('visitTarget');
+             Route::post('/visitTarget', [EmployeeTargetController::class, 'updatevisitTarget'])->name('target.visitTarget');
             //احصائيات الفروع
 
             Route::get('/statistics_branch', [StatisticsController::class, 'StatisticsGroup'])->name('statistics.group');
