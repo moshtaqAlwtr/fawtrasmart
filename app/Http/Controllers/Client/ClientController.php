@@ -269,7 +269,7 @@ class ClientController extends Controller
         }
 
         $client = new Client();
-        $client->status_id = 5;
+        $client->status_id = 3;
 
         // الحصول على الرقم الحالي لقسم العملاء من جدول serial_settings
         $serialSetting = SerialSetting::where('section', 'customer')->first();
