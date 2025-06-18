@@ -497,8 +497,3 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
 
 
 }
-
-
-
-
-
