@@ -419,46 +419,88 @@
 <br>
 <br>
 <div class="row">
-    {{-- كارت متوسط التحصيل --}}
-    <div class="col-md-6">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body text-center">
-                <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
-                <div class="display-6 text-primary fw-bold">
-                    {{ number_format($averageBranchCollection) }} <small class="fs-5">ريال</small>
+ <div class="container">
+    {{-- كارت متوسط التحصيل بعرض كامل --}}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
+                    <div class="display-6 text-primary fw-bold">
+                        {{ number_format($averageBranchCollection) }} <small class="fs-5">ريال</small>
+                    </div>
+                    <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
                 </div>
-                <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
             </div>
         </div>
     </div>
 
-    {{-- كارت إحصائيات الزيارات --}}
-    <div class="col-md-6">
-       <div class="card shadow-sm border-0 mb-4">
-    <div class="card-body text-center">
-        <form method="GET" class="mb-3">
-            <div class="input-group" style="max-width: 200px; margin: 0 auto;">
-                <select name="year" class="form-select" onchange="this.form.submit()">
-                    @for($y = now()->year; $y >= now()->year - 5; $y--)
-                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>
-                            {{ $y }}
-                        </option>
-                    @endfor
-                </select>
+    {{-- كارتا الزيارات والتحصيل في صف واحد --}}
+    <div class="row">
+        {{-- كارت إحصائيات الزيارات --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold mb-3">🚶‍♂️ إحصائية الزيارات</h5>
+                    <canvas id="visitChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
+                    <p class="mt-3 text-muted">
+                        {{ number_format($actualVisits) }} زيارة من أصل {{ number_format($target) }}
+                    </p>
+                </div>
             </div>
-        </form>
+        </div>
 
-        <h5 class="fw-bold mb-3">🚶‍♂️ إحصائية الزيارات</h5>
-        <canvas id="visitChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
-
-        <p class="mt-3 text-muted">
-            {{ number_format($actualVisits) }} زيارة من أصل {{ number_format($target) }}
-        </p>
+        {{-- كارت إحصائية التحصيل --}}
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold mb-3">💰 إحصائية التحصيل</h5>
+                    <canvas id="collectionChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
+                    <p class="mt-3 text-muted">
+                        {{ number_format($totalCollection) }} ريال من أصل {{ number_format($collectionTarget) }}
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-    </div>
+
+
 </div>
+@push('scripts')
+<script>
+    const collectionCtx = document.getElementById('collectionChart').getContext('2d');
+    const collectionChart = new Chart(collectionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['المبلغ المحصل', 'المتبقي من الهدف السنوي'],
+            datasets: [{
+                data: [{{ $totalCollection }}, {{ max(0, $collectionTarget - $totalCollection) }}],
+                backgroundColor: ['#1cc88a', '#e0e0e0'],
+                hoverBackgroundColor: ['#17a673', '#d1d1d1'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            cutout: '70%',
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' ريال';
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+</script>
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -467,7 +509,7 @@
     const visitChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['الزيارات المنجزة', 'المتبقي من الهدف'],
+            labels: ['الزيارات المنجزة', 'المتبقي من الهدف السنوي'],
             datasets: [{
                 data: [{{ $actualVisits }}, {{ max(0, $target - $actualVisits) }}],
                 backgroundColor: ['#4e73df', '#e0e0e0'],

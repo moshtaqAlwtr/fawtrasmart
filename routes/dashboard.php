@@ -382,10 +382,30 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
         $lowestRegions = $regionPerformance->sortBy('total_collected')->take(3)->values();
         
 
+ $selectedYear = $request->get('year', now()->year);
+
+    $target = Target::find(3)?->value ?? 30000;
+
+    $actualVisits = Visit::whereYear('visit_date', $year)->count();
+
+    
+    $percentage = $target > 0 ? round(($actualVisits / $target) * 100, 2) : 0;
+    
+    
+   
+
+// الهدف للتحصيل
+$collectionTarget = Target::find(4)?->value ?? 300000;
+
+// مجموع المدفوعات والسندات خلال السنة
+$totalPayments = PaymentsProcess::whereYear('created_at', $selectedYear)->sum('amount');
+$totalReceipts = Receipt::whereYear('created_at', $selectedYear)->sum('amount');
+
+$totalCollection = $totalPayments + $totalReceipts;
+$collectionPercentage = $collectionTarget > 0 ? round(($totalCollection / $collectionTarget) * 100, 2) : 0;
 
 
-
-        return view('dashboard.sales.index', compact('ClientCount', 'cards','averageBranchCollection', 'month','lowestRegions','branchesPerformance','regionPerformance','neighborhoodPerformance', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts'));
+        return view('dashboard.sales.index', compact('ClientCount', 'cards','averageBranchCollection', 'month','lowestRegions','branchesPerformance','regionPerformance','neighborhoodPerformance', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts','target','actualVisits','percentage','selectedYear','collectionTarget','totalCollection','collectionPercentage'));
 
         })->middleware(['auth']);
 
