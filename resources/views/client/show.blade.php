@@ -285,7 +285,7 @@
                             $currentStatus = $client->status;
                         @endphp
 
-                        @if (auth()->user()->role !== 'employee')
+
                             <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
                                 style="min-width: 220px;">
                                 @csrf
@@ -318,12 +318,6 @@
                                     </ul>
                                 </div>
                             </form>
-                        @endif
-
-
-                        <!-- الموظفين المعينين -->
-
-                        <!-- قائمة الخيارات -->
 
                     </div>
                 </div>
