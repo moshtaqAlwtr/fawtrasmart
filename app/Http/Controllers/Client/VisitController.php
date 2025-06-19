@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use TCPDF;
-
+use DB;
 
 
 class VisitController extends Controller
@@ -622,7 +622,7 @@ public function tracktaff(Request $request)
             ]);
         },
     ])->get();
-    
+
     $branches = Branch::with([
     'regionGroups.neighborhoods.client' => function ($query) use ($startDate, $endDate) {
         $query->with([
@@ -643,11 +643,146 @@ public function tracktaff(Request $request)
         })->unique('id')->count();
     });
 
+    $visitsByWeek = DB::table('visits')
+    ->selectRaw("YEAR(created_at) as year, WEEK(created_at, 1) as week_number, COUNT(DISTINCT DATE_FORMAT(created_at, '%Y-%m-%d %H')) as visit_count")
+    ->whereYear('created_at', $year)
+    ->groupBy('year', 'week_number')
+    ->pluck('visit_count', 'week_number');
+
+$paymentsByWeek = DB::table('payments_process')
+    ->join('invoices', 'payments_process.invoice_id', '=', 'invoices.id')
+    ->whereYear('payments_process.created_at', $year)
+    ->where('invoices.type', 'normal')
+    ->whereNull('invoices.reference_number')
+    ->selectRaw("WEEK(payments_process.created_at, 1) as week_number, SUM(payments_process.amount) as total_payment")
+    ->groupBy('week_number')
+    ->pluck('total_payment', 'week_number');
+
+$receiptsByWeek = DB::table('receipts')
+    ->join('accounts', 'receipts.account_id', '=', 'accounts.id')
+    ->whereYear('receipts.created_at', $year)
+    ->selectRaw("WEEK(receipts.created_at, 1) as week_number, SUM(receipts.amount) as total_receipt")
+    ->groupBy('week_number')
+    ->pluck('total_receipt', 'week_number');
+
+$clients = $branches->flatMap(function ($branch) {
+    return $branch->regionGroups->flatMap(function ($group) {
+        return $group->neighborhoods->pluck('client');
+    });
+})->filter()->unique('id')->values();
+$allVisits = \App\Models\Visit::whereBetween('created_at', [$startDate, $endDate])->get();
+$allPayments = \App\Models\PaymentsProcess::whereBetween('created_at', [$startDate, $endDate])->get();
+$allReceipts = \App\Models\Receipt::with('account')
+    ->whereBetween('created_at', [$startDate, $endDate])
+    ->get();
+
+$excludedInvoiceIds = \App\Models\Invoice::whereNotNull('reference_number')
+    ->pluck('reference_number')
+    ->merge(\App\Models\Invoice::where('type', 'returned')->pluck('id'))
+    ->unique()
+    ->toArray();
+
+
+$weeklyStats = [];
+
+$weeklyStats = [];
+
+foreach ($allWeeks as $week) {
+    $weekStart = $week['start']->copy()->startOfDay();
+    $weekEnd = $week['end']->copy()->endOfDay();
+
+    // عدد الزيارات (نأخذ آخر زيارة في كل ساعة)
+    $visitCount = \App\Models\Visit::whereBetween('created_at', [$weekStart, $weekEnd])
+        ->get()
+        ->groupBy(function ($visit) {
+            return $visit->created_at->format('Y-m-d H'); // كل ساعة
+        })
+        ->count();
+
+    // استخراج الفواتير المرجعة
+    $excludedInvoiceIds = \App\Models\Invoice::whereNotNull('reference_number')
+        ->pluck('reference_number')
+        ->merge(
+            \App\Models\Invoice::where('type', 'returned')->pluck('id')
+        )
+        ->unique()
+        ->toArray();
+
+    // مجموع المدفوعات للأسبوع
+    $paymentsSum = \App\Models\PaymentsProcess::whereBetween('created_at', [$weekStart, $weekEnd])
+        ->whereNotIn('invoice_id', $excludedInvoiceIds)
+        ->sum('amount');
+
+    // مجموع سندات القبض
+    $receiptsSum = \App\Models\Receipt::whereBetween('created_at', [$weekStart, $weekEnd])
+        ->sum('amount');
+
+    $weeklyStats[$week['week_number']] = [
+        'visits' => $visitCount,
+        'collection' => $paymentsSum + $receiptsSum,
+    ];
+}
+
+
+$visits = DB::table('visits')
+    ->selectRaw('client_id, WEEK(created_at, 1) as week_number, COUNT(DISTINCT DATE_FORMAT(created_at, "%Y-%m-%d %H")) as visit_count')
+    ->whereYear('created_at', $year)
+    ->groupBy('client_id', 'week_number')
+    ->get();
+
+// الفواتير الصالحة
+$excludedInvoiceIds = DB::table('invoices')
+    ->whereNotNull('reference_number')
+    ->pluck('reference_number')
+    ->merge(
+        DB::table('invoices')->where('type', 'returned')->pluck('id')
+    )
+    ->unique()
+    ->toArray();
+
+// المدفوعات
+$payments = DB::table('payments_process')
+    ->join('invoices', 'payments_process.invoice_id', '=', 'invoices.id')
+    ->whereYear('payments_process.created_at', $year)
+    ->where('invoices.type', 'normal')
+    ->whereNotIn('invoices.id', $excludedInvoiceIds)
+    ->selectRaw('invoices.client_id, WEEK(payments_process.created_at, 1) as week_number, SUM(payments_process.amount) as payment_total')
+    ->groupBy('invoices.client_id', 'week_number')
+    ->get();
+
+// سندات القبض
+$receipts = DB::table('receipts')
+    ->join('accounts', 'receipts.account_id', '=', 'accounts.id')
+    ->whereYear('receipts.created_at', $year)
+    ->selectRaw('accounts.client_id, WEEK(receipts.created_at, 1) as week_number, SUM(receipts.amount) as receipt_total')
+    ->groupBy('accounts.client_id', 'week_number')
+    ->get();
+$clientWeeklyStats = [];
+
+// زيارات
+foreach ($visits as $v) {
+    $clientWeeklyStats[$v->client_id][$v->week_number]['visits'] = $v->visit_count;
+}
+
+// مدفوعات
+foreach ($payments as $p) {
+    $clientWeeklyStats[$p->client_id][$p->week_number]['collection'] = ($clientWeeklyStats[$p->client_id][$p->week_number]['collection'] ?? 0) + $p->payment_total;
+}
+
+// سندات قبض
+foreach ($receipts as $r) {
+    $clientWeeklyStats[$r->client_id][$r->week_number]['collection'] = ($clientWeeklyStats[$r->client_id][$r->week_number]['collection'] ?? 0) + $r->receipt_total;
+}
+
+
+
     return view('reports.sals.traffic_analytics', [
         'branches' => $branches,
         'weeks' => $allWeeks,
         'totalClients' => $totalClients,
-        'currentYear' => $year
+         'clientWeeklyStats' => $clientWeeklyStats,
+        'currentYear' => $year,
+        'weeklyStats' => $weeklyStats,
     ]);
 }
 

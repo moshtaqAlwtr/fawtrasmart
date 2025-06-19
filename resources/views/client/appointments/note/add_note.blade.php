@@ -54,39 +54,7 @@
                             <input type="hidden" name="client_id" value="{{ $id }}">
                         </div>
 
-                        <div class="form-group col-md-6">
-                            <label for="time" class="form-label">اختر الحالة</label>
-                            <div class="dropdown col-md-6">
-                                <button class="btn btn-light dropdown-toggle text-start w-100" type="button"
-                                    id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                    style="background-color: {{ $currentStatus->color ?? '#ffffff' }};
-                                           color: #000;
-                                           border: 1px solid #ccc;">
-                                    {{ $currentStatus->name ?? 'اختر الحالة' }}
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="clientStatusDropdown"
-                                    style="border-radius: 8px;">
-                                    @foreach ($statuses as $status)
-                                        <li>
-                                            <a href="#"
-                                                class="dropdown-item text-white d-flex align-items-center justify-content-between status-option"
-                                                data-id="{{ $status->id }}" data-name="{{ $status->name }}"
-                                                data-color="{{ $status->color }}"
-                                                style="background-color: {{ $status->color }};">
-                                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                    <li>
-                                        <a href="{{ route('SupplyOrders.edit_status') }}"
-                                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                            style="border-top: 1px solid #ddd; padding: 8px;">
-                                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+
                     </div>
 
                     <!-- New Fields -->

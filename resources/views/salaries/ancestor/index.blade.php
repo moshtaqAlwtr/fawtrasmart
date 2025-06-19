@@ -45,26 +45,55 @@
             @endif
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-
-
                     <div class="d-flex align-items-center gap-3">
                         <div class="btn-group">
-                            <button class="btn btn-light border">
-                                <i class="fa fa-chevron-right"></i>
-                            </button>
-                            <button class="btn btn-light border">
-                                <i class="fa fa-chevron-left"></i>
-                            </button>
+                            @if ($ancestors->onFirstPage())
+                                <button class="btn btn-light border" disabled>
+                                    <i class="fa fa-chevron-right"></i>
+                                </button>
+                            @else
+                                <a href="{{ $ancestors->previousPageUrl() }}" class="btn btn-light border">
+                                    <i class="fa fa-chevron-right"></i>
+                                </a>
+                            @endif
+
+                            @if ($ancestors->hasMorePages())
+                                <a href="{{ $ancestors->nextPageUrl() }}" class="btn btn-light border">
+                                    <i class="fa fa-chevron-left"></i>
+                                </a>
+                            @else
+                                <button class="btn btn-light border" disabled>
+                                    <i class="fa fa-chevron-left"></i>
+                                </button>
+                            @endif
                         </div>
-                        <span class="mx-2">1 - 1 من 1</span>
+
+                        <span class="mx-2">
+                            {{ $ancestors->firstItem() }} - {{ $ancestors->lastItem() }} من {{ $ancestors->total() }}
+                        </span>
+
                         <div class="input-group" style="width: 150px">
-                            <input type="text" class="form-control text-center" value="صفحة 1 من 1">
+                            <input type="text" class="form-control text-center"
+                                value="صفحة {{ $ancestors->currentPage() }} من {{ $ancestors->lastPage() }}">
                         </div>
+
                         <div class="dropdown">
-                            <button class="btn btn-gradient-secondary border dropdown-toggle" type="button">
+                            <button class="btn btn-gradient-secondary border dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown">
                                 الإجراءات
                             </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ $request->fullUrlWithQuery(['per_page' => 10]) }}">10
+                                        لكل صفحة</a></li>
+                                <li><a class="dropdown-item" href="{{ $request->fullUrlWithQuery(['per_page' => 25]) }}">25
+                                        لكل صفحة</a></li>
+                                <li><a class="dropdown-item" href="{{ $request->fullUrlWithQuery(['per_page' => 50]) }}">50
+                                        لكل صفحة</a></li>
+                                <li><a class="dropdown-item"
+                                        href="{{ $request->fullUrlWithQuery(['per_page' => 100]) }}">100 لكل صفحة</a></li>
+                            </ul>
                         </div>
+
                         <div class="btn-group">
                             <button class="btn btn-gradient-info border">
                                 <i class="fa fa-table"></i>
@@ -109,7 +138,8 @@
                             <label for="employee_search">البحث بواسطة الموظف</label>
 
 
-                            <select class="form-control select2"name="employee_search" value="{{ request('employee_search') }}">
+                            <select class="form-control select2"name="employee_search"
+                                value="{{ request('employee_search') }}">
                                 <option>اختر الموظف</option>
                                 @foreach ($employees as $employee)
                                     <option value="{{ $employee->id }}"
@@ -138,7 +168,8 @@
                             <select class="form-control" name="status">
                                 <option value="">إختر الحالة</option>
                                 @foreach ($statuses as $key => $status)
-                                    <option value="{{ $key }}" {{ request('status') == $key ? 'selected' : '' }}>
+                                    <option value="{{ $key }}"
+                                        {{ request('status') == $key ? 'selected' : '' }}>
                                         {{ $status }}
                                     </option>
                                 @endforeach
@@ -222,7 +253,7 @@
                                             {{ mb_substr($ancestor->employee->full_name ?? 'غ', 0, 1, 'UTF-8') }}
                                         </div>
                                         <span class="text-primary" style="color: #0d6efd !important;">
-                                            {{ $ancestor->employee->name??'--' }}
+                                            {{ $ancestor->employee->name ?? '--' }}
                                             <span style="margin-right: 4px;">#{{ $ancestor->employee->id }}</span>
                                         </span>
                                     </div>

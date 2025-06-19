@@ -170,6 +170,8 @@
                     $userRole = Auth::user()->role;
                 @endphp
 
+                @if ( auth()->user()->hasPermissionTo('branches'))
+
                 <li class="dropdown dropdown-notification nav-item">
                     <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                         <i class="ficon feather icon-bell"></i>
@@ -327,6 +329,7 @@
                         });
                     });
                 </script>
+                @endif
 
                 <li class="dropdown dropdown-user nav-item">
                     <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
