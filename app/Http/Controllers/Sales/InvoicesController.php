@@ -66,13 +66,24 @@ class InvoicesController extends Controller
     }
 
     public function getUnreadNotifications()
-    {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
+{
+    $user = auth()->user();
 
-        return response()->json(['notifications' => $notifications]);
+    $query = notifications::where('read', 0)
+        ->orderBy('created_at', 'desc');
+
+    if ($user->role === 'employee') {
+        $query->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('receiver_id', $user->id);
+        });
     }
+
+    $notifications = $query->get(['id', 'title', 'description', 'created_at']);
+
+    return response()->json(['notifications' => $notifications]);
+}
+
 
     /**
      * Display a listing of invoices.
@@ -418,19 +429,27 @@ public function getPrice(Request $request)
 
 public function notifications(Request $request)
 {
-    $query = notifications::with('user')
+    $user = auth()->user();
+
+    $query = notifications::with(['user', 'receiver'])
         ->where('read', 0)
         ->orderBy('created_at', 'desc');
 
-    // إضافة فلتر البحث حسب الموظف إذا تم توفيره
+    // إذا المستخدم الحالي موظف، نعرض له فقط إشعاراته أو المرسلة إليه
+    if ($user->role === 'employee') {
+        $query->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('receiver_id', $user->id);
+        });
+    }
+
+    // في حالة وجود فلتر بحث يدوي (من الأدمن مثلاً)
     if ($request->has('user_id') && $request->user_id != '') {
         $query->where('user_id', $request->user_id);
     }
 
-    // استبدال get() بـ paginate() لإضافة التقسيم للصفحات
-    $notifications = $query->paginate(100, ['id', 'user_id', 'title', 'description', 'created_at']);
-
-    $users = User::where('role', 'employee')->get(); // جلب جميع الموظفين للبحث
+    $notifications = $query->paginate(100, ['id', 'user_id', 'receiver_id', 'title', 'description', 'created_at']);
+    $users = User::where('role', 'employee')->get();
 
     return view('notifications.index', compact('notifications', 'users'));
 }
