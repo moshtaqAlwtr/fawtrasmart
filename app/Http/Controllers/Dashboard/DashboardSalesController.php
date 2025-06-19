@@ -1,45 +1,28 @@
 <?php
 
-use App\Http\Controllers\Dashboard\DashboardSalesController;
-use Illuminate\Support\Facades\Route;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+namespace App\Http\Controllers\Dashboard;
+
+use App\Http\Controllers\Controller;
+use App\Models\Account;
+use Illuminate\Http\Request;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Neighborhood;
+use App\Models\PaymentsProcess;
+use App\Models\Receipt;
+use App\Models\Target;
 use App\Models\Visit;
 use App\Models\User;
-use App\Models\PaymentsProcess;
-use App\Models\ClientEmployee;
-use App\Models\Receipt;
-use Illuminate\Http\Request;
-use App\Models\Target;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
+use App\Models\ClientEmployee;
 use Carbon\Carbon;
+use DB;
 
+class DashboardSalesController extends Controller
+{
+    public function index(Request $request)
+    {
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-require __DIR__ . '/auth.php';
-
-Route::group(
-    [
-        'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'check.branch']
-    ],
-    function () {
-
-        Route::get('', function (Request $request) {
-      
         $ClientCount = Client::count();
         $Invoice = Invoice::where('type', 'normal')->sum('grand_total');
         $Visit = Visit::count();
@@ -365,6 +348,41 @@ $regionPerformance = $clients
 
 
 
+// 2. حساب أداء الفروع
+// $branchesPerformance = Client::with('branch')
+//     ->whereNotNull('branch_id')
+//     ->get()
+//     ->groupBy('branch_id')
+//     ->map(function (Collection $clientsInBranch) use ($excludedInvoiceIds) {
+//         $branchName = optional($clientsInBranch->first()->branch)->name ?? 'غير معروف';
+
+//         $totalPayments = 0;
+//         $totalReceipts = 0;
+
+//         foreach ($clientsInBranch as $client) {
+//             $invoiceIds = Invoice::where('client_id', $client->id)
+//                 ->where('type', 'normal')
+//                 ->whereNotIn('id', $excludedInvoiceIds)
+//                 ->pluck('id');
+
+//             $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+
+//             $receipts = Receipt::whereHas('account', function ($q) use ($client) {
+//                 $q->where('client_id', $client->id);
+//             })->sum('amount');
+
+//             $totalPayments += $payments;
+//             $totalReceipts += $receipts;
+//         }
+
+//         return (object)[
+//             'branch_id' => $clientsInBranch->first()->branch_id,
+//             'branch_name' => $branchName,
+//             'total_collected' => $totalPayments + $totalReceipts,
+//             'payments' => $totalPayments,
+//             'receipts' => $totalReceipts,
+//         ];
+//     })->sortByDesc('total_collected')->values();
 
 // 3. متوسط التحصيل على مستوى الفروع
 $averageBranchCollection = $branchesPerformance->avg('total_collected');
@@ -381,20 +399,15 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
 
         $lowestRegions = $regionPerformance->sortBy('total_collected')->take(3)->values();
         
-
- $selectedYear = $request->get('year', now()->year);
+    $selectedYear = $request->get('year', now()->year);
 
     $target = Target::find(3)?->value ?? 30000;
 
     $actualVisits = Visit::whereYear('visit_date', $year)->count();
 
-    
     $percentage = $target > 0 ? round(($actualVisits / $target) * 100, 2) : 0;
-    
-    
-   
 
-// الهدف للتحصيل
+    
 $collectionTarget = Target::find(4)?->value ?? 300000;
 
 // مجموع المدفوعات والسندات خلال السنة
@@ -403,26 +416,96 @@ $totalReceipts = Receipt::whereYear('created_at', $selectedYear)->sum('amount');
 
 $totalCollection = $totalPayments + $totalReceipts;
 $collectionPercentage = $collectionTarget > 0 ? round(($totalCollection / $collectionTarget) * 100, 2) : 0;
-
+ 
 
         return view('dashboard.sales.index', compact('ClientCount', 'cards','averageBranchCollection', 'month','lowestRegions','branchesPerformance','regionPerformance','neighborhoodPerformance', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts','target','actualVisits','percentage','selectedYear','collectionTarget','totalCollection','collectionPercentage'));
-
-        })->middleware(['auth']);
-
-        Route::prefix('dashboard')->middleware(['auth'])->group(function () {
-            #questions routes
-            Route::prefix('sales')->group(function () {
-                Route::get('/index', [DashboardSalesController::class, 'index'])->name('dashboard_sales.index');
-            });
-        });
-
+        return view('dashboard.sales.index', compact('ClientCount', 'Invoice'));
+    }
+    
+      private function calculateBranchStats($clients, $excludedInvoiceIds)
+    {
+        $stats = [
+            'total_payments' => 0,
+            'total_receipts' => 0,
+            'total_clients' => $clients->count(),
+            'avg_payment_per_client' => 0,
+            'avg_receipt_per_client' => 0,
+            'payment_activity_rate' => 0,
+            'receipt_activity_rate' => 0
+        ];
+        
+        $activePaymentClients = 0;
+        $activeReceiptClients = 0;
+        
+        foreach ($clients as $client) {
+            $invoiceIds = Invoice::where('client_id', $client->id)
+                ->where('type', 'normal')
+                ->whereNotIn('id', $excludedInvoiceIds)
+                ->pluck('id');
+            
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+            $receipts = Receipt::whereHas('account', fn($q) => $q->where('client_id', $client->id))
+                ->sum('amount');
+            
+            $stats['total_payments'] += $payments;
+            $stats['total_receipts'] += $receipts;
+            
+            if ($payments > 0) $activePaymentClients++;
+            if ($receipts > 0) $activeReceiptClients++;
+        }
+        
+        $stats['avg_payment_per_client'] = $stats['total_payments'] / max(1, $stats['total_clients']);
+        $stats['avg_receipt_per_client'] = $stats['total_receipts'] / max(1, $stats['total_clients']);
+        $stats['payment_activity_rate'] = ($activePaymentClients / max(1, $stats['total_clients'])) * 100;
+        $stats['receipt_activity_rate'] = ($activeReceiptClients / max(1, $stats['total_clients'])) * 100;
+        
+        return $stats;
+    }
+    
+    private function calculateRegionStats($clients, $excludedInvoiceIds, $branchStats)
+    {
+        $regionStats = [
+            'total_payments' => 0,
+            'total_receipts' => 0,
+            'clients_count' => $clients->count(),
+            'active_payment_clients' => 0,
+            'active_receipt_clients' => 0,
+            'payment_activity_rate' => 0,
+            'receipt_activity_rate' => 0
+        ];
+        
+        foreach ($clients as $client) {
+            $invoiceIds = Invoice::where('client_id', $client->id)
+                ->where('type', 'normal')
+                ->whereNotIn('id', $excludedInvoiceIds)
+                ->pluck('id');
+            
+            $payments = PaymentsProcess::whereIn('invoice_id', $invoiceIds)->sum('amount');
+            $receipts = Receipt::whereHas('account', fn($q) => $q->where('client_id', $client->id))
+                ->sum('amount');
+            
+            $regionStats['total_payments'] += $payments;
+            $regionStats['total_receipts'] += $receipts;
+            
+            if ($payments > 0) $regionStats['active_payment_clients']++;
+            if ($receipts > 0) $regionStats['active_receipt_clients']++;
+        }
+        
+        // حساب النسب والنشاط
+        $regionStats['payment_activity_rate'] = ($regionStats['active_payment_clients'] / max(1, $regionStats['clients_count'])) * 100;
+        $regionStats['receipt_activity_rate'] = ($regionStats['active_receipt_clients'] / max(1, $regionStats['clients_count'])) * 100;
+        
+        // حساب درجات الأداء
+        $paymentScore = ($regionStats['payment_activity_rate'] / max(1, $branchStats['payment_activity_rate'])) * 50;
+        $receiptScore = ($regionStats['receipt_activity_rate'] / max(1, $branchStats['receipt_activity_rate'])) * 50;
+        
+        $regionStats['performance_score'] = round($paymentScore + $receiptScore, 2);
+        
+        return $regionStats;
     }
 
 
-);
-
-
-
+}
 
 
 
