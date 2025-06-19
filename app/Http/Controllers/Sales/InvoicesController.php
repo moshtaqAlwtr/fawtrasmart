@@ -1855,6 +1855,7 @@ private function determineTreasury()
     return $treasury;
 }
 
+
 private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
 {
     $invoice = Invoice::findOrFail($invoiceId);
@@ -1941,15 +1942,6 @@ private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
 }
 
 }
-
-
-
-
-
-
-
-
-
 
 
 

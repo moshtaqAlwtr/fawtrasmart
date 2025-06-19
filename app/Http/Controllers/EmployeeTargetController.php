@@ -45,6 +45,15 @@ class EmployeeTargetController extends Controller
 
         return view('client_target.index', compact('target'));
     }
+
+    public function visitTarget()
+    {
+        // جلب الهدف الأول أو إنشائه إذا لم يكن موجوداً
+        // الهدف العام للزيارات
+        $target = Target::firstOrCreate(['id' => 3], ['value' => 1000]);
+
+        return view('employee_targets.visitTarget', compact('target'));
+    }
     public function client_target_store(Request $request)
     {
         $request->validate([
@@ -287,6 +296,17 @@ class EmployeeTargetController extends Controller
     ]);
 
 }
+
+ public function updatevisitTarget(Request $request)
+    {
+        $request->validate([
+            'value' => 'required|numeric',
+        ]);
+
+        $target = Target::updateOrCreate(['id' => 3], $request->only(['value']));
+
+        return redirect()->back()->with('success', 'تم تحديث الهدف بنجاح');
+    }
     public function updateGeneralTarget(Request $request)
     {
         $request->validate([

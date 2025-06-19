@@ -418,17 +418,82 @@
 
 <br>
 <br>
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-body text-center">
-        <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
-        <div class="display-6 text-primary fw-bold">
-            {{ number_format($averageBranchCollection) }} <small class="fs-5">ريال</small>
+<div class="row">
+    {{-- كارت متوسط التحصيل --}}
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body text-center">
+                <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
+                <div class="display-6 text-primary fw-bold">
+                    {{ number_format($averageBranchCollection) }} <small class="fs-5">ريال</small>
+                </div>
+                <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
+            </div>
         </div>
-        <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
+    </div>
+
+    {{-- كارت إحصائيات الزيارات --}}
+    <div class="col-md-6">
+       <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body text-center">
+        <form method="GET" class="mb-3">
+            <div class="input-group" style="max-width: 200px; margin: 0 auto;">
+                <select name="year" class="form-select" onchange="this.form.submit()">
+                    @for($y = now()->year; $y >= now()->year - 5; $y--)
+                        <option value="{{ $y }}" {{ $selectedYear == $y ? 'selected' : '' }}>
+                            {{ $y }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+        </form>
+
+        <h5 class="fw-bold mb-3">🚶‍♂️ إحصائية الزيارات</h5>
+        <canvas id="visitChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
+
+        <p class="mt-3 text-muted">
+            {{ number_format($actualVisits) }} زيارة من أصل {{ number_format($target) }}
+        </p>
     </div>
 </div>
 
+    </div>
+</div>
 
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('visitChart').getContext('2d');
+    const visitChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['الزيارات المنجزة', 'المتبقي من الهدف'],
+            datasets: [{
+                data: [{{ $actualVisits }}, {{ max(0, $target - $actualVisits) }}],
+                backgroundColor: ['#4e73df', '#e0e0e0'],
+                hoverBackgroundColor: ['#2e59d9', '#d1d1d1'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            cutout: '70%',
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' زيارة';
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+</script>
+@endpush
 
 
 <div class="container py-4">

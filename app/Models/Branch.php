@@ -40,4 +40,9 @@ class Branch extends Model
     {
         return $this->hasMany(Client::class, 'branch_id');
     }
+    public function regionGroups()
+{
+    return $this->hasMany(Region_groub::class, 'branch_id');
+}
+
 }
