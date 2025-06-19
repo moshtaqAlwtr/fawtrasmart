@@ -65,7 +65,7 @@ class InvoicesController extends Controller
         $this->journalEntryService = $journalEntryService;
     }
 
-    public function getUnreadNotifications()
+public function getUnreadNotifications()
 {
     $user = auth()->user();
 
@@ -79,10 +79,15 @@ class InvoicesController extends Controller
         });
     }
 
-    $notifications = $query->get(['id', 'title', 'description', 'created_at']);
+    $notifications = $query->get(['id', 'title', 'description', 'created_at', 'user_id', 'receiver_id']);
 
-    return response()->json(['notifications' => $notifications]);
+    return response()->json([
+        'notifications' => $notifications,
+        'auth_id' => $user->id, // للمراجعة
+        'role' => $user->role   // للمراجعة
+    ]);
 }
+
 
 
     /**

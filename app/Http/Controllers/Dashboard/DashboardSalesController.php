@@ -39,7 +39,7 @@ Route::group(
     function () {
 
         Route::get('', function (Request $request) {
-      
+
         $ClientCount = Client::count();
         $Invoice = Invoice::where('type', 'normal')->sum('grand_total');
         $Visit = Visit::count();
@@ -243,8 +243,8 @@ $branchesPerformance = $clients->groupBy('branch_id')->map(function ($clientsInB
     ];
 })->sortByDesc('total_collected')->values();
 
-    
-    
+
+
   // 1. تحميل الفواتير الصالحة دفعة واحدة
 $validInvoices = Invoice::where('type', 'normal')
     ->whereNotIn('id', $excludedInvoiceIds)
@@ -307,7 +307,7 @@ $branchesPerformance = $branchesPerformance->map(function ($branch) use ($maxTot
     return $branch;
 });
 
-// المناطق او المجموعات 
+// المناطق او المجموعات
 // 1. الفواتير الصالحة دفعة واحدة
 $validInvoices = Invoice::where('type', 'normal')
     ->whereNotIn('id', $excludedInvoiceIds)
@@ -376,11 +376,11 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
         $totalSales    = $groups->sum('total_sales');
         $totalPayments = $payments->sum('total_payments');
         $totalReceipts = $receipts->sum('total_receipts');
-        
+
         $averageRegionCollection = $regionPerformance->avg('total_collected');
 
         $lowestRegions = $regionPerformance->sortBy('total_collected')->take(3)->values();
-        
+
 
  $selectedYear = $request->get('year', now()->year);
 
@@ -388,11 +388,11 @@ $averageBranchCollection = $branchesPerformance->avg('total_collected');
 
     $actualVisits = Visit::whereYear('visit_date', $year)->count();
 
-    
+
     $percentage = $target > 0 ? round(($actualVisits / $target) * 100, 2) : 0;
-    
-    
-   
+
+
+
 
 // الهدف للتحصيل
 $collectionTarget = Target::find(4)?->value ?? 300000;
