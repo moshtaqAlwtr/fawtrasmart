@@ -28,4 +28,11 @@ public function client()
 {
     return $this->belongsTo(Client::class);
 }
+public function clients()
+{
+    return $this->hasMany(Client::class, 'status_id', 'id');
+}
+
+    // Define the relationship to the Client model
+  
 }

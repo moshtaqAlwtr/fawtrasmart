@@ -1,11 +1,9 @@
-@extends('master')
-
-@section('title')
+<?php $__env->startSection('title'); ?>
     لوحة التحكم
-@stop
+<?php $__env->stopSection(); ?>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-@section('css')
+<?php $__env->startSection('css'); ?>
     <style>
         .ficon {
 
@@ -157,18 +155,18 @@
 
 
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 
     <div class="card">
         <div class="card-body">
             <div class="d-flex justify-between align-items-center mb-1">
                 <div class="mr-1">
-                    <p><span>{{ \Carbon\Carbon::now()->translatedFormat('l، d F Y') }}</span></p>
+                    <p><span><?php echo e(\Carbon\Carbon::now()->translatedFormat('l، d F Y')); ?></span></p>
                     <h4 class="content-header-title float-left mb-0"> أهلاً <strong
-                            style="color: #2C2C2C">{{ auth()->user()->name }} ، </strong> مرحباً بعودتك!</h4>
+                            style="color: #2C2C2C"><?php echo e(auth()->user()->name); ?> ، </strong> مرحباً بعودتك!</h4>
                 </div>
                 <div class="ml-auto bg-rgba-success">
                     <a href="" class="text-success"><i class="ficon feather icon-globe"></i> <span>الذهاب إلى
@@ -177,85 +175,17 @@
             </div>
         </div>
     </div>
-{{-- العملاء والمبيعات والزيارات والطلبات الواردة --}}
-    {{-- <div class="content-body">
 
-        <section id="dashboard-ecommerce">
-            <div class="row">
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-primary p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-users text-primary font-medium-5"></i>
-                                </div>
-                            </div>
-                            <h2 class="text-bold-700 mt-1">{{ $ClientCount ?? 0 }}</h2>
-                            <p class="mb-0">العملاء</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-1"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-success p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-credit-card text-success font-medium-5"></i>
-                                </div>
-                            </div>
-                            <h2 class="text-bold-700 mt-1"> {{ number_format($Invoice, 2) ?? 0 }}</h2>
-                            <p class="mb-0">المبيعات</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-2"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-danger p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-shopping-cart text-danger font-medium-5"></i>
-                                </div>
-                            </div>
-                            <h2 class="text-bold-700 mt-1">{{ $Visit ?? 0 }}</h2>
-                            <p class="mb-0">الزيارات</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-3"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-warning p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-package text-warning font-medium-5"></i>
-                                </div>
-                            </div>
-                            <h2 class="text-bold-700 mt-1">97.5K</h2>
-                            <p class="mb-0">الطلبات الواردة</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-4"></div>
-                        </div>
-                    </div>
-                </div>
-            </div> --}}
+    
   <div class="content-body">
     <section id="dashboard-ecommerce">
         <div class="row">
 
-            {{-- ✅ بطاقة العملاء حسب الحالة – فاخرة بعرض كامل --}}
+            
 <div class="col-12 mb-4">
     <div class="card shadow-lg border-0 rounded-4 bg-white">
         <div class="card-body">
-            {{-- العنوان الرئيسي للبطاقة --}}
+            
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div class="d-flex align-items-center">
                     <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3 shadow" style="width: 70px; height: 70px;">
@@ -264,17 +194,17 @@
                     <div>
                         <h3 class="font-weight-bolder mb-1">العملاء  </h3>
                         <h6 class="text-muted">إجمالي العملاء:
-                            <span class="text-dark font-weight-bold">{{ $totalClients ?? 0 }}</span>
+                            <span class="text-dark font-weight-bold"><?php echo e($totalClients ?? 0); ?></span>
                         </h6>
                     </div>
                 </div>
-                <img src="{{ asset('images/client-status.png') }}" alt="clients" height="60">
+                <img src="<?php echo e(asset('images/client-status.png')); ?>" alt="clients" height="60">
             </div>
 
-            {{-- عرض الحالات بدون أي خلفية رمادية --}}
+            
             <div class="row">
-                @foreach($statuses as $status)
-                    @php
+                <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $icon = match($status->name) {
                             'نشط' => 'check-circle',
                             'متابعة' => 'eye',
@@ -287,21 +217,21 @@
                             'موقوف' => 'danger',
                             default => 'secondary'
                         };
-                    @endphp
+                    ?>
                     <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-3">
                         <div class="card border-0 shadow-sm rounded-3 h-100 bg-white">
                             <div class="card-body d-flex align-items-center">
-                                <div class="avatar bg-{{ $color }} text-white rounded-circle d-flex align-items-center justify-content-center mr-3 shadow-sm" style="width: 50px; height: 50px;">
-                                    <i class="feather icon-{{ $icon }} font-medium-4"></i>
+                                <div class="avatar bg-<?php echo e($color); ?> text-white rounded-circle d-flex align-items-center justify-content-center mr-3 shadow-sm" style="width: 50px; height: 50px;">
+                                    <i class="feather icon-<?php echo e($icon); ?> font-medium-4"></i>
                                 </div>
                                 <div>
-                                    <h5 class="font-weight-bold text-dark mb-0">{{ $status->name }}</h5>
-                                    <h4 class="font-weight-bolder text-{{ $color }}">{{ $status->clients->count() }}</h4>
+                                    <h5 class="font-weight-bold text-dark mb-0"><?php echo e($status->name); ?></h5>
+                                    <h4 class="font-weight-bolder text-<?php echo e($color); ?>"><?php echo e($status->clients->count()); ?></h4>
                                 </div>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
 
         </div>
@@ -309,7 +239,7 @@
 </div>
 
 
-            {{-- ✅ بطاقة المبيعات --}}
+            
             <div class="col-md-6 col-12 mb-3">
                 <div class="card shadow-lg border-0 rounded-2">
                     <div class="card-body">
@@ -322,13 +252,13 @@
                                 <small class="text-muted">الإجمالي</small>
                             </div>
                         </div>
-                        <h3 class="text-success font-weight-bold">{{ number_format($Invoice, 2) ?? 0 }}</h3>
+                        <h3 class="text-success font-weight-bold"><?php echo e(number_format($Invoice, 2) ?? 0); ?></h3>
                         <div id="line-area-chart-2" style="height: 80px;"></div>
                     </div>
                 </div>
             </div>
 
-            {{-- ✅ بطاقة الزيارات --}}
+            
             <div class="col-md-6 col-12 mb-3">
                 <div class="card shadow-lg border-0 rounded-2">
                     <div class="card-body">
@@ -341,13 +271,13 @@
                                 <small class="text-muted">عدد الزيارات</small>
                             </div>
                         </div>
-                        <h3 class="text-danger font-weight-bold">{{ $Visit ?? 0 }}</h3>
+                        <h3 class="text-danger font-weight-bold"><?php echo e($Visit ?? 0); ?></h3>
                         <div id="line-area-chart-3" style="height: 80px;"></div>
                     </div>
                 </div>
             </div>
 
-            {{-- ✅ بطاقة الطلبات --}}
+            
             <div class="col-md-6 col-12 mb-3">
                 <div class="card shadow-lg border-0 rounded-2">
                     <div class="card-body">
@@ -376,9 +306,9 @@
 
            
             
-           {{--أفضل الفروع والمجموعات والاحياء --}}
+           
 <div class="row g-3">
-    @if ($branchesPerformance->count() >= 3)
+    <?php if($branchesPerformance->count() >= 3): ?>
   <div class="col-md-4">
     <div class="card shadow-sm border-0 h-100">
         <div class="card-body">
@@ -387,58 +317,59 @@
                 <h5 class="fw-bold mb-0">
                     ⭐ أفضل الفروع أداءً
                 </h5>
-                <a href="{{route('statistics.group')}}" class="btn btn-sm btn-outline-primary">
+                <a href="<?php echo e(route('statistics.group')); ?>" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i> عرض الكل
                 </a>
             </div>
 
-            @foreach ($branchesPerformance->take(3) as $index => $branch)
-              @php
+            <?php $__currentLoopData = $branchesPerformance->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+              <?php
                 $max = $branchesPerformance->max('total_collected') ?: 1;
                 $percentage = round($branch->total_collected / $max * 100, 2);
                 $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
                 $color = $colors[$index] ?? '#ccc';
-              @endphp
+              ?>
 
               <div class="mb-4 position-relative">
                   <div class="d-flex justify-content-between align-items-center mb-2">
-                      <div class="fw-bold fs-6 text-truncate">{{ $branch->branch_name }}</div>
+                      <div class="fw-bold fs-6 text-truncate"><?php echo e($branch->branch_name); ?></div>
                       <span class="badge rounded-circle text-white fw-bold"
-                          style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
-                          {{ $index + 1 }}
+                          style="background-color: <?php echo e($color); ?>; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                          <?php echo e($index + 1); ?>
+
                       </span>
                   </div>
 
                   <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
                       <div class="progress-bar"
                           role="progressbar"
-                          style="width: {{ min($percentage, 100) }}%;"
-                          aria-valuenow="{{ $percentage }}"
+                          style="width: <?php echo e(min($percentage, 100)); ?>%;"
+                          aria-valuenow="<?php echo e($percentage); ?>"
                           aria-valuemin="0"
                           aria-valuemax="100">
                       </div>
                   </div>
 
                   <div class="text-end mb-2 text-muted small">
-                      {{ $percentage }}٪ من التحصيل الأعلى
+                      <?php echo e($percentage); ?>٪ من التحصيل الأعلى
                   </div>
 
                   <div class="text-muted small">
-                      🔹 المدفوعات: <strong>{{ number_format($branch->payments) }}</strong> ر.س<br>
-                      🔹 السندات: <strong>{{ number_format($branch->receipts) }}</strong> ر.س<br>
-                      🔸 الإجمالي: <strong>{{ number_format($branch->total_collected) }}</strong> ر.س
+                      🔹 المدفوعات: <strong><?php echo e(number_format($branch->payments)); ?></strong> ر.س<br>
+                      🔹 السندات: <strong><?php echo e(number_format($branch->receipts)); ?></strong> ر.س<br>
+                      🔸 الإجمالي: <strong><?php echo e(number_format($branch->total_collected)); ?></strong> ر.س
                   </div>
                   
                   <!-- زر عرض التفاصيل -->
                  
               </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
     </div>
 </div>
-    @endif
+    <?php endif; ?>
 
-    @if ($regionPerformance->count() >= 3)
+    <?php if($regionPerformance->count() >= 3): ?>
     <div class="col-md-4">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
@@ -447,53 +378,54 @@
                 <h5 class="fw-bold mb-0">
                     🗺️ أفضل المجموعات أداءً
                 </h5>
-                <a href="{{route('statistics.groupall')}}" class="btn btn-sm btn-outline-primary">
+                <a href="<?php echo e(route('statistics.groupall')); ?>" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i> عرض الكل
                 </a>
             </div>
-                @foreach ($regionPerformance->take(3) as $index => $region)
-                @php
+                <?php $__currentLoopData = $regionPerformance->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $region): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
                     $max = $regionPerformance->max('total_collected') ?: 1;
                     $percent = round($region->total_collected / $max * 100, 2);
                     $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
                     $color = $colors[$index] ?? '#ccc';
-                @endphp
+                ?>
 
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="fw-bold fs-6 text-truncate">{{ $region->region_name }}</div>
+                        <div class="fw-bold fs-6 text-truncate"><?php echo e($region->region_name); ?></div>
                         <span class="badge text-white fw-bold rounded-circle"
-                            style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
-                            {{ $index + 1 }}
+                            style="background-color: <?php echo e($color); ?>; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            <?php echo e($index + 1); ?>
+
                         </span>
                     </div>
 
                     <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
                         <div class="progress-bar"
                             role="progressbar"
-                            style="width: {{ $percent }}%; background-color: {{ $color }};"
-                            aria-valuenow="{{ $percent }}"
+                            style="width: <?php echo e($percent); ?>%; background-color: <?php echo e($color); ?>;"
+                            aria-valuenow="<?php echo e($percent); ?>"
                             aria-valuemin="0" aria-valuemax="100">
                         </div>
                     </div>
 
                     <div class="text-end mb-2 text-muted small">
-                        {{ $percent }}٪ من الأعلى
+                        <?php echo e($percent); ?>٪ من الأعلى
                     </div>
 
                     <div class="text-muted small">
-                        🔹 المدفوعات: <strong>{{ number_format($region->payments) }}</strong> ر.س<br>
-                        🔹 السندات: <strong>{{ number_format($region->receipts) }}</strong> ر.س<br>
-                        🔸 الإجمالي: <strong>{{ number_format($region->total_collected) }}</strong> ر.س
+                        🔹 المدفوعات: <strong><?php echo e(number_format($region->payments)); ?></strong> ر.س<br>
+                        🔹 السندات: <strong><?php echo e(number_format($region->receipts)); ?></strong> ر.س<br>
+                        🔸 الإجمالي: <strong><?php echo e(number_format($region->total_collected)); ?></strong> ر.س
                     </div>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
     </div>
-    @endif
+    <?php endif; ?>
 
-    @if ($neighborhoodPerformance->count() >= 3)
+    <?php if($neighborhoodPerformance->count() >= 3): ?>
     <div class="col-md-4">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body">
@@ -502,65 +434,66 @@
                 <h5 class="fw-bold mb-0">
                      🏘️ أفضل الأحياء أداءً
                 </h5>
-                <a href="{{route('statistics.neighborhood')}}" class="btn btn-sm btn-outline-primary">
+                <a href="<?php echo e(route('statistics.neighborhood')); ?>" class="btn btn-sm btn-outline-primary">
                     <i class="fas fa-list me-1"></i> عرض الكل
                 </a>
             </div>
-                @foreach ($neighborhoodPerformance->take(3) as $index => $neigh)
-                @php
+                <?php $__currentLoopData = $neighborhoodPerformance->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $neigh): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
                     $max = $neighborhoodPerformance->max('total_collected') ?: 1;
                     $percent = round($neigh->total_collected / $max * 100, 2);
                     $colors = ['#d8a700', '#a2a6b1', '#a14f03'];
                     $color = $colors[$index] ?? '#ccc';
-                @endphp
+                ?>
 
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="fw-bold fs-6 text-truncate">{{ $neigh->neighborhood_name }}</div>
+                        <div class="fw-bold fs-6 text-truncate"><?php echo e($neigh->neighborhood_name); ?></div>
                         <span class="badge text-white fw-bold rounded-circle"
-                            style="background-color: {{ $color }}; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
-                            {{ $index + 1 }}
+                            style="background-color: <?php echo e($color); ?>; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                            <?php echo e($index + 1); ?>
+
                         </span>
                     </div>
 
                     <div class="progress mb-1" style="height: 8px; direction: rtl; background-color: #eee;">
                         <div class="progress-bar"
                             role="progressbar"
-                            style="width: {{ $percent }}%; background-color: {{ $color }};"
-                            aria-valuenow="{{ $percent }}"
+                            style="width: <?php echo e($percent); ?>%; background-color: <?php echo e($color); ?>;"
+                            aria-valuenow="<?php echo e($percent); ?>"
                             aria-valuemin="0" aria-valuemax="100">
                         </div>
                     </div>
 
                     <div class="text-end mb-2 text-muted small">
-                        {{ $percent }}٪ من الأعلى
+                        <?php echo e($percent); ?>٪ من الأعلى
                     </div>
 
                     <div class="text-muted small">
-                        🔹 المدفوعات: <strong>{{ number_format($neigh->payments) }}</strong> ر.س<br>
-                        🔹 السندات: <strong>{{ number_format($neigh->receipts) }}</strong> ر.س<br>
-                        🔸 الإجمالي: <strong>{{ number_format($neigh->total_collected) }}</strong> ر.س
+                        🔹 المدفوعات: <strong><?php echo e(number_format($neigh->payments)); ?></strong> ر.س<br>
+                        🔹 السندات: <strong><?php echo e(number_format($neigh->receipts)); ?></strong> ر.س<br>
+                        🔸 الإجمالي: <strong><?php echo e(number_format($neigh->total_collected)); ?></strong> ر.س
                     </div>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
     </div>
-    @endif
+    <?php endif; ?>
 </div>
 
 <br>
 <br>
 <div class="row">
  <div class="container">
-    {{-- كارت متوسط التحصيل بعرض كامل --}}
+    
     <div class="row">
         <div class="col-md-12">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body text-center">
                     <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
                     <div class="display-6 text-primary fw-bold">
-                        {{ number_format($averageBranchCollection) }} <small class="fs-5">ريال</small>
+                        <?php echo e(number_format($averageBranchCollection)); ?> <small class="fs-5">ريال</small>
                     </div>
                     <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
                 </div>
@@ -568,29 +501,31 @@
         </div>
     </div>
 
-    {{-- كارتا الزيارات والتحصيل في صف واحد --}}
+    
     <div class="row">
-        {{-- كارت إحصائيات الزيارات --}}
+        
         <div class="col-md-6">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body text-center">
                     <h5 class="fw-bold mb-3">🚶‍♂️ إحصائية الزيارات</h5>
                     <canvas id="visitChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
                     <p class="mt-3 text-muted">
-                        {{ number_format($actualVisits) }} زيارة من أصل {{ number_format($target) }}
+                        <?php echo e(number_format($actualVisits)); ?> زيارة من أصل <?php echo e(number_format($target)); ?>
+
                     </p>
                 </div>
             </div>
         </div>
 
-        {{-- كارت إحصائية التحصيل --}}
+        
         <div class="col-md-6">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body text-center">
                     <h5 class="fw-bold mb-3">💰 إحصائية التحصيل</h5>
                     <canvas id="collectionChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
                     <p class="mt-3 text-muted">
-                        {{ number_format($totalCollection) }} ريال من أصل {{ number_format($collectionTarget) }}
+                        <?php echo e(number_format($totalCollection)); ?> ريال من أصل <?php echo e(number_format($collectionTarget)); ?>
+
                     </p>
                 </div>
             </div>
@@ -601,7 +536,7 @@
 
 
 </div>
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     const collectionCtx = document.getElementById('collectionChart').getContext('2d');
     const collectionChart = new Chart(collectionCtx, {
@@ -609,7 +544,7 @@
         data: {
             labels: ['المبلغ المحصل', 'المتبقي من الهدف السنوي'],
             datasets: [{
-                data: [{{ $totalCollection }}, {{ max(0, $collectionTarget - $totalCollection) }}],
+                data: [<?php echo e($totalCollection); ?>, <?php echo e(max(0, $collectionTarget - $totalCollection)); ?>],
                 backgroundColor: ['#1cc88a', '#e0e0e0'],
                 hoverBackgroundColor: ['#17a673', '#d1d1d1'],
                 borderWidth: 1,
@@ -633,9 +568,9 @@
         }
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('visitChart').getContext('2d');
@@ -644,7 +579,7 @@
         data: {
             labels: ['الزيارات المنجزة', 'المتبقي من الهدف السنوي'],
             datasets: [{
-                data: [{{ $actualVisits }}, {{ max(0, $target - $actualVisits) }}],
+                data: [<?php echo e($actualVisits); ?>, <?php echo e(max(0, $target - $actualVisits)); ?>],
                 backgroundColor: ['#4e73df', '#e0e0e0'],
                 hoverBackgroundColor: ['#2e59d9', '#d1d1d1'],
                 borderWidth: 1,
@@ -668,7 +603,7 @@
         }
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
 
 <div class="container py-4">
@@ -702,7 +637,7 @@
             <label for="month" class="form-label">اختر الشهر:</label>
         </div>
         <div class="col-auto">
-            <input type="month" name="month" id="month" class="form-control" value="{{ $month }}">
+            <input type="month" name="month" id="month" class="form-control" value="<?php echo e($month); ?>">
         </div>
         <div class="col-auto">
             <button type="submit" class="btn btn-primary">عرض</button>
@@ -722,28 +657,28 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($cards as $card)
+                <?php $__currentLoopData = $cards; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $card): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
                     <td>
-                        <strong>{{ $card['name'] }}</strong>
+                        <strong><?php echo e($card['name']); ?></strong>
                         <div class="text-muted small mt-1">
-                            المدفوعات: {{ number_format($card['payments']) }} ريال<br>
-                            السندات: {{ number_format($card['receipts']) }} ريال<br>
+                            المدفوعات: <?php echo e(number_format($card['payments'])); ?> ريال<br>
+                            السندات: <?php echo e(number_format($card['receipts'])); ?> ريال<br>
                              
-                            الإجمالي: {{ number_format($card['total']) }} / الهدف: {{ number_format($card['target']) }} ريال
+                            الإجمالي: <?php echo e(number_format($card['total'])); ?> / الهدف: <?php echo e(number_format($card['target'])); ?> ريال
                         </div>
                     </td>
-                     <td class="text-end">{{ $card['clients_count'] }}</td>
-                    <td class="text-end">{{ number_format($card['total']) }} ريال</td>
-                    <td class="text-end">{{ number_format($card['target']) }} ريال</td>
+                     <td class="text-end"><?php echo e($card['clients_count']); ?></td>
+                    <td class="text-end"><?php echo e(number_format($card['total'])); ?> ريال</td>
+                    <td class="text-end"><?php echo e(number_format($card['target'])); ?> ريال</td>
                     <td>
                         <div class="d-flex align-items-center">
-                            <span class="text-success me-2">{{ $card['percentage'] }}%</span>
+                            <span class="text-success me-2"><?php echo e($card['percentage']); ?>%</span>
                             <div class="progress" style="width: 100%; height: 8px;">
                                 <div class="progress-bar bg-success"
                                      role="progressbar"
-                                     style="width: {{ $card['percentage'] }}%;"
-                                     aria-valuenow="{{ $card['percentage'] }}"
+                                     style="width: <?php echo e($card['percentage']); ?>%;"
+                                     aria-valuenow="<?php echo e($card['percentage']); ?>"
                                      aria-valuemin="0"
                                      aria-valuemax="100">
                                 </div>
@@ -751,7 +686,7 @@
                         </div>
                     </td>
                 </tr>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tbody>
         </table>
     </div>
@@ -781,7 +716,7 @@
         <div class="card text-center shadow-sm border-success">
             <div class="card-body">
                 <h5 class="text-success">إجمالي المبيعات</h5>
-                <h3 class="fw-bold">{{ number_format($totalSales, 2) }} ريال</h3>
+                <h3 class="fw-bold"><?php echo e(number_format($totalSales, 2)); ?> ريال</h3>
             </div>
         </div>
     </div>
@@ -790,7 +725,7 @@
         <div class="card text-center shadow-sm border-primary">
             <div class="card-body">
                 <h5 class="text-primary">إجمالي المدفوعات</h5>
-                <h3 class="fw-bold">{{ number_format($totalPayments, 2) }} ريال</h3>
+                <h3 class="fw-bold"><?php echo e(number_format($totalPayments, 2)); ?> ريال</h3>
             </div>
         </div>
     </div>
@@ -799,7 +734,7 @@
         <div class="card text-center shadow-sm border-warning">
             <div class="card-body">
                 <h5 class="text-warning">إجمالي سندات القبض</h5>
-                <h3 class="fw-bold">{{ number_format($totalReceipts, 2) }} ريال</h3>
+                <h3 class="fw-bold"><?php echo e(number_format($totalReceipts, 2)); ?> ريال</h3>
             </div>
         </div>
     </div>
@@ -831,25 +766,25 @@
         const chart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: {!! json_encode($groupChartData->pluck('region')) !!},
+                labels: <?php echo json_encode($groupChartData->pluck('region')); ?>,
                 datasets: [
     {
         label: 'المبيعات',
-        data: {!! json_encode($groupChartData->pluck('sales')) !!},
+        data: <?php echo json_encode($groupChartData->pluck('sales')); ?>,
         backgroundColor: 'rgba(54, 162, 235, 0.7)',
         borderColor: 'rgba(54, 162, 235, 1)',
         borderWidth: 1
     },
     {
         label: 'المدفوعات',
-        data: {!! json_encode($groupChartData->pluck('payments')) !!},
+        data: <?php echo json_encode($groupChartData->pluck('payments')); ?>,
         backgroundColor: 'rgba(75, 192, 192, 0.7)',
         borderColor: 'rgba(75, 192, 192, 1)',
         borderWidth: 1
     },
     {
         label: 'سندات القبض',
-        data: {!! json_encode($groupChartData->pluck('receipts')) !!},
+        data: <?php echo json_encode($groupChartData->pluck('receipts')); ?>,
         backgroundColor: 'rgba(255, 159, 64, 0.7)',
         borderColor: 'rgba(255, 159, 64, 1)',
         borderWidth: 1
@@ -894,15 +829,15 @@
                         <div class="card-content">
                             <div class="card-body pt-0">
                                 <div id="sales-chart" class="mb-1"></div>
-                                @foreach ($groups as $group)
+                                <?php $__currentLoopData = $groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="chart-info d-flex justify-content-between mb-1">
                                         <div class="series-info d-flex align-items-center">
                                             <i class="feather icon-layers font-medium-2 text-primary"></i>
-                                            <span class="text-bold-600 mx-50">{{ $group->Region->name ?? '' }}</span>
-                                            <span> - {{ number_format($group->total_sales, 2) }} ريال</span>
+                                            <span class="text-bold-600 mx-50"><?php echo e($group->Region->name ?? ''); ?></span>
+                                            <span> - <?php echo e(number_format($group->total_sales, 2)); ?> ريال</span>
                                         </div>
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
                         </div>
                     </div>
@@ -924,12 +859,12 @@
                                     <script>
                                         document.addEventListener("DOMContentLoaded", function() {
                                             var options = {
-                                                series: @json($chartData->pluck('percentage')),
+                                                series: <?php echo json_encode($chartData->pluck('percentage'), 15, 512) ?>,
                                                 chart: {
                                                     type: 'donut',
                                                     height: 300
                                                 },
-                                                labels: @json($chartData->pluck('name')),
+                                                labels: <?php echo json_encode($chartData->pluck('name'), 15, 512) ?>,
                                                 colors: ['#007bff', '#ffc107', '#dc3545', '#28a745'],
                                                 legend: {
                                                     position: 'bottom'
@@ -954,7 +889,7 @@
                     </div>
                 </div>
             </div>
-            {{-- الأيرادات بين الأشهر  --}}
+            
             <div class="row">
                 <div class="col-lg-8 col-md-6 col-12">
                     <div class="card">
@@ -987,7 +922,7 @@
                         </div>
                     </div>
                 </div>
-                {{-- نظرة عامة على الاهداف --}}
+                
                 <div class="col-lg-4 col-md-6 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
@@ -1029,98 +964,15 @@
 
 </div>
 
-                {{-- <div class="col-md-4 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">إحصائيات المتصفحات</h4>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">جوجل كروم</p>
-                                        <h4>73%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>800 <i class="feather icon-arrow-up text-success"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="73" aria-valuemin="73"
-                                        aria-valuemax="100" style="width:73%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">أوبرا</p>
-                                        <h4>8%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>-200 <i class="feather icon-arrow-down text-danger"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="8" aria-valuemin="8"
-                                        aria-valuemax="100" style="width:8%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">فايرفوكس</p>
-                                        <h4>19%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>100 <i class="feather icon-arrow-up text-success"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="19" aria-valuemin="19"
-                                        aria-valuemax="100" style="width:19%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">إنترنت إكسبلورر</p>
-                                        <h4>27%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>-450 <i class="feather icon-arrow-down text-danger"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-50">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="27" aria-valuemin="27"
-                                        aria-valuemax="100" style="width:27%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-8 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">الاحتفاظ بالعملاء</h4>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div id="client-retention-chart">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-
-            </div> --}}
+                
         </section>
 
 
     </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
@@ -1172,11 +1024,11 @@
                         console.log("🔄 الموقع تغير، يتم التحديث...");
 
                         // إرسال البيانات إلى السيرفر
-                        fetch("{{ route('visits.storeEmployeeLocation') }}", {
+                        fetch("<?php echo e(route('visits.storeEmployeeLocation')); ?>", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                                "X-CSRF-TOKEN": "<?php echo e(csrf_token()); ?>"
                             },
                             body: JSON.stringify({ latitude, longitude })
                         })
@@ -1222,10 +1074,10 @@ document.addEventListener("DOMContentLoaded", function() {
         },
         series: [{
             name: 'المبيعات',
-            data: @json($groups->pluck('total_sales'))
+            data: <?php echo json_encode($groups->pluck('total_sales'), 15, 512) ?>
         }],
         xaxis: {
-            categories: @json($groups->pluck('Region.name'))
+            categories: <?php echo json_encode($groups->pluck('Region.name'), 15, 512) ?>
         }
     };
 
@@ -1234,4 +1086,6 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtrasmart\fawtrasmart\resources\views/dashboard/sales/index.blade.php ENDPATH**/ ?>
