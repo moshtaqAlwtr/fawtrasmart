@@ -127,16 +127,7 @@ public function index(Request $request)
     $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
 
     // جلب فقط المجموعات المرتبطة بالموظف الحالي
-if (auth()->user()->role === 'employee') {
-    // Get the current employee's ID
-
-    // If you need to get the groups for these clients
-    $groupIds = $clients->pluck('group_id')->unique()->filter();
-    $Region_groups = Region_groub::whereIn('id', $groupIds)->with('neighborhoods')->get();
-} else {
-    // Get all groups (for admin or other roles)
-    $Region_groups = Region_groub::with('neighborhoods')->get();
-}
+$Region_groups= Region_groub::all();
     $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
     $receipts = Receipt::with('account')
         ->whereHas('account', function ($q) use ($clientIds) {
