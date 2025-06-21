@@ -10,6 +10,7 @@ class notifications extends Model
     protected $fillable = [
         'user_id',       // يجب إضافته
         'title',
+'receiver_id',
         'description',
         'message',      // يجب إضافته
         'read',
@@ -24,4 +25,7 @@ class notifications extends Model
     public function user(){
         return $this->belongsTo(User::class);
     }
+public function receiver(){
+    return $this->belongsTo(User::class);
+}
 }

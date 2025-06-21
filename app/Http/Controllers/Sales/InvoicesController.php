@@ -65,14 +65,33 @@ class InvoicesController extends Controller
         $this->journalEntryService = $journalEntryService;
     }
 
-    public function getUnreadNotifications()
-    {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
+public function getUnreadNotifications()
+{
+    $user = auth()->user();
+    $twentyFourHoursAgo = now()->subDay();
 
-        return response()->json(['notifications' => $notifications]);
+    $query = notifications::query()
+        ->where('read', 0)
+        ->where('created_at', '>=', $twentyFourHoursAgo)
+        ->orderBy('created_at', 'desc');
+
+    // For employees: show both sent and received notifications
+    if ($user->role === 'employee') {
+        $query->where(function($q) use ($user) {
+            $q->where('user_id', $user->id)    // Notifications created by the employee
+              ->orWhere('receiver_id', $user->id); // Notifications sent to the employee
+        });
     }
+    // For regular users (non-managers): only show notifications sent to them
+    elseif ($user->role !== 'manager') {
+        $query->where('receiver_id', $user->id);
+    }
+
+    $notifications = $query->get(['id', 'title', 'description', 'created_at', 'user_id', 'receiver_id']);
+
+    return response()->json(['notifications' => $notifications]);
+}
+
 
     /**
      * Display a listing of invoices.
