@@ -1,20 +1,19 @@
-@extends('master')
+<?php $__env->startSection('title'); ?>
+    تعديل فرع - <?php echo e($branch->name); ?>
 
-@section('title')
-    إضافة فرع جديد
-@stop
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
             <div class="row breadcrumbs-top">
                 <div class="col-12">
-                    <h2 class="content-header-title float-left mb-0">إضافة فرع جديد</h2>
+                    <h2 class="content-header-title float-left mb-0">تعديل فرع</h2>
                     <div class="breadcrumb-wrapper col-12">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="">الرئيسية</a></li>
-                            <li class="breadcrumb-item"><a href="">الفروع</a></li>
-                            <li class="breadcrumb-item active">إضافة</li>
+                            <li class="breadcrumb-item"><a href="<?php echo e(route('branches.index')); ?>">الفروع</a></li>
+                            <li class="breadcrumb-item active">تعديل</li>
                         </ol>
                     </div>
                 </div>
@@ -26,20 +25,19 @@
         <section id="basic-vertical-layouts">
             <div class="row match-height">
                 <div class="col-md-12 col-12">
-                    <form class="form form-vertical" action="{{ route('branches.store') }}" method="POST">
-                        @csrf
+                    <form class="form form-vertical" action="<?php echo e(route('branches.update', $branch->id)); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('PUT'); ?>
 
-                        <!-- عرض الأخطاء -->
-                        @if ($errors->any())
+                        <?php if($errors->any()): ?>
                             <div class="alert alert-danger">
                                 <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
+                                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li><?php echo e($error); ?></li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </ul>
                             </div>
-                        @endif
-
+                        <?php endif; ?>
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -47,7 +45,7 @@
                                         <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
                                     </div>
                                     <div>
-                                        <a href="{{ route('branches.index') }}" class="btn btn-outline-danger">
+                                        <a href="<?php echo e(route('branches.index')); ?>" class="btn btn-outline-danger">
                                             <i class="fa fa-ban"></i>الغاء
                                         </a>
                                         <button type="submit" class="btn btn-outline-primary">
@@ -57,21 +55,21 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">بيانات الفرع الأساسية</h4>
+                                <h4 class="card-title">بيانات الفرع</h4>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="form-body">
                                         <div class="row">
-                                            <!-- الحقول الأساسية -->
                                             <div class="col-12">
                                                 <div class="form-group">
                                                     <label for="name">اسم الفرع <span
                                                             class="text-danger">*</span></label>
                                                     <input type="text" id="name" class="form-control" name="name"
-                                                        placeholder="اسم الفرع" required>
+                                                        placeholder="اسم الفرع" value="<?php echo e(old('name', $branch->name)); ?>" required>
                                                 </div>
                                             </div>
 
@@ -81,19 +79,18 @@
                                                     <div class="custom-control custom-checkbox">
                                                         <input type="checkbox" class="custom-control-input" id="is_main"
                                                             name="is_main" value="1"
-                                                            {{ $branch->is_main ? 'checked' : '' }}>
+                                                            <?php echo e($branch->is_main ? 'checked' : ''); ?>>
                                                         <label class="custom-control-label" for="is_main">فرع رئيسي</label>
                                                     </div>
                                                     <small class="text-muted">إذا تم تحديده، سيكون هذا الفرع الرئيسي
                                                         للنظام</small>
                                                 </div>
                                             </div>
-
                                             <div class="col-md-6 col-12">
                                                 <div class="form-group">
                                                     <label for="code">الكود <span class="text-danger">*</span></label>
                                                     <input type="text" id="code" class="form-control" name="code"
-                                                        value="{{ $code }}" readonly required>
+                                                        value="<?php echo e(old('code', $branch->code)); ?>" readonly required>
                                                 </div>
                                             </div>
 
@@ -101,7 +98,7 @@
                                                 <div class="form-group">
                                                     <label for="phone">هاتف الفرع</label>
                                                     <input type="text" id="phone" class="form-control" name="phone"
-                                                        placeholder="هاتف الفرع">
+                                                        value="<?php echo e(old('phone', $branch->phone)); ?>">
                                                 </div>
                                             </div>
 
@@ -109,7 +106,7 @@
                                                 <div class="form-group">
                                                     <label for="mobile">الجوال</label>
                                                     <input type="text" id="mobile" class="form-control" name="mobile"
-                                                        placeholder="جوال الفرع">
+                                                        value="<?php echo e(old('mobile', $branch->mobile)); ?>">
                                                 </div>
                                             </div>
 
@@ -117,7 +114,7 @@
                                                 <div class="form-group">
                                                     <label for="country">البلد <span class="text-danger">*</span></label>
                                                     <input type="text" id="country" class="form-control" name="country"
-                                                        placeholder="البلد" required>
+                                                        value="<?php echo e(old('country', $branch->country)); ?>" required>
                                                 </div>
                                             </div>
 
@@ -125,7 +122,7 @@
                                                 <div class="form-group">
                                                     <label for="city">المدينة <span class="text-danger">*</span></label>
                                                     <input type="text" id="city" class="form-control" name="city"
-                                                        placeholder="المدينة" required>
+                                                        value="<?php echo e(old('city', $branch->city)); ?>" required>
                                                 </div>
                                             </div>
 
@@ -133,7 +130,7 @@
                                                 <div class="form-group">
                                                     <label for="region">المنطقة</label>
                                                     <input type="text" id="region" class="form-control"
-                                                        name="region" placeholder="المنطقة">
+                                                        name="region" value="<?php echo e(old('region', $branch->region)); ?>">
                                                 </div>
                                             </div>
 
@@ -141,29 +138,29 @@
                                                 <div class="form-group">
                                                     <label for="address1">العنوان الرئيسي</label>
                                                     <input type="text" id="address1" class="form-control"
-                                                        name="address1" placeholder="العنوان الرئيسي">
+                                                        name="address1" value="<?php echo e(old('address1', $branch->address1)); ?>">
                                                 </div>
                                             </div>
 
                                             <div class="col-12">
                                                 <div class="form-group">
-                                                    <label for="address2">الحي</label>
+                                                    <label for="address2">العنوان الثانوي</label>
                                                     <input type="text" id="address2" class="form-control"
-                                                        name="address2" placeholder="الحي">
+                                                        name="address2" value="<?php echo e(old('address2', $branch->address2)); ?>">
                                                 </div>
                                             </div>
 
                                             <div class="col-md-6 col-12">
                                                 <div class="form-group">
                                                     <label for="work_hours">ساعات العمل</label>
-                                                    <textarea id="work_hours" class="form-control" name="work_hours" rows="2" placeholder="ساعات العمل"></textarea>
+                                                    <textarea id="work_hours" class="form-control" name="work_hours"><?php echo e(old('work_hours', $branch->work_hours)); ?></textarea>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-6 col-12">
                                                 <div class="form-group">
                                                     <label for="description">وصف الفرع</label>
-                                                    <textarea id="description" class="form-control" name="description" rows="2" placeholder="وصف الفرع"></textarea>
+                                                    <textarea id="description" class="form-control" name="description"><?php echo e(old('description', $branch->description)); ?></textarea>
                                                 </div>
                                             </div>
 
@@ -172,7 +169,9 @@
                                                 <div class="form-group">
                                                     <button type="button" class="btn btn-outline-primary mb-2"
                                                         onclick="toggleMap()">
-                                                        <i class="feather icon-map"></i> تحديد موقع الفرع على الخريطة
+                                                        <i class="feather icon-map"></i>
+                                                        <?php echo e($branch->location ? 'تعديل موقع الفرع' : 'تحديد موقع الفرع'); ?>
+
                                                     </button>
                                                     <div id="map-container" style="display: none; margin-bottom: 20px;">
                                                         <div class="input-group mb-2">
@@ -190,8 +189,24 @@
                                                         </div>
                                                         <small class="text-muted">اسحب العلامة لتحديد الموقع بدقة</small>
                                                     </div>
-                                                    <input type="hidden" id="latitude" name="latitude">
-                                                    <input type="hidden" id="longitude" name="longitude">
+                                                    <input type="hidden" id="latitude" name="latitude"
+                                                        value="<?php echo e($branch->location->latitude ?? ''); ?>">
+                                                    <input type="hidden" id="longitude" name="longitude"
+                                                        value="<?php echo e($branch->location->longitude ?? ''); ?>">
+
+                                                    <?php if($branch->location): ?>
+                                                        <div class="current-location mt-2">
+                                                            <p class="mb-0">
+                                                                <i class="feather icon-map-pin text-primary"></i>
+                                                                الموقع الحالي:
+                                                                <span class="text-info">
+                                                                    <?php echo e($branch->location->latitude); ?>,
+                                                                    <?php echo e($branch->location->longitude); ?>
+
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -200,19 +215,16 @@
                             </div>
                         </div>
 
-                        <!-- أزرار الحفظ والإلغاء -->
-
                     </form>
                 </div>
             </div>
         </section>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
-    <!-- Google Maps API -->
+<?php $__env->startSection('scripts'); ?>
     <script
-        src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
+        src="https://maps.googleapis.com/maps/api/js?key=<?php echo e(env('GOOGLE_MAPS_API_KEY')); ?>&libraries=places&callback=initMap"
         async defer></script>
 
     <script>
@@ -377,4 +389,6 @@
             }
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/branches/edit.blade.php ENDPATH**/ ?>

@@ -1,133 +1,4 @@
-@extends('master')
 
-@section('title', 'إضافة ملاحظة أو مرفق')
-
-@section('content')
-    <div class="container mt-4">
-        <form onsubmit="return validateAttachments()" id="clientForm" action="{{ route('clients.addnotes') }}" method="POST"
-            enctype="multipart/form-data">
-            @csrf
-            <input type="hidden" name="current_latitude" id="current_latitude">
-            <input type="hidden" name="current_longitude" id="current_longitude">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    {{ session('error') }}
-                </div>
-            @endif
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <label>الحقول التي عليها علامة <span style="color: red">*</span> الزامية</label>
-                        </div>
-                        <div>
-                            <a href="{{ route('appointments.index') }}" class="btn btn-outline-danger">
-                                <i class="fa fa-ban"></i>الغاء
-                            </a>
-                            <button type="submit" class="btn btn-outline-primary">
-                                <i class="fa fa-save"></i>حفظ
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Section -->
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <!-- Date and Time -->
-                    <div class="row mb-3">
-                        <div class="form-group col-md-6">
-                            <label for="action_type">نوع الإجراء</label>
-                            <select class="form-control" id="action_type" name="process" required>
-                                <option value="">اختر نوع الإجراء</option>
-                                <option value="add_new" class="text-primary">+ تعديل قائمة الإجراءات</option>
-                            </select>
-                            <input type="hidden" name="client_id" value="{{ $id }}">
-                        </div>
-
-
-                    </div>
-
-                    <!-- New Fields -->
-                    <div class="row mb-3">
-                        <!-- عدد العهدة -->
-                        <div class="form-group col-md-4">
-                            <label for="deposit_count" class="form-label">عدد العهدة الموجودة</label>
-                            <input type="number" class="form-control" id="deposit_count" name="deposit_count"
-                                min="0" required>
-                        </div>
-
-                        <!-- نوع الموقع -->
-                        <div class="form-group col-md-4">
-                            <label for="site_type" class="form-label">نوع الموقع</label>
-                            <select class="form-control" id="site_type" name="site_type" required>
-                                <option value="">اختر نوع الموقع</option>
-                                <option value="independent_booth">بسطة مستقلة</option>
-                                <option value="grocery">بقالة</option>
-                                <option value="supplies">تموينات</option>
-                                <option value="markets">أسواق</option>
-                                <option value="station">محطة</option>
-                            </select>
-                        </div>
-
-                        <!-- عدد استندات المنافسين -->
-                        <div class="form-group col-md-4">
-                            <label for="competitor_documents" class="form-label">عدد استندات المنافسين</label>
-                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents"
-                                min="0" required>
-                        </div>
-                    </div>
-
-                    <!-- Notes -->
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">ملاحظة</label>
-                        <textarea class="form-control" name="description" rows="4" required></textarea>
-                    </div>
-
-                    <!-- Attachments -->
-                    <div class="col-md-12 col-12 mb-3">
-                        <div class="form-group">
-                            <label for="attachments" class="form-label">المرفقات</label>
-                            <input type="file" name="attachments[]" multiple id="attachments" class="form-control d-none"
-                                onchange="previewSelectedFiles()" required>
-                            <div class="upload-area border rounded p-4 text-center position-relative bg-light"
-                                onclick="document.getElementById('attachments').click()" style="cursor: pointer;">
-                                <div class="d-flex flex-column align-items-center justify-content-center gap-2">
-                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
-                                    <p class="mb-0 text-primary fw-bold">اضغط هنا أو اختر من جهازك</p>
-                                    <small class="text-muted">يمكنك رفع صور، فيديوهات، وملفات PDF/Word/Excel</small>
-                                </div>
-                                <div class="position-absolute end-0 top-50 translate-middle-y me-3">
-                                    <i class="fas fa-file-alt fs-3 text-secondary"></i>
-                                </div>
-                            </div>
-                            <div id="selected-files" class="mt-3"></div>
-                        </div>
-                    </div>
-
-                    <!-- Options -->
-                    <div class="form-check mt-3">
-                        <input class="form-check-input" type="checkbox" name="share_with_work" id="shareWithWork">
-                        <label class="form-check-label" for="shareWithWork">مشاركة مع العمل</label>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-@endsection
-@section('scripts')
-    @parent
-    <script>
         $(document).ready(function() {
             // تحميل الإجراءات من localStorage أو استخدام القائمة الافتراضية
             let procedures = JSON.parse(localStorage.getItem('procedures')) || [
@@ -289,8 +160,7 @@
                 dropdownButton.style.backgroundColor = statusColor;
             });
         });
-    </script>
-    <script>
+
         function previewSelectedFiles() {
             const input = document.getElementById('attachments');
             const preview = document.getElementById('selected-files');
@@ -309,8 +179,7 @@
                 preview.appendChild(list);
             }
         }
-    </script>
-    <script>
+
         function validateAttachments() {
             const files = document.getElementById('attachments').files;
             if (files.length === 0) {
@@ -331,7 +200,3 @@
                 preview.appendChild(fileDiv);
             }
         }
-    </script>
-
-
-@endsection

@@ -419,17 +419,126 @@
 
 <br>
 <br>
-<div class="card shadow-sm border-0 mb-4">
-    <div class="card-body text-center">
-        <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
-        <div class="display-6 text-primary fw-bold">
-            <?php echo e(number_format($averageBranchCollection)); ?> <small class="fs-5">ريال</small>
+<div class="row">
+ <div class="container">
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold mb-3">📊 متوسط تحصيل الفروع</h5>
+                    <div class="display-6 text-primary fw-bold">
+                        <?php echo e(number_format($averageBranchCollection)); ?> <small class="fs-5">ريال</small>
+                    </div>
+                    <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
+                </div>
+            </div>
         </div>
-        <p class="text-muted mt-2">متوسط إجمالي التحصيل على مستوى الفروع</p>
+    </div>
+
+    
+    <div class="row">
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold mb-3">🚶‍♂️ إحصائية الزيارات</h5>
+                    <canvas id="visitChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
+                    <p class="mt-3 text-muted">
+                        <?php echo e(number_format($actualVisits)); ?> زيارة من أصل <?php echo e(number_format($target)); ?>
+
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center">
+                    <h5 class="fw-bold mb-3">💰 إحصائية التحصيل</h5>
+                    <canvas id="collectionChart" style="max-width: 200px; max-height: 200px; margin: 0 auto;"></canvas>
+                    <p class="mt-3 text-muted">
+                        <?php echo e(number_format($totalCollection)); ?> ريال من أصل <?php echo e(number_format($collectionTarget)); ?>
+
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 
+
+</div>
+<?php $__env->startPush('scripts'); ?>
+<script>
+    const collectionCtx = document.getElementById('collectionChart').getContext('2d');
+    const collectionChart = new Chart(collectionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['المبلغ المحصل', 'المتبقي من الهدف السنوي'],
+            datasets: [{
+                data: [<?php echo e($totalCollection); ?>, <?php echo e(max(0, $collectionTarget - $totalCollection)); ?>],
+                backgroundColor: ['#1cc88a', '#e0e0e0'],
+                hoverBackgroundColor: ['#17a673', '#d1d1d1'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            cutout: '70%',
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' ريال';
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+</script>
+<?php $__env->stopPush(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('visitChart').getContext('2d');
+    const visitChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['الزيارات المنجزة', 'المتبقي من الهدف السنوي'],
+            datasets: [{
+                data: [<?php echo e($actualVisits); ?>, <?php echo e(max(0, $target - $actualVisits)); ?>],
+                backgroundColor: ['#4e73df', '#e0e0e0'],
+                hoverBackgroundColor: ['#2e59d9', '#d1d1d1'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            cutout: '70%',
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.parsed + ' زيارة';
+                        }
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                }
+            }
+        }
+    });
+</script>
+<?php $__env->stopPush(); ?>
 
 
 <div class="container py-4">
