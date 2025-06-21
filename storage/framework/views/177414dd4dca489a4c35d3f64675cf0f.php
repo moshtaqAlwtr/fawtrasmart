@@ -91,52 +91,46 @@
             });
         </script>
         <!-- بطاقة الإجراءات -->
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-body p-3">
-                <div class="row align-items-center gy-2">
-                    <!-- زر إضافة عميل -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="<?php echo e(route('clients.create')); ?>"
-                            class="btn btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-user-plus me-2 fs-6"></i>
-                            <span class="fw-medium">إضافة عميل</span>
-                        </a>
-                    </div>
+<div class="card shadow-sm border-0 rounded-3">
+    <div class="card-body p-3">
+        <div class="d-flex flex-wrap justify-content-end gap-2">
 
-                    <!-- زر تحميل ملف Excel -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="d-flex flex-column flex-md-row gap-2">
-                            <label
-                                class="btn btn-info btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
-                                <span class="fw-medium">تحميل</span>
-                                <input type="file" name="file" class="d-none" required>
-                            </label>
-                            <button type="submit"
-                                class="btn btn-secondary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-database me-2 fs-6"></i>
-                                <span class="fw-medium">استيراد</span>
-                            </button>
-                        </div>
-                    </div>
+            <!-- زر إضافة عميل -->
+            <a href="<?php echo e(route('clients.create')); ?>"
+                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
+                style="height: 38px; min-width: 160px;">
+                <i class="fas fa-user-plus me-2 fs-6"></i>
+                <span class="fw-medium">إضافة عميل</span>
+            </a>
 
-                    <!-- زر إضافة حد ائتماني -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="javascript:void(0);"
-                            class="btn btn-danger btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
-                            <i class="fas fa-credit-card me-2 fs-6"></i>
-                            <span class="fw-medium">حد ائتماني</span>
-                        </a>
-                    </div>
+            <!-- زر تحميل ملف Excel -->
+            <label
+                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
+                style="height: 38px; min-width: 160px; cursor: pointer;">
+                <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
+                <span class="fw-medium">تحميل ملف</span>
+                <input type="file" name="file" class="d-none" required>
+            </label>
 
+            <!-- زر استيراد -->
+            <button type="submit"
+                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
+                style="height: 38px; min-width: 160px;">
+                <i class="fas fa-database me-2 fs-6"></i>
+                <span class="fw-medium">استيراد</span>
+            </button>
 
-                </div>
-            </div>
+            <!-- زر إضافة حد ائتماني -->
+            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#creditLimitModal"
+                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
+                style="height: 38px; min-width: 160px;">
+                <i class="fas fa-credit-card me-2 fs-6"></i>
+                <span class="fw-medium">حد ائتماني</span>
+            </a>
+
         </div>
+    </div>
+</div>
 
 
         <!-- بطاقة البحث -->
