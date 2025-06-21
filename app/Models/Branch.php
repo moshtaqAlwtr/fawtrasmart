@@ -17,6 +17,7 @@ class Branch extends Model
         'mobile',
         'address1',
         'address2',
+        'is_main',
         'city',
         'status',
         'region',
@@ -30,7 +31,7 @@ class Branch extends Model
         return $this->belongsToMany(BranchSetting::class, 'branch_setting_branch')
             ->withPivot('status');
     }
-    
+
     public function employees()
     {
         return $this->hasMany(Employee::class, 'branch_id');

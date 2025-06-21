@@ -236,6 +236,8 @@ Route::group(
                 # Client routes
                 Route::prefix('clients_management')->group(function () {
                     Route::get('/index', [ClientController::class, 'index'])->name('clients.index');
+                    Route::get('/mang-client', [ClientController::class, 'mang_client'])->name('clients.management');
+                    Route::get('/{client}/details', [ClientController::class, 'getClientDetails'])->name('clients.details');
                     Route::post('clients/update-credit-limit', [ClientController::class, 'updateCreditLimit'])->name('clients.update_credit_limit');
 
                     Route::get('/testcient', [ClientController::class, 'testcient'])->name('clients.testcient');

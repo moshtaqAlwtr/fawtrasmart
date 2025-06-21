@@ -48,70 +48,88 @@ class BranchesController extends Controller
 }
 
     // تخزين بيانات الفرع
-    public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            // بقية القواعد...
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
+public function store(Request $request)
+{
+    // التحقق من صحة البيانات المدخلة
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'is_main' => 'nullable|boolean',
+        'phone' => 'nullable|string',
+        'mobile' => 'nullable|string',
+        'address1' => 'required|string|max:255',
+        'address2' => 'nullable|string|max:255',
+        'city' => 'required|string|max:255',
+        'region' => 'nullable|string|max:255',
+        'country' => 'required|string|max:255',
+        'work_hours' => 'nullable|string',
+        'description' => 'nullable|string|max:1000',
+        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+    ]);
+
+    // إذا كان الفرع رئيسي، نلغي أي فرع رئيسي آخر
+    if ($request->is_main) {
+        Branch::where('is_main', true)->update(['is_main' => false]);
+    }
+
+    // توليد الكود تلقائيًا
+    $lastBranch = Branch::latest('id')->first();
+    $newCode = $lastBranch ? str_pad($lastBranch->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
+
+    // إنشاء الفرع
+    $branch = Branch::create([
+        'name' => $request->name,
+        'is_main' => $request->is_main ?? false,
+        'code' => $newCode,
+        'phone' => $request->phone,
+        'mobile' => $request->mobile,
+        'address1' => $request->address1,
+        'address2' => $request->address2,
+        'city' => $request->city,
+        'region' => $request->region,
+        'country' => $request->country,
+        'work_hours' => $request->work_hours,
+        'description' => $request->description,
+    ]);
+
+    // إنشاء الموقع إذا تم تحديده
+    if ($request->filled('latitude') && $request->filled('longitude')) {
+        Location::create([
+            'branch_id' => $branch->id,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
         ]);
+    }
 
-        // توليد الكود تلقائيًا
-        $lastBranch = Branch::latest('id')->first();
-        $newCode = $lastBranch ? str_pad($lastBranch->id + 1, 5, '0', STR_PAD_LEFT) : '00001';
+    // إعدادات الصلاحيات الافتراضية
+    $defaultPermissions = [
+        'share_cost_center' => 0,
+        // يمكنك إضافة المزيد من الصلاحيات هنا
+    ];
 
-        // إنشاء الفرع
-        $branch = Branch::create([
-            'name' => $request->name,
-            'code' => $newCode,
-            'phone' => $request->phone,
-            'mobile' => $request->mobile,
-            'address1' => $request->address1,
-            'address2' => $request->address2,
-            'city' => $request->city,
-            'region' => $request->region,
-            'country' => $request->country,
-            'work_hours' => $request->work_hours,
-            'description' => $request->description,
-        ]);
-
-        // إنشاء الموقع إذا تم تحديده
-        if ($request->filled('latitude') && $request->filled('longitude')) {
-            Location::create([
+    foreach ($defaultPermissions as $key => $status) {
+        $branchSettingId = BranchSetting::where('key', $key)->value('id');
+        if ($branchSettingId) {
+            BranchSettingBranch::create([
                 'branch_id' => $branch->id,
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
+                'branch_setting_id' => $branchSettingId,
+                'status' => $status,
             ]);
         }
-
-        // بقية الكود الخاص بالإعدادات والإشعارات...
-        $defaultPermissions = [
-            'share_cost_center' => 0,
-            // بقية الصلاحيات...
-        ];
-
-        foreach ($defaultPermissions as $key => $status) {
-            $branchSettingId = BranchSetting::where('key', $key)->value('id');
-            if ($branchSettingId) {
-                BranchSettingBranch::create([
-                    'branch_id' => $branch->id,
-                    'branch_setting_id' => $branchSettingId,
-                    'status' => $status,
-                ]);
-            }
-        }
-
-        ModelsLog::create([
-            'type' => 'branch',
-            'type_id' => $branch->id,
-            'type_log' => 'log',
-            'description' => 'تم اضافة فرع جديد **' . $branch->name . '**',
-            'created_by' => auth()->id(),
-        ]);
-
-        return redirect()->route('branches.index')->with('success', 'تم إضافة الفرع بنجاح');
     }
+
+    // تسجيل الإجراء في السجلات
+    ModelsLog::create([
+        'type' => 'branch',
+        'type_id' => $branch->id,
+        'type_log' => 'log',
+        'description' => 'تم اضافة فرع جديد **' . $branch->name . '**' .
+                        ($branch->is_main ? ' (رئيسي)' : ' (فرعي)'),
+        'created_by' => auth()->id(),
+    ]);
+
+    return redirect()->route('branches.index')->with('success', 'تم إضافة الفرع بنجاح');
+}
     // عرض تفاصيل الفرع
     public function show($id)
     {
@@ -133,12 +151,13 @@ class BranchesController extends Controller
     }
 
     // تحديث بيانات الفرع
-    public function update(Request $request, $id)
+public function update(Request $request, $id)
 {
     // التحقق من صحة البيانات المدخلة
     $request->validate([
         'name' => 'required|string|max:255',
         'code' => 'required|string|max:255|unique:branches,code,' . $id,
+        'is_main' => 'nullable|boolean',
         'phone' => 'nullable|string',
         'mobile' => 'nullable|string',
         'address1' => 'required|string|max:255',
@@ -146,18 +165,44 @@ class BranchesController extends Controller
         'city' => 'required|string|max:255',
         'region' => 'nullable|string|max:255',
         'country' => 'required|string|max:255',
-        'work_hours' => 'nullable|string|max:255',
+        'work_hours' => 'nullable|string',
         'description' => 'nullable|string|max:1000',
         'latitude' => 'nullable|numeric',
         'longitude' => 'nullable|numeric',
     ]);
 
-    // استرجاع الفرع بواسطة الـ id
+    // استرجاع الفرع
     $branch = Branch::findOrFail($id);
     $oldName = $branch->name;
+    $wasMain = $branch->is_main;
+
+    // معالجة حالة الفرع الرئيسي
+    if ($request->is_main) {
+        // إذا تم تحديده كفرع رئيسي، نلغي أي فرع رئيسي آخر
+        Branch::where('is_main', true)->where('id', '!=', $id)->update(['is_main' => false]);
+    } elseif ($wasMain && !$request->is_main) {
+        // إذا كان رئيسيًا وتم إلغاء التحديد
+        $otherMainBranches = Branch::where('is_main', true)->where('id', '!=', $id)->count();
+        if ($otherMainBranches == 0) {
+            return back()->with('error', 'يجب أن يكون هناك فرع رئيسي واحد على الأقل في النظام');
+        }
+    }
 
     // تحديث بيانات الفرع
-    $branch->update($request->except(['latitude', 'longitude']));
+    $branch->update([
+        'name' => $request->name,
+        'code' => $request->code,
+        'is_main' => $request->is_main ?? false,
+        'phone' => $request->phone,
+        'mobile' => $request->mobile,
+        'address1' => $request->address1,
+        'address2' => $request->address2,
+        'city' => $request->city,
+        'region' => $request->region,
+        'country' => $request->country,
+        'work_hours' => $request->work_hours,
+        'description' => $request->description,
+    ]);
 
     // تحديث أو إنشاء الموقع
     if ($request->filled('latitude') && $request->filled('longitude')) {
@@ -168,27 +213,29 @@ class BranchesController extends Controller
         ];
 
         if ($branch->location) {
-            // تحديث الموقع الحالي
             $branch->location->update($locationData);
         } else {
-            // إنشاء موقع جديد
             Location::create($locationData);
         }
-    } elseif ($branch->location && (!$request->filled('latitude') || !$request->filled('longitude'))) {
-        // حذف الموقع إذا تم إزالة الإحداثيات
+    } elseif ($branch->location) {
         $branch->location->delete();
     }
 
-    // تسجيل اشعار نظام جديد
+    // تسجيل الإجراء في السجلات
+    $logDescription = 'تم تعديل الفرع من **' . $oldName . '** إلى **' . $branch->name . '**';
+
+    if ($wasMain != $branch->is_main) {
+        $logDescription .= $branch->is_main ? ' (تم تعيينه كفرع رئيسي)' : ' (تم إلغاء تعيينه كفرع رئيسي)';
+    }
+
     ModelsLog::create([
         'type' => 'branch',
         'type_id' => $branch->id,
         'type_log' => 'log',
-        'description' => 'تم تعديل الفرع من **' . $oldName . '** إلى **' . $branch->name . '**',
+        'description' => $logDescription,
         'created_by' => auth()->id(),
     ]);
 
-    // إعادة التوجيه مع رسالة نجاح
     return redirect()->route('branches.index')->with('success', 'تم تحديث بيانات الفرع بنجاح');
 }
 

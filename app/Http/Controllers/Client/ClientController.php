@@ -52,143 +52,163 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-    public function index(Request $request)
-    {
-        $user = auth()->user();
+public function index(Request $request)
+{
+    $user = auth()->user();
+    $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
+    $noClients = false;
 
-        $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
-        $noClients = false;
+    // تحديد الصلاحيات حسب الدور والفرع
+    if ($user->role === 'employee') {
+        // إذا كان موظفًا، نعرض العملاء المرتبطين بمجموعاته فقط
+        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
-        // تحديد الصلاحيات حسب الدور
-        if ($user->role === 'employee') {
-            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
-
-            if ($employeeGroupIds->isNotEmpty()) {
-                $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
-                    $q->whereIn('id', $employeeGroupIds);
-                });
-            } else {
-                $noClients = true;
-            }
-        }
-
-        // فلترة حسب الطلب
-        if ($request->filled('client')) {
-            $baseQuery->where('id', $request->client);
-        }
-
-        if ($request->filled('name')) {
-            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-        }
-
-        if ($request->filled('status')) {
-            $baseQuery->where('status_id', $request->status);
-        }
-
-        if ($request->filled('region')) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-                $q->where('id', $request->region);
+        if ($employeeGroupIds->isNotEmpty()) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                $q->whereIn('id', $employeeGroupIds);
             });
+        } else {
+            $noClients = true;
         }
+    } elseif ($user->branch_id) {
+        // الحصول على اسم الفرع الرئيسي من قاعدة البيانات
+        $mainBranchName = Branch::where('is_main', true)->value('name');
+        $currentBranchName = Branch::find($user->branch_id)->name;
 
-        if ($request->filled('neighborhood')) {
-            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-            });
+        // إذا لم يكن الفرع الحالي هو الفرع الرئيسي، نطبق التصفية
+        if ($currentBranchName !== $mainBranchName) {
+            $baseQuery->where('branch_id', $user->branch_id);
         }
+    }
+    // إذا كان الفرع الرئيسي أو بدون فرع محدد، يرى جميع العملاء
 
-        // استعلام الخريطة
-        $mapQuery = clone $baseQuery;
-        $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
-
-        $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
-
-        $clientIds = $clients->pluck('id');
-
-        // الهدف العام
-        $target = Target::find(2)->value ?? 648;
-
-        // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
-        $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
-        $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
-
-        $invoices = Invoice::whereIn('client_id', $clientIds)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->get();
-
-        $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
-
-        $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
-        $receipts = Receipt::with('account')
-            ->whereHas('account', function ($q) use ($clientIds) {
-                $q->whereIn('client_id', $clientIds);
-            })
-            ->get()
-            ->groupBy(fn($receipt) => $receipt->account->client_id);
-
-        $clientsData = $clients
-            ->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $target) {
-                $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
-
-                $paymentsTotal = $invoiceIds->sum(function ($id) use ($payments) {
-                    return isset($payments[$id]) ? $payments[$id]->sum('amount') : 0;
-                });
-
-                $receiptsTotal = isset($receipts[$client->id]) ? $receipts[$client->id]->sum('amount') : 0;
-
-                $collected = $paymentsTotal + $receiptsTotal;
-                $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
-
-                if ($percentage > 100) {
-                    $group = 'A++';
-                    $group_class = 'primary';
-                } elseif ($percentage >= 60) {
-                    $group = 'A';
-                    $group_class = 'success';
-                } elseif ($percentage >= 30) {
-                    $group = 'B';
-                    $group_class = 'warning';
-                } elseif ($percentage >= 10) {
-                    $group = 'C';
-                    $group_class = 'danger';
-                } else {
-                    $group = 'D';
-                    $group_class = 'secondary';
-                }
-
-                return [
-                    'id' => $client->id,
-                    'collected' => $collected,
-                    'percentage' => $percentage,
-                    'payments' => $paymentsTotal,
-                    'receipts' => $receiptsTotal,
-                    'group' => $group,
-                    'group_class' => $group_class,
-                    'invoices_count' => $invoiceIds->count(),
-                    'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
-                        return isset($payments[$id]) ? $payments[$id]->count() : 0;
-                    }),
-                    'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
-                ];
-            })
-            ->keyBy('id');
-
-        $clientDueBalances = Account::whereIn('client_id', $clientIds)->selectRaw('client_id, SUM(balance) as total_due')->groupBy('client_id')->pluck('total_due', 'client_id');
-
-        return view('client.index', [
-            'clientDueBalances' => $clientDueBalances,
-            'clientsData' => $clientsData,
-            'clients' => $clients,
-            'allClients' => $allClients,
-            'Neighborhoods' => Neighborhood::all(),
-            'users' => User::all(),
-            'employees' => Employee::all(),
-            'creditLimit' => CreditLimit::first(),
-            'statuses' => Statuses::select('id', 'name', 'color')->get(),
-            'Region_groups' => Region_groub::all(),
-            'userLocation',
-            'target' => $target,
-        ]);
+    // فلترة حسب الطلب
+    if ($request->filled('client')) {
+        $baseQuery->where('id', $request->client);
     }
 
+    if ($request->filled('name')) {
+        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+    }
+
+    if ($request->filled('status')) {
+        $baseQuery->where('status_id', $request->status);
+    }
+
+    if ($request->filled('region')) {
+        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+            $q->where('id', $request->region);
+        });
+    }
+
+    if ($request->filled('neighborhood')) {
+        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
+        });
+    }
+
+    // استعلام الخريطة
+    $mapQuery = clone $baseQuery;
+    $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
+
+    $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
+
+    $clientIds = $clients->pluck('id');
+
+    // الهدف العام
+    $target = Target::find(2)->value ?? 648;
+
+    // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
+    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+    $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
+
+    $invoices = Invoice::whereIn('client_id', $clientIds)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->get();
+
+    $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
+
+    // جلب فقط المجموعات المرتبطة بالموظف الحالي
+if (auth()->user()->role === 'employee') {
+    // Get the current employee's ID
+
+    // If you need to get the groups for these clients
+    $groupIds = $clients->pluck('group_id')->unique()->filter();
+    $Region_groups = Region_groub::whereIn('id', $groupIds)->with('neighborhoods')->get();
+} else {
+    // Get all groups (for admin or other roles)
+    $Region_groups = Region_groub::with('neighborhoods')->get();
+}
+    $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
+    $receipts = Receipt::with('account')
+        ->whereHas('account', function ($q) use ($clientIds) {
+            $q->whereIn('client_id', $clientIds);
+        })
+        ->get()
+        ->groupBy(fn($receipt) => $receipt->account->client_id);
+
+    $clientsData = $clients
+        ->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $target) {
+            $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
+
+            $paymentsTotal = $invoiceIds->sum(function ($id) use ($payments) {
+                return isset($payments[$id]) ? $payments[$id]->sum('amount') : 0;
+            });
+
+            $receiptsTotal = isset($receipts[$client->id]) ? $receipts[$client->id]->sum('amount') : 0;
+
+            $collected = $paymentsTotal + $receiptsTotal;
+            $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
+
+            if ($percentage > 100) {
+                $group = 'A++';
+                $group_class = 'primary';
+            } elseif ($percentage >= 60) {
+                $group = 'A';
+                $group_class = 'success';
+            } elseif ($percentage >= 30) {
+                $group = 'B';
+                $group_class = 'warning';
+            } elseif ($percentage >= 10) {
+                $group = 'C';
+                $group_class = 'danger';
+            } else {
+                $group = 'D';
+                $group_class = 'secondary';
+            }
+
+            return [
+                'id' => $client->id,
+                'collected' => $collected,
+                'percentage' => $percentage,
+                'payments' => $paymentsTotal,
+                'receipts' => $receiptsTotal,
+                'group' => $group,
+                'group_class' => $group_class,
+                'invoices_count' => $invoiceIds->count(),
+                'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
+                    return isset($payments[$id]) ? $payments[$id]->count() : 0;
+                }),
+                'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
+            ];
+        })
+        ->keyBy('id');
+
+    $clientDueBalances = Account::whereIn('client_id', $clientIds)->selectRaw('client_id, SUM(balance) as total_due')->groupBy('client_id')->pluck('total_due', 'client_id');
+
+    return view('client.index', [
+        'clientDueBalances' => $clientDueBalances,
+        'clientsData' => $clientsData,
+        'clients' => $clients,
+        'allClients' => $allClients,
+        'Neighborhoods' => Neighborhood::all(),
+        'users' => User::all(),
+        'employees' => Employee::all(),
+        'creditLimit' => CreditLimit::first(),
+        'statuses' => Statuses::select('id', 'name', 'color')->get(),
+        'Region_groups' => $Region_groups,
+        'userLocation',
+        'target' => $target,
+    ]);
+}
     public function updateCreditLimit(Request $request)
     {
         $request->validate([
@@ -893,25 +913,91 @@ class ClientController extends Controller
     }
     public function mang_client(Request $request)
     {
-        $clients = Client::with('latestStatus')->orderBy('created_at', 'desc')->get();
-        $notes = AppointmentNote::with(['user'])
-            ->latest()
-            ->get();
+        $query = Client::with('latestStatus')->orderBy('created_at', 'desc');
+
+        // Apply search filter if search parameter exists
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%$search%")
+                  ->orWhere('code', 'like', "%$search%")
+                  ->orWhere('phone', 'like', "%$search%")
+                  ->orWhere('trade_name', 'like', "%$search%");
+            });
+        }
+
+        $clients = $query->paginate(100);
+        $notes = AppointmentNote::with(['user'])->latest()->get();
         $appointments = Appointment::all();
         $employees = Employee::all();
-
-        // Get the first client by default
-        $client = $clients->first();
-
         $categories = CategoriesClient::all();
-        $ClientRelations = ClientRelation::where('client_id', $request->client_id)->get();
 
+        // Get the selected client or first client in the list
+        $client = $request->client_id ? Client::find($request->client_id) : $clients->first();
+        $ClientRelations = $client ? ClientRelation::where('client_id', $client->id)->get() : collect();
+
+        // Generate new client code
         do {
             $lastClient = Client::orderBy('code', 'desc')->first();
             $newCode = $lastClient ? $lastClient->code + 1 : 1;
         } while (Client::where('code', $newCode)->exists());
 
-        return view('client.relestion_mang_client', compact('clients', 'ClientRelations', 'categories', 'lastClient', 'newCode', 'employees', 'notes', 'appointments', 'client'));
+        // Return JSON for AJAX requests
+        if ($request->ajax()) {
+            return response()->json([
+                'clients' => $clients,
+                'client' => $client,
+                'html' => view('client.partials.client_list', [
+                    'clients' => $clients,
+                    'selectedClient' => $client
+                ])->render(),
+                'clientDetails' => $client ? view('client.partials.client_details', [
+                    'client' => $client,
+                    'ClientRelations' => $ClientRelations,
+                    'categories' => $categories,
+                    'employees' => $employees,
+                    'notes' => $notes,
+                    'appointments' => $appointments
+                ])->render() : ''
+            ]);
+        }
+
+        return view('client.relestion_mang_client', compact(
+            'clients',
+            'ClientRelations',
+            'categories',
+            'lastClient',
+            'newCode',
+            'employees',
+            'notes',
+            'appointments',
+            'client'
+        ));
+    }
+
+    /**
+     * الحصول على تفاصيل العميل
+     */
+    public function getClientDetails($id)
+    {
+        $client = Client::findOrFail($id);
+        $ClientRelations = ClientRelation::where('client_id', $id)->get();
+        $categories = CategoriesClient::all();
+        $employees = Employee::all();
+        $notes = AppointmentNote::with(['user'])->latest()->get();
+        $appointments = Appointment::all();
+
+        return response()->json([
+            'success' => true,
+            'html' => view('client.partials.client_details', [
+                'client' => $client,
+                'ClientRelations' => $ClientRelations,
+                'categories' => $categories,
+                'employees' => $employees,
+                'notes' => $notes,
+                'appointments' => $appointments
+            ])->render()
+        ]);
     }
     public function getAllClients()
     {
