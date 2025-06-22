@@ -14,6 +14,7 @@ use App\Http\Controllers\Sales\RevolvingInvoicesController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Accounts\AssetsController;
 use App\Http\Controllers\Accounts\AccountsChartController;
+use App\Http\Controllers\Client\CatagroiyClientController;
 use App\Http\Controllers\Client\ClientSettingController;
 use App\Http\Controllers\Client\GroupsController;
 use App\Http\Controllers\Client\VisitController;
@@ -68,7 +69,7 @@ Route::group(
             // التحصيل اليومي
             Route::get('/daily_closing_entry', [EmployeeTargetController::class, 'daily_closing_entry'])->name('daily_closing_entry');
 
-            // احصائيات الزيارات 
+            // احصائيات الزيارات
              Route::get('/visitTarget', [EmployeeTargetController::class, 'visitTarget'])->name('visitTarget');
              Route::post('/visitTarget', [EmployeeTargetController::class, 'updatevisitTarget'])->name('target.visitTarget');
             //احصائيات الفروع
@@ -304,7 +305,7 @@ Route::group(
                     });
                 });
                 Route::prefix('group')->group(function () {
-  Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
+                  Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
                     Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
                     Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
                     Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
@@ -312,6 +313,17 @@ Route::group(
                     Route::delete('/group/delete/{id}', [GroupsController::class, 'group_client_destroy'])->name('groups.group_client_destroy');
 
                 });
+                Route::prefix('categoriesClient')->group(function () {
+                  Route::get('/categories', [CatagroiyClientController::class, 'index'])->name('categoriesClient.index');
+                    Route::get('/categories/create', [CatagroiyClientController::class, 'create'])->name('categoriesClient.create');
+                    Route::post('/categories/store', [CatagroiyClientController::class, 'store'])->name('categoriesClient.store');
+                    Route::get('/categories/edit/{id}', [CatagroiyClientController::class, 'edit'])->name('categoriesClient.edit');
+                    Route::put('/categories/update/{id}', [CatagroiyClientController::class, 'update'])->name('categoriesClient.update');
+                    Route::delete('/categories/delete/{id}', [CatagroiyClientController::class, 'destroy'])->name('categoriesClient.destroy');
+
+
+                });
+
 
                 Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                 Route::get('/mang_client/{id}', [ClientController::class, 'mang_client_details'])->name('clients.mang_client_details');
@@ -419,7 +431,7 @@ Route::group(
                     ->name('visits.today');
 
 
-    
+
                 Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
                 Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
                 Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');

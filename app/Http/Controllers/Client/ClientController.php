@@ -52,154 +52,167 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-public function index(Request $request)
-{
-    $user = auth()->user();
-    $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
-    $noClients = false;
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
+        $noClients = false;
 
-    // تحديد الصلاحيات حسب الدور والفرع
-    if ($user->role === 'employee') {
-        // إذا كان موظفًا، نعرض العملاء المرتبطين بمجموعاته فقط
-        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
+        // تحديد الصلاحيات حسب الدور والفرع
+        if ($user->role === 'employee') {
+            // إذا كان موظفًا، نعرض العملاء المرتبطين بمجموعاته فقط
+            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
-        if ($employeeGroupIds->isNotEmpty()) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
-                $q->whereIn('id', $employeeGroupIds);
-            });
-        } else {
-            $noClients = true;
-        }
-    } elseif ($user->branch_id) {
-        // الحصول على اسم الفرع الرئيسي من قاعدة البيانات
-        $mainBranchName = Branch::where('is_main', true)->value('name');
-        $currentBranchName = Branch::find($user->branch_id)->name;
-
-        // إذا لم يكن الفرع الحالي هو الفرع الرئيسي، نطبق التصفية
-        if ($currentBranchName !== $mainBranchName) {
-            $baseQuery->where('branch_id', $user->branch_id);
-        }
-    }
-    // إذا كان الفرع الرئيسي أو بدون فرع محدد، يرى جميع العملاء
-
-    // فلترة حسب الطلب
-    if ($request->filled('client')) {
-        $baseQuery->where('id', $request->client);
-    }
-
-    if ($request->filled('name')) {
-        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-    }
-
-    if ($request->filled('status')) {
-        $baseQuery->where('status_id', $request->status);
-    }
-
-    if ($request->filled('region')) {
-        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-            $q->where('id', $request->region);
-        });
-    }
-
-    if ($request->filled('neighborhood')) {
-        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-        });
-    }
-
-    // استعلام الخريطة
-    $mapQuery = clone $baseQuery;
-    $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
-
-    $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
-
-    $clientIds = $clients->pluck('id');
-
-    // الهدف العام
-    $target = Target::find(2)->value ?? 648;
-
-    // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
-    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
-    $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
-
-    $invoices = Invoice::whereIn('client_id', $clientIds)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->get();
-
-    $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
-
-    // جلب فقط المجموعات المرتبطة بالموظف الحالي
-$Region_groups= Region_groub::all();
-    $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
-    $receipts = Receipt::with('account')
-        ->whereHas('account', function ($q) use ($clientIds) {
-            $q->whereIn('client_id', $clientIds);
-        })
-        ->get()
-        ->groupBy(fn($receipt) => $receipt->account->client_id);
-
-    $clientsData = $clients
-        ->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $target) {
-            $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
-
-            $paymentsTotal = $invoiceIds->sum(function ($id) use ($payments) {
-                return isset($payments[$id]) ? $payments[$id]->sum('amount') : 0;
-            });
-
-            $receiptsTotal = isset($receipts[$client->id]) ? $receipts[$client->id]->sum('amount') : 0;
-
-            $collected = $paymentsTotal + $receiptsTotal;
-            $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
-
-            if ($percentage > 100) {
-                $group = 'A++';
-                $group_class = 'primary';
-            } elseif ($percentage >= 60) {
-                $group = 'A';
-                $group_class = 'success';
-            } elseif ($percentage >= 30) {
-                $group = 'B';
-                $group_class = 'warning';
-            } elseif ($percentage >= 10) {
-                $group = 'C';
-                $group_class = 'danger';
+            if ($employeeGroupIds->isNotEmpty()) {
+                $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                    $q->whereIn('id', $employeeGroupIds);
+                });
             } else {
-                $group = 'D';
-                $group_class = 'secondary';
+                $noClients = true;
             }
+        } elseif ($user->branch_id) {
+            // الحصول على اسم الفرع الرئيسي من قاعدة البيانات
+            $mainBranchName = Branch::where('is_main', true)->value('name');
+            $currentBranchName = Branch::find($user->branch_id)->name;
 
-            return [
-                'id' => $client->id,
-                'collected' => $collected,
-                'percentage' => $percentage,
-                'payments' => $paymentsTotal,
-                'receipts' => $receiptsTotal,
-                'group' => $group,
-                'group_class' => $group_class,
-                'invoices_count' => $invoiceIds->count(),
-                'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
-                    return isset($payments[$id]) ? $payments[$id]->count() : 0;
-                }),
-                'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
-            ];
-        })
-        ->keyBy('id');
+            // إذا لم يكن الفرع الحالي هو الفرع الرئيسي، نطبق التصفية
+            if ($currentBranchName !== $mainBranchName) {
+                $baseQuery->where('branch_id', $user->branch_id);
+            }
+        }
+        // إذا كان الفرع الرئيسي أو بدون فرع محدد، يرى جميع العملاء
 
-    $clientDueBalances = Account::whereIn('client_id', $clientIds)->selectRaw('client_id, SUM(balance) as total_due')->groupBy('client_id')->pluck('total_due', 'client_id');
+        // فلترة حسب الطلب
+        if ($request->filled('client')) {
+            $baseQuery->where('id', $request->client);
+        }
 
-    return view('client.index', [
-        'clientDueBalances' => $clientDueBalances,
-        'clientsData' => $clientsData,
-        'clients' => $clients,
-        'allClients' => $allClients,
-        'Neighborhoods' => Neighborhood::all(),
-        'users' => User::all(),
-        'employees' => Employee::all(),
-        'creditLimit' => CreditLimit::first(),
-        'statuses' => Statuses::select('id', 'name', 'color')->get(),
-        'Region_groups' => $Region_groups,
-        'userLocation',
-        'target' => $target,
-    ]);
-}
+        if ($request->filled('name')) {
+            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->filled('status')) {
+            $baseQuery->where('status_id', $request->status);
+        }
+
+        if ($request->filled('region')) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+                $q->where('id', $request->region);
+            });
+        }
+
+        if ($request->filled('neighborhood')) {
+            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
+            });
+        }
+
+        // استعلام الخريطة
+        $mapQuery = clone $baseQuery;
+        $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
+
+        $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
+
+        $clientIds = $clients->pluck('id');
+
+        // الهدف العام
+        $target = Target::find(2)->value ?? 648;
+
+        // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
+        $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+        $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
+
+        $invoices = Invoice::whereIn('client_id', $clientIds)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->get();
+
+        $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
+ $invoices = Invoice::whereIn('client_id', $clientIds)
+        ->where('type', 'normal')
+        ->whereNotIn('id', $excludedInvoiceIds)
+        ->get();
+
+    // حساب مجموع المبيعات لكل عميل
+    $clientTotalSales = $invoices->groupBy('client_id')
+        ->map(function ($invoices) {
+            return $invoices->sum('grand_total');
+        });
+
+        // جلب فقط المجموعات المرتبطة بالموظف الحالي
+        $Region_groups = Region_groub::all();
+        $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->get()->groupBy('invoice_id');
+        $receipts = Receipt::with('account')
+            ->whereHas('account', function ($q) use ($clientIds) {
+                $q->whereIn('client_id', $clientIds);
+            })
+            ->get()
+            ->groupBy(fn($receipt) => $receipt->account->client_id);
+
+        $clientsData = $clients
+            ->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $target) {
+                $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
+
+                $paymentsTotal = $invoiceIds->sum(function ($id) use ($payments) {
+                    return isset($payments[$id]) ? $payments[$id]->sum('amount') : 0;
+                });
+
+                $receiptsTotal = isset($receipts[$client->id]) ? $receipts[$client->id]->sum('amount') : 0;
+
+                $collected = $paymentsTotal + $receiptsTotal;
+                $percentage = $target > 0 ? round(($collected / $target) * 100, 2) : 0;
+
+                if ($percentage > 100) {
+                    $group = 'A++';
+                    $group_class = 'primary';
+                } elseif ($percentage >= 60) {
+                    $group = 'A';
+                    $group_class = 'success';
+                } elseif ($percentage >= 30) {
+                    $group = 'B';
+                    $group_class = 'warning';
+                } elseif ($percentage >= 10) {
+                    $group = 'C';
+                    $group_class = 'danger';
+                } else {
+                    $group = 'D';
+                    $group_class = 'secondary';
+                }
+
+                return [
+                    'id' => $client->id,
+                    'collected' => $collected,
+                    'percentage' => $percentage,
+                    'payments' => $paymentsTotal,
+                    'receipts' => $receiptsTotal,
+                    'group' => $group,
+                    'group_class' => $group_class,
+                    'invoices_count' => $invoiceIds->count(),
+                    'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
+                        return isset($payments[$id]) ? $payments[$id]->count() : 0;
+                    }),
+                    'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
+                ];
+            })
+            ->keyBy('id');
+
+        $clientDueBalances = Account::whereIn('client_id', $clientIds)->selectRaw('client_id, SUM(balance) as total_due')->groupBy('client_id')->pluck('total_due', 'client_id');
+
+        return view('client.index', [
+            'clientDueBalances' => $clientDueBalances,
+            'clientsData' => $clientsData,
+            'clients' => $clients,
+            'allClients' => $allClients,
+            'Neighborhoods' => Neighborhood::all(),
+            'users' => User::all(),
+            'employees' => Employee::all(),
+            'creditLimit' => CreditLimit::first(),
+            'statuses' => Statuses::select('id', 'name', 'color')->get(),
+            'Region_groups' => $Region_groups,
+            'userLocation',
+'invoiceIdsByClient' => $invoiceIdsByClient,
+'clientTotalSales'=>$clientTotalSales,
+
+            'target' => $target,
+        ]);
+    }
     public function updateCreditLimit(Request $request)
     {
         $request->validate([
@@ -680,8 +693,19 @@ $Region_groups= Region_groub::all();
 
         // جلب جميع المجموعات المتاحة
         $Regions_groub = Region_groub::all();
+        $GeneralClientSettings = GeneralClientSetting::all();
+        // إذا كان الجدول فارغًا، قم بإنشاء قيم افتراضية (مفعلة بالكامل)
+        if ($GeneralClientSettings->isEmpty()) {
+            $defaultSettings = [['key' => 'image', 'name' => 'صورة', 'is_active' => true], ['key' => 'type', 'name' => 'النوع', 'is_active' => true], ['key' => 'birth_date', 'name' => 'تاريخ الميلاد', 'is_active' => true], ['key' => 'location', 'name' => 'الموقع على الخريطة', 'is_active' => true], ['key' => 'opening_balance', 'name' => 'الرصيد الافتتاحي', 'is_active' => true], ['key' => 'credit_limit', 'name' => 'الحد الائتماني', 'is_active' => true], ['key' => 'credit_duration', 'name' => 'المدة الائتمانية', 'is_active' => true], ['key' => 'national_id', 'name' => 'رقم الهوية الوطنية', 'is_active' => true], ['key' => 'addresses', 'name' => 'عناوين متعددة', 'is_active' => true], ['key' => 'link', 'name' => 'الرابط', 'is_active' => true]];
 
-        return view('client.edit', compact('client', 'branches', 'employees', 'Regions_groub', 'location'));
+            // تحويل المصفوفة إلى مجموعة (Collection)
+            $GeneralClientSettings = collect($defaultSettings)->map(function ($item) {
+                return (object) $item; // تحويل المصفوفة إلى كائن
+            });
+        }
+        $categories = CategoriesClient::all();
+
+        return view('client.edit', compact('client', 'branches', 'employees', 'categories', 'Regions_groub', 'location', 'GeneralClientSettings'));
     }
     public function destroy($id)
     {
@@ -909,16 +933,18 @@ $Region_groups= Region_groub::all();
         // Apply search filter if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
-                  ->orWhere('code', 'like', "%$search%")
-                  ->orWhere('phone', 'like', "%$search%")
-                  ->orWhere('trade_name', 'like', "%$search%");
+                    ->orWhere('code', 'like', "%$search%")
+                    ->orWhere('phone', 'like', "%$search%")
+                    ->orWhere('trade_name', 'like', "%$search%");
             });
         }
 
         $clients = $query->paginate(100);
-        $notes = AppointmentNote::with(['user'])->latest()->get();
+        $notes = AppointmentNote::with(['user'])
+            ->latest()
+            ->get();
         $appointments = Appointment::all();
         $employees = Employee::all();
         $categories = CategoriesClient::all();
@@ -940,30 +966,22 @@ $Region_groups= Region_groub::all();
                 'client' => $client,
                 'html' => view('client.partials.client_list', [
                     'clients' => $clients,
-                    'selectedClient' => $client
+                    'selectedClient' => $client,
                 ])->render(),
-                'clientDetails' => $client ? view('client.partials.client_details', [
-                    'client' => $client,
-                    'ClientRelations' => $ClientRelations,
-                    'categories' => $categories,
-                    'employees' => $employees,
-                    'notes' => $notes,
-                    'appointments' => $appointments
-                ])->render() : ''
+                'clientDetails' => $client
+                    ? view('client.partials.client_details', [
+                        'client' => $client,
+                        'ClientRelations' => $ClientRelations,
+                        'categories' => $categories,
+                        'employees' => $employees,
+                        'notes' => $notes,
+                        'appointments' => $appointments,
+                    ])->render()
+                    : '',
             ]);
         }
 
-        return view('client.relestion_mang_client', compact(
-            'clients',
-            'ClientRelations',
-            'categories',
-            'lastClient',
-            'newCode',
-            'employees',
-            'notes',
-            'appointments',
-            'client'
-        ));
+        return view('client.relestion_mang_client', compact('clients', 'ClientRelations', 'categories', 'lastClient', 'newCode', 'employees', 'notes', 'appointments', 'client'));
     }
 
     /**
@@ -975,7 +993,9 @@ $Region_groups= Region_groub::all();
         $ClientRelations = ClientRelation::where('client_id', $id)->get();
         $categories = CategoriesClient::all();
         $employees = Employee::all();
-        $notes = AppointmentNote::with(['user'])->latest()->get();
+        $notes = AppointmentNote::with(['user'])
+            ->latest()
+            ->get();
         $appointments = Appointment::all();
 
         return response()->json([
@@ -986,8 +1006,8 @@ $Region_groups= Region_groub::all();
                 'categories' => $categories,
                 'employees' => $employees,
                 'notes' => $notes,
-                'appointments' => $appointments
-            ])->render()
+                'appointments' => $appointments,
+            ])->render(),
         ]);
     }
     public function getAllClients()
@@ -1517,69 +1537,68 @@ $Region_groups= Region_groub::all();
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
 
-public function updateStatusClient(Request $request)
-{
-    $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'status_id' => 'required|exists:statuses,id',
-    ]);
+    public function updateStatusClient(Request $request)
+    {
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'status_id' => 'required|exists:statuses,id',
+        ]);
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
-    try {
-        $client = Client::findOrFail($request->client_id);
-        $client->status_id = $request->status_id;
-        $client->save();
+        try {
+            $client = Client::findOrFail($request->client_id);
+            $client->status_id = $request->status_id;
+            $client->save();
 
-        // الحصول على حالة "موقوف" و "تحت المراجعة"
-        $suspendedStatus = Statuses::where('name', 'موقوف')->first();
-        $underReviewStatus = Statuses::where('name', 'تحت المراجعة')->first();
-        $currentUserId = auth()->id();
+            // الحصول على حالة "موقوف" و "تحت المراجعة"
+            $suspendedStatus = Statuses::where('name', 'موقوف')->first();
+            $underReviewStatus = Statuses::where('name', 'تحت المراجعة')->first();
+            $currentUserId = auth()->id();
 
-        // إذا كانت الحالة الجديدة هي "موقوف"
-        if ($suspendedStatus && $request->status_id == $suspendedStatus->id) {
-            $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
+            // إذا كانت الحالة الجديدة هي "موقوف"
+            if ($suspendedStatus && $request->status_id == $suspendedStatus->id) {
+                $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
 
-            if ($suspendedGroup) {
-                $neighborhood = Neighborhood::firstOrNew(['client_id' => $client->id]);
-                $neighborhood->region_id = $suspendedGroup->id;
-                $neighborhood->save();
-            }
-        }
-        // إذا كانت الحالة الجديدة هي "تحت المراجعة"
-        elseif ($underReviewStatus && $request->status_id == $underReviewStatus->id) {
-            $neighborhood = Neighborhood::where('client_id', $client->id)->first();
-
-            if ($neighborhood && $regionGroup = Region_groub::find($neighborhood->region_id)) {
-                // الحصول على الموظف المرتبط بالمجموعة (على فرض أن كل مجموعة لها موظف واحد فقط)
-                $employeeGroup = EmployeeGroup::where('group_id', $regionGroup->id)->first();
-
-                if ($employeeGroup && $employeeGroup->employee) {
-                    notifications::create([
-                        'user_id'      => $currentUserId,
-                        'receiver_id'  => $employeeGroup->employee->id,
-                        'title'        => 'مراجعة عميل',
-                        'description'  => 'تم تحويل العميل "' . $client->trade_name . '" إلى تحت المراجعة.',
-                        'read'         => 0,
-                        'type'         => 'مراجعة عميل',
-                        'created_at'   => now(),
-                        'updated_at'   => now(),
-                    ]);
+                if ($suspendedGroup) {
+                    $neighborhood = Neighborhood::firstOrNew(['client_id' => $client->id]);
+                    $neighborhood->region_id = $suspendedGroup->id;
+                    $neighborhood->save();
                 }
             }
+            // إذا كانت الحالة الجديدة هي "تحت المراجعة"
+            elseif ($underReviewStatus && $request->status_id == $underReviewStatus->id) {
+                $neighborhood = Neighborhood::where('client_id', $client->id)->first();
+
+                if ($neighborhood && ($regionGroup = Region_groub::find($neighborhood->region_id))) {
+                    // الحصول على الموظف المرتبط بالمجموعة (على فرض أن كل مجموعة لها موظف واحد فقط)
+                    $employeeGroup = EmployeeGroup::where('group_id', $regionGroup->id)->first();
+
+                    if ($employeeGroup && $employeeGroup->employee) {
+                        notifications::create([
+                            'user_id' => $currentUserId,
+                            'receiver_id' => $employeeGroup->employee->id,
+                            'title' => 'مراجعة عميل',
+                            'description' => 'تم تحويل العميل "' . $client->trade_name . '" إلى تحت المراجعة.',
+                            'read' => 0,
+                            'type' => 'مراجعة عميل',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error in updateStatusClient: ' . $e->getMessage());
+            return redirect()
+                ->back()
+                ->with('error', 'حدث خطأ: ' . $e->getMessage());
         }
-
-
-
-        DB::commit();
-        return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
-
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error('Error in updateStatusClient: ' . $e->getMessage());
-        return redirect()->back()->with('error', 'حدث خطأ: ' . $e->getMessage());
     }
-}
 
     public function statement($id)
     {

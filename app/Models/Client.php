@@ -17,7 +17,7 @@ class Client extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
     // الحقول القابلة للتعبئة
-    protected $fillable = ['trade_name','classification_id ','force_show','last_note_at', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
+    protected $fillable = ['trade_name','category_id','force_show','last_note_at', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -232,7 +232,7 @@ public function Balance()
     }
     public function category()
     {
-        return $this->hasMany(CategoriesClient::class, 'classification_id');
+        return $this->hasMany(CategoriesClient::class, 'category_id');
     }
     public function employees()
     {

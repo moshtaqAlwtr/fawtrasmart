@@ -147,6 +147,13 @@
 .district-sub-name:contains("C") {
     color: #dc3545; /* اللون الأحمر للفئة C */
 }
+
+    .card:hover {
+        transform: scale(1.02);
+        transition: all 0.3s ease-in-out;
+    }
+
+
 </style>
 <?php $__env->stopSection(); ?>
 
@@ -169,76 +176,134 @@
         </div>
     </div>
 
-    <div class="content-body">
+    
+  <div class="content-body">
+    <section id="dashboard-ecommerce">
+        <div class="row">
 
-        <section id="dashboard-ecommerce">
+            
+<div class="col-12 mb-4">
+    <div class="card shadow-lg border-0 rounded-4 bg-white">
+        <div class="card-body">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3 shadow" style="width: 70px; height: 70px;">
+                        <i class="feather icon-users font-large-1"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-weight-bolder mb-1">العملاء  </h3>
+                        <h6 class="text-muted">إجمالي العملاء:
+                            <span class="text-dark font-weight-bold"><?php echo e($totalClients ?? 0); ?></span>
+                        </h6>
+                    </div>
+                </div>
+                <img src="<?php echo e(asset('images/client-status.png')); ?>" alt="clients" height="60">
+            </div>
+
+            
             <div class="row">
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-primary p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-users text-primary font-medium-5"></i>
+                <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
+                        $icon = match($status->name) {
+                            'نشط' => 'check-circle',
+                            'متابعة' => 'eye',
+                            'موقوف' => 'slash',
+                            default => 'user'
+                        };
+                        $color = match($status->name) {
+                            'نشط' => 'success',
+                            'متابعة' => 'warning',
+                            'موقوف' => 'danger',
+                            default => 'secondary'
+                        };
+                    ?>
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-3">
+                        <div class="card border-0 shadow-sm rounded-3 h-100 bg-white">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="avatar bg-<?php echo e($color); ?> text-white rounded-circle d-flex align-items-center justify-content-center mr-3 shadow-sm" style="width: 50px; height: 50px;">
+                                    <i class="feather icon-<?php echo e($icon); ?> font-medium-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="font-weight-bold text-dark mb-0"><?php echo e($status->name); ?></h5>
+                                    <h4 class="font-weight-bolder text-<?php echo e($color); ?>"><?php echo e($status->clients->count()); ?></h4>
                                 </div>
                             </div>
-                            <h2 class="text-bold-700 mt-1"><?php echo e($ClientCount ?? 0); ?></h2>
-                            <p class="mb-0">العملاء</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-1"></div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-success p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-credit-card text-success font-medium-5"></i>
-                                </div>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+            
+            <div class="col-md-6 col-12 mb-3">
+                <div class="card shadow-lg border-0 rounded-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="feather icon-credit-card font-medium-4"></i>
                             </div>
-                            <h2 class="text-bold-700 mt-1"> <?php echo e(number_format($Invoice, 2) ?? 0); ?></h2>
-                            <p class="mb-0">المبيعات</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-2"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-danger p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-shopping-cart text-danger font-medium-5"></i>
-                                </div>
+                            <div>
+                                <h5 class="mb-0 font-weight-bold">المبيعات</h5>
+                                <small class="text-muted">الإجمالي</small>
                             </div>
-                            <h2 class="text-bold-700 mt-1"><?php echo e($Visit ?? 0); ?></h2>
-                            <p class="mb-0">الزيارات</p>
                         </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-3"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="card">
-                        <div class="card-header d-flex flex-column align-items-start pb-0">
-                            <div class="avatar bg-rgba-warning p-50 m-0">
-                                <div class="avatar-content">
-                                    <i class="feather icon-package text-warning font-medium-5"></i>
-                                </div>
-                            </div>
-                            <h2 class="text-bold-700 mt-1">97.5K</h2>
-                            <p class="mb-0">الطلبات الواردة</p>
-                        </div>
-                        <div class="card-content">
-                            <div id="line-area-chart-4"></div>
-                        </div>
+                        <h3 class="text-success font-weight-bold"><?php echo e(number_format($Invoice, 2) ?? 0); ?></h3>
+                        <div id="line-area-chart-2" style="height: 80px;"></div>
                     </div>
                 </div>
             </div>
-   
+
+            
+            <div class="col-md-6 col-12 mb-3">
+                <div class="card shadow-lg border-0 rounded-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="feather icon-map-pin font-medium-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0 font-weight-bold">الزيارات</h5>
+                                <small class="text-muted">عدد الزيارات</small>
+                            </div>
+                        </div>
+                        <h3 class="text-danger font-weight-bold"><?php echo e($Visit ?? 0); ?></h3>
+                        <div id="line-area-chart-3" style="height: 80px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="col-md-6 col-12 mb-3">
+                <div class="card shadow-lg border-0 rounded-2">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
+                                <i class="feather icon-package font-medium-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0 font-weight-bold">الطلبات الواردة</h5>
+                                <small class="text-muted">آخر 30 يوم</small>
+                            </div>
+                        </div>
+                        <h3 class="text-warning font-weight-bold">97.5K</h3>
+                        <div id="line-area-chart-4" style="height: 80px;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+    </section>
+
+</div>
+
            
             
            
@@ -744,121 +809,7 @@
 </script>
 
 
-                <!--<div class="col-lg-4 col-12">-->
-                <!--    <div class="card chat-application">-->
-                <!--        <div class="card-header">-->
-                <!--            <h4 class="card-title">الدردشة</h4>-->
-                <!--        </div>-->
-                <!--        <div class="chat-app-window">-->
-                <!--            <div class="user-chats">-->
-                <!--                <div class="chats">-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>كعكة السمسم</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>فطيرة التفاح</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>كعكة الشوكولاتة</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>دونات</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>حلوى عرق السوس</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>حلوى التوفي</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat">-->
-                <!--                        <div class="chat-avatar">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="right" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-2.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>فطيرة التفاح</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                    <div class="chat chat-left">-->
-                <!--                        <div class="chat-avatar mt-50">-->
-                <!--                            <a class="avatar m-0" data-toggle="tooltip" href="#" data-placement="left" title="" data-original-title="">-->
-                <!--                                <img src="../../../app-assets/images/portrait/small/avatar-s-5.jpg" alt="avatar" height="40" width="40" />-->
-                <!--                            </a>-->
-                <!--                        </div>-->
-                <!--                        <div class="chat-body">-->
-                <!--                            <div class="chat-content">-->
-                <!--                                <p>كعكة البسكويت</p>-->
-                <!--                            </div>-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                </div>-->
-                <!--            </div>-->
-                <!--            <div class="chat-footer">-->
-                <!--                <div class="card-body d-flex justify-content-around pt-0">-->
-                <!--                    <input type="text" class="form-control mr-50" placeholder="اكتب رسالتك">-->
-                <!--                    <button type="button" class="btn btn-icon btn-primary"><i class="feather icon-navigation"></i></button>-->
-                <!--                </div>-->
-                <!--            </div>-->
-                <!--        </div>-->
-                <!--    </div>-->
-                <!--</div>-->
+
                 <div class="col-md-12 col-12">
 
             <div class="row">
@@ -891,7 +842,7 @@
                         </div>
                     </div>
                 </div>
-                
+
 
                 <div class="col-lg-6 col-12">
 
@@ -938,6 +889,7 @@
                     </div>
                 </div>
             </div>
+            
             <div class="row">
                 <div class="col-lg-8 col-md-6 col-12">
                     <div class="card">
@@ -970,6 +922,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="col-lg-4 col-md-6 col-12">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-end">
@@ -1011,90 +964,7 @@
 
 </div>
 
-                <div class="col-md-4 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">إحصائيات المتصفحات</h4>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">جوجل كروم</p>
-                                        <h4>73%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>800 <i class="feather icon-arrow-up text-success"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="73" aria-valuemin="73"
-                                        aria-valuemax="100" style="width:73%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">أوبرا</p>
-                                        <h4>8%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>-200 <i class="feather icon-arrow-down text-danger"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="8" aria-valuemin="8"
-                                        aria-valuemax="100" style="width:8%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">فايرفوكس</p>
-                                        <h4>19%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>100 <i class="feather icon-arrow-up text-success"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-2">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="19" aria-valuemin="19"
-                                        aria-valuemax="100" style="width:19%"></div>
-                                </div>
-                                <div class="d-flex justify-content-between mb-25">
-                                    <div class="browser-info">
-                                        <p class="mb-25">إنترنت إكسبلورر</p>
-                                        <h4>27%</h4>
-                                    </div>
-                                    <div class="stastics-info text-right">
-                                        <span>-450 <i class="feather icon-arrow-down text-danger"></i></span>
-                                        <span class="text-muted d-block">13:16</span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-bar-primary mb-50">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="27" aria-valuemin="27"
-                                        aria-valuemax="100" style="width:27%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-8 col-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title">الاحتفاظ بالعملاء</h4>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-body">
-                                <div id="client-retention-chart">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-
-            </div>
+                
         </section>
 
 

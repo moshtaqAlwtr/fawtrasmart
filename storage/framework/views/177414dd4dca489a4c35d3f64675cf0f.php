@@ -97,26 +97,32 @@
 
                     <!-- زر أضف العميل -->
 
-
                     <!-- زر تحميل ملف -->
                     <label class="bg-white border d-flex align-items-center justify-content-center"
-                        style="width: 44px; height: 44px; cursor: pointer; border-radius: 6px;">
+                        style="width: 44px; height: 44px; cursor: pointer; border-radius: 6px;" title="تحميل ملف">
                         <i class="fas fa-cloud-upload-alt text-primary"></i>
                         <input type="file" name="file" class="d-none">
                     </label>
 
                     <!-- زر استيراد -->
                     <button type="submit" class="bg-white border d-flex align-items-center justify-content-center"
-                        style="width: 44px; height: 44px; border-radius: 6px;">
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="استيراد ك Excel">
                         <i class="fas fa-database text-primary"></i>
                     </button>
 
                     <!-- زر حد ائتماني -->
                     <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#creditLimitModal"
                         class="bg-white border d-flex align-items-center justify-content-center"
-                        style="width: 44px; height: 44px; border-radius: 6px;">
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="حد ائتماني">
                         <i class="fas fa-credit-card text-primary"></i>
                     </a>
+
+                    <!-- زر تصدير ك Excel (الجديد) -->
+                    <button id="exportExcelBtn" class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="تصدير ك Excel">
+                        <i class="fas fa-file-excel text-primary"></i>
+                    </button>
+
 
                     <a href="<?php echo e(route('clients.create')); ?>"
                         class="btn btn-success d-flex align-items-center justify-content-center"
@@ -127,6 +133,8 @@
                 </div>
             </div>
         </div>
+
+
 
         <!-- بطاقة البحث -->
         <div class="card">
@@ -148,359 +156,330 @@
             </div>
             <div class="card-body">
                 <form class="form" id="searchForm" method="GET" action="<?php echo e(route('clients.index')); ?>">
-    <div class="card p-3 mb-4">
-        <div class="row g-3 align-items-end">
-            <!-- اسم العميل -->
-            <div class="col-md-3 col-12">
-                <label for="client" class="form-label">العميل</label>
-                <select name="client" id="client" class="form-control select2">
-                    <option value="">اختر العميل</option>
-                    <?php $__currentLoopData = $allClients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($client->id); ?>"
-                            <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
-                            <?php echo e($client->trade_name); ?> - <?php echo e($client->code); ?>
+                    <div class="card p-3 mb-4">
+                        <div class="row g-3 align-items-end">
+                            <!-- اسم العميل -->
+                            <div class="col-md-3 col-12">
+                                <label for="client" class="form-label">العميل</label>
+                                <select name="client" id="client" class="form-control select2">
+                                    <option value="">اختر العميل</option>
+                                    <?php $__currentLoopData = $allClients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($client->id); ?>"
+                                            <?php echo e(request('client') == $client->id ? 'selected' : ''); ?>>
+                                            <?php echo e($client->trade_name); ?> - <?php echo e($client->code); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
 
-            <!-- الاسم -->
-            <div class="col-md-3 col-12">
-                <label for="name" class="form-label">الاسم</label>
-                <input type="text" name="name" id="name" class="form-control"
-                    placeholder="الاسم" value="<?php echo e(request('name')); ?>">
-            </div>
+                            <!-- الاسم -->
+                            <div class="col-md-3 col-12">
+                                <label for="name" class="form-label">الاسم</label>
+                                <input type="text" name="name" id="name" class="form-control"
+                                    placeholder="الاسم" value="<?php echo e(request('name')); ?>">
+                            </div>
 
-            <!-- الحالة -->
-            <div class="col-md-3 col-12">
-                <label for="status" class="form-label">الحالة</label>
-                <select name="status" id="status" class="form-control">
-                    <option value="">اختر الحالة</option>
-                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($status->id); ?>"
-                            <?php echo e(request('status') == $status->id ? 'selected' : ''); ?>>
-                            <?php echo e($status->name); ?>
+                            <!-- الحالة -->
+                            <div class="col-md-3 col-12">
+                                <label for="status" class="form-label">الحالة</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">اختر الحالة</option>
+                                    <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($status->id); ?>"
+                                            <?php echo e(request('status') == $status->id ? 'selected' : ''); ?>>
+                                            <?php echo e($status->name); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
 
-            <!-- المجموعة -->
-            <div class="col-md-3 col-12">
-                <label for="region" class="form-label">المجموعة</label>
-                <select name="region" id="region" class="form-control select2">
-                    <option value="">اختر المجموعة</option>
-                    <?php $__currentLoopData = $Region_groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($Region_group->id); ?>"
-                            <?php echo e(request('region') == $Region_group->id ? 'selected' : ''); ?>>
-                            <?php echo e($Region_group->name); ?>
+                            <!-- المجموعة -->
+                            <div class="col-md-3 col-12">
+                                <label for="region" class="form-label">المجموعة</label>
+                                <select name="region" id="region" class="form-control select2">
+                                    <option value="">اختر المجموعة</option>
+                                    <?php $__currentLoopData = $Region_groups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($Region_group->id); ?>"
+                                            <?php echo e(request('region') == $Region_group->id ? 'selected' : ''); ?>>
+                                            <?php echo e($Region_group->name); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
 
-            <!-- الحي -->
-            <div class="col-md-4 col-12">
-                <label for="neighborhood" class="form-label">الحي</label>
-                <input type="text" name="neighborhood" id="neighborhood" class="form-control"
-                    placeholder="الحي" value="<?php echo e(request('neighborhood')); ?>">
-            </div>
+                            <!-- الحي -->
+                            <div class="col-md-4 col-12">
+                                <label for="neighborhood" class="form-label">الحي</label>
+                                <input type="text" name="neighborhood" id="neighborhood" class="form-control"
+                                    placeholder="الحي" value="<?php echo e(request('neighborhood')); ?>">
+                            </div>
 
-            <!-- تاريخ من -->
-            <div class="col-md-4 col-12">
-                <label for="date_from" class="form-label">تاريخ من</label>
-                <input type="date" name="address" id="date_from" class="form-control"
-                    placeholder="تاريخ من" value="<?php echo e(request('address')); ?>">
-            </div>
+                            <!-- تاريخ من -->
+                            <div class="col-md-4 col-12">
+                                <label for="date_from" class="form-label">تاريخ من</label>
+                                <input type="date" name="address" id="date_from" class="form-control"
+                                    placeholder="تاريخ من" value="<?php echo e(request('address')); ?>">
+                            </div>
 
-            <!-- تاريخ الى -->
-            <div class="col-md-4 col-12">
-                <label for="date_to" class="form-label">تاريخ الى</label>
-                <input type="date" name="address" id="date_to" class="form-control"
-                    placeholder="تاريخ الى" value="<?php echo e(request('address')); ?>">
-            </div>
-        </div>
-    </div>
+                            <!-- تاريخ الى -->
+                            <div class="col-md-4 col-12">
+                                <label for="date_to" class="form-label">تاريخ الى</label>
+                                <input type="date" name="address" id="date_to" class="form-control"
+                                    placeholder="تاريخ الى" value="<?php echo e(request('address')); ?>">
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="collapse" id="advancedSearchForm">
-        <div class="row g-3 mt-2">
-            <!-- التصنيف -->
-            <div class="col-md-4 col-12">
-                <label for="classifications" class="form-label">التصنيف</label>
-                <select name="classifications" id="classifications" class="form-control">
-                    <option value="">اختر التصنيف</option>
-                    <option value="1" <?php echo e(request('classifications') == '1' ? 'selected' : ''); ?>>
-                    </option>
-                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
-                    </option>
-                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
-                    </option>
-                </select>
-            </div>
+                    <div class="collapse" id="advancedSearchForm">
+                        <div class="row g-3 mt-2">
+                            <!-- التصنيف -->
+                            <div class="col-md-4 col-12">
+                                <label for="classifications" class="form-label">التصنيف</label>
+                                <select name="classifications" id="classifications" class="form-control">
+                                    <option value="">اختر التصنيف</option>
+                                    <option value="1" <?php echo e(request('classifications') == '1' ? 'selected' : ''); ?>>
+                                    </option>
+                                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
+                                    </option>
+                                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
+                                    </option>
+                                </select>
+                            </div>
 
-            <!-- أضيفت بواسطة -->
-            <div class="col-md-4 col-12">
-                <label for="user" class="form-label">أضيفت بواسطة</label>
-                <select name="user" id="user" class="form-control select2">
-                    <option value="">أضيفت بواسطة</option>
-                    <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($user->id); ?>"
-                            <?php echo e(request('user') == $user->id ? 'selected' : ''); ?>>
-                            <?php echo e($user->name); ?> - <?php echo e($user->id); ?>
+                            <!-- أضيفت بواسطة -->
+                            <div class="col-md-4 col-12">
+                                <label for="user" class="form-label">أضيفت بواسطة</label>
+                                <select name="user" id="user" class="form-control select2">
+                                    <option value="">أضيفت بواسطة</option>
+                                    <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($user->id); ?>"
+                                            <?php echo e(request('user') == $user->id ? 'selected' : ''); ?>>
+                                            <?php echo e($user->name); ?> - <?php echo e($user->id); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
 
-            <!-- النوع -->
-            <div class="col-md-4 col-12">
-                <label for="type" class="form-label">النوع</label>
-                <select name="type" id="type" class="form-control">
-                    <option value="">اختر النوع</option>
-                    <option value="1" <?php echo e(request('type') == '1' ? 'selected' : ''); ?>></option>
-                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
-                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
-                </select>
-            </div>
+                            <!-- النوع -->
+                            <div class="col-md-4 col-12">
+                                <label for="type" class="form-label">النوع</label>
+                                <select name="type" id="type" class="form-control">
+                                    <option value="">اختر النوع</option>
+                                    <option value="1" <?php echo e(request('type') == '1' ? 'selected' : ''); ?>></option>
+                                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
+                                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
+                                </select>
+                            </div>
 
-            <!-- الموظفين المعيين -->
-            <div class="col-md-4 col-12">
-                <label for="full_name" class="form-label">الموظفين المعيين</label>
-                <select name="full_name" id="full_name" class="form-control select2">
-                    <option value="">اختر الموظفين المعيين</option>
-                    <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($employee->id); ?>"
-                            <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
-                            <?php echo e($employee->full_name); ?> - <?php echo e($employee->id); ?>
+                            <!-- الموظفين المعيين -->
+                            <div class="col-md-4 col-12">
+                                <label for="full_name" class="form-label">الموظفين المعيين</label>
+                                <select name="full_name" id="full_name" class="form-control select2">
+                                    <option value="">اختر الموظفين المعيين</option>
+                                    <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($employee->id); ?>"
+                                            <?php echo e(request('employee') == $employee->id ? 'selected' : ''); ?>>
+                                            <?php echo e($employee->full_name); ?> - <?php echo e($employee->id); ?>
 
-                        </option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </select>
-            </div>
-        </div>
-    </div>
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="form-actions mt-2">
-        <button type="submit" class="btn btn-primary">بحث</button>
-        <a href="<?php echo e(route('clients.index')); ?>" type="reset" class="btn btn-outline-warning">إلغاء</a>
-    </div>
-</form>
+                    <div class="form-actions mt-2">
+                        <button type="submit" class="btn btn-primary">بحث</button>
+                        <a href="<?php echo e(route('clients.index')); ?>" type="reset" class="btn btn-outline-warning">إلغاء</a>
+                    </div>
+                </form>
             </div>
         </div>
 
         <!-- جدول العملاء -->
         <!-- جدول العملاء -->
-        <?php if(isset($clients) && $clients->count() > 0): ?>
-            <div class="row">
-                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <?php
-                        $clientData = $clientsData[$client->id] ?? null;
-                        $due = $clientDueBalances[$client->id] ?? 0;
-                    ?>
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <a href="<?php echo e(route('clients.show', $client->id)); ?>" class="text-decoration-none text-dark">
-                            <div class="card shadow-sm border border-1 rounded-3"
-                                style="height: 380px; overflow: hidden;"> <!-- زيادة الارتفاع قليلاً وإضافة overflow -->
-                                <div class="card-body">
-                                    <!-- Card Header Section -->
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div class="client-meta">
-                                            <?php if($client->status_client): ?>
-                                                <span class="client-status"
-                                                    style="background-color: <?php echo e($client->status_client->color); ?>; font-size: 11px; padding: 1px 6px;">
-                                                    <?php echo e($client->status_client->name); ?>
 
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="client-status"
-                                                    style="background-color: #6c757d; font-size: 11px; padding: 1px 6px;">
-                                                    غير محدد
-                                                </span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="ms-auto" style="transform: scale(0.8); transform-origin: top right;">
-                                            <!-- تصغير حجم الدائرة -->
-                                            <svg width="70" height="70" viewBox="0 0 36 36"
-                                                class="circular-chart">
-                                                <path class="circle-bg"
-                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                                <path class="circle"
-                                                    stroke-dasharray="<?php echo e($clientData['percentage'] ?? 0); ?>, 100"
-                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                                <text x="18" y="21" text-anchor="middle" class="percentage"
-                                                    font-size="7" fill="#333">
-                                                    <?php if(!empty($clientData['group'])): ?>
-                                                        <tspan x="18" dy="0" font-size="7" fill="#333">
-                                                            <?php echo e($clientData['group']); ?></tspan>
-                                                    <?php endif; ?>
-                                                </text>
-                                            </svg>
-                                        </div>
-                                    </div>
 
-                                    <!-- Client Info Section -->
-                                    <div class="client-info" style="overflow: hidden; flex-grow: 1;">
-                                        <div class="text-muted small mb-1" style="font-size: 11px;">
-                                            <i class="far fa-calendar-alt me-1"></i>
-                                            تاريخ الإضافة: <?php echo e($client->created_at->format('d-m-Y')); ?>
 
-                                        </div>
 
-                                        <h6 class="client-name text-primary mb-1"
-                                            style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            <?php echo e($client->trade_name); ?></h6>
-                                        <?php if($client->code): ?>
-                                            <div class="client-code text-muted small mb-1" style="font-size: 11px;">
-                                                <i class="fas fa-hashtag me-1"></i>
-                                                <?php echo e($client->code); ?>
 
-                                            </div>
-                                        <?php endif; ?>
 
-                                        <div class="client-contact text-muted small mb-2"
-                                            style="font-size: 11px; line-height: 1.4;">
-                                            <div class="mb-1">
-                                                <i class="fas fa-user me-1"></i>
-                                                <?php echo e($client->first_name); ?> <?php echo e($client->last_name); ?>
 
-                                            </div>
-                                            <?php if($client->email): ?>
-                                                <div class="mb-1"
-                                                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                    <i class="fas fa-envelope me-1"></i>
-                                                    <?php echo e($client->email); ?>
+    <?php if(isset($clients) && $clients->count() > 0): ?>
+    <?php
+        $chunks = $clients->chunk(3); // تقسيم العملاء إلى مجموعات من 3
+    ?>
 
-                                                </div>
-                                            <?php endif; ?>
-                                            <?php if($client->phone): ?>
-                                                <div class="mb-1">
-                                                    <i class="fas fa-phone me-1"></i>
-                                                    <?php echo e($client->phone); ?>
+    <?php $__currentLoopData = $chunks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $chunk): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <div class="row g-3">
+            <?php $__currentLoopData = $chunk; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                    $clientData = $clientsData[$client->id] ?? null;
+                    $due = $clientDueBalances[$client->id] ?? 0;
+                    $totalSales = $clientTotalSales[$client->id] ?? 0;
+                ?>
 
-                                                </div>
-                                            <?php endif; ?>
-                                            <div>
-                                                <i class="fas fa-users me-1"></i>
-                                                <?php echo e($client->Neighborhoodname->Region->name ?? ''); ?>
+                <!-- بطاقة عميل -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
 
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Client Actions -->
-                                    <div class="client-actions d-flex justify-content-between mt-auto pt-2 border-top">
-                                        <a href="<?php echo e(route('clients.show', $client->id)); ?>"
-                                            class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;">
-                                            <i class="far fa-eye me-1"></i> عرض
-                                        </a>
+                            <!-- رأس البطاقة -->
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="fw-bold text-primary mb-1"><?php echo e($client->trade_name); ?></h6>
+                                    <?php if($client->code): ?>
+                                        <small class="text-muted"><i class="bi bi-hash me-1"></i><?php echo e($client->code); ?></small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="<?php echo e(route('clients.show', $client->id)); ?>"><i class="bi bi-eye me-1"></i>عرض</a></li>
                                         <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
-                                            <a href="<?php echo e(route('clients.edit', $client->id)); ?>"
-                                                class="btn btn-outline-secondary btn-sm px-2 py-1"
-                                                style="font-size: 11px;">
-                                                <i class="far fa-edit me-1"></i> تعديل
-                                            </a>
+                                            <li><a class="dropdown-item" href="<?php echo e(route('clients.edit', $client->id)); ?>"><i class="bi bi-pencil-square me-1"></i>تعديل</a></li>
                                         <?php endif; ?>
                                         <?php if(auth()->user()->hasPermissionTo('Delete_Client')): ?>
-                                            <a href="<?php echo e(route('clients.destroy', $client->id)); ?>"
-                                                class="btn btn-outline-danger btn-sm px-2 py-1" style="font-size: 11px;">
-                                                <i class="far fa-trash-alt me-1"></i> حذف
-                                            </a>
+                                            <li><a class="dropdown-item text-danger" href="<?php echo e(route('clients.destroy', $client->id)); ?>"><i class="bi bi-trash me-1"></i>حذف</a></li>
                                         <?php endif; ?>
-                                    </div>
+                                    </ul>
                                 </div>
                             </div>
-                        </a>
+
+                            <!-- معلومات العميل -->
+                            <div class="row row-cols-2 g-2 mb-2">
+                                <div class="col">
+                                    <?php if($client->phone): ?>
+                                        <small><i class="bi bi-telephone text-secondary me-1"></i><?php echo e($client->phone); ?></small><br>
+                                    <?php endif; ?>
+                                    <?php if($client->status_client): ?>
+                                        <small><i class="bi bi-people text-secondary me-1"></i><?php echo e($client->status_client->name); ?></small><br>
+                                    <?php endif; ?>
+                                    <?php if($client->Neighborhoodname): ?>
+                                        <small><i class="bi bi-geo-alt text-secondary me-1"></i><a href="#" class="text-decoration-none">عرض الموقع</a></small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="col">
+                                    <small><i class="bi bi-person-badge text-secondary me-1"></i><?php echo e($client->first_name); ?> <?php echo e($client->last_name); ?></small><br>
+                                    <?php if($client->Neighborhoodname): ?>
+                                        <small><i class="bi bi-geo text-secondary me-1"></i><?php echo e($client->Neighborhoodname->name ?? ''); ?></small><br>
+                                        <small><i class="bi bi-people-fill text-secondary me-1"></i><?php echo e($client->Neighborhoodname->Region->name ?? ''); ?></small>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- المبيعات والتحصيل -->
+                            <div class="d-flex justify-content-around text-center border rounded p-2 mb-2">
+                                <div>
+                                    <i class="bi bi-cash-stack text-primary"></i>
+                                    <div><small class="text-muted">المبيعات</small></div>
+                                    <strong class="text-primary"><?php echo e(number_format($totalSales)); ?></strong>
+                                </div>
+                                <div>
+                                    <i class="bi bi-wallet2 text-success"></i>
+                                    <div><small class="text-muted">التحصيلات</small></div>
+                                    <strong class="text-success"><?php echo e(number_format($clientData['paid'] ?? 0)); ?></strong>
+                                </div>
+                                <div>
+                                    <i class="bi bi-cart4 text-warning"></i>
+                                    <div><small class="text-muted">الآجلة</small></div>
+                                    <strong class="text-warning"><?php echo e(number_format($due)); ?></strong>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </div>
-        <?php else: ?>
-            <div class="alert alert-info text-center py-3" role="alert" style="font-size: 14px;">
-                <i class="fas fa-info-circle fa-lg mb-2"></i>
-                <h5 class="mb-0" style="font-size: 16px;">لا توجد عملاء مسجلين حالياً</h5>
-            </div>
-        <?php endif; ?>
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+<?php else: ?>
+    <div class="alert alert-info text-center py-3" role="alert" style="font-size: 14px;">
+        <i class="fas fa-info-circle fa-lg mb-2"></i>
+        <h5 class="mb-0" style="font-size: 16px;">لا توجد عملاء مسجلين حالياً</h5>
+    </div>
+<?php endif; ?>
 
-
-        <?php if($clients->hasPages()): ?>
-            <nav aria-label="Page navigation">
-                <ul class="pagination pagination-sm mb-0">
-                    <!-- زر الانتقال إلى أول صفحة -->
-                    <?php if($clients->onFirstPage()): ?>
-                        <li class="page-item disabled">
-                            <span class="page-link border-0 rounded-pill" aria-label="First">
-                                <i class="fas fa-angle-double-right"></i>
-                            </span>
-                        </li>
-                    <?php else: ?>
-                        <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->url(1)); ?>" aria-label="First">
-                                <i class="fas fa-angle-double-right"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-
-                    <!-- زر الانتقال إلى الصفحة السابقة -->
-                    <?php if($clients->onFirstPage()): ?>
-                        <li class="page-item disabled">
-                            <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                <i class="fas fa-angle-right"></i>
-                            </span>
-                        </li>
-                    <?php else: ?>
-                        <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->previousPageUrl()); ?>"
-                                aria-label="Previous">
-                                <i class="fas fa-angle-right"></i>
-                            </a>
-                        </li>
-                    <?php endif; ?>
-
-                    <!-- عرض رقم الصفحة الحالية -->
-                    <li class="page-item">
-                        <span class="page-link border-0 bg-light rounded-pill px-3">
-                            صفحة <?php echo e($clients->currentPage()); ?> من <?php echo e($clients->lastPage()); ?>
-
+    <?php if($clients->hasPages()): ?>
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+                <!-- زر الانتقال إلى أول صفحة -->
+                <?php if($clients->onFirstPage()): ?>
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 rounded-pill" aria-label="First">
+                            <i class="fas fa-angle-double-right"></i>
                         </span>
                     </li>
+                <?php else: ?>
+                    <li class="page-item">
+                        <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->url(1)); ?>" aria-label="First">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                <?php endif; ?>
 
-                    <!-- زر الانتقال إلى الصفحة التالية -->
-                    <?php if($clients->hasMorePages()): ?>
-                        <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->nextPageUrl()); ?>"
-                                aria-label="Next">
-                                <i class="fas fa-angle-left"></i>
-                            </a>
-                        </li>
-                    <?php else: ?>
-                        <li class="page-item disabled">
-                            <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                <i class="fas fa-angle-left"></i>
-                            </span>
-                        </li>
-                    <?php endif; ?>
+                <!-- زر الانتقال إلى الصفحة السابقة -->
+                <?php if($clients->onFirstPage()): ?>
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                            <i class="fas fa-angle-right"></i>
+                        </span>
+                    </li>
+                <?php else: ?>
+                    <li class="page-item">
+                        <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->previousPageUrl()); ?>"
+                            aria-label="Previous">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                <?php endif; ?>
 
-                    <!-- زر الانتقال إلى آخر صفحة -->
-                    <?php if($clients->hasMorePages()): ?>
-                        <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->url($clients->lastPage())); ?>"
-                                aria-label="Last">
-                                <i class="fas fa-angle-double-left"></i>
-                            </a>
-                        </li>
-                    <?php else: ?>
-                        <li class="page-item disabled">
-                            <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                <i class="fas fa-angle-double-left"></i>
-                            </span>
-                        </li>
-                    <?php endif; ?>
-                </ul>
-            </nav>
-        <?php endif; ?>
+                <!-- عرض رقم الصفحة الحالية -->
+                <li class="page-item">
+                    <span class="page-link border-0 bg-light rounded-pill px-3">
+                        صفحة <?php echo e($clients->currentPage()); ?> من <?php echo e($clients->lastPage()); ?>
+
+                    </span>
+                </li>
+
+                <!-- زر الانتقال إلى الصفحة التالية -->
+                <?php if($clients->hasMorePages()): ?>
+                    <li class="page-item">
+                        <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->nextPageUrl()); ?>"
+                            aria-label="Next">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                <?php else: ?>
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 rounded-pill" aria-label="Next">
+                            <i class="fas fa-angle-left"></i>
+                        </span>
+                    </li>
+                <?php endif; ?>
+
+                <!-- زر الانتقال إلى آخر صفحة -->
+                <?php if($clients->hasMorePages()): ?>
+                    <li class="page-item">
+                        <a class="page-link border-0 rounded-pill" href="<?php echo e($clients->url($clients->lastPage())); ?>"
+                            aria-label="Last">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                <?php else: ?>
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 rounded-pill" aria-label="Last">
+                            <i class="fas fa-angle-double-left"></i>
+                        </span>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+    <?php endif; ?>
 
     </div>
 
@@ -537,6 +516,9 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('scripts'); ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
     <script
         src="https://maps.googleapis.com/maps/api/js?key=<?php echo e(env('GOOGLE_MAPS_API_KEY')); ?>&libraries=places&callback=initMap"
         async defer></script>
@@ -861,6 +843,53 @@
             });
         });
     </script>
+
+    <script>
+        function exportClientsToExcel() {
+            const data = [];
+
+            // العناوين (الصف الأول)
+            data.push([
+                "الاسم التجاري",
+                "الاسم الأول",
+                "الاسم الأخير",
+                "البريد الإلكتروني",
+                "رقم الجوال",
+                "تاريخ الإضافة"
+            ]);
+
+            // جلب بيانات العملاء من عناصر HTML
+            document.querySelectorAll('.client-info').forEach(card => {
+                const tradeName = card.querySelector('.client-name')?.innerText.trim() || '';
+                const fullName = card.querySelector('.fa-user')?.parentElement?.innerText.trim().replace('', '')
+                    .trim().split(' ') || ['', ''];
+                const email = card.querySelector('.fa-envelope')?.parentElement?.innerText.trim().replace('', '')
+                    .trim() || '';
+                const phone = card.querySelector('.fa-phone')?.parentElement?.innerText.trim().replace('', '')
+                    .trim() || '';
+                const createdAt = card.querySelector('.fa-calendar-alt')?.parentElement?.innerText.trim().replace(
+                    '', '').replace('تاريخ الإضافة:', '').trim() || '';
+
+                data.push([
+                    tradeName,
+                    fullName[0],
+                    fullName[1] || '',
+                    email,
+                    phone,
+                    createdAt
+                ]);
+            });
+
+            // إنشاء ملف Excel
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "العملاء");
+
+            // حفظ الملف
+            XLSX.writeFile(workbook, "clients.xlsx");
+        }
+    </script>
+
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/client/index.blade.php ENDPATH**/ ?>

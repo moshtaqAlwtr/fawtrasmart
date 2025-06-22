@@ -205,6 +205,9 @@
     </div>
     <?php echo $__env->make('layouts.alerts.error', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     <?php echo $__env->make('layouts.alerts.success', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <!-- الزر الذي سيتم النقر عليه لفتح النموذج -->
+
+    <!-- النموذج (Modal) -->
     <div class="modal fade" id="assignEmployeeModal" tabindex="-1" aria-labelledby="assignEmployeeModalLabel"
         aria-hidden="true">
         <div class="modal-dialog">
@@ -227,10 +230,6 @@
                         </select>
                         <button type="submit" class="btn btn-primary mt-2">تعيين الموظفين</button>
                     </form>
-
-
-                    <!-- Current Assigned Employees -->
-
                 </div>
             </div>
         </div>
@@ -238,7 +237,8 @@
     <div class="content-body">
         <div class="card">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <!-- القسم العلوي: معلومات العميل الأساسية -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
                     <div>
                         <strong><?php echo e($client->trade_name); ?></strong>
                         <small class="text-muted">#<?php echo e($client->code); ?></small>
@@ -250,24 +250,21 @@
                         <br>
                         <small class="text-muted">
                             حساب الأستاذ:
-                            <small class="text-muted">
-                                حساب الأستاذ:
-                                <?php if($client->account_client && $client->account_client->client_id == $client->id): ?>
-                                    <a
-                                        href="<?php echo e(route('journal.generalLedger', ['account_id' => $client->account_client->id])); ?>">
-                                        <?php echo e($client->account_client->name ?? ''); ?>
+                            <?php if($client->account_client && $client->account_client->client_id == $client->id): ?>
+                                <a
+                                    href="<?php echo e(route('journal.generalLedger', ['account_id' => $client->account_client->id])); ?>">
+                                    <?php echo e($client->account_client->name ?? ''); ?>
 
-                                        #<?php echo e($client->account_client->code ?? ''); ?>
+                                    #<?php echo e($client->account_client->code ?? ''); ?>
 
-                                    </a>
-                                <?php else: ?>
-                                    <span>لا يوجد حساب مرتبط</span>
-                                <?php endif; ?>
-                            </small>
-
+                                </a>
+                            <?php else: ?>
+                                <span>لا يوجد حساب مرتبط</span>
+                            <?php endif; ?>
                         </small>
-
                     </div>
+
+                    <!-- معلومات الرصيد -->
                     <?php
                         $currency = $account_setting->currency ?? 'SAR';
                         $currencySymbol =
@@ -283,44 +280,14 @@
                                 class="text-muted"><?php echo $currencySymbol; ?></span>
                             <span class="d-block text-danger">المطلوب دفعة</span>
                         </div>
-                        
                     </div>
-                    <?php if(auth()->user()->role === 'manager'): ?>
-                        <div class="mt-4">
-                            <h6>!</h6>
-                            <div class="d-flex flex-wrap gap-2" id="assignedEmployeesList">
-                                <?php if($client->employees && $client->employees->count() > 0): ?>
-                                    <?php $__currentLoopData = $client->employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <span class="badge bg-primary d-flex align-items-center">
-                                            <?php echo e($employee->full_name); ?>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <?php
+                            $currentStatus = $client->status;
+                        ?>
 
 
-                                            <form action="<?php echo e(route('clients.remove-employee', $client->id)); ?>"
-                                                method="POST" class="ms-2">
-                                                <?php echo csrf_field(); ?>
-                                                <input type="hidden" name="employee_id" value="<?php echo e($employee->id); ?>">
-
-                                                <button type="submit" class="btn btn-sm btn-link text-white p-0">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
-                                        </span>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                <?php else: ?>
-                                    <span class="text-muted"><?php echo e(__('لا يوجد موظفون مرتبطون بهذا العميل')); ?></span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                    <?php
-                        // جلب الحالة الحالية للعميل من العلاقة
-                        $currentStatus = $client->status;
-                    ?>
-
-
-                    <div class="d-flex flex-wrap gap-2">
-                        <div class="d-flex flex-wrap gap-2">
-                            <!-- قائمة تغيير الحالة -->
                             <form method="POST" action="<?php echo e(route('clients.updateStatusClient')); ?>" class="flex-grow-1"
                                 style="min-width: 220px;">
                                 <?php echo csrf_field(); ?>
@@ -328,14 +295,10 @@
                                 <div class="dropdown w-100">
                                     <button class="btn w-100 text-start dropdown-toggle" type="button"
                                         id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                        style="background-color: <?php echo e($currentStatus->color ?? '#e0f7fa'); ?>;
-                           color: #000;
-                           border: 1px solid #ccc;
-                           height: 42px;">
+                                        style="background-color: <?php echo e($currentStatus->color ?? '#e0f7fa'); ?>; color: #000; border: 1px solid #ccc; height: 42px;">
                                         <?php echo e($currentStatus->name ?? 'اختر الحالة'); ?>
 
                                     </button>
-
                                     <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
                                         style="border-radius: 8px;">
                                         <?php $__currentLoopData = $statuses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $status): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -359,65 +322,59 @@
                                 </div>
                             </form>
 
-                            <!-- قائمة خيارات أخرى -->
-                        </div>
+                    </div>
+                </div>
 
+                <!-- القسم الأوسط: معلومات الاتصال والعنوان -->
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                    <div class="text-end">
+                        <strong class="text-dark"><?php echo e($client->first_name); ?></strong>
+                        <br>
+                        <span class="text-primary">
+                            <i class="fas fa-map-marker-alt"></i> <?php echo e($client->full_address); ?>
+
+                        </span>
                     </div>
 
+                    <?php if(auth()->user()->role === 'manager'): ?>
+                        <div class="row align-items-center">
+                            <div id="assignedEmployeesList" class="col-12">
+                                <?php if($client->employees && $client->employees->count() > 0): ?>
+                                    <div class="row g-2">
+                                        <?php $__currentLoopData = $client->employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <div class="col-auto">
+                                                <div class="badge bg-primary d-flex align-items-center">
+                                                    <a href="<?php echo e(route('employee.show', $employee->id)); ?>"
+                                                        class="text-white text-decoration-none me-2">
+                                                        <?php echo e($employee->full_name); ?>
+
+                                                    </a>
+                                                    <form action="<?php echo e(route('clients.remove-employee', $client->id)); ?>"
+                                                        method="POST" class="mb-0">
+                                                        <?php echo csrf_field(); ?>
+                                                        <input type="hidden" name="employee_id"
+                                                            value="<?php echo e($employee->id); ?>">
+                                                        <button type="submit" class="btn btn-sm btn-link text-white p-0">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-muted"><?php echo e(__('لا يوجد موظفون مرتبطون')); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                 </div>
+
+                <!-- القسم السفلي: الحالة والموظفين والخيارات -->
+
             </div>
         </div>
-        <div class="card border-0">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <!-- القسم الأيمن (الاسم والموقع) - يظهر فقط في الشاشات الكبيرة -->
-                <div class="text-end d-none d-md-block">
-                    <strong class="text-dark"><?php echo e($client->first_name); ?></strong>
-                    <br>
-                    <span class="text-primary">
-                        <i class="fas fa-map-marker-alt"></i> <?php echo e($client->full_address); ?>
-
-                    </span>
-                </div>
-
-                <!-- القسم الأيسر (رقم الهاتف) - يظهر فقط في الشاشات الكبيرة -->
-                <div class="d-flex align-items-center d-none d-md-flex">
-                    <button class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                    <span class="mx-2 text-dark"><?php echo e($client->phone); ?></span>
-                    <button class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-mobile-alt"></i>
-                    </button>
-                </div>
-
-
-
-                <!-- القائمة الأصلية (تظهر فقط في الشاشات الكبيرة) -->
-                <div class="dropdown col-12 col-md-auto d-none d-md-block">
-                    <a href="#" class="btn btn-sm btn-outline-dark dropdown-toggle w-100 text-start text-md-center"
-                        role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-ellipsis-v me-1"></i> خيارات أخرى
-                    </a>
-                    <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
-                                data-bs-target="#openingBalanceModal">
-                                <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('SupplyOrders.create')); ?>">
-                                <i class="fas fa-truck me-2 text-info"></i> إضافة أمر توريد
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="#">
-                                <i class="fas fa-user me-2 text-primary"></i> الدخول كعميل
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center text-danger"
-                                href="<?php echo e(route('clients.destroy', $client->id)); ?>">
-                                <i class="fas fa-trash-alt me-2"></i> حذف عميل
-                            </a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
 
 
         <div class="card">
@@ -425,40 +382,67 @@
                 <!-- أزرار القائمة (تظهر فقط على الشاشات الكبيرة) -->
                 <div class="d-grid d-md-flex flex-wrap gap-2 d-none d-md-block">
                     <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
-                    <a href="<?php echo e(route('clients.edit', $client->id)); ?>" class="btn btn-sm btn-info col-md-auto">
-                        <i class="fas fa-user-edit me-1"></i> تعديل
-                    </a>
+                        <a href="<?php echo e(route('clients.edit', $client->id)); ?>" class="btn btn-sm text-white"
+                            style="background-color: #17a2b8;">
+                            <i class="fas fa-user-edit me-1"></i> تعديل
+                        </a>
                     <?php endif; ?>
-                    <a href="<?php echo e(route('appointment.notes.create', $client->id)); ?>"
-                        class="btn btn-sm btn-secondary col-md-auto">
+
+                    <?php if(auth()->user()->role === 'manager'): ?>
+                        <form action="<?php echo e(route('clients.force-show', $client)); ?>" method="POST" class="d-inline">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="btn btn-sm text-white" style="background-color: #ffc107;">
+                                <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
+                            </button>
+                        </form>
+                    <?php endif; ?>
+
+                    <a href="<?php echo e(route('appointment.notes.create', $client->id)); ?>" class="btn btn-sm text-white"
+                        style="background-color: #6c757d;">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
-                    <a href="<?php echo e(route('appointments.create')); ?>" class="btn btn-sm btn-success col-md-auto">
+
+                    <a href="<?php echo e(route('incomes.create')); ?>" class="btn btn-sm text-white"
+                        style="background-color: #20c997;">
+                        <i class="fas fa-receipt me-1"></i> سند القبض
+                    </a>
+
+                    <a href="<?php echo e(route('appointments.create')); ?>" class="btn btn-sm text-white"
+                        style="background-color: #28a745;">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
-                    <a href="<?php echo e(route('clients.statement', $client->id)); ?>" class="btn btn-sm btn-warning col-md-auto">
+
+                    <a href="<?php echo e(route('clients.statement', $client->id)); ?>" class="btn btn-sm text-white"
+                        style="background-color: #fd7e14;">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
-                    <a href="<?php echo e(route('questions.create')); ?>" class="btn btn-sm btn-warning col-md-auto">
-                        <i class="fas fa-file-signature me-1"></i> إنشاء عرض سعر
+
+                    <a class="btn btn-sm text-white" style="background-color: #6f42c1;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
+                        <i class="fas fa-wallet me-2"></i> إضافة رصيد افتتاحي
                     </a>
-                    <a href="<?php echo e(route('CreditNotes.create')); ?>" class="btn btn-sm btn-danger col-md-auto">
+
+                    <a class="btn btn-sm text-white" style="background-color: #6610f2;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
+                        <i class="fas fa-user-plus me-2"></i> تعيين موظفين
+                    </a>
+
+                    <a href="<?php echo e(route('CreditNotes.create')); ?>" class="btn btn-sm text-white"
+                        style="background-color: #dc3545;">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
 
-                    <a href="<?php echo e(route('invoices.create')); ?>?client_id=<?php echo e($client->id); ?>"
-                        class="btn btn-sm btn-dark col-md-auto">
+                    <a href="<?php echo e(route('invoices.create', ['client_id' => $client->id])); ?>" class="btn btn-sm text-white"
+                        style="background-color: #343a40;">
+                        <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
+                    </a>
 
-                        <a href="<?php echo e(route('invoices.create', ['client_id' => $client->id])); ?>"
-                            class="btn btn-sm btn-dark col-md-auto">
-
-                            <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
-                        </a>
-                        <a href="<?php echo e(route('Reservations.client', $client->id)); ?>"
-                            class="btn btn-sm btn-light text-dark col-md-auto">
-                            <i class="fas fa-calendar-check me-1"></i> الحجوزات
-                        </a>
+                    <a href="<?php echo e(route('Reservations.client', $client->id)); ?>"
+                        class="btn btn-sm btn-outline-dark bg-white text-dark">
+                        <i class="fas fa-calendar-check me-1"></i> الحجوزات
+                    </a>
                 </div>
+
 
                 <!-- زر واحد يحتوي على القائمة المنسدلة (يظهر فقط على الشاشات الصغيرة) -->
                 <div class="dropdown d-md-none">
@@ -466,36 +450,89 @@
                         <i class="fas fa-bars me-1"></i> خيارات
                     </button>
                     <ul class="dropdown-menu w-100">
-                        <li><a class="dropdown-item d-flex align-items-center"
-                                href="<?php echo e(route('clients.edit', $client->id)); ?>">
-                                <i class="fas fa-user-edit me-2 text-info"></i> تعديل
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+                        <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center"
+                                    href="<?php echo e(route('clients.edit', $client->id)); ?>">
+                                    <i class="fas fa-user-edit me-2 text-info"></i> تعديل
+                                </a>
+                            </li>
+                        <?php endif; ?>
+
+                        <?php if(auth()->user()->role === 'manager'): ?>
+                            <li>
+                                <form action="<?php echo e(route('clients.force-show', $client)); ?>" method="POST"
+                                    class="dropdown-item p-0">
+                                    <?php echo csrf_field(); ?>
+                                    <button type="submit" class="btn w-100 text-start d-flex align-items-center">
+                                        <i class="fas fa-map-marker-alt me-2 text-warning"></i> إظهار في الخريطة الآن
+                                    </button>
+                                </form>
+                            </li>
+                        <?php endif; ?>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="<?php echo e(route('appointment.notes.create', $client->id)); ?>">
                                 <i class="fas fa-paperclip me-2 text-secondary"></i> إضافة ملاحظة/مرفق
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('appointments.create')); ?>">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('appointments.create')); ?>">
                                 <i class="fas fa-calendar-plus me-2 text-success"></i> ترتيب موعد
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('incomes.create')); ?>">
+                                <i class="fas fa-receipt me-2 text-info"></i> سند قبض
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="<?php echo e(route('clients.statement', $client->id)); ?>">
                                 <i class="fas fa-file-invoice me-2 text-warning"></i> كشف حساب
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('questions.create')); ?>">
-                                <i class="fas fa-file-signature me-2 text-warning"></i> إنشاء عرض سعر
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('CreditNotes.create')); ?>">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
+                                data-bs-target="#openingBalanceModal">
+                                <i class="fas fa-wallet me-2 text-success"></i> إضافة رصيد افتتاحي
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="#" data-bs-toggle="modal"
+                                data-bs-target="#assignEmployeeModal">
+                                <i class="fas fa-user-plus me-2 text-primary"></i> تعيين موظفين
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('CreditNotes.create')); ?>">
                                 <i class="fas fa-file-invoice-dollar me-2 text-danger"></i> إنشاء إشعار دائن
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('invoices.create')); ?>">
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
+                                href="<?php echo e(route('invoices.create', ['client_id' => $client->id])); ?>">
                                 <i class="fas fa-file-invoice me-2 text-dark"></i> إنشاء فاتورة
-                            </a></li>
-                        <li><a class="dropdown-item d-flex align-items-center"
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center"
                                 href="<?php echo e(route('Reservations.client', $client->id)); ?>">
                                 <i class="fas fa-calendar-check me-2 text-dark"></i> الحجوزات
-                            </a></li>
+                            </a>
+                        </li>
                     </ul>
                 </div>
+
             </div>
         </div>
 
@@ -959,128 +996,153 @@
                         </button>
                         <!-- محتوى الملاحظات -->
                         <div id="notes" class="collapse mt-2">
-    <div class="card card-body">
-    <!-- الملاحظات -->
-    <div class="timeline">
-        <?php $__currentLoopData = $ClientRelations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <div class="timeline-item mb-4">
-                <div class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
-                    <!-- الحالة -->
-                    <span class="badge mb-2 mb-md-0"
-                        style="background-color: <?php echo e($statuses->find($client->status_id)->color ?? '#007BFF'); ?>; color: white;">
-                        <?php echo e($statuses->find($client->status_id)->name ?? ''); ?>
+                            <div class="card card-body">
+                                <!-- الملاحظات -->
+                                <div class="timeline">
+                                    <?php $__currentLoopData = $ClientRelations; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $note): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <div class="timeline-item mb-4">
+                                            <div
+                                                class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
+                                                <!-- الحالة -->
+                                                <span class="badge mb-2 mb-md-0"
+                                                    style="background-color: <?php echo e($statuses->find($client->status_id)->color ?? '#007BFF'); ?>; color: white;">
+                                                    <?php echo e($statuses->find($client->status_id)->name ?? ''); ?>
 
-                    </span>
+                                                </span>
 
-                    <!-- مربع الملاحظة -->
-                    <div class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
-                        <!-- الرأس -->
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
-                            <h6 class="mb-2 mb-sm-0">
-                                <i class="fas fa-user me-1"></i> <?php echo e($note->employee->name ?? ''); ?>
+                                                <!-- مربع الملاحظة -->
+                                                <div
+                                                    class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
+                                                    <!-- الرأس -->
+                                                    <div
+                                                        class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                                                        <h6 class="mb-2 mb-sm-0">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            <?php echo e($note->employee->name ?? ''); ?>
 
-                            </h6>
-                            <small class="text-muted">
-                                <i class="fas fa-clock me-1"></i>
-                                <?php echo e($note->created_at->format('H:i d/m/Y')); ?> -
-                                <span class="text-primary"><?php echo e($note->status ?? ''); ?></span>
-                            </small>
-                        </div>
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            <?php echo e($note->created_at->format('H:i d/m/Y')); ?> -
+                                                            <span class="text-primary"><?php echo e($note->status ?? ''); ?></span>
+                                                        </small>
+                                                    </div>
 
-                        <hr class="my-2">
+                                                    <hr class="my-2">
 
-                        <!-- النص -->
-                        <p class="mb-2">
-                            <i class="far fa-user me-1"></i> <?php echo e($note->process ?? ''); ?>
+                                                    <!-- النص -->
+                                                    <p class="mb-2">
+                                                        <i class="far fa-user me-1"></i> <?php echo e($note->process ?? ''); ?>
 
-                        </p>
-                        <small class="text-muted d-block mb-2"><?php echo e($note->description ?? ''); ?></small>
+                                                    </p>
+                                                    <small
+                                                        class="text-muted d-block mb-2"><?php echo e($note->description ?? ''); ?></small>
 
-                        <!-- عرض البيانات الجديدة -->
-                        <?php if($note->deposit_count || $note->site_type || $note->competitor_documents): ?>
-                        <div class="additional-data mt-3 p-2 bg-light rounded">
-                            <div class="row">
-                                <?php if($note->deposit_count): ?>
-                                <div class="col-md-4 mb-2">
-                                    <span class="d-block text-primary">
-                                        <i class="fas fa-boxes me-1"></i> عدد العهدة:
-                                    </span>
-                                    <span class="fw-bold"><?php echo e($note->deposit_count); ?></span>
+                                                    <!-- عرض البيانات الجديدة -->
+                                                    <?php if($note->deposit_count || $note->site_type || $note->competitor_documents): ?>
+                                                        <div class="additional-data mt-3 p-2 bg-light rounded">
+                                                            <div class="row">
+                                                                <?php if($note->deposit_count): ?>
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-boxes me-1"></i> عدد العهدة:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold"><?php echo e($note->deposit_count); ?></span>
+                                                                    </div>
+                                                                <?php endif; ?>
+
+                                                                <?php if($note->site_type): ?>
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-store me-1"></i> نوع الموقع:
+                                                                        </span>
+                                                                        <span class="fw-bold">
+                                                                            <?php switch($note->site_type):
+                                                                                case ('independent_booth'): ?>
+                                                                                    بسطة مستقلة
+                                                                                <?php break; ?>
+
+                                                                                <?php case ('grocery'): ?>
+                                                                                    بقالة
+                                                                                <?php break; ?>
+
+                                                                                <?php case ('supplies'): ?>
+                                                                                    تموينات
+                                                                                <?php break; ?>
+
+                                                                                <?php case ('markets'): ?>
+                                                                                    أسواق
+                                                                                <?php break; ?>
+
+                                                                                <?php case ('station'): ?>
+                                                                                    محطة
+                                                                                <?php break; ?>
+
+                                                                                <?php default: ?>
+                                                                                    <?php echo e($note->site_type); ?>
+
+                                                                            <?php endswitch; ?>
+                                                                        </span>
+                                                                    </div>
+                                                                <?php endif; ?>
+
+                                                                <?php if($note->competitor_documents): ?>
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-file-contract me-1"></i>
+                                                                            استندات المنافسين:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold"><?php echo e($note->competitor_documents); ?></span>
+                                                                    </div>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <!-- عرض المرفقات -->
+                                                    <?php
+                                                        $files = json_decode($note->attachments, true);
+                                                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                                    ?>
+
+                                                    <?php if(is_array($files) && count($files)): ?>
+                                                        <div class="attachment mt-3 d-flex flex-wrap gap-2">
+                                                            <?php $__currentLoopData = $files; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $file): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                                <?php
+                                                                    $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                                                    $fileUrl = asset('assets/uploads/notes/' . $file);
+                                                                ?>
+
+                                                                <?php if(in_array(strtolower($ext), $imageExtensions)): ?>
+                                                                    <a href="<?php echo e($fileUrl); ?>" target="_blank"
+                                                                        class="d-block">
+                                                                        <img src="<?php echo e($fileUrl); ?>" alt="مرفق صورة"
+                                                                            class="img-fluid rounded border"
+                                                                            style="max-width: 180px; height: auto;">
+                                                                    </a>
+                                                                <?php else: ?>
+                                                                    <a href="<?php echo e($fileUrl); ?>" target="_blank"
+                                                                        class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                                                        <i class="fas fa-file-alt me-2"></i> عرض الملف:
+                                                                        <?php echo e($file); ?>
+
+                                                                    </a>
+                                                                <?php endif; ?>
+                                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                </div>
+
+                                                <!-- نقطة الخط الزمني -->
+                                                <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
-                                <?php endif; ?>
-
-                                <?php if($note->site_type): ?>
-                                <div class="col-md-4 mb-2">
-                                    <span class="d-block text-primary">
-                                        <i class="fas fa-store me-1"></i> نوع الموقع:
-                                    </span>
-                                    <span class="fw-bold">
-                                        <?php switch($note->site_type):
-                                            case ('independent_booth'): ?> بسطة مستقلة <?php break; ?>
-                                            <?php case ('grocery'): ?> بقالة <?php break; ?>
-                                            <?php case ('supplies'): ?> تموينات <?php break; ?>
-                                            <?php case ('markets'): ?> أسواق <?php break; ?>
-                                            <?php case ('station'): ?> محطة <?php break; ?>
-                                            <?php default: ?> <?php echo e($note->site_type); ?>
-
-                                        <?php endswitch; ?>
-                                    </span>
-                                </div>
-                                <?php endif; ?>
-
-                                <?php if($note->competitor_documents): ?>
-                                <div class="col-md-4 mb-2">
-                                    <span class="d-block text-primary">
-                                        <i class="fas fa-file-contract me-1"></i> استندات المنافسين:
-                                    </span>
-                                    <span class="fw-bold"><?php echo e($note->competitor_documents); ?></span>
-                                </div>
-                                <?php endif; ?>
                             </div>
                         </div>
-                        <?php endif; ?>
-
-                        <!-- عرض المرفقات -->
-                        <?php
-                            $files = json_decode($note->attachments, true);
-                            $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                        ?>
-
-                        <?php if(is_array($files) && count($files)): ?>
-                            <div class="attachment mt-3 d-flex flex-wrap gap-2">
-                                <?php $__currentLoopData = $files; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $file): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <?php
-                                        $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                        $fileUrl = asset('assets/uploads/notes/' . $file);
-                                    ?>
-
-                                    <?php if(in_array(strtolower($ext), $imageExtensions)): ?>
-                                        <a href="<?php echo e($fileUrl); ?>" target="_blank" class="d-block">
-                                            <img src="<?php echo e($fileUrl); ?>"
-                                                alt="مرفق صورة"
-                                                class="img-fluid rounded border"
-                                                style="max-width: 180px; height: auto;">
-                                        </a>
-                                    <?php else: ?>
-                                        <a href="<?php echo e($fileUrl); ?>" target="_blank"
-                                            class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                                            <i class="fas fa-file-alt me-2"></i> عرض الملف: <?php echo e($file); ?>
-
-                                        </a>
-                                    <?php endif; ?>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- نقطة الخط الزمني -->
-                    <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
-                </div>
-            </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </div>
-</div>
-</div>
 
                     </div>
 
@@ -1095,28 +1157,96 @@
                             <div class="card card-body">
                                 <!-- محتوى المدفوعات هنا -->
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
-                                        <thead>
+                                    <table class="table">
+                                        <thead class="bg-light">
                                             <tr>
-                                                <th>#</th>
-                                                <th>رقم الفاتورة</th>
-                                                <th>ملاحظات</th>
-                                                <th>تاريخ الدفع</th>
-                                                <th>بواسطة</th>
-                                                <th>المبلغ</th>
-                                                <th>الحالة</th>
-                                                <th>الإجراءات</th>
+                                                <th width="20%">البيانات الأساسية</th>
+                                                <th width="15%">العميل</th>
+                                                <th width="15%">التاريخ والموظف</th>
+                                                <th width="15%" class="text-center">المبلغ</th>
+                                                <th width="15%" class="text-center">الحالة</th>
+                                                <th width="20%" class="text-end">الإجراءات</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php $__currentLoopData = $client->payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php $__currentLoopData = $payments->where('type', 'client payments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <tr>
-                                                    <td><?php echo e($payment->id); ?></td>
-                                                    <td><?php echo e($payment->invoice->code ?? 'غير محدد'); ?></td>
-                                                    <td><?php echo e($payment->notes); ?></td>
-                                                    <td><?php echo e($payment->payment_date); ?></td>
-                                                    <td><?php echo e($payment->employee->full_name ?? 'غير محدد'); ?></td>
-                                                    <td class="text-end"><?php echo e(number_format($payment->amount, 2)); ?> ر.س
+                                                    <td
+                                                        style="white-space: normal; word-wrap: break-word; min-width: 200px;">
+                                                        <div class="d-flex flex-column">
+                                                            <strong>#<?php echo e($payment->id); ?></strong>
+
+                                                            <small class="text-muted">
+                                                                <?php if($payment->invoice): ?>
+                                                                    الفاتورة: #<?php echo e($payment->invoice->code ?? '--'); ?>
+
+                                                                <?php endif; ?>
+                                                            </small>
+
+                                                            <?php if($payment->notes): ?>
+                                                                <small class="text-muted mt-1"
+                                                                    style="white-space: normal;">
+                                                                    <i class="fas fa-comment-alt"></i>
+                                                                    <?php echo e($payment->notes); ?>
+
+                                                                </small>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </td>
+
+                                                    <td>
+                                                        <?php if($payment->invoice->client): ?>
+                                                            <div class="d-flex flex-column">
+                                                                <strong><?php echo e($payment->invoice->client->trade_name ?? ''); ?></strong>
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-phone"></i>
+                                                                    <?php echo e($payment->invoice->client->phone ?? ''); ?>
+
+                                                                </small>
+
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <span class="text-danger">لا يوجد عميل</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <div class="d-flex flex-column">
+                                                            <small><i class="fas fa-calendar"></i>
+                                                                <?php echo e($payment->payment_date); ?></small>
+                                                            <?php if($payment->employee): ?>
+                                                                <small class="text-muted mt-1">
+                                                                    <i class="fas fa-user"></i>
+                                                                    <?php echo e($payment->employee->name ?? ''); ?>
+
+                                                                </small>
+                                                            <?php endif; ?>
+                                                            <small class="text-muted mt-1">
+                                                                <i class="fas fa-clock"></i>
+                                                                <?php echo e($payment->created_at->format('H:i')); ?>
+
+                                                            </small>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?php
+                                                            $currency = $account_setting->currency ?? 'SAR';
+                                                            $currencySymbol =
+                                                                $currency == 'SAR' || empty($currency)
+                                                                    ? '<img src="' .
+                                                                        asset('assets/images/Saudi_Riyal.svg') .
+                                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                                                                    : $currency;
+                                                        ?>
+                                                        <h6 class="mb-0 font-weight-bold">
+                                                            <?php echo e(number_format($payment->amount, 2)); ?>
+
+                                                            <?php echo $currencySymbol; ?>
+
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            <?php echo e($payment->payment_method ?? 'غير محدد'); ?>
+
+                                                        </small>
                                                     </td>
                                                     <td class="text-center">
                                                         <?php
@@ -1150,60 +1280,94 @@
                                                                 $statusIcon = 'fa-question-circle';
                                                             }
                                                         ?>
-                                                        <span class="badge <?php echo e($statusClass); ?>">
+                                                        <span class="badge <?php echo e($statusClass); ?> rounded-pill">
                                                             <i class="fas <?php echo e($statusIcon); ?> me-1"></i>
                                                             <?php echo e($statusText); ?>
 
                                                         </span>
+                                                        <?php if($payment->payment_status == 1): ?>
+                                                            <small class="d-block text-muted mt-1">
+                                                                <i class="fas fa-check-circle"></i> تم التأكيد
+                                                            </small>
+                                                        <?php endif; ?>
                                                     </td>
-                                                    <td class="text-center">
+                                                    <td class="text-end">
                                                         <div class="btn-group">
                                                             <div class="dropdown">
                                                                 <button
-                                                                    class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1"
-                                                                    type="button" id="dropdownMenuButton303"
-                                                                    data-toggle="dropdown" aria-haspopup="true"
-                                                                    aria-expanded="false"></button>
+                                                                    class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
+                                                                    type="button"id="dropdownMenuButton303"
+                                                                    data-toggle="dropdown"
+                                                                    aria-haspopup="true"aria-expanded="false"></button>
                                                                 <div class="dropdown-menu"
                                                                     aria-labelledby="dropdownMenuButton303">
-                                                                    <li>
-                                                                        <a class="dropdown-item"
-                                                                            href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
-                                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a class="dropdown-item"
-                                                                            href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
-                                                                            <i
-                                                                                class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                        </a>
-                                                                    </li>
-                                                                    <form
-                                                                        action="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>"
-                                                                        method="POST">
-                                                                        <?php echo csrf_field(); ?>
-                                                                        <?php echo method_field('DELETE'); ?>
-                                                                        <button type="submit" class="dropdown-item"
-                                                                            style="border: none; background: none;">
-                                                                            <i class="fa fa-trash me-2 text-danger"></i>
-                                                                            حذف
-                                                                        </button>
-                                                                    </form>
-                                                                    <li>
-                                                                        <a class="dropdown-item" href="#">
-                                                                            <i
-                                                                                class="fa fa-envelope me-2 text-warning"></i>ايصال
-                                                                            مدفوعات
-                                                                        </a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a class="dropdown-item" href="#">
-                                                                            <i
-                                                                                class="fa fa-envelope me-2 text-warning"></i>ايصال
-                                                                            مدفوعات حراري
-                                                                        </a>
-                                                                    </li>
+                                                                    <ul class="dropdown-menu dropdown-menu-end">
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
+                                                                                <i
+                                                                                    class="fas fa-eye me-2 text-primary"></i>عرض
+                                                                                التفاصيل
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
+                                                                                <i
+                                                                                    class="fas fa-edit me-2 text-success"></i>تعديل
+                                                                                الدفع
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <form
+                                                                                action="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>"
+                                                                                method="POST">
+                                                                                <?php echo csrf_field(); ?>
+                                                                                <?php echo method_field('DELETE'); ?>
+                                                                                <button type="submit"
+                                                                                    class="dropdown-item text-danger"
+                                                                                    onclick="return confirm('هل أنت متأكد من حذف هذه العملية؟')">
+                                                                                    <i class="fas fa-trash me-2"></i>حذف
+                                                                                    العملية
+                                                                                </button>
+                                                                            </form>
+                                                                        </li>
+                                                                        <li>
+                                                                            <hr class="dropdown-divider">
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=a4"
+                                                                                target="_blank">
+                                                                                <i
+                                                                                    class="fas fa-file-pdf me-2 text-warning"></i>إيصال
+                                                                                (A4)
+                                                                            </a>
+                                                                        </li>
+                                                                        <li>
+                                                                            <a class="dropdown-item"
+                                                                                href="<?php echo e(route('paymentsClient.rereceipt', ['id' => $payment->id])); ?>?type=thermal"
+                                                                                target="_blank">
+                                                                                <i
+                                                                                    class="fas fa-receipt me-2 text-warning"></i>إيصال
+                                                                                (حراري)
+                                                                            </a>
+                                                                        </li>
+                                                                        <?php if($payment->client): ?>
+                                                                            <li>
+                                                                                <hr class="dropdown-divider">
+                                                                            </li>
+                                                                            <li>
+                                                                                <a class="dropdown-item"
+                                                                                    href="<?php echo e(route('clients.show', $payment->client->id)); ?>">
+                                                                                    <i
+                                                                                        class="fas fa-user me-2 text-info"></i>عرض
+                                                                                    بيانات
+                                                                                    العميل
+                                                                                </a>
+                                                                            </li>
+                                                                        <?php endif; ?>
+                                                                    </ul>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1368,179 +1532,7 @@
                         </div>
                     </div>
 
-                    <!-- زر العضوية -->
-                    <div class="col-lg-12 col-md-12 col-12 mb-2">
-                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#membership">
-                            <i class="fas fa-id-card me-2"></i> العضوية
-                        </button>
-                        <!-- محتوى العضوية -->
-                        <div id="membership" class="collapse mt-2">
-                            <div class="card card-body">
-                                <!-- محتوى العضوية هنا -->
-                                <div class="card">
-                                    <div class="card-body">
-                                        <table class="table" style="font-size: 1.1rem;">
-                                            <thead>
-                                                <tr>
-                                                    <th>المعرف</th>
-                                                    <th>بيانات العميل</th>
-                                                    <th>الباقة الحالية</th>
-                                                    <th>تاريخ الانتهاء</th>
-                                                    <th>الحالة</th>
-                                                    <th>ترتيب بواسطة</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php $__currentLoopData = $memberships; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $membership): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                    <tr>
-                                                        <td>#<?php echo e($membership->id); ?></td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <div class="avatar avatar-sm bg-danger">
-                                                                    <span class="avatar-content">أ</span>
-                                                                </div>
-                                                                <div>
-                                                                    <?php echo e($membership->client->first_name ?? ''); ?>
 
-                                                                    <br>
-                                                                    <small class="text-muted"></small>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td><br><small
-                                                                class="text-muted"><?php echo e($membership->packege->commission_name ?? ''); ?></small>
-                                                        </td>
-                                                        <td><small
-                                                                class="text-muted"><?php echo e($membership->end_date ?? ''); ?></small>
-                                                        </td>
-                                                        <td>
-                                                            <div class="d-flex align-items-center gap-2">
-                                                                <div class="rounded-circle bg-info"
-                                                                    style="width: 8px; height: 8px;"></div>
-                                                                <span class="text-muted">
-                                                                    <?php if($membership->status == 'active'): ?>
-                                                                        نشط
-                                                                    <?php else: ?>
-                                                                        غير نشط
-                                                                    <?php endif; ?>
-                                                                </span>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <div class="btn-group">
-                                                                <div class="dropdown">
-                                                                    <button
-                                                                        class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1 btn-sm"
-                                                                        type="button" id="dropdownMenuButton303"
-                                                                        data-toggle="dropdown" aria-haspopup="true"
-                                                                        aria-expanded="false"></button>
-                                                                    <div class="dropdown-menu"
-                                                                        aria-labelledby="dropdownMenuButton303">
-                                                                        <li>
-                                                                            <a class="dropdown-item"
-                                                                                href="<?php echo e(route('Memberships.show', $membership->id)); ?>">
-                                                                                <i
-                                                                                    class="fa fa-eye me-2 text-primary"></i>عرض
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a class="dropdown-item"
-                                                                                href="<?php echo e(route('Memberships.edit', $membership->id)); ?>">
-                                                                                <i
-                                                                                    class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                            </a>
-                                                                        </li>
-                                                                        <li>
-                                                                            <a class="dropdown-item text-danger"
-                                                                                href="<?php echo e(route('Memberships.delete', $membership->id)); ?>">
-                                                                                <i class="fa fa-trash me-2"></i>حذف
-                                                                            </a>
-                                                                        </li>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- زر الحجوزات -->
-                    <div class="col-lg-12 col-md-12 col-12 mb-2">
-                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#reservations">
-                            <i class="fas fa-bookmark me-2"></i> الحجوزات
-                        </button>
-                        <!-- محتوى الحجوزات -->
-                        <div id="reservations" class="collapse mt-2">
-                            <div class="card card-body">
-                                <!-- محتوى الحجوزات هنا -->
-                                <div class="card">
-                                    <div class="card-body">
-                                        <?php $__currentLoopData = $bookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $booking): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                            <div class="row">
-                                                <div class="col-auto">
-                                                    <div
-                                                        style="width: 50px; height: 50px; background-color: #f0f0f0; border-radius: 5px;">
-                                                    </div>
-                                                </div>
-                                                <div class="col">
-                                                    <h6>بيانات العميل</h6>
-                                                    <p class="mb-1"><?php echo e($booking->client->first_name ?? ''); ?></p>
-                                                    <p class="mb-1">الخدمة: <?php echo e($booking->product->name ?? ''); ?></p>
-                                                </div>
-                                                <div class="col-auto text-end">
-                                                    <p class="mb-1">الوقت من <?php echo e($booking->start_time ?? 0); ?> الى
-                                                        <?php echo e($booking->end_time ?? 0); ?></p>
-                                                    <p class="text-muted small mb-0">16:45:00</p>
-
-                                                    <?php if($booking->status == 'confirm'): ?>
-                                                        <span class="badge bg-warning text-dark">مؤكد</span>
-                                                    <?php elseif($booking->status == 'review'): ?>
-                                                        <span class="badge bg-warning text-dark">تحت المراجعة</span>
-                                                    <?php elseif($booking->status == 'bill'): ?>
-                                                        <span class="badge bg-warning text-dark">حولت للفاتورة</span>
-                                                    <?php elseif($booking->status == 'cancel'): ?>
-                                                        <span class="badge bg-warning text-dark">تم الالغاء</span>
-                                                    <?php else: ?>
-                                                        <span class="badge bg-warning text-dark">تم</span>
-                                                    <?php endif; ?>
-
-                                                    <a href="<?php echo e(route('Reservations.show', $booking->id)); ?>"
-                                                        class="badge bg-danger text-dark">عرض</a>
-                                                    <a href="<?php echo e(route('Reservations.edit', $booking->id)); ?>"
-                                                        class="btn btn-sm btn-primary">
-                                                        <i class="fa fa-edit"></i> تعديل
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <hr>
-                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- زر الخدمات -->
-                    <div class="col-lg-12 col-md-12 col-12 mb-2">
-                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#services">
-                            <i class="fas fa-tools me-2"></i> الخدمات
-                        </button>
-                        <!-- محتوى الخدمات -->
-                        <div id="services" class="collapse mt-2">
-                            <div class="card card-body">
-                                <p class="text-muted">خدمات العميل</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

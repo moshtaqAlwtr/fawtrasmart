@@ -286,15 +286,15 @@
                                                 <div class="position-relative has-icon-left">
                                                     <select class="form-control" id="printing_method" name="region_id">
                                                         <?php $__currentLoopData = $Regions_groub; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $Region_groub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                        <option value="<?php echo e($Region_groub->id); ?>" 
+                                                        <option value="<?php echo e($Region_groub->id); ?>"
                                                             <?php echo e(isset($client->Neighborhoodname->Region->id) && $Region_groub->id == $client->Neighborhoodname->Region->id ? 'selected' : ''); ?>>
                                                             <?php echo e($Region_groub->name); ?>
 
                                                         </option>
-                                                        
+
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
-                                                    
+
 
 
 
@@ -302,12 +302,12 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div class="col-md-6 col-12 mb-3">
                                             <div class="form-group">
                                                 <label for="credit_period">المجموعة</label>
                                                 <div class="position-relative has-icon-left">
-                                                    
+
                                                      <select class="form-control" id="printing_method" name="visit_type">
     <option value="am" <?php echo e($client->visit_type == 'am' ? 'selected' : ''); ?>>صباحية</option>
     <option value="pm" <?php echo e($client->visit_type == 'pm' ? 'selected' : ''); ?>>مسائية</option>
@@ -330,7 +330,7 @@
                                                 <div id="map" style="height: 100%;"></div>
                                             </div>
                                         </div>
-                                     
+
                                         <!-- قائمة الاتصال -->
                                         <div class="card">
                                             <div class="card-header">
@@ -373,7 +373,7 @@
                                                 <label for="code">رقم الكود <span class="text-danger">*</span></label>
                                                 <div class="position-relative has-icon-left">
                                                     <input type="text" id="code" class="form-control"
-                                                        name="code" value="<?php echo e(old('code', $client->code)); ?>" required>
+                                                        name="code" value="<?php echo e(old('code', $client->code)); ?>" readonly required>
                                                     <div class="form-control-position">
                                                         <i class="feather icon-hash"></i>
                                                     </div>
@@ -411,7 +411,7 @@
                                                     <input type="number" step="0.01" name="opening_balance"
                                                     id="opening_balance" class="form-control"
                                                     value="<?php echo e(old('opening_balance', $client->opening_balance)); ?>" disabled>
-                                             
+
                                                     <div class="form-control-position">
                                                         <i class="feather icon-dollar-sign"></i>
                                                     </div>
@@ -477,14 +477,13 @@
                                             <div class="form-group">
                                                 <label for="client_type">تصنيف العميل</label>
                                                 <div class="position-relative has-icon-left">
-                                                    <select name="client_type" id="client_type" class="form-control">
+                                                    <select name="category_id" id="client_type" class="form-control">
                                                         <option value="">اختر نوع العميل</option>
-                                                        <option value="1"
-                                                            <?php echo e(old('client_type', $client->client_type) == '1' ? 'selected' : ''); ?>>
-                                                            عميل عادي</option>
-                                                        <option value="2"
-                                                            <?php echo e(old('client_type', $client->client_type) == '2' ? 'selected' : ''); ?>>
-                                                            عميل VIP</option>
+                                                  <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+
+                                                  <option value="<?php echo e($category->id); ?>" <?php echo e(old('category_id', $client->category_id) == $category->id ? 'selected' : ''); ?>><?php echo e($category->name); ?></option>
+
+                                                  <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
                                                     <div class="form-control-position">
                                                         <i class="feather icon-users"></i>
@@ -551,8 +550,8 @@ unset($__errorArgs, $__bag); ?>
                                                             </option>
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
-                                                    
-                                                    
+
+
                                                 </div>
                                             </div>
                                             <?php if(auth()->user()->role === 'manager'): ?>
@@ -568,14 +567,14 @@ unset($__errorArgs, $__bag); ?>
                                                             </option>
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </select>
-                                        
+
                                                     
                                                     <div id="selected_employees">
                                                         <?php $__currentLoopData = $client->employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assigned): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                             <input type="hidden" name="employee_client_id[]" value="<?php echo e($assigned->id); ?>">
                                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                                     </div>
-                                        
+
                                                     
                                                     <ul id="employee_list" class="mt-2 list-group">
                                                         <?php $__currentLoopData = $client->employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $assigned): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -589,10 +588,10 @@ unset($__errorArgs, $__bag); ?>
                                                 </div>
                                             </div>
                                         <?php endif; ?>
-                                        
-                                        
-                                      
-                                        
+
+
+
+
                                         </div>
                                     </div>
                                 </div>
@@ -613,7 +612,7 @@ unset($__errorArgs, $__bag); ?>
         let savedLat = <?php echo e($location->latitude ?? 'null'); ?>;
         let savedLng = <?php echo e($location->longitude ?? 'null'); ?>;
     </script>
-    
+
     <script>
         // دالة لعرض الخريطة
         function toggleMap() {
@@ -752,7 +751,7 @@ function requestLocationPermission() {
         }
 
         // التأكد من وجود الإحداثيات قبل الإرسال
-       
+
     </script>
       <script>
         document.querySelectorAll('.remove-employee').forEach(button => {
@@ -763,24 +762,24 @@ function requestLocationPermission() {
                 if (input) input.remove();
             });
         });
-    
+
         const employeeSelect = document.getElementById('employee_select');
         const employeeList = document.getElementById('employee_list');
         const selectedEmployees = document.getElementById('selected_employees');
         let selectedEmployeeIds = Array.from(document.querySelectorAll('input[name="employee_client_id[]"]')).map(i => i.value);
-    
+
         employeeSelect.addEventListener('change', function () {
             const selectedOption = this.options[this.selectedIndex];
             const employeeId = selectedOption.value;
             const employeeName = selectedOption.dataset.name;
-    
+
             if (employeeId && !selectedEmployeeIds.includes(employeeId)) {
                 selectedEmployeeIds.push(employeeId);
-    
+
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center';
                 li.textContent = employeeName;
-    
+
                 const removeBtn = document.createElement('button');
                 removeBtn.textContent = 'حذف';
                 removeBtn.className = 'btn btn-sm btn-danger';
@@ -790,17 +789,17 @@ function requestLocationPermission() {
                     const input = document.querySelector('input[name="employee_client_id[]"][value="' + employeeId + '"]');
                     if (input) input.remove();
                 };
-    
+
                 li.appendChild(removeBtn);
                 employeeList.appendChild(li);
-    
+
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'employee_client_id[]';
                 input.value = employeeId;
                 selectedEmployees.appendChild(input);
             }
-    
+
             this.value = '';
         });
     </script>

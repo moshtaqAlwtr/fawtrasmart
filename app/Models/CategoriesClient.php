@@ -9,28 +9,16 @@ class CategoriesClient extends Model
 {
     use HasFactory;
 
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
     protected $table = 'categories_clients';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'name'
+        'name',
+        'description',
+        'active'
     ];
 
-    /**
-     * Relationship with Clients
-     * One category can have many clients
-     */
-    public function category()
+    public function clients()
     {
-        return $this->hasMany(Client::class, 'classification_id');
+        return $this->hasMany(Client::class, 'category_id');
     }
 }

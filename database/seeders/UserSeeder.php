@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
     {
         // إنشاء أو تحديث المستخدم الأول (مدير)
         $adminUser = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'abdalmn@gmail.com'],
             [
                 'name' => 'عبدالمنعم',
                 'email' => 'admin@example.com',
