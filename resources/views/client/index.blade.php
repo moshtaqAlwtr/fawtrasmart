@@ -886,3 +886,138 @@
     </script>
 
 @stop
+
+
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>بطاقات العملاء</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body class="bg-light p-4">
+
+  <div class="container">
+    <h4 class="text-center text-primary mb-4 fw-bold">بطاقات العملاء</h4>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+
+      <!-- بطاقة عميل -->
+      <div class="col">
+        <div class="card shadow-sm rounded-4 border-0 p-3">
+
+          <!-- رأس البطاقة -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="fw-bold text-primary mb-1">محمد الأحمد</h6>
+              <small class="text-muted"><i class="bi bi-hash me-1"></i>CL001</small>
+            </div>
+            <div class="dropdown">
+              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-1"></i>عرض</a></li>
+                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-1"></i>تعديل</a></li>
+                <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-1"></i>حذف</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- معلومات العميل -->
+          <div class="row row-cols-2 g-2 mb-2">
+            <div class="col">
+              <small><i class="bi bi-telephone text-secondary me-1"></i>0551234567</small><br>
+              <small><i class="bi bi-people text-secondary me-1"></i>النخبة</small><br>
+              <small><i class="bi bi-geo-alt text-secondary me-1"></i><a href="#" class="text-decoration-none">عرض الموقع</a></small>
+            </div>
+            <div class="col">
+              <small><i class="bi bi-person-badge text-secondary me-1"></i>أحمد العتيبي</small><br>
+              <small><i class="bi bi-geo text-secondary me-1"></i>محطة</small><br>
+              <small><i class="bi bi-people-fill text-secondary me-1"></i>سحاب - الأفق</small>
+            </div>
+          </div>
+
+          <!-- المبيعات والتحصيل -->
+          <div class="d-flex justify-content-around text-center border rounded p-2 mb-2">
+            <div>
+              <i class="bi bi-wallet2 text-success"></i>
+              <div><small class="text-muted">التحصيلات</small></div>
+              <strong class="text-success">15,000</strong>
+            </div>
+            <div>
+              <i class="bi bi-cart4 text-warning"></i>
+              <div><small class="text-muted">الآجلة</small></div>
+              <strong class="text-warning">20,000</strong>
+            </div>
+          </div>
+
+          <!-- تواريخ الحالة -->
+          <div class="d-flex justify-content-between text-center border rounded p-2 mb-2">
+            <div>
+              <i class="bi bi-calendar-plus text-secondary"></i>
+              <div><small>الإضافة</small></div>
+              <small>2024-12-01</small>
+            </div>
+            <div>
+              <i class="bi bi-receipt-cutoff text-secondary"></i>
+              <div><small>آخر فاتورة</small></div>
+              <small>2025-06-05</small>
+            </div>
+            <div>
+              <i class="bi bi-check-circle-fill text-success"></i>
+              <div><small>الحالة</small></div>
+              <strong class="text-success">نشط</strong>
+            </div>
+          </div>
+
+          <!-- التصنيفات -->
+          <div class="d-flex gap-2 flex-wrap justify-content-start">
+            <div class="text-center">
+              <div class="rounded-circle border border-primary text-primary fw-bold d-flex align-items-center justify-content-center" style="width:34px; height:34px;">A</div>
+              <small class="d-block text-muted">يناير</small>
+            </div>
+            <div class="text-center">
+              <div class="rounded-circle border border-warning text-warning fw-bold d-flex align-items-center justify-content-center" style="width:34px; height:34px;">B</div>
+              <small class="d-block text-muted">فبراير</small>
+            </div>
+            <div class="text-center">
+              <div class="rounded-circle border border-success text-success fw-bold d-flex align-items-center justify-content-center" style="width:34px; height:34px;">C</div>
+              <small class="d-block text-muted">مارس</small>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- انسخ هذا الكرت لعملاء آخرين -->
+
+    </div>
+
+    <!-- تحديد عدد البطاقات -->
+    <div class="d-flex justify-content-center align-items-center mt-4">
+      <label for="cardsPerPage" class="form-label me-2 mb-0 text-muted">عدد البطاقات المعروضة:</label>
+      <select id="cardsPerPage" class="form-select w-auto" onchange="handleCardsLimitChange()">
+        <option>12</option>
+        <option>24</option>
+        <option>48</option>
+        <option>60</option>
+        <option>72</option>
+        <option>84</option>
+        <option>108</option>
+        <option>120</option>
+      </select>
+    </div>
+
+  </div>
+
+  <script>
+    function handleCardsLimitChange() {
+      const limit = document.getElementById("cardsPerPage").value;
+      alert("📦 سيتم عرض " + limit + " بطاقة (قابلة للتنفيذ البرمجي لاحقًا)");
+    }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
