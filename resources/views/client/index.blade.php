@@ -93,47 +93,42 @@
             });
         </script>
         <!-- بطاقة الإجراءات -->
-<div class="card shadow-sm border-0 rounded-3">
-    <div class="card-body p-3">
-        <div class="d-flex flex-wrap justify-content-end gap-2">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap justify-content-end" style="gap: 10px;">
 
-            <!-- زر إضافة عميل -->
-            <a href="{{ route('clients.create') }}"
-                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
-                style="height: 38px; min-width: 160px;">
-                <i class="fas fa-user-plus me-2 fs-6"></i>
-                <span class="fw-medium">إضافة عميل</span>
-            </a>
+                    <!-- زر أضف العميل -->
 
-            <!-- زر تحميل ملف Excel -->
-            <label
-                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
-                style="height: 38px; min-width: 160px; cursor: pointer;">
-                <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
-                <span class="fw-medium">تحميل ملف</span>
-                <input type="file" name="file" class="d-none" required>
-            </label>
 
-            <!-- زر استيراد -->
-            <button type="submit"
-                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
-                style="height: 38px; min-width: 160px;">
-                <i class="fas fa-database me-2 fs-6"></i>
-                <span class="fw-medium">استيراد</span>
-            </button>
+                    <!-- زر تحميل ملف -->
+                    <label class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; cursor: pointer; border-radius: 6px;">
+                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                        <input type="file" name="file" class="d-none">
+                    </label>
 
-            <!-- زر إضافة حد ائتماني -->
-            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#creditLimitModal"
-                class="btn btn-primary btn-sm rounded-pill px-4 d-flex align-items-center justify-content-center"
-                style="height: 38px; min-width: 160px;">
-                <i class="fas fa-credit-card me-2 fs-6"></i>
-                <span class="fw-medium">حد ائتماني</span>
-            </a>
+                    <!-- زر استيراد -->
+                    <button type="submit" class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;">
+                        <i class="fas fa-database text-primary"></i>
+                    </button>
 
+                    <!-- زر حد ائتماني -->
+                    <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#creditLimitModal"
+                        class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;">
+                        <i class="fas fa-credit-card text-primary"></i>
+                    </a>
+
+                    <a href="{{ route('clients.create') }}"
+                        class="btn btn-success d-flex align-items-center justify-content-center"
+                        style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
+                        <i class="fas fa-plus ms-2"></i>
+                        أضف العميل
+                    </a>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-
 
         <!-- بطاقة البحث -->
         <div class="card">
@@ -155,153 +150,142 @@
             </div>
             <div class="card-body">
                 <form class="form" id="searchForm" method="GET" action="{{ route('clients.index') }}">
-                    <div class="card p-3 mb-4">
-                        <div class="row g-3 align-items-end">
-                            <!-- اسم العميل -->
-                            <div class="col-md-3 col-12">
-                                <label for="client" class="form-label">العميل</label>
-                                <select name="client" id="client" class="form-control select2">
-                                    <option value="">اختر العميل</option>
-                                    @foreach ($allClients as $client)
-                                        <option value="{{ $client->id }}"
-                                            {{ request('client') == $client->id ? 'selected' : '' }}>
-                                            {{ $client->trade_name }} - {{ $client->code }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+    <div class="card p-3 mb-4">
+        <div class="row g-3 align-items-end">
+            <!-- اسم العميل -->
+            <div class="col-md-3 col-12">
+                <label for="client" class="form-label">العميل</label>
+                <select name="client" id="client" class="form-control select2">
+                    <option value="">اختر العميل</option>
+                    @foreach ($allClients as $client)
+                        <option value="{{ $client->id }}"
+                            {{ request('client') == $client->id ? 'selected' : '' }}>
+                            {{ $client->trade_name }} - {{ $client->code }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-                            <!-- الاسم -->
-                            <div class="col-md-3 col-12">
-                                <label for="name" class="form-label">الاسم</label>
-                                <input type="text" name="name" id="name" class="form-control"
-                                    placeholder="الاسم" value="{{ request('name') }}">
-                            </div>
+            <!-- الاسم -->
+            <div class="col-md-3 col-12">
+                <label for="name" class="form-label">الاسم</label>
+                <input type="text" name="name" id="name" class="form-control"
+                    placeholder="الاسم" value="{{ request('name') }}">
+            </div>
 
-                            <!-- الحالة -->
-                            <div class="col-md-3 col-12">
-                                <label for="status" class="form-label">الحالة</label>
-                                <select name="status" id="status" class="form-control">
-                                    <option value="">اختر الحالة</option>
-                                    @foreach ($statuses as $status)
-                                        <option value="{{ $status->id }}"
-                                            {{ request('status') == $status->id ? 'selected' : '' }}>
-                                            {{ $status->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+            <!-- الحالة -->
+            <div class="col-md-3 col-12">
+                <label for="status" class="form-label">الحالة</label>
+                <select name="status" id="status" class="form-control">
+                    <option value="">اختر الحالة</option>
+                    @foreach ($statuses as $status)
+                        <option value="{{ $status->id }}"
+                            {{ request('status') == $status->id ? 'selected' : '' }}>
+                            {{ $status->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-                            <!-- المجموعة -->
-                            <div class="col-md-3 col-12">
-                                <label for="region" class="form-label">المجموعة</label>
-                                <select name="region" id="region" class="form-control select2">
-                                    <option value="">اختر المجموعة</option>
-                                    @foreach ($Region_groups as $Region_group)
-                                        <option value="{{ $Region_group->id }}"
-                                            {{ request('region') == $Region_group->id ? 'selected' : '' }}>
-                                            {{ $Region_group->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+            <!-- المجموعة -->
+            <div class="col-md-3 col-12">
+                <label for="region" class="form-label">المجموعة</label>
+                <select name="region" id="region" class="form-control select2">
+                    <option value="">اختر المجموعة</option>
+                    @foreach ($Region_groups as $Region_group)
+                        <option value="{{ $Region_group->id }}"
+                            {{ request('region') == $Region_group->id ? 'selected' : '' }}>
+                            {{ $Region_group->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-                            <!-- الحي -->
-                            <div class="col-md-12 col-12">
-                                <label for="neighborhood" class="form-label">الحي</label>
-                                <input type="text" name="neighborhood" id="neighborhood" class="form-control"
-                                    placeholder="الحي" value="{{ request('neighborhood') }}">
-                            </div>
-                        </div>
-                    </div>
+            <!-- الحي -->
+            <div class="col-md-4 col-12">
+                <label for="neighborhood" class="form-label">الحي</label>
+                <input type="text" name="neighborhood" id="neighborhood" class="form-control"
+                    placeholder="الحي" value="{{ request('neighborhood') }}">
+            </div>
 
+            <!-- تاريخ من -->
+            <div class="col-md-4 col-12">
+                <label for="date_from" class="form-label">تاريخ من</label>
+                <input type="date" name="address" id="date_from" class="form-control"
+                    placeholder="تاريخ من" value="{{ request('address') }}">
+            </div>
 
+            <!-- تاريخ الى -->
+            <div class="col-md-4 col-12">
+                <label for="date_to" class="form-label">تاريخ الى</label>
+                <input type="date" name="address" id="date_to" class="form-control"
+                    placeholder="تاريخ الى" value="{{ request('address') }}">
+            </div>
+        </div>
+    </div>
 
-                    <div class="collapse" id="advancedSearchForm">
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-4 col-12">
-                                <select name="classifications" class="form-control">
-                                    <option value="">اختر التصنيف</option>
-                                    <option value="1" {{ request('classifications') == '1' ? 'selected' : '' }}>
-                                    </option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
-                                    </option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <input type="date" name="end_date_to" class="form-control"
-                                    placeholder="تاريخ الانتهاء (من)" value="{{ request('end_date_to') }}">
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <input type="date" name="end_date_to" class="form-control"
-                                    placeholder="تاريخ الانتهاء (الى)" value="{{ request('end_date_to') }}">
-                            </div>
-                            <div class="form-group col-md-4 col-12">
-                                <input type="text" name="address" class="form-control" placeholder="العنوان"
-                                    value="{{ request('address') }}">
-                            </div>
-                            <div class="form-group col-md-4 col-12">
-                                <input type="text" name="postal_code" class="form-control"
-                                    placeholder="الرمز البريدي" value="{{ request('postal_code') }}">
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="country" class="form-control">
-                                    <option value="">اختر البلد</option>
-                                    <option value="1" {{ request('country') == '1' ? 'selected' : '' }}>السعودية
-                                    </option>
-                                    <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>مصر</option>
-                                    <option value="0" {{ request('country') == '0' ? 'selected' : '' }}>اليمن
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="tage" class="form-control">
-                                    <option value="">اختر الوسم</option>
-                                    <option value="1" {{ request('tage') == '1' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('tage') == '0' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('tage') == '0' ? 'selected' : '' }}></option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="user" class="form-control">
-                                    <option value="">أضيفت بواسطة</option>
-                                    @foreach ($users as $user)
-                                        <option value="{{ $user->id }}"
-                                            {{ request('user') == $user->id ? 'selected' : '' }}>
-                                            {{ $user->name }} - {{ $user->id }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="type" class="form-control">
-                                    <option value="">اختر النوع</option>
-                                    <option value="1" {{ request('type') == '1' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="full_name" class="form-control">
-                                    <option value="">اختر الموظفين المعيين</option>
-                                    @foreach ($employees as $employee)
-                                        <option value="{{ $employee->id }}"
-                                            {{ request('employee') == $employee->id ? 'selected' : '' }}>
-                                            {{ $employee->full_name }} - {{ $employee->id }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+    <div class="collapse" id="advancedSearchForm">
+        <div class="row g-3 mt-2">
+            <!-- التصنيف -->
+            <div class="col-md-4 col-12">
+                <label for="classifications" class="form-label">التصنيف</label>
+                <select name="classifications" id="classifications" class="form-control">
+                    <option value="">اختر التصنيف</option>
+                    <option value="1" {{ request('classifications') == '1' ? 'selected' : '' }}>
+                    </option>
+                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
+                    </option>
+                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
+                    </option>
+                </select>
+            </div>
 
-                    <div class="form-actions mt-2">
-                        <button type="submit" class="btn btn-primary">بحث</button>
-                        <a href="{{ route('clients.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
-                    </div>
-                </form>
+            <!-- أضيفت بواسطة -->
+            <div class="col-md-4 col-12">
+                <label for="user" class="form-label">أضيفت بواسطة</label>
+                <select name="user" id="user" class="form-control select2">
+                    <option value="">أضيفت بواسطة</option>
+                    @foreach ($users as $user)
+                        <option value="{{ $user->id }}"
+                            {{ request('user') == $user->id ? 'selected' : '' }}>
+                            {{ $user->name }} - {{ $user->id }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- النوع -->
+            <div class="col-md-4 col-12">
+                <label for="type" class="form-label">النوع</label>
+                <select name="type" id="type" class="form-control">
+                    <option value="">اختر النوع</option>
+                    <option value="1" {{ request('type') == '1' ? 'selected' : '' }}></option>
+                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
+                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
+                </select>
+            </div>
+
+            <!-- الموظفين المعيين -->
+            <div class="col-md-4 col-12">
+                <label for="full_name" class="form-label">الموظفين المعيين</label>
+                <select name="full_name" id="full_name" class="form-control select2">
+                    <option value="">اختر الموظفين المعيين</option>
+                    @foreach ($employees as $employee)
+                        <option value="{{ $employee->id }}"
+                            {{ request('employee') == $employee->id ? 'selected' : '' }}>
+                            {{ $employee->full_name }} - {{ $employee->id }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions mt-2">
+        <button type="submit" class="btn btn-primary">بحث</button>
+        <a href="{{ route('clients.index') }}" type="reset" class="btn btn-outline-warning">إلغاء</a>
+    </div>
+</form>
             </div>
         </div>
 
