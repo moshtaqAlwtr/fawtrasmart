@@ -55,6 +55,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
+use App\Mail\InvoicePdfMail;
 
 class InvoicesController extends Controller
 {
@@ -65,14 +68,30 @@ class InvoicesController extends Controller
         $this->journalEntryService = $journalEntryService;
     }
 
-    public function getUnreadNotifications()
-    {
-        $notifications = notifications::where('read', 0)
-            ->orderBy('created_at', 'desc')
-            ->get(['id', 'title', 'description', 'created_at']); // تحديد البيانات المطلوبة فقط
+public function getUnreadNotifications()
+{
+    $user = auth()->user();
 
-        return response()->json(['notifications' => $notifications]);
+    $query = notifications::where('read', 0)
+        ->orderBy('created_at', 'desc');
+
+    if ($user->role === 'employee') {
+        $query->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('receiver_id', $user->id);
+        });
     }
+
+    $notifications = $query->get(['id', 'title', 'description', 'created_at', 'user_id', 'receiver_id']);
+
+    return response()->json([
+        'notifications' => $notifications,
+        'auth_id' => $user->id, // للمراجعة
+        'role' => $user->role   // للمراجعة
+    ]);
+}
+
+
 
     /**
      * Display a listing of invoices.
@@ -98,7 +117,13 @@ public function index(Request $request)
     // البيانات الأخرى المطلوبة للواجهة
     $clients = Client::all();
     $users = User::all();
-    $employees = Employee::all();
+    
+    //sales_person_user
+    
+    $employees_sales_person  = Employee::all();
+    $employees = User::whereIn('role', ['employee', 'manager'])->get();
+
+    
     $invoice_number = $this->generateInvoiceNumber();
 
     $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
@@ -108,6 +133,7 @@ public function index(Request $request)
         'invoices',
         'account_setting',
         'client',
+        'employees_sales_person',
         'clients',
         'users',
         'invoice_number',
@@ -229,7 +255,7 @@ protected function applySearchFilters($query, $request)
 
     // 20. البحث حسب مسؤول المبيعات
     if ($request->filled('sales_person_user')) {
-        $query->where('created_by', $request->sales_person_user);
+        $query->where('employee_id', $request->sales_person_user);
     }
 
     // 21. البحث حسب Post Shift
@@ -418,19 +444,27 @@ public function getPrice(Request $request)
 
 public function notifications(Request $request)
 {
-    $query = notifications::with('user')
+    $user = auth()->user();
+
+    $query = notifications::with(['user', 'receiver'])
         ->where('read', 0)
         ->orderBy('created_at', 'desc');
 
-    // إضافة فلتر البحث حسب الموظف إذا تم توفيره
+    // إذا المستخدم الحالي موظف، نعرض له فقط إشعاراته أو المرسلة إليه
+    if ($user->role === 'employee') {
+        $query->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('receiver_id', $user->id);
+        });
+    }
+
+    // في حالة وجود فلتر بحث يدوي (من الأدمن مثلاً)
     if ($request->has('user_id') && $request->user_id != '') {
         $query->where('user_id', $request->user_id);
     }
 
-    // استبدال get() بـ paginate() لإضافة التقسيم للصفحات
-    $notifications = $query->paginate(100, ['id', 'user_id', 'title', 'description', 'created_at']);
-
-    $users = User::where('role', 'employee')->get(); // جلب جميع الموظفين للبحث
+    $notifications = $query->paginate(100, ['id', 'user_id', 'receiver_id', 'title', 'description', 'created_at']);
+    $users = User::where('role', 'employee')->get();
 
     return view('notifications.index', compact('notifications', 'users'));
 }
@@ -1657,7 +1691,7 @@ if (auth()->check()) {
         $qrCodeSvg = $writer->writeString($invoice->qrcode);
         $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
-        $html = view('sales.invoices.pdf', compact('invoice', 'barcodeImage', 'TaxsInvoice', 'account_setting', 'qrCodeSvg'))->render();
+        $html = view('sales.invoices.print', compact('invoice', 'barcodeImage', 'TaxsInvoice', 'account_setting', 'qrCodeSvg'))->render();
 
         // Add content to PDF
         $pdf->writeHTML($html, true, false, true, false, '');
@@ -1666,7 +1700,71 @@ if (auth()->check()) {
         return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
     }
 
+ 
 
+public function send_invoice($id)
+
+{
+    $invoice = Invoice::with(['client', 'items', 'createdByUser'])->findOrFail($id);
+    
+     $client = $invoice->client;
+
+    // ✅ تحقق أولًا من وجود بريد إلكتروني
+   if (!$client || !$client->email || !filter_var($client->email, FILTER_VALIDATE_EMAIL)) {
+    return redirect()->back()->with('error', 'هذا العميل لا يحتوي على بريد إلكتروني صالح.');
+
+}
+
+    // QR code preparation (نفس الكود الذي تستخدمه)
+    $qrData = 'رقم الفاتورة: ' . $invoice->id . "\n";
+    $qrData .= 'التاريخ: ' . $invoice->created_at->format('Y/m/d') . "\n";
+    $qrData .= 'العميل: ' . ($invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name) . "\n";
+    $qrData .= 'الإجمالي: ' . number_format($invoice->grand_total, 2) . ' ر.س';
+
+    $qrOptions = new \chillerlan\QRCode\QROptions([
+        'outputType' => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
+        'eccLevel' => \chillerlan\QRCode\QRCode::ECC_L,
+        'scale' => 5,
+        'imageBase64' => true,
+    ]);
+
+    $qrCode = new \chillerlan\QRCode\QRCode($qrOptions);
+    $barcodeImage = $qrCode->render($qrData);
+
+    $TaxsInvoice = \App\Models\TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'invoice')->get();
+    $account_setting = \App\Models\AccountSetting::where('user_id', auth()->id())->first();
+     $renderer = new ImageRenderer(
+            new RendererStyle(150), // تحديد الحجم
+            new SvgImageBackEnd(), // تحديد نوع الصورة (SVG)
+        );
+
+        $writer = new Writer($renderer);
+ $qrCodeSvg = $writer->writeString($invoice->qrcode);
+    $html = view('sales.invoices.print', compact('invoice', 'barcodeImage', 'TaxsInvoice', 'account_setting','qrCodeSvg'))->render();
+
+    // إنشاء PDF
+    $pdf = new TCPDF();
+    $pdf->SetMargins(15, 15, 15);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->AddPage();
+    $pdf->setRTL(true);
+    $pdf->SetFont('aealarabiya', '', 14);
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // حفظ مؤقت
+    $fileName = 'invoice-' . $invoice->code . '.pdf';
+    $filePath = storage_path('app/public/' . $fileName);
+    $pdf->Output($filePath, 'F'); // F = save to file
+
+    // إرسال البريد
+    Mail::to($invoice->client->email)->send(new InvoicePdfMail($invoice, $filePath));
+
+    // حذف الملف بعد الإرسال (اختياري)
+    unlink($filePath);
+
+    return redirect()->back()->with(['success' => 'تم إرسال الفاتورة إلى بريد العميل.']);
+}
 
 
 
@@ -1942,21 +2040,3 @@ private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
 }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

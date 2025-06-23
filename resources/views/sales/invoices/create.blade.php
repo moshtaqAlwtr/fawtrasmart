@@ -8,83 +8,214 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 
     <style>
-        @media (max-width: 767.98px) {
-            #items-table {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-
-            #clientSelect option[selected] {
-                font-weight: bold;
-                background-color: #f8f9fa;
-            }
-
-            select.form-control {
-                -webkit-appearance: menulist;
-                -moz-appearance: menulist;
-                appearance: menulist;
-                height: auto;
-            }
-
-            #items-table thead,
-            #items-table tbody,
-            #items-table tfoot,
-            #items-table tr,
-            #items-table td,
-            #items-table th {
-                display: block;
-            }
-
-            #items-table tr {
-                display: flex;
-                flex-direction: column;
-                margin-bottom: 1rem;
-                border: 1px solid #ddd;
-                padding: 10px;
-            }
-
-            #items-table td,
-            #items-table th {
-                border: none;
-                padding: 0.5rem;
-            }
-
-            #items-table td {
-                text-align: right;
-            }
-
-            #items-table td::before {
-                content: attr(data-label);
-                float: left;
-                font-weight: bold;
-            }
-
-            #items-table .item-row {
-                display: flex;
-                flex-direction: column;
-            }
-
-            #items-table .item-row td {
-                width: 100%;
-            }
-
-            #items-table .item-row td input,
-            #items-table .item-row td select {
-                width: 100%;
-            }
-
-            #items-table tfoot tr {
-                display: flex;
-                flex-direction: column;
-            }
-
-            #items-table tfoot td {
-                text-align: right;
-            }
-
+    /* تصميم عام للجدول */
+    #items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    #items-table th {
+        background-color: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        padding: 12px 15px;
+        text-align: right;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    #items-table td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: middle;
+    }
+    
+    #items-table tr:hover td {
+        background-color: #f8f9fa;
+    }
+    
+    /* تحسين حقول الإدخال */
+    .form-control {
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        padding: 8px 12px;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .form-control:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    /* تحسين أزرار الإجراءات */
+    .btn {
+        border-radius: 4px;
+        padding: 8px 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0069d9;
+        border-color: #0062cc;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+    
+    /* تحسين مجموعة الإدخال */
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-group .form-control {
+        flex: 1;
+        min-width: 70px;
+    }
+    
+    .input-group select.form-control {
+        width: auto;
+        margin-right: 5px;
+    }
+    
+    /* تصميم تذييل الجدول */
+    #items-table tfoot tr:not(:first-child) td {
+        font-weight: 500;
+    }
+    
+    #items-table tfoot tr:last-child td {
+        font-weight: 600;
+        font-size: 1.1em;
+        color: #2c3e50;
+        border-top: 2px solid #dee2e6;
+    }
+    
+    /* تصميم للشاشات الصغيرة */
+    @media (max-width: 767.98px) {
+        #items-table {
+            display: block;
+            overflow-x: auto;
         }
-    </style>
+    
+        #items-table thead,
+        #items-table tbody,
+        #items-table tfoot,
+        #items-table tr,
+        #items-table td,
+        #items-table th {
+            display: block;
+        }
+    
+        #items-table tr {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    
+        #items-table td,
+        #items-table th {
+            border: none;
+            padding: 8px 0;
+        }
+    
+        #items-table td {
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    
+        #items-table td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            margin-right: 10px;
+            color: #495057;
+            flex: 0 0 40%;
+        }
+    
+        #items-table .item-row td {
+            width: 100%;
+        }
+    
+        #items-table .item-row td input,
+        #items-table .item-row td select {
+            width: 55%;
+            flex: 0 0 55%;
+        }
+    
+        #items-table tfoot tr {
+            display: flex;
+            flex-direction: column;
+        }
+    
+        #items-table tfoot td {
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        #items-table tfoot td::before {
+            content: attr(data-label);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .input-group {
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .input-group .form-control {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .input-group select.form-control {
+            width: 100%;
+        }
+    }
+    
+    /* تحسينات إضافية */
+    .row-total, #subtotal, #total-discount, #grand-total {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    #tax-details {
+        color: #6c757d;
+        font-size: 0.9em;
+        line-height: 1.5;
+    }
+    
+    .card {
+        border-radius: 8px;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+</style>
 @endsection
 @section('content')
     <div class="content-header row">
@@ -148,21 +279,7 @@
                             <div class="card-body">
 
                                 <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group row">
-                                            <div class="col-md-2">
-                                                <span>العميل :</span>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <select class="form-control" name="payment">
-                                                    <option value="">اختر الطريقة </option>
-                                                    <option value="1">ارسال عبر البريد</option>
-                                                    <option value="2">طباعة </option>
-                                                </select>
-                                            </div>
 
-                                        </div>
-                                    </div>
                                     <div class="col-12">
                                         <div class="form-group row">
                                             <div class="col-md-2">
@@ -314,165 +431,158 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-content">
-                    <div class="card-body">
-                        <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
-                        <div class="table-responsive">
-                            <table class="table" id="items-table">
-                                <thead>
-                                    <tr>
-                                        <th>المنتج</th>
-                                        <th>الوصف</th>
-                                        <th>الكمية</th>
-                                        <th>السعر</th>
-                                        <th>الخصم</th>
-                                        <th>الضريبة 1</th>
-                                        <th>الضريبة 2</th>
-                                        <th>المجموع</th>
-                                        <th>الإجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr class="item-row">
-                                        <td style="width:18%" data-label="المنتج">
-                                            <select name="items[0][product_id]" class="form-control product-select" required>
-                                                <option value="">اختر المنتج</option>
-                                                @foreach ($items as $item)
-                                                    <option value="{{ $item->id }}"
-                                                        data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </td>
-                                        <td data-label="الوصف">
-                                            <input type="text" name="items[0][description]"
-                                                class="form-control item-description">
-                                        </td>
-                                        <td data-label="الكمية">
-                                            <input type="number" name="items[0][quantity]" class="form-control quantity"
-                                                value="1" min="1" required>
-                                        </td>
-                                        <td data-label="السعر">
-                                            <input type="number" name="items[0][unit_price]" class="form-control price"
-                                                value="" step="0.01" required>
-                                        </td>
-                                        <td data-label="الخصم">
-                                            <div class="input-group">
-                                                <input type="number" name="items[0][discount]"
-                                                    class="form-control discount-value" value="0" min="0"
-                                                    step="0.01">
-                                                <select name="items[0][discount_type]" class="form-control discount-type">
-                                                    <option value="amount">ريال</option>
-                                                    <option value="percentage">نسبة %</option>
-                                                </select>
-                                            </div>
-                                        </td>
-                                        <td data-label="الضريبة 1">
-                                            <div class="input-group">
-                                                <select name="items[0][tax_1]" class="form-control tax-select"
-                                                    data-target="tax_1" style="width: 150px;"
-                                                    onchange="updateHiddenInput(this)">
-                                                    <option value=""></option>
-                                                    @foreach ($taxs as $tax)
-                                                        <option value="{{ $tax->tax }}"
-                                                            data-id="{{ $tax->id }}"
-                                                            data-name="{{ $tax->name }}"
-                                                            data-type="{{ $tax->type }}">
-                                                            {{ $tax->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <input type="hidden" name="items[0][tax_1_id]">
-                                            </div>
-                                        </td>
 
 
-
-                                        <td data-label="الضريبة 2">
-                                            <div class="input-group">
-                                                <select name="items[0][tax_2]" class="form-control tax-select"
-                                                    data-target="tax_2" style="width: 150px;"
-                                                    onchange="updateHiddenInput(this)">
-                                                    <option value=""></option>
-                                                    @foreach ($taxs as $tax)
-                                                        <option value="{{ $tax->tax }}"
-                                                            data-id="{{ $tax->id }}"
-                                                            data-name="{{ $tax->name }}"
-                                                            data-type="{{ $tax->type }}">
-                                                            {{ $tax->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <input type="hidden" name="items[0][tax_2_id]">
-                                            </div>
-                                        </td>
-
-
-                                        <input type="hidden" name="items[0][store_house_id]" value="">
-                                        <td data-label="المجموع">
-                                            <span class="row-total">0.00</span>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-danger btn-sm remove-row">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-
-
-                                <tfoot id="tax-rows">
-                                    <tr>
-                                        <td colspan="9" class="text-left">
-                                            <button type="button" class="btn btn-primary add-row"> <i
-                                                    class="fa fa-prmary"></i>إضافة </button>
-                                        </td>
-                                    </tr>
-                                    @php
+<div class="card">
+    <div class="card-content">
+        <div class="card-body">
+            <input type="hidden" id="products-data" value="{{ json_encode($items) }}">
+            <div class="table-responsive">
+                <table class="table" id="items-table">
+                    <thead>
+                        <tr>
+                            <th>المنتج</th>
+                            <th>الوصف</th>
+                            <th>الكمية</th>
+                            <th>السعر</th>
+                            <th>الخصم</th>
+                            <th>الضريبة 1</th>
+                            <th>الضريبة 2</th>
+                            <th>المجموع</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="item-row">
+                            <td style="width:18%" data-label="المنتج">
+                                <select name="items[0][product_id]" class="form-control product-select" required>
+                                    <option value="">اختر المنتج</option>
+                                    @foreach ($items as $item)
+                                        <option value="{{ $item->id }}"
+                                            data-price="{{ $item->sale_price }}">{{ $item->name }}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td data-label="الوصف">
+                                <input type="text" name="items[0][description]"
+                                    class="form-control item-description" placeholder="أدخل الوصف">
+                            </td>
+                            <td data-label="الكمية">
+                                <input type="number" name="items[0][quantity]" class="form-control quantity"
+                                    value="1" min="1" required>
+                            </td>
+                            <td data-label="السعر">
+                                <input type="number" name="items[0][unit_price]" class="form-control price"
+                                    value="" step="0.01" required placeholder="0.00">
+                            </td>
+                            <td data-label="الخصم">
+                                <div class="input-group">
+                                    <input type="number" name="items[0][discount]"
+                                        class="form-control discount-value" value="0" min="0"
+                                        step="0.01" placeholder="0.00">
+                                    <select name="items[0][discount_type]" class="form-control discount-type">
+                                        <option value="amount">ريال</option>
+                                        <option value="percentage">نسبة %</option>
+                                    </select>
+                                </div>
+                            </td>
+                            <td data-label="الضريبة 1">
+                                <div class="input-group">
+                                    <select name="items[0][tax_1]" class="form-control tax-select"
+                                        data-target="tax_1" onchange="updateHiddenInput(this)">
+                                        <option value="">لا يوجد</option>
+                                        @foreach ($taxs as $tax)
+                                            <option value="{{ $tax->tax }}"
+                                                data-id="{{ $tax->id }}"
+                                                data-name="{{ $tax->name }}"
+                                                data-type="{{ $tax->type }}">
+                                                {{ $tax->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="items[0][tax_1_id]">
+                                </div>
+                            </td>
+                            <td data-label="الضريبة 2">
+                                <div class="input-group">
+                                    <select name="items[0][tax_2]" class="form-control tax-select"
+                                        data-target="tax_2" onchange="updateHiddenInput(this)">
+                                        <option value="">لا يوجد</option>
+                                        @foreach ($taxs as $tax)
+                                            <option value="{{ $tax->tax }}"
+                                                data-id="{{ $tax->id }}"
+                                                data-name="{{ $tax->name }}"
+                                                data-type="{{ $tax->type }}">
+                                                {{ $tax->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="items[0][tax_2_id]">
+                                </div>
+                            </td>
+                            <input type="hidden" name="items[0][store_house_id]" value="">
+                            <td data-label="المجموع">
+                                <span class="row-total">0.00</span>
+                                <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
+                            </td>
+                            <td data-label="الإجراءات">
+                                <button type="button" class="btn btn-danger btn-sm remove-row" title="حذف الصف">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="tax-rows">
+                        <tr>
+                            <td colspan="9" class="text-left">
+                                <button type="button" class="btn btn-primary add-row">
+                                    <i class="fa fa-plus"></i> إضافة
+                                </button>
+                            </td>
+                        </tr>
+                          @php
                                         $currencySymbol =
                                             '<img src="' .
                                             asset('assets/images/Saudi_Riyal.svg') .
                                             '" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">';
                                     @endphp
-                                    <!-- Other rows -->
-                                    <tr>
-                                        <td colspan="7" class="text-right">المجموع الفرعي</td>
-                                        <td><span id="subtotal">0.00</span>{!! $currencySymbol !!}</td>
-                                        <td></td>
-                                    </tr>
-
-                                    <tr>
-                                        <td colspan="7" class="text-right">مجموع الخصومات</td>
-                                        <td>
-                                            <span id="total-discount">0.00</span>
-                                            <span id="discount-type-label">{!! $currencySymbol !!}</span>
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                    <tr>
-
-                                        <td>
-
-                                            <small id="tax-details"></small> <!-- مكان عرض تفاصيل الضرائب -->
-                                        </td>
-
-                                    </tr>
-                                    <tr>
-                                        <td colspan="7" class="text-right">المجموع الكلي</td>
-                                        <td>
-                                            <span id="grand-total">0.00</span>{!! $currencySymbol !!}
-                                        </td>
-                                    </tr>
-
-
-
-                                </tfoot>
-
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                        <tr>
+                            <td colspan="7" class="text-right" data-label="المجموع الفرعي">المجموع الفرعي</td>
+                            <td>
+                                <span id="subtotal">0.00</span>
+                                <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" class="text-right" data-label="مجموع الخصومات">مجموع الخصومات</td>
+                            <td>
+                                <span id="total-discount">0.00</span>
+                                <span id="discount-type-label">
+                                    <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
+                                </span>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="9">
+                                <small id="tax-details" class="text-muted"></small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" class="text-right" data-label="المجموع الكلي">المجموع الكلي</td>
+                            <td>
+                                <span id="grand-total">0.00</span>
+                                <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
+        </div>
+    </div>
+</div>
 
             <div class="card">
                 <div class="card-header bg-white">

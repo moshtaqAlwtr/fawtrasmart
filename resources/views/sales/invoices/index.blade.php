@@ -126,6 +126,13 @@
             {{ session('error') }}
         </div>
     @endif
+@if ($errors->any())
+    <div class="alert alert-danger">
+        @foreach ($errors->all() as $error)
+            <p class="mb-0">{{ $error }}</p>
+        @endforeach
+    </div>
+@endif
 
     <div class="content-body">
         <div class="container-fluid">
@@ -296,27 +303,12 @@
                         <!-- Advanced Search -->
                         <div class="collapse" id="advancedSearchForm">
                             <div class="row g-3 mt-2">
-                                <!-- 4. البند -->
-                                <div class="col-md-4">
-                                    <label for="item">البند</label>
-                                    <input type="text" id="item" class="form-control"
-                                        placeholder="تحتوي على البند" name="item" value="{{ request('item') }}">
-                                </div>
+                              
 
-                                <!-- 5. العملة -->
-                                <div class="col-md-4">
-                                    <label for="currency">العملة</label>
-                                    <select name="currency" class="form-control" id="currency">
-                                        <option value="">العملة</option>
-                                        <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}>SAR
-                                        </option>
-                                        <option value="USD" {{ request('currency') == 'USD' ? 'selected' : '' }}>USD
-                                        </option>
-                                    </select>
-                                </div>
+                            
 
                                 <!-- 6. الإجمالي (من) -->
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="total_from">الإجمالي أكبر من</label>
                                     <input type="text" id="total_from" class="form-control"
                                         placeholder="الإجمالي أكبر من" name="total_from"
@@ -324,40 +316,16 @@
                                 </div>
 
                                 <!-- 7. الإجمالي (إلى) -->
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="total_to">الإجمالي أصغر من</label>
                                     <input type="text" id="total_to" class="form-control"
                                         placeholder="الإجمالي أصغر من" name="total_to"
                                         value="{{ request('total_to') }}">
                                 </div>
 
-                                <!-- 8. حالة الدفع -->
-                                <div class="col-md-4">
-                                    <label for="payment_status">حالة الدفع</label>
-                                    <select name="payment_status" class="form-control" id="payment_status">
-                                        <option value="">حالة الدفع</option>
-                                        <option value="1" {{ request('payment_status') == 1 ? 'selected' : '' }}>غير
-                                            مدفوعة</option>
-                                        <option value="2" {{ request('payment_status') == 2 ? 'selected' : '' }}>
-                                            مدفوعة جزئيًا</option>
-                                        <option value="3" {{ request('payment_status') == 3 ? 'selected' : '' }}>
-                                            مدفوعة بالكامل</option>
-                                    </select>
-                                </div>
+                                
 
-                                <!-- 9. التخصيص (شهريًا، أسبوعيًا، يوميًا) -->
-                                <div class="col-md-2">
-                                    <label for="custom_period">التخصيص</label>
-                                    <select name="custom_period" class="form-control" id="custom_period">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly"
-                                            {{ request('custom_period') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly"
-                                            {{ request('custom_period') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
-                                        <option value="daily"
-                                            {{ request('custom_period') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
+                           
 
                                 <!-- 10. التاريخ (من) -->
                                 <div class="col-md-3">
@@ -373,156 +341,87 @@
                                         value="{{ request('to_date') }}">
                                 </div>
 
-                                <!-- 12. تخصيص آخر -->
-                                <div class="col-md-2">
-                                    <label for="custom_period_2">التخصيص</label>
-                                    <select name="custom_period_2" class="form-control" id="custom_period_2">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly"
-                                            {{ request('custom_period_2') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly"
-                                            {{ request('custom_period_2') == 'weekly' ? 'selected' : '' }}>أسبوعيًا
-                                        </option>
-                                        <option value="daily"
-                                            {{ request('custom_period_2') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
 
                                 <!-- 13. تاريخ الاستحقاق (من) -->
-                                <div class="col-md-3">
-                                    <label for="due_date_from">تاريخ الاستحقاق (من)</label>
-                                    <input type="date" id="due_date_from" class="form-control" name="due_date_from"
-                                        value="{{ request('due_date_from') }}">
-                                </div>
+                                <!--<div class="col-md-3">-->
+                                <!--    <label for="due_date_from">تاريخ الاستحقاق (من)</label>-->
+                                <!--    <input type="date" id="due_date_from" class="form-control" name="due_date_from"-->
+                                <!--        value="{{ request('due_date_from') }}">-->
+                                <!--</div>-->
 
                                 <!-- 14. تاريخ الاستحقاق (إلى) -->
-                                <div class="col-md-3">
-                                    <label for="due_date_to">تاريخ الاستحقاق (إلى)</label>
-                                    <input type="date" id="due_date_to" class="form-control" name="due_date_to"
-                                        value="{{ request('due_date_to') }}">
-                                </div>
+                                <!--<div class="col-md-3">-->
+                                <!--    <label for="due_date_to">تاريخ الاستحقاق (إلى)</label>-->
+                                <!--    <input type="date" id="due_date_to" class="form-control" name="due_date_to"-->
+                                <!--        value="{{ request('due_date_to') }}">-->
+                                <!--</div>-->
 
-                                <!-- 15. المصدر -->
-                                <div class="col-md-4">
-                                    <label for="source">المصدر</label>
-                                    <select name="source" class="form-control" id="source">
-                                        <option value="">المصدر</option>
-                                        <option value="mobile" {{ request('source') == 'mobile' ? 'selected' : '' }}>تطبيق
-                                            الهاتف</option>
-                                        <option value="web" {{ request('source') == 'web' ? 'selected' : '' }}>الويب
-                                        </option>
-                                    </select>
-                                </div>
 
-                                <!-- 16. الحقل المخصص -->
-                                <div class="col-4">
-                                    <label for="custom_field">حقل مخصص</label>
-                                    <input type="text" id="custom_field" class="form-control" placeholder="حقل مخصص"
-                                        name="custom_field" value="{{ request('custom_field') }}">
-                                </div>
+                              
 
-                                <!-- 17. تخصيص آخر -->
-                                <div class="col-md-2">
-                                    <label for="custom_period_3">التخصيص</label>
-                                    <select name="custom_period_3" class="form-control" id="custom_period_3">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly"
-                                            {{ request('custom_period_3') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly"
-                                            {{ request('custom_period_3') == 'weekly' ? 'selected' : '' }}>أسبوعيًا
-                                        </option>
-                                        <option value="daily"
-                                            {{ request('custom_period_3') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
-
-                                <!-- 18. تاريخ الإنشاء (من) -->
-                                <div class="col-3">
-                                    <label for="created_at_from">تاريخ الإنشاء (من)</label>
-                                    <input type="date" id="created_at_from" class="form-control"
-                                        name="created_at_from" value="{{ request('created_at_from') }}">
-                                </div>
-
-                                <!-- 19. تاريخ الإنشاء (إلى) -->
-                                <div class="col-3">
-                                    <label for="created_at_to">تاريخ الإنشاء (إلى)</label>
-                                    <input type="date" id="created_at_to" class="form-control" name="created_at_to"
-                                        value="{{ request('created_at_to') }}">
-                                </div>
 
                                 <!-- 20. حالة التسليم -->
-                                <div class="col-md-4">
-                                    <label for="delivery_status">حالة التسليم</label>
-                                    <select name="delivery_status" class="form-control" id="delivery_status">
-                                        <option value="">حالة التسليم</option>
-                                        <option value="delivered"
-                                            {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>تم التسليم
-                                        </option>
-                                        <option value="pending"
-                                            {{ request('delivery_status') == 'pending' ? 'selected' : '' }}>قيد الانتظار
-                                        </option>
-                                    </select>
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="delivery_status">حالة التسليم</label>-->
+                                <!--    <select name="delivery_status" class="form-control" id="delivery_status">-->
+                                <!--        <option value="">حالة التسليم</option>-->
+                                <!--        <option value="delivered"-->
+                                <!--            {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>تم التسليم-->
+                                <!--        </option>-->
+                                <!--        <option value="pending"-->
+                                <!--            {{ request('delivery_status') == 'pending' ? 'selected' : '' }}>قيد الانتظار-->
+                                <!--        </option>-->
+                                <!--    </select>-->
+                                <!--</div>-->
 
                                 <!-- 21. أضيفت بواسطة (الموظفين) -->
-                                <div class="col-md-4">
-                                    <label for="added_by_employee">أضيفت بواسطة (الموظفين)</label>
+                                <div class="col-md-6">
+                                    <label for="added_by_employee">أضيفت بواسطة </label>
                                     <select name="added_by_employee" class="form-control" id="added_by_employee">
                                         <option value="">أضيفت بواسطة</option>
                                         @foreach ($employees as $employee)
                                             <option value="{{ $employee->id }}"
                                                 {{ request('added_by_employee') == $employee->id ? 'selected' : '' }}>
-                                                {{ $employee->full_name }}
+                                                {{ $employee->name }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <!-- 22. مسؤول المبيعات (المستخدمين) -->
-                                <div class="col-md-4">
-                                    <label for="sales_person_user">مسؤول المبيعات (المستخدمين)</label>
+                                <div class="col-md-6">
+                                    <label for="sales_person_user">مسؤول المبيعات </label>
                                     <select name="sales_person_user" class="form-control" id="sales_person_user">
                                         <option value="">مسؤول المبيعات</option>
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}"
-                                                {{ request('sales_person_user') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }}
+                                       @foreach ($employees_sales_person as $employee)
+                                            <option value="{{ $employee->id }}"
+                                                {{ request('sales_person_user') == $employee->id ? 'selected' : '' }}>
+                                                {{ $employee->full_name }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <!-- 23. Post Shift -->
-                                <div class="col-md-4">
-                                    <label for="post_shift">Post Shift</label>
-                                    <input type="text" id="post_shift" class="form-control" placeholder="Post Shift"
-                                        name="post_shift" value="{{ request('post_shift') }}">
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="post_shift">Post Shift</label>-->
+                                <!--    <input type="text" id="post_shift" class="form-control" placeholder="Post Shift"-->
+                                <!--        name="post_shift" value="{{ request('post_shift') }}">-->
+                                <!--</div>-->
 
                                 <!-- 24. خيارات الشحن -->
-                                <div class="col-md-4">
-                                    <label for="shipping_option">خيارات الشحن</label>
-                                    <select name="shipping_option" class="form-control" id="shipping_option">
-                                        <option value="">خيارات الشحن</option>
-                                        <option value="standard"
-                                            {{ request('shipping_option') == 'standard' ? 'selected' : '' }}>عادي</option>
-                                        <option value="express"
-                                            {{ request('shipping_option') == 'express' ? 'selected' : '' }}>سريع</option>
-                                    </select>
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="shipping_option">خيارات الشحن</label>-->
+                                <!--    <select name="shipping_option" class="form-control" id="shipping_option">-->
+                                <!--        <option value="">خيارات الشحن</option>-->
+                                <!--        <option value="standard"-->
+                                <!--            {{ request('shipping_option') == 'standard' ? 'selected' : '' }}>عادي</option>-->
+                                <!--        <option value="express"-->
+                                <!--            {{ request('shipping_option') == 'express' ? 'selected' : '' }}>سريع</option>-->
+                                <!--    </select>-->
+                                <!--</div>-->
 
-                                <!-- 25. مصدر الطلب -->
-                                <div class="col-md-4">
-                                    <label for="order_source">مصدر الطلب</label>
-                                    <select name="order_source" class="form-control" id="order_source">
-                                        <option value="">مصدر الطلب</option>
-                                        <option value="website"
-                                            {{ request('order_source') == 'website' ? 'selected' : '' }}>الموقع</option>
-                                        <option value="mobile_app"
-                                            {{ request('order_source') == 'mobile_app' ? 'selected' : '' }}>تطبيق الهاتف
-                                        </option>
-                                    </select>
-                                </div>
+                            
                             </div>
                         </div>
 
@@ -540,24 +439,25 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center p-3">
                     <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('all')">
-                            <i class="fas fa-list me-1"></i> الكل
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="filterInvoices('late')">
-                            <i class="fas fa-clock me-1"></i> متأخر
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="filterInvoices('due')">
-                            <i class="fas fa-calendar-day me-1"></i> مستحقة الدفع
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="filterInvoices('unpaid')">
-                            <i class="fas fa-times-circle me-1"></i> غير مدفوع
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="filterInvoices('draft')">
-                            <i class="fas fa-file-alt me-1"></i> مسودة
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterInvoices('overpaid')">
-                            <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
-                        </button>
+                       <button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('all')">
+    <i class="fas fa-list me-1"></i> الكل
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('late')">
+    <i class="fas fa-clock me-1"></i> متأخر
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('due')">
+    <i class="fas fa-calendar-day me-1"></i> مستحقة الدفع
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('unpaid')">
+    <i class="fas fa-times-circle me-1"></i> غير مدفوع
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('draft')">
+    <i class="fas fa-file-alt me-1"></i> مسودة
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('overpaid')">
+    <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
+</button>
+
                     </div>
                 </div>
 
@@ -727,16 +627,14 @@
                                                     href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-print me-2 text-dark"></i>طباعة
                                                 </a>
-                                                <a class="dropdown-item" href="#">
+                                                <a class="dropdown-item" href="{{ route('invoices.send', $invoice->id) }}">
                                                     <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
                                                 </a>
                                                 <a class="dropdown-item"
                                                     href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
                                                     <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
                                                 </a>
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                                </a>
+                                               
                                                 <form action="{{ route('invoices.destroy', $invoice->id) }}"
                                                     method="POST" class="d-inline">
                                                     @csrf
