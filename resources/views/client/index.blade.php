@@ -125,7 +125,6 @@
                         <i class="fas fa-file-excel text-primary"></i>
                     </button>
 
-
                     <a href="{{ route('clients.create') }}"
                         class="btn btn-success d-flex align-items-center justify-content-center"
                         style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
@@ -219,15 +218,15 @@
                             <!-- تاريخ من -->
                             <div class="col-md-4 col-12">
                                 <label for="date_from" class="form-label">تاريخ من</label>
-                                <input type="date" name="address" id="date_from" class="form-control"
-                                    placeholder="تاريخ من" value="{{ request('address') }}">
+                                <input type="date" name="date_from" id="date_from" class="form-control"
+                                    value="{{ request('date_from') }}">
                             </div>
 
                             <!-- تاريخ الى -->
                             <div class="col-md-4 col-12">
                                 <label for="date_to" class="form-label">تاريخ الى</label>
-                                <input type="date" name="address" id="date_to" class="form-control"
-                                    placeholder="تاريخ الى" value="{{ request('address') }}">
+                                <input type="date" name="date_to" id="date_to" class="form-control"
+                                    value="{{ request('date_to') }}">
                             </div>
                         </div>
                     </div>
@@ -237,14 +236,14 @@
                             <!-- التصنيف -->
                             <div class="col-md-4 col-12">
                                 <label for="classifications" class="form-label">التصنيف</label>
-                                <select name="classifications" id="classifications" class="form-control">
+                                <select name="categories" id="classifications" class="form-control">
                                     <option value="">اختر التصنيف</option>
-                                    <option value="1" {{ request('classifications') == '1' ? 'selected' : '' }}>
-                                    </option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
-                                    </option>
-                                    <option value="0" {{ request('classifications') == '0' ? 'selected' : '' }}>
-                                    </option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}"
+                                            {{ request('categories') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -263,20 +262,13 @@
                             </div>
 
                             <!-- النوع -->
-                            <div class="col-md-4 col-12">
-                                <label for="type" class="form-label">النوع</label>
-                                <select name="type" id="type" class="form-control">
-                                    <option value="">اختر النوع</option>
-                                    <option value="1" {{ request('type') == '1' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
-                                    <option value="0" {{ request('type') == '0' ? 'selected' : '' }}></option>
-                                </select>
-                            </div>
+
 
                             <!-- الموظفين المعيين -->
                             <div class="col-md-4 col-12">
-                                <label for="full_name" class="form-label">الموظفين المعيين</label>
-                                <select name="full_name" id="full_name" class="form-control select2">
+                                <label for="employee" class="form-label">الموظفين المعيين</label>
+                                <select id="feedback2" class="form-control select2" name="employee[]"
+                                    multiple="multiple">
                                     <option value="">اختر الموظفين المعيين</option>
                                     @foreach ($employees as $employee)
                                         <option value="{{ $employee->id }}"
@@ -297,185 +289,299 @@
             </div>
         </div>
 
+
+
         <!-- جدول العملاء -->
         <!-- جدول العملاء -->
+        @if (isset($clients) && $clients->count() > 0)
+            <div class="row">
+                @foreach ($clients as $client)
+                    @php
+                        $clientData = $clientsData[$client->id] ?? null;
+                        $due = $clientDueBalances[$client->id] ?? 0;
+                        $totalSales = $clientTotalSales[$client->id] ?? 0;
+                        $currentMonth = now()->format('m');
+                        $monthlyGroup =
+                            $clientData['monthly_groups'][$currentMonth]['group'] ?? ($clientData['group'] ?? 'D');
+                        $monthlyGroupClass =
+                            $clientData['monthly_groups'][$currentMonth]['group_class'] ??
+                            ($clientData['group_class'] ?? 'secondary');
+                    @endphp
 
-
-
-
-
-
-
-    @if (isset($clients) && $clients->count() > 0)
-    @php
-        $chunks = $clients->chunk(3); // تقسيم العملاء إلى مجموعات من 3
-    @endphp
-
-    @foreach ($chunks as $chunk)
-        <div class="row g-3">
-            @foreach ($chunk as $client)
-                @php
-                    $clientData = $clientsData[$client->id] ?? null;
-                    $due = $clientDueBalances[$client->id] ?? 0;
-                    $totalSales = $clientTotalSales[$client->id] ?? 0;
-                @endphp
-
-                <!-- بطاقة عميل -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-
-                            <!-- رأس البطاقة -->
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div>
-                                    <h6 class="fw-bold text-primary mb-1">{{ $client->trade_name }}</h6>
-                                    @if ($client->code)
-                                        <small class="text-muted"><i class="bi bi-hash me-1"></i>{{ $client->code }}</small>
-                                    @endif
-                                </div>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ route('clients.show', $client->id) }}"><i class="bi bi-eye me-1"></i>عرض</a></li>
-                                        @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                                            <li><a class="dropdown-item" href="{{ route('clients.edit', $client->id) }}"><i class="bi bi-pencil-square me-1"></i>تعديل</a></li>
+                    <div class="col-md-6 my-3"> <!-- تمت إضافة my-3 لعمل مسافة من الأعلى والأسفل -->
+                        <div class="card shadow-sm border border-1 rounded-3 h-100">
+                            <div class="card-body d-flex flex-column">
+                                <!-- Card Header -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <!-- حالة العميل -->
+                                    <div>
+                                        @if ($client->status_client)
+                                            <span class="badge rounded-pill"
+                                                style="background-color: {{ $client->status_client->color }}; font-size: 11px;">
+                                                <i class="fas fa-circle me-1"></i>
+                                                {{ $client->status_client->name }}
+                                            </span>
+                                        @else
+                                            <span class="badge rounded-pill bg-secondary" style="font-size: 11px;">
+                                                <i class="fas fa-question-circle me-1"></i>
+                                                غير محدد
+                                            </span>
                                         @endif
-                                        @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                            <li><a class="dropdown-item text-danger" href="{{ route('clients.destroy', $client->id) }}"><i class="bi bi-trash me-1"></i>حذف</a></li>
-                                        @endif
-                                    </ul>
-                                </div>
-                            </div>
+                                    </div>
 
-                            <!-- معلومات العميل -->
-                            <div class="row row-cols-2 g-2 mb-2">
-                                <div class="col">
-                                    @if ($client->phone)
-                                        <small><i class="bi bi-telephone text-secondary me-1"></i>{{ $client->phone }}</small><br>
-                                    @endif
-                                    @if ($client->status_client)
-                                        <small><i class="bi bi-people text-secondary me-1"></i>{{ $client->status_client->name }}</small><br>
-                                    @endif
-                                    @if ($client->Neighborhoodname)
-                                        <small><i class="bi bi-geo-alt text-secondary me-1"></i><a href="#" class="text-decoration-none">عرض الموقع</a></small>
-                                    @endif
+                                    <!-- Dropdown -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                                            id="clientActionsDropdown{{ $client->id }}" data-bs-toggle="dropdown"
+                                            aria-expanded="false" style="font-size: 11px;">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu"
+                                            aria-labelledby="clientActionsDropdown{{ $client->id }}">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ route('clients.show', $client->id) }}">
+                                                    <i class="far fa-eye me-1"></i> عرض
+                                                </a>
+                                            </li>
+                                            @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('clients.edit', $client->id) }}">
+                                                        <i class="fas fa-edit me-1"></i> تعديل
+                                                    </a>
+                                                </li>
+                                            @endif
+                                            @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                                <li>
+                                                    <a class="dropdown-item text-danger"
+                                                        href="{{ route('clients.destroy', $client->id) }}">
+                                                        <i class="fas fa-trash-alt me-1"></i> حذف
+                                                    </a>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
                                 </div>
-                                <div class="col">
-                                    <small><i class="bi bi-person-badge text-secondary me-1"></i>{{ $client->first_name }} {{ $client->last_name }}</small><br>
-                                    @if ($client->Neighborhoodname)
-                                        <small><i class="bi bi-geo text-secondary me-1"></i>{{ $client->Neighborhoodname->name ?? '' }}</small><br>
-                                        <small><i class="bi bi-people-fill text-secondary me-1"></i>{{ $client->Neighborhoodname->Region->name ?? '' }}</small>
-                                    @endif
-                                </div>
-                            </div>
 
-                            <!-- المبيعات والتحصيل -->
-                            <div class="d-flex justify-content-around text-center border rounded p-2 mb-2">
-                                <div>
-                                    <i class="bi bi-cash-stack text-primary"></i>
-                                    <div><small class="text-muted">المبيعات</small></div>
-                                    <strong class="text-primary">{{ number_format($totalSales) }}</strong>
-                                </div>
-                                <div>
-                                    <i class="bi bi-wallet2 text-success"></i>
-                                    <div><small class="text-muted">التحصيلات</small></div>
-                                    <strong class="text-success">{{ number_format($clientData['paid'] ?? 0) }}</strong>
-                                </div>
-                                <div>
-                                    <i class="bi bi-cart4 text-warning"></i>
-                                    <div><small class="text-muted">الآجلة</small></div>
-                                    <strong class="text-warning">{{ number_format($due) }}</strong>
-                                </div>
-                            </div>
+                                <!-- Client Info -->
+                                <div class="row row-cols-2 g-2 mb-2">
+                                    <!-- Column 1 -->
+                                    <div class="col">
+                                        <h6 class="client-name text-primary mb-2" style="font-size: 15px;">
+                                            <i class="fas fa-store me-1"></i>
+                                            {{ $client->trade_name }}
+                                        </h6>
 
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-phone text-secondary me-1"></i>
+                                                {{ $client->phone ?? '-' }}</small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-user text-secondary me-1"></i>
+                                                {{ $client->frist_name ?? '-' }}</small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small>
+                                                <i class="fas fa-map-marker-alt text-secondary me-1"></i>
+                                                <a href="#" class="text-decoration-none">عرض الموقع</a>
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 2 -->
+                                    <div class="col">
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-id-badge text-secondary me-1"></i>
+                                                {{ $client->frist_name }}</small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-tags text-secondary me-1"></i>
+                                                {{ $client->categoryClients->name ?? '-' }}</small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-code-branch text-secondary me-1"></i>
+                                                {{ $client->branch->name ?? '-' }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dates and Status -->
+                                <div class="d-flex justify-content-between text-center border rounded p-2 mb-2">
+                                    <div>
+                                        <i class="fas fa-calendar-plus text-secondary"></i>
+                                        <div><small>الإضافة</small></div>
+                                        <small>{{ $client->created_at->format('Y-m-d') }}</small>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-file-invoice-dollar text-secondary"></i>
+                                        <div><small>آخر فاتورة</small></div>
+                                        <small>{{ $client->invoices->last()->invoice_number ?? '-' }}</small>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-check text-success"></i>
+                                        <div><small>الحالة</small></div>
+                                        <strong class="text-success">نشط</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Section -->
+                                <div class="d-flex justify-content-around text-center border rounded p-2 mb-3">
+                                    <div class="px-1">
+                                        <i class="fas fa-cash-register text-primary"></i>
+                                        <div class="small text-muted">المبيعات</div>
+                                        <strong class="text-primary">{{ number_format($totalSales ?? 0) }}</strong>
+                                    </div>
+                                    <div class="px-1">
+                                        <i class="fas fa-money-bill-wave text-success"></i>
+                                        <div class="small text-muted">التحصيلات</div>
+                                        <strong
+                                            class="text-success">{{ number_format($clientsData[$client->id]['total_collected'] ?? 0) }}</strong>
+                                    </div>
+                                    <div class="px-1">
+                                        <i class="fas fa-clock text-warning"></i>
+                                        <div class="small text-muted">الآجلة</div>
+                                        <strong
+                                            class="text-warning">{{ number_format($clientDueBalances[$client->id] ?? 0) }}</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Monthly Classification with Enhanced Details -->
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">التصنيف الشهري لعام {{ $currentYear }}</h6>
+                                    <div class="d-flex flex-wrap justify-content-start">
+                                        @foreach ($months as $monthName => $monthNumber)
+                                            @php
+                                                $monthData = $clientsData[$client->id]['monthly'][$monthName] ?? null;
+                                                $group = $monthData['group'] ?? 'd';
+                                                $groupClass = $monthData['group_class'] ?? 'secondary';
+                                                $collected = $monthData['collected'] ?? 0;
+                                                $percentage = $monthData['percentage'] ?? 0;
+                                                $paymentsTotal = $monthData['payments_total'] ?? 0;
+                                                $receiptsTotal = $monthData['receipts_total'] ?? 0;
+                                                $target = $monthData['target'] ?? 100000;
+                                            @endphp
+
+                                            <div class="text-center position-relative" style="margin: 5px;"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="التحصيلات: {{ number_format($collected) }} | المدفوعات: {{ number_format($paymentsTotal) }} | سندات القبض: {{ number_format($receiptsTotal) }} | النسبة: {{ $percentage }}%">
+
+                                                <!-- Classification Circle -->
+                                                <div class="rounded-circle border-2 border-{{ $groupClass }}
+                            text-{{ $groupClass }} fw-bold
+                            d-flex align-items-center justify-content-center"
+                                                    style="width:40px; height:40px; cursor: pointer;">
+                                                    {{ $group }}
+                                                </div>
+
+                                                <!-- Month Name -->
+                                                <small class="d-block text-muted mt-1">{{ $monthName }}</small>
+
+                                                <!-- Amount Collected (if any) -->
+                                                @if ($collected > 0)
+                                                    <small class="d-block text-success" style="font-size: 0.7rem;">
+                                                        {{ number_format($collected, 0) }}
+                                                    </small>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- Detailed Monthly Breakdown (Collapsible) -->
+
+
+                                <!-- JavaScript for Tooltips -->
+
+                            </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
-        </div>
-    @endforeach
-@else
-    <div class="alert alert-info text-center py-3" role="alert" style="font-size: 14px;">
-        <i class="fas fa-info-circle fa-lg mb-2"></i>
-        <h5 class="mb-0" style="font-size: 16px;">لا توجد عملاء مسجلين حالياً</h5>
-    </div>
-@endif
+                @endforeach
+            </div>
+        @else
+            <div class="alert alert-info text-center py-4" role="alert">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h5 class="mb-0">لا توجد عملاء مسجلين حالياً</h5>
+            </div>
+        @endif
 
-    @if ($clients->hasPages())
-        <nav aria-label="Page navigation">
-            <ul class="pagination pagination-sm mb-0">
-                <!-- زر الانتقال إلى أول صفحة -->
-                @if ($clients->onFirstPage())
-                    <li class="page-item disabled">
-                        <span class="page-link border-0 rounded-pill" aria-label="First">
-                            <i class="fas fa-angle-double-right"></i>
+
+
+
+        @if ($clients->hasPages())
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    <!-- زر الانتقال إلى أول صفحة -->
+                    @if ($clients->onFirstPage())
+                        <li class="page-item disabled">
+                            <span class="page-link border-0 rounded-pill" aria-label="First">
+                                <i class="fas fa-angle-double-right"></i>
+                            </span>
+                        </li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}" aria-label="First">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    @endif
+
+                    <!-- زر الانتقال إلى الصفحة السابقة -->
+                    @if ($clients->onFirstPage())
+                        <li class="page-item disabled">
+                            <span class="page-link border-0 rounded-pill" aria-label="Previous">
+                                <i class="fas fa-angle-right"></i>
+                            </span>
+                        </li>
+                    @else
+                        <li class="page-item">
+                            <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}"
+                                aria-label="Previous">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                    @endif
+
+                    <!-- عرض رقم الصفحة الحالية -->
+                    <li class="page-item">
+                        <span class="page-link border-0 bg-light rounded-pill px-3">
+                            صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
                         </span>
                     </li>
-                @else
-                    <li class="page-item">
-                        <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}" aria-label="First">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
-                    </li>
-                @endif
 
-                <!-- زر الانتقال إلى الصفحة السابقة -->
-                @if ($clients->onFirstPage())
-                    <li class="page-item disabled">
-                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                            <i class="fas fa-angle-right"></i>
-                        </span>
-                    </li>
-                @else
-                    <li class="page-item">
-                        <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}"
-                            aria-label="Previous">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    </li>
-                @endif
+                    <!-- زر الانتقال إلى الصفحة التالية -->
+                    @if ($clients->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}"
+                                aria-label="Next">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    @else
+                        <li class="page-item disabled">
+                            <span class="page-link border-0 rounded-pill" aria-label="Next">
+                                <i class="fas fa-angle-left"></i>
+                            </span>
+                        </li>
+                    @endif
 
-                <!-- عرض رقم الصفحة الحالية -->
-                <li class="page-item">
-                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                        صفحة {{ $clients->currentPage() }} من {{ $clients->lastPage() }}
-                    </span>
-                </li>
-
-                <!-- زر الانتقال إلى الصفحة التالية -->
-                @if ($clients->hasMorePages())
-                    <li class="page-item">
-                        <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}"
-                            aria-label="Next">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
-                    </li>
-                @else
-                    <li class="page-item disabled">
-                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                            <i class="fas fa-angle-left"></i>
-                        </span>
-                    </li>
-                @endif
-
-                <!-- زر الانتقال إلى آخر صفحة -->
-                @if ($clients->hasMorePages())
-                    <li class="page-item">
-                        <a class="page-link border-0 rounded-pill" href="{{ $clients->url($clients->lastPage()) }}"
-                            aria-label="Last">
-                            <i class="fas fa-angle-double-left"></i>
-                        </a>
-                    </li>
-                @else
-                    <li class="page-item disabled">
-                        <span class="page-link border-0 rounded-pill" aria-label="Last">
-                            <i class="fas fa-angle-double-left"></i>
-                        </span>
-                    </li>
-                @endif
-            </ul>
-        </nav>
-    @endif
+                    <!-- زر الانتقال إلى آخر صفحة -->
+                    @if ($clients->hasMorePages())
+                        <li class="page-item">
+                            <a class="page-link border-0 rounded-pill" href="{{ $clients->url($clients->lastPage()) }}"
+                                aria-label="Last">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                    @else
+                        <li class="page-item disabled">
+                            <span class="page-link border-0 rounded-pill" aria-label="Last">
+                                <i class="fas fa-angle-double-left"></i>
+                            </span>
+                        </li>
+                    @endif
+                </ul>
+            </nav>
+        @endif
 
     </div>
 
@@ -886,138 +992,3 @@
     </script>
 
 @stop
-
-
-
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>بطاقات العملاء</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-</head>
-<body class="bg-light p-4">
-
-  <div class="container">
-    <h4 class="text-center text-primary mb-4 fw-bold">بطاقات العملاء</h4>
-
-    <div class="row row-cols-1 row-cols-md-2 g-3">
-
-      <!-- بطاقة عميل -->
-      <div class="col">
-        <div class="card shadow-sm rounded-4 border-0 p-3">
-
-          <!-- رأس البطاقة -->
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <h6 class="fw-bold text-primary mb-1">محمد الأحمد</h6>
-              <small class="text-muted"><i class="bi bi-hash me-1"></i>CL001</small>
-            </div>
-            <div class="dropdown">
-              <button class="btn btn-sm btn-light" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-1"></i>عرض</a></li>
-                <li><a class="dropdown-item" href="#"><i class="bi bi-pencil-square me-1"></i>تعديل</a></li>
-                <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-1"></i>حذف</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- معلومات العميل -->
-          <div class="row row-cols-2 g-2 mb-2">
-            <div class="col">
-              <small><i class="bi bi-telephone text-secondary me-1"></i>0551234567</small><br>
-              <small><i class="bi bi-people text-secondary me-1"></i>النخبة</small><br>
-              <small><i class="bi bi-geo-alt text-secondary me-1"></i><a href="#" class="text-decoration-none">عرض الموقع</a></small>
-            </div>
-            <div class="col">
-              <small><i class="bi bi-person-badge text-secondary me-1"></i>أحمد العتيبي</small><br>
-              <small><i class="bi bi-geo text-secondary me-1"></i>محطة</small><br>
-              <small><i class="bi bi-people-fill text-secondary me-1"></i>سحاب - الأفق</small>
-            </div>
-          </div>
-
-          <!-- المبيعات والتحصيل -->
-          <div class="d-flex justify-content-around text-center border rounded p-2 mb-2">
-            <div>
-              <i class="bi bi-wallet2 text-success"></i>
-              <div><small class="text-muted">التحصيلات</small></div>
-              <strong class="text-success">15,000</strong>
-            </div>
-            <div>
-              <i class="bi bi-cart4 text-warning"></i>
-              <div><small class="text-muted">الآجلة</small></div>
-              <strong class="text-warning">20,000</strong>
-            </div>
-          </div>
-
-          <!-- تواريخ الحالة -->
-          <div class="d-flex justify-content-between text-center border rounded p-2 mb-2">
-            <div>
-              <i class="bi bi-calendar-plus text-secondary"></i>
-              <div><small>الإضافة</small></div>
-              <small>2024-12-01</small>
-            </div>
-            <div>
-              <i class="bi bi-receipt-cutoff text-secondary"></i>
-              <div><small>آخر فاتورة</small></div>
-              <small>2025-06-05</small>
-            </div>
-            <div>
-              <i class="bi bi-check-circle-fill text-success"></i>
-              <div><small>الحالة</small></div>
-              <strong class="text-success">نشط</strong>
-            </div>
-          </div>
-
-          <!-- التصنيفات -->
-          <div class="d-flex gap-2 flex-wrap justify-content-start">
-            <div class="text-center">
-              <div class="rounded-circle border border-primary text-primary fw-bold d-flex align-items-center justify-content-center" style="width:34px; height:34px;">A</div>
-              <small class="d-block text-muted">يناير</small>
-            </div>
-            <div class="text-center">
-              <div class="rounded-circle border border-warning text-warning fw-bold d-flex align-items-center justify-content-center" style="width:34px; height:34px;">B</div>
-              <small class="d-block text-muted">فبراير</small>
-            </div>
-            <div class="text-center">
-              <div class="rounded-circle border border-success text-success fw-bold d-flex align-items-center justify-content-center" style="width:34px; height:34px;">C</div>
-              <small class="d-block text-muted">مارس</small>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- انسخ هذا الكرت لعملاء آخرين -->
-
-    </div>
-
-    <!-- تحديد عدد البطاقات -->
-    <div class="d-flex justify-content-center align-items-center mt-4">
-      <label for="cardsPerPage" class="form-label me-2 mb-0 text-muted">عدد البطاقات المعروضة:</label>
-      <select id="cardsPerPage" class="form-select w-auto" onchange="handleCardsLimitChange()">
-        <option>12</option>
-        <option>24</option>
-        <option>48</option>
-        <option>60</option>
-        <option>72</option>
-        <option>84</option>
-        <option>108</option>
-        <option>120</option>
-      </select>
-    </div>
-
-  </div>
-
-  <script>
-    function handleCardsLimitChange() {
-      const limit = document.getElementById("cardsPerPage").value;
-      alert("📦 سيتم عرض " + limit + " بطاقة (قابلة للتنفيذ البرمجي لاحقًا)");
-    }
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>

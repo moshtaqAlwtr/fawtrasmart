@@ -232,7 +232,7 @@ public function Balance()
     }
     public function category()
     {
-        return $this->hasMany(CategoriesClient::class, 'category_id');
+        return $this->hasMany(CategoriesClient::class);
     }
     public function employees()
     {

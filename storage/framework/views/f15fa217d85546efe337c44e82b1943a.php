@@ -117,7 +117,7 @@ unset($__errorArgs, $__bag); ?>
                         </div>
                         <div class="form-group col-md-4">
                             <label for="date">التاريخ</label>
-                            <input type="date" class="form-control" id="date" name="date">
+                            <input type="date" class="form-control" id="date" name="date" value="<?php echo e(date('Y-m-d')); ?>">
                         </div>
                     </div>
 

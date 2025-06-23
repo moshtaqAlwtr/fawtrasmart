@@ -1,10 +1,9 @@
 <?php $__env->startSection('title'); ?>
-    <?php if(isset($category)): ?>
-        تعديل تصنيف العملاء - <?php echo e($category->name); ?>
 
-    <?php else: ?>
+
+
         إضافة تصنيف عملاء جديد
-    <?php endif; ?>
+
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('css'); ?>
