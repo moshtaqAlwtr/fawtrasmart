@@ -91,6 +91,7 @@ Route::group(
                     ->middleware(['auth'])
                     ->group(function () {
                         Route::get('/index', [InvoicesController::class, 'index'])->name('invoices.index');
+                        Route::get('/ajax/invoices', [InvoicesController::class, 'ajaxInvoices'])->name('invoices.ajax');
                         Route::get('/create', [InvoicesController::class, 'create'])->name('invoices.create');
                         Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
                         Route::get('/get-client/{id}', function ($id) {

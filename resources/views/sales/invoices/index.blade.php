@@ -22,6 +22,37 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+        /* الحفاظ على التنسيق الأصلي */
+.client-cell .client-info,
+.date-cell .date-info,
+.payment-cell .amount-info {
+    padding: 8px 0;
+}
+
+/* تنسيق الأيقونات */
+.fas, .fa {
+    margin-left: 5px;
+}
+
+/* منع اختيار النص */
+#invoicesTable {
+    user-select: none;
+}
+
+/* إصلاح القوائم المنسدلة */
+.dropdown-menu {
+    z-index: 1100 !important;
+}
+
+/* تنسيق الصفوف */
+#invoicesTable tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#invoicesTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
 
         /* Responsive Styles */
         @media (max-width: 768px) {
@@ -69,6 +100,7 @@
             .dropdown-menu {
                 min-width: 200px;
             }
+            
         }
 
         /* Additional styles for smaller devices */
@@ -140,98 +172,22 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <!-- Checkbox لتحديد الكل -->
-                        <div class="form-check me-3">.
-                            <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-
-                        </div>
+                       
 
                         <div class="d-flex flex-wrap justify-content-between">
                             <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
                                 <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
                             </a>
-                            <a href="{{ route('appointments.index') }}"
-                                class="btn btn-outline-primary btn-sm flex-fill me-1 mb-1">
-                                <i class="fas fa-calendar-alt me-1"></i>المواعيد
-                            </a>
+                            <!--<a href="{{ route('appointments.index') }}"-->
+                            <!--    class="btn btn-outline-primary btn-sm flex-fill me-1 mb-1">-->
+                            <!--    <i class="fas fa-calendar-alt me-1"></i>المواعيد-->
+                            <!--</a>-->
                             <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
                                 <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
                             </button>
                         </div>
 
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- زر الانتقال إلى أول صفحة -->
-                                @if ($invoices->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->url(1) }}"
-                                            aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى الصفحة السابقة -->
-                                @if ($invoices->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->previousPageUrl() }}"
-                                            aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- عرض رقم الصفحة الحالية -->
-                                <li class="page-item">
-                                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                                        صفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
-                                    </span>
-                                </li>
-
-                                <!-- زر الانتقال إلى الصفحة التالية -->
-                                @if ($invoices->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->nextPageUrl() }}"
-                                            aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى آخر صفحة -->
-                                @if ($invoices->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill"
-                                            href="{{ $invoices->url($invoices->lastPage()) }}" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </nav>
+                        
 
                     </div>
                 </div>
@@ -462,197 +418,25 @@
                 </div>
 
                 <!-- Invoice Table -->
+                <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover custom-table" id="fawtra">
-                        <thead>
-                            <tr class="bg-gradient-light text-center">
-                                <th></th>
-                                <th class="border-start">رقم الفاتورة</th>
-                                <th>معلومات العميل</th>
-                                <th>تاريخ الفاتورة</th>
-                                <th>المصدر والعملية</th>
-                                <th>المبلغ والحالة</th>
-                                <th style="width: 100px;">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="invoiceTableBody">
-                            @foreach ($invoices as $invoice)
-                                <tr class="align-middle invoice-row"
-                                    onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
-                                    style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
-                                    <td onclick="event.stopPropagation()">
-                                        <input type="checkbox" class="invoice-checkbox" name="invoices[]"
-                                            value="{{ $invoice->id }}">
-                                    </td>
-                                    <td class="text-center border-start"><span
-                                            class="invoice-number">#{{ $invoice->id }}</span></td>
-                                    <td>
-                                        <div class="client-info">
-                                            <div class="client-name mb-2">
-                                                <i class="fas fa-user text-primary me-1"></i>
-                                                <strong>{{ $invoice->client ? ($invoice->client->trade_name ?: $invoice->client->first_name . ' ' . $invoice->client->last_name) : 'عميل غير معروف' }}</strong>
-                                            </div>
-                                            @if ($invoice->client && $invoice->client->tax_number)
-                                                <div class="tax-info mb-1">
-                                                    <i class="fas fa-hashtag text-muted me-1"></i>
-                                                    <span class="text-muted small">الرقم الضريبي:
-                                                        {{ $invoice->client->tax_number }}</span>
-                                                </div>
-                                            @endif
-                                            @if ($invoice->client && $invoice->client->full_address)
-                                                <div class="address-info">
-                                                    <i class="fas fa-map-marker-alt text-muted me-1"></i>
-                                                    <span
-                                                        class="text-muted small">{{ $invoice->client->full_address }}</span>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="date-info mb-2">
-                                            <i class="fas fa-calendar text-info me-1"></i>
-                                            {{ $invoice->created_at ? $invoice->created_at->format($account_setting->time_formula ?? 'H:i:s d/m/Y') : '' }}
-                                        </div>
-                                        <div class="creator-info">
-                                            <i class="fas fa-user text-muted me-1"></i>
-                                            <span class="text-muted small">بواسطة:
-                                                {{ $invoice->createdByUser->name ?? 'غير محدد' }}</span>
-                                                <span class="text-muted small">
-                                                للمندوب {{ $invoice->employee->first_name ?? 'غير محدد' }} </span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-column gap-2" style="margin-bottom: 60px">
-                                            @php
-                                                $payments = \App\Models\PaymentsProcess::where(
-                                                    'invoice_id',
-                                                    $invoice->id,
-                                                )
-                                                    ->where('type', 'client payments')
-                                                    ->orderBy('created_at', 'desc')
-                                                    ->get();
-                                            @endphp
-
-                                            @php
-                                                $returnedInvoice = \App\Models\Invoice::where('type', 'returned')
-                                                    ->where('reference_number', $invoice->id)
-                                                    ->first();
-                                            @endphp
-
-                                            @if ($returnedInvoice)
-                                                <span class="badge bg-danger text-white"><i
-                                                        class="fas fa-undo me-1"></i>مرتجع</span>
-                                            @elseif ($invoice->type == 'normal' && $payments->count() == 0)
-                                                <span class="badge bg-secondary text-white"><i
-                                                        class="fas fa-file-invoice me-1"></i>أنشئت فاتورة</span>
-                                            @endif
-
-                                            @if ($payments->count() > 0)
-                                                <span class="badge bg-success text-white"><i
-                                                        class="fas fa-check-circle me-1"></i>أضيفت عملية دفع</span>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        @php
-                                            $statusClass = match ($invoice->payment_status) {
-                                                1 => 'success',
-                                                2 => 'info',
-                                                3 => 'danger',
-                                                4 => 'secondary',
-                                                default => 'dark',
-                                            };
-                                            $statusText = match ($invoice->payment_status) {
-                                                1 => 'مدفوعة بالكامل',
-                                                2 => 'مدفوعة جزئياً',
-                                                3 => 'غير مدفوعة',
-                                                4 => 'مستلمة',
-                                                default => 'غير معروفة',
-                                            };
-                                        @endphp
-                                        <div class="text-center">
-                                            <span
-                                                class="badge bg-{{ $statusClass }} text-white status-badge">{{ $statusText }}</span>
-                                        </div>
-                                        @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol =
-                                                $currency == 'SAR' || empty($currency)
-                                                    ? '<img src="' .
-                                                        asset('assets/images/Saudi_Riyal.svg') .
-                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
-                                                    : $currency;
-                                        @endphp
-                                        <div class="amount-info text-center mb-2">
-                                            <h6 class="amount mb-1">
-                                                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }} <small
-                                                    class="currency">{!! $currencySymbol !!}</small></h6>
-                                            @if ($returnedInvoice)
-                                                <span class="text-danger"> مرتجع :
-                                                    {{ number_format($invoice->returned_payment, 2) ?? '' }}
-                                                    {!! $currencySymbol !!}</span>
-                                            @endif
-                                            @if ($invoice->due_value > 0)
-                                                @php
-                                                    $net_due = $invoice->due_value - $invoice->returned_payment;
-                                                @endphp
-                                                <div class="due-amount">
-                                                    <small class="text-danger">المبلغ المستحق:
-                                                        {{ number_format($net_due, 2) }}
-                                                        {!! $currencySymbol !!}</small>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="dropdown" onclick="event.stopPropagation()">
-                                            <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v " type="button"
-                                                id="dropdownMenuButton{{ $invoice->id }}" data-bs-toggle="dropdown"
-                                                data-bs-auto-close="outside" aria-haspopup="true"
-                                                aria-expanded="false"></button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.edit', $invoice->id) }}">
-                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.show', $invoice->id) }}">
-                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
-                                                    <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-                                                </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('invoices.generatePdf', $invoice->id) }}">
-                                                    <i class="fa fa-print me-2 text-dark"></i>طباعة
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.send', $invoice->id) }}">
-                                                    <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
-                                                </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
-                                                    <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
-                                                </a>
-                                               
-                                                <form action="{{ route('invoices.destroy', $invoice->id) }}"
-                                                    method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="fa fa-trash me-2"></i>حذف
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                   <table id="invoicesTable" class="table table-hover nowrap" style="width:100%">
+    <thead class="bg-light" style="background-color: #BABFC7 !important;">
+        <tr>
+            <th class="border-start">رقم الفاتورة</th>
+            <th>معلومات العميل</th>
+            <th>تاريخ الفاتورة</th>
+            <th>المصدر والعملية</th>
+            <th>المبلغ والحالة</th>
+            <th style="width:10px;" class="text-end">الإجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- سيتم ملؤه تلقائياً بواسطة DataTables -->
+    </tbody>
+</table>
                 </div>
-
+         </div>
                 @if ($invoices->isEmpty())
                     <div class="alert alert-warning m-3" role="alert">
                         <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد فواتير</p>
@@ -662,15 +446,196 @@
 
         </div>
     </div>
+   
+
 @endsection
 
 @section('scripts')
+<!-- jQuery و DataTables -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<!-- DataTables الأساسية -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-    <script src="{{ asset('assets/js/search.js') }}"></script>
-    <script></script>
+<!-- أزرار التصدير -->
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<!-- تعريب -->
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json"></script>
+
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<!-- اللغة العربية -->
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json"></script>
+//
+
+
+<script>
+   $(document).ready(function() {
+    $('#invoicesTable').DataTable({
+        processing: true,
+        serverSide: true,
+        ajax: "{{ route('invoices.ajax') }}",
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json'
+        },
+        columns: [
+            { 
+                data: 'id',
+                className: 'text-center border-start',
+                render: function(data) {
+                    return `<span class="invoice-number">#${data}</span>`;
+                }
+            },
+            {
+                data: 'client_info',
+                className: 'client-cell',
+                render: function(data) {
+                    return `
+                        <div class="client-info">
+                            <div class="client-name mb-2">
+                                <i class="fas fa-user text-primary me-1"></i>
+                                <strong>${data.name}</strong>
+                            </div>
+                            ${data.tax ? `
+                            <div class="tax-info mb-1">
+                                <i class="fas fa-hashtag text-muted me-1"></i>
+                                <span class="text-muted small">الرقم الضريبي: ${data.tax}</span>
+                            </div>` : ''}
+                            ${data.address ? `
+                            <div class="address-info">
+                                <i class="fas fa-map-marker-alt text-muted me-1"></i>
+                                <span class="text-muted small">${data.address}</span>
+                            </div>` : ''}
+                        </div>
+                    `;
+                }
+            },
+            {
+                data: 'date_info',
+                className: 'date-cell',
+                render: function(data) {
+                    return `
+                        <div class="date-info mb-2">
+                            <i class="fas fa-calendar text-info me-1"></i>
+                            ${data.date}
+                        </div>
+                        <div class="creator-info">
+                            <i class="fas fa-user text-muted me-1"></i>
+                            <span class="text-muted small">بواسطة: ${data.creator}</span>
+                            <span class="text-muted small"> للمندوب ${data.employee}</span>
+                        </div>
+                    `;
+                }
+            },
+            {
+                data: 'status_badges',
+                className: 'status-cell',
+                render: function(data) {
+                    return `
+                        <div class="d-flex flex-column gap-2" style="margin-bottom: 60px">
+                            ${data.map(badge => `
+                                <span class="badge ${badge.class}">
+                                    <i class="${badge.icon} me-1"></i>${badge.text}
+                                </span>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            },
+            {
+                data: 'payment_info',
+                className: 'payment-cell',
+                render: function(data) {
+                    return `
+                        <div class="text-center">
+                            <span class="badge bg-${data.status_class} text-white status-badge">
+                                <i class="${data.status_icon}"></i> ${data.status_text}
+                            </span>
+                        </div>
+                        <div class="amount-info text-center mb-2">
+                            <h6 class="amount mb-1">
+                                ${data.amount} <small class="currency">${data.currency}</small>
+                            </h6>
+                            ${data.returned ? `
+                            <span class="text-danger">
+                                <i class="fas fa-undo-alt"></i> مرتجع: ${data.returned}
+                            </span>` : ''}
+                            ${data.due ? `
+                            <div class="due-amount">
+                                <small class="text-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> المبلغ المستحق: ${data.due}
+                                </small>
+                            </div>` : ''}
+                        </div>
+                    `;
+                }
+            },
+            {
+                data: 'actions',
+    className: 'actions-cell text-end',
+    orderable: false,
+    searchable: false,
+    render: function(data) {
+        return `
+            <div class="dropdown" onclick="event.stopPropagation()">
+                <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="${data.edit_url}">
+                        <i class="fa fa-edit me-2 text-success"></i>تعديل
+                    </a>
+                    <a class="dropdown-item" href="${data.show_url}">
+                        <i class="fa fa-eye me-2 text-primary"></i>عرض
+                    </a>
+                    <a class="dropdown-item" href="${data.pdf_url}">
+                        <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
+                    </a>
+                    <a class="dropdown-item" href="${data.print_url}">
+                        <i class="fa fa-print me-2 text-dark"></i>طباعة
+                    </a>
+                    <a class="dropdown-item" href="${data.send_url}">
+                        <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
+                    </a>
+                    <a class="dropdown-item" href="${data.payment_url}">
+                        <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
+                    </a>
+                    <form action="${data.delete_url}" method="POST" class="d-inline">
+                        <input type="hidden" name="_token" value="${data.csrf_token}">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" class="dropdown-item text-danger" onclick="return confirm('هل أنت متأكد؟')">
+                            <i class="fa fa-trash me-2"></i>حذف
+                        </button>
+                    </form>
+                </div>
+            </div>
+        `;
+                }
+            }
+        ],
+        initComplete: function() {
+            // حل مشكلة القائمة المنسدلة
+            $('.dropdown-menu').on('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+    
+    
+});
+</script>
+
+
 
 @endsection

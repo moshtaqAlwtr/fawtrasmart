@@ -17,6 +17,7 @@ use App\Models\Employee;
 use App\Models\Invoice;
 use App\Models\TaxInvoice;
 use App\Models\InvoiceItem;
+use Yajra\DataTables\DataTables;
 use App\Models\JournalEntry;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
@@ -112,8 +113,8 @@ public function index(Request $request)
     $this->applySearchFilters($query, $request);
 
     // جلب النتائج مع التقسيم (30 فاتورة لكل صفحة) مرتبة من الأحدث إلى الأقدم
-    $invoices = $query->orderBy('created_at', 'desc')->paginate(30);
-
+    // $invoices = $query->orderBy('created_at', 'desc')->paginate(30);
+       $invoices = $query->orderBy('created_at', 'desc')->get();
     // البيانات الأخرى المطلوبة للواجهة
     $clients = Client::all();
     $users = User::all();
@@ -141,6 +142,222 @@ public function index(Request $request)
     ));
 }
 
+
+
+
+
+// public function ajaxInvoices(Request $request)
+// {
+//     $invoices = Invoice::with(['client', 'employee','updatedByUser'])
+//         ->select('invoices.*')
+//         ->latest();
+
+//     if ($request->has('search') && !empty($request->search['value'])) {
+//         $search = $request->search['value'];
+//         $invoices->where(function($query) use ($search) {
+//             $query->where('id', 'like', "%$search%")
+//                   ->orWhereHas('client', function($q) use ($search) {
+//                       $q->where('trade_name', 'like', "%$search%");
+//                   });
+//         });
+//     }
+
+//     $total = $invoices->count();
+//     $invoices = $invoices->offset($request->start)->limit($request->length)->get();
+
+//     $data = [];
+//     foreach ($invoices as $invoice) {
+//         $data[] = [
+//             'id' => $invoice->id,
+//             'client_name' => $invoice->client->trade_name ?? 'غير معروف',
+//             'created_at' => $invoice->created_at->format('d/m/Y'),
+//             'status' => $this->getStatusText($invoice->payment_status),
+//             'amount' => number_format($invoice->grand_total, 2),
+//             'actions' => '
+//                 <div class="dropdown">
+//                     <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v" type="button"
+//                         data-bs-toggle="dropdown" aria-expanded="false"></button>
+//                     <div class="dropdown-menu">
+//                         <a class="dropdown-item" href="'.route('invoices.edit', $invoice->id).'">
+//                             <i class="fa fa-edit me-2 text-success"></i>تعديل
+//                         </a>
+//                         <a class="dropdown-item" href="'.route('invoices.show', $invoice->id).'">
+//                             <i class="fa fa-eye me-2 text-primary"></i>عرض
+//                         </a>
+//                         <form action="'.route('invoices.destroy', $invoice->id).'" method="POST" class="d-inline">
+//                             '.csrf_field().'
+//                             '.method_field('DELETE').'
+//                             <button type="submit" class="dropdown-item text-danger" onclick="return confirm(\'هل أنت متأكد؟\')">
+//                                 <i class="fa fa-trash me-2"></i>حذف
+//                             </button>
+//                         </form>
+//                     </div>
+//                 </div>
+//             ',
+//         ];
+//     }
+
+//     return response()->json([
+//         'draw' => $request->input('draw', 1),
+//         'recordsTotal' => $total,
+//         'recordsFiltered' => $total,
+//         'data' => $data,
+//     ]);
+// }
+
+public function ajaxInvoices(Request $request)
+{
+    $invoices = Invoice::with(['client', 'createdByUser', 'employee', 'payments','updatedByUser'])
+        ->select('invoices.*');
+
+    // تطبيق البحث إذا وجد
+    if ($request->has('search') && !empty($request->search['value'])) {
+        $search = $request->search['value'];
+        $invoices->where(function($query) use ($search) {
+            $query->where('invoices.id', 'like', "%$search%")
+                  ->orWhereHas('client', function($q) use ($search) {
+                      $q->where('trade_name', 'like', "%$search%")
+                        ->orWhere('first_name', 'like', "%$search%")
+                        ->orWhere('last_name', 'like', "%$search%");
+                  });
+        });
+    }
+
+    // الحصول على العدد الكلي قبل التقسيم
+    $totalRecords = $invoices->count();
+$account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
+    // تطبيق التقسيم (Pagination)
+    $invoices = $invoices->offset($request->start)
+                         ->limit($request->length)
+                         ->get();
+
+    $data = [];
+    foreach ($invoices as $invoice) {
+        // الحصول على الفاتورة المرتجعة إن وجدت
+        $returnedInvoice = Invoice::where('type', 'returned')
+                                ->where('reference_number', $invoice->id)
+                                ->first();
+
+        $client = $invoice->client;
+        $createdBy = $invoice->createdByUser;
+        $employee = $invoice->employee;
+
+        $data[] = [
+            'id' => $invoice->id,
+            'client_info' => [
+                'name' => $client ? ($client->trade_name ?: $client->first_name . ' ' . $client->last_name) : 'عميل غير معروف',
+                'tax' => $client->tax_number ?? null,
+                'address' => $client->full_address ?? null
+            ],
+            'date_info' => [
+                'date' => $invoice->created_at->format($this->account_setting->time_formula ?? 'H:i:s d/m/Y'),
+                'creator' => $createdBy->name ?? 'غير محدد',
+                'employee' => $employee->first_name ?? 'غير محدد'
+            ],
+            'status_badges' => $this->getStatusBadges($invoice, $returnedInvoice),
+            'payment_info' => $this->getPaymentInfo($invoice, $returnedInvoice, $account_setting),
+            'actions' => [
+    'edit_url' => route('invoices.edit', $invoice->id),
+    'show_url' => route('invoices.show', $invoice->id),
+    'pdf_url' => route('invoices.generatePdf', $invoice->id),
+    'print_url' => route('invoices.generatePdf', $invoice->id), // يمكن تغيير الرoute إذا كان مختلفاً للطباعة
+    'send_url' => route('invoices.send', $invoice->id),
+    'payment_url' => route('paymentsClient.create', ['id' => $invoice->id]),
+    'delete_url' => route('invoices.destroy', $invoice->id),
+    'csrf_token' => csrf_token()
+]
+        ];
+    }
+
+    return response()->json([
+        'draw' => $request->input('draw', 1),
+        'recordsTotal' => $totalRecords,
+        'recordsFiltered' => $totalRecords,
+        'data' => $data,
+    ]);
+}
+
+private function getStatusBadges($invoice, $returnedInvoice)
+{
+    $badges = [];
+
+    if ($returnedInvoice) {
+        $badges[] = [
+            'class' => 'bg-danger text-white',
+            'icon' => 'fas fa-undo',
+            'text' => 'مرتجع'
+        ];
+    } elseif ($invoice->type == 'normal' && $invoice->payments->count() == 0) {
+        $badges[] = [
+            'class' => 'bg-secondary text-white',
+            'icon' => 'fas fa-file-invoice',
+            'text' => 'أنشئت فاتورة'
+        ];
+    }
+
+    if ($invoice->payments->count() > 0) {
+        $badges[] = [
+            'class' => 'bg-success text-white',
+            'icon' => 'fas fa-check-circle',
+            'text' => 'أضيفت عملية دفع'
+        ];
+    }
+
+    return $badges;
+}
+
+private function getPaymentInfo($invoice, $returnedInvoice, $account_setting)
+{
+    $statusClass = match ($invoice->payment_status) {
+        1 => 'success',
+        2 => 'info',
+        3 => 'danger',
+        4 => 'secondary',
+        default => 'dark',
+    };
+
+    $statusIcon = match ($invoice->payment_status) {
+        1 => 'fas fa-check-circle',
+        2 => 'fas fa-adjust',
+        3 => 'fas fa-times-circle',
+        4 => 'fas fa-hand-holding-usd',
+        default => 'fas fa-question-circle',
+    };
+
+    $statusText = match ($invoice->payment_status) {
+        1 => 'مدفوعة بالكامل',
+        2 => 'مدفوعة جزئياً',
+        3 => 'غير مدفوعة',
+        4 => 'مستلمة',
+        default => 'غير معروفة',
+    };
+
+    $currency = $account_setting->currency ?? 'SAR';
+    $currencySymbol = $currency == 'SAR' || empty($currency)
+        ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+        : $currency;
+
+    $net_due = $invoice->due_value - ($invoice->returned_payment ?? 0);
+
+    return [
+        'status_class' => $statusClass,
+        'status_icon' => $statusIcon,
+        'status_text' => $statusText,
+        'amount' => number_format($invoice->grand_total ?? $invoice->total, 2),
+        'currency' => $currencySymbol,
+        'returned' => $returnedInvoice ? number_format($invoice->returned_payment, 2) . ' ' . $currencySymbol : null,
+        'due' => $invoice->due_value > 0 ? number_format($net_due, 2) . ' ' . $currencySymbol : null
+    ];
+}
+private function getStatusText($status)
+{
+    switch ($status) {
+        case 1: return 'مدفوعة';
+        case 2: return 'جزئي';
+        case 3: return 'غير مدفوعة';
+        default: return 'غير معروفة';
+    }
+}
 /**
  * تطبيق شروط البحث على الاستعلام
  */
