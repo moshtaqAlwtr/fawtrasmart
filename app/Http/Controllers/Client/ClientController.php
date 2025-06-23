@@ -1081,146 +1081,136 @@ class ClientController extends Controller
         return redirect()->route('clients.mang_client')->with('success', '✨ تم إضافة العميل بنجاح!');
     }
     public function addnotes(Request $request)
-{
-    // التحقق من صحة البيانات المدخلة
-    $validated = $request->validate([
-        'client_id' => 'required|exists:clients,id',
-        'process' => 'required|string|max:255',
-        'description' => 'required|string',
-        'deposit_count' => 'nullable|integer|min:0',
-        'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
-        'competitor_documents' => 'nullable|integer|min:0',
-        'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:102400',
-    ]);
+    {
+        // التحقق من صحة البيانات المدخلة
+        $validated = $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'process' => 'required|string|max:255',
+            'description' => 'required|string',
+            'deposit_count' => 'nullable|integer|min:0',
+            'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
+            'competitor_documents' => 'nullable|integer|min:0',
+            'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:102400',
+        ]);
 
-    DB::beginTransaction();
+        DB::beginTransaction();
 
-    try {
-        // التحقق من الموقع للموظفين فقط
-        if (auth()->user()->role === 'employee') {
-            $employeeLocation = Location::where('employee_id', auth()->id())
-                ->latest()
-                ->firstOrFail();
+        try {
+            // التحقق من الموقع للموظفين فقط
+            if (auth()->user()->role === 'employee') {
+                $employeeLocation = Location::where('employee_id', auth()->id())
+                    ->latest()
+                    ->firstOrFail();
 
-            $clientLocation = Location::where('client_id', $request->client_id)
-                ->latest()
-                ->firstOrFail();
+                $clientLocation = Location::where('client_id', $request->client_id)->latest()->firstOrFail();
 
-            $distance = $this->calculateDistance(
-                $employeeLocation->latitude,
-                $employeeLocation->longitude,
-                $clientLocation->latitude,
-                $clientLocation->longitude
-            );
+                $distance = $this->calculateDistance($employeeLocation->latitude, $employeeLocation->longitude, $clientLocation->latitude, $clientLocation->longitude);
 
-            if ($distance > 0.3) {
-                throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+                if ($distance > 0.3) {
+                    throw new \Exception('يجب أن تكون ضمن نطاق 0.3 كيلومتر من العميل! المسافة الحالية: ' . round($distance, 2) . ' كم');
+                }
             }
-        }
 
-        // الحصول على بيانات العميل والحالات
-        $client = Client::findOrFail($request->client_id);
-        $underReviewStatus = Statuses::where('name', 'تحت المراجعة')->first();
-        $activeStatus = Statuses::where('name', 'نشط')->first();
+            // الحصول على بيانات العميل والحالات
+            $client = Client::findOrFail($request->client_id);
+            $underReviewStatus = Statuses::where('name', 'تحت المراجعة')->first();
+            $activeStatus = Statuses::where('name', 'نشط')->first();
 
-        // إنشاء سجل الملاحظة
-        $clientRelation = ClientRelation::create([
-            'employee_id' => auth()->id(),
-            'client_id' => $request->client_id,
-            'status' => $request->status ?? 'pending',
-            'process' => $request->process,
-            'description' => $request->description,
-            'deposit_count' => $request->deposit_count,
-            'site_type' => $request->site_type,
-            'competitor_documents' => $request->competitor_documents,
-            'additional_data' => json_encode([
+            // إنشاء سجل الملاحظة
+            $clientRelation = ClientRelation::create([
+                'employee_id' => auth()->id(),
+                'client_id' => $request->client_id,
+                'status' => $request->status ?? 'pending',
+                'process' => $request->process,
+                'description' => $request->description,
                 'deposit_count' => $request->deposit_count,
                 'site_type' => $request->site_type,
                 'competitor_documents' => $request->competitor_documents,
-            ]),
-        ]);
+                'additional_data' => json_encode([
+                    'deposit_count' => $request->deposit_count,
+                    'site_type' => $request->site_type,
+                    'competitor_documents' => $request->competitor_documents,
+                ]),
+            ]);
 
-        // تغيير حالة العميل إذا كان تحت المراجعة
-        if ($underReviewStatus && $activeStatus && $client->status_id == $underReviewStatus->id) {
-            $client->status_id = $activeStatus->id;
+            // تغيير حالة العميل إذا كان تحت المراجعة
+            if ($underReviewStatus && $activeStatus && $client->status_id == $underReviewStatus->id) {
+                $client->status_id = $activeStatus->id;
 
-            // إزالة العميل من مجموعة "عملاء موقوفون" إذا كان فيها
-            $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
-            if ($suspendedGroup) {
-                Neighborhood::where('client_id', $client->id)
-                    ->where('region_id', $suspendedGroup->id)
-                    ->delete();
+                // إزالة العميل من مجموعة "عملاء موقوفون" إذا كان فيها
+                $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
+                if ($suspendedGroup) {
+                    Neighborhood::where('client_id', $client->id)->where('region_id', $suspendedGroup->id)->delete();
+                }
+
+                // تسجيل تغيير الحالة في السجلات
+                ModelsLog::create([
+                    'type' => 'status_change',
+                    'type_log' => 'log',
+                    'description' => 'تم تغيير حالة العميل من "تحت المراجعة" إلى "نشط" تلقائياً',
+                    'created_by' => auth()->id(),
+                ]);
             }
 
-            // تسجيل تغيير الحالة في السجلات
+            // تحديث وقت آخر ملاحظة للعميل
+            $client->last_note_at = now();
+            $client->save();
+
+            // حفظ المرفقات إذا وجدت
+            if ($request->hasFile('attachments')) {
+                $attachments = [];
+                foreach ($request->file('attachments') as $file) {
+                    if ($file->isValid()) {
+                        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(public_path('assets/uploads/notes'), $filename);
+                        $attachments[] = $filename;
+                    }
+                }
+                $clientRelation->attachments = json_encode($attachments);
+                $clientRelation->save();
+            }
+
+            // تحديث موقع الموظف (إذا كان employee)
+            if (auth()->user()->role === 'employee') {
+                Location::where('employee_id', auth()->id())
+                    ->latest()
+                    ->first()
+                    ->update([
+                        'client_relation_id' => $clientRelation->id,
+                        'client_id' => $request->client_id,
+                    ]);
+            }
+
+            // تسجيل الإشعارات والسجل
             ModelsLog::create([
-                'type' => 'status_change',
+                'type' => 'notes',
                 'type_log' => 'log',
-                'description' => 'تم تغيير حالة العميل من "تحت المراجعة" إلى "نشط" تلقائياً',
+                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
                 'created_by' => auth()->id(),
             ]);
+
+            notifications::create([
+                'user_id' => auth()->id(),
+                'type' => 'notes',
+                'title' => auth()->user()->name . ' أضاف ملاحظة لعميل',
+                'description' => 'ملاحظة للعميل ' . $client->trade_name . ' - ' . $request->description,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('clients.show', $request->client_id)
+                ->with('success', 'تم إضافة الملاحظة بنجاح' . ($client->wasChanged('status_id') ? ' وتغيير حالة العميل إلى نشط!' : '!'));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()
+                ->back()
+                ->with('error', 'فشل إضافة الملاحظة: ' . $e->getMessage())
+                ->withInput();
         }
-
-        // تحديث وقت آخر ملاحظة للعميل
-        $client->last_note_at = now();
-        $client->save();
-
-        // حفظ المرفقات إذا وجدت
-        if ($request->hasFile('attachments')) {
-            $attachments = [];
-            foreach ($request->file('attachments') as $file) {
-                if ($file->isValid()) {
-                    $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                    $file->move(public_path('assets/uploads/notes'), $filename);
-                    $attachments[] = $filename;
-                }
-            }
-            $clientRelation->attachments = json_encode($attachments);
-            $clientRelation->save();
-        }
-
-        // تحديث موقع الموظف (إذا كان employee)
-        if (auth()->user()->role === 'employee') {
-            Location::where('employee_id', auth()->id())
-                ->latest()
-                ->first()
-                ->update([
-                    'client_relation_id' => $clientRelation->id,
-                    'client_id' => $request->client_id,
-                ]);
-        }
-
-        // تسجيل الإشعارات والسجل
-        ModelsLog::create([
-            'type' => 'notes',
-            'type_log' => 'log',
-            'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
-            'created_by' => auth()->id(),
-        ]);
-
-        notifications::create([
-            'user_id' => auth()->id(),
-            'type' => 'notes',
-            'title' => auth()->user()->name . ' أضاف ملاحظة لعميل',
-            'description' => 'ملاحظة للعميل ' . $client->trade_name . ' - ' . $request->description,
-        ]);
-
-        DB::commit();
-
-        return redirect()->route('clients.show', $request->client_id)
-               ->with('success', 'تم إضافة الملاحظة بنجاح' .
-                      ($client->wasChanged('status_id') ? ' وتغيير حالة العميل إلى نشط!' : '!'));
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return redirect()->back()->withErrors($e->validator)->withInput();
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return redirect()
-            ->back()
-            ->with('error', 'فشل إضافة الملاحظة: ' . $e->getMessage())
-            ->withInput();
     }
-}
     public function forceShow(Client $client)
     {
         // السماح فقط للمديرين
@@ -1449,80 +1439,71 @@ class ClientController extends Controller
 
         return redirect()->back()->with('success', 'تم استيراد العملاء بنجاح!');
     }
+
 public function updateStatusClient(Request $request)
 {
-    // Validate the request
     $request->validate([
         'client_id' => 'required|exists:clients,id',
         'status_id' => 'required|exists:statuses,id',
     ]);
 
-    try {
-        // Start database transaction
-        DB::beginTransaction();
+    DB::beginTransaction();
 
-        // Find and update client
-        $client = \App\Models\Client::findOrFail($request->client_id);
+    try {
+        $client = Client::findOrFail($request->client_id);
         $client->status_id = $request->status_id;
         $client->save();
 
-        // Get the current status
-        $status = \App\Models\Statuses::find($request->status_id);
+        // الحصول على حالة "موقوف" و "تحت المراجعة"
+        $suspendedStatus = Statuses::where('name', 'موقوف')->first();
+        $underReviewStatus = Statuses::where('name', 'تحت المراجعة')->first();
+        $currentUserId = auth()->id();
 
-        // Check if status is "Under Review"
-        if ($status && str_contains(strtolower($status->name), 'مراجعة')) {
-            // Get client's neighborhood
-            $neighborhood = \App\Models\Neighborhood::with('region')
-                ->where('client_id', $client->id)
-                ->first();
+        // إذا كانت الحالة الجديدة هي "موقوف"
+        if ($suspendedStatus && $request->status_id == $suspendedStatus->id) {
+            $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
 
-            if ($neighborhood && $neighborhood->region_id) {
-                // Get employees in this group
-                $employees = \App\Models\EmployeeGroup::with('employee')
-                    ->where('group_id', $neighborhood->region_id)
-                    ->get();
+            if ($suspendedGroup) {
+                $neighborhood = Neighborhood::firstOrNew(['client_id' => $client->id]);
+                $neighborhood->region_id = $suspendedGroup->id;
+                $neighborhood->save();
+            }
+        }
+        // إذا كانت الحالة الجديدة هي "تحت المراجعة"
+        elseif ($underReviewStatus && $request->status_id == $underReviewStatus->id) {
+            $neighborhood = Neighborhood::where('client_id', $client->id)->first();
 
-                // Create notification for each employee
-                foreach ($employees as $emp) {
-                    if ($emp->employee) {
-                        \App\Models\notifications::create([
-                            'user_id' => $emp->employee->id,
-                            'title' => 'عميل جديد يحتاج مراجعة',
-                            'message' => 'تم إضافة عميل جديد إلى المجموعة: ' . ($neighborhood->region->name ?? ''),
-                            'description' => 'العميل: ' . ($client->trade_name ?? $client->frist_name) . ' يحتاج إلى المراجعة',
-                            'type' => 'client_review',
-                            'read' => 0,
+            if ($neighborhood && $regionGroup = Region_groub::find($neighborhood->region_id)) {
+                // الحصول على الموظف المرتبط بالمجموعة (على فرض أن كل مجموعة لها موظف واحد فقط)
+                $employeeGroup = EmployeeGroup::where('group_id', $regionGroup->id)->first();
 
-                        ]);
-                    }
+                if ($employeeGroup && $employeeGroup->employee) {
+                    notifications::create([
+                        'user_id'      => $currentUserId,
+                        'receiver_id'  => $employeeGroup->employee->id,
+                        'title'        => 'مراجعة عميل',
+                        'description'  => 'تم تحويل العميل "' . $client->trade_name . '" إلى تحت المراجعة.',
+                        'read'         => 0,
+                        'type'         => 'مراجعة عميل',
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
                 }
             }
         }
 
-        // Handle "Suspended" status
-        if ($status && str_contains(strtolower($status->name), 'موقوف')) {
-            $suspendedGroup = \App\Models\Region_groub::where('name', 'like', '%موقوف%')->first();
 
-            if ($suspendedGroup) {
-                \App\Models\Neighborhood::updateOrCreate(
-                    ['client_id' => $client->id],
-                    ['region_id' => $suspendedGroup->id]
-                );
-            }
-        }
 
-        // Commit transaction
         DB::commit();
-
-        return redirect()->back()->with('success', 'تم تحديث حالة العميل بنجاح');
+        return redirect()->back()->with('success', 'تم تغيير حالة العميل بنجاح.');
 
     } catch (\Exception $e) {
-        // Rollback on error
         DB::rollBack();
         Log::error('Error in updateStatusClient: ' . $e->getMessage());
         return redirect()->back()->with('error', 'حدث خطأ: ' . $e->getMessage());
     }
 }
+
     public function statement($id)
     {
         $client = Client::find($id);
