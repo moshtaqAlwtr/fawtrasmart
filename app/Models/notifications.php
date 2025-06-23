@@ -11,6 +11,7 @@ class notifications extends Model
         'user_id',       // يجب إضافته
         'receiver_id',
         'title',
+'receiver_id',
         'description',
         'message',      // يجب إضافته
         'read',
@@ -25,8 +26,11 @@ class notifications extends Model
     public function user(){
         return $this->belongsTo(User::class);
     }
+
       public function receiver()
     {
         return $this->belongsTo(User::class, 'receiver_id');
     }
+
+
 }

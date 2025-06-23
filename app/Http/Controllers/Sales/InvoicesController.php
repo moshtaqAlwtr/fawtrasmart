@@ -1703,7 +1703,6 @@ if (auth()->check()) {
  
 
 public function send_invoice($id)
-
 {
     $invoice = Invoice::with(['client', 'items', 'createdByUser'])->findOrFail($id);
     
@@ -2040,3 +2039,21 @@ private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
 }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
