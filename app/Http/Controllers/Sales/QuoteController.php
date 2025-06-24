@@ -56,33 +56,19 @@ class QuoteController extends Controller
 
         // البحث حسب المبلغ الإجمالي
         if ($request->filled('total_from')) {
-            $query->where('grand_total', '>=', $request->total_from);
+            $query->where('grand_total', '>', $request->total_from);
         }
         if ($request->filled('total_to')) {
-            $query->where('grand_total', '<=', $request->total_to);
+            $query->where('grand_total', '<', $request->total_to);
         }
 
         // البحث حسب التاريخ الأول (تاريخ العرض)
-        if ($request->filled('date_type_1')) {
-            switch ($request->date_type_1) {
-                case 'monthly':
-                    $query->whereMonth('quote_date', now()->month)
-                          ->whereYear('quote_date', now()->year);
-                    break;
-                case 'weekly':
-                    $query->whereBetween('quote_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    break;
-                case 'daily':
-                    $query->whereDate('quote_date', Carbon::today());
-                    break;
-                default:
-                    if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
-                        $from_date = Carbon::parse($request->from_date_1)->startOfDay();
-                        $to_date = Carbon::parse($request->to_date_1)->endOfDay();
-                        $query->whereBetween('quote_date', [$from_date, $to_date]);
-                    }
-            }
-        }
+       if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
+    $from = Carbon::parse($request->from_date_1)->startOfDay();
+    $to = Carbon::parse($request->to_date_1)->endOfDay();
+
+    $query->whereBetween('created_at', [$from, $to]);
+}
 
         if ($request->filled('date_type_2')) {
             switch ($request->date_type_2) {
@@ -134,7 +120,7 @@ class QuoteController extends Controller
         $quotes_number = $this->generateInvoiceNumber();
         $clients = Client::all();
         $users = User::all();
-        $employees = Employee::all();
+        $employees = User::whereIn('role', ['employee', 'manager'])->get();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
         // إرجاع البيانات مع المتغيرات المطلوبة للعرض

@@ -41,24 +41,15 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <!-- Checkbox لتحديد الكل -->
-                    <div class="form-check me-3">
-                        <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-                    </div>
+                   
 
                     <!-- زر عرض سعر جديد -->
                     <a href="{{ route('questions.create') }}" class="btn btn-success btn-sm d-flex align-items-center rounded-pill px-3">
                         <i class="fas fa-plus-circle me-1"></i>عرض سعر جديد
                     </a>
 
-                    <!-- زر المواعيد -->
-                    <a href="{{ route('appointments.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                        <i class="fas fa-calendar-alt me-1"></i>المواعيد
-                    </a>
 
-                    <!-- زر استيراد -->
-                    <a href="{{ route('questions.logsaction') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                        <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
-                    </a>
+                   
 
                     <!-- جزء التنقل بين الصفحات -->
                     <nav aria-label="Page navigation">
@@ -192,24 +183,17 @@
                     <div class="collapse {{ request()->hasAny(['currency', 'total_from', 'total_to', 'date_type_1', 'date_type_2', 'item_search', 'created_by', 'sales_representative']) ? 'show' : '' }}" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
                             <!-- 4. العملة -->
-                            <div class="col-md-4">
-                                <label for="currencySelect">العملة</label>
-                                <select name="currency" class="form-control" id="currencySelect">
-                                    <option value="">العملة</option>
-                                    <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}>ريال سعودي</option>
-                                    <option value="USD" {{ request('currency') == 'USD' ? 'selected' : '' }}>دولار أمريكي</option>
-                                </select>
-                            </div>
+                           
 
                             <!-- 5. الإجمالي أكبر من -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="total_from">الإجمالي أكبر من</label>
                                 <input type="number" class="form-control" placeholder="الإجمالي أكبر من"
                                     name="total_from" step="0.01" value="{{ request('total_from') }}">
                             </div>
 
                             <!-- 6. الإجمالي أصغر من -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="total_to">الإجمالي أصغر من</label>
                                 <input type="number" class="form-control" placeholder="الإجمالي أصغر من"
                                     name="total_to" step="0.01" value="{{ request('total_to') }}">
@@ -217,93 +201,63 @@
 
                             <!-- 7. الحالة -->
 
-                        </div>
-
-                        <div class="row g-3 mt-2">
+                        
                             <!-- 8. التخصيص -->
-                            <div class="col-md-2">
-                                <label for="date_type_1">التخصيص</label>
-                                <select name="date_type_1" class="form-control">
-                                    <option value="">تخصيص</option>
-                                    <option value="monthly" {{ request('date_type_1') == 'monthly' ? 'selected' : '' }}>شهرياً</option>
-                                    <option value="weekly" {{ request('date_type_1') == 'weekly' ? 'selected' : '' }}>أسبوعياً</option>
-                                    <option value="daily" {{ request('date_type_1') == 'daily' ? 'selected' : '' }}>يومياً</option>
-                                </select>
-                            </div>
+                         
 
                             <!-- 9. التاريخ من -->
-                            <div class="col-md-2">
-                                <label for="from_date_1">التاريخ من</label>
-                                <input type="date" class="form-control" placeholder="من"
-                                    name="from_date_1" value="{{ request('from_date_1') }}">
-                            </div>
+                            <!--<div class="col-md-3">-->
+                            <!--    <label for="from_date_1">التاريخ من</label>-->
+                            <!--    <input type="date" class="form-control" placeholder="من"-->
+                            <!--        name="from_date_1" value="{{ request('from_date_1') }}">-->
+                            <!--</div>-->
 
                             <!-- 10. التاريخ إلى -->
-                            <div class="col-md-2">
-                                <label for="to_date_1">التاريخ إلى</label>
-                                <input type="date" class="form-control" placeholder="إلى"
-                                    name="to_date_1" value="{{ request('to_date_1') }}">
-                            </div>
+                            <!--<div class="col-md-3">-->
+                            <!--    <label for="to_date_1">التاريخ إلى</label>-->
+                            <!--    <input type="date" class="form-control" placeholder="إلى"-->
+                            <!--        name="to_date_1" value="{{ request('to_date_1') }}">-->
+                            <!--</div>-->
+                            <!--<div class="row">-->
+    <!-- التاريخ من -->
+    <div class="col-md-3">
+        <label for="from_date_1" class="form-label fw-bold">التاريخ من</label>
+        <input type="date" class="form-control" name="from_date_1"
+               value="{{ request('from_date_1') }}">
+    </div>
+
+    <!-- التاريخ إلى -->
+    <div class="col-md-3">
+        <label for="to_date_1" class="form-label fw-bold">التاريخ إلى</label>
+        <input type="date" class="form-control" name="to_date_1"
+               value="{{ request('to_date_1') }}">
+    </div>
+
+    <!-- زر البحث -->
+   
+
 
                             <!-- 11. التخصيص -->
-                            <div class="col-md-2">
-                                <label for="date_type_2">التخصيص</label>
-                                <select name="date_type_2" class="form-control">
-                                    <option value="">تخصيص</option>
-                                    <option value="monthly" {{ request('date_type_2') == 'monthly' ? 'selected' : '' }}>شهرياً</option>
-                                    <option value="weekly" {{ request('date_type_2') == 'weekly' ? 'selected' : '' }}>أسبوعياً</option>
-                                    <option value="daily" {{ request('date_type_2') == 'daily' ? 'selected' : '' }}>يومياً</option>
-                                </select>
-                            </div>
+                           
 
-                            <!-- 12. تاريخ الإنشاء من -->
-                            <div class="col-md-2">
-                                <label for="from_date_2">تاريخ الإنشاء من</label>
-                                <input type="date" class="form-control" placeholder="من"
-                                    name="from_date_2" value="{{ request('from_date_2') }}">
-                            </div>
-
-                            <!-- 13. تاريخ الإنشاء إلى -->
-                            <div class="col-md-2">
-                                <label for="to_date_2">تاريخ الإنشاء إلى</label>
-                                <input type="date" class="form-control" placeholder="إلى"
-                                    name="to_date_2" value="{{ request('to_date_2') }}">
-                            </div>
+                         
                         </div>
 
                         <div class="row g-3 mt-2">
-                            <!-- 14. تحتوي على البند -->
-                            <div class="col-md-4">
-                                <label for="item_search">تحتوي على البند</label>
-                                <input type="text" class="form-control" placeholder="تحتوي على البند"
-                                    name="item_search" value="{{ request('item_search') }}">
-                            </div>
-
+                        
                             <!-- 15. أضيفت بواسطة -->
-                            <div class="col-md-4">
+                            <div class="col-md-12">
                                 <label for="created_by">أضيفت بواسطة</label>
                                 <select name="created_by" class="form-control select2">
                                     <option value="">أضيفت بواسطة</option>
                                     @foreach ($employees as $employee)
                                         <option value="{{ $employee->id }}" {{ request('created_by') == $employee->id ? 'selected' : '' }}>
-                                            {{ $employee->full_name }}
+                                            {{ $employee->name ?? "" }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <!-- 16. مسؤول المبيعات -->
-                            <div class="col-md-4">
-                                <label for="sales_representative">مسؤول المبيعات</label>
-                                <select name="sales_representative" class="form-control select2">
-                                    <option value="">مسؤول المبيعات</option>
-                                    @foreach ($users as $user)
-                                        <option value="{{ $user->id }}" {{ request('sales_representative') == $user->id ? 'selected' : '' }}>
-                                            {{ $user->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
 
                         </div>
                     </div>
@@ -346,9 +300,7 @@
                                 <i class="fas fa-user-tie me-1"></i> بواسطة:
                                 {{ $quote->creator->name ?? 'غير محدد' }}
                             </small>
-                            <p class="mb-0 text-muted">
-                                <i class="fas fa-mobile-alt me-1"></i> المصدر: تطبيق الهاتف المحمول
-                            </p>
+                           
                         </div>
 
                         <!-- تاريخ الفاتورة -->
