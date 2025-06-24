@@ -59,6 +59,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TestMail;
 use App\Mail\InvoicePdfMail;
+use App\Models\Offer;
 
 class InvoicesController extends Controller
 {
@@ -531,6 +532,8 @@ if ($user->employee_id !== null) {
         // معالجة العميل
         $client_id = $request->client_id;
         $client = null;
+
+        $Offer = Offer::all();
 
         if ($client_id) {
             $client = Client::find($client_id);
@@ -1927,7 +1930,7 @@ public function send_invoice($id)
 
     // ✅ تحقق أولًا من وجود بريد إلكتروني
    if (!$client || !$client->email || !filter_var($client->email, FILTER_VALIDATE_EMAIL)) {
-    return redirect()->back()->with('error', 'هذا العميل لا يحتوي على بريد إلكتروني صالح.');
+    return redirect()->back()->with('error', 'هذا العميل لا يملك  بريد إلكتروني صالح.');
 
 }
 
@@ -2256,21 +2259,3 @@ private function applyPaymentToInvoices(Receipt $income, $user, $invoiceId)
 }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

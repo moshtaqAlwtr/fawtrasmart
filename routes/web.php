@@ -100,6 +100,7 @@ Route::group(
                         });
 
                         Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
+                        
                         Route::get('/send/invoice/{id}', [InvoicesController::class, 'send_invoice'])->name('invoices.send');
                         Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
                         Route::get('/invoices/{id}/label', [InvoicesController::class, 'label'])->name('invoices.label');
