@@ -533,51 +533,72 @@
                         </tr>
                     </tbody>
                     <tfoot id="tax-rows">
-                        <tr>
-                            <td colspan="9" class="text-left">
-                                <button type="button" class="btn btn-primary add-row">
-                                    <i class="fa fa-plus"></i> إضافة
-                                </button>
-                            </td>
-                        </tr>
-                          @php
-                                        $currencySymbol =
-                                            '<img src="' .
-                                            asset('assets/images/Saudi_Riyal.svg') .
-                                            '" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">';
-                                    @endphp
-                        <tr>
-                            <td colspan="7" class="text-right" data-label="المجموع الفرعي">المجموع الفرعي</td>
-                            <td>
-                                <span id="subtotal">0.00</span>
-                                <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
-                            </td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td colspan="7" class="text-right" data-label="مجموع الخصومات">مجموع الخصومات</td>
-                            <td>
-                                <span id="total-discount">0.00</span>
-                                <span id="discount-type-label">
-                                    <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
-                                </span>
-                            </td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td colspan="9">
-                                <small id="tax-details" class="text-muted"></small>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="7" class="text-right" data-label="المجموع الكلي">المجموع الكلي</td>
-                            <td>
-                                <span id="grand-total">0.00</span>
-                                <img src="{{ asset('assets/images/Saudi_Riyal.svg') }}" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">
-                            </td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
+    <tr>
+        <td colspan="9" class="text-left">
+            <button type="button" class="btn btn-primary add-row">
+                <i class="fa fa-plus"></i> إضافة
+            </button>
+        </td>
+    </tr>
+
+    @php
+        $currencySymbol = '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="13" style="display: inline-block; margin-left: 5px; vertical-align: middle;">';
+    @endphp
+
+    <tr>
+        <td colspan="7" class="text-right" data-label="المجموع الفرعي">المجموع الفرعي</td>
+        <td>
+            <span id="subtotal">0.00</span>
+            {!! $currencySymbol !!}
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td colspan="7" class="text-right" data-label="مجموع الخصومات">مجموع الخصومات</td>
+        <td>
+            <span id="total-discount">0.00</span>
+            <span id="discount-type-label">{!! $currencySymbol !!}</span>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td colspan="9">
+            <small id="tax-details" class="text-muted"></small>
+        </td>
+    </tr>
+        <tr class="adjustment-row" style="display:none;">
+        <td colspan="7" class="text-right">
+            <span id="adjustment-label"></span>
+        </td>
+        <td>
+            <span id="adjustment-value">0.00</span> {!! $currencySymbol !!}
+        </td>
+        <td></td>
+    </tr>
+
+    <tr>
+        <td colspan="7" class="text-right" data-label="المجموع الكلي">المجموع الكلي</td>
+        <td>
+            <span id="grand-total">0.00</span>
+            {!! $currencySymbol !!}
+        </td>
+        <td></td>
+    </tr>
+
+    <!-- ✅ صف مدفوع بالكامل -->
+    <tr>
+    <td colspan="9" class="text-end">
+        <div class="form-check d-inline-block">
+            <input class="form-check-input toggle-check" type="checkbox" name="is_paid" id="is_paid" value="1">
+            <label class="form-check-label fw-bold" for="is_paid" style="font-size: 1.1rem;">
+                 مدفوع بالكامل
+            </label>
+        </div>
+    </td>
+</tr>
+
+</tfoot>
+
                 </table>
             </div>
         </div>
@@ -585,23 +606,26 @@
 </div>
 
             <div class="card">
-                <div class="card-header bg-white">
-                    <!-- التبويبات الرئيسية -->
-                    <ul class="nav nav-tabs card-header-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="tab-discount" href="#">الخصم والتسوية</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="tab-deposit" href="#">إيداع</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="tab-shipping" href="#"> التوصيل </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="tab-documents" href="#">إرفاق المستندات</a>
-                        </li>
-                    </ul>
-                </div>
+              <div class="card-header bg-white">
+    <!-- التبويبات الرئيسية -->
+    <ul class="nav nav-tabs card-header-tabs align-items-center">
+        
+        <li class="nav-item">
+            <a class="nav-link active" id="tab-discount" href="#">الخصم والتسوية</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-deposit" href="#">إيداع</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-shipping" href="#"> التوصيل </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-documents" href="#">إرفاق المستندات</a>
+        </li>
+       
+    </ul>
+</div>
+
                 <div class="card-body">
                     <!-- القسم الأول: الخصم والتسوية -->
                     <div id="section-discount" class="tab-section">
@@ -617,6 +641,17 @@
                                     </select>
                                 </div>
                             </div>
+                          <div class="col-md-6">
+                    <label class="form-label">التسوية</label>
+                    <div class="input-group">
+                        <input type="text" name="adjustment_label" class="form-control" placeholder="اسم التسوية (مثال: خصم نقدي)">
+                        <input type="number" name="adjustment_value" class="form-control" value="0" min="0" step="0.01" placeholder="قيمة التسوية">
+                        <select name="adjustment_type" class="form-control">
+                            <option value="discount">خصم</option>
+                            <option value="addition">إضافة</option>
+                        </select>
+                    </div>
+                </div>
                         </div>
                     </div>
 
@@ -724,69 +759,35 @@
 
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header bg-white">
-                    <h6 class="mb-0">الملاحظات/الشروط</h6>
-                </div>
-                <div class="card-body">
-                    <textarea id="tinyMCE" name="notes"></textarea>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body py-2 align-items-right">
-                    <div class="d-flex justify-content-start" style="direction: rtl;">
-                        <div class="form-check">
-                            <input class="form-check-input toggle-check" type="checkbox" name="is_paid" value="1">
-                            <label class="form-check-label">
-                                مدفوع ب الفعل
-                            </label>
-                        </div>
-                    </div>
+          <div class="card shadow-sm border-0">
+    <div class="card-header border-bottom" style="background-color: transparent;">
+        <h5 class="mb-0 fw-bold text-dark" style="font-size: 1.2rem;">
+            📝 الملاحظات / الشروط
+        </h5>
+    </div>
+    <div class="card-body">
+        <textarea id="tinyMCE" name="notes" class="form-control" rows="6" style="font-size: 1.05rem;"></textarea>
+    </div>
+</div>
 
-                    <!-- حقول الدفع (مخفية بشكل افتراضي) -->
-                    <div class="payment-fields mt-3" style="display: none;">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label for="payment_method">الخزينة </label>
-                                <select class="form-control" name="">
-                                    @foreach ($treasury as $treasur)
-                                        <option value="{{ $treasur->id }}">{{ $treasur->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="payment_method">وسيلة الدفع</label>
-                                <select class="form-control" name="payment_method">
-                                    <option value="1">اختر وسيلة الدفع</option>
-                                    <option value="2">نقداً</option>
-                                    <option value="3">بطاقة ائتمان</option>
-                                    <option value="4">تحويل بنكي</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">رقم المعرف</label>
-                                <input type="text" class="form-control" name="reference_number">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <a href="#" data-bs-toggle="modal" data-bs-target="#customFieldsModal">
-                                <i class="fas fa-cog me-2"></i>
-                                <span>إعدادات الحقول المخصصة</span>
-                            </a>
-                        </div>
-                        <div>
-                            <span>هدايا مجاناً</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
+
+            <!--<div class="card">-->
+            <!--    <div class="card-body">-->
+            <!--        <div class="d-flex justify-content-between align-items-center">-->
+            <!--            <div class="d-flex align-items-center">-->
+            <!--                <a href="#" data-bs-toggle="modal" data-bs-target="#customFieldsModal">-->
+            <!--                    <i class="fas fa-cog me-2"></i>-->
+            <!--                    <span>إعدادات الحقول المخصصة</span>-->
+            <!--                </a>-->
+            <!--            </div>-->
+            <!--            <div>-->
+            <!--                <span>هدايا مجاناً</span>-->
+            <!--            </div>-->
+            <!--        </div>-->
+            <!--    </div>-->
+            <!--</div>-->
 
             <!-- Modal -->
             <div class="modal fade" id="customFieldsModal" tabindex="-1" aria-labelledby="customFieldsModalLabel"
@@ -1115,7 +1116,9 @@
                 // إضافة الضرائب إلى بيانات الفاتورة
                 document.querySelector("form").addEventListener("submit", function(e) {
                     e.preventDefault();
-
+ formData.append("adjustment_label", $('input[name="adjustment_label"]').val());
+    formData.append("adjustment_value", $('input[name="adjustment_value"]').val());
+    formData.append("adjustment_type", $('select[name="adjustment_type"]').val());
                     let formData = new FormData(this);
 
                     // إضافة الضرائب إلى FormData
@@ -1243,6 +1246,168 @@
                 $('#clientSelect').val('{{ $client->id }}').trigger('change');
             @endif
         });
+        // دالة تحديث عرض التسوية
+function updateAdjustmentDisplay() {
+    const label = $('input[name="adjustment_label"]').val();
+    const value = parseFloat($('input[name="adjustment_value"]').val()) || 0;
+    const type = $('select[name="adjustment_type"]').val();
+
+    if (value > 0) {
+        $('#adjustment-label').text(label || 'التسوية');
+        $('#adjustment-value').text(value.toFixed(2));
+        $('.adjustment-row').show();
+    } else {
+        $('#adjustment-label').text('');
+        $('#adjustment-value').text('0.00');
+        $('.adjustment-row').hide();
+    }
+}
+// أحداث التغيير لحقول التسوية
+$(document).on('input change', 'input[name="adjustment_value"], input[name="adjustment_label"], select[name="adjustment_type"]', function() {
+    updateAdjustmentDisplay();
+    calculateTotals();
+});
+// دالة حساب الإجمالي الكلي مع التسوية (استبدل الدالة القديمة بهذه)
+function calculateGrandTotal() {
+    let subtotal = 0;
+    
+    // حساب المجموع الفرعي
+    $('.item-row').each(function() {
+        subtotal += calculateRowTotal($(this));
+    });
+    
+    // حساب الضرائب
+    let totalTax = 0;
+    document.querySelectorAll(".item-row").forEach(function(row) {
+        let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']").value) || 0;
+        let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']").value) || 0;
+        
+        let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+        let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+        let itemTotal = quantity * unitPrice;
+        
+        if (tax1Value > 0) {
+            totalTax += (itemTotal * tax1Value) / 100;
+        }
+        if (tax2Value > 0) {
+            totalTax += (itemTotal * tax2Value) / 100;
+        }
+    });
+
+    // حساب الخصومات من العناصر
+    let totalItemsDiscount = 0;
+    $('.item-row').each(function() {
+        let discountValue = parseFloat($(this).find('.discount-value').val()) || 0;
+        let discountType = $(this).find('.discount-type').val();
+        
+        if (discountType === 'percentage') {
+            let quantity = parseFloat($(this).find('.quantity').val()) || 0;
+            let price = parseFloat($(this).find('.price').val()) || 0;
+            discountValue = (quantity * price * discountValue) / 100;
+        }
+        
+        totalItemsDiscount += discountValue;
+    });
+
+    // حساب التسوية
+    const adjustmentValue = parseFloat($('input[name="adjustment_value"]').val()) || 0;
+    const adjustmentType = $('select[name="adjustment_type"]').val();
+    
+    let grandTotal = subtotal + totalTax - totalItemsDiscount;
+    
+    // تطبيق التسوية
+    if (adjustmentType === 'discount') {
+        grandTotal -= adjustmentValue;
+    } else {
+        grandTotal += adjustmentValue;
+    }
+    
+    // تحديث القيم في الواجهة
+    $('#subtotal').text(subtotal.toFixed(2));
+    $('#total-tax').text(totalTax.toFixed(2));
+    $('#grand-total').text(grandTotal.toFixed(2));
+    updateAdjustmentDisplay();
+    
+    return grandTotal;
+}
+        // دالة تحديث عرض التسوية
+function updateAdjustmentDisplay() {
+    const label = $('input[name="adjustment_label"]').val();
+    const value = parseFloat($('input[name="adjustment_value"]').val()) || 0;
+    const type = $('select[name="adjustment_type"]').val();
+
+    if (label && value > 0) {
+        $('#adjustment-label').text(label);
+        $('#adjustment-value').text(value.toFixed(2));
+        $('.adjustment-row').show();
+    } else {
+        $('.adjustment-row').hide();
+    }
+}
+
+// دالة حساب الإجمالي الكلي مع التسوية (استبدل الدالة القديمة بهذه)
+function calculateGrandTotal() {
+    let subtotal = 0;
+    
+    // حساب المجموع الفرعي
+    $('.item-row').each(function() {
+        subtotal += calculateRowTotal($(this));
+    });
+    
+    // حساب الضرائب
+    let totalTax = 0;
+    document.querySelectorAll(".item-row").forEach(function(row) {
+        let tax1Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_1]']").value) || 0;
+        let tax2Value = parseFloat(row.querySelector("[name^='items'][name$='[tax_2]']").value) || 0;
+        
+        let quantity = parseFloat(row.querySelector(".quantity").value) || 0;
+        let unitPrice = parseFloat(row.querySelector(".price").value) || 0;
+        let itemTotal = quantity * unitPrice;
+        
+        if (tax1Value > 0) {
+            totalTax += (itemTotal * tax1Value) / 100;
+        }
+        if (tax2Value > 0) {
+            totalTax += (itemTotal * tax2Value) / 100;
+        }
+    });
+
+    // حساب الخصومات من العناصر
+    let totalItemsDiscount = 0;
+    $('.item-row').each(function() {
+        let discountValue = parseFloat($(this).find('.discount-value').val()) || 0;
+        let discountType = $(this).find('.discount-type').val();
+        
+        if (discountType === 'percentage') {
+            let quantity = parseFloat($(this).find('.quantity').val()) || 0;
+            let price = parseFloat($(this).find('.price').val()) || 0;
+            discountValue = (quantity * price * discountValue) / 100;
+        }
+        
+        totalItemsDiscount += discountValue;
+    });
+
+    // حساب التسوية
+    const adjustmentValue = parseFloat($('input[name="adjustment_value"]').val()) || 0;
+    const adjustmentType = $('select[name="adjustment_type"]').val();
+    
+    let grandTotal = subtotal + totalTax - totalItemsDiscount;
+    
+    // تطبيق التسوية
+    if (adjustmentType === 'discount') {
+        grandTotal -= adjustmentValue;
+    } else {
+        grandTotal += adjustmentValue;
+    }
+    
+    // تحديث القيم في الواجهة
+    $('#subtotal').text(subtotal.toFixed(2));
+    $('#total-tax').text(totalTax.toFixed(2));
+    $('#grand-total').text(grandTotal.toFixed(2));
+    updateAdjustmentDisplay();
+    
+    return grandTotal;
+}
     </script>
     <script></script>
     <script>
@@ -1255,81 +1420,55 @@
     <script>
 // دالة للتحقق من العروض وتطبيق الخصومات
 // دالة للتحقق من العروض وتطبيق الخصومات
+console.log('✅ تم تحميل applyOffersToInvoice');
+
 function applyOffersToInvoice() {
     const clientId = parseInt($('#clientSelect').val());
+    if (!clientId) return; // إذا لم يتم اختيار عميل
+    
     const today = new Date().toISOString().split('T')[0];
-    let hasOffers = false;
-
-    // مسح الخصومات السابقة من العروض
+    
+    // مسح الخصومات السابقة
     $('.offer-applied-badge').remove();
     $('.item-row').each(function() {
-        $(this).find('.discount-value').val(0).trigger('change');
+        $(this).find('.discount-value').val(0);
     });
 
-    // جلب العروض النشطة من السيرفر
     $.ajax({
         url: '/clients/offers/active-offers',
         method: 'GET',
-        data: {
-            client_id: clientId,
-            date: today
-        },
-      success: function(offers) {
-    // تحويل clientId إلى رقم لضمان المقارنة الصحيحة
-    const clientId = parseInt($('#clientSelect').val());
-    
-    $('.item-row').each(function() {
-        const productId = parseInt($(this).find('.product-select').val());
-        const quantity = parseInt($(this).find('.quantity').val());
-        const price = parseFloat($(this).find('.price').val()) || 0;
-
-        if (!productId) return;
-
-        // جلب معلومات المنتج (التصنيف)
-        const product = productsData.find(p => p.id == productId);
-        const categoryId = product ? parseInt(product.category_id) : null;
-
-        offers.forEach(offer => {
-            // تحسين معالجة بيانات العرض
-            const convertedOffer = {
-                ...offer,
-                // معالجة خاصة للعملاء - تحويل جميع الحالات إلى أرقام
-                clients: Array.isArray(offer.clients) 
-                    ? offer.clients.map(c => {
-                        if (c === null || c === undefined) return null;
-                        return typeof c === 'object' ? parseInt(c.id) : parseInt(c);
-                    }).filter(id => !isNaN(id)) // إزالة أي قيم غير رقمية
-                    : [],
+        data: { client_id: clientId, date: today },
+        success: function(offers) {
+            let hasOffers = false;
+            
+            $('.item-row').each(function() {
+                const $row = $(this);
+                const productId = parseInt($row.find('.product-select').val());
+                const quantity = parseInt($row.find('.quantity').val()) || 1;
+                const price = parseFloat($row.find('.price').val()) || 0;
                 
-                // نفس المعالجة للمنتجات والتصنيفات
-                products: Array.isArray(offer.products) 
-                    ? offer.products.map(p => typeof p === 'object' ? parseInt(p.id) : parseInt(p))
-                    : [],
-                categories: Array.isArray(offer.categories) 
-                    ? offer.categories.map(cat => typeof cat === 'object' ? parseInt(cat.id) : parseInt(cat))
-                    : []
-            };
-
-            // إضافة console.log للتصحيح
-            console.log('Checking offer:', {
-                offer: convertedOffer,
-                clientId: clientId,
-                productId: productId,
-                categoryId: categoryId,
-                quantity: quantity
+                if (!productId) return;
+                
+                // البحث عن المنتج لمعرفة التصنيف
+                const product = productsData.find(p => p.id === productId);
+                const categoryId = product ? product.category_id : null;
+                
+                offers.forEach(offer => {
+                    if (checkOfferConditions(offer, clientId, productId, categoryId, quantity)) {
+                        applyDiscountToItem($row, offer, price);
+                        hasOffers = true;
+                    }
+                });
             });
-
-            if (checkOfferConditions(convertedOffer, clientId, productId, categoryId, quantity)) {
-                applyDiscountToItem($(this), convertedOffer, price);
-                hasOffers = true;
+            
+            if (hasOffers) {
+                toastr.success('تم تطبيق العروض التلقائية بنجاح');
+                calculateGrandTotal(); // إعادة حساب المجموع الكلي
             }
-        });
-    });
-
-    if (hasOffers) {
-        toastr.success('تم تطبيق العروض التلقائية بنجاح');
-    }
-}
+        },
+        error: function() {
+            console.error('فشل في جلب العروض');
+        }
     });
 }
 // دالة التحقق من شروط العرض (معدلة)
@@ -1339,100 +1478,61 @@ function applyOffersToInvoice() {
 
 // دالة التحقق من شروط العرض (معدلة)
 function checkOfferConditions(offer, clientId, productId, categoryId, quantity) {
-    // تحويل جميع IDs إلى أرقام لضمان المقارنة الصحيحة
-    clientId = parseInt(clientId);
-    productId = parseInt(productId);
-    categoryId = parseInt(categoryId);
-    quantity = parseInt(quantity);
-
-    // 1. التحقق من العميل (الإصلاح الرئيسي هنا)
+    // 1. التحقق من العملاء المطبق عليهم العرض
     if (offer.clients && offer.clients.length > 0) {
-        // تحويل جميع هويات عملاء العرض إلى أرقام
-        const offerClientIds = offer.clients.map(c => {
-            return typeof c === 'object' ? parseInt(c.id) : parseInt(c);
-        });
-
-        if (!offerClientIds.includes(clientId)) {
-            return false;
-        }
+        const clientIds = offer.clients.map(c => parseInt(c.id));
+        if (!clientIds.includes(clientId)) return false;
     }
-
-    // 2. التحقق من نوع الوحدة
+    
+    // 2. التحقق من نوع الوحدة (منتج/تصنيف/كل المنتجات)
     switch (parseInt(offer.unit_type)) {
-        case 1: break; // الكل
-        case 2: // التصنيف
-            if (!offer.categories || !offer.categories.map(c => parseInt(c.id || c)).includes(categoryId)) {
-                return false;
-            }
+        case 1: // كل المنتجات
             break;
-        case 3: // المنتجات
-            if (!offer.products || !offer.products.map(p => parseInt(p.id || p)).includes(productId)) {
+        case 2: // تصنيف معين
+            if (!offer.categories || !offer.categories.some(c => parseInt(c.id) === categoryId)) 
                 return false;
-            }
+            break;
+        case 3: // منتجات محددة
+            if (!offer.products || !offer.products.some(p => parseInt(p.id) === productId))
+                return false;
             break;
     }
-
-    // 3. التحقق من الكمية المطلوبة
-    if (parseInt(offer.type) == 2 && quantity < parseInt(offer.quantity)) {
+    
+    // 3. التحقق من الحد الأدنى للكمية إذا كان العرض من النوع الثاني
+    if (parseInt(offer.type) === 2 && quantity < parseInt(offer.quantity)) {
         return false;
     }
-
+    
     return true;
 }
 
-// دالة التحقق من شروط العرض
-// function checkOfferConditions(offer, clientId, productId, categoryId, quantity) {
-  
-
-//     // 1. التحقق من العميل
-//     if (offer.clients.length > 0 && !offer.clients.includes(parseInt(clientId))) {
-//         return false;
-//     }
-
-//     // 2. التحقق من نوع الوحدة
-//     switch (offer.unit_type) {
-//         case 1: break; // الكل
-//         case 2: // التصنيف
-//             if (!offer.categories.includes(categoryId)) return false;
-//             break;
-//         case 3: // المنتجات
-//             if (!offer.products.includes(productId)) return false;
-//             break;
-//     }
-
-//     // 3. التحقق من الكمية المطلوبة
-//     if (offer.type == 2 && quantity < offer.quantity) {
-//         return false;
-//     }
-
-//     return true;
-// }
 
 // دالة تطبيق الخصم على العنصر
 function applyDiscountToItem(row, offer, originalPrice) {
     const discountInput = row.find('.discount-value');
     const discountTypeSelect = row.find('.discount-type');
     const currentDiscount = parseFloat(discountInput.val()) || 0;
+    
     let newDiscount = 0;
-
-    // حساب الخصم حسب النوع
-    if (offer.discount_type == 1) { // مبلغ ثابت
-        newDiscount = offer.discount_value;
+    if (parseInt(offer.discount_type) === 1) { // مبلغ ثابت
+        newDiscount = parseFloat(offer.discount_value);
     } else { // نسبة مئوية
-        newDiscount = (originalPrice * offer.discount_value) / 100;
+        newDiscount = (originalPrice * parseFloat(offer.discount_value)) / 100;
     }
-
-    // إضافة الخصم الجديد إلى الخصم الحالي
-    discountInput.val(currentDiscount + newDiscount).trigger('change');
-    discountTypeSelect.val('amount'); // جعل نوع الخصم "مبلغ" بعد التطبيق
-
-    // إضافة بادج للإشارة إلى الخصم التلقائي
-    // row.find('.discount-value').after(`
-    //     <small class="text-success offer-applied-badge" 
-    //             title="خصم تلقائي من عرض ${offer.name}">
-    //         (تلقائي)
-    //     </small>
-    // `);
+    
+    // تطبيق الخصم
+    discountInput.val(currentDiscount + newDiscount);
+    discountTypeSelect.val('amount'); // نوع الخصم مبلغ
+    
+    // إضافة علامة على الخصم التلقائي
+    if (!row.find('.offer-applied-badge').length) {
+        discountInput.after(`
+            <span class="badge bg-success offer-applied-badge" 
+                  title="خصم تلقائي من عرض ${offer.name}">
+                تلقائي
+            </span>
+        `);
+    }
 }
 
 // استدعاء الدالة عند تغيير العميل أو المنتجات أو الكميات
@@ -1456,6 +1556,21 @@ $(document).ready(function() {
     if ($('#clientSelect').val()) {
         applyOffersToInvoice();
     }
+});
+
+// أحداث التغيير لحقول التسوية
+$(document).on('input', 'input[name="adjustment_label"], input[name="adjustment_value"]', function() {
+    updateAdjustmentDisplay();
+    calculateGrandTotal();
+});
+
+$(document).on('change', 'select[name="adjustment_type"]', function() {
+    calculateGrandTotal();
+});
+
+// عند تحميل الصفحة تطبيق التسوية إذا كانت موجودة
+$(document).ready(function() {
+    updateAdjustmentDisplay();
 });
 </script>
 @endsection
