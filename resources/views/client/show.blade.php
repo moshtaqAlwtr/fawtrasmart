@@ -243,10 +243,33 @@
                     <div>
                         <strong>{{ $client->trade_name }}</strong>
                         <small class="text-muted">#{{ $client->code }}</small>
-                        <span class="badge"
-                            style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
-                            {{ $statuses->find($client->status_id)->name ?? 'غير محدد' }}
+                        @php
+                            // الحصول على آخر ملاحظة فيها الحالة الأصلية لهذا الموظف الحالي
+                            $lastNote = $client
+                                ->appointmentNotes()
+                                ->where('employee_id', auth()->id())
+                                ->whereNotNull('employee_view_status')
+                                ->latest()
+                                ->first();
+
+                            $statusIdToShow = $client->status_id;
+
+                            // إذا كان الموظف هو اللي أبلغ المشرف، نعرض له الحالة الأصلية
+                            if (
+                                auth()->user()->role === 'employee' &&
+                                $lastNote &&
+                                $lastNote->process === 'إبلاغ المشرف'
+                            ) {
+                                $statusIdToShow = $lastNote->employee_view_status;
+                            }
+
+                            $status = $statuses->find($statusIdToShow);
+                        @endphp
+
+                        <span class="badge" style="background-color: {{ $status->color ?? '#007BFF' }}; color: white;">
+                            {{ $status->name ?? 'غير محدد' }}
                         </span>
+
                         <br>
                         <small class="text-muted">
                             حساب الأستاذ:
@@ -1211,760 +1234,546 @@
                                         <i class="fas fa-sticky-note text-primary me-2"></i>
                                         سجل الملاحظات
                                     </h5>
-                                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                                        data-bs-target="#addNoteModal">
-                                        <i class="fas fa-plus me-1"></i> إضافة ملاحظة
-                                    </button>
+
                                 </div>
 
                                 <!-- محتوى الملاحظات -->
-                                <div class="timeline">
-                                    @forelse ($ClientRelations as $note)
-                                        <div class="timeline-item mb-4">
-                                            <div
-                                                class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
-                                                <!-- الحالة -->
-                                                <span class="badge mb-2 mb-md-0"
-                                                    style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
-                                                    {{ $statuses->find($client->status_id)->name ?? '' }}
-                                                </span>
+                                <!-- محتوى الملاحظات -->
+<!-- محتوى الملاحظات -->
+<div class="timeline-container">
+    <div class="timeline">
+        @forelse ($ClientRelations as $note)
+            <div class="timeline-item mb-4">
+                <div class="timeline-content d-flex flex-column flex-md-row">
+                    <!-- نقطة الخط الزمني (للأجهزة الكبيرة) -->
+                    <div class="timeline-dot-container d-none d-md-flex align-items-start">
+                        <div class="timeline-dot bg-primary"></div>
+                    </div>
 
-                                                <!-- مربع الملاحظة -->
-                                                <div
-                                                    class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
-                                                    <!-- رأس الملاحظة -->
-                                                    <div
-                                                        class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
-                                                        <div>
-                                                            <h6 class="mb-1">
-                                                                <i class="fas fa-user me-1"></i>
-                                                                {{ $note->employee->name ?? 'غير معروف' }}
-                                                            </h6>
-                                                            <small class="text-muted">
-                                                                <i class="fas fa-tag me-1"></i>
-                                                                {{ $note->process ?? 'بدون تصنيف' }}
-                                                            </small>
-                                                        </div>
-                                                        <small class="text-muted mt-2 mt-sm-0">
-                                                            <i class="fas fa-clock me-1"></i>
-                                                            {{ $note->created_at->format('d/m/Y H:i') }}
-                                                        </small>
-                                                    </div>
+                    <!-- محتوى الملاحظة الرئيسي -->
+                    <div class="note-main-content flex-grow-1">
+                        <!-- الحالة -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge"
+                                style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
+                                {{ $statuses->find($client->status_id)->name ?? '' }}
+                            </span>
+                            <small class="text-muted d-md-none">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ $note->created_at->format('d/m/Y H:i') }}
+                            </small>
+                        </div>
 
-                                                    <hr class="my-2">
+                        <!-- مربع الملاحظة -->
+                        <div class="note-box border rounded bg-white shadow-sm p-3">
+                            <!-- رأس الملاحظة -->
+                            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ $note->employee->name ?? 'غير معروف' }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag me-1"></i>
+                                        {{ $note->process ?? 'بدون تصنيف' }}
+                                    </small>
+                                </div>
+                                <small class="text-muted d-none d-md-block">
+                                    <i class="fas fa-clock me-1"></i>
+                                    {{ $note->created_at->format('d/m/Y H:i') }}
+                                </small>
+                            </div>
 
-                                                    <!-- محتوى الملاحظة -->
-                                                    <div class="note-content mb-3">
-                                                        <p class="mb-2">{{ $note->description ?? 'لا يوجد وصف' }}</p>
+                            <hr class="my-2">
 
-                                                        <!-- البيانات الإضافية -->
-                                                        @if ($note->deposit_count || $note->site_type || $note->competitor_documents)
-                                                            <div class="additional-data mt-3 p-2 bg-light rounded">
-                                                                <div class="row">
-                                                                    @if ($note->deposit_count)
-                                                                        <div class="col-md-4 mb-2">
-                                                                            <span class="d-block text-primary">
-                                                                                <i class="fas fa-boxes me-1"></i> عدد
-                                                                                العهدة:
-                                                                            </span>
-                                                                            <span
-                                                                                class="fw-bold">{{ $note->deposit_count }}</span>
-                                                                        </div>
-                                                                    @endif
+                            <!-- محتوى الملاحظة -->
+                            <div class="note-content mb-3">
+                                <p class="mb-2">{{ $note->description ?? 'لا يوجد وصف' }}</p>
 
-                                                                    @if ($note->site_type)
-                                                                        <div class="col-md-4 mb-2">
-                                                                            <span class="d-block text-primary">
-                                                                                <i class="fas fa-store me-1"></i> نوع
-                                                                                الموقع:
-                                                                            </span>
-                                                                            <span class="fw-bold">
-                                                                                @switch($note->site_type)
-                                                                                    @case('independent_booth')
-                                                                                        بسطة مستقلة
-                                                                                    @break
-
-                                                                                    @case('grocery')
-                                                                                        بقالة
-                                                                                    @break
-
-                                                                                    @case('supplies')
-                                                                                        تموينات
-                                                                                    @break
-
-                                                                                    @case('markets')
-                                                                                        أسواق
-                                                                                    @break
-
-                                                                                    @case('station')
-                                                                                        محطة
-                                                                                    @break
-
-                                                                                    @default
-                                                                                        {{ $note->site_type }}
-                                                                                @endswitch
-                                                                            </span>
-                                                                        </div>
-                                                                    @endif
-
-                                                                    @if ($note->competitor_documents)
-                                                                        <div class="col-md-4 mb-2">
-                                                                            <span class="d-block text-primary">
-                                                                                <i class="fas fa-file-contract me-1"></i>
-                                                                                استندات المنافسين:
-                                                                            </span>
-                                                                            <span
-                                                                                class="fw-bold">{{ $note->competitor_documents }}</span>
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-
-                                                    <!-- المرفقات -->
-                                                    @php
-                                                        $files = json_decode($note->attachments, true);
-                                                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                                                    @endphp
-
-                                                    @if (is_array($files) && count($files))
-                                                        <div class="attachments mt-3">
-                                                            <h6 class="mb-2">
-                                                                <i class="fas fa-paperclip me-1"></i>
-                                                                المرفقات:
-                                                            </h6>
-                                                            <div class="d-flex flex-wrap gap-2">
-                                                                @foreach ($files as $file)
-                                                                    @php
-                                                                        $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                                                        $fileUrl = asset(
-                                                                            'assets/uploads/notes/' . $file,
-                                                                        );
-                                                                    @endphp
-
-                                                                    @if (in_array(strtolower($ext), $imageExtensions))
-                                                                        <a href="{{ $fileUrl }}"
-                                                                            data-fancybox="gallery-{{ $note->id }}"
-                                                                            class="d-inline-block me-2 mb-2">
-                                                                            <img src="{{ $fileUrl }}"
-                                                                                alt="مرفق صورة" class="img-thumbnail"
-                                                                                style="width: 100px; height: 100px; object-fit: cover;">
-                                                                        </a>
-                                                                    @else
-                                                                        <a href="{{ $fileUrl }}" target="_blank"
-                                                                            class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
-                                                                            <i class="fas fa-file-alt me-2"></i>
-                                                                            {{ Str::limit($file, 15) }}
-                                                                        </a>
-                                                                    @endif
-                                                                @endforeach
-                                                            </div>
-                                                        </div>
-                                                    @endif
-
-                                                    <!-- أدوات الملاحظة -->
-                                                    <div
-                                                        class="note-actions mt-3 pt-2 border-top d-flex justify-content-end gap-2">
-                                                        <button class="btn btn-sm btn-outline-secondary edit-note"
-                                                            data-note-id="{{ $note->id }}"
-                                                            data-process="{{ $note->process }}"
-                                                            data-description="{{ $note->description }}"
-                                                            data-deposit-count="{{ $note->deposit_count }}"
-                                                            data-site-type="{{ $note->site_type }}"
-                                                            data-competitor-documents="{{ $note->competitor_documents }}">
-                                                            <i class="fas fa-edit me-1"></i> تعديل
-                                                        </button>
-                                                        <form action="" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                                onclick="return confirm('هل أنت متأكد من حذف هذه الملاحظة؟')">
-                                                                <i class="fas fa-trash me-1"></i> حذف
-                                                            </button>
-                                                        </form>
-                                                    </div>
+                                <!-- البيانات الإضافية -->
+                                @if ($note->deposit_count || $note->site_type || $note->competitor_documents)
+                                    <div class="additional-data mt-3 p-2 bg-light rounded">
+                                        <div class="row">
+                                            @if ($note->deposit_count)
+                                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                                    <span class="d-block text-primary">
+                                                        <i class="fas fa-boxes me-1"></i> عدد العهدة:
+                                                    </span>
+                                                    <span class="fw-bold">{{ $note->deposit_count }}</span>
                                                 </div>
+                                            @endif
 
-                                                <!-- نقطة الخط الزمني -->
-                                                <div class="timeline-dot bg-primary d-none d-md-block ms-3 mt-2"></div>
-                                            </div>
+                                            @if ($note->site_type)
+                                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                                    <span class="d-block text-primary">
+                                                        <i class="fas fa-store me-1"></i> نوع الموقع:
+                                                    </span>
+                                                    <span class="fw-bold">
+                                                        @switch($note->site_type)
+                                                            @case('independent_booth')
+                                                                بسطة مستقلة
+                                                            @break
+
+                                                            @case('grocery')
+                                                                بقالة
+                                                            @break
+
+                                                            @case('supplies')
+                                                                تموينات
+                                                            @break
+
+                                                            @case('markets')
+                                                                أسواق
+                                                            @break
+
+                                                            @case('station')
+                                                                محطة
+                                                            @break
+
+                                                            @default
+                                                                {{ $note->site_type }}
+                                                        @endswitch
+                                                    </span>
+                                                </div>
+                                            @endif
+
+                                            @if ($note->competitor_documents)
+                                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                                    <span class="d-block text-primary">
+                                                        <i class="fas fa-file-contract me-1"></i>
+                                                        استندات المنافسين:
+                                                    </span>
+                                                    <span class="fw-bold">{{ $note->competitor_documents }}</span>
+                                                </div>
+                                            @endif
                                         </div>
-                                        @empty
-                                            <div class="alert alert-info text-center py-4">
-                                                <i class="fas fa-info-circle fa-2x mb-3"></i>
-                                                <h5>لا توجد ملاحظات مسجلة</h5>
-                                                <p class="mb-0">يمكنك إضافة ملاحظة جديدة بالضغط على زر "إضافة ملاحظة"</p>
-                                            </div>
-                                        @endforelse
                                     </div>
-
-                                    <!-- ترقيم الصفحات -->
-
-                                </div>
+                                @endif
                             </div>
 
-                            <!-- مودال إضافة ملاحظة -->
-                            <div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel"
-                                aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <form action="" method="POST" enctype="multipart/form-data">
-                                            @csrf
-                                            <input type="hidden" name="client_id" value="{{ $client->id }}">
+                            <!-- المرفقات -->
+                            @php
+                                $files = json_decode($note->attachments, true);
+                                $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                            @endphp
 
-                                            <div class="modal-header bg-primary text-white">
-                                                <h5 class="modal-title" id="addNoteModalLabel">
-                                                    <i class="fas fa-plus-circle me-2"></i>
-                                                    إضافة ملاحظة جديدة
-                                                </h5>
-                                                <button type="button" class="btn-close btn-close-white"
-                                                    data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
+                            @if (is_array($files) && count($files))
+                                <div class="attachments mt-3">
+                                    <h6 class="mb-2">
+                                        <i class="fas fa-paperclip me-1"></i>
+                                        المرفقات:
+                                    </h6>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach ($files as $file)
+                                            @php
+                                                $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                                $fileUrl = asset('assets/uploads/notes/' . $file);
+                                            @endphp
 
-                                            <div class="modal-body">
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="process" class="form-label">نوع العملية</label>
-                                                        <select class="form-select" id="process" name="process" required>
-                                                            <option value="" selected disabled>اختر نوع العملية</option>
-                                                            <option value="مكالمة هاتفية">مكالمة هاتفية</option>
-                                                            <option value="زيارة ميدانية">زيارة ميدانية</option>
-                                                            <option value="مراسلة">مراسلة</option>
-                                                            <option value="متابعة">متابعة</option>
-                                                            <option value="تحديث بيانات">تحديث بيانات</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="col-md-6 mb-3">
-                                                        <label for="status" class="form-label">الحالة</label>
-                                                        <select class="form-select" id="status" name="status">
-                                                            <option value="" selected disabled>اختر الحالة</option>
-                                                            @foreach ($statuses as $status)
-                                                                <option value="{{ $status->name }}">{{ $status->name }}
-                                                                </option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="col-12 mb-3">
-                                                        <label for="description" class="form-label">الوصف</label>
-                                                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
-                                                    </div>
-
-                                                    <!-- البيانات الإضافية -->
-                                                    <div class="col-md-4 mb-3">
-                                                        <label for="deposit_count" class="form-label">عدد العهدة
-                                                            (اختياري)</label>
-                                                        <input type="number" class="form-control" id="deposit_count"
-                                                            name="deposit_count">
-                                                    </div>
-
-                                                    <div class="col-md-4 mb-3">
-                                                        <label for="site_type" class="form-label">نوع الموقع (اختياري)</label>
-                                                        <select class="form-select" id="site_type" name="site_type">
-                                                            <option value="" selected disabled>اختر نوع الموقع</option>
-                                                            <option value="independent_booth">بسطة مستقلة</option>
-                                                            <option value="grocery">بقالة</option>
-                                                            <option value="supplies">تموينات</option>
-                                                            <option value="markets">أسواق</option>
-                                                            <option value="station">محطة</option>
-                                                        </select>
-                                                    </div>
-
-                                                    <div class="col-md-4 mb-3">
-                                                        <label for="competitor_documents" class="form-label">استندات المنافسين
-                                                            (اختياري)</label>
-                                                        <input type="text" class="form-control" id="competitor_documents"
-                                                            name="competitor_documents">
-                                                    </div>
-
-                                                    <div class="col-12 mb-3">
-                                                        @php
-                                                        $files = json_decode($note->attachments, true);
-                                                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-                                                    @endphp
-
-                                                    @if (is_array($files) && count($files))
-                                                        <div class="attachment mt-3 d-flex flex-wrap gap-2">
-                                                            @foreach ($files as $file)
-                                                                @php
-                                                                    $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                                                    $fileUrl = asset('assets/uploads/notes/' . $file);
-                                                                @endphp
-
-                                                                @if (in_array(strtolower($ext), $imageExtensions))
-                                                                    <a href="{{ $fileUrl }}" target="_blank"
-                                                                        class="d-block">
-                                                                        <img src="{{ $fileUrl }}" alt="مرفق صورة"
-                                                                            class="img-fluid rounded border"
-                                                                            style="max-width: 180px; height: auto;">
-                                                                    </a>
-                                                                @else
-                                                                    <a href="{{ $fileUrl }}" target="_blank"
-                                                                        class="btn btn-sm btn-outline-primary d-flex align-items-center">
-                                                                        <i class="fas fa-file-alt me-2"></i> عرض الملف:
-                                                                        {{ $file }}
-                                                                    </a>
-                                                                @endif
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-times me-1"></i> إلغاء
-                                                </button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-save me-1"></i> حفظ الملاحظة
-                                                </button>
-                                            </div>
-                                        </form>
+                                            @if (in_array(strtolower($ext), $imageExtensions))
+                                                <a href="{{ $fileUrl }}"
+                                                    data-fancybox="gallery-{{ $note->id }}"
+                                                    class="d-inline-block me-2 mb-2">
+                                                    <img src="{{ $fileUrl }}"
+                                                        alt="مرفق صورة" class="img-thumbnail"
+                                                        style="max-width: 100px; max-height: 100px; width: auto; height: auto; object-fit: cover;">
+                                                </a>
+                                            @else
+                                                <a href="{{ $fileUrl }}" target="_blank"
+                                                    class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
+                                                    <i class="fas fa-file-alt me-2"></i>
+                                                    {{ Str::limit($file, 15) }}
+                                                </a>
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </div>
+                            @endif
+
+                            <!-- أدوات الملاحظة -->
+                            <div class="note-actions mt-3 pt-2 border-top d-flex justify-content-end flex-wrap gap-2">
+                                <button class="btn btn-sm btn-outline-secondary edit-note"
+                                    data-note-id="{{ $note->id }}"
+                                    data-process="{{ $note->process }}"
+                                    data-description="{{ $note->description }}"
+                                    data-deposit-count="{{ $note->deposit_count }}"
+                                    data-site-type="{{ $note->site_type }}"
+                                    data-competitor-documents="{{ $note->competitor_documents }}">
+                                    <i class="fas fa-edit me-1"></i> تعديل
+                                </button>
+                                <form action="" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('هل أنت متأكد من حذف هذه الملاحظة؟')">
+                                        <i class="fas fa-trash me-1"></i> حذف
+                                    </button>
+                                </form>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="alert alert-info text-center py-4">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h5>لا توجد ملاحظات مسجلة</h5>
+                <p class="mb-0">يمكنك إضافة ملاحظة جديدة بالضغط على زر "إضافة ملاحظة"</p>
+            </div>
+        @endforelse
+    </div>
+</div>
 
-                            <!-- مودال تعديل ملاحظة -->
-                            <div class="modal fade" id="editNoteModal" tabindex="-1" aria-labelledby="editNoteModalLabel"
-                                aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <form id="editNoteForm" method="POST" enctype="multipart/form-data">
-                                            @csrf
-                                            @method('PUT')
 
-                                            <div class="modal-header bg-warning text-dark">
-                                                <h5 class="modal-title" id="editNoteModalLabel">
-                                                    <i class="fas fa-edit me-2"></i>
-                                                    تعديل الملاحظة
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
 
-                                            <div class="modal-body">
-                                                <!-- سيتم ملء هذا القسم عبر الجافاسكريبت -->
-                                            </div>
-
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                    <i class="fas fa-times me-1"></i> إلغاء
-                                                </button>
-                                                <button type="submit" class="btn btn-warning text-white">
-                                                    <i class="fas fa-save me-1"></i> حفظ التعديلات
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- ستايل إضافي لتبويب الملاحظات -->
-                            <style>
-                                .timeline {
-                                    position: relative;
-                                    padding-left: 30px;
-                                }
-
-                                .timeline-item {
-                                    position: relative;
-                                    margin-bottom: 25px;
-                                }
-
-                                .timeline-dot {
-                                    position: absolute;
-                                    left: -15px;
-                                    top: 15px;
-                                    width: 12px;
-                                    height: 12px;
-                                    border-radius: 50%;
-                                    border: 2px solid #0d6efd;
-                                }
-
-                                .note-box {
-                                    transition: all 0.3s ease;
-                                    border-left: 3px solid #0d6efd;
-                                }
-
-                                .note-box:hover {
-                                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-                                }
-
-                                .additional-data {
-                                    border-right: 2px solid #0d6efd;
-                                }
-
-                                .note-actions {
-                                    opacity: 0;
-                                    transition: opacity 0.3s ease;
-                                }
-
-                                .note-box:hover .note-actions {
-                                    opacity: 1;
-                                }
-
-                                @media (max-width: 768px) {
+                                <!-- ستايل إضافي لتبويب الملاحظات -->
+                                <style>
                                     .timeline {
-                                        padding-left: 20px;
+                                        position: relative;
+                                        padding-left: 30px;
+                                    }
+
+                                    .timeline-item {
+                                        position: relative;
+                                        margin-bottom: 25px;
                                     }
 
                                     .timeline-dot {
-                                        left: -10px;
-                                        width: 10px;
-                                        height: 10px;
+                                        position: absolute;
+                                        left: -15px;
+                                        top: 15px;
+                                        width: 12px;
+                                        height: 12px;
+                                        border-radius: 50%;
+                                        border: 2px solid #0d6efd;
                                     }
-                                }
-                            </style>
 
-                            <div id="visits-tab" class="tab-pane">
-                                <div class="card card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>تاريخ الزيارة</th>
-                                                    <th>وقت الانصراف</th>
-                                                    <th>الموظف</th>
-                                                    <th>ملاحظات</th>
-                                                    <th>الإجراءات</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($visits as $visit)
+                                    .note-box {
+                                        transition: all 0.3s ease;
+                                        border-left: 3px solid #0d6efd;
+                                    }
+
+                                    .note-box:hover {
+                                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+                                    }
+
+                                    .additional-data {
+                                        border-right: 2px solid #0d6efd;
+                                    }
+
+                                    .note-actions {
+                                        opacity: 0;
+                                        transition: opacity 0.3s ease;
+                                    }
+
+                                    .note-box:hover .note-actions {
+                                        opacity: 1;
+                                    }
+
+                                    @media (max-width: 768px) {
+                                        .timeline {
+                                            padding-left: 20px;
+                                        }
+
+                                        .timeline-dot {
+                                            left: -10px;
+                                            width: 10px;
+                                            height: 10px;
+                                        }
+                                    }
+                                </style>
+
+                                <div id="visits-tab" class="tab-pane">
+                                    <div class="card card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-striped">
+                                                <thead>
                                                     <tr>
-                                                        <td>{{ $visit->id }}</td>
-                                                        <td>{{ $visit->visit_date }}</td>
-                                                        <td>{{ $visit->departure_time ?? '--' }}</td>
-                                                        <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
-                                                        <td>{{ Str::limit($visit->notes, 30) ?? '--' }}</td>
-                                                        <td>
-                                                            <div class="dropdown">
-                                                                <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v"
-                                                                    type="button"
-                                                                    id="dropdownMenuButton{{ $visit->id }}"
-                                                                    data-toggle="dropdown" aria-haspopup="true"
-                                                                    aria-expanded="false"></button>
-                                                                <div class="dropdown-menu dropdown-menu-end"
-                                                                    aria-labelledby="dropdownMenuButton">
-                                                                    <a class="dropdown-item" href="">
-                                                                        <i class="fa fa-eye me-2 text-primary"></i>عرض التفاصيل
-                                                                    </a>
-                                                                    <a class="dropdown-item" href="">
-                                                                        <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                                    </a>
-                                                                    <form action="" method="POST" class="d-inline">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <button type="submit"
-                                                                            class="dropdown-item text-danger"
-                                                                            onclick="return confirm('هل أنت متأكد من حذف هذه الزيارة؟')">
-                                                                            <i class="fa fa-trash me-2"></i>حذف
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </td>
+                                                        <th>#</th>
+                                                        <th>تاريخ الزيارة</th>
+                                                        <th>وقت الانصراف</th>
+                                                        <th>الموظف</th>
+                                                        <th>ملاحظات</th>
+                                                        <th>العهدة للعميل</th>
+                                                        <th>الإجراءات</th>
                                                     </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    @if ($visits->count() == 0)
-                                        <div class="alert alert-info text-center mt-3">
-                                            لا توجد زيارات مسجلة لهذا العميل
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($visits as $visit)
+                                                        <tr>
+                                                            <td>{{ $visit->id }}</td>
+                                                            <td>{{ $visit->visit_date }}</td>
+                                                            <td>{{ $visit->departure_time ?? '--' }}</td>
+                                                            <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
+
+                                                            <td>{{ Str::limit($visit->notes, 30) ?? '--' }}</td>
+                                                            {{-- <td>{{ $visit->client->latestStatus->deposit_count }}</td> --}}
+                                                            <td>
+                                                                <div class="dropdown">
+                                                                    <button
+                                                                        class="btn btn-sm bg-gradient-info fa fa-ellipsis-v"
+                                                                        type="button"
+                                                                        id="dropdownMenuButton{{ $visit->id }}"
+                                                                        data-toggle="dropdown" aria-haspopup="true"
+                                                                        aria-expanded="false"></button>
+                                                                    <div class="dropdown-menu dropdown-menu-end"
+                                                                        aria-labelledby="dropdownMenuButton">
+                                                                        <a class="dropdown-item" href="">
+                                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                                                            التفاصيل
+                                                                        </a>
+                                                                        <a class="dropdown-item" href="">
+                                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                                                        </a>
+                                                                        <form action="" method="POST" class="d-inline">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button type="submit"
+                                                                                class="dropdown-item text-danger"
+                                                                                onclick="return confirm('هل أنت متأكد من حذف هذه الزيارة؟')">
+                                                                                <i class="fa fa-trash me-2"></i>حذف
+                                                                            </button>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
                                         </div>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- محتوى تبويب الحجوزات -->
-                            <div id="reservations-tab" class="tab-pane">
-                                <div class="card card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h5 class="mb-0">حجوزات العميل</h5>
-                                        <a href="" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-plus me-1"></i> إضافة حجز جديد
-                                        </a>
+                                        @if ($visits->count() == 0)
+                                            <div class="alert alert-info text-center mt-3">
+                                                لا توجد زيارات مسجلة لهذا العميل
+                                            </div>
+                                        @endif
                                     </div>
+                                </div>
 
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-hover">
-                                            <thead class="bg-light">
-                                                <tr>
-                                                    <th>رقم الحجز</th>
-                                                    <th>الخدمة</th>
-                                                    <th>التاريخ والوقت</th>
-                                                    <th>الحالة</th>
-                                                    <th>المبلغ</th>
-                                                    <th>الإجراءات</th>
-                                                </tr>
-                                            </thead>
-                                            {{-- <tbody>
-                                    @forelse ($reservations as $reservation)
-                                        <tr>
-                                            <td>#{{ $reservation->id }}</td>
-                                            <td>{{ $reservation->service->name ?? 'غير محدد' }}</td>
-                                            <td>
-                                                {{ $reservation->reservation_date }}<br>
-                                                <small class="text-muted">{{ $reservation->time_slot }}</small>
-                                            </td>
-                                            <td>
-                                                @php
-                                                    $statusClass = [
-                                                        'pending' => 'warning',
-                                                        'confirmed' => 'success',
-                                                        'cancelled' => 'danger',
-                                                        'completed' => 'info'
-                                                    ][$reservation->status] ?? 'secondary';
-                                                @endphp
-                                                <span class="badge bg-{{ $statusClass }}">
-                                                    {{ trans('reservation.status.'.$reservation->status) }}
-                                                </span>
-                                            </td>
-                                            <td>{{ number_format($reservation->amount, 2) }} ر.س</td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v" type="button"
-                                                        id="dropdownMenuButton{{ $reservation->id }}"
-                                                        data-toggle="dropdown" aria-haspopup="true"
-                                                        aria-expanded="false"></button>
-                                                    <div class="dropdown-menu dropdown-menu-end"
-                                                        aria-labelledby="dropdownMenuButton{{ $reservation->id }}">
-                                                        <a class="dropdown-item" href="{{ route('reservations.show', $reservation->id) }}">
-                                                            <i class="fa fa-eye me-2 text-primary"></i>عرض التفاصيل
-                                                        </a>
-                                                        <a class="dropdown-item" href="{{ route('reservations.edit', $reservation->id) }}">
-                                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                        </a>
-                                                        <form action="{{ route('reservations.destroy', $reservation->id) }}" method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="dropdown-item text-danger"
-                                                                onclick="return confirm('هل أنت متأكد من حذف هذا الحجز؟')">
-                                                                <i class="fa fa-trash me-2"></i>حذف
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="6" class="text-center py-4">
-                                                <div class="alert alert-info">
-                                                    لا توجد حجوزات مسجلة لهذا العميل
-                                                </div>
-                                                <a href=""
-                                                   class="btn btn-primary">
-                                                    <i class="fas fa-plus me-1"></i> إضافة حجز جديد
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody> --}}
-                                        </table>
+                                <!-- محتوى تبويب الحجوزات -->
+                                <div id="reservations-tab" class="tab-pane">
+                                    <div class="card card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5 class="mb-0">حجوزات العميل</h5>
+                                            <a href="" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-plus me-1"></i> إضافة حجز جديد
+                                            </a>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-hover">
+                                                <thead class="bg-light">
+                                                    <tr>
+                                                        <th>رقم الحجز</th>
+                                                        <th>الخدمة</th>
+                                                        <th>التاريخ والوقت</th>
+                                                        <th>الحالة</th>
+                                                        <th>المبلغ</th>
+                                                        <th>الإجراءات</th>
+                                                    </tr>
+                                                </thead>
+
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- إضافة ستايل إضافي للتبويبات -->
-            <style>
-                .client-tabs {
-                    font-family: 'Tajawal', sans-serif;
-                }
+                <!-- إضافة ستايل إضافي للتبويبات -->
+                <style>
+                    .client-tabs {
+                        font-family: 'Tajawal', sans-serif;
+                    }
 
-                .tab-btn {
-                    padding: 12px 20px;
-                    background: none;
-                    border: none;
-                    border-bottom: 3px solid transparent;
-                    cursor: pointer;
-                    font-weight: 500;
-                    color: #6c757d;
-                    transition: all 0.3s;
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                }
-
-                .tab-btn:hover {
-                    color: #0d6efd;
-                    background-color: #f8f9fa;
-                }
-
-                .tab-btn.active {
-                    color: #0d6efd;
-                    border-bottom-color: #0d6efd;
-                    background-color: #f8f9fa;
-                }
-
-                .tab-pane {
-                    display: none;
-                }
-
-                .tab-pane.active {
-                    display: block;
-                }
-
-                .quick-info {
-                    border-right: 3px solid #0d6efd;
-                }
-
-                .info-item {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                @media (max-width: 768px) {
                     .tab-btn {
-                        padding: 10px 15px;
-                        font-size: 14px;
-                        flex: 1 0 50%;
+                        padding: 12px 20px;
+                        background: none;
+                        border: none;
+                        border-bottom: 3px solid transparent;
+                        cursor: pointer;
+                        font-weight: 500;
+                        color: #6c757d;
+                        transition: all 0.3s;
+                        position: relative;
+                        display: flex;
+                        align-items: center;
                     }
 
-                    .quick-info .row>div {
-                        margin-bottom: 10px;
+                    .tab-btn:hover {
+                        color: #0d6efd;
+                        background-color: #f8f9fa;
                     }
-                }
 
-                @media (max-width: 576px) {
-                    .tab-btn {
-                        flex: 1 0 100%;
-                        justify-content: center;
+                    .tab-btn.active {
+                        color: #0d6efd;
+                        border-bottom-color: #0d6efd;
+                        background-color: #f8f9fa;
                     }
-                }
 
-                /* تحسينات للجداول على الأجهزة الصغيرة */
-                .table-responsive {
-                    overflow-x: auto;
-                    -webkit-overflow-scrolling: touch;
-                }
+                    .tab-pane {
+                        display: none;
+                    }
 
-                /* تحسينات للخط الزمني */
-                .timeline {
-                    position: relative;
-                    padding-left: 50px;
-                }
+                    .tab-pane.active {
+                        display: block;
+                    }
 
-                .timeline-item {
-                    position: relative;
-                    margin-bottom: 30px;
-                }
+                    .quick-info {
+                        border-right: 3px solid #0d6efd;
+                    }
 
-                .timeline-dot {
-                    position: absolute;
-                    left: -25px;
-                    top: 15px;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                }
+                    .info-item {
+                        display: flex;
+                        flex-direction: column;
+                    }
 
-                .note-box {
-                    transition: all 0.3s ease;
-                }
+                    @media (max-width: 768px) {
+                        .tab-btn {
+                            padding: 10px 15px;
+                            font-size: 14px;
+                            flex: 1 0 50%;
+                        }
 
-                .note-box:hover {
-                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-                }
-            </style>
+                        .quick-info .row>div {
+                            margin-bottom: 10px;
+                        }
+                    }
 
-            <!-- سكريبت لإدارة التبويبات -->
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // تبديل التبويبات
-                    const tabButtons = document.querySelectorAll('.tab-btn');
+                    @media (max-width: 576px) {
+                        .tab-btn {
+                            flex: 1 0 100%;
+                            justify-content: center;
+                        }
+                    }
 
-                    tabButtons.forEach(button => {
-                        button.addEventListener('click', function() {
-                            // إزالة النشاط من جميع الأزرار
-                            tabButtons.forEach(btn => btn.classList.remove('active'));
+                    /* تحسينات للجداول على الأجهزة الصغيرة */
+                    .table-responsive {
+                        overflow-x: auto;
+                        -webkit-overflow-scrolling: touch;
+                    }
 
-                            // إضافة النشاط للزر المحدد
-                            this.classList.add('active');
+                    /* تحسينات للخط الزمني */
+                    .timeline {
+                        position: relative;
+                        padding-left: 50px;
+                    }
 
-                            // إخفاء جميع محتويات التبويبات
-                            document.querySelectorAll('.tab-pane').forEach(pane => {
-                                pane.classList.remove('active');
+                    .timeline-item {
+                        position: relative;
+                        margin-bottom: 30px;
+                    }
+
+                    .timeline-dot {
+                        position: absolute;
+                        left: -25px;
+                        top: 15px;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                    }
+
+                    .note-box {
+                        transition: all 0.3s ease;
+                    }
+
+                    .note-box:hover {
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                    }
+                </style>
+
+                <!-- سكريبت لإدارة التبويبات -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // تبديل التبويبات
+                        const tabButtons = document.querySelectorAll('.tab-btn');
+
+                        tabButtons.forEach(button => {
+                            button.addEventListener('click', function() {
+                                // إزالة النشاط من جميع الأزرار
+                                tabButtons.forEach(btn => btn.classList.remove('active'));
+
+                                // إضافة النشاط للزر المحدد
+                                this.classList.add('active');
+
+                                // إخفاء جميع محتويات التبويبات
+                                document.querySelectorAll('.tab-pane').forEach(pane => {
+                                    pane.classList.remove('active');
+                                });
+
+                                // إظهار محتوى التبويب المحدد
+                                const targetId = this.getAttribute('data-target');
+                                document.getElementById(targetId).classList.add('active');
                             });
-
-                            // إظهار محتوى التبويب المحدد
-                            const targetId = this.getAttribute('data-target');
-                            document.getElementById(targetId).classList.add('active');
                         });
-                    });
 
-                    // فلترة المواعيد
-                    const filterButtons = document.querySelectorAll('.filter-appointments');
-                    filterButtons.forEach(button => {
-                        button.addEventListener('click', function() {
-                            const filter = this.getAttribute('data-filter');
-                            const rows = document.querySelectorAll(
-                                '#appointments-container tr[data-appointment-id]');
+                        // فلترة المواعيد
+                        const filterButtons = document.querySelectorAll('.filter-appointments');
+                        filterButtons.forEach(button => {
+                            button.addEventListener('click', function() {
+                                const filter = this.getAttribute('data-filter');
+                                const rows = document.querySelectorAll(
+                                    '#appointments-container tr[data-appointment-id]');
 
-                            rows.forEach(row => {
-                                if (filter === 'all' || row.getAttribute('data-status') ===
-                                    filter) {
-                                    row.style.display = '';
-                                } else {
-                                    row.style.display = 'none';
+                                rows.forEach(row => {
+                                    if (filter === 'all' || row.getAttribute('data-status') ===
+                                        filter) {
+                                        row.style.display = '';
+                                    } else {
+                                        row.style.display = 'none';
+                                    }
+                                });
+
+                                // تحديث الأزرار النشطة
+                                filterButtons.forEach(btn => btn.classList.remove('active'));
+                                this.classList.add('active');
+                            });
+                        });
+
+                        // جعل صفوف الجدول قابلة للنقر
+                        document.querySelectorAll('.invoice-row').forEach(row => {
+                            row.addEventListener('click', function(e) {
+                                // تجنب فتح الرابط إذا تم النقر على عنصر منسدل أو زر
+                                if (!e.target.closest('.dropdown') && !e.target.closest(
+                                        'input[type="checkbox"]')) {
+                                    window.location.href = this.getAttribute('data-href');
                                 }
                             });
-
-                            // تحديث الأزرار النشطة
-                            filterButtons.forEach(btn => btn.classList.remove('active'));
-                            this.classList.add('active');
                         });
                     });
+                </script>
 
-                    // جعل صفوف الجدول قابلة للنقر
-                    document.querySelectorAll('.invoice-row').forEach(row => {
-                        row.addEventListener('click', function(e) {
-                            // تجنب فتح الرابط إذا تم النقر على عنصر منسدل أو زر
-                            if (!e.target.closest('.dropdown') && !e.target.closest(
-                                    'input[type="checkbox"]')) {
-                                window.location.href = this.getAttribute('data-href');
-                            }
-                        });
-                    });
-                });
-            </script>
-
-            <!-- Modal إضافة الرصيد الافتتاحي -->
-            <div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="openingBalanceModalLabel">إضافة رصيد افتتاحي</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="openingBalanceForm">
-                                <div class="mb-3">
-                                    <label for="openingBalance" class="form-label">الرصيد الافتتاحي</label>
-                                    <input type="number" class="form-control" id="openingBalance" name="opening_balance"
-                                        value="{{ $client->opening_balance ?? 0 }}" step="0.01">
-                                </div>
-                                <input type="hidden" id="clientId" value="{{ $client->id }}">
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                            <button type="button" class="btn btn-primary" onclick="saveOpeningBalance()">حفظ</button>
+                <!-- Modal إضافة الرصيد الافتتاحي -->
+                <div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="openingBalanceModalLabel">إضافة رصيد افتتاحي</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="openingBalanceForm">
+                                    <div class="mb-3">
+                                        <label for="openingBalance" class="form-label">الرصيد الافتتاحي</label>
+                                        <input type="number" class="form-control" id="openingBalance"
+                                            name="opening_balance" value="{{ $client->opening_balance ?? 0 }}"
+                                            step="0.01">
+                                    </div>
+                                    <input type="hidden" id="clientId" value="{{ $client->id }}">
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                                <button type="button" class="btn btn-primary" onclick="saveOpeningBalance()">حفظ</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
         </div>
 
 

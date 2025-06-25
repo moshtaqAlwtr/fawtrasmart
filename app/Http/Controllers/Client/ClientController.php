@@ -53,261 +53,254 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-public function index(Request $request)
-{
-    $user = auth()->user();
-    $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account']);
-    $noClients = false;
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $baseQuery = Client::with(['employee', 'status:id,name,color', 'locations', 'Neighborhoodname.Region', 'branch:id,name', 'account', 'categoriesClient']);
+        $noClients = false;
 
-    // تحديد الصلاحيات حسب الدور والفرع
-    if ($user->role === 'employee') {
-        $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
+        // تحديد الصلاحيات حسب الدور والفرع
+        if ($user->role === 'employee') {
+            $employeeGroupIds = EmployeeGroup::where('employee_id', $user->employee_id)->pluck('group_id');
 
-        if ($employeeGroupIds->isNotEmpty()) {
-            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
-                $q->whereIn('id', $employeeGroupIds);
+            if ($employeeGroupIds->isNotEmpty()) {
+                $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($employeeGroupIds) {
+                    $q->whereIn('id', $employeeGroupIds);
+                });
+            } else {
+                $noClients = true;
+            }
+        } elseif ($user->branch_id) {
+            $mainBranchName = Branch::where('is_main', true)->value('name');
+            $currentBranchName = Branch::find($user->branch_id)->name;
+
+            if ($currentBranchName !== $mainBranchName) {
+                $baseQuery->where('branch_id', $user->branch_id);
+            }
+        }
+
+        // فلترة حسب الطلب
+        if ($request->filled('client')) {
+            $baseQuery->where('id', $request->client);
+        }
+
+        if ($request->filled('name')) {
+            $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
+        }
+
+        if ($request->filled('status')) {
+            $baseQuery->where('status_id', $request->status);
+        }
+
+        if ($request->filled('region')) {
+            $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
+                $q->where('id', $request->region);
             });
-        } else {
-            $noClients = true;
         }
-    } elseif ($user->branch_id) {
-        $mainBranchName = Branch::where('is_main', true)->value('name');
-        $currentBranchName = Branch::find($user->branch_id)->name;
 
-        if ($currentBranchName !== $mainBranchName) {
-            $baseQuery->where('branch_id', $user->branch_id);
+        if ($request->filled('neighborhood')) {
+            $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
+            });
         }
-    }
 
-    // فلترة حسب الطلب
-    if ($request->filled('client')) {
-        $baseQuery->where('id', $request->client);
-    }
+        // فلترة التاريخ - محسنة لدعم السنة الحالية
+        $currentYear = date('Y');
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $baseQuery->whereBetween('created_at', [$request->date_from . ' 00:00:00', $request->date_to . ' 23:59:59']);
+        } elseif ($request->filled('date_from')) {
+            $baseQuery->where('created_at', '>=', $request->date_from . ' 00:00:00');
+        } elseif ($request->filled('date_to')) {
+            $baseQuery->where('created_at', '<=', $request->date_to . ' 23:59:59');
+        }
 
-    if ($request->filled('name')) {
-        $baseQuery->where('trade_name', 'like', '%' . $request->name . '%');
-    }
+        // فلترة الحقول المتقدمة
+        if ($request->filled('categories')) {
+            $baseQuery->where('category_id', $request->categories);
+        }
 
-    if ($request->filled('status')) {
-        $baseQuery->where('status_id', $request->status);
-    }
+        if ($request->filled('user')) {
+            $baseQuery->where('created_by', $request->user);
+        }
 
-    if ($request->filled('region')) {
-        $baseQuery->whereHas('Neighborhoodname.Region', function ($q) use ($request) {
-            $q->where('id', $request->region);
-        });
-    }
+        if ($request->filled('type')) {
+            $baseQuery->where('type', $request->type);
+        }
 
-    if ($request->filled('neighborhood')) {
-        $baseQuery->whereHas('Neighborhoodname', function ($q) use ($request) {
-            $q->where('name', 'like', '%' . $request->neighborhood . '%')->orWhere('id', $request->neighborhood);
-        });
-    }
+        if ($request->filled('employee')) {
+            $baseQuery->where('employee_id', $request->employee);
+        }
 
-    // فلترة التاريخ - محسنة لدعم السنة الحالية
-    $currentYear = date('Y');
-    if ($request->filled('date_from') && $request->filled('date_to')) {
-        $baseQuery->whereBetween('created_at', [
-            $request->date_from . ' 00:00:00',
-            $request->date_to . ' 23:59:59'
-        ]);
-    } elseif ($request->filled('date_from')) {
-        $baseQuery->where('created_at', '>=', $request->date_from . ' 00:00:00');
-    } elseif ($request->filled('date_to')) {
-        $baseQuery->where('created_at', '<=', $request->date_to . ' 23:59:59');
-    }
+        // استعلام الخريطة
+        $mapQuery = clone $baseQuery;
+        $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name', 'categoriesClient'])->get();
 
-    // فلترة الحقول المتقدمة
-    if ($request->filled('categories')) {
-        $baseQuery->where('category_id', $request->categories);
-    }
+        $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
 
-    if ($request->filled('user')) {
-        $baseQuery->where('created_by', $request->user);
-    }
+        $clientIds = $clients->pluck('id');
 
-    if ($request->filled('type')) {
-        $baseQuery->where('type', $request->type);
-    }
+        // الهدف العام والشهري
+        $globalTarget = Target::find(2)->value ?? 648;
+        $monthlyTarget = 648; // يمكن جعله متغير أو إعداد
 
-    if ($request->filled('employee')) {
-        $baseQuery->where('employee_id', $request->employee);
-    }
+        // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
+        $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
+        $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
 
-    // استعلام الخريطة
-    $mapQuery = clone $baseQuery;
-    $allClients = $noClients ? collect() : $mapQuery->with(['status_client:id,name,color', 'locations:id,client_id,latitude,longitude', 'Neighborhoodname.Region', 'branch:id,name'])->get();
+        $invoices = Invoice::whereIn('client_id', $clientIds)->where('type', 'normal')->whereNotIn('id', $excludedInvoiceIds)->get();
 
-    $clients = $noClients ? new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20) : $baseQuery->orderBy('created_at', 'desc')->paginate(20)->appends($request->except('page'));
+        $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
 
-    $clientIds = $clients->pluck('id');
-
-    // الهدف العام والشهري
-    $globalTarget = Target::find(2)->value ?? 648;
-    $monthlyTarget = 500; // يمكن جعله متغير أو إعداد
-
-    // استعلام واحد للفواتير والمدفوعات وسندات القبض دفعة واحدة
-    $returnedInvoiceIds = Invoice::whereNotNull('reference_number')->pluck('reference_number')->toArray();
-    $excludedInvoiceIds = array_unique(array_merge($returnedInvoiceIds, Invoice::where('type', 'returned')->pluck('id')->toArray()));
-
-    $invoices = Invoice::whereIn('client_id', $clientIds)
-        ->where('type', 'normal')
-        ->whereNotIn('id', $excludedInvoiceIds)
-        ->get();
-
-    $invoiceIdsByClient = $invoices->groupBy('client_id')->map->pluck('id');
-
-    // حساب مجموع المبيعات لكل عميل
-    $clientTotalSales = $invoices->groupBy('client_id')
-        ->map(function ($invoices) {
+        // حساب مجموع المبيعات لكل عميل
+        $clientTotalSales = $invoices->groupBy('client_id')->map(function ($invoices) {
             return $invoices->sum('grand_total');
         });
 
-    // جلب المدفوعات للسنة الحالية فقط لتحسين الأداء
-    $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))
-        ->whereYear('created_at', $currentYear)
-        ->get()
-        ->groupBy('invoice_id');
+        // جلب المدفوعات للسنة الحالية فقط لتحسين الأداء
+        $payments = PaymentsProcess::whereIn('invoice_id', $invoices->pluck('id'))->whereYear('created_at', $currentYear)->get()->groupBy('invoice_id');
 
-    // جلب سندات القبض للسنة الحالية فقط
-    $receipts = Receipt::with('account')
-        ->whereHas('account', function ($q) use ($clientIds) {
-            $q->whereIn('client_id', $clientIds);
-        })
-        ->whereYear('created_at', $currentYear)
-        ->get()
-        ->groupBy(fn($receipt) => $receipt->account->client_id);
+        // جلب سندات القبض للسنة الحالية فقط
+        $receipts = Receipt::with('account')
+            ->whereHas('account', function ($q) use ($clientIds) {
+                $q->whereIn('client_id', $clientIds);
+            })
+            ->whereYear('created_at', $currentYear)
+            ->get()
+            ->groupBy(fn($receipt) => $receipt->account->client_id);
 
-    // الشهور باللغة العربية مع أرقامها
-    $months = [
-        'يناير' => 1,
-        'فبراير' => 2,
-        'مارس' => 3,
-        'أبريل' => 4,
-        'مايو' => 5,
-        'يونيو' => 6,
-        'يوليو' => 7,
-        'أغسطس' => 8,
-        'سبتمبر' => 9,
-        'أكتوبر' => 10,
-        'نوفمبر' => 11,
-        'ديسمبر' => 12
-    ];
-
-    // دالة مساعدة لتحديد التصنيف - محدثة لتأخذ التحصيلات في الاعتبار
-    $getClassification = function($percentage, $collected = 0) {
-        // إذا لم تكن هناك تحصيلات نهائياً
-        if ($collected == 0) {
-            return ['group' => 'D', 'class' => 'secondary'];
-        }
-
-        // إذا كانت هناك تحصيلات، نصنف حسب النسبة
-        if ($percentage > 100) {
-            return ['group' => 'A++', 'class' => 'primary'];
-        } elseif ($percentage >= 60) {
-            return ['group' => 'A', 'class' => 'success'];
-        } elseif ($percentage >= 30) {
-            return ['group' => 'B', 'class' => 'warning'];
-        } else {
-            // أي نسبة أقل من 30% لكن بوجود تحصيلات
-            return ['group' => 'C', 'class' => 'danger'];
-        }
-    };
-
-    // حساب البيانات الشهرية لكل عميل
-    $clientsData = $clients->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $months, $monthlyTarget, $getClassification, $currentYear) {
-        $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
-
-        $clientData = [
-            'id' => $client->id,
-            'monthly' => [],
-            'invoices_count' => $invoiceIds->count(),
-            'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
-                return isset($payments[$id]) ? $payments[$id]->count() : 0;
-            }),
-            'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
-            'total_collected' => 0, // إجمالي التحصيلات السنوية
+        // الشهور باللغة العربية مع أرقامها
+        $months = [
+            'يناير' => 1,
+            'فبراير' => 2,
+            'مارس' => 3,
+            'أبريل' => 4,
+            'مايو' => 5,
+            'يونيو' => 6,
+            'يوليو' => 7,
+            'أغسطس' => 8,
+            'سبتمبر' => 9,
+            'أكتوبر' => 10,
+            'نوفمبر' => 11,
+            'ديسمبر' => 12,
         ];
 
-        $totalYearlyCollected = 0;
+        // دالة مساعدة لتحديد التصنيف - محدثة لتأخذ التحصيلات في الاعتبار
+        $getClassification = function ($percentage, $collected = 0) {
+            // إذا لم تكن هناك تحصيلات نهائياً
+            if ($collected == 0) {
+                return ['group' => 'D', 'class' => 'secondary'];
+            }
 
-        foreach ($months as $monthName => $monthNumber) {
-            // حساب المدفوعات للشهر الحالي - تحسين الفلترة
-            $paymentsTotal = 0;
-            if ($invoiceIds->isNotEmpty()) {
-                foreach ($invoiceIds as $invoiceId) {
-                    if (isset($payments[$invoiceId])) {
-                        $paymentsTotal += $payments[$invoiceId]->filter(function ($payment) use ($monthNumber, $currentYear) {
-                            $paymentDate = Carbon::parse($payment->created_at);
-                            return $paymentDate->year == $currentYear && $paymentDate->month == $monthNumber;
-                        })->sum('amount');
+            // إذا كانت هناك تحصيلات، نصنف حسب النسبة
+            if ($percentage > 100) {
+                return ['group' => 'A++', 'class' => 'primary'];
+            } elseif ($percentage >= 60) {
+                return ['group' => 'A', 'class' => 'success'];
+            } elseif ($percentage >= 30) {
+                return ['group' => 'B', 'class' => 'warning'];
+            } else {
+                // أي نسبة أقل من 30% لكن بوجود تحصيلات
+                return ['group' => 'C', 'class' => 'danger'];
+            }
+        };
+
+        // حساب البيانات الشهرية لكل عميل
+        $clientsData = $clients
+            ->map(function ($client) use ($invoiceIdsByClient, $payments, $receipts, $months, $monthlyTarget, $getClassification, $currentYear) {
+                $invoiceIds = $invoiceIdsByClient[$client->id] ?? collect();
+
+                $clientData = [
+                    'id' => $client->id,
+                    'monthly' => [],
+                    'invoices_count' => $invoiceIds->count(),
+                    'payments_count' => $invoiceIds->sum(function ($id) use ($payments) {
+                        return isset($payments[$id]) ? $payments[$id]->count() : 0;
+                    }),
+                    'receipts_count' => isset($receipts[$client->id]) ? $receipts[$client->id]->count() : 0,
+                    'total_collected' => 0, // إجمالي التحصيلات السنوية
+                ];
+
+                $totalYearlyCollected = 0;
+
+                foreach ($months as $monthName => $monthNumber) {
+                    // حساب المدفوعات للشهر الحالي - تحسين الفلترة
+                    $paymentsTotal = 0;
+                    if ($invoiceIds->isNotEmpty()) {
+                        foreach ($invoiceIds as $invoiceId) {
+                            if (isset($payments[$invoiceId])) {
+                                $paymentsTotal += $payments[$invoiceId]
+                                    ->filter(function ($payment) use ($monthNumber, $currentYear) {
+                                        $paymentDate = Carbon::parse($payment->created_at);
+                                        return $paymentDate->year == $currentYear && $paymentDate->month == $monthNumber;
+                                    })
+                                    ->sum('amount');
+                            }
+                        }
                     }
+
+                    // حساب سندات القبض للشهر الحالي - تحسين الفلترة
+                    $receiptsTotal = 0;
+                    if (isset($receipts[$client->id])) {
+                        $receiptsTotal = $receipts[$client->id]
+                            ->filter(function ($receipt) use ($monthNumber, $currentYear) {
+                                $receiptDate = Carbon::parse($receipt->created_at);
+                                return $receiptDate->year == $currentYear && $receiptDate->month == $monthNumber;
+                            })
+                            ->sum('amount');
+                    }
+
+                    // إجمالي التحصيلات الشهرية
+                    $monthlyCollected = $paymentsTotal + $receiptsTotal;
+                    $totalYearlyCollected += $monthlyCollected;
+
+                    // حساب النسبة المئوية
+                    $percentage = $monthlyTarget > 0 ? round(($monthlyCollected / $monthlyTarget) * 100, 2) : 0;
+
+                    // تحديد التصنيف - مع تمرير قيمة التحصيلات
+                    $classification = $getClassification($percentage, $monthlyCollected);
+
+                    $clientData['monthly'][$monthName] = [
+                        'collected' => $monthlyCollected,
+                        'payments_total' => $paymentsTotal,
+                        'receipts_total' => $receiptsTotal,
+                        'target' => $monthlyTarget,
+                        'percentage' => $percentage,
+                        'group' => $classification['group'],
+                        'group_class' => $classification['class'],
+                        'month_number' => $monthNumber,
+                    ];
                 }
-            }
 
-            // حساب سندات القبض للشهر الحالي - تحسين الفلترة
-            $receiptsTotal = 0;
-            if (isset($receipts[$client->id])) {
-                $receiptsTotal = $receipts[$client->id]->filter(function ($receipt) use ($monthNumber, $currentYear) {
-                    $receiptDate = Carbon::parse($receipt->created_at);
-                    return $receiptDate->year == $currentYear && $receiptDate->month == $monthNumber;
-                })->sum('amount');
-            }
+                $clientData['total_collected'] = $totalYearlyCollected;
 
-            // إجمالي التحصيلات الشهرية
-            $monthlyCollected = $paymentsTotal + $receiptsTotal;
-            $totalYearlyCollected += $monthlyCollected;
+                return $clientData;
+            })
+            ->keyBy('id');
 
-            // حساب النسبة المئوية
-            $percentage = $monthlyTarget > 0 ? round(($monthlyCollected / $monthlyTarget) * 100, 2) : 0;
+        // حساب الأرصدة المستحقة
+        $clientDueBalances = Account::whereIn('client_id', $clientIds)->selectRaw('client_id, SUM(balance) as total_due')->groupBy('client_id')->pluck('total_due', 'client_id');
 
-            // تحديد التصنيف - مع تمرير قيمة التحصيلات
-            $classification = $getClassification($percentage, $monthlyCollected);
-
-            $clientData['monthly'][$monthName] = [
-                'collected' => $monthlyCollected,
-                'payments_total' => $paymentsTotal,
-                'receipts_total' => $receiptsTotal,
-                'target' => $monthlyTarget,
-                'percentage' => $percentage,
-                'group' => $classification['group'],
-                'group_class' => $classification['class'],
-                'month_number' => $monthNumber
-            ];
-        }
-
-        $clientData['total_collected'] = $totalYearlyCollected;
-
-        return $clientData;
-    })->keyBy('id');
-
-    // حساب الأرصدة المستحقة
-    $clientDueBalances = Account::whereIn('client_id', $clientIds)
-        ->selectRaw('client_id, SUM(balance) as total_due')
-        ->groupBy('client_id')
-        ->pluck('total_due', 'client_id');
-
-    return view('client.index', [
-        'clientDueBalances' => $clientDueBalances,
-        'clientsData' => $clientsData,
-        'clients' => $clients,
-        'allClients' => $allClients,
-        'Neighborhoods' => Neighborhood::all(),
-        'users' => User::all(),
-        'categories'=> CategoriesClient::all(),
-        'employees' => Employee::all(),
-        'creditLimit' => CreditLimit::first(),
-        'statuses' => Statuses::select('id', 'name', 'color')->get(),
-        'Region_groups' => Region_groub::all(),
-        'invoiceIdsByClient' => $invoiceIdsByClient,
-        'clientTotalSales' => $clientTotalSales,
-        'target' => $globalTarget,
-        'monthlyTarget' => $monthlyTarget,
-        'months' => $months,
-        'currentYear' => $currentYear,
-    ]);
-}
-public function updateCreditLimit(Request $request)
+        return view('client.index', [
+            'clientDueBalances' => $clientDueBalances,
+            'clientsData' => $clientsData,
+            'clients' => $clients,
+            'allClients' => $allClients,
+            'Neighborhoods' => Neighborhood::all(),
+            'users' => User::all(),
+            'categories' => CategoriesClient::all(),
+            'employees' => Employee::all(),
+            'creditLimit' => CreditLimit::first(),
+            'statuses' => Statuses::all()->keyBy('id'),
+            'Region_groups' => Region_groub::all(),
+            'invoiceIdsByClient' => $invoiceIdsByClient,
+            'clientTotalSales' => $clientTotalSales,
+            'target' => $globalTarget,
+            'monthlyTarget' => $monthlyTarget,
+            'months' => $months,
+            'currentYear' => $currentYear,
+        ]);
+    }
+    public function updateCreditLimit(Request $request)
     {
         $request->validate([
             'value' => 'required|numeric|min:0',
@@ -801,7 +794,6 @@ public function updateCreditLimit(Request $request)
         return view('client.edit', compact('client', 'branches', 'employees', 'categories', 'Regions_groub', 'location', 'GeneralClientSettings'));
     }
 
-
     public function destroy($id)
     {
         $client = Client::findOrFail($id);
@@ -1009,8 +1001,6 @@ public function updateCreditLimit(Request $request)
         return view('client.contacts.contact_mang', compact('clients', 'employees', 'statuses'));
     }
 
-
-
     public function show_contant($id)
     {
         $client = Client::with(['appointments.notes', 'appointments.client'])->findOrFail($id);
@@ -1025,7 +1015,7 @@ public function updateCreditLimit(Request $request)
     }
     public function mang_client(Request $request)
     {
-        $query = Client::with('latestStatus')->orderBy('created_at', 'desc');
+        $query = Client::with(['latestStatus', 'neighborhood.region'])->orderBy('created_at', 'desc');
 
         // Apply search filter if search parameter exists
         if ($request->has('search') && !empty($request->search)) {
@@ -1038,6 +1028,13 @@ public function updateCreditLimit(Request $request)
             });
         }
 
+        // Filter by region group if selected
+        if ($request->has('region_group_id') && !empty($request->region_group_id)) {
+            $query->whereHas('neighborhood', function($q) use ($request) {
+                $q->where('region_id', $request->region_group_id);
+            });
+        }
+
         $clients = $query->paginate(100);
         $notes = AppointmentNote::with(['user'])
             ->latest()
@@ -1045,6 +1042,7 @@ public function updateCreditLimit(Request $request)
         $appointments = Appointment::all();
         $employees = Employee::all();
         $categories = CategoriesClient::all();
+        $regionGroups = \App\Models\Region_groub::withCount('neighborhoods')->get();
 
         // Get the selected client or first client in the list
         $client = $request->client_id ? Client::find($request->client_id) : $clients->first();
@@ -1057,7 +1055,7 @@ public function updateCreditLimit(Request $request)
         } while (Client::where('code', $newCode)->exists());
 
         // Return JSON for AJAX requests
-        if ($request->ajax()) {
+        if ($request->ajax() || $request->has('ajax')) {
             return response()->json([
                 'clients' => $clients,
                 'client' => $client,
@@ -1282,9 +1280,10 @@ public function updateCreditLimit(Request $request)
             'process' => 'required|string|max:255',
             'description' => 'required|string',
             'deposit_count' => 'nullable|integer|min:0',
-            'site_type' => 'nullable|string|in:independent_booth,grocery,supplies,markets,station',
             'competitor_documents' => 'nullable|integer|min:0',
             'attachments.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,xlsx,txt,mp4,webm,ogg|max:102400',
+            'current_latitude' => 'nullable|numeric',
+            'current_longitude' => 'nullable|numeric',
         ]);
 
         DB::beginTransaction();
@@ -1309,6 +1308,7 @@ public function updateCreditLimit(Request $request)
             $client = Client::findOrFail($request->client_id);
             $underReviewStatus = Statuses::where('name', 'تحت المراجعة')->first();
             $activeStatus = Statuses::where('name', 'نشط')->first();
+            $followUpStatus = Statuses::where('name', 'متابعة')->first();
 
             // إنشاء سجل الملاحظة
             $clientRelation = ClientRelation::create([
@@ -1318,31 +1318,96 @@ public function updateCreditLimit(Request $request)
                 'process' => $request->process,
                 'description' => $request->description,
                 'deposit_count' => $request->deposit_count,
-                'site_type' => $request->site_type,
                 'competitor_documents' => $request->competitor_documents,
                 'additional_data' => json_encode([
                     'deposit_count' => $request->deposit_count,
-                    'site_type' => $request->site_type,
                     'competitor_documents' => $request->competitor_documents,
+                    'latitude' => $request->current_latitude,
+                    'longitude' => $request->current_longitude,
                 ]),
             ]);
 
-            // تغيير حالة العميل إذا كان تحت المراجعة
-            if ($underReviewStatus && $activeStatus && $client->status_id == $underReviewStatus->id) {
-                $client->status_id = $activeStatus->id;
+            // إنشاء إشعار واحد فقط بناء على نوع الإجراء
+            $notificationData = [
+                'user_id' => auth()->id(),
+                'receiver_id' => auth()->id(), // افتراضيًا للموظف نفسه
+                'type' => 'client_note',
+                'title' => 'تم إضافة ملاحظة للعميل ' . $client->trade_name,
+                'description' => 'نوع الإجراء: ' . $request->description,
+                'read' => false,
+            ];
 
-                // إزالة العميل من مجموعة "عملاء موقوفون" إذا كان فيها
-                $suspendedGroup = Region_groub::where('name', 'عملاء موقوفون')->first();
-                if ($suspendedGroup) {
-                    Neighborhood::where('client_id', $client->id)->where('region_id', $suspendedGroup->id)->delete();
+            // إذا كان الإجراء هو إبلاغ المشرف
+
+            if (in_array($request->process, ['إبلاغ المشرف', 'متابعة'])) {
+                $supervisor = null;
+                if ($request->process === 'إبلاغ المشرف') {
+                    $supervisor = User::where('role', 'manager')
+                        ->where(function ($query) {
+                            $query->where('id', auth()->user()->supervisor_id)->orWhere('role', 'manager');
+                        })
+                        ->first();
                 }
 
-                // تسجيل تغيير الحالة في السجلات
+                if ($followUpStatus && ($request->process === 'متابعة' || $supervisor)) {
+                    // حفظ الحالة الحالية للموظف داخل الملاحظة
+                    $currentStatusForEmployee = $client->status_id;
+
+                    // تحديث حالة العميل إلى "متابعة"
+                    $client->status_id = $followUpStatus->id;
+                    $client->save();
+
+                    // تحديث الملاحظة بالحالة الأصلية للموظف
+                    // تحقق إن الموظف ما سبق له عمل إبلاغ مشرف لنفس العميل
+                    $previousNote = ClientRelation::where('client_id', $client->id)
+                        ->where('employee_id', auth()->id())
+                        ->where('process', 'إبلاغ المشرف')
+                        ->whereNotNull('employee_view_status')
+                        ->first();
+
+                    if (!$previousNote) {
+                        // أول مرة يرسل إبلاغ مشرف → خزّن له الحالة الأصلية
+                        $clientRelation->update([
+                            'employee_view_status' => $currentStatusForEmployee,
+                        ]);
+                    }
+
+                    // تسجيل اللوج
+                    ModelsLog::create([
+                        'type' => 'status_change',
+                        'type_log' => 'log',
+                        'description' => 'تم تغيير حالة العميل إلى "متابعة" بسبب: ' . $request->process,
+                        'created_by' => auth()->id(),
+                        'related_id' => $client->id,
+                        'related_type' => Client::class,
+                    ]);
+
+                    // تحديث الإشعار إذا كان "إبلاغ مشرف"
+                    if ($request->process === 'إبلاغ المشرف' && $supervisor) {
+                        $notificationData['user_id'] =auth()->id();
+                        $notificationData['user_id'] = $supervisor->id;
+                        $notificationData['type'] = 'supervisor_alert';
+                        $notificationData['title'] = 'إبلاغ عن مشكلة عميل - ' . $client->trade_name;
+                        $notificationData['description'] = 'يوجد مشكلة تحتاج متابعة مع العميل ' . $client->trade_name . ' -  ' . $client->code . ': ' . $request->description;
+                    }
+                }
+            }
+
+            // إنشاء الإشعار
+            notifications::create($notificationData);
+
+            // تغيير حالة العميل إذا كان تحت المراجعة وأصبح نشط
+            if ($underReviewStatus && $activeStatus && $client->status_id == $underReviewStatus->id) {
+                $client->status_id = $activeStatus->id;
+                $client->save();
+
                 ModelsLog::create([
                     'type' => 'status_change',
                     'type_log' => 'log',
                     'description' => 'تم تغيير حالة العميل من "تحت المراجعة" إلى "نشط" تلقائياً',
                     'created_by' => auth()->id(),
+                    'related_id' => $client->id,
+                    'related_type' => Client::class,
                 ]);
             }
 
@@ -1372,30 +1437,28 @@ public function updateCreditLimit(Request $request)
                     ->update([
                         'client_relation_id' => $clientRelation->id,
                         'client_id' => $request->client_id,
+                        'latitude' => $request->current_latitude,
+                        'longitude' => $request->current_longitude,
                     ]);
             }
 
-            // تسجيل الإشعارات والسجل
+            // تسجيل السجل العام
             ModelsLog::create([
-                'type' => 'notes',
+                'type' => 'client_note',
                 'type_log' => 'log',
-                'description' => 'تم اضافة ملاحظة **' . $request->description . '**',
+                'description' => 'تم إضافة ملاحظة للعميل: ' . $request->description,
                 'created_by' => auth()->id(),
-            ]);
-
-            notifications::create([
-                'user_id' => auth()->id(),
-                'type' => 'notes',
-                'title' => auth()->user()->name . ' أضاف ملاحظة لعميل',
-                'description' => 'ملاحظة للعميل ' . $client->trade_name . ' - ' . $request->description,
+                'related_id' => $client->id,
+                'related_type' => Client::class,
             ]);
 
             DB::commit();
 
             return redirect()
                 ->route('clients.show', $request->client_id)
-                ->with('success', 'تم إضافة الملاحظة بنجاح' . ($client->wasChanged('status_id') ? ' وتغيير حالة العميل إلى نشط!' : '!'));
+                ->with('success', 'تم إضافة الملاحظة بنجاح' . ($client->wasChanged('status_id') ? ' وتغيير حالة العميل إلى متابعة!' : '!'));
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return redirect()->back()->withErrors($e->validator)->withInput();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1406,10 +1469,8 @@ public function updateCreditLimit(Request $request)
         }
     }
 
-
     public function forceShow(Client $client)
     {
-        // السماح فقط للمديرين
         if (auth()->user()->role !== 'manager') {
             abort(403, 'أنت لا تملك الصلاحية لتنفيذ هذا الإجراء.');
         }
@@ -1419,7 +1480,6 @@ public function updateCreditLimit(Request $request)
             'last_note_at' => null,
         ]);
 
-        // تسجيل في سجل النظام
         ModelsLog::create([
             'type' => 'client',
             'type_log' => 'update',

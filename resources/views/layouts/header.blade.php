@@ -90,7 +90,7 @@
                         </div>
                     </li>
 
-                    @if (auth()->user()->hasPermissionTo('branches'))
+                   @if ( auth()->user()->hasPermissionTo('branches'))
                         <li class="dropdown dropdown-notification nav-item">
                             <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                                 <i class="ficon feather icon-calendar"></i>
@@ -167,85 +167,79 @@
 
 
 
-                <li class="dropdown dropdown-notification nav-item">
-                    <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
-                        <i class="ficon feather icon-bell"></i>
-                        <span class="badge badge-pill badge-primary badge-up" id="notification-count"
-                            style="display: none;">0</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
-                        <li class="dropdown-menu-header">
-                            <div class="dropdown-header m-0 p-2">
-                                <h3 class="white" id="notification-title">إشعارات جديدة</h3>
-                                <span class="notification-title">التنبيهات</span>
-                            </div>
-                        </li>
-                        <li class="scrollable-container media-list" id="notification-list">
-                            <p class="text-center p-2">لا يوجد إشعارات جديدة</p>
-                        </li>
-                        <li class="dropdown-menu-footer">
-                            <a class="dropdown-item p-1 text-center" href="{{ route('notifications.index') }}">عرض كل
-                                الإشعارات</a>
-                        </li>
-                    </ul>
-                </li>
+                @php
+                    $userRole = Auth::user()->role;
+                @endphp
 
-                <script>
-                    $(document).ready(function() {
-                        function formatNotificationTime(dateTime) {
-                            const now = new Date();
-                            const notificationDate = new Date(dateTime);
-                            const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+                @if ( auth()->user()->hasPermissionTo('branches'))
+                    <li class="dropdown dropdown-notification nav-item">
+                        <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
+                            <i class="ficon feather icon-bell"></i>
+                            <span class="badge badge-pill badge-primary badge-up" id="notification-count">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
+                            <li class="dropdown-menu-header">
+                                <div class="dropdown-header m-0 p-2">
+                                    <h3 class="white" id="notification-title">إشعارات جديدة</h3>
+                                    <span class="notification-title">التنبيهات</span>
+                                </div>
+                            </li>
+                            <li class="scrollable-container media-list" id="notification-list">
+                                <p class="text-center p-2">لا يوجد إشعارات جديدة</p>
+                            </li>
+                            <li class="dropdown-menu-footer">
+                                <a class="dropdown-item p-1 text-center"
+                                    href="{{ route('notifications.index') }}">عرض كل الإشعارات</a>
+                            </li>
+                        </ul>
+                    </li>
 
-                            if (diffInSeconds < 60) {
-                                return 'منذ لحظات';
-                            } else if (diffInSeconds < 3600) {
-                                const minutes = Math.floor(diffInSeconds / 60);
-                                return `منذ ${minutes} دقيقة`;
-                            } else if (diffInSeconds < 86400) {
-                                const hours = Math.floor(diffInSeconds / 3600);
-                                return `منذ ${hours} ساعة`;
-                            } else {
-                                return notificationDate.toLocaleDateString('ar-SA', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                });
+                    <script>
+                        $(document).ready(function() {
+                            function formatNotificationTime(dateTime) {
+                                const now = new Date();
+                                const notificationDate = new Date(dateTime);
+                                const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+
+                                if (diffInSeconds < 60) {
+                                    return 'منذ لحظات';
+                                } else if (diffInSeconds < 3600) {
+                                    const minutes = Math.floor(diffInSeconds / 60);
+                                    return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
+                                } else if (diffInSeconds < 86400) {
+                                    const hours = Math.floor(diffInSeconds / 3600);
+                                    return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
+                                } else if (diffInSeconds < 604800) {
+                                    const days = Math.floor(diffInSeconds / 86400);
+                                    return `منذ ${days} يوم${days > 1 ? '' : ''}`;
+                                } else {
+                                    return notificationDate.toLocaleDateString('ar-SA', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+                                }
                             }
-                        }
 
-                        function updateNotificationBadge(count) {
-                            const $badge = $('#notification-count');
-                            $badge.text(count);
-                            if (count > 0) {
-                                $badge.show();
-                            } else {
-                                $badge.hide();
-                            }
-                        }
+                            function fetchNotifications() {
+                                $.ajax({
+                                    url: "{{ route('notifications.unread') }}",
+                                    method: "GET",
+                                    success: function(response) {
+                                        let notifications = response.notifications;
+                                        let count = notifications.length;
+                                        $('#notification-count').text(count);
+                                        $('#notification-title').text(count + " إشعارات جديدة");
 
-                        function fetchNotifications() {
-                            $.ajax({
-                                url: "{{ route('notifications.unread') }}",
-                                method: "GET",
-                                success: function(response) {
-                                    let notifications = response.notifications;
-                                    let count = notifications.length;
+                                        let notificationList = $('#notification-list');
+                                        notificationList.empty();
 
-                                    // تحديث العداد فقط
-                                    updateNotificationBadge(count);
-                                    $('#notification-title').text(count > 0 ? `${count} إشعارات جديدة` :
-                                        'لا توجد إشعارات جديدة');
-
-                                    let notificationList = $('#notification-list');
-                                    notificationList.empty();
-
-                                    if (count > 0) {
-                                        notifications.forEach(notification => {
-                                            let timeAgo = formatNotificationTime(notification.created_at);
-                                            let listItem = `
+                                        if (count > 0) {
+                                            notifications.forEach(notification => {
+                                                let timeAgo = formatNotificationTime(notification.created_at);
+                                                let listItem = `
                                 <a class="d-flex justify-content-between notification-item"
                                     href="javascript:void(0)"
                                     data-id="${notification.id}">
@@ -264,52 +258,146 @@
                                 </a>
                                 <hr class="my-1">
                             `;
-                                            notificationList.append(listItem);
-                                        });
-                                    } else {
-                                        notificationList.append(
-                                            '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
-                                    }
-                                }
-                            });
-                        }
-
-                        fetchNotifications();
-                        setInterval(fetchNotifications, 60000);
-
-                        $(document).on('click', '.notification-item', function() {
-                            let notificationId = $(this).data('id');
-                            let $notification = $(this);
-
-                            $.ajax({
-                                url: "{{ route('notifications.markAsRead') }}",
-                                method: "POST",
-                                data: {
-                                    _token: "{{ csrf_token() }}",
-                                    id: notificationId
-                                },
-                                success: function() {
-                                    // إخفاء الإشعار المحدد فقط
-                                    $notification.fadeOut(300, function() {
-                                        $(this).next('hr').remove();
-                                        $(this).remove();
-
-                                        // تحديث العداد
-                                        let count = parseInt($('#notification-count').text()) - 1;
-                                        updateNotificationBadge(count);
-
-                                        // إذا لم يعد هناك إشعارات
-                                        if (count === 0) {
-                                            $('#notification-list').html(
-                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>'
-                                                );
+                                                notificationList.append(listItem);
+                                            });
+                                        } else {
+                                            notificationList.append(
+                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
                                         }
-                                    });
-                                }
+                                    }
+                                });
+                            }
+
+                            fetchNotifications();
+
+                            // تحديث الإشعارات كل دقيقة
+                            setInterval(fetchNotifications, 60000);
+
+                            $(document).on('click', '.notification-item', function() {
+                                let notificationId = $(this).data('id');
+
+                                $.ajax({
+                                    url: "{{ route('notifications.markAsRead') }}",
+                                    method: "POST",
+                                    data: {
+                                        _token: "{{ csrf_token() }}",
+                                        id: notificationId
+                                    },
+                                    success: function() {
+                                        fetchNotifications();
+                                    }
+                                });
                             });
                         });
-                    });
-                </script>
+                    </script>
+
+                    <script>
+                        $(document).ready(function() {
+                            function formatNotificationTime(dateTime) {
+                                const now = new Date();
+                                const notificationDate = new Date(dateTime);
+                                const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+
+                                // إذا مر أكثر من 24 ساعة (86400 ثانية) لا تعرض الإشعار
+                                if (diffInSeconds > 86400) {
+                                    return null;
+                                }
+
+                                if (diffInSeconds < 60) {
+                                    return 'منذ لحظات';
+                                } else if (diffInSeconds < 3600) {
+                                    const minutes = Math.floor(diffInSeconds / 60);
+                                    return `منذ ${minutes} دقيقة${minutes > 1 ? '' : ''}`;
+                                } else if (diffInSeconds < 86400) {
+                                    const hours = Math.floor(diffInSeconds / 3600);
+                                    return `منذ ${hours} ساعة${hours > 1 ? '' : ''}`;
+                                }
+                            }
+
+                            function fetchNotifications() {
+                                $.ajax({
+                                    url: "{{ route('notifications.unread') }}",
+                                    method: "GET",
+                                    success: function(response) {
+                                        let notifications = response.notifications;
+                                        let validNotifications = [];
+                                        let currentTime = new Date();
+
+                                        // تصفية الإشعارات لليوم الحالي فقط
+                                        notifications.forEach(notification => {
+                                            let notificationTime = new Date(notification.created_at);
+                                            let diffInHours = (currentTime - notificationTime) / (1000 * 60 *
+                                                60);
+
+                                            if (diffInHours <= 24) {
+                                                validNotifications.push(notification);
+                                            }
+                                        });
+
+                                        let count = validNotifications.length;
+                                        $('#notification-count').text(count);
+                                        $('#notification-title').text(count + " إشعارات جديدة");
+
+                                        let notificationList = $('#notification-list');
+                                        notificationList.empty();
+
+                                        if (count > 0) {
+                                            validNotifications.forEach(notification => {
+                                                let timeAgo = formatNotificationTime(notification.created_at);
+                                                if (timeAgo !== null) { // فقط إذا كان الوقت ضمن 24 ساعة
+                                                    let listItem = `
+                                                <a class="d-flex justify-content-between notification-item"
+                                                    href="javascript:void(0)"
+                                                    data-id="${notification.id}">
+                                                    <div class="media d-flex align-items-start">
+                                                        <div class="media-left">
+                                                            <i class="feather icon-bell font-medium-5 primary"></i>
+                                                        </div>
+                                                        <div class="media-body">
+                                                            <h6 class="primary media-heading">${notification.title}</h6>
+                                                            <p class="notification-text mb-0">${notification.description}</p>
+                                                            <small class="text-muted">
+                                                                <i class="far fa-clock"></i> ${timeAgo}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                                <hr class="my-1">
+                                            `;
+                                                    notificationList.append(listItem);
+                                                }
+                                            });
+                                        } else {
+                                            notificationList.append(
+                                                '<p class="text-center p-2">لا يوجد إشعارات جديدة</p>');
+                                        }
+                                    }
+                                });
+                            }
+
+                            fetchNotifications();
+
+                            // تحديث الإشعارات كل دقيقة
+                            setInterval(fetchNotifications, 60000);
+
+                            $(document).on('click', '.notification-item', function() {
+                                let notificationId = $(this).data('id');
+
+                                $.ajax({
+                                    url: "{{ route('notifications.markAsRead') }}",
+                                    method: "POST",
+                                    data: {
+                                        _token: "{{ csrf_token() }}",
+                                        id: notificationId
+                                    },
+                                    success: function() {
+                                        fetchNotifications();
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                @endif
                 <li class="dropdown dropdown-user nav-item">
                     <a class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown"
                         aria-expanded="false">

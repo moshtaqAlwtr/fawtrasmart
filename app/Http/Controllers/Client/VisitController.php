@@ -14,7 +14,6 @@ use App\Models\Receipt;
 use App\Models\Region_groub;
 use App\Models\Statuses;
 use App\Models\User;
-use App\Models\Branch;
 use App\Models\Visit;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -23,8 +22,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use TCPDF;
-use DB;
-
 
 class VisitController extends Controller
 {
@@ -296,33 +293,6 @@ class VisitController extends Controller
             }
         }
     }
-    // معالجة انصراف الزيارة (محدثة)
-    private function processVisitDeparture($visit, $latitude, $longitude)
-    {
-        // الحصول على موقع العميل
-        $clientLocation = $visit->client->locations()->latest()->first();
-
-        if (!$clientLocation) {
-            $clientLat = $visit->employee_latitude;
-            $clientLng = $visit->employee_longitude;
-        } else {
-            $clientLat = $clientLocation->latitude;
-            $clientLng = $clientLocation->longitude;
-        }
-
-        // حساب المسافة
-        $distance = $this->calculateDistance($clientLat, $clientLng, $latitude, $longitude);
-
-        // حساب الوقت المنقضي
-        $minutesSinceArrival = now()->diffInMinutes($visit->arrival_time);
-
-        // تسجيل الانصراف في أي من الحالتين:
-        if ($minutesSinceArrival >= 10 || $distance >= 100) {
-            $reason = $minutesSinceArrival >= 10 ? 'بعد 10 دقائق' : 'بعد الابتعاد بمسافة 100 متر';
-
-            $this->recordDeparture($visit, $latitude, $longitude, $minutesSinceArrival, $reason);
-        }
-    }
 
     // تسجيل الانصراف
     private function recordDeparture($visit, $latitude, $longitude, $value, $reason)
@@ -363,19 +333,6 @@ class VisitController extends Controller
     }
 
     // التحقق من قرب الموظف من العميل
-    private function checkClientProximity($latitude, $longitude, $clientId, $maxDistance)
-    {
-        $client = Client::with('locations')->findOrFail($clientId);
-        $clientLocation = $client->locations()->latest()->first();
-
-        if (!$clientLocation) {
-            return false;
-        }
-
-        $distance = $this->calculateDistance($clientLocation->latitude, $clientLocation->longitude, $latitude, $longitude);
-
-        return $distance <= $maxDistance;
-    }
 
     // حساب المسافة بين نقطتين
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
@@ -604,38 +561,48 @@ class VisitController extends Controller
     // تحليلات حركة الزيارات
 public function tracktaff(Request $request)
 {
-    $year = $request->get('year', now()->year);
-    $allWeeks = $this->generateYearWeeks($year);
+    $period = $request->get('period', 1);
+    $allWeeks = $this->generateYearWeeks();
+    $weeksChunks = array_chunk($allWeeks, 13);
+    $currentChunk = $weeksChunks[$period - 1] ?? $weeksChunks[0];
 
-    $startDate = $allWeeks[0]['start'];
-    $endDate = end($allWeeks)['end'];
+    // تعريف المتغيرات هنا
+    $startDate = $currentChunk[0]['start'];
+    $endDate = end($currentChunk)['end'];
 
     $groups = Region_groub::with([
-        'neighborhoods.client' => function ($query) use ($startDate, $endDate) {
+        'neighborhoods.client' => function ($query) use ($startDate, $endDate) { // تم التعديل هنا
             $query->with([
-                'invoices' => fn($q) => $q->whereBetween('invoices.created_at', [$startDate, $endDate]),
-                'appointmentNotes' => fn($q) => $q->whereBetween('client_relations.created_at', [$startDate, $endDate]),
-                'visits' => fn($q) => $q->whereBetween('visits.created_at', [$startDate, $endDate]),
-                'accounts.receipts' => fn($q) => $q->whereBetween('receipts.created_at', [$startDate, $endDate]),
-                'payments' => fn($q) => $q->whereBetween('payments_process.created_at', [$startDate, $endDate]),
+                'invoices' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
+                    $q->whereBetween('invoices.created_at', [$startDate, $endDate]);
+                },
+                'appointmentNotes' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
+                    $q->whereBetween('client_relations.created_at', [$startDate, $endDate]);
+                },
+                'visits' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
+                    $q->whereBetween('visits.created_at', [$startDate, $endDate]);
+                },
+                'accounts.receipts' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
+                    $q->whereBetween('receipts.created_at', [$startDate, $endDate]);
+                },
+                'payments' => function($q) use ($startDate, $endDate) { // تم التعديل هنا
+                    $q->whereBetween('payments_process.created_at', [$startDate, $endDate]);
+                },
                 'status_client'
             ]);
         },
     ])->get();
 
-    $branches = Branch::with([
-    'regionGroups.neighborhoods.client' => function ($query) use ($startDate, $endDate) {
-        $query->with([
-             'invoices' => fn($q) => $q->whereBetween('invoices.created_at', [$startDate, $endDate]),
-                'appointmentNotes' => fn($q) => $q->whereBetween('client_relations.created_at', [$startDate, $endDate]),
-                'visits' => fn($q) => $q->whereBetween('visits.created_at', [$startDate, $endDate]),
-                'accounts.receipts' => fn($q) => $q->whereBetween('receipts.created_at', [$startDate, $endDate]),
-                'payments' => fn($q) => $q->whereBetween('payments_process.created_at', [$startDate, $endDate]),
-                'status_client'
-        ]);
+    // إعداد روابط الفترات
+    $periods = [];
+    foreach ($weeksChunks as $index => $chunk) {
+        $periods[] = [
+            'number' => $index + 1,
+            'start_date' => $chunk[0]['start'],
+            'end_date' => end($chunk)['end'],
+            'active' => ($index + 1) == $period
+        ];
     }
-])->get();
-
 
     $totalClients = $groups->sum(function($group) {
         return $group->neighborhoods->flatMap(function ($neigh) {
@@ -643,197 +610,39 @@ public function tracktaff(Request $request)
         })->unique('id')->count();
     });
 
-    $visitsByWeek = DB::table('visits')
-    ->selectRaw("YEAR(created_at) as year, WEEK(created_at, 1) as week_number, COUNT(DISTINCT DATE_FORMAT(created_at, '%Y-%m-%d %H')) as visit_count")
-    ->whereYear('created_at', $year)
-    ->groupBy('year', 'week_number')
-    ->pluck('visit_count', 'week_number');
-
-$paymentsByWeek = DB::table('payments_process')
-    ->join('invoices', 'payments_process.invoice_id', '=', 'invoices.id')
-    ->whereYear('payments_process.created_at', $year)
-    ->where('invoices.type', 'normal')
-    ->whereNull('invoices.reference_number')
-    ->selectRaw("WEEK(payments_process.created_at, 1) as week_number, SUM(payments_process.amount) as total_payment")
-    ->groupBy('week_number')
-    ->pluck('total_payment', 'week_number');
-
-$receiptsByWeek = DB::table('receipts')
-    ->join('accounts', 'receipts.account_id', '=', 'accounts.id')
-    ->whereYear('receipts.created_at', $year)
-    ->selectRaw("WEEK(receipts.created_at, 1) as week_number, SUM(receipts.amount) as total_receipt")
-    ->groupBy('week_number')
-    ->pluck('total_receipt', 'week_number');
-
-$clients = $branches->flatMap(function ($branch) {
-    return $branch->regionGroups->flatMap(function ($group) {
-        return $group->neighborhoods->pluck('client');
-    });
-})->filter()->unique('id')->values();
-$allVisits = \App\Models\Visit::whereBetween('created_at', [$startDate, $endDate])->get();
-$allPayments = \App\Models\PaymentsProcess::whereBetween('created_at', [$startDate, $endDate])->get();
-$allReceipts = \App\Models\Receipt::with('account')
-    ->whereBetween('created_at', [$startDate, $endDate])
-    ->get();
-
-$excludedInvoiceIds = \App\Models\Invoice::whereNotNull('reference_number')
-    ->pluck('reference_number')
-    ->merge(\App\Models\Invoice::where('type', 'returned')->pluck('id'))
-    ->unique()
-    ->toArray();
-
-
-$weeklyStats = [];
-
-$weeklyStats = [];
-
-foreach ($allWeeks as $week) {
-    $weekStart = $week['start']->copy()->startOfDay();
-    $weekEnd = $week['end']->copy()->endOfDay();
-
-    // عدد الزيارات (نأخذ آخر زيارة في كل ساعة)
-    $visitCount = \App\Models\Visit::whereBetween('created_at', [$weekStart, $weekEnd])
-        ->get()
-        ->groupBy(function ($visit) {
-            return $visit->created_at->format('Y-m-d H'); // كل ساعة
-        })
-        ->count();
-
-    // استخراج الفواتير المرجعة
-    $excludedInvoiceIds = \App\Models\Invoice::whereNotNull('reference_number')
-        ->pluck('reference_number')
-        ->merge(
-            \App\Models\Invoice::where('type', 'returned')->pluck('id')
-        )
-        ->unique()
-        ->toArray();
-
-    // مجموع المدفوعات للأسبوع
-    $paymentsSum = \App\Models\PaymentsProcess::whereBetween('created_at', [$weekStart, $weekEnd])
-        ->whereNotIn('invoice_id', $excludedInvoiceIds)
-        ->sum('amount');
-
-    // مجموع سندات القبض
-    $receiptsSum = \App\Models\Receipt::whereBetween('created_at', [$weekStart, $weekEnd])
-        ->sum('amount');
-
-    $weeklyStats[$week['week_number']] = [
-        'visits' => $visitCount,
-        'collection' => $paymentsSum + $receiptsSum,
-    ];
-}
-
-
-$visits = DB::table('visits')
-    ->selectRaw('client_id, WEEK(created_at, 1) as week_number, COUNT(DISTINCT DATE_FORMAT(created_at, "%Y-%m-%d %H")) as visit_count')
-    ->whereYear('created_at', $year)
-    ->groupBy('client_id', 'week_number')
-    ->get();
-
-// الفواتير الصالحة
-$excludedInvoiceIds = DB::table('invoices')
-    ->whereNotNull('reference_number')
-    ->pluck('reference_number')
-    ->merge(
-        DB::table('invoices')->where('type', 'returned')->pluck('id')
-    )
-    ->unique()
-    ->toArray();
-
-// المدفوعات
-$payments = DB::table('payments_process')
-    ->join('invoices', 'payments_process.invoice_id', '=', 'invoices.id')
-    ->whereYear('payments_process.created_at', $year)
-    ->where('invoices.type', 'normal')
-    ->whereNotIn('invoices.id', $excludedInvoiceIds)
-    ->selectRaw('invoices.client_id, WEEK(payments_process.created_at, 1) as week_number, SUM(payments_process.amount) as payment_total')
-    ->groupBy('invoices.client_id', 'week_number')
-    ->get();
-
-// سندات القبض
-$receipts = DB::table('receipts')
-    ->join('accounts', 'receipts.account_id', '=', 'accounts.id')
-    ->whereYear('receipts.created_at', $year)
-    ->selectRaw('accounts.client_id, WEEK(receipts.created_at, 1) as week_number, SUM(receipts.amount) as receipt_total')
-    ->groupBy('accounts.client_id', 'week_number')
-    ->get();
-$clientWeeklyStats = [];
-
-// زيارات
-foreach ($visits as $v) {
-    $clientWeeklyStats[$v->client_id][$v->week_number]['visits'] = $v->visit_count;
-}
-
-// مدفوعات
-foreach ($payments as $p) {
-    $clientWeeklyStats[$p->client_id][$p->week_number]['collection'] = ($clientWeeklyStats[$p->client_id][$p->week_number]['collection'] ?? 0) + $p->payment_total;
-}
-
-// سندات قبض
-foreach ($receipts as $r) {
-    $clientWeeklyStats[$r->client_id][$r->week_number]['collection'] = ($clientWeeklyStats[$r->client_id][$r->week_number]['collection'] ?? 0) + $r->receipt_total;
-}
-
-
-
     return view('reports.sals.traffic_analytics', [
-        'branches' => $branches,
-        'weeks' => $allWeeks,
+        'groups' => $groups,
+        'weeks' => $currentChunk,
         'totalClients' => $totalClients,
-         'clientWeeklyStats' => $clientWeeklyStats,
-        'currentYear' => $year,
-        'weeklyStats' => $weeklyStats,
+        'periods' => $periods,
+        'currentPeriod' => $period
     ]);
 }
 
-
-public function generateYearWeeks($year = null)
+private function generateYearWeeks()
 {
-    $year = $year ?? now()->year;
-    $start = Carbon::createFromDate($year, 1, 1)->startOfWeek();
-    $end = Carbon::createFromDate($year, 12, 31)->endOfWeek();
-
     $weeks = [];
-    $weekNumber = 1;
-    while ($start->lte($end)) {
+    $startOfYear = now()->startOfYear();
+    $endOfYear = now()->endOfYear();
+    $current = $startOfYear->copy()->startOfWeek();
+
+    while ($current->lessThanOrEqualTo($endOfYear)) {
+        $startDate = $current->copy();
+        $endDate = $current->copy()->endOfWeek();
+
         $weeks[] = [
-            'week_number' => $weekNumber,
-            'start' => $start->copy(),
-            'end' => $start->copy()->endOfWeek(),
+            'start' => $startDate->format('Y-m-d'),
+            'end' => $endDate->format('Y-m-d'),
+            'month_year' => $startDate->translatedFormat('F Y'),
+            'week_number' => $startDate->weekOfYear,
+            'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
         ];
-        $start->addWeek();
-        $weekNumber++;
+
+        $current->addWeek();
     }
 
     return $weeks;
 }
-
-
-
-// private function generateYearWeeks()
-// {
-//     $weeks = [];
-//     $startOfYear = now()->startOfYear();
-//     $endOfYear = now()->endOfYear();
-//     $current = $startOfYear->copy()->startOfWeek();
-
-//     while ($current->lessThanOrEqualTo($endOfYear)) {
-//         $startDate = $current->copy();
-//         $endDate = $current->copy()->endOfWeek();
-
-//         $weeks[] = [
-//             'start' => $startDate->format('Y-m-d'),
-//             'end' => $endDate->format('Y-m-d'),
-//             'month_year' => $startDate->translatedFormat('F Y'),
-//             'week_number' => $startDate->weekOfYear,
-//             'month_week' => 'الأسبوع ' . $startDate->weekOfMonth . ' - ' . $startDate->translatedFormat('F'),
-//         ];
-
-//         $current->addWeek();
-//     }
-
-//     return $weeks;
-// }
 
 public function getWeeksData(Request $request)
 {

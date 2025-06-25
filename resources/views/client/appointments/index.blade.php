@@ -1,12 +1,22 @@
 @extends('master')
-
 @section('title')
     ادارة المواعيد
 @stop
-
 @section('css')
-
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
     <style>
+        /* Calendar Styles */
+        #calendar {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .fc-event {
+            cursor: pointer;
+            font-size: 0.85em;
+            padding: 2px 4px;
+        }
+
         /* إضافة CSS للتجاوب مع أحجام الشاشات المختلفة */
         @media (max-width: 575.98px) {
             .min-mobile {
@@ -128,15 +138,7 @@
 
 @section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-            <div class="d-flex align-items-center">
-                <i class="fas fa-check-circle me-2"></i>
-                <strong>{{ session('success') }}</strong>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
+
 
     @include('layouts.alerts.success')
     @include('layouts.alerts.error')
@@ -158,104 +160,44 @@
         </div>
     </div>
     <div class="content-body">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                    <!-- Checkbox لتحديد الكل -->
-                    <div class="form-check me-3">.
-                        <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap justify-content-end" style="gap: 10px;">
 
-                    </div>
+                    <!-- زر أضف العميل -->
 
-                    <div class="d-flex flex-wrap justify-content-between">
-                        <a href="{{ route('appointments.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
-                            <i class="fas fa-plus-circle me-1"></i> موعد جديد
-                        </a>
+                    <!-- زر تحميل ملف -->
+                    <label class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; cursor: pointer; border-radius: 6px;" title="تحميل ملف">
+                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                        <input type="file" name="file" class="d-none">
+                    </label>
 
-                        <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
-                            <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
-                        </button>
-                    </div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination pagination-sm mb-0">
-                            <!-- زر الانتقال إلى أول صفحة -->
-                            @if ($appointments->onFirstPage())
-                                <li class="page-item disabled">
-                                    <span class="page-link border-0 rounded-pill" aria-label="First">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </span>
-                                </li>
-                            @else
-                                <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $appointments->url(1) }}"
-                                        aria-label="First">
-                                        <i class="fas fa-angle-double-right"></i>
-                                    </a>
-                                </li>
-                            @endif
+                    <!-- زر استيراد -->
+                    <button type="submit" class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="استيراد ك Excel">
+                        <i class="fas fa-database text-primary"></i>
+                    </button>
 
-                            <!-- زر الانتقال إلى الصفحة السابقة -->
-                            @if ($appointments->onFirstPage())
-                                <li class="page-item disabled">
-                                    <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                        <i class="fas fa-angle-right"></i>
-                                    </span>
-                                </li>
-                            @else
-                                <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $appointments->previousPageUrl() }}"
-                                        aria-label="Previous">
-                                        <i class="fas fa-angle-right"></i>
-                                    </a>
-                                </li>
-                            @endif
+                    <!-- زر حد ائتماني -->
 
-                            <!-- عرض رقم الصفحة الحالية -->
-                            <li class="page-item">
-                                <span class="page-link border-0 bg-light rounded-pill px-3">
-                                    صفحة {{ $appointments->currentPage() }} من {{ $appointments->lastPage() }}
-                                </span>
-                            </li>
 
-                            <!-- زر الانتقال إلى الصفحة التالية -->
-                            @if ($appointments->hasMorePages())
-                                <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill" href="{{ $appointments->nextPageUrl() }}"
-                                        aria-label="Next">
-                                        <i class="fas fa-angle-left"></i>
-                                    </a>
-                                </li>
-                            @else
-                                <li class="page-item disabled">
-                                    <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                        <i class="fas fa-angle-left"></i>
-                                    </span>
-                                </li>
-                            @endif
+                    <!-- زر تصدير ك Excel (الجديد) -->
+                    <button id="exportExcelBtn" class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="تصدير ك Excel">
+                        <i class="fas fa-file-excel text-primary"></i>
+                    </button>
 
-                            <!-- زر الانتقال إلى آخر صفحة -->
-                            @if ($appointments->hasMorePages())
-                                <li class="page-item">
-                                    <a class="page-link border-0 rounded-pill"
-                                        href="{{ $appointments->url($appointments->lastPage()) }}" aria-label="Last">
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </a>
-                                </li>
-                            @else
-                                <li class="page-item disabled">
-                                    <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                        <i class="fas fa-angle-double-left"></i>
-                                    </span>
-                                </li>
-                            @endif
-                        </ul>
-                    </nav>
-
-                    <!-- جزء التنقل بين الصفحات -->
-
+                    <a href="{{ route('appointments.create') }}"
+                        class="btn btn-success d-flex align-items-center justify-content-center"
+                        style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
+                        <i class="fas fa-plus ms-2"></i>
+                        أضف موعد جديد
+                    </a>
                 </div>
             </div>
         </div>
+
         <div class="card">
             <div class="card-content">
                 <div class="card-body">
@@ -385,161 +327,119 @@
                 </div>
             </div>
         </div>
-        @if (@isset($appointments) && !@empty($appointments) && count($appointments) > 0)
-            <div class="card">
-                <div class="card-body">
-                    <div class="table"> <!-- إضافة div لجعل الجدول متجاوبًا -->
-                        <table class="table table-striped table-bordered dt-responsive nowrap" style="width:100%">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="min-mobile">اسم العميل</th>
-                                    <th class="min-tablet">حالة العميل</th>
-                                    <th class="min-tablet">رقم الهاتف</th>
-                                    <th class="min-mobile">التاريخ</th>
-                                    <th class="min-tablet">الوقت</th>
-                                    <th class="min-desktop">المدة</th>
-                                    <th class="min-tablet">الموظف</th>
-                                    <th class="min-mobile">الحالة</th>
-                                    <th style="width: 80px">الإجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($appointments as $info)
-                                    <tr>
-                                        <td class="min-mobile">{{ $info->client->trade_name }}</td>
-                                        <td class="min-tablet">
-                                            @if ($info->client->status_client)
-                                            <span
-                                                style="background-color: {{ $info->client->status_client->color }}; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                {{ $info->client->status_client->name }}
-                                            </span>
-                                        @else
-                                            <span
-                                                style="background-color: #6c757d; color: #fff; padding: 2px 8px; font-size: 12px; border-radius: 4px; display: inline-block;">
-                                                غير محدد
-                                            </span>
-                                        @endif
-                                        </td>
-                                        <td class="min-tablet">{{ $info->client->phone }}</td>
-                                        <td class="min-mobile">
-                                            {{ \Carbon\Carbon::parse($info->appointment_date)->format('Y-m-d') }}</td>
-                                        <td class="min-tablet">{{ $info->time }}</td>
-                                        <td class="min-desktop">{{ $info->duration ?? 'غير محدد' }}</td>
-                                        <td class="min-tablet">
-                                            {{ $info->createdBy ? $info->createdBy->name : 'غير محدد' }}</td>
-                                        <td class="min-mobile">
-                                            <span
-                                                class="badge
-                                    {{ $info->status == 1
-                                        ? 'bg-warning'
-                                        : ($info->status == 2
-                                            ? 'bg-success'
-                                            : ($info->status == 3
-                                                ? 'bg-danger'
-                                                : 'bg-info')) }}">
-                                                {{ $info->status == 1
-                                                    ? 'قيد الانتظار'
-                                                    : ($info->status == 2
-                                                        ? 'مكتمل'
-                                                        : ($info->status == 3
-                                                            ? 'ملغي'
-                                                            : 'معاد جدولته')) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v"
-                                                        type="button" id="dropdownMenuButton{{ $info->id }}"
-                                                        data-bs-toggle="dropdown" aria-expanded="false">
-                                                    </button>
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-row-reverse">
 
-                                                    <ul class="dropdown-menu dropdown-menu-end show"
-                                                        aria-labelledby="dropdownMenuButton{{ $info->id }}"
-                                                        style="position: fixed; top: 100px; right: 120px; z-index: 1050;">
+                    <!-- التبويبات على اليمين -->
+                    <ul class="nav nav-tabs ms-auto" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="appointments-tab" data-bs-toggle="tab"
+                                data-bs-target="#appointments" type="button" role="tab"
+                                aria-controls="appointments" aria-selected="true">
+                                الحجوزات ({{ $appointments->where('status', 1)->count() ?? 0 }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="supply-orders-tab" data-bs-toggle="tab"
+                                data-bs-target="#supply-orders" type="button" role="tab"
+                                aria-controls="supply-orders" aria-selected="false">
+                                أوامر التوريد ({{ $appointments->where('status', 2)->count() ?? 0 }})
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients"
+                                type="button" role="tab" aria-controls="clients" aria-selected="false">
+                                العملاء ({{ $clientsCount ?? 0 }})
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- أزرار عرض القائمة والشبكة والتقويم على اليسار -->
+                    <div class="btn-group me-2" role="group" aria-label="View Toggle">
+                        <button type="button" class="btn btn-outline-secondary active" id="gridViewBtn"
+                            title="عرض الشبكة">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="listViewBtn" title="عرض القائمة">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="calendarViewBtn"
+                            title="عرض التقويم">
+                            <i class="fas fa-calendar-alt"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
 
 
+            <div class="card-body">
+                <div class="tab-content" id="appointmentsTabsContent">
+                    <!-- Appointments Tab -->
+                    <div class="tab-pane fade show active" id="appointments-content" role="tabpanel"
+                        aria-labelledby="appointments-tab">
+                        @include('client.appointments.partials.appointments_table', [
+                            'appointments' => $appointments->where('status', 1),
+                        ])
+                    </div>
 
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                                href="{{ route('appointments.edit', $info->id) }}">
-                                                                <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                            </a>
-                                                        </li>
+                    <!-- Supply Orders Tab -->
+                    <div class="tab-pane fade" id="supply-orders-content" role="tabpanel"
+                        aria-labelledby="supply-orders-tab">
+                        {{-- @include('client.appointments.partials.supply_orders_table', [
+                    'appointments' => $appointments->where('status', 2)
+                ]) --}}
+                    </div>
 
-                                                        <form
-                                                            action="{{ route('appointments.update-status', $info->id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="1">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fa fa-clock me-2 text-warning"></i>تم جدولته
-                                                            </button>
-                                                        </form>
-
-                                                        <form
-                                                            action="{{ route('appointments.update-status', $info->id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="2">
-                                                            <input type="hidden" name="auto_delete" value="1">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fa fa-check me-2 text-success"></i>تم
-                                                            </button>
-                                                        </form>
-
-                                                        <form
-                                                            action="{{ route('appointments.update-status', $info->id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="3">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fa fa-times me-2 text-danger"></i>صرف النظر عنه
-                                                            </button>
-                                                        </form>
-
-                                                        <form
-                                                            action="{{ route('appointments.update-status', $info->id) }}"
-                                                            method="POST" class="d-inline">
-                                                            @csrf
-                                                            @method('PATCH')
-                                                            <input type="hidden" name="status" value="4">
-                                                            <button type="submit" class="dropdown-item">
-                                                                <i class="fa fa-redo me-2 text-info"></i>تم جدولته مجددا
-                                                            </button>
-                                                        </form>
-
-                                                        <li>
-                                                            <form action="{{ route('appointments.destroy', $info->id) }}"
-                                                                method="POST" class="d-inline">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="dropdown-item text-danger"
-                                                                    onclick="return confirm('هل أنت متأكد من حذف هذا الموعد؟')">
-                                                                    <i class="fa fa-trash me-2"></i>حذف
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <!-- Clients Tab -->
+                    <div class="tab-pane fade" id="clients-content" role="tabpanel" aria-labelledby="clients-tab">
+                        {{-- @include('client.appointments.partials.clients_table', [
+                    'clients' => $clients
+                ]) --}}
                     </div>
                 </div>
             </div>
-        @else
-            <div class="alert alert-info text-center">
-                <p class="mb-0">لا توجد مواعيد مسجلة حالياً</p>
-            </div>
-        @endif
+        </div>
+        <!-- Add this CSS -->
+        <style>
+            .btn-group .btn {
+                padding: 0.375rem 0.75rem;
+            }
+
+            .btn-group .btn i {
+                font-size: 1rem;
+            }
+
+            .btn-group .btn.active {
+                background-color: #e9ecef;
+                border-color: #dee2e6;
+            }
+        </style>
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const gridViewBtn = document.getElementById('gridViewBtn');
+                const listViewBtn = document.getElementById('listViewBtn');
+
+                // Add click event listeners
+                gridViewBtn.addEventListener('click', function() {
+                    this.classList.add('active');
+                    listViewBtn.classList.remove('active');
+                    // Add your grid view logic here
+                    console.log('Switched to Grid View');
+                });
+
+                listViewBtn.addEventListener('click', function() {
+                    this.classList.add('active');
+                    gridViewBtn.classList.remove('active');
+                    // Add your list view logic here
+                    console.log('Switched to List View');
+                });
+            });
+        </script>
+
 
     </div>
     </div>
@@ -549,8 +449,6 @@
 
 
 @endsection
-
-
 @section('scripts')
     <script src="{{ asset('assets/js/applmintion.js') }}"></script>
 

@@ -10,14 +10,13 @@ class Client extends Model
     protected $table = 'clients';
     protected $dates = ['last_note_at'];
     protected $casts = [
-    'force_show' => 'boolean'
-];
-
+        'force_show' => 'boolean',
+    ];
 
     protected $primaryKey = 'id';
     public $timestamps = true;
     // الحقول القابلة للتعبئة
-    protected $fillable = ['trade_name','category_id','force_show','last_note_at', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
+    protected $fillable = ['trade_name', 'category_id', 'force_show', 'last_note_at', 'first_name', 'last_name', 'phone', 'mobile', 'cat', 'street1', 'street2', 'category', 'city', 'region', 'visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id', 'status_id' => 5, 'branch_id'];
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -26,23 +25,23 @@ class Client extends Model
     }
 
     // في ملف Client.php
-public function latestStatus()
-{
-    return $this->hasOne(ClientRelation::class, 'client_id')->latest();
-}
-public function branch()
-{
-    return $this->belongsTo(Branch::class);
-}
-public function Neighborhoodname()
-{
-    return $this->hasOne(Neighborhood::class, 'client_id');
-}
+    public function latestStatus()
+    {
+        return $this->hasOne(ClientRelation::class, 'client_id')->latest();
+    }
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    public function Neighborhoodname()
+    {
+        return $this->hasOne(Neighborhood::class, 'client_id');
+    }
 
-public function Balance()
-{
-    return Account::where('client_id', $this->id)->sum('balance');
-}
+    public function Balance()
+    {
+        return Account::where('client_id', $this->id)->sum('balance');
+    }
     public function getFullAddressAttribute()
     {
         $address = [];
@@ -69,14 +68,10 @@ public function Balance()
     }
 
     // العلاقة مع ملاحظات المواعيد
-    public function appointmentNotes()
-    {
-        return $this->hasMany(ClientRelation::class, 'client_id')
-        ->whereNotNull('description') // فقط السجلات التي تحتوي ملاحظات
-        ->select('id', 'client_id', 'description as content', 'created_at')
-        ->orderBy('created_at', 'desc');
-    }
-
+public function appointmentNotes()
+{
+    return $this->hasMany(ClientRelation::class, 'client_id');
+}
 
 
     // العلاقات
@@ -89,8 +84,6 @@ public function Balance()
     {
         return $this->hasMany(Receipt::class, 'client_id', 'id');
     }
-
-
 
     public function cheques()
     {
@@ -152,10 +145,9 @@ public function Balance()
     }
 
     public function notes()
-{
-    return $this->hasMany(AppointmentNote::class);
-}
-
+    {
+        return $this->hasMany(AppointmentNote::class);
+    }
 
     // دالة لجلب حركة الحساب
     public function getTransactionsAttribute()
@@ -225,127 +217,140 @@ public function Balance()
         });
     }
 
-
     public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->last_name}");
     }
-    public function category()
-    {
-        return $this->hasMany(CategoriesClient::class);
-    }
+  public function categoriesClient()
+{
+    return $this->belongsTo(CategoriesClient::class, 'category_id'); // وضح المفتاح الأجنبي
+}
+
     public function employees()
     {
         return $this->belongsToMany(
-            Employee::class,      // النموذج المرتبط
-            'client_employee',    // اسم الجدول الوسيط
-            'client_id',          // المفتاح الأجنبي للنموذج الحالي
-            'employee_id'         // المفتاح الأجنبي للنموذج المرتبط
-        )->withTimestamps();      // إضافة طوابع زمنية
+            Employee::class, // النموذج المرتبط
+            'client_employee', // اسم الجدول الوسيط
+            'client_id', // المفتاح الأجنبي للنموذج الحالي
+            'employee_id', // المفتاح الأجنبي للنموذج المرتبط
+        )->withTimestamps(); // إضافة طوابع زمنية
     }
     public function payments()
-{
-    return $this->hasManyThrough(PaymentsProcess::class, Invoice::class);
-}
-// في Client model
-public function clientEmployees()
-{
-    return $this->hasMany(ClientEmployee::class);
-}
+    {
+        return $this->hasManyThrough(PaymentsProcess::class, Invoice::class);
+    }
+    // في Client model
+    public function clientEmployees()
+    {
+        return $this->hasMany(ClientEmployee::class);
+    }
 
-public function locations()
-{
-    return $this->hasOne(Location::class, 'client_id');
-}
+    public function locations()
+    {
+        return $this->hasOne(Location::class, 'client_id');
+    }
 
-public function neighborhood()
-{
-    return $this->hasOne(Neighborhood::class);
-}
+    public function neighborhood()
+    {
+        return $this->hasOne(Neighborhood::class);
+    }
 
-public function visits()
-{
-    return $this->hasMany(Visit::class, 'client_id');
-}
+    public function visits()
+    {
+        return $this->hasMany(Visit::class, 'client_id');
+    }
 
-public function status_client()
-{
-    return $this->belongsTo(Statuses::class, 'status_id');
-}
-// في ملف app/Models/Client.php
-public function status()
-{
-    return $this->belongsTo(Statuses::class);
+    public function status_client()
+    {
+        return $this->belongsTo(Statuses::class, 'status_id');
+    }
+    // في ملف app/Models/Client.php
+    public function status()
+    {
+        return $this->belongsTo(Statuses::class);
+    }
+    public function fullLocation(): Attribute
+    {
+        return Attribute::get(function () {
+            $location = [];
 
+            if (!empty($this->street1)) {
+                $location['street1'] = $this->street1;
+            }
 
-}public function fullLocation(): Attribute
-{
-    return Attribute::get(function () {
-        $location = [];
+            if (!empty($this->street2)) {
+                $location['street2'] = $this->street2;
+            }
 
-        if (!empty($this->street1)) {
-            $location['street1'] = $this->street1;
-        }
+            if (!empty($this->country)) {
+                $location['country'] = $this->country;
+            }
 
-        if (!empty($this->street2)) {
-            $location['street2'] = $this->street2;
-        }
+            if (!empty($this->city)) {
+                $location['city'] = $this->city;
+            }
 
-        if (!empty($this->country)) {
-            $location['country'] = $this->country;
-        }
+            if (!empty($this->region)) {
+                $location['region'] = $this->region;
+            }
 
-        if (!empty($this->city)) {
-            $location['city'] = $this->city;
-        }
+            if (!empty($this->postal_code)) {
+                $location['postal_code'] = $this->postal_code;
+            }
 
-        if (!empty($this->region)) {
-            $location['region'] = $this->region;
-        }
+            if ($this->relationLoaded('neighborhood') && $this->neighborhood) {
+                $location['neighborhood'] = $this->neighborhood->name;
+            } elseif (!empty($this->neighborhood_id)) {
+                $location['neighborhood'] = Neighborhood::find($this->neighborhood_id)?->name;
+            }
 
-        if (!empty($this->postal_code)) {
-            $location['postal_code'] = $this->postal_code;
-        }
+            if ($this->relationLoaded('locations') && $this->locations) {
+                $location['latitude'] = $this->locations->latitude;
+                $location['longitude'] = $this->locations->longitude;
+                $location['map_url'] = $this->locations->map_url;
+            }
 
-        if ($this->relationLoaded('neighborhood') && $this->neighborhood) {
-            $location['neighborhood'] = $this->neighborhood->name;
-        } elseif (!empty($this->neighborhood_id)) {
-            $location['neighborhood'] = Neighborhood::find($this->neighborhood_id)?->name;
-        }
+            $formattedAddress = [];
+            if (!empty($location['street1'])) {
+                $formattedAddress[] = $location['street1'];
+            }
+            if (!empty($location['street2'])) {
+                $formattedAddress[] = $location['street2'];
+            }
+            if (!empty($location['neighborhood'])) {
+                $formattedAddress[] = $location['neighborhood'];
+            }
+            if (!empty($location['city'])) {
+                $formattedAddress[] = $location['city'];
+            }
+            if (!empty($location['region'])) {
+                $formattedAddress[] = $location['region'];
+            }
+            if (!empty($location['postal_code'])) {
+                $formattedAddress[] = $location['postal_code'];
+            }
+            if (!empty($location['country'])) {
+                $formattedAddress[] = $location['country'];
+            }
 
-        if ($this->relationLoaded('locations') && $this->locations) {
-            $location['latitude'] = $this->locations->latitude;
-            $location['longitude'] = $this->locations->longitude;
-            $location['map_url'] = $this->locations->map_url;
-        }
+            $location['formatted_address'] = implode('، ', $formattedAddress);
 
-        $formattedAddress = [];
-        if (!empty($location['street1'])) $formattedAddress[] = $location['street1'];
-        if (!empty($location['street2'])) $formattedAddress[] = $location['street2'];
-        if (!empty($location['neighborhood'])) $formattedAddress[] = $location['neighborhood'];
-        if (!empty($location['city'])) $formattedAddress[] = $location['city'];
-        if (!empty($location['region'])) $formattedAddress[] = $location['region'];
-        if (!empty($location['postal_code'])) $formattedAddress[] = $location['postal_code'];
-        if (!empty($location['country'])) $formattedAddress[] = $location['country'];
+            return $location;
+        });
+    }
+    public function formattedAddress(): Attribute
+    {
+        return Attribute::get(function () {
+            return $this->full_location['formatted_address'] ?? '';
+        });
+    }
+    public function group()
+    {
+        return $this->belongsTo(Region_groub::class, 'group_id');
+    }
 
-        $location['formatted_address'] = implode('، ', $formattedAddress);
-
-        return $location;
-    });
-}
-public function formattedAddress(): Attribute
-{
-    return Attribute::get(function () {
-        return $this->full_location['formatted_address'] ?? '';
-    });
-}
-public function group()
-{
-    return $this->belongsTo(Region_groub::class, 'group_id');
-}
-
-public function accounts()
-{
-    return $this->hasMany(Account::class, 'client_id');
-}
+    public function accounts()
+    {
+        return $this->hasMany(Account::class, 'client_id');
+    }
 }

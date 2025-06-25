@@ -160,7 +160,7 @@
                     <div class="card p-3 mb-4">
                         <div class="row g-3 align-items-end">
                             <!-- اسم العميل -->
-                            <div class="col-md-3 col-12">
+                            <div class="col-md-4 col-12">
                                 <label for="client" class="form-label">العميل</label>
                                 <select name="client" id="client" class="form-control select2">
                                     <option value="">اختر العميل</option>
@@ -174,14 +174,9 @@
                             </div>
 
                             <!-- الاسم -->
-                            <div class="col-md-3 col-12">
-                                <label for="name" class="form-label">الاسم</label>
-                                <input type="text" name="name" id="name" class="form-control"
-                                    placeholder="الاسم" value="{{ request('name') }}">
-                            </div>
 
                             <!-- الحالة -->
-                            <div class="col-md-3 col-12">
+                            <div class="col-md-4 col-12">
                                 <label for="status" class="form-label">الحالة</label>
                                 <select name="status" id="status" class="form-control">
                                     <option value="">اختر الحالة</option>
@@ -195,7 +190,7 @@
                             </div>
 
                             <!-- المجموعة -->
-                            <div class="col-md-3 col-12">
+                            <div class="col-md-4 col-12">
                                 <label for="region" class="form-label">المجموعة</label>
                                 <select name="region" id="region" class="form-control select2">
                                     <option value="">اختر المجموعة</option>
@@ -293,216 +288,306 @@
 
         <!-- جدول العملاء -->
         <!-- جدول العملاء -->
+        <div class="mb-3">
+            <input type="text" id="searchInput" class="form-control" placeholder="ابحث عن عميل...">
+        </div>
+
         @if (isset($clients) && $clients->count() > 0)
-            <div class="row">
-                @foreach ($clients as $client)
-                    @php
-                        $clientData = $clientsData[$client->id] ?? null;
-                        $due = $clientDueBalances[$client->id] ?? 0;
-                        $totalSales = $clientTotalSales[$client->id] ?? 0;
-                        $currentMonth = now()->format('m');
-                        $monthlyGroup =
-                            $clientData['monthly_groups'][$currentMonth]['group'] ?? ($clientData['group'] ?? 'D');
-                        $monthlyGroupClass =
-                            $clientData['monthly_groups'][$currentMonth]['group_class'] ??
-                            ($clientData['group_class'] ?? 'secondary');
-                    @endphp
+            <div id="clients-container">
+                <div class="row">
+                    @foreach ($clients as $client)
+                        @php
+                            $clientData = $clientsData[$client->id] ?? null;
+                            $due = $clientDueBalances[$client->id] ?? 0;
+                            $totalSales = $clientTotalSales[$client->id] ?? 0;
+                            $currentMonth = now()->format('m');
+                            $monthlyGroup =
+                                $clientData['monthly_groups'][$currentMonth]['group'] ?? ($clientData['group'] ?? 'D');
+                            $monthlyGroupClass =
+                                $clientData['monthly_groups'][$currentMonth]['group_class'] ??
+                                ($clientData['group_class'] ?? 'secondary');
+                        @endphp
 
-                    <div class="col-md-6 my-3"> <!-- تمت إضافة my-3 لعمل مسافة من الأعلى والأسفل -->
-                        <div class="card shadow-sm border border-1 rounded-3 h-100">
-                            <div class="card-body d-flex flex-column">
-                                <!-- Card Header -->
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <!-- حالة العميل -->
-                                    <div>
-                                        @if ($client->status_client)
-                                            <span class="badge rounded-pill"
-                                                style="background-color: {{ $client->status_client->color }}; font-size: 11px;">
-                                                <i class="fas fa-circle me-1"></i>
-                                                {{ $client->status_client->name }}
-                                            </span>
-                                        @else
-                                            <span class="badge rounded-pill bg-secondary" style="font-size: 11px;">
-                                                <i class="fas fa-question-circle me-1"></i>
-                                                غير محدد
-                                            </span>
-                                        @endif
-                                    </div>
+                        <div class="col-md-6 my-3 client-card">
+                            <div class="card shadow-sm border border-1 rounded-3 h-100">
+                                <!-- محتوى الكارد كما هو -->
+                                <div class="card-body d-flex flex-column">
+                                    <!-- Card Header -->
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <!-- حالة العميل -->
+                                        @php
+                                            // نحصل آخر ملاحظة فيها الحالة الأصلية من الموظف الحالي بنوع "إبلاغ المشرف"
+                                            $lastNote = $client
+                                                ->appointmentNotes()
+                                                ->where('employee_id', auth()->id())
+                                                ->where('process', 'إبلاغ المشرف')
+                                                ->whereNotNull('employee_view_status')
+                                                ->latest()
+                                                ->first();
 
-                                    <!-- Dropdown -->
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary" type="button"
-                                            id="clientActionsDropdown{{ $client->id }}" data-bs-toggle="dropdown"
-                                            aria-expanded="false" style="font-size: 11px;">
-                                            <i class="fas fa-ellipsis-v"></i>
-                                        </button>
-                                        <ul class="dropdown-menu"
-                                            aria-labelledby="clientActionsDropdown{{ $client->id }}">
-                                            <li>
-                                                <a class="dropdown-item" href="{{ route('clients.show', $client->id) }}">
-                                                    <i class="far fa-eye me-1"></i> عرض
-                                                </a>
-                                            </li>
-                                            @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                            // الحالة الأساسية الافتراضية
+                                            $statusToShow = $client->status_client;
+
+                                            // لو الموظف هو اللي أبلغ المشرف، نعرض له الحالة الأصلية
+                                            if (
+                                                auth()->user()->role === 'employee' &&
+                                                $lastNote &&
+                                                $lastNote->employee_id == auth()->id()
+                                            ) {
+                                                $statusToShow = $statuses->find($lastNote->employee_view_status);
+                                            }
+                                        @endphp
+
+                                        <div>
+                                            @if ($statusToShow)
+                                                <span class="badge rounded-pill"
+                                                    style="background-color: {{ $statusToShow->color }}; font-size: 11px;">
+                                                    <i class="fas fa-circle me-1"></i>
+                                                    {{ $statusToShow->name }}
+                                                </span>
+                                            @else
+                                                <span class="badge rounded-pill bg-secondary" style="font-size: 11px;">
+                                                    <i class="fas fa-question-circle me-1"></i>
+                                                    غير محدد
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <!-- Dropdown -->
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                id="clientActionsDropdown{{ $client->id }}" data-bs-toggle="dropdown"
+                                                aria-expanded="false" style="font-size: 11px;">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu"
+                                                aria-labelledby="clientActionsDropdown{{ $client->id }}">
                                                 <li>
                                                     <a class="dropdown-item"
-                                                        href="{{ route('clients.edit', $client->id) }}">
-                                                        <i class="fas fa-edit me-1"></i> تعديل
+                                                        href="{{ route('clients.show', $client->id) }}">
+                                                        <i class="far fa-eye me-1"></i> عرض
                                                     </a>
                                                 </li>
-                                            @endif
-                                            @if (auth()->user()->hasPermissionTo('Delete_Client'))
-                                                <li>
-                                                    <a class="dropdown-item text-danger"
-                                                        href="{{ route('clients.destroy', $client->id) }}">
-                                                        <i class="fas fa-trash-alt me-1"></i> حذف
-                                                    </a>
-                                                </li>
-                                            @endif
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <!-- Client Info -->
-                                <div class="row row-cols-2 g-2 mb-2">
-                                    <!-- Column 1 -->
-                                    <div class="col">
-                                        <h6 class="client-name text-primary mb-2" style="font-size: 15px;">
-                                            <i class="fas fa-store me-1"></i>
-                                            {{ $client->trade_name }}
-                                        </h6>
-
-                                        <div class="mb-1">
-                                            <small><i class="fas fa-phone text-secondary me-1"></i>
-                                                {{ $client->phone ?? '-' }}</small>
-                                        </div>
-                                        <div class="mb-1">
-                                            <small><i class="fas fa-user text-secondary me-1"></i>
-                                                {{ $client->frist_name ?? '-' }}</small>
-                                        </div>
-                                        <div class="mb-1">
-                                            <small>
-                                                <i class="fas fa-map-marker-alt text-secondary me-1"></i>
-                                                <a href="#" class="text-decoration-none">عرض الموقع</a>
-                                            </small>
-                                        </div>
-                                    </div>
-
-                                    <!-- Column 2 -->
-                                    <div class="col">
-                                        <div class="mb-1">
-                                            <small><i class="fas fa-id-badge text-secondary me-1"></i>
-                                                {{ $client->frist_name }}</small>
-                                        </div>
-                                        <div class="mb-1">
-                                            <small><i class="fas fa-tags text-secondary me-1"></i>
-                                                {{ $client->categoryClients->name ?? '-' }}</small>
-                                        </div>
-                                        <div class="mb-1">
-                                            <small><i class="fas fa-code-branch text-secondary me-1"></i>
-                                                {{ $client->branch->name ?? '-' }}</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Dates and Status -->
-                                <div class="d-flex justify-content-between text-center border rounded p-2 mb-2">
-                                    <div>
-                                        <i class="fas fa-calendar-plus text-secondary"></i>
-                                        <div><small>الإضافة</small></div>
-                                        <small>{{ $client->created_at->format('Y-m-d') }}</small>
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-file-invoice-dollar text-secondary"></i>
-                                        <div><small>آخر فاتورة</small></div>
-                                        <small>{{ $client->invoices->last()->invoice_number ?? '-' }}</small>
-                                    </div>
-                                    <div>
-                                        <i class="fas fa-check text-success"></i>
-                                        <div><small>الحالة</small></div>
-                                        <strong class="text-success">نشط</strong>
-                                    </div>
-                                </div>
-
-                                <!-- Stats Section -->
-                                <div class="d-flex justify-content-around text-center border rounded p-2 mb-3">
-                                    <div class="px-1">
-                                        <i class="fas fa-cash-register text-primary"></i>
-                                        <div class="small text-muted">المبيعات</div>
-                                        <strong class="text-primary">{{ number_format($totalSales ?? 0) }}</strong>
-                                    </div>
-                                    <div class="px-1">
-                                        <i class="fas fa-money-bill-wave text-success"></i>
-                                        <div class="small text-muted">التحصيلات</div>
-                                        <strong
-                                            class="text-success">{{ number_format($clientsData[$client->id]['total_collected'] ?? 0) }}</strong>
-                                    </div>
-                                    <div class="px-1">
-                                        <i class="fas fa-clock text-warning"></i>
-                                        <div class="small text-muted">الآجلة</div>
-                                        <strong
-                                            class="text-warning">{{ number_format($clientDueBalances[$client->id] ?? 0) }}</strong>
-                                    </div>
-                                </div>
-
-                                <!-- Monthly Classification with Enhanced Details -->
-                                <div class="mb-3">
-                                    <h6 class="text-muted mb-2">التصنيف الشهري لعام {{ $currentYear }}</h6>
-                                    <div class="d-flex flex-wrap justify-content-start">
-                                        @foreach ($months as $monthName => $monthNumber)
-                                            @php
-                                                $monthData = $clientsData[$client->id]['monthly'][$monthName] ?? null;
-                                                $group = $monthData['group'] ?? 'd';
-                                                $groupClass = $monthData['group_class'] ?? 'secondary';
-                                                $collected = $monthData['collected'] ?? 0;
-                                                $percentage = $monthData['percentage'] ?? 0;
-                                                $paymentsTotal = $monthData['payments_total'] ?? 0;
-                                                $receiptsTotal = $monthData['receipts_total'] ?? 0;
-                                                $target = $monthData['target'] ?? 100000;
-                                            @endphp
-
-                                            <div class="text-center position-relative" style="margin: 5px;"
-                                                data-bs-toggle="tooltip" data-bs-placement="top"
-                                                title="التحصيلات: {{ number_format($collected) }} | المدفوعات: {{ number_format($paymentsTotal) }} | سندات القبض: {{ number_format($receiptsTotal) }} | النسبة: {{ $percentage }}%">
-
-                                                <!-- Classification Circle -->
-                                                <div class="rounded-circle border-2 border-{{ $groupClass }}
-                            text-{{ $groupClass }} fw-bold
-                            d-flex align-items-center justify-content-center"
-                                                    style="width:40px; height:40px; cursor: pointer;">
-                                                    {{ $group }}
-                                                </div>
-
-                                                <!-- Month Name -->
-                                                <small class="d-block text-muted mt-1">{{ $monthName }}</small>
-
-                                                <!-- Amount Collected (if any) -->
-                                                @if ($collected > 0)
-                                                    <small class="d-block text-success" style="font-size: 0.7rem;">
-                                                        {{ number_format($collected, 0) }}
-                                                    </small>
+                                                @if (auth()->user()->hasPermissionTo('Edit_Client'))
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('clients.edit', $client->id) }}">
+                                                            <i class="fas fa-edit me-1"></i> تعديل
+                                                        </a>
+                                                    </li>
                                                 @endif
-                                            </div>
-                                        @endforeach
+                                                @if (auth()->user()->hasPermissionTo('Delete_Client'))
+                                                    <li>
+                                                        <a class="dropdown-item text-danger"
+                                                            href="{{ route('clients.destroy', $client->id) }}">
+                                                            <i class="fas fa-trash-alt me-1"></i> حذف
+                                                        </a>
+                                                    </li>
+                                                @endif
+                                            </ul>
+                                        </div>
                                     </div>
+
+
+                                    <!-- Client Info -->
+                                    <div class="row row-cols-2 g-2 mb-2">
+                                        <!-- Column 1 -->
+                                        <div class="col">
+                                            <h6 class="client-name text-primary mb-2" style="font-size: 15px;">
+                                                <i class="fas fa-store me-1"></i>
+                                                {{ $client->trade_name }}
+                                            </h6>
+
+                                            <div class="mb-1">
+                                                <small><i class="fas fa-phone text-secondary me-1"></i>
+                                                    {{ $client->phone ?? '-' }}</small>
+                                            </div>
+                                            s <div class="mb-1">
+                                                <small><i class="fas fa-user text-secondary me-1"></i>
+                                                    {{ $client->frist_name ?? '-' }}</small>
+                                            </div>
+                                            <div class="mb-1">
+                                                <small>
+                                                    <i class="fas fa-map-marker-alt text-secondary me-1"></i>
+                                                    <a
+                                                        href="https://www.google.com/maps/search/?api=1&query={{ $client->locations->latitude }},{{ $client->locations->longitude }}">
+                                                        عرض الموقع
+                                                    </a>
+                                                </small>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- Column 2 -->
+                                        <div class="col">
+                                            <div class="mb-1">
+                                                <h7 class="client-name  mb-2">
+
+                                                    {{ $client->code }}
+                                                </h7>
+
+                                            </div>
+
+                                            <div class="mb-1">
+                                                <small><i class="fas fa-tags text-secondary me-1"></i>
+                                                    {{ optional($client->categoriesClient)->name }}
+                                                </small>
+
+                                            </div>
+                                            <div class="mb-1">
+                                                <small><i class="fas fa-code-branch text-secondary me-1"></i>
+                                                    {{ $client->Neighborhood->Region->name ?? '-' }}</small>
+                                            </div>
+                                            <div class="mb-1">
+                                                <small><i class="fas fa-code-branch text-secondary me-1"></i>
+                                                    {{ $client->branch->name ?? '-' }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Dates and Status -->
+                                    <div class="d-flex justify-content-between text-center border rounded p-2 mb-2">
+                                        <div>
+                                            <i class="fas fa-calendar-plus text-secondary"></i>
+                                            <div><small>الإضافة</small></div>
+                                            <small>{{ $client->created_at->format('Y-m-d') }}</small>
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-file-invoice-dollar text-secondary"></i>
+                                            <div><small>آخر فاتورة</small></div>
+                                            <small>{{ $client->invoices->last()->invoice_date ?? '-' }}</small>
+                                        </div>
+
+                                        @php
+                                            // نحاول نحصل آخر ملاحظة من نوع "إبلاغ المشرف" أنشأها نفس الموظف
+                                            $lastNote = $client
+                                                ->appointmentNotes()
+                                                ->where('employee_id', auth()->id())
+                                                ->where('process', 'إبلاغ المشرف')
+                                                ->whereNotNull('employee_view_status')
+                                                ->latest()
+                                                ->first();
+
+                                            // الحالة الأساسية هي الحالة الحالية للعميل
+                                            $statusToShow = $client->status_client;
+
+                                            // إذا كان الموظف هو من أبلغ المشرف نعرض له الحالة الأصلية المحفوظة
+                                            if (
+                                                auth()->user()->role === 'employee' &&
+                                                $lastNote &&
+                                                $lastNote->employee_id == auth()->id()
+                                            ) {
+                                                $statusToShow = $statuses->find($lastNote->employee_view_status);
+                                            }
+                                        @endphp
+
+                                        <div>
+                                            <i class="fas fa-check"
+                                                style="color: {{ $statusToShow->color ?? '#6c757d' }}"></i>
+                                            <div><small>الحالة</small></div>
+
+                                            @if ($statusToShow)
+                                                <strong style="color: {{ $statusToShow->color }};">
+                                                    {{ $statusToShow->name }}
+                                                </strong>
+                                            @else
+                                                <strong class="text-secondary">غير محدد</strong>
+                                            @endif
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Stats Section -->
+                                    <div class="d-flex justify-content-around text-center border rounded p-2 mb-3">
+                                        <div class="px-1">
+                                            <i class="fas fa-cash-register text-primary"></i>
+                                            <div class="small text-muted">المبيعات</div>
+                                            <strong class="text-primary">{{ number_format($totalSales ?? 0) }}</strong>
+                                        </div>
+                                        <div class="px-1">
+                                            <i class="fas fa-money-bill-wave text-success"></i>
+                                            <div class="small text-muted">التحصيلات</div>
+                                            <strong
+                                                class="text-success">{{ number_format($clientsData[$client->id]['total_collected'] ?? 0) }}</strong>
+                                        </div>
+                                        <div class="px-1">
+                                            <i class="fas fa-clock text-warning"></i>
+                                            <div class="small text-muted">الآجلة</div>
+                                            <strong
+                                                class="text-warning">{{ number_format($clientDueBalances[$client->id] ?? 0) }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <!-- Monthly Classification with Enhanced Details -->
+                                    <div class="mb-3">
+                                        <h6 class="text-muted mb-2">التصنيف الشهري لعام {{ $currentYear }}</h6>
+                                        <div class="d-flex flex-wrap justify-content-start">
+                                            @foreach ($months as $monthName => $monthNumber)
+                                                @continue($monthNumber > now()->month) <!-- تجاهل الشهور القادمة -->
+
+                                                @php
+                                                    $monthData =
+                                                        $clientsData[$client->id]['monthly'][$monthName] ?? null;
+                                                    $group = $monthData['group'] ?? 'd';
+                                                    $groupClass = $monthData['group_class'] ?? 'secondary';
+                                                    $collected = $monthData['collected'] ?? 0;
+                                                    $percentage = $monthData['percentage'] ?? 0;
+                                                    $paymentsTotal = $monthData['payments_total'] ?? 0;
+                                                    $receiptsTotal = $monthData['receipts_total'] ?? 0;
+                                                    $target = $monthData['target'] ?? 100000;
+                                                @endphp
+
+                                                <div class="text-center position-relative" style="margin: 5px;"
+                                                    data-bs-toggle="tooltip" data-bs-placement="top"
+                                                    title="التحصيلات: {{ number_format($collected) }} | المدفوعات: {{ number_format($paymentsTotal) }} | سندات القبض: {{ number_format($receiptsTotal) }} | النسبة: {{ $percentage }}%">
+
+                                                    <!-- Classification Circle -->
+                                                    <div class="rounded-circle border-2 border-{{ $groupClass }}
+                text-{{ $groupClass }} fw-bold
+                d-flex align-items-center justify-content-center"
+                                                        style="width:40px; height:40px; cursor: pointer;">
+                                                        {{ $group }}
+                                                    </div>
+
+                                                    <!-- Month Name -->
+                                                    <small class="d-block text-muted mt-1">{{ $monthName }}</small>
+
+                                                    <!-- Amount Collected (if any) -->
+                                                    @if ($collected > 0)
+                                                        <small class="d-block text-success" style="font-size: 0.7rem;">
+                                                            {{ number_format($collected, 0) }}
+                                                        </small>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Detailed Monthly Breakdown (Collapsible) -->
+
+
+                                    <!-- JavaScript for Tooltips -->
+
                                 </div>
-
-                                <!-- Detailed Monthly Breakdown (Collapsible) -->
-
-
-                                <!-- JavaScript for Tooltips -->
-
                             </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="alert alert-info text-center py-4" role="alert">
-                <i class="fas fa-info-circle fa-2x mb-3"></i>
-                <h5 class="mb-0">لا توجد عملاء مسجلين حالياً</h5>
-            </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="alert alert-info text-center py-4" role="alert">
+                    <i class="fas fa-info-circle fa-2x mb-3"></i>
+                    <h5 class="mb-0">لا توجد عملاء مسجلين حالياً</h5>
+                </div>
         @endif
+        <div class="d-flex justify-content-end align-items-center mb-3">
+            <label for="cardsPerPage" class="me-2">أظهر</label>
+            <select id="cardsPerPage" class="form-select w-auto" style="min-width: 80px;">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+            <span class="ms-2">مدخلات</span>
+        </div>
 
 
 
@@ -519,7 +604,8 @@
                         </li>
                     @else
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->url(1) }}" aria-label="First">
+                            <a class="page-link border-0 rounded-pill pagination-link" href="{{ $clients->url(1) }}"
+                                aria-label="First" data-page="1">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         </li>
@@ -534,8 +620,9 @@
                         </li>
                     @else
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->previousPageUrl() }}"
-                                aria-label="Previous">
+                            <a class="page-link border-0 rounded-pill pagination-link"
+                                href="{{ $clients->previousPageUrl() }}" aria-label="Previous"
+                                data-page="{{ $clients->currentPage() - 1 }}">
                                 <i class="fas fa-angle-right"></i>
                             </a>
                         </li>
@@ -551,8 +638,9 @@
                     <!-- زر الانتقال إلى الصفحة التالية -->
                     @if ($clients->hasMorePages())
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->nextPageUrl() }}"
-                                aria-label="Next">
+                            <a class="page-link border-0 rounded-pill pagination-link"
+                                href="{{ $clients->nextPageUrl() }}" aria-label="Next"
+                                data-page="{{ $clients->currentPage() + 1 }}">
                                 <i class="fas fa-angle-left"></i>
                             </a>
                         </li>
@@ -567,8 +655,9 @@
                     <!-- زر الانتقال إلى آخر صفحة -->
                     @if ($clients->hasMorePages())
                         <li class="page-item">
-                            <a class="page-link border-0 rounded-pill" href="{{ $clients->url($clients->lastPage()) }}"
-                                aria-label="Last">
+                            <a class="page-link border-0 rounded-pill pagination-link"
+                                href="{{ $clients->url($clients->lastPage()) }}" aria-label="Last"
+                                data-page="{{ $clients->lastPage() }}">
                                 <i class="fas fa-angle-double-left"></i>
                             </a>
                         </li>
@@ -619,11 +708,49 @@
 
 @section('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 
 
     <script
         src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places&callback=initMap"
         async defer></script>
+
+    <script>
+        $(document).ready(function() {
+            function paginateCards(perPage) {
+                const cards = $('.client-card');
+                cards.hide(); // أخفِ جميع الكروت أولاً
+                cards.slice(0, perPage).show(); // عرض العدد المطلوب فقط
+            }
+
+            // أول مرة عرض
+            paginateCards($('#cardsPerPage').val());
+
+            // عند تغيير القيمة
+            $('#cardsPerPage').on('change', function() {
+                const perPage = parseInt($(this).val());
+                paginateCards(perPage);
+            });
+        });
+    </script>
+    @php
+        $statusColor = optional($client->status_client)->color ?? '#CCCCCC';
+
+        if (auth()->user()->role === 'employee') {
+            $lastNote = $client
+                ->appointmentNotes()
+                ->where('employee_id', auth()->id())
+                ->whereNotNull('employee_view_status')
+                ->latest()
+                ->first();
+
+            if ($lastNote && $lastNote->process === 'إبلاغ المشرف') {
+                $originalStatus = \App\Models\Statuses::find($lastNote->employee_view_status);
+                $statusColor = $originalStatus->color ?? $statusColor;
+            }
+        }
+    @endphp
+
     <script>
         let map;
         let infoWindow;
@@ -726,7 +853,8 @@
                 </div>
             </div>
         </div>
-    `;
+
+         `;
                 infoWindow = new google.maps.InfoWindow({
                     content: contentString,
                     maxWidth: 300
@@ -736,16 +864,50 @@
 
             // إضافة علامات العملاء
             // إضافة علامات العملاء
+            // إضافة علامات العملاء
+            // إضافة علامات العملاء
+
             let allMarkers = [];
 
             @foreach ($allClients as $client)
                 @if ($client->locations && $client->locations->latitude && $client->locations->longitude)
                     @php
-                        $lastNoteTime = $client->last_note_at ? \Carbon\Carbon::parse($client->last_note_at) : null;
-                        $shouldShow = !$lastNoteTime || $lastNoteTime->diffInHours(now()) >= 24 || $client->force_show;
+                        $shouldHide = false;
+                        $statusColor = optional($client->status_client)->color ?? '#4CAF50';
+                        $statusName = optional($client->status_client)->name ?? 'غير محدد';
+
+                        if (auth()->user()->role === 'employee') {
+                            //  استخدم orderByDesc للحصول على أحدث ملاحظة فعليًا
+                            $lastNote = $client->appointmentNotes()->orderByDesc('created_at')->first();
+
+                            // إذا الموظف هو كاتب آخر ملاحظة → نخفي العميل
+                            $shouldHide = $lastNote && $lastNote->employee_id == auth()->id();
+
+                            // force_show = true → نظهر العميل
+                            if ($client->force_show) {
+                                $shouldHide = false;
+                            }
+
+                            // تغيير اللون في حالة "إبلاغ مشرف"
+                            $employeeNote = $client
+                                ->appointmentNotes()
+                                ->where('employee_id', auth()->id())
+                                ->whereNotNull('employee_view_status')
+                                ->orderByDesc('created_at')
+                                ->first();
+
+                            if ($employeeNote && $employeeNote->process === 'إبلاغ المشرف') {
+                                $originalStatus = \App\Models\Statuses::find($employeeNote->employee_view_status);
+                                if ($originalStatus) {
+                                    $statusColor = $originalStatus->color;
+                                    $statusName = $originalStatus->name;
+                                }
+                            }
+                        }
                     @endphp
 
-                    @if ($shouldShow)
+
+                    @if (!$shouldHide)
                         const marker{{ $client->id }} = new google.maps.Marker({
                             position: {
                                 lat: {{ $client->locations->latitude }},
@@ -756,13 +918,12 @@
                             icon: {
                                 url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
                         <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
-                            <!-- Background bubble -->
-                            <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
-                            <!-- Bottom triangle -->
-                            <path d="M8 16 L12 22 L16 16 Z" fill="{{ optional($client->status_client)->color ?? '#4CAF50' }}" />
-                            <!-- Text -->
+                            <rect x="0" y="0" width="60" height="16" rx="8" fill="{{ $statusColor }}" />
+                            <path d="M8 16 L12 22 L16 16 Z" fill="{{ $statusColor }}" />
                             <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white">{{ $client->code }}</text>
                         </svg>
+
+
                     `),
                                 scaledSize: new google.maps.Size(60, 24),
                                 anchor: new google.maps.Point(12, 22)
@@ -770,7 +931,6 @@
                             animation: google.maps.Animation.DROP
                         });
 
-                        // إضافة الماركر للمصفوفة
                         allMarkers.push({
                             marker: marker{{ $client->id }},
                             clientName: "{{ $client->trade_name }}".toLowerCase(),
@@ -778,20 +938,21 @@
                             data: {
                                 id: {{ $client->id }},
                                 name: "{{ $client->trade_name }}",
-                                status: "{{ optional($client->status_client)->color ?? '#CCCCCC' }}",
+                                status: "{{ $statusColor }}",
+
                                 phone: "{{ $client->phone }}",
                                 region: "{{ $client->Neighborhoodname->Region->name ?? '' }}",
                                 balance: "{{ $client->Balance() }}"
                             }
                         });
 
-                        // إضافة مستمع حدث النقر
                         marker{{ $client->id }}.addListener('click', () => {
                             showClientInfo(allMarkers.find(m => m.marker === marker{{ $client->id }}));
                         });
                     @endif
                 @endif
             @endforeach
+
             // إضافة ماركر موقع المستخدم
             @if (isset($userLocation))
                 var userLocation = {
@@ -945,50 +1106,56 @@
         });
     </script>
 
+
     <script>
-        function exportClientsToExcel() {
-            const data = [];
+        $(document).ready(function() {
+            $('#searchInput').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
 
-            // العناوين (الصف الأول)
-            data.push([
-                "الاسم التجاري",
-                "الاسم الأول",
-                "الاسم الأخير",
-                "البريد الإلكتروني",
-                "رقم الجوال",
-                "تاريخ الإضافة"
-            ]);
+                $('.client-card').filter(function() {
+                    // تبحث داخل الاسم أو رقم الهاتف أو الاسم الأول
+                    var content = $(this).text().toLowerCase();
+                    $(this).toggle(content.indexOf(value) > -1);
+                });
+            });
+        });
+    </script>
 
-            // جلب بيانات العملاء من عناصر HTML
-            document.querySelectorAll('.client-info').forEach(card => {
-                const tradeName = card.querySelector('.client-name')?.innerText.trim() || '';
-                const fullName = card.querySelector('.fa-user')?.parentElement?.innerText.trim().replace('', '')
-                    .trim().split(' ') || ['', ''];
-                const email = card.querySelector('.fa-envelope')?.parentElement?.innerText.trim().replace('', '')
-                    .trim() || '';
-                const phone = card.querySelector('.fa-phone')?.parentElement?.innerText.trim().replace('', '')
-                    .trim() || '';
-                const createdAt = card.querySelector('.fa-calendar-alt')?.parentElement?.innerText.trim().replace(
-                    '', '').replace('تاريخ الإضافة:', '').trim() || '';
-
-                data.push([
-                    tradeName,
-                    fullName[0],
-                    fullName[1] || '',
-                    email,
-                    phone,
-                    createdAt
-                ]);
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // منع السلوك الافتراضي للنقر على روابط التصفح
+            document.querySelectorAll('.pagination-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadPage(this.href);
+                });
             });
 
-            // إنشاء ملف Excel
-            const worksheet = XLSX.utils.aoa_to_sheet(data);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "العملاء");
+            // دالة لجلب المحتوى عبر AJAX
+            function loadPage(url) {
+                fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        // هنا يمكنك تحديث الجزء المطلوب من الصفحة
+                        // مثلاً إذا كان الجدول في div معين:
+                        document.getElementById('clients-container').innerHTML = html;
 
-            // حفظ الملف
-            XLSX.writeFile(workbook, "clients.xlsx");
-        }
+                        // تحديث عنوان URL في المتصفح دون إعادة تحميل الصفحة
+                        history.pushState(null, null, url);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            // التعامل مع زر الرجوع في المتصفح
+            window.addEventListener('popstate', function() {
+                loadPage(window.location.href);
+            });
+        });
     </script>
+
 
 @stop

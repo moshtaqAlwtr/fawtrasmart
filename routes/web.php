@@ -70,8 +70,8 @@ Route::group(
             Route::get('/daily_closing_entry', [EmployeeTargetController::class, 'daily_closing_entry'])->name('daily_closing_entry');
 
             // احصائيات الزيارات
-             Route::get('/visitTarget', [EmployeeTargetController::class, 'visitTarget'])->name('visitTarget');
-             Route::post('/visitTarget', [EmployeeTargetController::class, 'updatevisitTarget'])->name('target.visitTarget');
+            Route::get('/visitTarget', [EmployeeTargetController::class, 'visitTarget'])->name('visitTarget');
+            Route::post('/visitTarget', [EmployeeTargetController::class, 'updatevisitTarget'])->name('target.visitTarget');
             //احصائيات الفروع
 
             Route::get('/statistics_branch', [StatisticsController::class, 'StatisticsGroup'])->name('statistics.group');
@@ -117,8 +117,7 @@ Route::group(
 
                         Route::get('/notifications/mark/show/{id}', [InvoicesController::class, 'markAsReadid'])->name('notifications.markAsReadid');
                         Route::get('/notifications', [InvoicesController::class, 'notifications'])->name('notifications.index');
-                        Route::post('/invoices/{invoice}/signatures', [InvoicesController::class, 'storeSignatures'])
-    ->name('invoices.signatures.store');
+                        Route::post('/invoices/{invoice}/signatures', [InvoicesController::class, 'storeSignatures'])->name('invoices.signatures.store');
                     });
 
                 Route::prefix('ReturnIInvoices')->group(function () {
@@ -131,7 +130,6 @@ Route::group(
                     Route::put('/update/{id}', [ReturnInvoiceController::class, 'update'])->name('ReturnIInvoices.update');
                     Route::delete('/destroy/{id}', [ReturnInvoiceController::class, 'destroy'])->name('ReturnIInvoices.destroy');
                 });
-
 
                 Route::prefix('RevolvingInvoices')->group(function () {
                     Route::get('/index', [RevolvingInvoicesController::class, 'index'])->name('revolving_invoices.index');
@@ -189,6 +187,7 @@ Route::group(
 
                     // جلب تفاصيل الموعد الكاملة
                     Route::get('/appointments/{id}/full-details', [AppointmentController::class, 'getFullAppointmentDetails'])->name('appointments.full-details');
+                    Route::get('/appointments/calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
                     Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
                 });
 
@@ -253,7 +252,6 @@ Route::group(
                     Route::get('/status/clients', [ClientSettingController::class, 'status'])->name('clients.status');
                     Route::post('/status/store', [ClientSettingController::class, 'storeStatus'])->name('clients.status.store');
 
-
                     Route::post('/update-client-status', [ClientController::class, 'updateStatusClient'])->name('clients.updateStatusClient');
 
                     Route::delete('/status/delete/{id}', [ClientSettingController::class, 'deleteStatus'])->name('clients.status.delete');
@@ -286,6 +284,9 @@ Route::group(
                     Route::get('/clients/{client}/assigned-employees', [ClientController::class, 'getAssignedEmployees'])->name('clients.get-assigned-employees');
                     Route::get('/clients_management/clients/all', [ClientController::class, 'getAllClients'])->name('clients.all');
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
+                    // مسار تصدير العملاء إلى Excel
+                    Route::get('/export', [ClientController::class, 'export'])->name('clients.export');
+
                     Route::get('/clients/search', function (Request $request) {
                         $query = $request->query('query');
 
@@ -305,25 +306,21 @@ Route::group(
                     });
                 });
                 Route::prefix('group')->group(function () {
-                  Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
+                    Route::get('/group', [GroupsController::class, 'group_client'])->name('groups.group_client');
                     Route::get('/group/create', [GroupsController::class, 'group_client_create'])->name('groups.group_client_create');
                     Route::post('/group/store', [GroupsController::class, 'group_client_store'])->name('groups.group_client_store');
                     Route::get('/group/edit/{id}', [GroupsController::class, 'group_client_edit'])->name('groups.group_client_edit');
                     Route::put('/group/update/{id}', [GroupsController::class, 'group_client_update'])->name('groups.group_client_update');
-                    Route::delete('/group/delete/{id}', [GroupsController::class, 'group_client_destroy'])->name('groups.group_client_destroy');
-
+                    Route::delete('/group/delete/{id}', [GroupsController::class, 'destroy'])->name('groups.group_client_destroy');
                 });
                 Route::prefix('categoriesClient')->group(function () {
-                  Route::get('/categories', [CatagroiyClientController::class, 'index'])->name('categoriesClient.index');
+                    Route::get('/categories', [CatagroiyClientController::class, 'index'])->name('categoriesClient.index');
                     Route::get('/categories/create', [CatagroiyClientController::class, 'create'])->name('categoriesClient.create');
                     Route::post('/categories/store', [CatagroiyClientController::class, 'store'])->name('categoriesClient.store');
                     Route::get('/categories/edit/{id}', [CatagroiyClientController::class, 'edit'])->name('categoriesClient.edit');
                     Route::put('/categories/update/{id}', [CatagroiyClientController::class, 'update'])->name('categoriesClient.update');
                     Route::delete('/categories/delete/{id}', [CatagroiyClientController::class, 'destroy'])->name('categoriesClient.destroy');
-
-
                 });
-
 
                 Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                 Route::get('/mang_client/{id}', [ClientController::class, 'mang_client_details'])->name('clients.mang_client_details');
@@ -333,8 +330,9 @@ Route::group(
                     Route::post('/store', [PaymentProcessController::class, 'store'])->name('paymentsClient.store');
                     Route::get('/show/{id}', [PaymentProcessController::class, 'show'])->name('paymentsClient.show');
                     Route::get('/edit/{id}', [PaymentProcessController::class, 'edit'])->name('paymentsClient.edit');
-                    Route::post('/clients/{client}/force-show', [ClientController::class, 'forceShow'])
-    ->name('clients.force-show');
+                    Route::get('/clients/load-more', [ClientController::class, 'loadMore'])->name('clients.loadMore');
+
+                    Route::post('/clients/{client}/force-show', [ClientController::class, 'forceShow'])->name('clients.force-show');
 
                     Route::get('/rereceipt/{id}', [PaymentProcessController::class, 'rereceipt'])->name('paymentsClient.rereceipt');
                     Route::get('/receipt/pdf/{id}', [PaymentProcessController::class, 'pdfReceipt'])->name('paymentsClient.pdf');
@@ -390,11 +388,9 @@ Route::group(
                                     'valid_to' => $offer->valid_to,
                                     'clients' => $offer->clients->map(fn($c) => ['id' => $c->id]),
                                     'products' => $offer->products->map(fn($p) => ['id' => $p->id]),
-                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id])
+                                    'categories' => $offer->categories->map(fn($cat) => ['id' => $cat->id]),
                                 ];
                             });
-
-
 
                         return response()->json($offers);
                     });
@@ -430,28 +426,21 @@ Route::group(
                     ->middleware('auth')
                     ->name('visits.today');
 
-
-
                 Route::get('/traffic-analysis', [VisitController::class, 'tracktaff'])->name('traffic.analysis');
                 Route::post('/get-weeks-data', [VisitController::class, 'getWeeksData'])->name('get.weeks.data');
                 Route::post('/get-traffic-data', [VisitController::class, 'getTrafficData'])->name('get.traffic.data');
 
-
-                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])
-                    ->name('visits.storeLocationEnhanced');
-
+                Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
 
                 Route::post('/visits/location-enhanced', [VisitController::class, 'storeLocationEnhanced'])->name('visits.storeLocationEnhanced');
 
                 Route::get('/tracktaff', [VisitController::class, 'tracktaff'])->name('visits.tracktaff');
 
                 // إضافة هذا المسار للانصراف التلقائي
-                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])
-                    ->name('visits.processAutoDepartures');
+                Route::get('/process-auto-departures', [VisitController::class, 'checkAndProcessAutoDepartures'])->name('visits.processAutoDepartures');
                 Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
                 // إضافة مسار للانصراف اليدوي
-                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])
-                    ->name('visits.manualDeparture');
+                Route::post('/manual-departure/{visitId}', [VisitController::class, 'manualDeparture'])->name('visits.manualDeparture');
             });
         Route::prefix('commission')
             ->middleware(['auth'])
@@ -469,8 +458,4 @@ Route::group(
                 Route::get('/index', [LogController::class, 'index'])->name('logs.index');
             });
     },
-
-
-
-
 );

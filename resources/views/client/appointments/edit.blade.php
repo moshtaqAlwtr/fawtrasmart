@@ -61,7 +61,7 @@
                                             @if (@isset($clients) && !@empty($clients) && count($clients) > 0)
                                                 @foreach ($clients as $client)
                                                     <option value="{{ $client->id }}" {{ $appointment->client_id == $client->id ? 'selected' : '' }}>
-                                                        {{ $client->trade_name }}
+                                                        {{ $client->trade_name }}-{{ $client->code??'' }}
                                                     </option>
                                                 @endforeach
                                             @else

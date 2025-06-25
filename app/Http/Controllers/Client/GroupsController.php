@@ -68,11 +68,13 @@ class GroupsController extends Controller
         // إرجاع البيانات المحفوظة أو رسالة نجاح
         return redirect()->route('groups.group_client')->with('success', 'تم إنشاء المجموعة بنجاح');
     }
-    public function group_client_destroy($id)
+    public function destroy($id)
     {
-        Region_groub::findOrFail($id)->delete();
+        $Regions_groub = Region_groub::findOrFail($id);
+        $Regions_groub->delete();
         return redirect()->route('groups.group_client')->with('success', 'تم حذف المجموعة بنجاح');
     }
+
     public function group_client_update(Request $request, $id)
     {
         // جلب المجموعة الحالية
@@ -82,14 +84,13 @@ class GroupsController extends Controller
         $request->validate([
             'name' => 'required|string|unique:region_groubs,name,' . $regionGroup->id,
             'branch_id' => 'required|exists:branches,id',
-             'directions_id' => 'required|exists:directions,id',
+            'directions_id' => 'required|exists:directions,id',
         ]);
 
         // تحديث البيانات
         $regionGroup->name = $request->name;
         $regionGroup->branch_id = $request->branch_id;
-                $regionGroup->directions_id = $request->directions_id; // ✅ أضف هذا السطر
-
+        $regionGroup->directions_id = $request->directions_id; // ✅ أضف هذا السطر
 
         $regionGroup->save();
 

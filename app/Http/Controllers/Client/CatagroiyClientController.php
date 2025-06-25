@@ -13,7 +13,7 @@ class CatagroiyClientController extends Controller
     {
         $categories = CategoriesClient::withCount('clients')->get();
 
-        return view('client.setting.category.index ', compact('categories'));
+        return view('client.setting.category.index', compact('categories'));
     }
     public function create()
     {
@@ -93,7 +93,11 @@ class CatagroiyClientController extends Controller
                 ->withInput();
         }
     }
-    // public function destroy(){
+    public function destroy($id){
+        $category = CategoriesClient::find($id);
+        $category->delete();
+        return redirect()->route('categoriesClient.index')->with('success', 'تم حذف تصنيف العميل بنجاح');
 
-    // }
+    }
+
 }

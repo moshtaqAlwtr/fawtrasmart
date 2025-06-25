@@ -123,7 +123,7 @@ class AppointmentController extends Controller
         $appointment->time = $request->time;
         $appointment->duration = $request->duration;
         $appointment->notes = $request->notes;
-        $appointment->created_by =$request->created_by;
+        $appointment->created_by = auth()->id();
         $appointment->action_type = $request->action_type;
 
 
@@ -343,5 +343,55 @@ class AppointmentController extends Controller
             'success' => true,
             'message' => 'تم حذف الموعد بنجاح',
         ]);
+    }
+    
+    /**
+     * Get appointments for calendar view
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function calendar()
+    {
+        $appointments = Appointment::with(['client', 'createdBy'])
+            ->where('appointment_date', '>=', now()->subMonths(3)) // Last 3 months
+            ->get()
+            ->map(function ($appointment) {
+                $statusText = $this->getStatusText($appointment->status);
+                $statusColor = $this->getStatusColor($appointment->status);
+                
+                return [
+                    'id' => $appointment->id,
+                    'title' => $appointment->client->trade_name ?? 'عميل',
+                    'start' => $appointment->appointment_date . ($appointment->time ? 'T' . $appointment->time : ''),
+                    'allDay' => false,
+                    'backgroundColor' => $this->getStatusColorCode($appointment->status),
+                    'borderColor' => $this->getStatusColorCode($appointment->status),
+                    'textColor' => in_array($appointment->status, [Appointment::STATUS_PENDING, Appointment::STATUS_RESCHEDULED]) ? '#000' : '#fff',
+                    'extendedProps' => [
+                        'client_name' => $appointment->client->trade_name ?? 'غير معروف',
+                        'client_phone' => $appointment->client->phone ?? 'غير متوفر',
+                        'time' => $appointment->time ?? 'غير محدد',
+                        'status' => $statusText,
+                        'employee' => $appointment->createdBy->name ?? 'غير معين',
+                        'notes' => $appointment->notes ?? 'لا توجد ملاحظات',
+                    ]
+                ];
+            });
+
+        return response()->json($appointments);
+    }
+    
+    /**
+     * Get color code for status
+     */
+    protected function getStatusColorCode($status)
+    {
+        return match ($status) {
+            Appointment::STATUS_PENDING => '#ffc107',    // Yellow
+            Appointment::STATUS_COMPLETED => '#28a745',  // Green
+            Appointment::STATUS_IGNORED => '#dc3545',    // Red
+            Appointment::STATUS_RESCHEDULED => '#17a2b8', // Cyan
+            default => '#6c757d',                        // Gray
+        };
     }
 }
