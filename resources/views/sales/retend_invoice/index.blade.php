@@ -3,7 +3,14 @@
 @section('title')
     ادارة الفواتير المرتجعة
 @stop
+<style>
+    .table td, .table th {
+    white-space: normal !important;
+    word-break: break-word;
+    vertical-align: middle;
+}
 
+</style>
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -38,94 +45,14 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <!-- Checkbox لتحديد الكل -->
-                        <div class="form-check me-3">
-                            <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-                        </div>
-
-
-
-                        <!-- زر المواعيد -->
-                        <a href="{{ route('appointments.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                            <i class="fas fa-calendar-alt me-1"></i>المواعيد
-                        </a>
-
+                        
                         <!-- زر استيراد -->
                         <button class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
                             <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
                         </button>
 
                         <!-- جزء التنقل بين الصفحات -->
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- زر الانتقال إلى أول صفحة -->
-                                @if ($return->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $return->url(1) }}" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى الصفحة السابقة -->
-                                @if ($return->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $return->previousPageUrl() }}" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- عرض رقم الصفحة الحالية -->
-                                <li class="page-item">
-                                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                                        صفحة {{ $return->currentPage() }} من {{ $return->lastPage() }}
-                                    </span>
-                                </li>
-
-                                <!-- زر الانتقال إلى الصفحة التالية -->
-                                @if ($return->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $return->nextPageUrl() }}" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى آخر صفحة -->
-                                @if ($return->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $return->url($return->lastPage()) }}" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </nav>
+                       
                     </div>
                 </div>
             </div>
@@ -150,101 +77,53 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form id="searchForm" class="form" method="GET" action="{{ route('invoices.index') }}">
+                    <form id="searchForm" class="form" method="GET" action="{{ route('ReturnIInvoices.index') }}">
                         <div class="row g-3">
                             <!-- 1. العميل -->
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="client_id">أي العميل</label>
-                                <select name="client_id" class="form-control" id="client_id">
+                                <select name="client_id" class="form-control select2" id="client_id">
                                     <option value="">أي العميل</option>
                                     @foreach ($clients as $client)
-                                        <option value="{{ $client->id }}" {{ request('client_id') == $client->id ? 'selected' : '' }}>
-                                            {{ $client->first_name }} {{ $client->last_name }}
+                                        <option value="{{ $client->id }}" data-client-number="{{ $client->id }}"
+                                            data-client-name="{{ $client->trade_name }}"
+                                            {{ request('client_id') == $client->id ? 'selected' : '' }}>
+                                            {{ $client->trade_name }} ({{ $client->code }})
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <!-- 2. رقم الفاتورة -->
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="invoice_number">رقم الفاتورة</label>
                                 <input type="text" id="invoice_number" class="form-control"
                                     placeholder="رقم الفاتورة" name="invoice_number" value="{{ request('invoice_number') }}">
                             </div>
 
-                            <!-- 3. حالة الفاتورة -->
-                            <div class="col-md-4">
-                                <label for="status">حالة الفاتورة</label>
-                                <select name="status" class="form-control" id="status">
-                                    <option value="">الحالة</option>
-                                    <option value="1" {{ request('status') == 1 ? 'selected' : '' }}>غير مدفوعة</option>
-                                    <option value="2" {{ request('status') == 2 ? 'selected' : '' }}>مدفوعة جزئيًا</option>
-                                    <option value="3" {{ request('status') == 3 ? 'selected' : '' }}>مدفوعة بالكامل</option>
-                                    <option value="4" {{ request('status') == 4 ? 'selected' : '' }}>مرتجع</option>
-                                    <option value="5" {{ request('status') == 5 ? 'selected' : '' }}>مرتجع جزئي</option>
-                                    <option value="6" {{ request('status') == 6 ? 'selected' : '' }}>مدفوع بزيادة</option>
-                                    <option value="7" {{ request('status') == 7 ? 'selected' : '' }}>مستحقة الدفع</option>
-                                </select>
-                            </div>
+                          
                         </div>
 
                         <!-- البحث المتقدم -->
                         <div class="collapse" id="advancedSearchForm">
                             <div class="row g-3 mt-2">
-                                <!-- 4. البند -->
-                                <div class="col-md-4">
-                                    <label for="item">البند</label>
-                                    <input type="text" id="item" class="form-control"
-                                        placeholder="تحتوي على البند" name="item" value="{{ request('item') }}">
-                                </div>
-
-                                <!-- 5. العملة -->
-                                <div class="col-md-4">
-                                    <label for="currency">العملة</label>
-                                    <select name="currency" class="form-control" id="currency">
-                                        <option value="">العملة</option>
-                                        <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}>SAR</option>
-                                        <option value="USD" {{ request('currency') == 'USD' ? 'selected' : '' }}>USD</option>
-                                    </select>
-                                </div>
+                                
 
                                 <!-- 6. الإجمالي (من) -->
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="total_from">الإجمالي أكبر من</label>
                                     <input type="text" id="total_from" class="form-control"
                                         placeholder="الإجمالي أكبر من" name="total_from" value="{{ request('total_from') }}">
                                 </div>
 
                                 <!-- 7. الإجمالي (إلى) -->
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="total_to">الإجمالي أصغر من</label>
                                     <input type="text" id="total_to" class="form-control"
                                         placeholder="الإجمالي أصغر من" name="total_to" value="{{ request('total_to') }}">
                                 </div>
-                            </div>
-
-                            <!-- 8. حالة الدفع -->
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label for="payment_status">حالة الدفع</label>
-                                    <select name="payment_status" class="form-control" id="payment_status">
-                                        <option value="">حالة الدفع</option>
-                                        <option value="1" {{ request('payment_status') == 1 ? 'selected' : '' }}>غير مدفوعة</option>
-                                        <option value="2" {{ request('payment_status') == 2 ? 'selected' : '' }}>مدفوعة جزئيًا</option>
-                                        <option value="3" {{ request('payment_status') == 3 ? 'selected' : '' }}>مدفوعة بالكامل</option>
-                                    </select>
-                                </div>
-
-                                <!-- 9. التخصيص (شهريًا، أسبوعيًا، يوميًا) -->
-                                <div class="col-md-2">
-                                    <label for="custom_period">التخصيص</label>
-                                    <select name="custom_period" class="form-control" id="custom_period">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly" {{ request('custom_period') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly" {{ request('custom_period') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
-                                        <option value="daily" {{ request('custom_period') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
+                         
+                           
 
                                 <!-- 10. التاريخ (من) -->
                                 <div class="col-md-3">
@@ -261,90 +140,13 @@
                                 </div>
                             </div>
 
-                            <!-- 12. تخصيص آخر -->
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-2">
-                                    <label for="custom_period_2">التخصيص</label>
-                                    <select name="custom_period_2" class="form-control" id="custom_period_2">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly" {{ request('custom_period_2') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly" {{ request('custom_period_2') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
-                                        <option value="daily" {{ request('custom_period_2') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
-
-                                <!-- 13. تاريخ الاستحقاق (من) -->
-                                <div class="col-md-3">
-                                    <label for="due_date_from">تاريخ الاستحقاق (من)</label>
-                                    <input type="date" id="due_date_from" class="form-control"
-                                        name="due_date_from" value="{{ request('due_date_from') }}">
-                                </div>
-
-                                <!-- 14. تاريخ الاستحقاق (إلى) -->
-                                <div class="col-md-3">
-                                    <label for="due_date_to">تاريخ الاستحقاق (إلى)</label>
-                                    <input type="date" id="due_date_to" class="form-control" name="due_date_to"
-                                        value="{{ request('due_date_to') }}">
-                                </div>
-
-                                <!-- 15. المصدر -->
-                                <div class="col-md-4">
-                                    <label for="source">المصدر</label>
-                                    <select name="source" class="form-control" id="source">
-                                        <option value="">المصدر</option>
-                                        <option value="mobile" {{ request('source') == 'mobile' ? 'selected' : '' }}>تطبيق الهاتف</option>
-                                        <option value="web" {{ request('source') == 'web' ? 'selected' : '' }}>الويب</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- 16. الحقل المخصص -->
-                            <div class="row g-3 mt-2">
-                                <div class="col-4">
-                                    <label for="custom_field">حقل مخصص</label>
-                                    <input type="text" id="custom_field" class="form-control"
-                                        placeholder="حقل مخصص" name="custom_field" value="{{ request('custom_field') }}">
-                                </div>
-
-                                <!-- 17. تخصيص آخر -->
-                                <div class="col-md-2">
-                                    <label for="custom_period_3">التخصيص</label>
-                                    <select name="custom_period_3" class="form-control" id="custom_period_3">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly" {{ request('custom_period_3') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly" {{ request('custom_period_3') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
-                                        <option value="daily" {{ request('custom_period_3') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
-
-                                <!-- 18. تاريخ الإنشاء (من) -->
-                                <div class="col-3">
-                                    <label for="created_at_from">تاريخ الإنشاء (من)</label>
-                                    <input type="date" id="created_at_from" class="form-control"
-                                        name="created_at_from" value="{{ request('created_at_from') }}">
-                                </div>
-
-                                <!-- 19. تاريخ الإنشاء (إلى) -->
-                                <div class="col-3">
-                                    <label for="created_at_to">تاريخ الإنشاء (إلى)</label>
-                                    <input type="date" id="created_at_to" class="form-control"
-                                        name="created_at_to" value="{{ request('created_at_to') }}">
-                                </div>
-                            </div>
 
                             <!-- 20. حالة التسليم -->
                             <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label for="delivery_status">حالة التسليم</label>
-                                    <select name="delivery_status" class="form-control" id="delivery_status">
-                                        <option value="">حالة التسليم</option>
-                                        <option value="delivered" {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>تم التسليم</option>
-                                        <option value="pending" {{ request('delivery_status') == 'pending' ? 'selected' : '' }}>قيد الانتظار</option>
-                                    </select>
-                                </div>
+                               
 
                                 <!-- 21. أضيفت بواسطة (الموظفين) -->
-                                <div class="col-md-4">
+                                <div class="col-md-12">
                                     <label for="added_by_employee">أضيفت بواسطة (الموظفين)</label>
                                     <select name="added_by_employee" class="form-control" id="added_by_employee">
                                         <option value="">أضيفت بواسطة</option>
@@ -357,47 +159,20 @@
                                 </div>
 
                                 <!-- 22. مسؤول المبيعات (المستخدمين) -->
-                                <div class="col-md-4">
-                                    <label for="sales_person_user">مسؤول المبيعات (المستخدمين)</label>
-                                    <select name="sales_person_user" class="form-control" id="sales_person_user">
-                                        <option value="">مسؤول المبيعات</option>
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}" {{ request('sales_person_user') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="sales_person_user">مسؤول المبيعات (المستخدمين)</label>-->
+                                <!--    <select name="sales_person_user" class="form-control" id="sales_person_user">-->
+                                <!--        <option value="">مسؤول المبيعات</option>-->
+                                <!--        @foreach ($users as $user)-->
+                                <!--            <option value="{{ $user->id }}" {{ request('sales_person_user') == $user->id ? 'selected' : '' }}>-->
+                                <!--                {{ $user->name }}-->
+                                <!--            </option>-->
+                                <!--        @endforeach-->
+                                <!--    </select>-->
+                                <!--</div>-->
                             </div>
 
-                            <!-- 23. Post Shift -->
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label for="post_shift">Post Shift</label>
-                                    <input type="text" id="post_shift" class="form-control"
-                                        placeholder="Post Shift" name="post_shift" value="{{ request('post_shift') }}">
-                                </div>
-
-                                <!-- 24. خيارات الشحن -->
-                                <div class="col-md-4">
-                                    <label for="shipping_option">خيارات الشحن</label>
-                                    <select name="shipping_option" class="form-control" id="shipping_option">
-                                        <option value="">خيارات الشحن</option>
-                                        <option value="standard" {{ request('shipping_option') == 'standard' ? 'selected' : '' }}>عادي</option>
-                                        <option value="express" {{ request('shipping_option') == 'express' ? 'selected' : '' }}>سريع</option>
-                                    </select>
-                                </div>
-
-                                <!-- 25. مصدر الطلب -->
-                                <div class="col-md-4">
-                                    <label for="order_source">مصدر الطلب</label>
-                                    <select name="order_source" class="form-control" id="order_source">
-                                        <option value="">مصدر الطلب</option>
-                                        <option value="website" {{ request('order_source') == 'website' ? 'selected' : '' }}>الموقع</option>
-                                        <option value="mobile_app" {{ request('order_source') == 'mobile_app' ? 'selected' : '' }}>تطبيق الهاتف</option>
-                                    </select>
-                                </div>
-                            </div>
+                           
                         </div>
 
                         <!-- الأزرار -->
@@ -406,217 +181,109 @@
                             <a class="btn btn-outline-secondary" data-toggle="collapse" href="#advancedSearchForm" role="button">
                                 <i class="bi bi-sliders"></i> بحث متقدم
                             </a>
-                            <button type="reset" class="btn btn-outline-warning">إلغاء</button>
+                          <a href="{{ route('ReturnIInvoices.index') }}" type="reset"
+                                class="btn btn-outline-warning">إلغاء</a>
+                        </div>
                         </div>
                     </form>
                 </div>
             </div>
-            <div class="card">
-                <!-- الترويسة -->
-                <div class="card-header d-flex justify-content-between align-items-center p-3">
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-outline-primary {{ request()->status == null ? 'active' : '' }}"
-                            onclick="filterInvoices('')">
-                            <i class="fas fa-list me-1"></i> الكل
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning {{ request()->status == 'late' ? 'active' : '' }}"
-                            onclick="filterInvoices('late')">
-                            <i class="fas fa-clock me-1"></i> متأخر
-                        </button>
-                        <button class="btn btn-sm btn-outline-info {{ request()->status == 'due' ? 'active' : '' }}"
-                            onclick="filterInvoices('due')">
-                            <i class="fas fa-calendar-day me-1"></i> مستحقة الدفع
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger {{ request()->status == 'unpaid' ? 'active' : '' }}"
-                            onclick="filterInvoices('unpaid')">
-                            <i class="fas fa-times-circle me-1"></i> غير مدفوع
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary {{ request()->status == 'draft' ? 'active' : '' }}"
-                            onclick="filterInvoices('draft')">
-                            <i class="fas fa-file-alt me-1"></i> مسودة
-                        </button>
-                        <button class="btn btn-sm btn-outline-success {{ request()->status == 'overpaid' ? 'active' : '' }}"
-                            onclick="filterInvoices('overpaid')">
-                            <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
-                        </button>
-                    </div>
-                </div>
-
-                <!-- قائمة الفواتير -->
-                @foreach ($return as $retur)
-                @if ($retur->type == 'returned')
-                        <div class="card-body invoice-card">
-                            <div class="row border-bottom py-2 align-items-center">
-                                <!-- معلومات الفاتورة -->
-                                <div class="col-md-4">
-                                    <p class="mb-0">
-                                        <strong>#{{ $retur->code }}</strong>
-                                    </p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-user me-1"></i>
-                                        {{ $retur->client ? ($retur->client->trade_name ?: $retur->client->first_name . ' ' . $retur->client->last_name) : 'عميل غير معروف' }}
-                                        @if ($retur->client && $retur->client->tax_number)
-                                            <br><i class="fas fa-hashtag me-1"></i>الرقم الضريبي: {{ $retur->client->tax_number }}
-                                        @endif
-                                    </small>
-                                    @if ($retur->client && $retur->client->full_address)
-                                        <small class="d-block">
-                                            <i class="fas fa-map-marker-alt me-1"></i>{{ $retur->client->full_address }} مرجع الفاتورة {{$retur->reference_number ?? ""}}
-                                        </small>
-                                    @endif
-                                </div>
-
-                                <!-- تاريخ الفاتورة -->
-                                <div class="col-md-3">
-                                    <p class="mb-0">
-                                        <i class="fas fa-calendar-alt me-1"></i>
-                                        {{ $retur->created_at ? $retur->created_at->format('H:i:s d/m/Y') : '' }}
-                                    </p>
-                                    <small class="text-muted">
-                                        <i class="fas fa-user me-1"></i> بواسطة:
-                                        {{ $retur->createdByUser->name ?? 'غير محدد' }}
-                                    </small>
-                                    <small class="d-block text-muted">
-                                        <i class="fas fa-mobile-alt me-1"></i> المصدر: تطبيق الهاتف المحمول
-                                    </small>
-                                </div>
-                                        @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
-                                <!-- المبلغ وحالة الدفع -->
-                                <div class="col-md-3 text-center">
-                                    <h5 class="mb-1 font-weight-bold">
-                                        {{ number_format($retur->grand_total ?? $retur->total, 2) }}
-                                       <small class="currency">{!! $currencySymbol !!}</small>
-                                    </h5>
-
-                                    {{-- @if($retur->due_value > 0)
-                                        <small class="d-block mb-2 text-danger">
-                                            المبلغ المستحق: {{ number_format($retur->due_value, 2) }} {!! $currencySymbol !!}
-                                        </small>
-                                    @endif --}}
-
-                                    @php
-                                        $statusClass = '';
-                                        $statusText = '';
-
-                                        if ($retur->payment_status == 1) {
-                                            $statusClass = 'badge-success';
-                                            $statusText = 'مدفوعة بالكامل';
-                                        } elseif ($retur->payment_status == 2) {
-                                            $statusClass = 'badge-info';
-                                            $statusText = 'مدفوعة جزئياً';
-                                        } elseif ($retur->payment_status == 3) {
-                                            $statusClass = 'badge-danger';
-                                            $statusText = 'غير مدفوعة';
-                                        } elseif ($retur->payment_status == 4) {
-                                            $statusClass = 'badge-secondary';
-                                            $statusText = 'مستلمة';
-                                        } else {
-                                            $statusClass = 'badge-dark';
-                                            $statusText = 'غير معروفة';
-                                        }
-                                    @endphp
-
-                                    <span class="badge {{ $statusClass }}">{{ $statusText }}</span>
-                                </div>
-
-                                <!-- الأزرار -->
-                                <div class="col-md-2 text-end">
-                                    <div class="btn-group">
-                                        <div class="dropdown">
-                                            <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                                id="dropdownMenuButton{{ $retur->id }}" data-toggle="dropdown"
-                                                aria-haspopup="true" aria-expanded="false">
-                                            </button>
-                                            <div class="dropdown-menu dropdown-menu-end"
-                                                aria-labelledby="dropdownMenuButton{{ $retur->id }}">
-                                                <a class="dropdown-item" href="{{ route('invoices.edit', $retur->id) }}">
-                                                    <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('ReturnIInvoices.show', $retur->id) }}">
-                                                    <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $retur->id) }}">
-                                                    <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-                                                </a>
-                                                <a class="dropdown-item" href="{{ route('invoices.generatePdf', $retur->id) }}">
-                                                    <i class="fa fa-print me-2 text-dark"></i>طباعة
-                                                </a>
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
-                                                </a>
-                                                <a class="dropdown-item"
-                                                    href="{{ route('paymentsClient.create', ['id' => $retur->id]) }}">
-                                                    <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
-                                                </a>
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                                </a>
-                                                <form action="{{ route('invoices.destroy', $retur->id) }}" method="POST"
-                                                    class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">
-                                                        <i class="fa fa-trash me-2"></i>حذف
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
+<div class="card">          
+    <div class="table-responsive">
+        <table id="returnInvoicesTable" class="table table-hover nowrap text-center" style="width:100%">
+            <thead class="bg-light" style="background-color: #BABFC7 !important;">
+                
+                <tr>
+                    <th style="min-width: 60px;">#</th>
+                    <th style="min-width: 150px;">العميل</th>
+                    <th style="min-width: 120px;">الرقم الضريبي</th>
+                    <th style="min-width: 20px;">العنوان</th>
+                    <th style="min-width: 150px;">التاريخ</th>
+                    <th style="min-width: 120px;">المرجع</th>
+                    <th  style="min-width: 100px;">المبلغ</th>
+                    <th style="min-width: 120px;">بواسطة</th>
+                    <th style="min-width: 80px;">الخيارات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($return as $retur)
+                    @php
+                        $currency = $account_setting->currency ?? 'SAR';
+                        $currencySymbol = $currency == 'SAR' || empty($currency)
+                            ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                            : $currency;
+                    @endphp
+                    <tr>
+                        <td><strong>#{{ $retur->id }}</strong></td>
+                        <td>
+                            {{ $retur->client ? ($retur->client->trade_name ?: $retur->client->first_name . ' ' . $retur->client->last_name) : 'عميل غير معروف' }}
+                        </td>
+                        <td>{{ $retur->client->tax_number ?? '-' }}</td>
+                        <td>{{ $retur->client->full_address ?? '-' }}</td>
+                        <td>{{ $retur->created_at->format('H:i:s d/m/Y') }}</td>
+                        <td>
+                            <span class="badge bg-warning">
+                                <i class="fas fa-undo-alt"></i> #{{ $retur->reference_number ?? '--' }}
+                            </span>
+                        </td>
+                        <td>
+                            <strong class="text-danger">
+                                {{ number_format($retur->grand_total ?? $retur->total, 2) }}
+                                {!! $currencySymbol !!}
+                            </strong>
+                        </td>
+                        <td>{{ $retur->createdByUser->name ?? 'غير محدد' }}</td>
+                       
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn bg-gradient-info fa fa-ellipsis-v" type="button"
+                                    id="dropdownMenuButton{{ $retur->id }}" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $retur->id }}">
+                                    <a class="dropdown-item" href="{{ route('ReturnIInvoices.edit', $retur->id) }}">
+                                        <i class="fa fa-edit me-2 text-success"></i>تعديل
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('ReturnIInvoices.show', $retur->id) }}">
+                                        <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                    </a>
+                                    
+                                    <a class="dropdown-item" href="{{ route('return.print', $retur->id) }}">
+                                        <i class="fa fa-print me-2 text-dark"></i>طباعة
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('return.sendEmail', $retur->id) }}">
+                                        <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
+                                    </a>
+                                    <!--<a class="dropdown-item"-->
+                                    <!--    href="{{ route('paymentsClient.create', ['id' => $retur->id]) }}">-->
+                                    <!--    <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع-->
+                                    <!--</a>-->
+                                    <form action="{{ route('invoices.destroy', $retur->id) }}" method="POST"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="fa fa-trash me-2"></i>حذف
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="10">
+                            <div class="alert alert-warning m-0">
+                                <i class="fas fa-exclamation-circle me-2"></i> لا توجد فواتير مرتجعة
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
-                            <!-- عمليات الدفع -->
-                            @php
-                                $payments = \App\Models\PaymentsProcess::where('invoice_id', $retur->id)
-                                    ->where('type', 'client payments')
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
-                            @endphp
-
-                            @if($payments->count() > 0)
-                                <div class="payment-history mt-2">
-                                    <div class="ps-4">
-                                        <small class="text-muted mb-2 d-block">
-                                            <i class="fas fa-money-bill-wave me-1"></i> عمليات الدفع:
-                                        </small>
-                                        @foreach($payments as $payment)
-                                            <div class="d-flex align-items-center gap-3 mb-1 payment-item ps-3">
-                                                <div class="payment-info">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-calendar-alt me-1"></i>
-                                                        {{ $payment->created_at->format('H:i:s d/m/Y') }}
-                                                    </small>
-                                                    <span class="mx-2 text-success">
-
-                                                        {{ number_format($payment->amount, 2) }} {{ $retur->currency ?? 'SAR' }}
-                                                    </span>
-                                                    @if($payment->attachments)
-                                                        <i class="fas fa-paperclip text-muted"></i>
-                                                    @endif
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-user me-1"></i>
-                                                        بواسطة:   {{ $retur->createdByUser->name ?? 'غير محدد' }}
-                                                    </small>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
-                @endforeach
-
-                <!-- إذا لم تكن هناك فواتير -->
-                @if ($return->isEmpty())
-                    <div class="alert alert-warning m-3" role="alert">
-                        <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد فواتير</p>
-                    </div>
-                @endif
-            </div>
+</div> 
         </div>
     </div>
 @endsection
@@ -639,4 +306,59 @@
             window.location.href = currentUrl.toString();
         }
     </script>
+   
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script src="{{ asset('assets/js/search.js') }}"></script>
+    <script></script>
+
+<!-- jQuery و DataTables -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- DataTables الأساسية -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<!-- أزرار التصدير -->
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<!-- تعريب -->
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#returnInvoicesTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json'
+            },
+            // dom: 'Bfrtip',
+            // buttons: [
+            //     {
+            //         extend: 'excel',
+            //         text: 'تصدير إلى Excel',
+            //         className: 'btn btn-success btn-sm'
+            //     },
+            //     {
+            //         extend: 'print',
+            //         text: 'طباعة',
+            //         className: 'btn btn-warning btn-sm'
+            //     },
+            //     {
+            //         extend: 'copy',
+            //         text: 'نسخ',
+            //         className: 'btn btn-info btn-sm'
+            //     }
+            // ]
+        });
+    });
+</script>
+
 @endsection
+

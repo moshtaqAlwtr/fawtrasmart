@@ -16,7 +16,11 @@ class Client extends Model
     protected $primaryKey = 'id';
     public $timestamps = true;
     // الحقول القابلة للتعبئة
+<<<<<<< HEAD
     protected $fillable = ['trade_name', 'category_id', 'force_show', 'last_note_at', 'first_name', 'last_name', 'phone', 'mobile', 'cat', 'street1', 'street2', 'category', 'city', 'region', 'visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id', 'status_id' => 5, 'branch_id'];
+=======
+    protected $fillable = ['trade_name','classification_id ','force_show','last_note_at', 'first_name', 'last_name', 'phone', 'mobile','cat', 'street1', 'street2', 'category', 'city', 'region','visit_type', 'postal_code', 'country', 'tax_number', 'commercial_registration', 'credit_limit', 'credit_period', 'printing_method', 'opening_balance', 'opening_balance_date', 'code', 'currency', 'email', 'client_type', 'notes', 'attachments', 'employee_id','status_id'=>5,'branch_id' ];
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
 
     // العلاقة مع المواعيد
     public function appointments()
@@ -221,11 +225,18 @@ public function appointmentNotes()
     {
         return trim("{$this->first_name} {$this->last_name}");
     }
+<<<<<<< HEAD
   public function categoriesClient()
 {
     return $this->belongsTo(CategoriesClient::class, 'category_id'); // وضح المفتاح الأجنبي
 }
 
+=======
+    public function category()
+    {
+        return $this->hasMany(CategoriesClient::class, 'classification_id');
+    }
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
     public function employees()
     {
         return $this->belongsToMany(

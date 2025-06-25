@@ -34,12 +34,10 @@ public function region_groubs()
 {
     return $this->belongsToMany(Region_groub::class); // اسم الجدول الوسيط حسب مشروعك
 }
-// app/Models/Region_group.php
-public function employees()
-{
-    return $this->belongsToMany(User::class, 'employee_group', 'group_id', 'employee_id')
-                ->using(EmployeeGroup::class)
-                ->withPivot(['direction_id', 'expires_at']);
-}
 
+
+public function users()
+{
+    return $this->belongsToMany(User::class);
+}
 }

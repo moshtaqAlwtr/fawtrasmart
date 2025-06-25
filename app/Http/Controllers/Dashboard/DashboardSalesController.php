@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Account;
-use App\Models\Statuses;
 use Illuminate\Http\Request;
 use App\Models\Client;
 use App\Models\Invoice;
@@ -419,16 +418,7 @@ $totalCollection = $totalPayments + $totalReceipts;
 $collectionPercentage = $collectionTarget > 0 ? round(($totalCollection / $collectionTarget) * 100, 2) : 0;
  
 
-
-
-
-
-    
-$statuses = Statuses::all();
-
-
-
-        return view('dashboard.sales.index', compact('statuses', 'cards','averageBranchCollection', 'Invoice', 'Visit', 'ClientCount', 'month','lowestRegions','branchesPerformance','regionPerformance','neighborhoodPerformance', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts','target','actualVisits','percentage','selectedYear','collectionTarget','totalCollection','collectionPercentage'));
+        return view('dashboard.sales.index', compact('ClientCount', 'cards','averageBranchCollection', 'month','lowestRegions','branchesPerformance','regionPerformance','neighborhoodPerformance', 'groupChartData', 'Invoice', 'groups', 'Visit', 'chartData', 'totalSales', 'totalPayments', 'totalReceipts','target','actualVisits','percentage','selectedYear','collectionTarget','totalCollection','collectionPercentage'));
         return view('dashboard.sales.index', compact('ClientCount', 'Invoice'));
     }
     

@@ -4,8 +4,12 @@
 
 @section('content')
     <div class="container mt-4">
+<<<<<<< HEAD
         <form onsubmit="return validateForm()" id="clientForm" action="{{ route('clients.addnotes') }}" method="POST"
             enctype="multipart/form-data">
+=======
+        <form onsubmit="return validateAttachments()" id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
             @csrf
             <input type="hidden" name="current_latitude" id="current_latitude">
             <input type="hidden" name="current_longitude" id="current_longitude">
@@ -77,6 +81,7 @@
                                 <!-- القائمة ستضاف هنا -->
                             </div>
 
+<<<<<<< HEAD
                             <div class="border-top pt-3">
                                 <h6 class="fw-bold mb-3">إضافة إجراء جديد:</h6>
                                 <div class="input-group">
@@ -85,6 +90,56 @@
                                     <button class="btn btn-success" type="button" id="addProcedureBtn">
                                         <i class="fas fa-plus me-1"></i>إضافة
                                     </button>
+=======
+                    </div>
+
+                    <!-- New Fields -->
+                    <div class="row mb-3">
+                        <!-- عدد العهدة -->
+                        <div class="form-group col-md-4">
+                            <label for="deposit_count" class="form-label">عدد العهدة الموجودة</label>
+                            <input type="number" class="form-control" id="deposit_count" name="deposit_count" min="0" required>
+                        </div>
+
+                        <!-- نوع الموقع -->
+                        <div class="form-group col-md-4">
+                            <label for="site_type" class="form-label">نوع الموقع</label>
+                            <select class="form-control" id="site_type" name="site_type" required>
+                                <option value="">اختر نوع الموقع</option>
+                                <option value="independent_booth">بسطة مستقلة</option>
+                                <option value="grocery">بقالة</option>
+                                <option value="supplies">تموينات</option>
+                                <option value="markets">أسواق</option>
+                                <option value="station">محطة</option>
+                            </select>
+                        </div>
+
+                        <!-- عدد استندات المنافسين -->
+                        <div class="form-group col-md-4">
+                            <label for="competitor_documents" class="form-label">عدد استندات المنافسين</label>
+                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents" min="0" required>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">ملاحظة</label>
+                        <textarea class="form-control" name="description" rows="4" required></textarea>
+                    </div>
+
+                    <!-- Attachments -->
+                    <div class="col-md-12 col-12 mb-3">
+                        <div class="form-group">
+                            <label for="attachments" class="form-label">المرفقات</label>
+                            <input type="file" name="attachments[]" multiple id="attachments" class="form-control d-none"
+                                onchange="previewSelectedFiles()" required>
+                            <div class="upload-area border rounded p-4 text-center position-relative bg-light"
+                                onclick="document.getElementById('attachments').click()" style="cursor: pointer;">
+                                <div class="d-flex flex-column align-items-center justify-content-center gap-2">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-primary"></i>
+                                    <p class="mb-0 text-primary fw-bold">اضغط هنا أو اختر من جهازك</p>
+                                    <small class="text-muted">يمكنك رفع صور، فيديوهات، وملفات PDF/Word/Excel</small>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                                 </div>
                                 <small class="text-muted">الحد الأقصى 50 حرف</small>
                             </div>
@@ -516,6 +571,7 @@
                 // التحقق من المرفقات
                 return validateAttachments();
             });
+<<<<<<< HEAD
 
             // تأكيد المتابعة
             $('#confirmFollowUp').on('click', function() {
@@ -591,8 +647,41 @@
             }
 
             return true;
-        }
+=======
+        });
+    </script>
+<script>
+    function previewSelectedFiles() {
+        const input = document.getElementById('attachments');
+        const preview = document.getElementById('selected-files');
+        preview.innerHTML = '';
 
+        if (input.files.length > 0) {
+            const list = document.createElement('ul');
+            list.classList.add('list-unstyled', 'mb-0');
+
+            Array.from(input.files).forEach(file => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i> ${file.name}`;
+                list.appendChild(listItem);
+            });
+
+            preview.appendChild(list);
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
+        }
+    }
+</script>
+<script>
+function validateAttachments() {
+    const files = document.getElementById('attachments').files;
+    if (files.length === 0) {
+        alert('يرجى إرفاق ملف واحد على الأقل قبل إرسال النموذج.');
+        return false; // يمنع الإرسال
+    }
+    return true; // يسمح بالإرسال
+}
+
+<<<<<<< HEAD
         function previewSelectedFiles() {
             const input = document.getElementById('attachments');
             const preview = document.getElementById('selected-files');
@@ -693,4 +782,20 @@
             });
         }
     </script>
+=======
+function previewSelectedFiles() {
+    const input = document.getElementById('attachments');
+    const preview = document.getElementById('selected-files');
+    preview.innerHTML = '';
+    for (const file of input.files) {
+        const fileDiv = document.createElement('div');
+        fileDiv.textContent = file.name;
+        fileDiv.classList.add('border', 'p-2', 'rounded', 'mb-2', 'bg-white');
+        preview.appendChild(fileDiv);
+    }
+}
+</script>
+
+
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
 @endsection

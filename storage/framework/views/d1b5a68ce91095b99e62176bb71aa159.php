@@ -7,19 +7,34 @@
         /* تخصيص الأزرار */
         .custom-btn {
             min-width: 120px;
+<<<<<<< HEAD
 
             margin: 5px;
 
             justify-content: center;
 
+=======
+            /* تحديد عرض ثابت للأزرار */
+            margin: 5px;
+            /* إضافة margin بقيمة 10px بين الأزرار */
+            justify-content: center;
+            /* توسيط النص والأيقونات داخل الأزرار */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         }
 
         .custom-dropdown {
             min-width: 200px;
+<<<<<<< HEAD
 
         }
 
 
+=======
+            /* يمكنك تعديل العرض حسب الحاجة */
+        }
+
+        /* إصلاح تخطيط الصفحة الرئيسية */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         .tab-content {
             position: relative;
             z-index: 1;
@@ -36,18 +51,30 @@
         .sidebar {
             position: fixed;
             z-index: 100;
+<<<<<<< HEAD
 
+=======
+            /* تأكد من وجود هذه الخصائص */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
             top: 0;
             right: 0;
             height: 100vh;
             width: 250px;
+<<<<<<< HEAD
 
+=======
+            /* تعديل حسب عرض السايد بار */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
             background: #f8f9fa;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .invoice-wrapper {
+<<<<<<< HEAD
 
+=======
+            /* عزل الفاتورة عن تخطيط الصفحة */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
             contain: content;
             position: relative;
             z-index: 1;
@@ -56,7 +83,11 @@
             padding: 20px 0;
         }
 
+<<<<<<< HEAD
 
+=======
+        /* إصلاحات نهائية للسايد بار */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         .sidebar {
             position: fixed !important;
             right: 0 !important;
@@ -73,12 +104,20 @@
 
         .main-content {
             margin-left: 250px;
+<<<<<<< HEAD
 
+=======
+            /* نفس عرض السايد بار */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
             padding: 20px;
             width: calc(100% - 250px);
         }
 
+<<<<<<< HEAD
 
+=======
+        /* تحسينات لعرض الفاتورة ضمن التبويب */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         .pdf-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -88,25 +127,40 @@
             justify-content: center;
         }
 
+<<<<<<< HEAD
 
+=======
+        /* إصلاح مشكلة الـ RTL */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         [dir="rtl"] .pdf-wrapper {
             direction: rtl;
         }
 
+<<<<<<< HEAD
 
+=======
+        /* منع تأثيرات التبويبات على الفاتورة */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         .tab-content>.active {
             overflow: visible !important;
         }
 
         .custom-dropdown .dropdown-item {
             padding: 0.5rem 1rem;
+<<<<<<< HEAD
 
             font-size: 0.875rem;
 
+=======
+            /* تعديل الحشوة لتتناسب مع الأزرار */
+            font-size: 0.875rem;
+            /* حجم الخط */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         }
 
         .custom-dropdown .dropdown-item:hover {
             background-color: #f8f9fa;
+<<<<<<< HEAD
 
             color: #0056b3;
 
@@ -133,6 +187,17 @@
 
         .toast-container {
             z-index: 9999;
+=======
+            /* لون الخلفية عند التحويم */
+            color: #0056b3;
+            /* لون النص عند التحويم */
+        }
+
+        /* التأكد من أن الأزرار متساوية في الارتفاع */
+        .custom-btn i {
+            margin-right: 5px;
+            /* إضافة مسافة بين الأيقونة والنص */
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         }
     </style>
 <?php $__env->stopSection(); ?>
@@ -371,11 +436,14 @@
                             data-bs-target="#invoice-profit" type="button" role="tab"
                             aria-controls="invoice-profit" aria-selected="false">ربح الفاتورة</button>
                     </li>
+<<<<<<< HEAD
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="signature-tab-btn" data-bs-toggle="tab"
                             data-bs-target="#signature-tab" type="button" role="tab" aria-controls="signature-tab"
                             aria-selected="false">التوقيع</button>
                     </li>
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                 </ul>
                 <div class="tab-content" id="myTabContent">
                     <!-- Tab 1: Invoice -->
@@ -384,6 +452,7 @@
                             class="pdf-iframe" frameborder="0"></iframe>
                     </div>
 
+<<<<<<< HEAD
                     <!-- Tab 2: Invoice Details -->
                     <div class="tab-pane fade" id="invoice-details" role="tabpanel"
                         aria-labelledby="invoice-details-tab">
@@ -617,11 +686,237 @@
                                             <th><?php echo e(__('رصيد المخزون')); ?></th>
 
 
+=======
+                </div>
+
+                <!-- Tab 2: Invoice Details -->
+                <div class="tab-pane fade" id="invoice-details" role="tabpanel" aria-labelledby="invoice-details-tab">
+                    <div id="custom-form-view">
+                        <br>
+                        <div class="input-fields">
+                            <h3 class="head-bar theme-color-a"><span class="details-info">هدايا مجانا</span></h3>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <dl class="row">
+                                        <dt><strong>الوقت</strong>:</dt>
+                                        <dd>00:00:00</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Payments -->
+                <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
+                    <div class="invoice-payments content-area invoice-Block">
+                        <h3>
+                            <?php echo e(__('عمليات الدفع على الفاتورة')); ?> #<?php echo e($invoice->id); ?>
+
+                            <a href="<?php echo e(route('paymentsClient.create', ['id' => $invoice->id, 'type' => 'invoice'])); ?>"
+                                class="btn btn-success btn-sm float-end">
+                                <?php echo e(__('إضافة عملية دفع')); ?>
+
+                            </a>
+                        </h3>
+                        <div class="clear"></div><br>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <?php $__empty_1 = true; $__currentLoopData = $invoice->payments_process; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                                <h5 class="card-title mb-0">
+                                                    <span class="text-muted">#<?php echo e($payment->id); ?></span>
+                                                    <?php echo e($invoice->client->trade_name); ?>
+
+                                                </h5>
+                                                <?php switch($payment->payment_status):
+                                                    case (1): ?>
+                                                        <span class="badge badge-success"><?php echo e(__('مكتمل')); ?></span>
+                                                    <?php break; ?>
+
+                                                    <?php case (2): ?>
+                                                        <span class="badge badge-warning"><?php echo e(__('جزئي')); ?></span>
+                                                    <?php break; ?>
+
+                                                    <?php case (3): ?>
+                                                        <span class="badge badge-danger"><?php echo e(__('غير مكتمل')); ?></span>
+                                                    <?php break; ?>
+
+                                                    <?php default: ?>
+                                                        <span class="badge badge-secondary"><?php echo e(__('غير محدد')); ?></span>
+                                                <?php endswitch; ?>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-12 col-sm-4">
+                                                    <small class="text-muted"><?php echo e(__('تاريخ الدفع')); ?></small>
+                                                    <p class="mb-0"><?php echo e($payment->payment_date->format('d/m/Y')); ?>
+
+                                                    </p>
+                                                </div>
+                                                <div class="col-12 col-sm-4">
+                                                    <small class="text-muted"><?php echo e(__('المبلغ')); ?></small>
+                                                    <p class="mb-0 font-weight-bold">
+                                                        <?php echo e(number_format($payment->amount, 2)); ?> ر.س</p>
+                                                </div>
+                                                <div class="col-12 col-sm-4">
+                                                    <div class="">
+                                                        <small class="text-muted"><?php echo e(__('طريقة الدفع')); ?></small>
+                                                        <?php switch($payment->Payment_method):
+                                                            case (1): ?>
+                                                                <span
+                                                                    class="d-block badge badge-secondary"><?php echo e(__('نقدي')); ?></span>
+                                                            <?php break; ?>
+
+                                                            <?php case (2): ?>
+                                                                <span class="d-block badge badge-info"><?php echo e(__('شيك')); ?></span>
+                                                            <?php break; ?>
+
+                                                            <?php case (3): ?>
+                                                                <span
+                                                                    class="d-block badge badge-primary"><?php echo e(__('تحويل بنكي')); ?></span>
+                                                            <?php break; ?>
+
+                                                            <?php default: ?>
+                                                                <span
+                                                                    class="d-block badge badge-light"><?php echo e(__('غير محدد')); ?></span>
+                                                        <?php endswitch; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                                <div class="text-muted">
+                                                    <i class="fa fa-user mr-2"></i>
+                                                    <?php echo e($payment->employee ? $payment->employee->full_name : __('غير محدد')); ?>
+
+                                                </div>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                        type="button" data-toggle="dropdown">
+                                                        <i class="fa fa-ellipsis-v"></i>
+                                                    </button>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a class="dropdown-item"
+                                                            href="<?php echo e(route('paymentsClient.show', $payment->id)); ?>">
+                                                            <i class="fa fa-eye mr-2"></i><?php echo e(__('عرض')); ?>
+
+                                                        </a>
+                                                        <a class="dropdown-item"
+                                                            href="<?php echo e(route('paymentsClient.edit', $payment->id)); ?>">
+                                                            <i class="fa fa-edit mr-2"></i><?php echo e(__('تعديل')); ?>
+
+                                                        </a>
+                                                        <a class="dropdown-item text-danger"
+                                                            href="<?php echo e(route('paymentsClient.destroy', $payment->id)); ?>">
+                                                            <i class="fa fa-trash mr-2"></i><?php echo e(__('حذف')); ?>
+
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <div class="col-12">
+                                            <div class="alert alert-info text-center">
+                                                <?php echo e(__('لا توجد عمليات دفع لهذه الفاتورة')); ?>
+
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="content-area">
+                                <div class="invoice-info">
+                                    <h3><?php echo e(__('ملخص الدفع')); ?></h3>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped b-light" cellpadding="0" cellspacing="0"
+                                            width="100%">
+                                            <tr>
+                                                <th><?php echo e(__('رقم الفاتورة')); ?></th>
+                                                <th><?php echo e(__('العملة')); ?></th>
+                                                <th><?php echo e(__('إجمالي الفاتورة')); ?></th>
+                                                <th><?php echo e(__('مرتجع')); ?></th>
+                                                <th><?php echo e(__('المدفوع')); ?></th>
+                                                <th><?php echo e(__('الباقي')); ?></th>
+                                            </tr>
+                                            <tr>
+                                                <td><?php echo e($invoice->id); ?></td>
+                                                <td><?php echo e($invoice->currency ?? 'SAR'); ?></td>
+                                                <td><?php echo e(number_format($invoice->grand_total, 2)); ?> ر.س</td>
+                                                <td><?php echo e(number_format($invoice->return_amount ?? 0, 2)); ?> ر.س</td>
+                                                <td><?php echo e(number_format($invoice->payments_process->sum('amount'), 2)); ?> ر.س
+                                                </td>
+                                                <td><?php echo e(number_format($invoice->remaining_amount, 2)); ?> ر.س</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Warehouse Orders -->
+                    <div class="tab-pane fade" id="warehouse-orders" role="tabpanel" aria-labelledby="warehouse-orders-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped b-light" cellpadding="0" cellspacing="0" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th><?php echo e(__('اسم المنتج')); ?></th>
+                                        <th><?php echo e(__('الكمية')); ?></th>
+                                        <th><?php echo e(__('رصيد المخزون')); ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php $__empty_1 = true; $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                        <tr>
+                                            <td><?php echo e($item->product->name ?? __('غير متوفر')); ?></td>
+                                            <td><?php echo e($item->quantity); ?></td>
+                                            <td><?php echo e($item->product->product_details->quantity); ?></td>
+                                        </tr>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center">
+                                                <?php echo e(__('لا توجد عناصر في الفاتورة')); ?>
+
+                                            </td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tab 5: Activity Log -->
+                    <div class="tab-pane fade" id="activity-log" role="tabpanel" aria-labelledby="activity-log-tab">
+                        <p>سجل النشاطات سيظهر هنا.</p>
+                    </div>
+
+                    <!-- Tab 6: Invoice Profit -->
+                    <div class="tab-pane fade" id="invoice-profit" role="tabpanel" aria-labelledby="invoice-profit-tab">
+                        <div class="tab-pane" id="InvoiceProfit">
+                            <div class="table-responsive">
+                                <table class="list-table table table-hover tableClass">
+                                    <thead>
+                                        <tr>
+                                            <th><?php echo e(__('الاسم')); ?></th>
+                                            <th><?php echo e(__('الكمية')); ?></th>
+                                            <th><?php echo e(__('سعر البيع')); ?></th>
+                                            <th><?php echo e(__('متوسط السعر')); ?></th>
+                                            <th><?php echo e(__('الربح')); ?></th>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php $__empty_1 = true; $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                             <tr>
+<<<<<<< HEAD
                                                 <td><?php echo e($item->product->name ?? __('غير متوفر')); ?></td>
 
 
@@ -654,12 +949,52 @@
                                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                             <tr>
                                                 <td colspan="3" class="text-center">
+=======
+                                                <td>
+                                                    #<?php echo e($item->id); ?> <?php echo e($item->product->name); ?>
+
+                                                    <div class="store_handle"></div>
+                                                </td>
+                                                <td><?php echo e($item->quantity); ?></td>
+                                                <td>
+                                                    <?php if($item->product): ?>
+                                                        <?php echo e(number_format($item->product->sale_price, 2)); ?> ر.س
+                                                    <?php else: ?>
+                                                        <?php echo e(__('غير متوفر')); ?>
+
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <?php if($item->product): ?>
+                                                        <?php echo e(number_format($item->product->purchase_price, 2)); ?> ر.س
+                                                    <?php else: ?>
+                                                        <?php echo e(__('غير متوفر')); ?>
+
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <span dir="ltr">
+                                                        <?php if($item->product): ?>
+                                                            <?php echo e(number_format(($item->product->sale_price - $item->product->purchase_price) * $item->quantity, 2)); ?>
+
+                                                        <?php else: ?>
+                                                            <?php echo e(__('غير متوفر')); ?>
+
+                                                        <?php endif; ?>
+                                                    </span> ر.س
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                                                     <?php echo e(__('لا توجد عناصر في الفاتورة')); ?>
 
                                                 </td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
+<<<<<<< HEAD
 
 
 
@@ -858,20 +1193,51 @@
                             </div>
                         </div>
 
+=======
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="4"><?php echo e(__('الإجمالي')); ?></td>
+                                            <td>
+                                                <b>
+                                                    <span dir="ltr">
+                                                        <?php echo e(number_format(
+                                                            $invoice->items->sum(function ($item) {
+                                                                return $item->product ? ($item->product->sale_price - $item->product->purchase_price) * $item->quantity : 0;
+                                                            }),
+                                                            2,
+                                                        )); ?>
+
+                                                    </span> ر.س
+                                                </b>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                     </div>
                 </div>
             </div>
         </div>
         </div>
+<<<<<<< HEAD
     <?php $__env->stopSection(); ?>
 
 
 
 
+=======
+
+
+    <?php $__env->stopSection(); ?>
+
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
     <?php $__env->startSection('scripts'); ?>
 
         <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
         <script src="<?php echo e(asset('assets/js/applmintion.js')); ?>"></script>
+<<<<<<< HEAD
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1076,4 +1442,31 @@
             });
         </script>
     <?php $__env->stopSection(); ?>
+=======
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<script>
+// استقبال الرسائل من نافذة الطباعة لتحديث الإطار
+window.addEventListener('message', function(event) {
+    if (event.data.type === 'signatureSaved' && event.data.invoiceId == <?php echo e($invoice->id); ?>) {
+        // إعادة تحميل الإطار الداخلي
+        const iframe = document.querySelector('.pdf-iframe');
+        if (iframe) {
+            // إضافة timestamp لمنع الكاش
+            iframe.src = iframe.src.split('?')[0] + '?t=' + new Date().getTime();
+
+            // أو يمكنك إعادة تحميل الصفحة كاملة إذا لزم الأمر
+            // window.location.reload();
+        }
+    }
+});
+</script>
+        <!-- تأكد أنك استوردت SweetAlert -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <?php $__env->stopSection(); ?>
+
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/invoices/show.blade.php ENDPATH**/ ?>

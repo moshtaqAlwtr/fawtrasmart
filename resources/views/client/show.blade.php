@@ -309,38 +309,38 @@
                         @endphp
 
 
-                        <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
-                            style="min-width: 220px;">
-                            @csrf
-                            <input type="hidden" name="client_id" value="{{ $client->id }}">
-                            <div class="dropdown w-100">
-                                <button class="btn w-100 text-start dropdown-toggle" type="button"
-                                    id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
-                                    style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }}; color: #000; border: 1px solid #ccc; height: 42px;">
-                                    {{ $currentStatus->name ?? 'اختر الحالة' }}
-                                </button>
-                                <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
-                                    style="border-radius: 8px;">
-                                    @foreach ($statuses as $status)
+                            <form method="POST" action="{{ route('clients.updateStatusClient') }}" class="flex-grow-1"
+                                style="min-width: 220px;">
+                                @csrf
+                                <input type="hidden" name="client_id" value="{{ $client->id }}">
+                                <div class="dropdown w-100">
+                                    <button class="btn w-100 text-start dropdown-toggle" type="button"
+                                        id="clientStatusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                        style="background-color: {{ $currentStatus->color ?? '#e0f7fa' }}; color: #000; border: 1px solid #ccc; height: 42px;">
+                                        {{ $currentStatus->name ?? 'اختر الحالة' }}
+                                    </button>
+                                    <ul class="dropdown-menu w-100" aria-labelledby="clientStatusDropdown"
+                                        style="border-radius: 8px;">
+                                        @foreach ($statuses as $status)
+                                            <li>
+                                                <button type="submit"
+                                                    class="dropdown-item text-white d-flex align-items-center justify-content-between"
+                                                    name="status_id" value="{{ $status->id }}"
+                                                    style="background-color: {{ $status->color }};">
+                                                    <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
+                                                </button>
+                                            </li>
+                                        @endforeach
                                         <li>
-                                            <button type="submit"
-                                                class="dropdown-item text-white d-flex align-items-center justify-content-between"
-                                                name="status_id" value="{{ $status->id }}"
-                                                style="background-color: {{ $status->color }};">
-                                                <span><i class="fas fa-thumbtack me-1"></i> {{ $status->name }}</span>
-                                            </button>
+                                            <a href="{{ route('SupplyOrders.edit_status') }}"
+                                                class="dropdown-item text-muted d-flex align-items-center justify-content-center"
+                                                style="border-top: 1px solid #ddd; padding: 8px;">
+                                                <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
+                                            </a>
                                         </li>
-                                    @endforeach
-                                    <li>
-                                        <a href="{{ route('SupplyOrders.edit_status') }}"
-                                            class="dropdown-item text-muted d-flex align-items-center justify-content-center"
-                                            style="border-top: 1px solid #ddd; padding: 8px;">
-                                            <i class="fas fa-cog me-2"></i> تعديل قائمة الحالات - العميل
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </form>
+                                    </ul>
+                                </div>
+                            </form>
 
                     </div>
                 </div>
@@ -400,8 +400,8 @@
                 <!-- أزرار القائمة (تظهر فقط على الشاشات الكبيرة) -->
                 <div class="d-grid d-md-flex flex-wrap gap-2 d-none d-md-block">
                     @if (auth()->user()->hasPermissionTo('Edit_Client'))
-                        <a href="{{ route('clients.edit', $client->id) }}"
-                            class="btn btn-sm btn-outline-info text-dark bg-white">
+                        <a href="{{ route('clients.edit', $client->id) }}" class="btn btn-sm text-white"
+                            style="background-color: #17a2b8;">
                             <i class="fas fa-user-edit me-1"></i> تعديل
                         </a>
                     @endif
@@ -409,47 +409,49 @@
                     @if (auth()->user()->role === 'manager')
                         <form action="{{ route('clients.force-show', $client) }}" method="POST" class="d-inline">
                             @csrf
-                            <button type="submit" class="btn btn-sm btn-outline-warning text-dark bg-white">
+                            <button type="submit" class="btn btn-sm text-white" style="background-color: #ffc107;">
                                 <i class="fas fa-map-marker-alt"></i> إظهار في الخريطة الآن
                             </button>
                         </form>
                     @endif
 
-                    <a href="{{ route('appointment.notes.create', $client->id) }}"
-                        class="btn btn-sm btn-outline-secondary text-dark bg-white">
+                    <a href="{{ route('appointment.notes.create', $client->id) }}" class="btn btn-sm text-white"
+                        style="background-color: #6c757d;">
                         <i class="fas fa-paperclip me-1"></i> إضافة ملاحظة/مرفق
                     </a>
 
-                    <a href="{{ route('incomes.create') }}" class="btn btn-sm btn-outline-success text-dark bg-white">
+                    <a href="{{ route('incomes.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #20c997;">
                         <i class="fas fa-receipt me-1"></i> سند القبض
                     </a>
 
-                    <a href="{{ route('appointments.create') }}"
-                        class="btn btn-sm btn-outline-success text-dark bg-white">
+                    <a href="{{ route('appointments.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #28a745;">
                         <i class="fas fa-calendar-plus me-1"></i> ترتيب موعد
                     </a>
 
-                    <a href="{{ route('clients.statement', $client->id) }}"
-                        class="btn btn-sm btn-outline-warning text-dark bg-white">
+                    <a href="{{ route('clients.statement', $client->id) }}" class="btn btn-sm text-white"
+                        style="background-color: #fd7e14;">
                         <i class="fas fa-file-invoice me-1"></i> كشف حساب
                     </a>
 
-                    <a class="btn btn-sm btn-outline-primary text-dark bg-white" href="#" data-bs-toggle="modal"
-                        data-bs-target="#openingBalanceModal">
+                    <a class="btn btn-sm text-white" style="background-color: #6f42c1;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#openingBalanceModal">
                         <i class="fas fa-wallet me-2"></i> إضافة رصيد افتتاحي
                     </a>
 
-                    <a class="btn btn-sm btn-outline-primary text-dark bg-white" href="#" data-bs-toggle="modal"
-                        data-bs-target="#assignEmployeeModal">
+                    <a class="btn btn-sm text-white" style="background-color: #6610f2;" href="#"
+                        data-bs-toggle="modal" data-bs-target="#assignEmployeeModal">
                         <i class="fas fa-user-plus me-2"></i> تعيين موظفين
                     </a>
 
-                    <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm btn-outline-danger text-dark bg-white">
+                    <a href="{{ route('CreditNotes.create') }}" class="btn btn-sm text-white"
+                        style="background-color: #dc3545;">
                         <i class="fas fa-file-invoice-dollar me-1"></i> إنشاء إشعار دائن
                     </a>
 
-                    <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}"
-                        class="btn btn-sm btn-outline-dark text-dark bg-white">
+                    <a href="{{ route('invoices.create', ['client_id' => $client->id]) }}" class="btn btn-sm text-white"
+                        style="background-color: #343a40;">
                         <i class="fas fa-file-invoice me-1"></i> إنشاء فاتورة
                     </a>
 
@@ -458,6 +460,7 @@
                         <i class="fas fa-calendar-check me-1"></i> الحجوزات
                     </a>
                 </div>
+
 
                 <!-- زر واحد يحتوي على القائمة المنسدلة (يظهر فقط على الشاشات الصغيرة) -->
                 <div class="dropdown d-md-none">
@@ -555,44 +558,18 @@
 
         {{-- التبويبات --}}
         <div class="card">
-            <div class="card-body p-0">
-                <!-- تبويبات العميل -->
-                <div class="client-tabs">
-                    <!-- شريط التبويبات الأفقي -->
-                    <div class="d-flex flex-wrap border-bottom">
-                        <button class="tab-btn active" data-target="details-tab">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-start gap-2 w-100">
+                    <!-- زر التفاصيل -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#details">
                             <i class="fas fa-info-circle me-2"></i> التفاصيل
                         </button>
-                        <button class="tab-btn" data-target="appointments-tab">
-                            <i class="fas fa-calendar-alt me-2"></i> المواعيد
-                        </button>
-                        <button class="tab-btn" data-target="invoices-tab">
-                            <i class="fas fa-file-invoice me-2"></i> الفواتير
-                        </button>
-                        <button class="tab-btn" data-target="payments-tab">
-                            <i class="fas fa-money-bill-wave me-2"></i> المدفوعات
-                        </button>
-                        <button class="tab-btn" data-target="notes-tab">
-                            <i class="fas fa-sticky-note me-2"></i> الملاحظات
-                        </button>
-                        <button class="tab-btn" data-target="visits-tab">
-                            <i class="fas fa-walking me-2"></i> الزيارات
-                        </button>
-                        <button class="tab-btn" data-target="reservations-tab">
-                            <i class="fas fa-calendar-check me-2"></i> الحجوزات
-                        </button>
-                    </div>
-
-                    <!-- محتوى التبويبات -->
-                    <div class="tab-content p-3">
-                        <!-- المعلومات الأساسية -->
-
-                        <!-- معلومات سريعة -->
-
-
-                        <!-- محتوى تبويب التفاصيل -->
-                        <div id="details-tab" class="tab-pane active">
+                        <!-- محتوى التفاصيل -->
+                        <div id="details" class="collapse mt-2">
                             <div class="card card-body">
+                                <!-- محتوى التفاصيل هنا -->
                                 <div class="row">
                                     <div class="col-12 col-md-6">
                                         <p class="mb-2"><strong>الاسم التجاري:</strong> {{ $client->trade_name }}</p>
@@ -659,10 +636,19 @@
                                 @endif
                             </div>
                         </div>
+                    </div>
 
-                        <!-- محتوى تبويب المواعيد -->
-                        <div id="appointments-tab" class="tab-pane">
-                            <div class="card card-body p-0">
+                    <!-- زر المواعيد -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <!-- زر التفعيل - باق كما هو -->
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#appointments">
+                            <i class="fas fa-calendar-alt me-2"></i> المواعيد
+                        </button>
+
+                        <!-- محتوى المواعيد - تحسينات للتوافق مع الأجهزة -->
+                        <div id="appointments" class="collapse mt-2">
+                            <div class="card card-body p-0"> <!-- إضافة p-0 لإزالة الباد الداخلي -->
                                 @php
                                     $completedAppointments = $client->appointments->where(
                                         'status',
@@ -814,10 +800,18 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- محتوى تبويب الفواتير -->
-                        <div id="invoices-tab" class="tab-pane">
+                    <!-- زر الفواتير -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#invoices">
+                            <i class="fas fa-file-invoice me-2"></i> الفواتير
+                        </button>
+                        <!-- محتوى الفواتير -->
+                        <div id="invoices" class="collapse mt-2">
                             <div class="card card-body">
+                                <!-- محتوى الفواتير هنا -->
                                 <div class="table-responsive">
                                     <table class="table table-hover custom-table" id="fawtra">
                                         <thead>
@@ -1005,10 +999,171 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- محتوى تبويب المدفوعات -->
-                        <div id="payments-tab" class="tab-pane">
+                    <!-- زر الملاحظات -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#notes">
+                            <i class="fas fa-sticky-note me-2"></i> الملاحظات
+                        </button>
+                        <!-- محتوى الملاحظات -->
+                        <div id="notes" class="collapse mt-2">
                             <div class="card card-body">
+                                <!-- الملاحظات -->
+                                <div class="timeline">
+                                    @foreach ($ClientRelations as $note)
+                                        <div class="timeline-item mb-4">
+                                            <div
+                                                class="timeline-content d-flex align-items-start flex-wrap flex-md-nowrap">
+                                                <!-- الحالة -->
+                                                <span class="badge mb-2 mb-md-0"
+                                                    style="background-color: {{ $statuses->find($client->status_id)->color ?? '#007BFF' }}; color: white;">
+                                                    {{ $statuses->find($client->status_id)->name ?? '' }}
+                                                </span>
+
+                                                <!-- مربع الملاحظة -->
+                                                <div
+                                                    class="note-box border rounded bg-white shadow-sm p-3 ms-md-3 mt-2 mt-md-0 flex-grow-1 w-100">
+                                                    <!-- الرأس -->
+                                                    <div
+                                                        class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                                                        <h6 class="mb-2 mb-sm-0">
+                                                            <i class="fas fa-user me-1"></i>
+                                                            {{ $note->employee->name ?? '' }}
+                                                        </h6>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            {{ $note->created_at->format('H:i d/m/Y') }} -
+                                                            <span class="text-primary">{{ $note->status ?? '' }}</span>
+                                                        </small>
+                                                    </div>
+
+                                                    <hr class="my-2">
+
+                                                    <!-- النص -->
+                                                    <p class="mb-2">
+                                                        <i class="far fa-user me-1"></i> {{ $note->process ?? '' }}
+                                                    </p>
+                                                    <small
+                                                        class="text-muted d-block mb-2">{{ $note->description ?? '' }}</small>
+
+                                                    <!-- عرض البيانات الجديدة -->
+                                                    @if ($note->deposit_count || $note->site_type || $note->competitor_documents)
+                                                        <div class="additional-data mt-3 p-2 bg-light rounded">
+                                                            <div class="row">
+                                                                @if ($note->deposit_count)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-boxes me-1"></i> عدد العهدة:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold">{{ $note->deposit_count }}</span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($note->site_type)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-store me-1"></i> نوع الموقع:
+                                                                        </span>
+                                                                        <span class="fw-bold">
+                                                                            @switch($note->site_type)
+                                                                                @case('independent_booth')
+                                                                                    بسطة مستقلة
+                                                                                @break
+
+                                                                                @case('grocery')
+                                                                                    بقالة
+                                                                                @break
+
+                                                                                @case('supplies')
+                                                                                    تموينات
+                                                                                @break
+
+                                                                                @case('markets')
+                                                                                    أسواق
+                                                                                @break
+
+                                                                                @case('station')
+                                                                                    محطة
+                                                                                @break
+
+                                                                                @default
+                                                                                    {{ $note->site_type }}
+                                                                            @endswitch
+                                                                        </span>
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($note->competitor_documents)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <span class="d-block text-primary">
+                                                                            <i class="fas fa-file-contract me-1"></i>
+                                                                            استندات المنافسين:
+                                                                        </span>
+                                                                        <span
+                                                                            class="fw-bold">{{ $note->competitor_documents }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    <!-- عرض المرفقات -->
+                                                    @php
+                                                        $files = json_decode($note->attachments, true);
+                                                        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                                                    @endphp
+
+                                                    @if (is_array($files) && count($files))
+                                                        <div class="attachment mt-3 d-flex flex-wrap gap-2">
+                                                            @foreach ($files as $file)
+                                                                @php
+                                                                    $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                                                    $fileUrl = asset('assets/uploads/notes/' . $file);
+                                                                @endphp
+
+                                                                @if (in_array(strtolower($ext), $imageExtensions))
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="d-block">
+                                                                        <img src="{{ $fileUrl }}" alt="مرفق صورة"
+                                                                            class="img-fluid rounded border"
+                                                                            style="max-width: 180px; height: auto;">
+                                                                    </a>
+                                                                @else
+                                                                    <a href="{{ $fileUrl }}" target="_blank"
+                                                                        class="btn btn-sm btn-outline-primary d-flex align-items-center">
+                                                                        <i class="fas fa-file-alt me-2"></i> عرض الملف:
+                                                                        {{ $file }}
+                                                                    </a>
+                                                                @endif
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <!-- نقطة الخط الزمني -->
+                                                <div class="timeline-dot bg-danger d-none d-md-block ms-3 mt-2"></div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- زر المدفوعات -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#payments">
+                            <i class="fas fa-money-bill-wave me-2"></i> المدفوعات
+                        </button>
+                        <!-- محتوى المدفوعات -->
+                        <div id="payments" class="collapse mt-2">
+                            <div class="card card-body">
+                                <!-- محتوى المدفوعات هنا -->
                                 <div class="table-responsive">
                                     <table class="table">
                                         <thead class="bg-light">
@@ -1223,7 +1378,9 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
 
+<<<<<<< HEAD
                         <!-- محتوى تبويب الملاحظات -->
                         <!-- محتوى تبويب الملاحظات -->
                         <div id="notes-tab" class="tab-pane">
@@ -1575,12 +1732,156 @@
 
                                             </table>
                                         </div>
+=======
+                    <!-- زر حركة الحساب -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#account">
+                            <i class="fas fa-exchange-alt me-2"></i> حركة الحساب
+                        </button>
+                        <!-- محتوى حركة الحساب -->
+                        <div id="account" class="collapse mt-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-3">
+
+
+                                    <!-- جدول حركة الحساب -->
+                                    <div class="card border-0 shadow-sm">
+                                        <div class="card-header bg-white border-bottom py-3">
+                                            <h5 class="mb-0"><i class="fas fa-exchange-alt me-2 text-primary"></i> حركة
+                                                الحساب</h5>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div class="table-responsive">
+                                                <table class="table table-hover mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th class="text-end" style="width: 15%;">التاريخ</th>
+                                                            <th class="text-end" style="width: 40%;">الوصف</th>
+                                                            <th class="text-center" style="width: 20%;">القيمة</th>
+                                                            <th class="text-center" style="width: 25%;">الرصيد بعد العملية
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($operationsPaginator as $operation)
+                                                            <tr>
+                                                                <td class="text-end">
+                                                                    {{ \Carbon\Carbon::parse($operation['date'])->format('d/m/Y') }}
+                                                                </td>
+                                                                <td class="text-end">{{ $operation['operation'] }}</td>
+                                                                <td
+                                                                    class="text-center {{ $operation['deposit'] ? 'text-success' : 'text-danger' }}">
+                                                                    @if ($operation['deposit'])
+                                                                        +{{ number_format($operation['deposit'], 2) }}
+                                                                    @elseif($operation['withdraw'])
+                                                                        -{{ number_format($operation['withdraw'], 2) }}
+                                                                    @else
+                                                                        0.00
+                                                                    @endif
+                                                                </td>
+                                                                <td
+                                                                    class="text-center {{ $operation['balance_after'] < 0 ? 'text-danger' : 'text-success' }}">
+                                                                    {{ number_format($operation['balance_after'], 2) }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                    <tfoot class="table-light">
+                                                        <tr>
+                                                            <th colspan="2" class="text-end">الرصيد النهائي</th>
+                                                            <th
+                                                                class="text-center {{ ($account->balance ?? 0) < 0 ? 'text-danger' : 'text-success' }}">
+                                                                {{ number_format($account->balance ?? 0, 2) }}
+                                                            </th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-white py-3">
+                                            <!-- هنا يمكنك إضافة الترقيم إذا كنت تستخدم pagination -->
+                                            {{ $operationsPaginator->links() }}
+                                        </div>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- زر زيارات العميل -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#visits">
+                            <i class="fas fa-walking me-2"></i> زيارات العميل
+                        </button>
+                        <!-- محتوى زيارات العميل -->
+                        <div id="visits" class="collapse mt-2">
+                            <div class="card card-body">
+                                <!-- محتوى زيارات العميل هنا -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>تاريخ الزيارة</th>
+                                                <th>وقت الانصراف</th>
+                                                <th>الموظف</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($visits as $visit)
+                                                <tr>
+                                                    <td>{{ $visit->id }}</td>
+                                                    <td>{{ $visit->visit_date }}</td>
+                                                    <td>{{ $visit->departure_time }}</td>
+                                                    <td>{{ $visit->employee->name ?? 'غير محدد' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- زر ملخص الرصيد -->
+                    <div class="col-lg-12 col-md-12 col-12 mb-2">
+                        <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#balance">
+                            <i class="fas fa-chart-pie me-2"></i> ملخص الرصيد
+                        </button>
+                        <!-- محتوى ملخص الرصيد -->
+                        <div id="balance" class="collapse mt-2">
+                            <div class="card card-body">
+                                <!-- محتوى ملخص الرصيد هنا -->
+                                <div class="d-flex justify-content-end gap-2 mb-3">
+                                    <a href="#" class="btn btn-info text-white">
+                                        <i class="fas fa-plus"></i> أضف شحن الرصيد
+                                    </a>
+                                    <a href="#" class="btn btn-secondary">
+                                        <i class="fas fa-history"></i> عرض السجل
+                                    </a>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="text-center py-5">
+                                            <div class="text-muted">
+                                                لا يوجد انواع الرصيد اضيفت حتى الآن
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
+<<<<<<< HEAD
 
                 <!-- إضافة ستايل إضافي للتبويبات -->
                 <style>
@@ -1771,143 +2072,181 @@
                                 <button type="button" class="btn btn-primary" onclick="saveOpeningBalance()">حفظ</button>
                             </div>
                         </div>
-                    </div>
-                </div>
+=======
             </div>
         </div>
 
 
 
 
-    @endsection
-    @section('scripts')
 
-        <script>
-            $(document).ready(function() {
-                // تأكيد حذف الموظف
-                $('.btn-remove-employee').on('click', function(e) {
-                    if (!confirm('هل أنت متأكد من إزالة هذا الموظف؟')) {
-                        e.preventDefault();
+
+
+        <!-- Modal إضافة الرصيد الافتتاحي -->
+        <div class="modal fade" id="openingBalanceModal" tabindex="-1" aria-labelledby="openingBalanceModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="openingBalanceModalLabel">إضافة رصيد افتتاحي</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="openingBalanceForm">
+                            <div class="mb-3">
+                                <label for="openingBalance" class="form-label">الرصيد الافتتاحي</label>
+                                <input type="number" class="form-control" id="openingBalance" name="opening_balance"
+                                    value="{{ $client->opening_balance ?? 0 }}" step="0.01">
+                            </div>
+                            <input type="hidden" id="clientId" value="{{ $client->id }}">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                        <button type="button" class="btn btn-primary" onclick="saveOpeningBalance()">حفظ</button>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
+                    </div>
+                </div>
+            </div>
+        </div>
+<<<<<<< HEAD
+=======
+    </div>
+    </div>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
+
+
+
+
+@endsection
+@section('scripts')
+
+    <script>
+        $(document).ready(function() {
+            // تأكيد حذف الموظف
+            $('.btn-remove-employee').on('click', function(e) {
+                if (!confirm('هل أنت متأكد من إزالة هذا الموظف؟')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+    <script>
+        function updateClientStatus(selectElement) {
+            var status = selectElement.value; // الحصول على القيمة المحددة
+            var clientId = "{{ $client->id }}"; // تأكد من أن لديك معرف العميل في الصفحة
+
+            fetch(`/clients/clients_management/clients/${clientId}/update-status`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        notes: status
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("تم تحديث الحالة بنجاح!");
+                    } else {
+                        alert("حدث خطأ أثناء تحديث الحالة.");
                     }
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    </script>
+    <script>
+        function saveOpeningBalance() {
+            let clientId = document.getElementById('clientId').value;
+            let openingBalance = document.getElementById('openingBalance').value;
+
+            fetch(`/clients/clients_management/${clientId}/update-opening-balance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        opening_balance: openingBalance
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('تم تحديث الرصيد الافتتاحي بنجاح');
+                        location.reload();
+                    } else {
+                        alert('حدث خطأ أثناء التحديث، يرجى المحاولة مجدداً.');
+                    }
+                })
+                .catch(error => console.error('❌ خطأ:', error));
+        }
+
+        function selectStatus(name, color) {
+            document.getElementById("clientStatusDropdown").innerHTML =
+                `<span class="status-color" style="background-color: ${color};"></span> ${name}`;
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let mediaRecorder;
+            let audioChunks = [];
+
+            document.getElementById("startRecording").addEventListener("click", async function() {
+                let stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true
                 });
-            });
-        </script>
-        <script>
-            function updateClientStatus(selectElement) {
-                var status = selectElement.value; // الحصول على القيمة المحددة
-                var clientId = "{{ $client->id }}"; // تأكد من أن لديك معرف العميل في الصفحة
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                audioChunks = [];
 
-                fetch(`/clients/clients_management/clients/${clientId}/update-status`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({
-                            notes: status
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert("تم تحديث الحالة بنجاح!");
-                        } else {
-                            alert("حدث خطأ أثناء تحديث الحالة.");
-                        }
-                    })
-                    .catch(error => console.error("Error:", error));
-            }
-        </script>
-        <script>
-            function saveOpeningBalance() {
-                let clientId = document.getElementById('clientId').value;
-                let openingBalance = document.getElementById('openingBalance').value;
-
-                fetch(`/clients/clients_management/${clientId}/update-opening-balance`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            opening_balance: openingBalance
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('تم تحديث الرصيد الافتتاحي بنجاح');
-                            location.reload();
-                        } else {
-                            alert('حدث خطأ أثناء التحديث، يرجى المحاولة مجدداً.');
-                        }
-                    })
-                    .catch(error => console.error('❌ خطأ:', error));
-            }
-
-            function selectStatus(name, color) {
-                document.getElementById("clientStatusDropdown").innerHTML =
-                    `<span class="status-color" style="background-color: ${color};"></span> ${name}`;
-            }
-        </script>
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                let mediaRecorder;
-                let audioChunks = [];
-
-                document.getElementById("startRecording").addEventListener("click", async function() {
-                    let stream = await navigator.mediaDevices.getUserMedia({
-                        audio: true
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                mediaRecorder.onstop = async () => {
+                    let audioBlob = new Blob(audioChunks, {
+                        type: "audio/wav"
                     });
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.start();
-                    audioChunks = [];
+                    let audioUrl = URL.createObjectURL(audioBlob);
+                    document.getElementById("audioPreview").src = audioUrl;
+                    document.getElementById("audioPreview").classList.remove("d-none");
 
-                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                    mediaRecorder.onstop = async () => {
-                        let audioBlob = new Blob(audioChunks, {
-                            type: "audio/wav"
-                        });
-                        let audioUrl = URL.createObjectURL(audioBlob);
-                        document.getElementById("audioPreview").src = audioUrl;
-                        document.getElementById("audioPreview").classList.remove("d-none");
-
-                        let reader = new FileReader();
-                        reader.readAsDataURL(audioBlob);
-                        reader.onloadend = function() {
-                            document.getElementById("recordedAudio").value = reader.result;
-                        };
+                    let reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = function() {
+                        document.getElementById("recordedAudio").value = reader.result;
                     };
+                };
 
-                    document.getElementById("stopRecording").classList.remove("d-none");
-                    document.getElementById("startRecording").classList.add("d-none");
-                });
-
-                document.getElementById("stopRecording").addEventListener("click", function() {
-                    mediaRecorder.stop();
-                    document.getElementById("stopRecording").classList.add("d-none");
-                    document.getElementById("startRecording").classList.remove("d-none");
-                });
+                document.getElementById("stopRecording").classList.remove("d-none");
+                document.getElementById("startRecording").classList.add("d-none");
             });
-            document.addEventListener('DOMContentLoaded', function() {
-                // إذا كان هناك عميل محدد، قم باختياره في القائمة
-                @if (isset($client_id))
-                    $('#clientSelect').val('{{ $client_id }}').trigger('change');
-                @endif
 
-                // أو إذا كان هناك كائن عميل
-                @if (isset($client) && $client)
-                    $('#clientSelect').val('{{ $client->id }}').trigger('change');
-                @endif
+            document.getElementById("stopRecording").addEventListener("click", function() {
+                mediaRecorder.stop();
+                document.getElementById("stopRecording").classList.add("d-none");
+                document.getElementById("startRecording").classList.remove("d-none");
             });
-        </script>
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            // إذا كان هناك عميل محدد، قم باختياره في القائمة
+            @if (isset($client_id))
+                $('#clientSelect').val('{{ $client_id }}').trigger('change');
+            @endif
+
+            // أو إذا كان هناك كائن عميل
+            @if (isset($client) && $client)
+                $('#clientSelect').val('{{ $client->id }}').trigger('change');
+            @endif
+        });
+    </script>
 
 
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        {{-- <!--<script src="{{ asset('assets/js/applmintion.js') }}"></script>--> --}}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- <!--<script src="{{ asset('assets/js/applmintion.js') }}"></script>--> --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @endsection
+@endsection

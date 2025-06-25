@@ -23,7 +23,10 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use Barryvdh\DomPDF\Facade\Pdf;
 use ArPHP\I18N\Arabic;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\QuoteViewMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -56,33 +59,19 @@ class QuoteController extends Controller
 
         // البحث حسب المبلغ الإجمالي
         if ($request->filled('total_from')) {
-            $query->where('grand_total', '>=', $request->total_from);
+            $query->where('grand_total', '>', $request->total_from);
         }
         if ($request->filled('total_to')) {
-            $query->where('grand_total', '<=', $request->total_to);
+            $query->where('grand_total', '<', $request->total_to);
         }
 
         // البحث حسب التاريخ الأول (تاريخ العرض)
-        if ($request->filled('date_type_1')) {
-            switch ($request->date_type_1) {
-                case 'monthly':
-                    $query->whereMonth('quote_date', now()->month)
-                          ->whereYear('quote_date', now()->year);
-                    break;
-                case 'weekly':
-                    $query->whereBetween('quote_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    break;
-                case 'daily':
-                    $query->whereDate('quote_date', Carbon::today());
-                    break;
-                default:
-                    if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
-                        $from_date = Carbon::parse($request->from_date_1)->startOfDay();
-                        $to_date = Carbon::parse($request->to_date_1)->endOfDay();
-                        $query->whereBetween('quote_date', [$from_date, $to_date]);
-                    }
-            }
-        }
+       if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
+    $from = Carbon::parse($request->from_date_1)->startOfDay();
+    $to = Carbon::parse($request->to_date_1)->endOfDay();
+
+    $query->whereBetween('created_at', [$from, $to]);
+}
 
         if ($request->filled('date_type_2')) {
             switch ($request->date_type_2) {
@@ -134,7 +123,7 @@ class QuoteController extends Controller
         $quotes_number = $this->generateInvoiceNumber();
         $clients = Client::all();
         $users = User::all();
-        $employees = Employee::all();
+        $employees = User::whereIn('role', ['employee', 'manager'])->get();
         $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
 
         // إرجاع البيانات مع المتغيرات المطلوبة للعرض
@@ -424,8 +413,9 @@ foreach ($items_data as $item) {
 // }
 public function downloadPdf($id)
 {
-    $invoice = Invoice::with(['client', 'items', 'createdByUser'])->findOrFail($id);
-    $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
+   
+    
+    $quote = Quote::with(['client', 'employee', 'items'])->find($id);
     $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'quote')->get();
     // إنشاء بيانات QR Code
     $qrData = 'رقم الفاتورة: ' . $quote->id . "\n";
@@ -499,8 +489,29 @@ $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=".$q
     $pdf->writeHTML($html, true, false, true, false, '');
 
     // Output file
-    return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
+    // return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
+    return $pdf->Output('quote-' . $quote->id . '.pdf', 'I');
+
 }
+
+
+
+public function sendQuoteLink($id)
+{
+    $quote = Quote::with('client')->findOrFail($id);
+
+    if (!$quote->client || !$quote->client->email || !filter_var($quote->client->email, FILTER_VALIDATE_EMAIL)) {
+        return redirect()->back()->with('error', 'هذا العميل لا يملك  بريد إلكتروني صالح.');
+    }
+
+    // إنشاء الرابط بناءً على اسم الـ Route
+    $viewUrl = route('questions.print', $quote->id);
+
+    Mail::to($quote->client->email)->send(new QuoteViewMail($quote, $viewUrl));
+
+    return redirect()->back()->with('success', 'تم إرسال رابط عرض السعر إلى بريد العميل.');
+}
+
     public function edit($id)
     {
         $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);

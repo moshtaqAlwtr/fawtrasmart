@@ -95,7 +95,16 @@
                         </div>
                     </li>
 
+<<<<<<< HEAD
                    <?php if( auth()->user()->hasPermissionTo('branches')): ?>
+=======
+                   
+                 
+
+
+                    <?php if(auth()->user()->hasPermissionTo('branches')): ?>
+
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                         <li class="dropdown dropdown-notification nav-item">
                             <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
                                 <i class="ficon feather icon-calendar"></i>
@@ -179,6 +188,10 @@
                     $userRole = Auth::user()->role;
                 ?>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                 <?php if( auth()->user()->hasPermissionTo('branches')): ?>
                     <li class="dropdown dropdown-notification nav-item">
                         <a class="nav-link nav-link-label" href="#" data-toggle="dropdown">
@@ -201,6 +214,7 @@
                             </li>
                         </ul>
                     </li>
+<<<<<<< HEAD
 
                     <script>
                         $(document).ready(function() {
@@ -229,6 +243,33 @@
                                         minute: '2-digit'
                                     });
                                 }
+=======
+
+                <script>
+                    $(document).ready(function() {
+                        function formatNotificationTime(dateTime) {
+                            const now = new Date();
+                            const notificationDate = new Date(dateTime);
+                            const diffInSeconds = Math.floor((now - notificationDate) / 1000);
+
+
+                            if (diffInSeconds < 60) {
+                                return 'منذ لحظات';
+                            } else if (diffInSeconds < 3600) {
+                                const minutes = Math.floor(diffInSeconds / 60);
+                                return `منذ ${minutes} دقيقة`;
+                            } else if (diffInSeconds < 86400) {
+                                const hours = Math.floor(diffInSeconds / 3600);
+                                return `منذ ${hours} ساعة`;
+                            } else {
+                                return notificationDate.toLocaleDateString('ar-SA', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                });
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                             }
 
                             function fetchNotifications() {

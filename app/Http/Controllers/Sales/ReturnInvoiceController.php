@@ -26,6 +26,8 @@ use App\Models\TreasuryEmployee;
 use App\Models\WarehousePermits;
 use App\Models\WarehousePermitsProducts;
 use Illuminate\Http\Request;
+use App\Mail\SimpleLinkMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +37,7 @@ class ReturnInvoiceController extends Controller
     public function index(Request $request)
     {
         // بدء بناء الاستعلام
-        $query = Invoice::with(['client', 'createdByUser', 'updatedByUser'])->orderBy('created_at', 'desc');
+        $query = Invoice::with(['client', 'createdByUser', 'updatedByUser'])->where('type', 'returned')->orderBy('created_at', 'desc');
 
         // 1. البحث حسب العميل
         if ($request->has('client_id') && $request->client_id) {
@@ -66,12 +68,12 @@ class ReturnInvoiceController extends Controller
 
         // 6. البحث حسب الإجمالي (من)
         if ($request->has('total_from') && $request->total_from) {
-            $query->where('grand_total', '>=', $request->total_from);
+            $query->where('grand_total', '>', $request->total_from);
         }
 
         // 7. البحث حسب الإجمالي (إلى)
         if ($request->has('total_to') && $request->total_to) {
-            $query->where('grand_total', '<=', $request->total_to);
+            $query->where('grand_total', '<', $request->total_to);
         }
 
         // 8. البحث حسب حالة الدفع
@@ -171,7 +173,7 @@ class ReturnInvoiceController extends Controller
         }
 
         // جلب النتائج مع التقسيم
-        $return = $query->paginate(25); // استبدل get() بـ paginate()
+        $return = $query->get(); // استبدل get() بـ paginate()
 
         // البيانات الأخرى المطلوبة للواجهة
         $clients = Client::all();
@@ -181,6 +183,15 @@ class ReturnInvoiceController extends Controller
 
         return view('sales.retend_invoice.index', compact('return', 'account_setting', 'clients', 'users', 'employees'));
     }
+    
+    
+    public function showPrintable($id)
+  {
+    $credit = CreditNotification::with(['client', 'createdBy'])->findOrFail($id);
+    $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice','credit')->get();
+
+    return view('sales.creted_note.pdf', compact('credit', 'TaxsInvoice'));
+  }
     public function create($id)
     {
         // العثور على الفاتورة
@@ -1154,6 +1165,8 @@ class ReturnInvoiceController extends Controller
         return redirect()->route('ReturnIInvoices.index')->with('error', 'لا يمكنك تعديل الفاتورة. طبقا لتعليمات هيئة الزكاة والدخل يمنع حذف أو تعديل الفاتورة بعد إصدارها وفقا لمتطلبات الفاتورة الإلكترونية، ولكن يمكن إصدار فاتورة مرتجعة أو إشعار دائن لإلغائها أو تعديلها.');
     }
 
+
+
     public function show($id)
     {
         $clients = Client::all();
@@ -1174,4 +1187,21 @@ class ReturnInvoiceController extends Controller
         // $invoice_number = $this->generateInvoiceNumber();
         return view('sales.retend_invoice.pdf', compact('clients', 'id', 'TaxsInvoice', 'employees', 'account_setting', 'return_invoice'));
     }
+    public function sendReturnInvoiceEmail($id)
+{
+    $invoice = Invoice::with('client')->findOrFail($id);
+  
+    if (!$invoice->client || !filter_var($invoice->client->email, FILTER_VALIDATE_EMAIL)) {
+        return back()->with('error', 'لا يوجد بريد إلكتروني صالح لهذا العميل.');
+    }
+
+    $link = route('return.print', $invoice->id);
+    $subject = 'عرض الفاتورة المرتجعة #' . $invoice->id;
+    $message = "مرحبًا،<br><br>يمكنك عرض الفاتورة المرتجعة عبر الرابط التالي:<br><a href=\"$link\">$link</a>";
+
+    // إرسال الإيميل
+    Mail::to($invoice->client->email)->send(new SimpleLinkMail($subject, $message));
+
+    return back()->with('success', 'تم إرسال رابط الفاتورة المرتجعة إلى العميل.');
+}
 }

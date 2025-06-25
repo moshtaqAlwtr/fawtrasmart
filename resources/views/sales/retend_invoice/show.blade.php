@@ -128,10 +128,10 @@ color: #0056b3; /* لون النص عند التحويم */
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <div class="d-flex gap-2">
                         <!-- تعديل -->
-                        <a href="{{ route('ReturnIInvoices.edit', $return_invoice->id) }}"
-                            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
-                            <i class="fas fa-pen me-1"></i> تعديل
-                        </a>
+                        <!--<a href="{{ route('ReturnIInvoices.edit', $return_invoice->id) }}"-->
+                        <!--    class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">-->
+                        <!--    <i class="fas fa-pen me-1"></i> تعديل-->
+                        <!--</a>-->
 
                         <!-- طباعة -->
                         <!--<a href="#" class="btn btn-sm btn-outline-success d-inline-flex align-items-center print-button">-->
@@ -141,11 +141,7 @@ color: #0056b3; /* لون النص عند التحويم */
                         class="btn btn-sm btn-outline-success d-flex align-items-center custom-btn">
                         <i class="fas fa-print me-1"></i> طباعة
                     </a>
-                        <!-- PDF -->
-                        <a href=""
-                            class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
-                            <i class="fas fa-file-pdf me-1"></i> PDF
-                        </a>
+                       
                     </div>
                 </div>
 

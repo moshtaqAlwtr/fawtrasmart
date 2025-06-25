@@ -3,7 +3,14 @@
 @section('title')
     ادارة عروض السعر
 @stop
+<style>
+    .table td, .table th {
+    white-space: normal !important;
+    word-break: break-word;
+    vertical-align: middle;
+}
 
+</style>
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -24,6 +31,8 @@
             </div>
         </div>
     </div>
+   
+
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -41,24 +50,15 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <!-- Checkbox لتحديد الكل -->
-                    <div class="form-check me-3">
-                        <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-                    </div>
+                   
 
                     <!-- زر عرض سعر جديد -->
                     <a href="{{ route('questions.create') }}" class="btn btn-success btn-sm d-flex align-items-center rounded-pill px-3">
                         <i class="fas fa-plus-circle me-1"></i>عرض سعر جديد
                     </a>
 
-                    <!-- زر المواعيد -->
-                    <a href="{{ route('appointments.index') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                        <i class="fas fa-calendar-alt me-1"></i>المواعيد
-                    </a>
 
-                    <!-- زر استيراد -->
-                    <a href="{{ route('questions.logsaction') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center rounded-pill px-3">
-                        <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
-                    </a>
+                   
 
                     <!-- جزء التنقل بين الصفحات -->
                     <nav aria-label="Page navigation">
@@ -192,24 +192,17 @@
                     <div class="collapse {{ request()->hasAny(['currency', 'total_from', 'total_to', 'date_type_1', 'date_type_2', 'item_search', 'created_by', 'sales_representative']) ? 'show' : '' }}" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
                             <!-- 4. العملة -->
-                            <div class="col-md-4">
-                                <label for="currencySelect">العملة</label>
-                                <select name="currency" class="form-control" id="currencySelect">
-                                    <option value="">العملة</option>
-                                    <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}>ريال سعودي</option>
-                                    <option value="USD" {{ request('currency') == 'USD' ? 'selected' : '' }}>دولار أمريكي</option>
-                                </select>
-                            </div>
+                           
 
                             <!-- 5. الإجمالي أكبر من -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="total_from">الإجمالي أكبر من</label>
                                 <input type="number" class="form-control" placeholder="الإجمالي أكبر من"
                                     name="total_from" step="0.01" value="{{ request('total_from') }}">
                             </div>
 
                             <!-- 6. الإجمالي أصغر من -->
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label for="total_to">الإجمالي أصغر من</label>
                                 <input type="number" class="form-control" placeholder="الإجمالي أصغر من"
                                     name="total_to" step="0.01" value="{{ request('total_to') }}">
@@ -217,93 +210,63 @@
 
                             <!-- 7. الحالة -->
 
-                        </div>
-
-                        <div class="row g-3 mt-2">
+                        
                             <!-- 8. التخصيص -->
-                            <div class="col-md-2">
-                                <label for="date_type_1">التخصيص</label>
-                                <select name="date_type_1" class="form-control">
-                                    <option value="">تخصيص</option>
-                                    <option value="monthly" {{ request('date_type_1') == 'monthly' ? 'selected' : '' }}>شهرياً</option>
-                                    <option value="weekly" {{ request('date_type_1') == 'weekly' ? 'selected' : '' }}>أسبوعياً</option>
-                                    <option value="daily" {{ request('date_type_1') == 'daily' ? 'selected' : '' }}>يومياً</option>
-                                </select>
-                            </div>
+                         
 
                             <!-- 9. التاريخ من -->
-                            <div class="col-md-2">
-                                <label for="from_date_1">التاريخ من</label>
-                                <input type="date" class="form-control" placeholder="من"
-                                    name="from_date_1" value="{{ request('from_date_1') }}">
-                            </div>
+                            <!--<div class="col-md-3">-->
+                            <!--    <label for="from_date_1">التاريخ من</label>-->
+                            <!--    <input type="date" class="form-control" placeholder="من"-->
+                            <!--        name="from_date_1" value="{{ request('from_date_1') }}">-->
+                            <!--</div>-->
 
                             <!-- 10. التاريخ إلى -->
-                            <div class="col-md-2">
-                                <label for="to_date_1">التاريخ إلى</label>
-                                <input type="date" class="form-control" placeholder="إلى"
-                                    name="to_date_1" value="{{ request('to_date_1') }}">
-                            </div>
+                            <!--<div class="col-md-3">-->
+                            <!--    <label for="to_date_1">التاريخ إلى</label>-->
+                            <!--    <input type="date" class="form-control" placeholder="إلى"-->
+                            <!--        name="to_date_1" value="{{ request('to_date_1') }}">-->
+                            <!--</div>-->
+                            <!--<div class="row">-->
+    <!-- التاريخ من -->
+    <div class="col-md-3">
+        <label for="from_date_1" class="form-label fw-bold">التاريخ من</label>
+        <input type="date" class="form-control" name="from_date_1"
+               value="{{ request('from_date_1') }}">
+    </div>
+
+    <!-- التاريخ إلى -->
+    <div class="col-md-3">
+        <label for="to_date_1" class="form-label fw-bold">التاريخ إلى</label>
+        <input type="date" class="form-control" name="to_date_1"
+               value="{{ request('to_date_1') }}">
+    </div>
+
+    <!-- زر البحث -->
+   
+
 
                             <!-- 11. التخصيص -->
-                            <div class="col-md-2">
-                                <label for="date_type_2">التخصيص</label>
-                                <select name="date_type_2" class="form-control">
-                                    <option value="">تخصيص</option>
-                                    <option value="monthly" {{ request('date_type_2') == 'monthly' ? 'selected' : '' }}>شهرياً</option>
-                                    <option value="weekly" {{ request('date_type_2') == 'weekly' ? 'selected' : '' }}>أسبوعياً</option>
-                                    <option value="daily" {{ request('date_type_2') == 'daily' ? 'selected' : '' }}>يومياً</option>
-                                </select>
-                            </div>
+                           
 
-                            <!-- 12. تاريخ الإنشاء من -->
-                            <div class="col-md-2">
-                                <label for="from_date_2">تاريخ الإنشاء من</label>
-                                <input type="date" class="form-control" placeholder="من"
-                                    name="from_date_2" value="{{ request('from_date_2') }}">
-                            </div>
-
-                            <!-- 13. تاريخ الإنشاء إلى -->
-                            <div class="col-md-2">
-                                <label for="to_date_2">تاريخ الإنشاء إلى</label>
-                                <input type="date" class="form-control" placeholder="إلى"
-                                    name="to_date_2" value="{{ request('to_date_2') }}">
-                            </div>
+                         
                         </div>
 
                         <div class="row g-3 mt-2">
-                            <!-- 14. تحتوي على البند -->
-                            <div class="col-md-4">
-                                <label for="item_search">تحتوي على البند</label>
-                                <input type="text" class="form-control" placeholder="تحتوي على البند"
-                                    name="item_search" value="{{ request('item_search') }}">
-                            </div>
-
+                        
                             <!-- 15. أضيفت بواسطة -->
-                            <div class="col-md-4">
+                            <div class="col-md-12">
                                 <label for="created_by">أضيفت بواسطة</label>
                                 <select name="created_by" class="form-control select2">
                                     <option value="">أضيفت بواسطة</option>
                                     @foreach ($employees as $employee)
                                         <option value="{{ $employee->id }}" {{ request('created_by') == $employee->id ? 'selected' : '' }}>
-                                            {{ $employee->full_name }}
+                                            {{ $employee->name ?? "" }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <!-- 16. مسؤول المبيعات -->
-                            <div class="col-md-4">
-                                <label for="sales_representative">مسؤول المبيعات</label>
-                                <select name="sales_representative" class="form-control select2">
-                                    <option value="">مسؤول المبيعات</option>
-                                    @foreach ($users as $user)
-                                        <option value="{{ $user->id }}" {{ request('sales_representative') == $user->id ? 'selected' : '' }}>
-                                            {{ $user->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
 
                         </div>
                     </div>
@@ -317,144 +280,162 @@
             </div>
         </div>
         <div class="card">
+    <div class="table-responsive">
+        <table id="testTable" class="table table-hover nowrap text-center align-middle" style="width:100%">
+    <thead class="bg-light" style="background-color: #BABFC7 !important;">
+        <tr class="bg-gradient-light text-center">
+            <th style="min-width: 60px;">#</th>
+            <th style="min-width: 150px;">العميل</th>
+            <th style="min-width: 120px;">الرقم الضريبي</th>
+            <th style="min-width: 200px;">العنوان</th>
+            <th style="min-width: 150px;">تاريخ العرض</th>
+            <th style="min-width: 120px;">المبلغ</th>
+            <th style="min-width: 100px;">الحالة</th>
+            <th style="min-width: 120px;">بواسطة</th>
+            <th style="min-width: 80px;">الخيارات</th>
+        
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($quotes as $quote)
+                    @php
+                        $currency = $account_setting->currency ?? 'SAR';
+                        $currencySymbol = $currency == 'SAR' || empty($currency)
+                            ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                            : $currency;
 
-
-            <!-- قائمة الفواتير -->
-            @foreach ($quotes as $quote)
-                <div class="card-body">
-                    <div class="row border-bottom py-2 align-items-center">
-                        <!-- معلومات الفاتورة -->
-                        <div class="col-md-4">
-                            <p class="mb-0">
-                                <strong>#{{ $quote->id }}</strong>
-                            </p>
-                            <small class="text-muted">
-                                <i class="fas fa-user me-1"></i>
-                                {{ $quote->client ? ($quote->client->trade_name ?: $quote->client->first_name . ' ' . $quote->client->last_name) : 'عميل غير معروف' }}
-
-                                الرقم الضريبي
-                                @if ($quote->client && $quote->client->tax_number)
-                                    <i class="fas fa- me-1"></i>{{ $quote->client->tax_number }}
-                                @endif
-                            </small>
-                            <small class="d-block">
-                                @if ($quote->client && $quote->client->full_address)
-                                    <i class="fas fa-map-marker-alt me-1"></i>{{ $quote->client->full_address }}
-                                @endif
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-user-tie me-1"></i> بواسطة:
-                                {{ $quote->creator->name ?? 'غير محدد' }}
-                            </small>
-                            <p class="mb-0 text-muted">
-                                <i class="fas fa-mobile-alt me-1"></i> المصدر: تطبيق الهاتف المحمول
-                            </p>
-                        </div>
-
-                        <!-- تاريخ الفاتورة -->
-                        <div class="col-md-3">
-                            <p class="mb-0">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                {{ $quote->created_at ? $quote->created_at->format('H:i:s d/m/Y') : '' }}
-                            </p>
-                            <small class="text-muted">
-                                <i class="fas fa-user me-1"></i> بواسطة:
-                                {{ $quote->creator->name ?? 'غير محدد' }}
-                            </small>
-                        </div>
-
-                        <!-- المبلغ وحالة الدفع -->
-                        <div class="col-md-3 text-center">
-                             @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
-                            <!-- عرض المبلغ الإجمالي -->
-                            <div class="mb-2">
-                                <strong class="text-danger fs-2 d-block">
-                                    {{ number_format($quote->grand_total ?? $quote->total, 2) }}
-                                    <small class="currency">{!! $currencySymbol !!}</small>
-                                </strong>
-
-                                <!-- عرض حالة الدفع مع تغيير اللون بناءً على الحالة -->
-                                @php
-                                    $statusClass = '';
-                                    $statusText = '';
-
-                                    if ($quote->status == 1) {
-                                        $statusClass = 'bg-success';
-                                        $statusText = 'مفتوح';
-                                    } else {
-                                        $statusClass = 'bg-info';
-                                        $statusText = 'مغلق ';
-                                    }
-                                @endphp
-
-                                <!-- عرض حالة الدفع -->
-                                <span class="badge {{ $statusClass }} d-inline-block mt-2 p-1 rounded small"
-                                    style="font-size: 0.8rem;">
-                                    <i class="fas fa-circle me-1"></i> {{ $statusText }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- الأزرار -->
-                        <div class="col-md-2 text-end">
-                            <div class="btn-group">
-                                <div class="dropdown">
-                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                        id="dropdownMenuButton{{ $quote->id }}" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $quote->id }}">
-                                        {{-- <a class="dropdown-item" href="{{ route('questions.edit', $quote->id) }}">
-                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                        </a> --}}
-                                        <a class="dropdown-item" href="{{ route('questions.show', $quote->id) }}">
-                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                        </a>
-                                        {{-- <a class="dropdown-item"
-                                            href="{{ route('questions.create', ['id' => $quote->id]) }}">
-                                            <i class="fa fa-money-bill me-2 text-success"></i>إضافة دفعة
-                                        </a> --}}
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-                                        </a>
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-print me-2 text-dark"></i>طباعة
-                                        </a>
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
-                                        </a>
-
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                        </a>
-                                        <form action="{{ route('questions.destroy', $quote->id) }}" method="POST"
-                                            class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="fa fa-trash me-2"></i>حذف
-                                            </button>
-                                        </form>
-                                    </div>
+                        $statusClass = $quote->status == 1 ? 'badge bg-success' : 'badge bg-info';
+                        $statusText = $quote->status == 1 ? 'مفتوح' : 'مغلق';
+                    @endphp
+                    <tr>
+                        <td><strong>#{{ $quote->id }}</strong></td>
+                        <td>
+                            {{ $quote->client ? ($quote->client->trade_name ?: $quote->client->first_name . ' ' . $quote->client->last_name) : 'عميل غير معروف' }}
+                        </td>
+                        <td>
+                            {{ $quote->client->tax_number ?? '-' }}
+                        </td>
+                        <td>
+                            {{ $quote->client->full_address ?? '-' }}
+                        </td>
+                        <td>
+                            {{ $quote->created_at ? $quote->created_at->format('H:i:s d/m/Y') : '-' }}
+                        </td>
+                        <td>
+                            <strong class="text-danger fs-6">
+                                {{ number_format($quote->grand_total ?? $quote->total, 2) }}
+                                {!! $currencySymbol !!}
+                            </strong>
+                        </td>
+                        <td>
+                            <span class="{{ $statusClass }}">
+                                <i class="fas fa-circle me-1"></i> {{ $statusText }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ $quote->creator->name ?? 'غير محدد' }}
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn bg-gradient-info fa fa-ellipsis-v" type="button"
+                                    id="dropdownMenuButton{{ $quote->id }}" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $quote->id }}">
+                                    <a class="dropdown-item" href="{{ route('questions.show', $quote->id) }}">
+                                        <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('quotes.pdf', $quote->id) }}">
+                                        <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('questions.email', $quote->id) }}">
+                                        <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
+                                    </a>
+                                    <form action="{{ route('questions.destroy', $quote->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="fa fa-trash me-2"></i>حذف
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-            <!-- إذا لم تكن هناك فواتير -->
-            @if ($quotes->isEmpty())
-                <div class="alert alert-warning" role="alert">
-                    <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد عروض اسعار </p>
-                </div>
-            @endif
-        </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9">
+                            <div class="alert alert-warning m-0">
+                                <i class="fas fa-exclamation-circle me-2"></i> لا توجد عروض أسعار
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
     </div>
 @endsection
 @section('scripts')
-<script src="{{ asset('assets/js/search.js') }}"></script>
+
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script src="{{ asset('assets/js/search.js') }}"></script>
+    <script></script>
+
+<!-- jQuery و DataTables -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- DataTables الأساسية -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<!-- أزرار التصدير -->
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<!-- تعريب -->
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#testTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json'
+            },
+            // dom: 'Bfrtip',
+            // buttons: [
+            //     {
+            //         extend: 'excel',
+            //         text: 'تصدير إلى Excel',
+            //         className: 'btn btn-success btn-sm'
+            //     },
+            //     {
+            //         extend: 'print',
+            //         text: 'طباعة',
+            //         className: 'btn btn-warning btn-sm'
+            //     },
+            //     {
+            //         extend: 'copy',
+            //         text: 'نسخ',
+            //         className: 'btn btn-info btn-sm'
+            //     }
+            // ]
+        });
+    });
+</script>
+
+
+
 @endsection

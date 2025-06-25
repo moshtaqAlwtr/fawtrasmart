@@ -1,10 +1,20 @@
+<<<<<<< HEAD
+=======
+
+
+
+
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
     <title>فاتورة #<?php echo e($invoice->id); ?></title>
     <!-- Import Arabic font -->
     <style>
@@ -19,6 +29,7 @@
             font-weight: bold;
         }
 
+<<<<<<< HEAD
         @media print {
             #signature-form {
                 display: none !important;
@@ -39,6 +50,8 @@
             }
         }
 
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         /* Receipt Container */
         .receipt-container {
             display: flex;
@@ -123,7 +136,10 @@
             margin-bottom: 5px;
         }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         /* QR Code */
         .qr-code {
             margin: 15px 0;
@@ -139,6 +155,7 @@
             text-align: center;
         }
 
+<<<<<<< HEAD
         .signature-pad {
             border: 1px dashed #000;
             width: 100%;
@@ -181,11 +198,14 @@
             border: 1px dashed #ccc;
         }
 
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         .thank-you {
             font-style: italic;
             margin-top: 5px;
         }
 
+<<<<<<< HEAD
         /* Toastr Styles */
         #toast-container>.toast {
             background-image: none !important;
@@ -210,6 +230,8 @@
             content: "\f00d";
         }
 
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         /* Print Styles */
         @media print {
             body {
@@ -237,8 +259,11 @@
                 width: 70px !important;
                 height: 70px !important;
             }
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
         }
 
         /* Responsive Styles */
@@ -248,6 +273,7 @@
             }
         }
     </style>
+<<<<<<< HEAD
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
@@ -259,23 +285,34 @@
             ->first();
     ?>
 
+=======
+</head>
+
+<body>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
     <div class="container">
         <div class="receipt-container">
             <div class="receipt">
                 <!-- Receipt Header -->
                 <div class="receipt-header">
+<<<<<<< HEAD
                     <h1 class="receipt-title">فاتورة ضريبية</h1>
 
 
 
                     <p class="mb-0">مؤسسة اعمال خاصة </p>
 
+=======
+                    <h1 class="receipt-title">فاتورة</h1>
+                    <p class="mb-0">مؤسسة أعمال خاصة للتجارة</p>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                     <p class="mb-0">الرياض - الرياض</p>
                     <p>رقم المسؤول: 0509992803</p>
                 </div>
 
                 <!-- Invoice To -->
                 <div class="invoice-to">
+<<<<<<< HEAD
                     <p class="mb-0">فاتورة الى:
                         <?php echo e($invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name); ?>
 
@@ -285,6 +322,14 @@
                     <p class="mb-0">الرقم الضريبي: <?php echo e($invoice->client->tax_number ?? 'غير متوفر'); ?></p>
                     <?php if($invoice->client->phone): ?>
                         <p class="mb-0">رقم جوال العميل: <?php echo e($invoice->client->phone); ?></p>
+=======
+                    <p class="mb-0">فاتورة الى: <?php echo e($invoice->client->trade_name ?? $invoice->client->first_name . ' ' . $invoice->client->last_name); ?></p>
+                    <p class="mb-0"><?php echo e($invoice->client->street1 ?? 'غير متوفر'); ?></p>
+                    <p class="mb-0">كود العميل: <?php echo e($invoice->client->code ?? 'غير متوفر'); ?></p>
+                    <p class="mb-0">الرقم الضريبي: <?php echo e($invoice->client->tax_number ?? 'غير متوفر'); ?></p>
+                    <?php if($invoice->client->phone): ?>
+                    <p class="mb-0">رقم جوال العميل: <?php echo e($invoice->client->phone); ?></p>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                     <?php endif; ?>
                 </div>
 
@@ -296,6 +341,7 @@
                     </div>
                     <div class="summary-row">
                         <span>تاريخ الفاتورة:</span>
+<<<<<<< HEAD
 
                         <span><?php echo e($invoice->invoice_date); ?></span>
 
@@ -303,6 +349,10 @@
 
                     </div>
 
+=======
+                        <span><?php echo e(\Carbon\Carbon::parse($invoice->invoice_date)->format('d/m/Y H:i')); ?></span>
+                    </div>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                 </div>
 
                 <!-- Invoice Items -->
@@ -310,6 +360,7 @@
                     <table class="table">
                         <thead>
                             <tr>
+<<<<<<< HEAD
                                 <th width="5%">#</th>
                                 <th width="45%">المنتج</th>
                                 <th width="15%">الكمية</th>
@@ -326,6 +377,22 @@
                                     <td><?php echo e(number_format($item->unit_price, 2)); ?></td>
                                     <td><?php echo e(number_format($item->total, 2)); ?></td>
                                 </tr>
+=======
+                                <th width="40%">البند</th>
+                                <th width="15%">الكمية</th>
+                                <th width="20%">السعر</th>
+                                <th width="25%">المجموع</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $__currentLoopData = $invoice->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <tr>
+                                <td style="text-align: right;"><?php echo e($item->item); ?></td>
+                                <td><?php echo e($item->quantity); ?></td>
+                                <td><?php echo e(number_format($item->unit_price, 2)); ?></td>
+                                <td><?php echo e(number_format($item->total, 2)); ?></td>
+                            </tr>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
@@ -339,6 +406,7 @@
                     </div>
 
                     <?php if($invoice->total_discount > 0): ?>
+<<<<<<< HEAD
                         <div class="summary-row">
                             <span>الخصم:</span>
                             <span><?php echo e(number_format($invoice->total_discount, 2)); ?> ر.س</span>
@@ -405,10 +473,47 @@
                 </div>
 
                                 <div class="signature">
+=======
+                    <div class="summary-row">
+                        <span>الخصم:</span>
+                        <span><?php echo e(number_format($invoice->total_discount, 2)); ?> ر.س</span>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if($invoice->shipping_cost > 0): ?>
+                    <div class="summary-row">
+                        <span>تكلفة الشحن:</span>
+                        <span><?php echo e(number_format($invoice->shipping_cost, 2)); ?> ر.س</span>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if($invoice->advance_payment > 0): ?>
+                    <div class="summary-row">
+                        <span>الدفعة المقدمة:</span>
+                        <span><?php echo e(number_format($invoice->advance_payment, 2)); ?> ر.س</span>
+                    </div>
+                    <?php endif; ?>
+
+                    <div class="summary-row">
+                        <span>المبلغ المستحق:</span>
+                        <span><?php echo e(number_format($invoice->due_value, 2)); ?> ر.س</span>
+                    </div>
+                </div>
+
+                <!-- QR Code -->
+                <div class="qr-code">
+                    <?php echo $qrCodeSvg; ?>
+
+                </div>
+
+                <!-- Signature -->
+                <div class="signature">
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
                     <p>الاسم: ________________</p>
                     <p>التوقيع: _______________</p>
                     <p class="thank-you">شكراً لتعاملكم معنا</p>
                 </div>
+<<<<<<< HEAD
 
 
                
@@ -604,4 +709,26 @@
 </html>
 
 
+=======
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // طباعة تلقائية عند تحميل الصفحة
+        window.onload = function() {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        };
+
+        // إعادة الطباعة عند محاولة الإغلاق
+        window.onbeforeunload = function() {
+            window.print();
+        };
+    </script>
+</body>
+
+</html>
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e
 <?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/sales/invoices/print.blade.php ENDPATH**/ ?>

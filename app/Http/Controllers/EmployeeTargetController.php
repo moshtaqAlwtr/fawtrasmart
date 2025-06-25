@@ -226,8 +226,8 @@ class EmployeeTargetController extends Controller
         ]);
     }
 
-
-
+   
+    
     public function daily_closing_entry(Request $request)
 {
      $date = $request->date ? Carbon::parse($request->date) : now();

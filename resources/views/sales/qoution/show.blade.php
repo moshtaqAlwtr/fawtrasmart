@@ -90,27 +90,8 @@
                             </div>
                         </div>
 
-                        <!-- خيارات أخرى -->
-                        <div class="dropdown">
-                            <button type="button" class="btn btn-sm btn-outline-dark dropdown-toggle"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                                خيارات أخرى
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item d-inline-flex align-items-center" href="#">
-                                        <i class="fas fa-copy me-2"></i>
-                                        نسخ عرض الأسعار
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item d-inline-flex align-items-center" href="#">
-                                        <i class="fas fa-trash me-2"></i>
-                                        حذف عرض الأسعار
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+                        <!-- خيارات أخر>ى -->
+                      
                     </div>
                 </div>
                 <div class="card">

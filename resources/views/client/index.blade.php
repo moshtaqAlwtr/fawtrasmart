@@ -1121,6 +1121,7 @@
         });
     </script>
 
+<<<<<<< HEAD
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // منع السلوك الافتراضي للنقر على روابط التصفح
@@ -1159,3 +1160,6 @@
 
 
 @stop
+=======
+@stop
+>>>>>>> 0865896ea3505cae60f0943c61cae726cbc1a34e

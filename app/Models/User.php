@@ -95,11 +95,4 @@ public function employee()
 {
     return $this->hasMany(Notification::class);
 }
-// app/Models/User.php
-public function regionGroups()
-{
-    return $this->belongsToMany(Region_groub::class, 'employee_group', 'employee_id', 'group_id')
-                ->using(EmployeeGroup::class)
-                ->withPivot(['direction_id', 'expires_at']);
-}
 }

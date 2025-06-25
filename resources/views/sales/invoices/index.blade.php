@@ -126,6 +126,13 @@
             {{ session('error') }}
         </div>
     @endif
+@if ($errors->any())
+    <div class="alert alert-danger">
+        @foreach ($errors->all() as $error)
+            <p class="mb-0">{{ $error }}</p>
+        @endforeach
+    </div>
+@endif
 
     <div class="content-body">
         <div class="container-fluid">
@@ -133,98 +140,19 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <!-- Checkbox لتحديد الكل -->
-                        <div class="form-check me-3">.
-                            <input class="form-check-input" type="checkbox" id="selectAll" onclick="toggleSelectAll()">
-
-                        </div>
+                        
 
                         <div class="d-flex flex-wrap justify-content-between">
                             <a href="{{ route('invoices.create') }}" class="btn btn-success btn-sm flex-fill me-1 mb-1">
                                 <i class="fas fa-plus-circle me-1"></i>فاتورة جديدة
                             </a>
-                            <a href="{{ route('appointments.index') }}"
-                                class="btn btn-outline-primary btn-sm flex-fill me-1 mb-1">
-                                <i class="fas fa-calendar-alt me-1"></i>المواعيد
-                            </a>
+                            
                             <button class="btn btn-outline-primary btn-sm flex-fill mb-1">
                                 <i class="fas fa-cloud-upload-alt me-1"></i>استيراد
                             </button>
                         </div>
 
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <!-- زر الانتقال إلى أول صفحة -->
-                                @if ($invoices->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->url(1) }}"
-                                            aria-label="First">
-                                            <i class="fas fa-angle-double-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى الصفحة السابقة -->
-                                @if ($invoices->onFirstPage())
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </span>
-                                    </li>
-                                @else
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->previousPageUrl() }}"
-                                            aria-label="Previous">
-                                            <i class="fas fa-angle-right"></i>
-                                        </a>
-                                    </li>
-                                @endif
-
-                                <!-- عرض رقم الصفحة الحالية -->
-                                <li class="page-item">
-                                    <span class="page-link border-0 bg-light rounded-pill px-3">
-                                        صفحة {{ $invoices->currentPage() }} من {{ $invoices->lastPage() }}
-                                    </span>
-                                </li>
-
-                                <!-- زر الانتقال إلى الصفحة التالية -->
-                                @if ($invoices->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill" href="{{ $invoices->nextPageUrl() }}"
-                                            aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Next">
-                                            <i class="fas fa-angle-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-
-                                <!-- زر الانتقال إلى آخر صفحة -->
-                                @if ($invoices->hasMorePages())
-                                    <li class="page-item">
-                                        <a class="page-link border-0 rounded-pill"
-                                            href="{{ $invoices->url($invoices->lastPage()) }}" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </a>
-                                    </li>
-                                @else
-                                    <li class="page-item disabled">
-                                        <span class="page-link border-0 rounded-pill" aria-label="Last">
-                                            <i class="fas fa-angle-double-left"></i>
-                                        </span>
-                                    </li>
-                                @endif
-                            </ul>
-                        </nav>
+                       
 
                     </div>
                 </div>
@@ -296,27 +224,12 @@
                         <!-- Advanced Search -->
                         <div class="collapse" id="advancedSearchForm">
                             <div class="row g-3 mt-2">
-                                <!-- 4. البند -->
-                                <div class="col-md-4">
-                                    <label for="item">البند</label>
-                                    <input type="text" id="item" class="form-control"
-                                        placeholder="تحتوي على البند" name="item" value="{{ request('item') }}">
-                                </div>
+                              
 
-                                <!-- 5. العملة -->
-                                <div class="col-md-4">
-                                    <label for="currency">العملة</label>
-                                    <select name="currency" class="form-control" id="currency">
-                                        <option value="">العملة</option>
-                                        <option value="SAR" {{ request('currency') == 'SAR' ? 'selected' : '' }}>SAR
-                                        </option>
-                                        <option value="USD" {{ request('currency') == 'USD' ? 'selected' : '' }}>USD
-                                        </option>
-                                    </select>
-                                </div>
+                            
 
                                 <!-- 6. الإجمالي (من) -->
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="total_from">الإجمالي أكبر من</label>
                                     <input type="text" id="total_from" class="form-control"
                                         placeholder="الإجمالي أكبر من" name="total_from"
@@ -324,40 +237,16 @@
                                 </div>
 
                                 <!-- 7. الإجمالي (إلى) -->
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="total_to">الإجمالي أصغر من</label>
                                     <input type="text" id="total_to" class="form-control"
                                         placeholder="الإجمالي أصغر من" name="total_to"
                                         value="{{ request('total_to') }}">
                                 </div>
 
-                                <!-- 8. حالة الدفع -->
-                                <div class="col-md-4">
-                                    <label for="payment_status">حالة الدفع</label>
-                                    <select name="payment_status" class="form-control" id="payment_status">
-                                        <option value="">حالة الدفع</option>
-                                        <option value="1" {{ request('payment_status') == 1 ? 'selected' : '' }}>غير
-                                            مدفوعة</option>
-                                        <option value="2" {{ request('payment_status') == 2 ? 'selected' : '' }}>
-                                            مدفوعة جزئيًا</option>
-                                        <option value="3" {{ request('payment_status') == 3 ? 'selected' : '' }}>
-                                            مدفوعة بالكامل</option>
-                                    </select>
-                                </div>
+                                
 
-                                <!-- 9. التخصيص (شهريًا، أسبوعيًا، يوميًا) -->
-                                <div class="col-md-2">
-                                    <label for="custom_period">التخصيص</label>
-                                    <select name="custom_period" class="form-control" id="custom_period">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly"
-                                            {{ request('custom_period') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly"
-                                            {{ request('custom_period') == 'weekly' ? 'selected' : '' }}>أسبوعيًا</option>
-                                        <option value="daily"
-                                            {{ request('custom_period') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
+                           
 
                                 <!-- 10. التاريخ (من) -->
                                 <div class="col-md-3">
@@ -373,156 +262,87 @@
                                         value="{{ request('to_date') }}">
                                 </div>
 
-                                <!-- 12. تخصيص آخر -->
-                                <div class="col-md-2">
-                                    <label for="custom_period_2">التخصيص</label>
-                                    <select name="custom_period_2" class="form-control" id="custom_period_2">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly"
-                                            {{ request('custom_period_2') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly"
-                                            {{ request('custom_period_2') == 'weekly' ? 'selected' : '' }}>أسبوعيًا
-                                        </option>
-                                        <option value="daily"
-                                            {{ request('custom_period_2') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
 
                                 <!-- 13. تاريخ الاستحقاق (من) -->
-                                <div class="col-md-3">
-                                    <label for="due_date_from">تاريخ الاستحقاق (من)</label>
-                                    <input type="date" id="due_date_from" class="form-control" name="due_date_from"
-                                        value="{{ request('due_date_from') }}">
-                                </div>
+                                <!--<div class="col-md-3">-->
+                                <!--    <label for="due_date_from">تاريخ الاستحقاق (من)</label>-->
+                                <!--    <input type="date" id="due_date_from" class="form-control" name="due_date_from"-->
+                                <!--        value="{{ request('due_date_from') }}">-->
+                                <!--</div>-->
 
                                 <!-- 14. تاريخ الاستحقاق (إلى) -->
-                                <div class="col-md-3">
-                                    <label for="due_date_to">تاريخ الاستحقاق (إلى)</label>
-                                    <input type="date" id="due_date_to" class="form-control" name="due_date_to"
-                                        value="{{ request('due_date_to') }}">
-                                </div>
+                                <!--<div class="col-md-3">-->
+                                <!--    <label for="due_date_to">تاريخ الاستحقاق (إلى)</label>-->
+                                <!--    <input type="date" id="due_date_to" class="form-control" name="due_date_to"-->
+                                <!--        value="{{ request('due_date_to') }}">-->
+                                <!--</div>-->
 
-                                <!-- 15. المصدر -->
-                                <div class="col-md-4">
-                                    <label for="source">المصدر</label>
-                                    <select name="source" class="form-control" id="source">
-                                        <option value="">المصدر</option>
-                                        <option value="mobile" {{ request('source') == 'mobile' ? 'selected' : '' }}>تطبيق
-                                            الهاتف</option>
-                                        <option value="web" {{ request('source') == 'web' ? 'selected' : '' }}>الويب
-                                        </option>
-                                    </select>
-                                </div>
 
-                                <!-- 16. الحقل المخصص -->
-                                <div class="col-4">
-                                    <label for="custom_field">حقل مخصص</label>
-                                    <input type="text" id="custom_field" class="form-control" placeholder="حقل مخصص"
-                                        name="custom_field" value="{{ request('custom_field') }}">
-                                </div>
+                              
 
-                                <!-- 17. تخصيص آخر -->
-                                <div class="col-md-2">
-                                    <label for="custom_period_3">التخصيص</label>
-                                    <select name="custom_period_3" class="form-control" id="custom_period_3">
-                                        <option value="">التخصيص</option>
-                                        <option value="monthly"
-                                            {{ request('custom_period_3') == 'monthly' ? 'selected' : '' }}>شهريًا</option>
-                                        <option value="weekly"
-                                            {{ request('custom_period_3') == 'weekly' ? 'selected' : '' }}>أسبوعيًا
-                                        </option>
-                                        <option value="daily"
-                                            {{ request('custom_period_3') == 'daily' ? 'selected' : '' }}>يوميًا</option>
-                                    </select>
-                                </div>
-
-                                <!-- 18. تاريخ الإنشاء (من) -->
-                                <div class="col-3">
-                                    <label for="created_at_from">تاريخ الإنشاء (من)</label>
-                                    <input type="date" id="created_at_from" class="form-control"
-                                        name="created_at_from" value="{{ request('created_at_from') }}">
-                                </div>
-
-                                <!-- 19. تاريخ الإنشاء (إلى) -->
-                                <div class="col-3">
-                                    <label for="created_at_to">تاريخ الإنشاء (إلى)</label>
-                                    <input type="date" id="created_at_to" class="form-control" name="created_at_to"
-                                        value="{{ request('created_at_to') }}">
-                                </div>
 
                                 <!-- 20. حالة التسليم -->
-                                <div class="col-md-4">
-                                    <label for="delivery_status">حالة التسليم</label>
-                                    <select name="delivery_status" class="form-control" id="delivery_status">
-                                        <option value="">حالة التسليم</option>
-                                        <option value="delivered"
-                                            {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>تم التسليم
-                                        </option>
-                                        <option value="pending"
-                                            {{ request('delivery_status') == 'pending' ? 'selected' : '' }}>قيد الانتظار
-                                        </option>
-                                    </select>
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="delivery_status">حالة التسليم</label>-->
+                                <!--    <select name="delivery_status" class="form-control" id="delivery_status">-->
+                                <!--        <option value="">حالة التسليم</option>-->
+                                <!--        <option value="delivered"-->
+                                <!--            {{ request('delivery_status') == 'delivered' ? 'selected' : '' }}>تم التسليم-->
+                                <!--        </option>-->
+                                <!--        <option value="pending"-->
+                                <!--            {{ request('delivery_status') == 'pending' ? 'selected' : '' }}>قيد الانتظار-->
+                                <!--        </option>-->
+                                <!--    </select>-->
+                                <!--</div>-->
 
                                 <!-- 21. أضيفت بواسطة (الموظفين) -->
-                                <div class="col-md-4">
-                                    <label for="added_by_employee">أضيفت بواسطة (الموظفين)</label>
+                                <div class="col-md-6">
+                                    <label for="added_by_employee">أضيفت بواسطة </label>
                                     <select name="added_by_employee" class="form-control" id="added_by_employee">
                                         <option value="">أضيفت بواسطة</option>
                                         @foreach ($employees as $employee)
                                             <option value="{{ $employee->id }}"
                                                 {{ request('added_by_employee') == $employee->id ? 'selected' : '' }}>
-                                                {{ $employee->full_name }}
+                                                {{ $employee->name }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <!-- 22. مسؤول المبيعات (المستخدمين) -->
-                                <div class="col-md-4">
-                                    <label for="sales_person_user">مسؤول المبيعات (المستخدمين)</label>
+                                <div class="col-md-6">
+                                    <label for="sales_person_user">مسؤول المبيعات </label>
                                     <select name="sales_person_user" class="form-control" id="sales_person_user">
                                         <option value="">مسؤول المبيعات</option>
-                                        @foreach ($users as $user)
-                                            <option value="{{ $user->id }}"
-                                                {{ request('sales_person_user') == $user->id ? 'selected' : '' }}>
-                                                {{ $user->name }}
+                                       @foreach ($employees_sales_person as $employee)
+                                            <option value="{{ $employee->id }}"
+                                                {{ request('sales_person_user') == $employee->id ? 'selected' : '' }}>
+                                                {{ $employee->full_name }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <!-- 23. Post Shift -->
-                                <div class="col-md-4">
-                                    <label for="post_shift">Post Shift</label>
-                                    <input type="text" id="post_shift" class="form-control" placeholder="Post Shift"
-                                        name="post_shift" value="{{ request('post_shift') }}">
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="post_shift">Post Shift</label>-->
+                                <!--    <input type="text" id="post_shift" class="form-control" placeholder="Post Shift"-->
+                                <!--        name="post_shift" value="{{ request('post_shift') }}">-->
+                                <!--</div>-->
 
                                 <!-- 24. خيارات الشحن -->
-                                <div class="col-md-4">
-                                    <label for="shipping_option">خيارات الشحن</label>
-                                    <select name="shipping_option" class="form-control" id="shipping_option">
-                                        <option value="">خيارات الشحن</option>
-                                        <option value="standard"
-                                            {{ request('shipping_option') == 'standard' ? 'selected' : '' }}>عادي</option>
-                                        <option value="express"
-                                            {{ request('shipping_option') == 'express' ? 'selected' : '' }}>سريع</option>
-                                    </select>
-                                </div>
+                                <!--<div class="col-md-4">-->
+                                <!--    <label for="shipping_option">خيارات الشحن</label>-->
+                                <!--    <select name="shipping_option" class="form-control" id="shipping_option">-->
+                                <!--        <option value="">خيارات الشحن</option>-->
+                                <!--        <option value="standard"-->
+                                <!--            {{ request('shipping_option') == 'standard' ? 'selected' : '' }}>عادي</option>-->
+                                <!--        <option value="express"-->
+                                <!--            {{ request('shipping_option') == 'express' ? 'selected' : '' }}>سريع</option>-->
+                                <!--    </select>-->
+                                <!--</div>-->
 
-                                <!-- 25. مصدر الطلب -->
-                                <div class="col-md-4">
-                                    <label for="order_source">مصدر الطلب</label>
-                                    <select name="order_source" class="form-control" id="order_source">
-                                        <option value="">مصدر الطلب</option>
-                                        <option value="website"
-                                            {{ request('order_source') == 'website' ? 'selected' : '' }}>الموقع</option>
-                                        <option value="mobile_app"
-                                            {{ request('order_source') == 'mobile_app' ? 'selected' : '' }}>تطبيق الهاتف
-                                        </option>
-                                    </select>
-                                </div>
+                            
                             </div>
                         </div>
 
@@ -540,33 +360,36 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center p-3">
                     <div class="d-flex gap-2 flex-wrap">
-                        <button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('all')">
-                            <i class="fas fa-list me-1"></i> الكل
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="filterInvoices('late')">
-                            <i class="fas fa-clock me-1"></i> متأخر
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" onclick="filterInvoices('due')">
-                            <i class="fas fa-calendar-day me-1"></i> مستحقة الدفع
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="filterInvoices('unpaid')">
-                            <i class="fas fa-times-circle me-1"></i> غير مدفوع
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="filterInvoices('draft')">
-                            <i class="fas fa-file-alt me-1"></i> مسودة
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="filterInvoices('overpaid')">
-                            <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
-                        </button>
+                       <button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('all')">
+    <i class="fas fa-list me-1"></i> الكل
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('late')">
+    <i class="fas fa-clock me-1"></i> متأخر
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('due')">
+    <i class="fas fa-calendar-day me-1"></i> مستحقة الدفع
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('unpaid')">
+    <i class="fas fa-times-circle me-1"></i> غير مدفوع
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('draft')">
+    <i class="fas fa-file-alt me-1"></i> مسودة
+</button>
+<button class="btn btn-sm btn-outline-primary" onclick="filterInvoices('overpaid')">
+    <i class="fas fa-check-double me-1"></i> مدفوع بزيادة
+</button>
+
                     </div>
                 </div>
 
                 <!-- Invoice Table -->
+              <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover custom-table" id="fawtra">
-                        <thead>
+                        <table id="testTable" class="table table-hover nowrap" style="width:100%">
+    <thead class="bg-light" style="background-color: #BABFC7 !important;">
+                        
                             <tr class="bg-gradient-light text-center">
-                                <th></th>
+                               
                                 <th class="border-start">رقم الفاتورة</th>
                                 <th>معلومات العميل</th>
                                 <th>تاريخ الفاتورة</th>
@@ -580,10 +403,7 @@
                                 <tr class="align-middle invoice-row"
                                     onclick="window.location.href='{{ route('invoices.show', $invoice->id) }}'"
                                     style="cursor: pointer;" data-status="{{ $invoice->payment_status }}">
-                                    <td onclick="event.stopPropagation()">
-                                        <input type="checkbox" class="invoice-checkbox" name="invoices[]"
-                                            value="{{ $invoice->id }}">
-                                    </td>
+                                    
                                     <td class="text-center border-start"><span
                                             class="invoice-number">#{{ $invoice->id }}</span></td>
                                     <td>
@@ -653,57 +473,66 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td>
-                                        @php
-                                            $statusClass = match ($invoice->payment_status) {
-                                                1 => 'success',
-                                                2 => 'info',
-                                                3 => 'danger',
-                                                4 => 'secondary',
-                                                default => 'dark',
-                                            };
-                                            $statusText = match ($invoice->payment_status) {
-                                                1 => 'مدفوعة بالكامل',
-                                                2 => 'مدفوعة جزئياً',
-                                                3 => 'غير مدفوعة',
-                                                4 => 'مستلمة',
-                                                default => 'غير معروفة',
-                                            };
-                                        @endphp
-                                        <div class="text-center">
-                                            <span
-                                                class="badge bg-{{ $statusClass }} text-white status-badge">{{ $statusText }}</span>
-                                        </div>
-                                        @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol =
-                                                $currency == 'SAR' || empty($currency)
-                                                    ? '<img src="' .
-                                                        asset('assets/images/Saudi_Riyal.svg') .
-                                                        '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
-                                                    : $currency;
-                                        @endphp
-                                        <div class="amount-info text-center mb-2">
-                                            <h6 class="amount mb-1">
-                                                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }} <small
-                                                    class="currency">{!! $currencySymbol !!}</small></h6>
-                                            @if ($returnedInvoice)
-                                                <span class="text-danger"> مرتجع :
-                                                    {{ number_format($invoice->returned_payment, 2) ?? '' }}
-                                                    {!! $currencySymbol !!}</span>
-                                            @endif
-                                            @if ($invoice->due_value > 0)
-                                                @php
-                                                    $net_due = $invoice->due_value - $invoice->returned_payment;
-                                                @endphp
-                                                <div class="due-amount">
-                                                    <small class="text-danger">المبلغ المستحق:
-                                                        {{ number_format($net_due, 2) }}
-                                                        {!! $currencySymbol !!}</small>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </td>
+                                     <td>
+        @php
+            $statusClass = match ($invoice->payment_status) {
+                1 => 'success',
+                2 => 'info',
+                3 => 'danger',
+                4 => 'secondary',
+                default => 'dark',
+            };
+            $statusIcon = match ($invoice->payment_status) {
+                1 => '<i class="fas fa-check-circle"></i>',
+                2 => '<i class="fas fa-adjust"></i>',
+                3 => '<i class="fas fa-times-circle"></i>',
+                4 => '<i class="fas fa-hand-holding-usd"></i>',
+                default => '<i class="fas fa-question-circle"></i>',
+            };
+            $statusText = match ($invoice->payment_status) {
+                1 => 'مدفوعة بالكامل',
+                2 => 'مدفوعة جزئياً',
+                3 => 'غير مدفوعة',
+                4 => 'مستلمة',
+                default => 'غير معروفة',
+            };
+            $currency = $account_setting->currency ?? 'SAR';
+            $currencySymbol = $currency == 'SAR' || empty($currency)
+                ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                : $currency;
+            $net_due = $invoice->due_value - $invoice->returned_payment;
+        @endphp
+
+        <div class="text-center">
+            <span class="badge bg-{{ $statusClass }} text-white status-badge">
+                {!! $statusIcon !!} {{ $statusText }}
+            </span>
+        </div>
+
+        <div class="amount-info text-center mb-2">
+            <h6 class="amount mb-1">
+                {{ number_format($invoice->grand_total ?? $invoice->total, 2) }}
+                <small class="currency">{!! $currencySymbol !!}</small>
+            </h6>
+
+            @if ($returnedInvoice)
+                <span class="text-danger"> <i class="fas fa-undo-alt"></i> مرتجع :
+                    {{ number_format($invoice->returned_payment, 2) ?? '' }}
+                    {!! $currencySymbol !!}
+                </span>
+            @endif
+
+            @if ($invoice->due_value > 0)
+                <div class="due-amount">
+                    <small class="text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> المبلغ المستحق:
+                        {{ number_format($net_due, 2) }}
+                        {!! $currencySymbol !!}
+                    </small>
+                </div>
+            @endif
+        </div>
+    </td>
                                     <td>
                                         <div class="dropdown" onclick="event.stopPropagation()">
                                             <button class="btn btn-sm bg-gradient-info fa fa-ellipsis-v " type="button"
@@ -727,16 +556,14 @@
                                                     href="{{ route('invoices.generatePdf', $invoice->id) }}">
                                                     <i class="fa fa-print me-2 text-dark"></i>طباعة
                                                 </a>
-                                                <a class="dropdown-item" href="#">
+                                                <a class="dropdown-item" href="{{ route('invoices.send', $invoice->id) }}">
                                                     <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
                                                 </a>
                                                 <a class="dropdown-item"
                                                     href="{{ route('paymentsClient.create', ['id' => $invoice->id]) }}">
                                                     <i class="fa fa-credit-card me-2 text-info"></i>إضافة عملية دفع
                                                 </a>
-                                                <a class="dropdown-item" href="#">
-                                                    <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                                </a>
+                                               
                                                 <form action="{{ route('invoices.destroy', $invoice->id) }}"
                                                     method="POST" class="d-inline">
                                                     @csrf
@@ -754,7 +581,7 @@
                         </tbody>
                     </table>
                 </div>
-
+</div>
                 @if ($invoices->isEmpty())
                     <div class="alert alert-warning m-3" role="alert">
                         <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد فواتير</p>
@@ -774,5 +601,50 @@
 
     <script src="{{ asset('assets/js/search.js') }}"></script>
     <script></script>
+
+<!-- jQuery و DataTables -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- DataTables الأساسية -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<!-- أزرار التصدير -->
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<!-- تعريب -->
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#testTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json'
+            },
+            // dom: 'Bfrtip',
+            // buttons: [
+            //     {
+            //         extend: 'excel',
+            //         text: 'تصدير إلى Excel',
+            //         className: 'btn btn-success btn-sm'
+            //     },
+            //     {
+            //         extend: 'print',
+            //         text: 'طباعة',
+            //         className: 'btn btn-warning btn-sm'
+            //     },
+            //     {
+            //         extend: 'copy',
+            //         text: 'نسخ',
+            //         className: 'btn btn-info btn-sm'
+            //     }
+            // ]
+        });
+    });
+</script>
 
 @endsection
