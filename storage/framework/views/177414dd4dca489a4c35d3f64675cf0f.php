@@ -3,328 +3,7 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('css'); ?>
-    <style>
-        #map {
-            height: 85vh;
-            width: 100%;
-            position: relative;
-        }
-
-        /* تصميم صندوق البحث على غرار جوجل مابس */
-        .pac-card {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            width: 400px;
-            font-family: Roboto, Arial, sans-serif;
-        }
-
-        .search-container {
-            padding: 0;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            height: 48px;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-box {
-            width: 100%;
-            height: 100%;
-            border: none;
-            padding: 0 16px 0 48px;
-            font-size: 15px;
-            border-radius: 8px;
-            direction: rtl;
-        }
-
-        .search-box:focus {
-            outline: none;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            font-size: 18px;
-        }
-
-        /* تصميم لوحة التحكم على غرار جوجل مابس */
-        .map-controls {
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 1000;
-        }
-
-        .map-control-group {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .map-control-button {
-            width: 40px;
-            height: 40px;
-            background: #fff;
-            border: none;
-            border-bottom: 1px solid #e6e6e6;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-        }
-
-        .map-control-button:last-child {
-            border-bottom: none;
-        }
-
-        .map-control-button:hover {
-            background-color: #f1f1f1;
-        }
-
-        .map-control-button i {
-            color: #666;
-            font-size: 18px;
-        }
-
-        /* تصميم نافذة المعلومات على غرار جوجل مابس */
-        .gm-style .gm-style-iw-c {
-            padding: 0 !important;
-            border-radius: 8px !important;
-            max-width: 300px !important;
-        }
-
-        .gm-style .gm-style-iw-d {
-            overflow: hidden !important;
-            padding: 0 !important;
-        }
-
-        .client-info-window {
-            font-family: Roboto, Arial, sans-serif;
-        }
-
-        .info-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid #e6e6e6;
-        }
-
-        .info-content {
-            padding: 16px;
-        }
-
-        .info-row {
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-
-        .info-label {
-            color: #666;
-            margin-left: 8px;
-            font-size: 13px;
-        }
-
-        .info-value {
-            color: #333;
-            font-size: 13px;
-        }
-
-        .info-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-        }
-
-        .info-button {
-            flex: 1;
-            padding: 8px;
-            border: none;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            transition: background-color 0.2s;
-        }
-
-        .info-button.primary {
-            background: #1a73e8;
-            color: white;
-        }
-
-        .info-button.secondary {
-            background: #fff;
-            color: #1a73e8;
-            border: 1px solid #1a73e8;
-        }
-
-        .info-button:hover {
-            opacity: 0.9;
-        }
-
-        .hover-effect:hover {
-            background-color: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .btn-indigo {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border: none;
-        }
-
-        .btn-violet {
-            background: linear-gradient(135deg, #9c27b0 0%, #e91e63 100%);
-            color: white;
-            border: none;
-        }
-
-        .btn-orange {
-            background: linear-gradient(135deg, #ff7b00 0%, #ff9a00 100%);
-            color: white;
-            border: none;
-        }
-
-        /* تأثيرات عند المرور */
-        .btn-hover-shine:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            opacity: 0.92;
-            transition: all 0.2s ease;
-        }
-
-        /* تأثير إضاءة خفيف */
-        .btn-hover-shine:after {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -60%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.15);
-            transform: rotate(30deg);
-            transition: all 0.3s ease;
-        }
-
-        .btn-hover-shine:hover:after {
-            left: 100%;
-        }
-
-        /* تكيف مع الشاشات الصغيرة */
-        @media (max-width: 768px) {
-            .card-body {
-                padding: 0.75rem;
-            }
-
-            .btn-sm {
-                height: 32px !important;
-                font-size: 0.8rem;
-            }
-
-            .fs-6 {
-                font-size: 0.8rem !important;
-            }
-
-            .mobile-stack {
-                flex-direction: column !important;
-            }
-
-            .mobile-full-width {
-                width: 100% !important;
-            }
-
-            .mobile-text-center {
-                text-align: center !important;
-            }
-
-            .mobile-mt-2 {
-                margin-top: 1rem !important;
-            }
-
-            .mobile-hide {
-                display: none !important;
-            }
-
-            .table-responsive {
-                font-size: 0.875rem;
-            }
-
-            .card-body {
-                padding: 1rem;
-            }
-        }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-            .tablet-stack {
-                flex-direction: column !important;
-            }
-
-            .tablet-text-center {
-                text-align: center !important;
-            }
-        }
-
-        .card {
-            transition: all 0.3s ease;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn {
-            border-radius: 0.25rem;
-            transition: all 0.2s ease;
-        }
-
-        .badge {
-            padding: 0.5em 0.75em;
-            border-radius: 0.25rem;
-        }
-
-        .collapse-section {
-            margin-bottom: 1rem;
-        }
-
-        .table th {
-            white-space: nowrap;
-        }
-
-        .dropdown-menu {
-            border-radius: 0.25rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        #clientSearch {
-            transition: all 0.3s ease;
-            border: 1px solid #ddd;
-        }
-
-        #clientSearch:focus {
-            outline: none;
-            border-color: #80bdff;
-        }
-
-        .input-group-text {
-            color: #6c757d;
-        }
-    </style>
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/indexclient.css')); ?>">
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -348,82 +27,112 @@
     </div>
 
     <div class="content-body">
+
         <div class="position-relative">
-            <div id="map"></div>
-            <div class="pac-card">
-                <div class="search-container">
-                    <input type="text" id="clientSearch" class="search-box" placeholder="ابحث عن عميل...">
-                    <i class="fas fa-search search-icon"></i>
+            <!-- زر فتح/إغلاق الخريطة مع تلميح عائم -->
+            <button id="toggleMapButton" class="map-toggle-button" data-tooltip="إظهار الخريطة">
+                <i class="fas fa-map-marked-alt"></i>
+            </button>
+
+            <div id="mapContainer" style="display: none;">
+                <!-- باقي العناصر كما هي -->
+                <div id="map"></div>
+                <div class="pac-card">
+                    <div class="search-container">
+                        <input type="text" id="clientSearch" class="search-box" placeholder="ابحث عن عميل...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
                 </div>
-            </div>
-            <div class="map-controls">
-                <div class="map-control-group">
-                    <button class="map-control-button" onclick="map.setZoom(map.getZoom() + 1)" title="تكبير">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                    <button class="map-control-button" onclick="map.setZoom(map.getZoom() - 1)" title="تصغير">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                </div>
-                <div class="map-control-group">
-                    <button class="map-control-button" onclick="getCurrentLocation()" title="موقعي الحالي">
-                        <i class="fas fa-location-arrow"></i>
-                    </button>
-                    <button class="map-control-button" onclick="resetMapView()" title="إعادة ضبط الخريطة">
-                        <i class="fas fa-redo-alt"></i>
-                    </button>
+                <div class="map-controls">
+                    <div class="map-control-group">
+                        <button class="map-control-button" onclick="map.setZoom(map.getZoom() + 1)" title="تكبير">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="map-control-button" onclick="map.setZoom(map.getZoom() - 1)" title="تصغير">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                    </div>
+                    <div class="map-control-group">
+                        <button class="map-control-button" onclick="getCurrentLocation()" title="موقعي الحالي">
+                            <i class="fas fa-location-arrow"></i>
+                        </button>
+                        <button class="map-control-button" onclick="resetMapView()" title="إعادة ضبط الخريطة">
+                            <i class="fas fa-redo-alt"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
+
+        <script>
+            const toggleButton = document.getElementById('toggleMapButton');
+            const mapContainer = document.getElementById('mapContainer');
+
+            // لا حاجة لتعديل السكريبت فهو يعمل بنفس الطريقة
+            toggleButton.addEventListener('click', function() {
+                if (mapContainer.style.display === 'none') {
+                    mapContainer.style.display = 'block';
+                    this.innerHTML = '<i class="fas fa-map"></i>';
+                    this.setAttribute('data-tooltip', 'إخفاء الخريطة');
+                } else {
+                    mapContainer.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-map-marked-alt"></i>';
+                    this.setAttribute('data-tooltip', 'إظهار الخريطة');
+                }
+
+                if (mapContainer.style.display === 'block') {
+                    setTimeout(() => {
+                        if (typeof map !== 'undefined') {
+                            google.maps.event.trigger(map, 'resize');
+                        }
+                    }, 300);
+                }
+            });
+        </script>
         <!-- بطاقة الإجراءات -->
         <div class="card shadow-sm border-0 rounded-3">
             <div class="card-body p-3">
-                <div class="row align-items-center gy-2">
-                    <!-- زر إضافة عميل -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="<?php echo e(route('clients.create')); ?>"
-                            class="btn btn-success btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;">
-                            <i class="fas fa-user-plus me-2 fs-6"></i>
-                            <span class="fw-medium">إضافة عميل</span>
-                        </a>
-                    </div>
+                <div class="d-flex flex-wrap justify-content-end" style="gap: 10px;">
 
-                    <!-- زر تحميل ملف Excel -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="d-flex flex-column flex-md-row gap-2">
-                            <label
-                                class="btn btn-info btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-cloud-upload-alt me-2 fs-6"></i>
-                                <span class="fw-medium">تحميل</span>
-                                <input type="file" name="file" class="d-none" required>
-                            </label>
-                            <button type="submit"
-                                class="btn btn-secondary btn-sm rounded-pill px-2 w-100 d-flex align-items-center justify-content-center"
-                                style="height: 36px;">
-                                <i class="fas fa-database me-2 fs-6"></i>
-                                <span class="fw-medium">استيراد</span>
-                            </button>
-                        </div>
-                    </div>
+                    <!-- زر أضف العميل -->
 
-                    <!-- زر إضافة حد ائتماني -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="javascript:void(0);"
-                            class="btn btn-danger btn-sm rounded-pill px-3 w-100 d-flex align-items-center justify-content-center"
-                            style="height: 36px;" data-bs-toggle="modal" data-bs-target="#creditLimitModal">
-                            <i class="fas fa-credit-card me-2 fs-6"></i>
-                            <span class="fw-medium">حد ائتماني</span>
-                        </a>
-                    </div>
+                    <!-- زر تحميل ملف -->
+                    <label class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; cursor: pointer; border-radius: 6px;" title="تحميل ملف">
+                        <i class="fas fa-cloud-upload-alt text-primary"></i>
+                        <input type="file" name="file" class="d-none">
+                    </label>
 
-                    <!-- زر التقارير -->
+                    <!-- زر استيراد -->
+                    <button type="submit" class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="استيراد ك Excel">
+                        <i class="fas fa-database text-primary"></i>
+                    </button>
 
+                    <!-- زر حد ائتماني -->
+                    <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#creditLimitModal"
+                        class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="حد ائتماني">
+                        <i class="fas fa-credit-card text-primary"></i>
+                    </a>
+
+                    <!-- زر تصدير ك Excel (الجديد) -->
+                    <button id="exportExcelBtn" class="bg-white border d-flex align-items-center justify-content-center"
+                        style="width: 44px; height: 44px; border-radius: 6px;" title="تصدير ك Excel">
+                        <i class="fas fa-file-excel text-primary"></i>
+                    </button>
+
+                    <a href="<?php echo e(route('clients.create')); ?>"
+                        class="btn btn-success d-flex align-items-center justify-content-center"
+                        style="height: 44px; padding: 0 16px; font-weight: bold; border-radius: 6px;">
+                        <i class="fas fa-plus ms-2"></i>
+                        أضف العميل
+                    </a>
                 </div>
             </div>
         </div>
+
 
 
         <!-- بطاقة البحث -->
@@ -501,65 +210,49 @@
                             </div>
 
                             <!-- الحي -->
-                            <div class="col-md-12 col-12">
+                            <div class="col-md-4 col-12">
                                 <label for="neighborhood" class="form-label">الحي</label>
                                 <input type="text" name="neighborhood" id="neighborhood" class="form-control"
                                     placeholder="الحي" value="<?php echo e(request('neighborhood')); ?>">
                             </div>
+
+                            <!-- تاريخ من -->
+                            <div class="col-md-4 col-12">
+                                <label for="date_from" class="form-label">تاريخ من</label>
+                                <input type="date" name="date_from" id="date_from" class="form-control"
+                                    value="<?php echo e(request('date_from')); ?>">
+                            </div>
+
+                            <!-- تاريخ الى -->
+                            <div class="col-md-4 col-12">
+                                <label for="date_to" class="form-label">تاريخ الى</label>
+                                <input type="date" name="date_to" id="date_to" class="form-control"
+                                    value="<?php echo e(request('date_to')); ?>">
+                            </div>
                         </div>
                     </div>
 
-
-
                     <div class="collapse" id="advancedSearchForm">
                         <div class="row g-3 mt-2">
+                            <!-- التصنيف -->
                             <div class="col-md-4 col-12">
-                                <select name="classifications" class="form-control">
+                                <label for="classifications" class="form-label">التصنيف</label>
+                                <select name="categories" id="classifications" class="form-control">
                                     <option value="">اختر التصنيف</option>
-                                    <option value="1" <?php echo e(request('classifications') == '1' ? 'selected' : ''); ?>>
-                                    </option>
-                                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
-                                    </option>
-                                    <option value="0" <?php echo e(request('classifications') == '0' ? 'selected' : ''); ?>>
-                                    </option>
+                                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($category->id); ?>"
+                                            <?php echo e(request('categories') == $category->id ? 'selected' : ''); ?>>
+                                            <?php echo e($category->name); ?>
+
+                                        </option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
+
+                            <!-- أضيفت بواسطة -->
                             <div class="col-md-4 col-12">
-                                <input type="date" name="end_date_to" class="form-control"
-                                    placeholder="تاريخ الانتهاء (من)" value="<?php echo e(request('end_date_to')); ?>">
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <input type="date" name="end_date_to" class="form-control"
-                                    placeholder="تاريخ الانتهاء (الى)" value="<?php echo e(request('end_date_to')); ?>">
-                            </div>
-                            <div class="form-group col-md-4 col-12">
-                                <input type="text" name="address" class="form-control" placeholder="العنوان"
-                                    value="<?php echo e(request('address')); ?>">
-                            </div>
-                            <div class="form-group col-md-4 col-12">
-                                <input type="text" name="postal_code" class="form-control"
-                                    placeholder="الرمز البريدي" value="<?php echo e(request('postal_code')); ?>">
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="country" class="form-control">
-                                    <option value="">اختر البلد</option>
-                                    <option value="1" <?php echo e(request('country') == '1' ? 'selected' : ''); ?>>السعودية
-                                    </option>
-                                    <option value="0" <?php echo e(request('country') == '0' ? 'selected' : ''); ?>>مصر</option>
-                                    <option value="0" <?php echo e(request('country') == '0' ? 'selected' : ''); ?>>اليمن
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="tage" class="form-control">
-                                    <option value="">اختر الوسم</option>
-                                    <option value="1" <?php echo e(request('tage') == '1' ? 'selected' : ''); ?>></option>
-                                    <option value="0" <?php echo e(request('tage') == '0' ? 'selected' : ''); ?>></option>
-                                    <option value="0" <?php echo e(request('tage') == '0' ? 'selected' : ''); ?>></option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="user" class="form-control">
+                                <label for="user" class="form-label">أضيفت بواسطة</label>
+                                <select name="user" id="user" class="form-control select2">
                                     <option value="">أضيفت بواسطة</option>
                                     <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($user->id); ?>"
@@ -570,16 +263,15 @@
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
+
+                            <!-- النوع -->
+
+
+                            <!-- الموظفين المعيين -->
                             <div class="col-md-4 col-12">
-                                <select name="type" class="form-control">
-                                    <option value="">اختر النوع</option>
-                                    <option value="1" <?php echo e(request('type') == '1' ? 'selected' : ''); ?>></option>
-                                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
-                                    <option value="0" <?php echo e(request('type') == '0' ? 'selected' : ''); ?>></option>
-                                </select>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <select name="full_name" class="form-control">
+                                <label for="employee" class="form-label">الموظفين المعيين</label>
+                                <select id="feedback2" class="form-control select2" name="employee[]"
+                                    multiple="multiple">
                                     <option value="">اختر الموظفين المعيين</option>
                                     <?php $__currentLoopData = $employees; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $employee): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <option value="<?php echo e($employee->id); ?>"
@@ -601,179 +293,229 @@
             </div>
         </div>
 
+
+
         <!-- جدول العملاء -->
         <!-- جدول العملاء -->
-      <?php if(isset($clients) && $clients->count() > 0): ?>
-    <div class="row">
-        <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <?php
-                $clientData = $clientsData[$client->id] ?? null;
-                $due = $clientDueBalances[$client->id] ?? 0;
-            ?>
-            <div class="col-md-6 col-lg-4 mb-4">
-                <a href="<?php echo e(route('clients.show', $client->id)); ?>" class="text-decoration-none text-dark">
-                    <div class="card shadow-sm border border-1 rounded-3" style="height: 380px; overflow: hidden;"> <!-- زيادة الارتفاع قليلاً وإضافة overflow -->
-                        <div class="card-body">
-                            <!-- Card Header Section -->
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="client-meta">
-                                    <?php if($client->status_client): ?>
-                                        <span class="client-status" style="background-color: <?php echo e($client->status_client->color); ?>; font-size: 11px; padding: 1px 6px;">
-                                            <?php echo e($client->status_client->name); ?>
+        <?php if(isset($clients) && $clients->count() > 0): ?>
+            <div class="row">
+                <?php $__currentLoopData = $clients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
+                        $clientData = $clientsData[$client->id] ?? null;
+                        $due = $clientDueBalances[$client->id] ?? 0;
+                        $totalSales = $clientTotalSales[$client->id] ?? 0;
+                        $currentMonth = now()->format('m');
+                        $monthlyGroup =
+                            $clientData['monthly_groups'][$currentMonth]['group'] ?? ($clientData['group'] ?? 'D');
+                        $monthlyGroupClass =
+                            $clientData['monthly_groups'][$currentMonth]['group_class'] ??
+                            ($clientData['group_class'] ?? 'secondary');
+                    ?>
 
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="client-status" style="background-color: #6c757d; font-size: 11px; padding: 1px 6px;">
-                                            غير محدد
-                                        </span>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="ms-auto" style="transform: scale(0.8); transform-origin: top right;"> <!-- تصغير حجم الدائرة -->
-                                    <svg width="70" height="70" viewBox="0 0 36 36" class="circular-chart">
-                                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        <path class="circle" stroke-dasharray="<?php echo e($clientData['percentage'] ?? 0); ?>, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        <text x="18" y="21" text-anchor="middle" class="percentage" font-size="7" fill="#333">
-                                            <?php if(!empty($clientData['group'])): ?>
-                                                <tspan x="18" dy="0" font-size="7" fill="#333">
-                                                    <?php echo e($clientData['group']); ?></tspan>
-                                            <?php endif; ?>
-                                        </text>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <!-- Client Info Section -->
-                            <div class="client-info" style="overflow: hidden; flex-grow: 1;">
-                                <div class="text-muted small mb-1" style="font-size: 11px;">
-                                    <i class="far fa-calendar-alt me-1"></i>
-                                    تاريخ الإضافة: <?php echo e($client->created_at->format('d-m-Y')); ?>
-
-                                </div>
-
-                                <h6 class="client-name text-primary mb-1" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo e($client->trade_name); ?></h6>
-                                <?php if($client->code): ?>
-                                    <div class="client-code text-muted small mb-1" style="font-size: 11px;">
-                                        <i class="fas fa-hashtag me-1"></i>
-                                        <?php echo e($client->code); ?>
-
-                                    </div>
-                                <?php endif; ?>
-
-                                <div class="client-contact text-muted small mb-2" style="font-size: 11px; line-height: 1.4;">
-                                    <div class="mb-1">
-                                        <i class="fas fa-user me-1"></i>
-                                        <?php echo e($client->first_name); ?> <?php echo e($client->last_name); ?>
-
-                                    </div>
-                                    <?php if($client->email): ?>
-                                        <div class="mb-1" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            <i class="fas fa-envelope me-1"></i>
-                                            <?php echo e($client->email); ?>
-
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if($client->phone): ?>
-                                        <div class="mb-1">
-                                            <i class="fas fa-phone me-1"></i>
-                                            <?php echo e($client->phone); ?>
-
-                                        </div>
-                                    <?php endif; ?>
+                    <div class="col-md-6 my-3"> <!-- تمت إضافة my-3 لعمل مسافة من الأعلى والأسفل -->
+                        <div class="card shadow-sm border border-1 rounded-3 h-100">
+                            <div class="card-body d-flex flex-column">
+                                <!-- Card Header -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <!-- حالة العميل -->
                                     <div>
-                                        <i class="fas fa-users me-1"></i>
-                                        <?php echo e($client->Neighborhoodname->Region->name ?? ''); ?>
+                                        <?php if($client->status_client): ?>
+                                            <span class="badge rounded-pill"
+                                                style="background-color: <?php echo e($client->status_client->color); ?>; font-size: 11px;">
+                                                <i class="fas fa-circle me-1"></i>
+                                                <?php echo e($client->status_client->name); ?>
 
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge rounded-pill bg-secondary" style="font-size: 11px;">
+                                                <i class="fas fa-question-circle me-1"></i>
+                                                غير محدد
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Dropdown -->
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary" type="button"
+                                            id="clientActionsDropdown<?php echo e($client->id); ?>" data-bs-toggle="dropdown"
+                                            aria-expanded="false" style="font-size: 11px;">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu"
+                                            aria-labelledby="clientActionsDropdown<?php echo e($client->id); ?>">
+                                            <li>
+                                                <a class="dropdown-item" href="<?php echo e(route('clients.show', $client->id)); ?>">
+                                                    <i class="far fa-eye me-1"></i> عرض
+                                                </a>
+                                            </li>
+                                            <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="<?php echo e(route('clients.edit', $client->id)); ?>">
+                                                        <i class="fas fa-edit me-1"></i> تعديل
+                                                    </a>
+                                                </li>
+                                            <?php endif; ?>
+                                            <?php if(auth()->user()->hasPermissionTo('Delete_Client')): ?>
+                                                <li>
+                                                    <a class="dropdown-item text-danger"
+                                                        href="<?php echo e(route('clients.destroy', $client->id)); ?>">
+                                                        <i class="fas fa-trash-alt me-1"></i> حذف
+                                                    </a>
+                                                </li>
+                                            <?php endif; ?>
+                                        </ul>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Client Actions -->
-                            <div class="client-actions d-flex justify-content-between mt-auto pt-2 border-top">
-                                <a href="<?php echo e(route('clients.show', $client->id)); ?>" class="btn btn-outline-primary btn-sm px-2 py-1" style="font-size: 11px;">
-                                    <i class="far fa-eye me-1"></i> عرض
-                                </a>
-                                <?php if(auth()->user()->hasPermissionTo('Edit_Client')): ?>
-                                    <a href="<?php echo e(route('clients.edit', $client->id)); ?>" class="btn btn-outline-secondary btn-sm px-2 py-1" style="font-size: 11px;">
-                                        <i class="far fa-edit me-1"></i> تعديل
-                                    </a>
-                                <?php endif; ?>
-                                <?php if(auth()->user()->hasPermissionTo('Delete_Client')): ?>
-                                    <a href="<?php echo e(route('clients.destroy', $client->id)); ?>" class="btn btn-outline-danger btn-sm px-2 py-1" style="font-size: 11px;">
-                                        <i class="far fa-trash-alt me-1"></i> حذف
-                                    </a>
-                                <?php endif; ?>
+                                <!-- Client Info -->
+                                <div class="row row-cols-2 g-2 mb-2">
+                                    <!-- Column 1 -->
+                                    <div class="col">
+                                        <h6 class="client-name text-primary mb-2" style="font-size: 15px;">
+                                            <i class="fas fa-store me-1"></i>
+                                            <?php echo e($client->trade_name); ?>
+
+                                        </h6>
+
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-phone text-secondary me-1"></i>
+                                                <?php echo e($client->phone ?? '-'); ?></small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-user text-secondary me-1"></i>
+                                                <?php echo e($client->frist_name ?? '-'); ?></small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small>
+                                                <i class="fas fa-map-marker-alt text-secondary me-1"></i>
+                                                <a href="#" class="text-decoration-none">عرض الموقع</a>
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 2 -->
+                                    <div class="col">
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-id-badge text-secondary me-1"></i>
+                                                <?php echo e($client->frist_name); ?></small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-tags text-secondary me-1"></i>
+                                                <?php echo e($client->categoryClients->name ?? '-'); ?></small>
+                                        </div>
+                                        <div class="mb-1">
+                                            <small><i class="fas fa-code-branch text-secondary me-1"></i>
+                                                <?php echo e($client->branch->name ?? '-'); ?></small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dates and Status -->
+                                <div class="d-flex justify-content-between text-center border rounded p-2 mb-2">
+                                    <div>
+                                        <i class="fas fa-calendar-plus text-secondary"></i>
+                                        <div><small>الإضافة</small></div>
+                                        <small><?php echo e($client->created_at->format('Y-m-d')); ?></small>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-file-invoice-dollar text-secondary"></i>
+                                        <div><small>آخر فاتورة</small></div>
+                                        <small><?php echo e($client->invoices->last()->invoice_number ?? '-'); ?></small>
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-check text-success"></i>
+                                        <div><small>الحالة</small></div>
+                                        <strong class="text-success">نشط</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Stats Section -->
+                                <div class="d-flex justify-content-around text-center border rounded p-2 mb-3">
+                                    <div class="px-1">
+                                        <i class="fas fa-cash-register text-primary"></i>
+                                        <div class="small text-muted">المبيعات</div>
+                                        <strong class="text-primary"><?php echo e(number_format($totalSales ?? 0)); ?></strong>
+                                    </div>
+                                    <div class="px-1">
+                                        <i class="fas fa-money-bill-wave text-success"></i>
+                                        <div class="small text-muted">التحصيلات</div>
+                                        <strong
+                                            class="text-success"><?php echo e(number_format($clientsData[$client->id]['total_collected'] ?? 0)); ?></strong>
+                                    </div>
+                                    <div class="px-1">
+                                        <i class="fas fa-clock text-warning"></i>
+                                        <div class="small text-muted">الآجلة</div>
+                                        <strong
+                                            class="text-warning"><?php echo e(number_format($clientDueBalances[$client->id] ?? 0)); ?></strong>
+                                    </div>
+                                </div>
+
+                                <!-- Monthly Classification with Enhanced Details -->
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">التصنيف الشهري لعام <?php echo e($currentYear); ?></h6>
+                                    <div class="d-flex flex-wrap justify-content-start">
+                                        <?php $__currentLoopData = $months; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthName => $monthNumber): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php
+                                                $monthData = $clientsData[$client->id]['monthly'][$monthName] ?? null;
+                                                $group = $monthData['group'] ?? 'd';
+                                                $groupClass = $monthData['group_class'] ?? 'secondary';
+                                                $collected = $monthData['collected'] ?? 0;
+                                                $percentage = $monthData['percentage'] ?? 0;
+                                                $paymentsTotal = $monthData['payments_total'] ?? 0;
+                                                $receiptsTotal = $monthData['receipts_total'] ?? 0;
+                                                $target = $monthData['target'] ?? 100000;
+                                            ?>
+
+                                            <div class="text-center position-relative" style="margin: 5px;"
+                                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                                title="التحصيلات: <?php echo e(number_format($collected)); ?> | المدفوعات: <?php echo e(number_format($paymentsTotal)); ?> | سندات القبض: <?php echo e(number_format($receiptsTotal)); ?> | النسبة: <?php echo e($percentage); ?>%">
+
+                                                <!-- Classification Circle -->
+                                                <div class="rounded-circle border-2 border-<?php echo e($groupClass); ?>
+
+                            text-<?php echo e($groupClass); ?> fw-bold
+                            d-flex align-items-center justify-content-center"
+                                                    style="width:40px; height:40px; cursor: pointer;">
+                                                    <?php echo e($group); ?>
+
+                                                </div>
+
+                                                <!-- Month Name -->
+                                                <small class="d-block text-muted mt-1"><?php echo e($monthName); ?></small>
+
+                                                <!-- Amount Collected (if any) -->
+                                                <?php if($collected > 0): ?>
+                                                    <small class="d-block text-success" style="font-size: 0.7rem;">
+                                                        <?php echo e(number_format($collected, 0)); ?>
+
+                                                    </small>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    </div>
+                                </div>
+
+                                <!-- Detailed Monthly Breakdown (Collapsible) -->
+
+
+                                <!-- JavaScript for Tooltips -->
+
                             </div>
                         </div>
                     </div>
-                </a>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    </div>
-<?php else: ?>
-    <div class="alert alert-info text-center py-3" role="alert" style="font-size: 14px;">
-        <i class="fas fa-info-circle fa-lg mb-2"></i>
-        <h5 class="mb-0" style="font-size: 16px;">لا توجد عملاء مسجلين حالياً</h5>
-    </div>
-<?php endif; ?>
+        <?php else: ?>
+            <div class="alert alert-info text-center py-4" role="alert">
+                <i class="fas fa-info-circle fa-2x mb-3"></i>
+                <h5 class="mb-0">لا توجد عملاء مسجلين حالياً</h5>
+            </div>
+        <?php endif; ?>
 
-<style>
-    /* Progress Circle Styles */
-    .circular-chart {
-        display: block;
-        width: 80px;
-        height: 80px;
-    }
 
-    .circle-bg {
-        fill: none;
-        stroke: #f3f4f6;
-        stroke-width: 2.8;
-    }
 
-    .circle {
-        fill: none;
-        stroke: #4CC790;
-        stroke-width: 2.8;
-        stroke-linecap: round;
-        animation: progress 1s ease-out forwards;
-    }
 
-    .percentage {
-        fill: #4a5568;
-        font-size: 0.5em;
-        text-anchor: middle;
-        font-weight: bold;
-    }
-
-    @keyframes progress {
-        0% {
-            stroke-dasharray: 0 100;
-        }
-    }
-
-    /* Client Status */
-    .client-status {
-        color: #fff;
-        border-radius: 4px;
-        display: inline-block;
-    }
-
-    /* Responsive Adjustments */
-    @media (max-width: 767.98px) {
-        .card {
-            height: auto !important;
-        }
-
-        .client-meta {
-            align-items: flex-start;
-        }
-
-        .circular-chart {
-            width: 60px;
-            height: 60px;
-        }
-    }
-</style>
         <?php if($clients->hasPages()): ?>
             <nav aria-label="Page navigation">
                 <ul class="pagination pagination-sm mb-0">
@@ -886,6 +628,9 @@
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startSection('scripts'); ?>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
     <script
         src="https://maps.googleapis.com/maps/api/js?key=<?php echo e(env('GOOGLE_MAPS_API_KEY')); ?>&libraries=places&callback=initMap"
         async defer></script>
@@ -1000,57 +745,64 @@
             }
 
             // إضافة علامات العملاء
+            // إضافة علامات العملاء
             let allMarkers = [];
 
             <?php $__currentLoopData = $allClients; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $client): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php if($client->locations && $client->locations->latitude && $client->locations->longitude): ?>
-                    const marker<?php echo e($client->id); ?> = new google.maps.Marker({
-                        position: {
-                            lat: <?php echo e($client->locations->latitude); ?>,
-                            lng: <?php echo e($client->locations->longitude); ?>
+                    <?php
+                        $lastNoteTime = $client->last_note_at ? \Carbon\Carbon::parse($client->last_note_at) : null;
+                        $shouldShow = !$lastNoteTime || $lastNoteTime->diffInHours(now()) >= 24 || $client->force_show;
+                    ?>
 
-                        },
-                        map: map,
-                        title: "<?php echo e($client->trade_name); ?>",
-                        icon: {
-                            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
-                                <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
-                                    <!-- Background bubble -->
-                                    <rect x="0" y="0" width="60" height="16" rx="8" fill="<?php echo e(optional($client->status_client)->color ?? '#4CAF50'); ?>" />
-                                    <!-- Bottom triangle -->
-                                    <path d="M8 16 L12 22 L16 16 Z" fill="<?php echo e(optional($client->status_client)->color ?? '#4CAF50'); ?>" />
-                                    <!-- Text -->
-                                    <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white"><?php echo e($client->code); ?></text>
-                                </svg>
-                            `),
-                            scaledSize: new google.maps.Size(60, 24),
-                            anchor: new google.maps.Point(12, 22)
-                        },
-                        animation: google.maps.Animation.DROP
-                    });
+                    <?php if($shouldShow): ?>
+                        const marker<?php echo e($client->id); ?> = new google.maps.Marker({
+                            position: {
+                                lat: <?php echo e($client->locations->latitude); ?>,
+                                lng: <?php echo e($client->locations->longitude); ?>
 
-                    // إضافة الماركر للمصفوفة
-                    allMarkers.push({
-                        marker: marker<?php echo e($client->id); ?>,
-                        clientName: "<?php echo e($client->trade_name); ?>".toLowerCase(),
-                        clientCode: "<?php echo e($client->code); ?>".toLowerCase(),
-                        data: {
-                            id: <?php echo e($client->id); ?>,
-                            name: "<?php echo e($client->trade_name); ?>",
-                            status: "<?php echo e(optional($client->status_client)->color ?? '#CCCCCC'); ?>",
-                            phone: "<?php echo e($client->phone); ?>",
-                            region: "<?php echo e($client->Neighborhoodname->Region->name ?? ''); ?>",
-                            balance: "<?php echo e($client->Balance()); ?>"
-                        }
-                    });
+                            },
+                            map: map,
+                            title: "<?php echo e($client->trade_name); ?>",
+                            icon: {
+                                url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="24" viewBox="0 0 60 24">
+                            <!-- Background bubble -->
+                            <rect x="0" y="0" width="60" height="16" rx="8" fill="<?php echo e(optional($client->status_client)->color ?? '#4CAF50'); ?>" />
+                            <!-- Bottom triangle -->
+                            <path d="M8 16 L12 22 L16 16 Z" fill="<?php echo e(optional($client->status_client)->color ?? '#4CAF50'); ?>" />
+                            <!-- Text -->
+                            <text x="30" y="12" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="white"><?php echo e($client->code); ?></text>
+                        </svg>
+                    `),
+                                scaledSize: new google.maps.Size(60, 24),
+                                anchor: new google.maps.Point(12, 22)
+                            },
+                            animation: google.maps.Animation.DROP
+                        });
 
-                    // إضافة مستمع حدث النقر
-                    marker<?php echo e($client->id); ?>.addListener('click', () => {
-                        showClientInfo(allMarkers.find(m => m.marker === marker<?php echo e($client->id); ?>));
-                    });
+                        // إضافة الماركر للمصفوفة
+                        allMarkers.push({
+                            marker: marker<?php echo e($client->id); ?>,
+                            clientName: "<?php echo e($client->trade_name); ?>".toLowerCase(),
+                            clientCode: "<?php echo e($client->code); ?>".toLowerCase(),
+                            data: {
+                                id: <?php echo e($client->id); ?>,
+                                name: "<?php echo e($client->trade_name); ?>",
+                                status: "<?php echo e(optional($client->status_client)->color ?? '#CCCCCC'); ?>",
+                                phone: "<?php echo e($client->phone); ?>",
+                                region: "<?php echo e($client->Neighborhoodname->Region->name ?? ''); ?>",
+                                balance: "<?php echo e($client->Balance()); ?>"
+                            }
+                        });
+
+                        // إضافة مستمع حدث النقر
+                        marker<?php echo e($client->id); ?>.addListener('click', () => {
+                            showClientInfo(allMarkers.find(m => m.marker === marker<?php echo e($client->id); ?>));
+                        });
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
             // إضافة ماركر موقع المستخدم
             <?php if(isset($userLocation)): ?>
                 var userLocation = {
@@ -1203,6 +955,53 @@
             });
         });
     </script>
+
+    <script>
+        function exportClientsToExcel() {
+            const data = [];
+
+            // العناوين (الصف الأول)
+            data.push([
+                "الاسم التجاري",
+                "الاسم الأول",
+                "الاسم الأخير",
+                "البريد الإلكتروني",
+                "رقم الجوال",
+                "تاريخ الإضافة"
+            ]);
+
+            // جلب بيانات العملاء من عناصر HTML
+            document.querySelectorAll('.client-info').forEach(card => {
+                const tradeName = card.querySelector('.client-name')?.innerText.trim() || '';
+                const fullName = card.querySelector('.fa-user')?.parentElement?.innerText.trim().replace('', '')
+                    .trim().split(' ') || ['', ''];
+                const email = card.querySelector('.fa-envelope')?.parentElement?.innerText.trim().replace('', '')
+                    .trim() || '';
+                const phone = card.querySelector('.fa-phone')?.parentElement?.innerText.trim().replace('', '')
+                    .trim() || '';
+                const createdAt = card.querySelector('.fa-calendar-alt')?.parentElement?.innerText.trim().replace(
+                    '', '').replace('تاريخ الإضافة:', '').trim() || '';
+
+                data.push([
+                    tradeName,
+                    fullName[0],
+                    fullName[1] || '',
+                    email,
+                    phone,
+                    createdAt
+                ]);
+            });
+
+            // إنشاء ملف Excel
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "العملاء");
+
+            // حفظ الملف
+            XLSX.writeFile(workbook, "clients.xlsx");
+        }
+    </script>
+
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('master', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\xampp\htdocs\fawtramsmart\fawtra\resources\views/client/index.blade.php ENDPATH**/ ?>
