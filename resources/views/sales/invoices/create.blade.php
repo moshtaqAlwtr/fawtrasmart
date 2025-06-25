@@ -1607,6 +1607,8 @@ $(document).ready(function() {
     }
 });
 
+
+
 // أحداث التغيير لحقول التسوية
 $(document).on('input', 'input[name="adjustment_label"], input[name="adjustment_value"]', function() {
     updateAdjustmentDisplay();
