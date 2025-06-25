@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Http;
 
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
 Route::get('/print/questions/{id}', [QuoteController::class, 'print'])->name('questions.print');
+Route::get('/send/creditnotification/{id}', [CreditNotificationController::class, 'sendCreditNotification'])->name('CreditNotes.send');
 Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
 Route::get('/send-weekly-report', [VisitController::class, 'sendWeeklyReport']);
 Route::get('/send-monthly-report', [VisitController::class, 'sendMonthlyReport']);
@@ -145,6 +146,8 @@ Route::group(
 
                 Route::prefix('CreditNotes')->group(function () {
                     Route::get('/index', [CreditNotificationController::class, 'index'])->name('CreditNotes.index');
+                  
+                    Route::get('/print/credit/{id}', [CreditNotificationController::class, 'showPrintable'])->name('credits.print');
                     Route::get('/create', [CreditNotificationController::class, 'create'])->name('CreditNotes.create');
                     Route::get('/show/{id}', [CreditNotificationController::class, 'show'])->name('CreditNotes.show');
                     Route::get('/edit/{id}', [CreditNotificationController::class, 'edit'])->name('CreditNotes.edit');

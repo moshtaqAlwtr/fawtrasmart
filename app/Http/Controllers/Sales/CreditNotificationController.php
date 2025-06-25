@@ -18,17 +18,21 @@ use App\Models\AccountSetting;
 use App\Models\TaxInvoice;
 use App\Models\StoreHouse;
 use App\Models\ProductDetails;
+use Carbon\Carbon;
 use App\Models\PermissionSource;
 use App\Models\WarehousePermitsProducts;
 use App\Models\WarehousePermits;
 use App\Models\DefaultWarehouses;
 use Illuminate\Http\Request;
+use App\Mail\CreditNotificationLinkMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
+use function Ramsey\Uuid\v1;
 
 class CreditNotificationController extends Controller
 {
@@ -57,29 +61,18 @@ class CreditNotificationController extends Controller
         }
 
         if ($request->filled('total_from')) {
-            $query->where('total', '>=', $request->total_from);
+            $query->where('grand_total', '>', $request->total_from);
         }
         if ($request->filled('total_to')) {
-            $query->where('total', '<=', $request->total_to);
+            $query->where('grand_total', '<', $request->total_to);
         }
 
-        if ($request->filled('date_type_1')) {
-            switch ($request->date_type_1) {
-                case 'monthly':
-                    $query->whereMonth('created_at', now()->month);
-                    break;
-                case 'weekly':
-                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-                    break;
-                case 'daily':
-                    $query->whereDate('created_at', now());
-                    break;
-                default:
-                    if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
-                        $query->whereBetween('created_at', [$request->from_date_1, $request->to_date_1]);
-                    }
-            }
-        }
+        if ($request->filled('from_date_1') && $request->filled('to_date_1')) {
+    $from = Carbon::parse($request->from_date_1)->startOfDay();
+    $to = Carbon::parse($request->to_date_1)->endOfDay();
+
+    $query->whereBetween('created_at', [$from, $to]);
+}
 
         if ($request->filled('date_type_2')) {
             switch ($request->date_type_2) {
@@ -124,12 +117,12 @@ class CreditNotificationController extends Controller
         }
 
         // Paginate the results instead of using get()
-        $credits = $query->orderBy('created_at', 'desc')->paginate(10); // Adjust the number of items per page as needed
+        $credits = $query->orderBy('created_at', 'desc')->get(); // Adjust the number of items per page as needed
 
         // Fetch other required data for the page
         $Credits_number = $this->generateInvoiceNumber();
         $clients = Client::all();
-        $users = User::all();
+        $users = User::whereIn('role', ['employee', 'manager'])->get();
  $account_setting = AccountSetting::where('user_id', auth()->user()->id)->first();
         return view('sales.creted_note.index', compact(
             'credits',
@@ -565,8 +558,9 @@ class CreditNotificationController extends Controller
 
     public function print($id)
     {
-        try {
+        // try {
             $credit = CreditNotification::with(['client', 'createdBy'])->findOrFail($id);
+            $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice','credit')->get();
 
             // تكوين خيارات PDF
             $config = new Options();
@@ -587,6 +581,7 @@ class CreditNotificationController extends Controller
             // تحميل محتوى HTML مع ترميز UTF-8
             $data = [
                 'credit' => $credit,
+                'TaxsInvoice' => $TaxsInvoice,
                 'company_data' => [
                     'company_name' => 'اسم شركتك',
                     'company_address' => 'عنوان الشركة',
@@ -612,12 +607,39 @@ class CreditNotificationController extends Controller
             return $dompdf->stream('credit_note_' . $credit->credit_number . '.pdf', [
                 'Attachment' => false
             ]);
-        } catch (\Exception $e) {
+        // } catch (\Exception $e) {
             return redirect()->back()->with('error', 'حدث خطأ أثناء إنشاء PDF: ' . $e->getMessage());
-        }
+        // }
     }
 
 
+  
+
+public function sendCreditNotification($id)
+{
+    $credit = CreditNotification::with(['client', 'createdBy'])->findOrFail($id);
+
+    // تحقق من وجود بريد إلكتروني صالح
+    if (!$credit->client || !$credit->client->email || !filter_var($credit->client->email, FILTER_VALIDATE_EMAIL)) {
+        return redirect()->back()->with('error', 'هذا العميل لا يحتوي على بريد إلكتروني صالح.');
+    }
+
+    // توليد رابط العرض
+    $url = route('credits.print', $credit->id);
+
+    // إرسال البريد
+    Mail::to($credit->client->email)->send(new CreditNotificationLinkMail($credit, $url));
+
+    return redirect()->back()->with('success', 'تم إرسال رابط إشعار الدائن إلى بريد العميل.');
+}
+
+  public function showPrintable($id)
+  {
+    $credit = CreditNotification::with(['client', 'createdBy'])->findOrFail($id);
+    $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice','credit')->get();
+
+    return view('sales.creted_note.pdf', compact('credit', 'TaxsInvoice'));
+  }
     private function convertNumberToArabicWords($number)
     {
         $digit1 = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
@@ -630,16 +652,5 @@ class CreditNotificationController extends Controller
         return ""; // قم بتنفيذ المنطق المناسب هنا
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -64,32 +64,12 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="d-flex gap-2">
-                        <a href=""
-                        class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
-                        <i class="fas fa-edit me-1"></i> تعديل
-                    </a>
-                    <a href=""
-                    class="btn btn-sm btn-outline-warning d-inline-flex align-items-center">
-                    <i class="fas fa-file-invoice me-1"></i>قسائم
-                </a>
-                        <a href="#" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center">
-                            <i class="far fa-file-alt me-1"></i>  ارسال عبر
-                        </a>
+                        
 
 
-                        <button onclick="printCreditNote()" class="btn btn-sm btn-success d-inline-flex align-items-center">
-                            <i class="fas fa-print me-1"></i> طباعة
-                        </button>
-                        <a href="#" class="btn btn-sm btn-outline-info d-inline-flex align-items-center">
-                            <i class="fas fa-file-invoice me-1"></i> PDF
-                        </a>
+                      
 
-                        <a href="#" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
-                            <i class="far fa-comment-alt me-1"></i> نسخ
-                        </a>
-                        <a href="#" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center">
-                            <i class="far fa-comment-alt me-1"></i> حذف
-                        </a>
+                       
 
 
                     </div>
