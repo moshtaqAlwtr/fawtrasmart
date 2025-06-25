@@ -1420,17 +1420,16 @@ function calculateGrandTotal() {
     <script>
 // دالة للتحقق من العروض وتطبيق الخصومات
 // دالة للتحقق من العروض وتطبيق الخصومات
-console.log('✅ تم تحميل applyOffersToInvoice');
+// console.log('✅ تم تحميل applyOffersToInvoice');
 
 function applyOffersToInvoice() {
     const clientId = parseInt($('#clientSelect').val());
-    if (!clientId) return; // إذا لم يتم اختيار عميل
-    
+    if (!clientId) return;
+
     const today = new Date().toISOString().split('T')[0];
-    
-    // مسح الخصومات السابقة
+
     $('.offer-applied-badge').remove();
-    $('.item-row').each(function() {
+    $('.item-row').each(function () {
         $(this).find('.discount-value').val(0);
     });
 
@@ -1438,39 +1437,61 @@ function applyOffersToInvoice() {
         url: '/clients/offers/active-offers',
         method: 'GET',
         data: { client_id: clientId, date: today },
-        success: function(offers) {
+        success: function (offers) {
             let hasOffers = false;
-            
-            $('.item-row').each(function() {
+
+            $('.item-row').each(function () {
                 const $row = $(this);
                 const productId = parseInt($row.find('.product-select').val());
-                const quantity = parseInt($row.find('.quantity').val()) || 1;
+                const quantity = parseInt($row.find('.quantity').val()) || 0;
                 const price = parseFloat($row.find('.price').val()) || 0;
-                
-                if (!productId) return;
-                
-                // البحث عن المنتج لمعرفة التصنيف
+
+                if (!productId || quantity === 0) return;
+
                 const product = productsData.find(p => p.id === productId);
                 const categoryId = product ? product.category_id : null;
-                
-                offers.forEach(offer => {
-                    if (checkOfferConditions(offer, clientId, productId, categoryId, quantity)) {
-                        applyDiscountToItem($row, offer, price);
-                        hasOffers = true;
-                    }
-                });
+
+               let matchedOffers = [];
+
+offers.forEach(offer => {
+    if (checkOfferConditions(offer, clientId, productId, categoryId, quantity)) {
+        // فقط عروض الكمية (type 2)
+        if (parseInt(offer.type) === 2) {
+            matchedOffers.push(offer);
+        }
+    }
+});
+
+// اختيار أقوى عرض فقط حسب أعلى كمية مؤهلة
+if (matchedOffers.length > 0) {
+    // نرتب العروض حسب الكمية المطلوبة من الأكبر إلى الأصغر
+    matchedOffers.sort((a, b) => parseInt(b.quantity) - parseInt(a.quantity));
+
+    let bestOffer = matchedOffers.find(offer => quantity >= parseInt(offer.quantity));
+
+    if (bestOffer) {
+        applyDiscountToItem($row, bestOffer, price);
+        hasOffers = true;
+    }
+}
+
             });
-            
+
             if (hasOffers) {
                 toastr.success('تم تطبيق العروض التلقائية بنجاح');
-                calculateGrandTotal(); // إعادة حساب المجموع الكلي
             }
+
+            calculateGrandTotal(); // تحديث المجموع دائمًا
         },
-        error: function() {
+        error: function () {
             console.error('فشل في جلب العروض');
         }
     });
 }
+
+
+
+
 // دالة التحقق من شروط العرض (معدلة)
 
 
@@ -1478,53 +1499,63 @@ function applyOffersToInvoice() {
 
 // دالة التحقق من شروط العرض (معدلة)
 function checkOfferConditions(offer, clientId, productId, categoryId, quantity) {
-    // 1. التحقق من العملاء المطبق عليهم العرض
+    // شرط العميل
     if (offer.clients && offer.clients.length > 0) {
         const clientIds = offer.clients.map(c => parseInt(c.id));
         if (!clientIds.includes(clientId)) return false;
     }
-    
-    // 2. التحقق من نوع الوحدة (منتج/تصنيف/كل المنتجات)
+
+    // شرط نوع الوحدة
     switch (parseInt(offer.unit_type)) {
-        case 1: // كل المنتجات
-            break;
-        case 2: // تصنيف معين
-            if (!offer.categories || !offer.categories.some(c => parseInt(c.id) === categoryId)) 
+        case 2:
+            if (!offer.categories || !offer.categories.some(c => parseInt(c.id) === categoryId))
                 return false;
             break;
-        case 3: // منتجات محددة
+        case 3:
             if (!offer.products || !offer.products.some(p => parseInt(p.id) === productId))
                 return false;
             break;
     }
-    
-    // 3. التحقق من الحد الأدنى للكمية إذا كان العرض من النوع الثاني
+
+    // شرط الحد الأدنى للكمية
     if (parseInt(offer.type) === 2 && quantity < parseInt(offer.quantity)) {
         return false;
     }
-    
+
     return true;
 }
 
 
+
 // دالة تطبيق الخصم على العنصر
-function applyDiscountToItem(row, offer, originalPrice) {
+function applyDiscountToItem(row, offer, originalPrice, quantity) {
     const discountInput = row.find('.discount-value');
     const discountTypeSelect = row.find('.discount-type');
-    const currentDiscount = parseFloat(discountInput.val()) || 0;
-    
+
     let newDiscount = 0;
-    if (parseInt(offer.discount_type) === 1) { // مبلغ ثابت
-        newDiscount = parseFloat(offer.discount_value);
-    } else { // نسبة مئوية
-        newDiscount = (originalPrice * parseFloat(offer.discount_value)) / 100;
+
+    if (parseInt(offer.type) === 2) {
+        const offerQty = parseInt(offer.quantity);
+        if (quantity < offerQty) return;
+
+        if (parseInt(offer.discount_type) === 1) {
+            newDiscount = parseFloat(offer.discount_value);
+        } else {
+            newDiscount = (originalPrice * quantity) * (parseFloat(offer.discount_value) / 100);
+        }
+    } else {
+        if (parseInt(offer.discount_type) === 1) {
+            newDiscount = parseFloat(offer.discount_value);
+        } else {
+            newDiscount = (originalPrice * parseFloat(offer.discount_value)) / 100;
+        }
     }
-    
-    // تطبيق الخصم
-    discountInput.val(currentDiscount + newDiscount);
-    discountTypeSelect.val('amount'); // نوع الخصم مبلغ
-    
-    // إضافة علامة على الخصم التلقائي
+discountInput.val(newDiscount.toFixed(2));
+    // تحديث الحقل
+    discountInput.val(newDiscount.toFixed(2));
+    discountTypeSelect.val('amount');
+
+    // شارة الخصم التلقائي
     if (!row.find('.offer-applied-badge').length) {
         discountInput.after(`
             <span class="badge bg-success offer-applied-badge" 
@@ -1533,11 +1564,29 @@ function applyDiscountToItem(row, offer, originalPrice) {
             </span>
         `);
     }
+
+    // ✅ تحديث المجموع فورًا
+    calculateGrandTotal();
 }
 
-// استدعاء الدالة عند تغيير العميل أو المنتجات أو الكميات
-$(document).on('change', '#clientSelect, .product-select, .quantity', function() {
-    applyOffersToInvoice();
+
+
+
+
+// // استدعاء الدالة عند تغيير العميل أو المنتجات أو الكميات
+// $(document).on('change input keyup', '#clientSelect, .product-select, .quantity', function() {
+//     setTimeout(() => {
+//         applyOffersToInvoice();
+//     }, 100); // تأخير بسيط يسمح بقراءة القيمة الفعلية من الحقل
+// });
+
+let offerApplyTimer;
+
+$(document).on('input change', '#clientSelect, .product-select, .quantity', function () {
+    clearTimeout(offerApplyTimer);
+    offerApplyTimer = setTimeout(() => {
+        applyOffersToInvoice();
+    }, 200); // تأخير بسيط لتفادي التكرار أثناء الكتابة
 });
 
 // عند تحميل الصفحة
