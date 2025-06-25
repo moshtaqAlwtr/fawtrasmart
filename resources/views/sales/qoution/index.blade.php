@@ -3,7 +3,14 @@
 @section('title')
     ادارة عروض السعر
 @stop
+<style>
+    .table td, .table th {
+    white-space: normal !important;
+    word-break: break-word;
+    vertical-align: middle;
+}
 
+</style>
 @section('content')
     <div class="content-header row">
         <div class="content-header-left col-md-9 col-12 mb-2">
@@ -24,6 +31,8 @@
             </div>
         </div>
     </div>
+   
+
     @if (session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -271,142 +280,162 @@
             </div>
         </div>
         <div class="card">
+    <div class="table-responsive">
+        <table id="testTable" class="table table-hover nowrap text-center align-middle" style="width:100%">
+    <thead class="bg-light" style="background-color: #BABFC7 !important;">
+        <tr class="bg-gradient-light text-center">
+            <th style="min-width: 60px;">#</th>
+            <th style="min-width: 150px;">العميل</th>
+            <th style="min-width: 120px;">الرقم الضريبي</th>
+            <th style="min-width: 200px;">العنوان</th>
+            <th style="min-width: 150px;">تاريخ العرض</th>
+            <th style="min-width: 120px;">المبلغ</th>
+            <th style="min-width: 100px;">الحالة</th>
+            <th style="min-width: 120px;">بواسطة</th>
+            <th style="min-width: 80px;">الخيارات</th>
+        
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($quotes as $quote)
+                    @php
+                        $currency = $account_setting->currency ?? 'SAR';
+                        $currencySymbol = $currency == 'SAR' || empty($currency)
+                            ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">'
+                            : $currency;
 
-
-            <!-- قائمة الفواتير -->
-            @foreach ($quotes as $quote)
-                <div class="card-body">
-                    <div class="row border-bottom py-2 align-items-center">
-                        <!-- معلومات الفاتورة -->
-                        <div class="col-md-4">
-                            <p class="mb-0">
-                                <strong>#{{ $quote->id }}</strong>
-                            </p>
-                            <small class="text-muted">
-                                <i class="fas fa-user me-1"></i>
-                                {{ $quote->client ? ($quote->client->trade_name ?: $quote->client->first_name . ' ' . $quote->client->last_name) : 'عميل غير معروف' }}
-
-                                الرقم الضريبي
-                                @if ($quote->client && $quote->client->tax_number)
-                                    <i class="fas fa- me-1"></i>{{ $quote->client->tax_number }}
-                                @endif
-                            </small>
-                            <small class="d-block">
-                                @if ($quote->client && $quote->client->full_address)
-                                    <i class="fas fa-map-marker-alt me-1"></i>{{ $quote->client->full_address }}
-                                @endif
-                            </small>
-                            <small class="text-muted">
-                                <i class="fas fa-user-tie me-1"></i> بواسطة:
-                                {{ $quote->creator->name ?? 'غير محدد' }}
-                            </small>
-                           
-                        </div>
-
-                        <!-- تاريخ الفاتورة -->
-                        <div class="col-md-3">
-                            <p class="mb-0">
-                                <i class="fas fa-calendar-alt me-1"></i>
-                                {{ $quote->created_at ? $quote->created_at->format('H:i:s d/m/Y') : '' }}
-                            </p>
-                            <small class="text-muted">
-                                <i class="fas fa-user me-1"></i> بواسطة:
-                                {{ $quote->creator->name ?? 'غير محدد' }}
-                            </small>
-                        </div>
-
-                        <!-- المبلغ وحالة الدفع -->
-                        <div class="col-md-3 text-center">
-                             @php
-                                            $currency = $account_setting->currency ?? 'SAR';
-                                            $currencySymbol = $currency == 'SAR' || empty($currency) ? '<img src="' . asset('assets/images/Saudi_Riyal.svg') . '" alt="ريال سعودي" width="15" style="vertical-align: middle;">' : $currency;
-                                        @endphp
-                            <!-- عرض المبلغ الإجمالي -->
-                            <div class="mb-2">
-                                <strong class="text-danger fs-2 d-block">
-                                    {{ number_format($quote->grand_total ?? $quote->total, 2) }}
-                                    <small class="currency">{!! $currencySymbol !!}</small>
-                                </strong>
-
-                                <!-- عرض حالة الدفع مع تغيير اللون بناءً على الحالة -->
-                                @php
-                                    $statusClass = '';
-                                    $statusText = '';
-
-                                    if ($quote->status == 1) {
-                                        $statusClass = 'bg-success';
-                                        $statusText = 'مفتوح';
-                                    } else {
-                                        $statusClass = 'bg-info';
-                                        $statusText = 'مغلق ';
-                                    }
-                                @endphp
-
-                                <!-- عرض حالة الدفع -->
-                                <span class="badge {{ $statusClass }} d-inline-block mt-2 p-1 rounded small"
-                                    style="font-size: 0.8rem;">
-                                    <i class="fas fa-circle me-1"></i> {{ $statusText }}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- الأزرار -->
-                        <div class="col-md-2 text-end">
-                            <div class="btn-group">
-                                <div class="dropdown">
-                                    <button class="btn bg-gradient-info fa fa-ellipsis-v mr-1 mb-1" type="button"
-                                        id="dropdownMenuButton{{ $quote->id }}" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">
-                                    </button>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $quote->id }}">
-                                        {{-- <a class="dropdown-item" href="{{ route('questions.edit', $quote->id) }}">
-                                            <i class="fa fa-edit me-2 text-success"></i>تعديل
-                                        </a> --}}
-                                        <a class="dropdown-item" href="{{ route('questions.show', $quote->id) }}">
-                                            <i class="fa fa-eye me-2 text-primary"></i>عرض
-                                        </a>
-                                        {{-- <a class="dropdown-item"
-                                            href="{{ route('questions.create', ['id' => $quote->id]) }}">
-                                            <i class="fa fa-money-bill me-2 text-success"></i>إضافة دفعة
-                                        </a> --}}
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
-                                        </a>
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-print me-2 text-dark"></i>طباعة
-                                        </a>
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
-                                        </a>
-
-                                        <a class="dropdown-item" href="">
-                                            <i class="fa fa-copy me-2 text-secondary"></i>نسخ
-                                        </a>
-                                        <form action="{{ route('questions.destroy', $quote->id) }}" method="POST"
-                                            class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="dropdown-item text-danger">
-                                                <i class="fa fa-trash me-2"></i>حذف
-                                            </button>
-                                        </form>
-                                    </div>
+                        $statusClass = $quote->status == 1 ? 'badge bg-success' : 'badge bg-info';
+                        $statusText = $quote->status == 1 ? 'مفتوح' : 'مغلق';
+                    @endphp
+                    <tr>
+                        <td><strong>#{{ $quote->id }}</strong></td>
+                        <td>
+                            {{ $quote->client ? ($quote->client->trade_name ?: $quote->client->first_name . ' ' . $quote->client->last_name) : 'عميل غير معروف' }}
+                        </td>
+                        <td>
+                            {{ $quote->client->tax_number ?? '-' }}
+                        </td>
+                        <td>
+                            {{ $quote->client->full_address ?? '-' }}
+                        </td>
+                        <td>
+                            {{ $quote->created_at ? $quote->created_at->format('H:i:s d/m/Y') : '-' }}
+                        </td>
+                        <td>
+                            <strong class="text-danger fs-6">
+                                {{ number_format($quote->grand_total ?? $quote->total, 2) }}
+                                {!! $currencySymbol !!}
+                            </strong>
+                        </td>
+                        <td>
+                            <span class="{{ $statusClass }}">
+                                <i class="fas fa-circle me-1"></i> {{ $statusText }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ $quote->creator->name ?? 'غير محدد' }}
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn bg-gradient-info fa fa-ellipsis-v" type="button"
+                                    id="dropdownMenuButton{{ $quote->id }}" data-toggle="dropdown"
+                                    aria-haspopup="true" aria-expanded="false">
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ $quote->id }}">
+                                    <a class="dropdown-item" href="{{ route('questions.show', $quote->id) }}">
+                                        <i class="fa fa-eye me-2 text-primary"></i>عرض
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('quotes.pdf', $quote->id) }}">
+                                        <i class="fa fa-file-pdf me-2 text-danger"></i>PDF
+                                    </a>
+                                    <a class="dropdown-item" href="{{ route('questions.email', $quote->id) }}">
+                                        <i class="fa fa-envelope me-2 text-warning"></i>إرسال إلى العميل
+                                    </a>
+                                    <form action="{{ route('questions.destroy', $quote->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="fa fa-trash me-2"></i>حذف
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-            <!-- إذا لم تكن هناك فواتير -->
-            @if ($quotes->isEmpty())
-                <div class="alert alert-warning" role="alert">
-                    <p class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>لا توجد عروض اسعار </p>
-                </div>
-            @endif
-        </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="9">
+                            <div class="alert alert-warning m-0">
+                                <i class="fas fa-exclamation-circle me-2"></i> لا توجد عروض أسعار
+                            </div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
     </div>
 @endsection
 @section('scripts')
-<script src="{{ asset('assets/js/search.js') }}"></script>
+
+
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+    <script src="{{ asset('assets/js/search.js') }}"></script>
+    <script></script>
+
+<!-- jQuery و DataTables -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- DataTables الأساسية -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<!-- أزرار التصدير -->
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+
+<!-- تعريب -->
+<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#testTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/ar.json'
+            },
+            // dom: 'Bfrtip',
+            // buttons: [
+            //     {
+            //         extend: 'excel',
+            //         text: 'تصدير إلى Excel',
+            //         className: 'btn btn-success btn-sm'
+            //     },
+            //     {
+            //         extend: 'print',
+            //         text: 'طباعة',
+            //         className: 'btn btn-warning btn-sm'
+            //     },
+            //     {
+            //         extend: 'copy',
+            //         text: 'نسخ',
+            //         className: 'btn btn-info btn-sm'
+            //     }
+            // ]
+        });
+    });
+</script>
+
+
+
 @endsection

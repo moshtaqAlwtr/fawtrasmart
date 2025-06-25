@@ -23,7 +23,10 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use Barryvdh\DomPDF\Facade\Pdf;
 use ArPHP\I18N\Arabic;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TestMail;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\QuoteViewMail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -410,8 +413,9 @@ foreach ($items_data as $item) {
 // }
 public function downloadPdf($id)
 {
-    $invoice = Invoice::with(['client', 'items', 'createdByUser'])->findOrFail($id);
-    $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
+   
+    
+    $quote = Quote::with(['client', 'employee', 'items'])->find($id);
     $TaxsInvoice = TaxInvoice::where('invoice_id', $id)->where('type_invoice', 'quote')->get();
     // إنشاء بيانات QR Code
     $qrData = 'رقم الفاتورة: ' . $quote->id . "\n";
@@ -485,8 +489,29 @@ $qrCodeUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=".$q
     $pdf->writeHTML($html, true, false, true, false, '');
 
     // Output file
-    return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
+    // return $pdf->Output('invoice-' . $invoice->code . '.pdf', 'I');
+    return $pdf->Output('quote-' . $quote->id . '.pdf', 'I');
+
 }
+
+
+
+public function sendQuoteLink($id)
+{
+    $quote = Quote::with('client')->findOrFail($id);
+
+    if (!$quote->client || !$quote->client->email || !filter_var($quote->client->email, FILTER_VALIDATE_EMAIL)) {
+        return redirect()->back()->with('error', 'هذا العميل لا يملك  بريد إلكتروني صالح.');
+    }
+
+    // إنشاء الرابط بناءً على اسم الـ Route
+    $viewUrl = route('questions.print', $quote->id);
+
+    Mail::to($quote->client->email)->send(new QuoteViewMail($quote, $viewUrl));
+
+    return redirect()->back()->with('success', 'تم إرسال رابط عرض السعر إلى بريد العميل.');
+}
+
     public function edit($id)
     {
         $quote = Quote::with(['client', 'employee', 'items'])->findOrFail($id);
