@@ -128,7 +128,8 @@ Route::group(
                     Route::get('/create/{id}', [ReturnInvoiceController::class, 'create'])->name('ReturnIInvoices.create');
                     Route::get('/show/{id}', [ReturnInvoiceController::class, 'show'])->name('ReturnIInvoices.show');
                     Route::get('/{id}/print', [ReturnInvoiceController::class, 'print'])->name('return.print');
-                    Route::get('/edit/{id}', [ReturnInvoiceController::class, 'edit_brand'])->name('ReturnIInvoices.edit');
+                    Route::get('return-invoice/{id}/send-email', [ReturnInvoiceController::class, 'sendReturnInvoiceEmail'])->name('return.sendEmail');
+                    Route::get('/edit/{id}', [ReturnInvoiceController::class, 'edit'])->name('ReturnIInvoices.edit');
                     Route::post('/store', [ReturnInvoiceController::class, 'store'])->name('ReturnIInvoices.store');
                     Route::put('/update/{id}', [ReturnInvoiceController::class, 'update'])->name('ReturnIInvoices.update');
                     Route::delete('/destroy/{id}', [ReturnInvoiceController::class, 'destroy'])->name('ReturnIInvoices.destroy');
