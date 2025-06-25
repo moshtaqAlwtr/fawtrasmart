@@ -4,7 +4,8 @@
 
 @section('content')
     <div class="container mt-4">
-        <form onsubmit="return validateAttachments()" id="clientForm" action="{{ route('clients.addnotes') }}" method="POST" enctype="multipart/form-data">
+        <form onsubmit="return validateAttachments()" id="clientForm" action="{{ route('clients.addnotes') }}" method="POST"
+            enctype="multipart/form-data">
             @csrf
             <input type="hidden" name="current_latitude" id="current_latitude">
             <input type="hidden" name="current_longitude" id="current_longitude">
@@ -62,7 +63,8 @@
                         <!-- عدد العهدة -->
                         <div class="form-group col-md-4">
                             <label for="deposit_count" class="form-label">عدد العهدة الموجودة</label>
-                            <input type="number" class="form-control" id="deposit_count" name="deposit_count" min="0" required>
+                            <input type="number" class="form-control" id="deposit_count" name="deposit_count"
+                                min="0" required>
                         </div>
 
                         <!-- نوع الموقع -->
@@ -81,7 +83,8 @@
                         <!-- عدد استندات المنافسين -->
                         <div class="form-group col-md-4">
                             <label for="competitor_documents" class="form-label">عدد استندات المنافسين</label>
-                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents" min="0" required>
+                            <input type="number" class="form-control" id="competitor_documents" name="competitor_documents"
+                                min="0" required>
                         </div>
                     </div>
 
@@ -287,48 +290,48 @@
             });
         });
     </script>
-<script>
-    function previewSelectedFiles() {
-        const input = document.getElementById('attachments');
-        const preview = document.getElementById('selected-files');
-        preview.innerHTML = '';
+    <script>
+        function previewSelectedFiles() {
+            const input = document.getElementById('attachments');
+            const preview = document.getElementById('selected-files');
+            preview.innerHTML = '';
 
-        if (input.files.length > 0) {
-            const list = document.createElement('ul');
-            list.classList.add('list-unstyled', 'mb-0');
+            if (input.files.length > 0) {
+                const list = document.createElement('ul');
+                list.classList.add('list-unstyled', 'mb-0');
 
-            Array.from(input.files).forEach(file => {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i> ${file.name}`;
-                list.appendChild(listItem);
-            });
+                Array.from(input.files).forEach(file => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<i class="fas fa-check-circle text-success me-1"></i> ${file.name}`;
+                    list.appendChild(listItem);
+                });
 
-            preview.appendChild(list);
+                preview.appendChild(list);
+            }
         }
-    }
-</script>
-<script>
-function validateAttachments() {
-    const files = document.getElementById('attachments').files;
-    if (files.length === 0) {
-        alert('يرجى إرفاق ملف واحد على الأقل قبل إرسال النموذج.');
-        return false; // يمنع الإرسال
-    }
-    return true; // يسمح بالإرسال
-}
+    </script>
+    <script>
+        function validateAttachments() {
+            const files = document.getElementById('attachments').files;
+            if (files.length === 0) {
+                alert('يرجى إرفاق ملف واحد على الأقل قبل إرسال النموذج.');
+                return false; // يمنع الإرسال
+            }
+            return true; // يسمح بالإرسال
+        }
 
-function previewSelectedFiles() {
-    const input = document.getElementById('attachments');
-    const preview = document.getElementById('selected-files');
-    preview.innerHTML = '';
-    for (const file of input.files) {
-        const fileDiv = document.createElement('div');
-        fileDiv.textContent = file.name;
-        fileDiv.classList.add('border', 'p-2', 'rounded', 'mb-2', 'bg-white');
-        preview.appendChild(fileDiv);
-    }
-}
-</script>
+        function previewSelectedFiles() {
+            const input = document.getElementById('attachments');
+            const preview = document.getElementById('selected-files');
+            preview.innerHTML = '';
+            for (const file of input.files) {
+                const fileDiv = document.createElement('div');
+                fileDiv.textContent = file.name;
+                fileDiv.classList.add('border', 'p-2', 'rounded', 'mb-2', 'bg-white');
+                preview.appendChild(fileDiv);
+            }
+        }
+    </script>
 
 
 @endsection
