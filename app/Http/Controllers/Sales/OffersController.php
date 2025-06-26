@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Client;
 use App\Models\Offer;
 use App\Models\Product;
+use App\Models\GiftOffer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use DB;
@@ -16,7 +17,8 @@ class OffersController extends Controller
     public function index()
     {
         $offers = Offer::all();
-        return view('sales.sitting.offers.index', compact('offers'));
+        $gift_offers  = GiftOffer::all();
+        return view('sales.sitting.offers.index', compact('offers','gift_offers'));
     }
 
     public function create()

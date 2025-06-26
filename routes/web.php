@@ -22,6 +22,7 @@ use App\Http\Controllers\Commission\CommissionController;
 use App\Http\Controllers\EmployeeTargetController;
 use App\Http\Controllers\Logs\LogController;
 use App\Http\Controllers\Sales\OffersController;
+use App\Http\Controllers\Sales\GiftOfferController;
 use App\Http\Controllers\Sales\PaymentClientController;
 use App\Http\Controllers\Sales\PaymentProcessController;
 use App\Http\Controllers\Sales\ReturnInvoiceController;
@@ -34,7 +35,6 @@ use Illuminate\Support\Facades\Http;
 
 Route::get('/test/send', [ClientSettingController::class, 'test'])->name('clients.test_send');
 Route::get('/print/questions/{id}', [QuoteController::class, 'print'])->name('questions.print');
-Route::get('/send/creditnotification/{id}', [CreditNotificationController::class, 'sendCreditNotification'])->name('CreditNotes.send');
 Route::get('/send-daily-report', [VisitController::class, 'sendDailyReport']);
 Route::get('/send-weekly-report', [VisitController::class, 'sendWeeklyReport']);
 Route::get('/send-monthly-report', [VisitController::class, 'sendMonthlyReport']);
@@ -93,7 +93,6 @@ Route::group(
                     ->middleware(['auth'])
                     ->group(function () {
                         Route::get('/index', [InvoicesController::class, 'index'])->name('invoices.index');
-                         Route::get('/ajax/invoices', [InvoicesController::class, 'ajaxInvoices'])->name('invoices.ajax');
                         Route::get('/create', [InvoicesController::class, 'create'])->name('invoices.create');
                         Route::post('/verify/code', [InvoicesController::class, 'verify_code'])->name('invoice.verify_code');
                         Route::get('/get-client/{id}', function ($id) {
@@ -102,7 +101,6 @@ Route::group(
                         });
 
                         Route::post('/send/verification', [InvoicesController::class, 'sendVerificationCode']);
-                         Route::get('/send/invoice/{id}', [InvoicesController::class, 'send_invoice'])->name('invoices.send');
                         Route::post('/verify-code', [InvoicesController::class, 'verifyCode']);
                         Route::get('/invoices/{id}/label', [InvoicesController::class, 'label'])->name('invoices.label');
                         Route::get('/invoices/{id}/picklist', [InvoicesController::class, 'picklist'])->name('invoices.picklist');
@@ -128,8 +126,7 @@ Route::group(
                     Route::get('/create/{id}', [ReturnInvoiceController::class, 'create'])->name('ReturnIInvoices.create');
                     Route::get('/show/{id}', [ReturnInvoiceController::class, 'show'])->name('ReturnIInvoices.show');
                     Route::get('/{id}/print', [ReturnInvoiceController::class, 'print'])->name('return.print');
-                    Route::get('return-invoice/{id}/send-email', [ReturnInvoiceController::class, 'sendReturnInvoiceEmail'])->name('return.sendEmail');
-                    Route::get('/edit/{id}', [ReturnInvoiceController::class, 'edit'])->name('ReturnIInvoices.edit');
+                    Route::get('/edit/{id}', [ReturnInvoiceController::class, 'edit_brand'])->name('ReturnIInvoices.edit');
                     Route::post('/store', [ReturnInvoiceController::class, 'store'])->name('ReturnIInvoices.store');
                     Route::put('/update/{id}', [ReturnInvoiceController::class, 'update'])->name('ReturnIInvoices.update');
                     Route::delete('/destroy/{id}', [ReturnInvoiceController::class, 'destroy'])->name('ReturnIInvoices.destroy');
@@ -147,8 +144,6 @@ Route::group(
 
                 Route::prefix('CreditNotes')->group(function () {
                     Route::get('/index', [CreditNotificationController::class, 'index'])->name('CreditNotes.index');
-                  
-                    Route::get('/print/credit/{id}', [CreditNotificationController::class, 'showPrintable'])->name('credits.print');
                     Route::get('/create', [CreditNotificationController::class, 'create'])->name('CreditNotes.create');
                     Route::get('/show/{id}', [CreditNotificationController::class, 'show'])->name('CreditNotes.show');
                     Route::get('/edit/{id}', [CreditNotificationController::class, 'edit'])->name('CreditNotes.edit');
@@ -161,7 +156,7 @@ Route::group(
                 #questions routes
                 Route::prefix('questions')->group(function () {
                     Route::get('/index', [QuoteController::class, 'index'])->name('questions.index');
-                    Route::get('/send/question/{id}', [QuoteController::class, 'sendQuoteLink'])->name('questions.email');
+
                     Route::get('/create', [QuoteController::class, 'create'])->name('questions.create');
                     Route::get('/show/{id}', [QuoteController::class, 'show'])->name('questions.show');
                     Route::get('/edit/{id}', [QuoteController::class, 'edit'])->name('questions.edit');
@@ -193,6 +188,7 @@ Route::group(
 
                     // جلب تفاصيل الموعد الكاملة
                     Route::get('/appointments/{id}/full-details', [AppointmentController::class, 'getFullAppointmentDetails'])->name('appointments.full-details');
+                    Route::get('/appointments/calendar', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
                     Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.update-status');
                 });
 
@@ -266,6 +262,8 @@ Route::group(
 
                     Route::get('/create', [ClientController::class, 'create'])->name('clients.create');
                     Route::post('/clients/import', [ClientController::class, 'import'])->name('clients.import');
+                    Route::get('/visits/reportall', [VisitController::class, 'reportall'])->name('visits.reportall');
+                    Route::get('/itinerary', [VisitController::class, 'showItineraryPlanner'])->name('itinerary.planner');
                     Route::get('/mang_client', [ClientController::class, 'mang_client'])->name('clients.mang_client');
                     Route::post('/mang_client', [ClientController::class, 'mang_client_store'])->name('clients.mang_client_store');
 
@@ -291,7 +289,7 @@ Route::group(
                     Route::get('/show-contant/{id}', [ClientController::class, 'show_contant'])->name('clients.show_contant');
                     // مسار تصدير العملاء إلى Excel
                     Route::get('/export', [ClientController::class, 'export'])->name('clients.export');
-                    
+
                     Route::get('/clients/search', function (Request $request) {
                         $query = $request->query('query');
 
@@ -403,6 +401,17 @@ Route::group(
                     Route::post('/updateStatus/{id}', [OffersController::class, 'updateStatus'])->name('Offers.updateStatus');
                 });
 
+                Route::prefix('gift')->group(function () {
+                    Route::get('/', [GiftOfferController::class, 'index'])->name('gift-offers.index');
+                    Route::get('/create', [GiftOfferController::class, 'create'])->name('gift-offers.create');
+                    Route::post('/create', [GiftOfferController::class, 'store'])->name('gift_offers.store');
+                    Route::get('/edit/{giftOffer}', [GiftOfferController::class, 'edit'])->name('gift-offers.edit');
+                    Route::put('/update/{giftOffer}', [GiftOfferController::class, 'update'])->name('gift_offers.update');
+
+
+                    Route::get('/show/{id}', [GiftOfferController::class, 'show'])->name('gift-offers.show');
+                    Route::delete('/destroy/{id}', [GiftOfferController::class, 'destroy'])->name('gift-offers.destroy');
+                });
                 Route::prefix('shippingOptions')->group(function () {
                     Route::get('/index', [ShippingOptionsController::class, 'index'])->name('shippingOptions.index');
                     Route::get('/create', [ShippingOptionsController::class, 'create'])->name('shippingOptions.create');

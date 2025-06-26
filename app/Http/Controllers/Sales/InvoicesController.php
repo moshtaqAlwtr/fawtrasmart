@@ -59,6 +59,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TestMail;
 use App\Mail\InvoicePdfMail;
+use App\Models\GiftOffer;
 use App\Models\Offer;
 
 class InvoicesController extends Controller
@@ -723,32 +724,8 @@ public function notifications(Request $request)
     {
         try {
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
-            // $code = $request->code;
-            // $client = Client::findOrFail($request->client_id);
-            // $clientLocation = $client->locations()->latest()->first();
-
-            // if (!$clientLocation) {
-            //     return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - العميل ليس لديه موقع مسجل');
-            // }
-
-            // الحصول على موقع الموظف الحالي
-            // $employeeLocation = Location::where('employee_id', auth()->id())->latest()->first();
-
-            // if (!$employeeLocation) {
-            //     return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - لم يتم تحديد موقعك الحالي');
-            // }
-
-            // // حساب المسافة بين الموظف والعميل
-            // $distance = $this->calculateDistance(
-            //     $clientLocation->latitude,
-            //     $clientLocation->longitude,
-            //     $employeeLocation->latitude,
-            //     $employeeLocation->longitude
-            // );
-
-            // if ($distance > 100) {
-            //     return redirect()->back()->withInput()->with('error', 'لا يمكن إنشاء فاتورة - يجب أن تكون ضمن نطاق 100 متر من العميل');
-            // }
+        
+           
 
             // ** الخطوة الأولى: إنشاء كود للفاتورة **
             $code = $request->code;
@@ -881,6 +858,55 @@ public function notifications(Request $request)
                     ];
                 }
             }
+            // ✅ استخراج عروض الهدايا
+// ✅ استخراج عروض الهدايا
+$giftOffers = GiftOffer::where(function($q) use ($request) {
+        $q->where('is_for_all_clients', true)
+          ->orWhereHas('clients', function($q2) use ($request) {
+              $q2->where('client_id', $request->client_id);
+          });
+    })
+    ->whereDate('start_date', '<=', now())
+    ->whereDate('end_date', '>=', now())
+    ->get();
+
+// ✅ فحص كل بند مقابل العروض
+foreach ($request->items as $item) {
+    $productId = $item['product_id'];
+    $quantity = $item['quantity'];
+    $unit_price = floatval($item['unit_price']);
+
+    // 🔍 الحصول على العروض المطابقة لهذا المنتج والكمية
+    $validOffers = $giftOffers->filter(function ($offer) use ($productId, $quantity) {
+        $matchesTarget = !$offer->target_product_id || $offer->target_product_id == $productId;
+        return $matchesTarget && $quantity >= $offer->min_quantity;
+    });
+
+    // ✅ اختيار أفضل عرض (أعلى عدد هدايا)
+    $bestOffer = $validOffers->sortByDesc('gift_quantity')->first();
+
+    if ($bestOffer) {
+        $giftProduct = Product::find($bestOffer->gift_product_id);
+        if (!$giftProduct) continue;
+
+        $items_data[] = [
+            'invoice_id' => null,
+            'product_id' => $giftProduct->id,
+            'store_house_id' => $store_house_id,
+            'item' => $giftProduct->name . ' (هدية)',
+            'description' => 'هدية عرض عند شراء ' . $quantity . ' من المنتج',
+            'quantity' => $bestOffer->gift_quantity,
+            'unit_price' => 0,
+            'discount' => 0,
+            'discount_type' => 1,
+            'tax_1' => 0,
+            'tax_2' => 0,
+            'total' => 0,
+        ];
+    }
+}
+
+
 
             // ** الخطوة الثالثة: حساب الخصم الإضافي للفاتورة ككل **
             $invoice_discount = 0;
